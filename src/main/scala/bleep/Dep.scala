@@ -102,8 +102,12 @@ object Dep {
     override def version: String = dep.version
   }
 
-  def parse(str: String): Either[String, Dep] =
-    str.split(":::") match {
+  def parse(_str: String): Either[String, Dep] = {
+    val splitFlags = _str.split(",")
+    val flags = splitFlags.drop(1).toSet
+
+    val str = splitFlags(0)
+    val dep = str.split(":::") match {
       case Array(org, rest) =>
         rest.split(":") match {
           case Array(name, version) => Right(Dep.Java(org, name, version))
@@ -123,6 +127,10 @@ object Dep {
             }
         }
     }
+
+    if (flags("for3use213")) dep.map(Dep.For3Use2_13.apply)
+    else dep
+  }
 
   implicit def decodes: Decoder[Dep] =
     Decoder.instance(c =>

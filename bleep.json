@@ -1,7 +1,7 @@
 {
   "version": "1",
   "scala": {
-    "version": "2.13.6"
+    "version": "3.0.1"
   },
   "projects": {
     "bleep": {
@@ -10,8 +10,8 @@
         "io.circe::circe-core:0.14.1",
         "io.circe::circe-parser:0.14.1",
         "io.circe::circe-generic:0.14.1",
-        "ch.epfl.scala::bloop-config:1.4.9",
-        "io.get-coursier::coursier:2.0.16"
+        "ch.epfl.scala::bloop-config:1.4.9,for3use213",
+        "io.get-coursier::coursier:2.0.16,for3use213"
       ]
     },
     "bleep-test": {
