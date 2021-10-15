@@ -5,11 +5,10 @@ package object bleep {
     def /(relPath: RelPath): Path =
       relPath.segments.foldLeft(path)(_.resolve(_))
 
-    def /(str: String): Path = {
+    def /(str: String): Path =
       RelPath(str) match {
-        case Left(err) => sys.error(err)
+        case Left(err)      => sys.error(err)
         case Right(relPath) => path / relPath
       }
-    }
   }
 }

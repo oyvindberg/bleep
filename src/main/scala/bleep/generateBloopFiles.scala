@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.Lazy
 import bleep.model.ProjectName
-import bloop.config.{PlatformFiles, Config => b}
+import bloop.config.{Config => b, PlatformFiles}
 import coursier.core.Configuration
 import coursier.{Classifier, Dependency}
 
