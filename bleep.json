@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "scala": {
+    "version": "2.13.6"
+  },
+  "projects": {
+    "bleep": {
+      "folder": ".",
+      "dependencies": [
+        "io.circe::circe-core:0.14.1",
+        "io.circe::circe-parser:0.14.1",
+        "io.circe::circe-generic:0.14.1",
+        "ch.epfl.scala::bloop-config:1.4.9",
+        "io.get-coursier::coursier:2.0.16"
+      ]
+    },
+    "bleep-test": {
+      "folder": ".",
+      "dependencies": "org.scalatest::scalatest:3.2.10",
+      "dependsOn": "bleep"
+    }
+  }
+}

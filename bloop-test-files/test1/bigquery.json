@@ -1,0 +1,234 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "bigquery",
+    "directory": "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery",
+    "workspaceDir": "<HOME>/pr/bleep/bloop-test-files/test1",
+    "sources": [
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala-2.12",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala-2",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/java",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/scala-2.12/src_managed/main"
+    ],
+    "dependencies": [
+      "common"
+    ],
+    "classpath": [
+      "<HOME>/pr/bleep/bloop-test-files/test1/.bloop/common/scala-2.12/classes",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.12.3/circe-core_2.12-0.12.3.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.12.3/circe-core_2.12-0.12.3-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0-sources.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.12.3/circe-generic_2.12-0.12.3.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.12.3/circe-generic_2.12-0.12.3-sources.jar"
+    ],
+    "out": "<HOME>/pr/bleep/bloop-test-files/test1/.bloop/bigquery",
+    "classesDir": "<HOME>/pr/bleep/bloop-test-files/test1/.bloop/bigquery/scala-2.12/classes",
+    "resources": [
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/resources",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/scala-2.12/resource_managed/main"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.6",
+      "options": [
+        
+      ],
+      "jars": [
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.6/scala-compiler-2.12.6.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.6/scala-library-2.12.6.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.6/scala-reflect-2.12.6.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.6/scala-compiler-2.12.6-sources.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.6/scala-library-2.12.6-sources.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.6/scala-reflect-2.12.6-sources.jar",
+        "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6-sources.jar"
+      ],
+      "analysis": "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/streams/compile/bloopAnalysisOut/_global/streams/inc_compile_2.12.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar"
+            },
+            {
+              "name": "shapeless_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "macro-compat_2.12",
+          "version": "1.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "macro-compat_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar"
+            },
+            {
+              "name": "macro-compat_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.12",
+          "version": "0.12.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-core_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.12.3/circe-core_2.12-0.12.3.jar"
+            },
+            {
+              "name": "circe-core_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.12.3/circe-core_2.12-0.12.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.12.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3.jar"
+            },
+            {
+              "name": "circe-numbers_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.12",
+          "version": "2.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0.jar"
+            },
+            {
+              "name": "cats-core_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0.jar"
+            },
+            {
+              "name": "cats-kernel_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-macros_2.12",
+          "version": "2.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-macros_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0.jar"
+            },
+            {
+              "name": "cats-macros_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.12.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.12.3/circe-generic_2.12-0.12.3.jar"
+            },
+            {
+              "name": "circe-generic_2.12",
+              "classifier": "sources",
+              "path": "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.12.3/circe-generic_2.12-0.12.3-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

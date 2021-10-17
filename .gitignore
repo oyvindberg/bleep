@@ -1,0 +1,7 @@
+target
+.idea
+.DS_Store
+*.bloop
+*.metals
+.bsp
+.bloop
