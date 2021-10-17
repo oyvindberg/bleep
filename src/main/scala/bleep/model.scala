@@ -98,21 +98,21 @@ object model {
       }
   }
 
-  sealed abstract class Platform(val name: String, val config: PlatformConfig, val mainClass: Option[String])
+  sealed abstract class Platform(val name: String, val config: Option[PlatformConfig], val mainClass: Option[String])
 
   object Platform {
 
-    case class Js(override val config: JsConfig, override val mainClass: Option[String]) extends Platform("js", config, mainClass)
+    case class Js(override val config: Option[JsConfig], override val mainClass: Option[String]) extends Platform("js", config, mainClass)
 
     case class Jvm(
-        override val config: JvmConfig,
+        override val config: Option[JvmConfig],
         override val mainClass: Option[String],
         runtimeConfig: Option[JvmConfig]
         //        classpath: Option[List[Path]],
         //        resources: Option[List[Path]]
     ) extends Platform("jvm", config, mainClass)
 
-    case class Native(override val config: NativeConfig, override val mainClass: Option[String]) extends Platform("native", config, mainClass)
+    case class Native(override val config: Option[NativeConfig], override val mainClass: Option[String]) extends Platform("native", config, mainClass)
 
     implicit val decodesJs: Decoder[Js] = deriveDecoder[Js]
     implicit val decodesJvm: Decoder[Jvm] = deriveDecoder[Jvm]
@@ -214,10 +214,32 @@ object model {
     implicit val decodes: Decoder[Project] = deriveDecoder
   }
 
+  case class ScriptName(value: String) extends AnyVal
+
+  object ScriptName {
+    implicit val decodes: Decoder[ScriptName] = Decoder[String].map(ScriptName.apply)
+    implicit val keyDecodes: KeyDecoder[ScriptName] = KeyDecoder[String].map(ScriptName.apply)
+  }
+  case class ScriptDef(project: ProjectName, main: String)
+
+  object ScriptDef {
+    implicit def decodes: Decoder[ScriptDef] = Decoder.instance(c =>
+      c.as[String].flatMap { str =>
+        str.split("/") match {
+          case Array(projectName, main) =>
+            Right(ScriptDef(ProjectName(projectName), main))
+          case _ =>
+            Left(DecodingFailure(s"$str needs to be on the form projectName/fully.qualified.Main", c.history))
+        }
+      }
+    )
+  }
+
   case class File(
       version: String,
       scala: Option[Scala],
       java: Option[Java],
+      scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
       projects: Map[ProjectName, Project]
   )
 

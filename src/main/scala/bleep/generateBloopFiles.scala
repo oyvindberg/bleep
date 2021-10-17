@@ -1,8 +1,8 @@
 package bleep
 
 import bleep.internal.Lazy
-import bleep.model.ProjectName
-import bloop.config.{Config => b, PlatformFiles}
+import bleep.model.{Platform, ProjectName}
+import bloop.config.{Config => b}
 import coursier.core.Configuration
 import coursier.{Classifier, Dependency}
 
@@ -12,6 +12,8 @@ import scala.concurrent.duration.Duration
 
 object generateBloopFiles {
   def apply(file: model.File, workspaceDir: Path, resolver: CoursierResolver): List[b.File] = {
+    verify(file)
+
     lazy val resolvedProjects: Map[ProjectName, Lazy[b.File]] =
       file.projects.map { case (projectName, project) =>
         projectName -> Lazy(
@@ -35,8 +37,19 @@ object generateBloopFiles {
     resolvedProjects.map { case (projectName, resolvedProject) =>
       resolvedProject.get.getOrElse(sys.error(s"Circular dependency detected at ${projectName.value}"))
     }.toList
-
   }
+
+  def verify(file: model.File): Unit =
+    file.scripts match {
+      case None => ()
+      case Some(scripts) =>
+        scripts.foreach { case (scriptName, scriptDefs) =>
+          scriptDefs.values.foreach { scriptDef =>
+            if (file.projects.contains(scriptDef.project)) ()
+            else sys.error(s"script ${scriptName.value} referse nonexisting project ${scriptDef.project.value}")
+          }
+        }
+    }
 
   def translateProject(
       resolver: CoursierResolver,
@@ -135,7 +148,7 @@ object generateBloopFiles {
     val resolvedScalaCompiler: List[java.nio.file.Path] =
       Await.result(resolver(List(scalaCompiler.asCoursier)), Duration.Inf).files.toList.map(_.toPath)
 
-    val classPath: List[PlatformFiles.Path] = {
+    val classPath: List[Path] = {
       allTransitiveBloop.values.map(_.project.classesDir).toList ++
         resolution.modules.flatMap(_.artifacts).map(_.path)
     }
@@ -200,7 +213,20 @@ object generateBloopFiles {
         ),
         sbt = None,
         test = if (isTest) Some(b.Test.defaultConfiguration) else None,
-        platform = None,
+        // platform is mostly todo:
+        platform = p.platform.flatMap {
+          case Platform.Jvm(config, mainClass, runtimeConfig) =>
+            Some(
+              b.Platform.Jvm(
+                config = b.JvmConfig.empty,
+                mainClass = mainClass,
+                runtimeConfig = None,
+                classpath = None,
+                resources = None
+              )
+            )
+          case _ => None
+        },
         resolution = Some(resolution),
         tags = None
       )

@@ -1,7 +1,10 @@
 {
   "version": "1",
   "scala": {
-    "version": "3.0.1"
+    "version": "2.13.6"
+  },
+  "scripts": {
+    "native-image": "infrastructure/bleep.infra.GenNativeImage"
   },
   "projects": {
     "bleep": {
@@ -10,14 +13,28 @@
         "io.circe::circe-core:0.14.1",
         "io.circe::circe-parser:0.14.1",
         "io.circe::circe-generic:0.14.1",
-        "ch.epfl.scala::bloop-config:1.4.9,for3use213",
-        "io.get-coursier::coursier:2.0.16,for3use213"
-      ]
+        "ch.epfl.scala::bloop-config:1.4.9",
+        "io.get-coursier::coursier:2.0.16",
+        "org.scalameta:svm-subs:101.0.0"
+      ],
+      "platform": {
+        "name": "jvm",
+        "mainClass": "bleep.Main"
+      }
     },
     "bleep-test": {
       "folder": ".",
       "dependencies": "org.scalatest::scalatest:3.2.10",
       "dependsOn": "bleep"
+    },
+    "infrastructure": {
+      "folder": "infrastructure",
+      "scala": {
+        "version": "2.13.6"
+      },
+      "dependencies": [
+        "ch.epfl.scala::bloop-config:1.4.9"
+      ]
     }
   }
 }

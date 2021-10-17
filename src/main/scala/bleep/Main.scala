@@ -1,17 +1,18 @@
 package bleep
 
-import bloop.config.ConfigCodecs
-import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
+import bleep.internal.Lazy
+import bleep.model.ScriptName
+import bloop.config.{ConfigCodecs, Config => b}
+import com.github.plokhotnyuk.jsoniter_scala
 
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 object Main {
-  val pwd = new File(System.getProperty("user.dir"))
-  val workspaceDir = pwd.toPath
+  val cwd: Path = Paths.get(System.getProperty("user.dir"))
 
   // keep looking up until we find build file
   val buildFile: Path = {
@@ -24,22 +25,28 @@ object Main {
     def search(f: File): Option[File] =
       is(f).orElse(Option(f.getParentFile).flatMap(search))
 
-    search(pwd).getOrElse(sys.error(s"Couldn't find ${Defaults.BuildFileName} from $pwd")).toPath
+    search(cwd.toFile).getOrElse(sys.error(s"Couldn't find ${Defaults.BuildFileName} from $cwd")).toPath
   }
 
-  def ensureBloopFilesUpToDate(parsedProject: model.File): Unit = {
-    val bloopFilesDir = workspaceDir / Defaults.BloopFolder
+  val projectDir = buildFile.getParent
+  val bloopFilesDir = projectDir / Defaults.BloopFolder
+
+  def ensureBloopFilesUpToDate(parsedProject: model.File): Lazy[List[b.File]] = {
     val hashFile = bloopFilesDir / ".digest"
     val currentHash = parsedProject.toString.hashCode().toString // todo: unstable hash
     val oldHash = Try(Files.readString(hashFile, UTF_8)).toOption
+
+    val lazyBloopFiles: Lazy[List[b.File]] = Lazy {
+      val resolver = new CoursierResolver(ExecutionContext.global, downloadSources = true)
+      generateBloopFiles(parsedProject, cwd, resolver)
+    }
+
     if (oldHash.contains(currentHash)) {
       println(s"$bloopFilesDir up to date")
     } else {
-      val resolver = new CoursierResolver(ExecutionContext.global, downloadSources = true)
-      val bloopFiles = generateBloopFiles(parsedProject, workspaceDir, resolver)
-
+      val bloopFiles = lazyBloopFiles.forceGet()
       bloopFiles.foreach { p =>
-        val json = writeToString(p, WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
+        val json = jsoniter_scala.core.writeToString(p, jsoniter_scala.core.WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
         Files.createDirectories(bloopFilesDir)
         val toPath = bloopFilesDir / (p.project.name + ".json")
         Files.writeString(toPath, json, UTF_8)
@@ -47,18 +54,48 @@ object Main {
       Files.writeString(hashFile, currentHash, UTF_8)
       println(s"Wrote ${bloopFiles.size} files to $bloopFilesDir")
     }
+
+    lazyBloopFiles
   }
+
+  def cli(cmd: String): Unit =
+    sys.process.Process(cmd).! match {
+      case 0 => ()
+      case n =>
+        System.err.println(s"FAILED: $cmd")
+        System.exit(n)
+    }
 
   def main(args: Array[String]): Unit = {
     val parsedProject: model.File = parseProjectFile(Files.readString(buildFile))
-    ensureBloopFilesUpToDate(parsedProject)
+    val lazyBloopFiles = ensureBloopFilesUpToDate(parsedProject)
 
-    args match {
-      case Array("compile") =>
-        sys.process.Process(s"bloop compile ${parsedProject.projects.keys.map(_.value).mkString(" ")}").run()
-      case Array("test") =>
-        sys.process.Process(s"bloop test ${parsedProject.projects.keys.map(_.value).mkString(" ")}").run()
-      case Array() =>
+    args.toList match {
+      case List("compile") =>
+        cli(s"bloop compile ${parsedProject.projects.keys.map(_.value).mkString(" ")}")
+      case List("test") =>
+        cli(s"bloop test ${parsedProject.projects.keys.map(_.value).mkString(" ")}")
+      case head :: rest if parsedProject.scripts.exists(_.contains(ScriptName(head))) =>
+        val scriptDefs = parsedProject.scripts.get(ScriptName(head))
+        cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
+
+        scriptDefs.values.foreach { scriptDef =>
+          val bloopProject = lazyBloopFiles.forceGet().find(_.project.name == scriptDef.project.value).get
+
+          val projectClassPath =
+            //  todo: bloop doesn't put the files where we want it to
+            bloopFilesDir.resolve(scriptDef.project.value).resolve("bloop-bsp-clients-classes/classes-bloop-cli")
+
+          val fullClassPath = List(
+            List(projectClassPath),
+            bloopProject.project.resources.getOrElse(Nil),
+            bloopProject.project.classpath
+          ).flatten
+
+          cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${rest.mkString(" ")}")
+        }
+      case _ =>
+        cli(s"bloop ${args.mkString(" ")}")
     }
   }
 }
