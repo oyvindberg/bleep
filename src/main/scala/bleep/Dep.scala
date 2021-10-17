@@ -1,6 +1,5 @@
 package bleep
 
-import coursier.{Dependency, Module}
 import bleep.Dep.quote
 import io.circe.{Decoder, DecodingFailure}
 
@@ -56,8 +55,6 @@ object Dep {
     s"$Quote${s}$Quote"
 
   sealed trait Concrete extends Dep {
-    def asCoursier: Dependency =
-      Dependency(Module(coursier.Organization(org), coursier.ModuleName(mangledArtifact)), version)
 
     def mangledArtifact: String
 
@@ -83,6 +80,11 @@ object Dep {
         <scope>test</scope>
       </dependency>
     // format: on
+  }
+
+  object Concrete {
+    implicit val concreteOrdering: Ordering[Concrete] =
+      Ordering.by(_.asMangledSbt)
   }
 
   case class Java(org: String, name: String, version: String) extends Concrete {

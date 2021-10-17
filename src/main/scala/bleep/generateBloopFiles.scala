@@ -3,10 +3,11 @@ package bleep
 import bleep.internal.Lazy
 import bleep.model.{Platform, ProjectName}
 import bloop.config.{Config => b}
+import coursier.Classifier
 import coursier.core.Configuration
-import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
+import scala.collection.immutable.SortedSet
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -111,10 +112,10 @@ object generateBloopFiles {
       val transitiveDeps: Seq[Dep] =
         p.dependencies.flat ++ allTransitiveLocal.flatMap { case (_, p) => p.dependencies.flat }
 
-      val coursierDeps: Seq[Dependency] =
-        transitiveDeps.map(dep => dep.concrete(scalaVersion, scalaJsVersion).asCoursier)
+      val concreteDeps: SortedSet[Dep.Concrete] =
+        SortedSet.empty[Dep.Concrete] ++ transitiveDeps.map(dep => dep.concrete(scalaVersion, scalaJsVersion))
 
-      val result = Await.result(resolver(coursierDeps), Duration.Inf)
+      val result = Await.result(resolver(concreteDeps), Duration.Inf)
 
       val modules: List[b.Module] =
         result.fullDetailedArtifacts
@@ -146,7 +147,7 @@ object generateBloopFiles {
       scalaVersion.compiler.concrete(scalaVersion, scalaJsVersion)
 
     val resolvedScalaCompiler: List[java.nio.file.Path] =
-      Await.result(resolver(List(scalaCompiler.asCoursier)), Duration.Inf).files.toList.map(_.toPath)
+      Await.result(resolver(SortedSet(scalaCompiler)), Duration.Inf).files.toList.map(_.toPath)
 
     val classPath: List[Path] = {
       allTransitiveBloop.values.map(_.project.classesDir).toList ++

@@ -1,21 +1,25 @@
 package bleep
 
-import coursier.{Classifier, Dependency, Fetch}
+import coursier.{Classifier, Dependency, Fetch, Module}
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.error.{FetchError, ResolutionError}
 import coursier.util.Task
 
+import scala.collection.immutable.SortedSet
 import scala.concurrent.{ExecutionContext, Future}
 
 class CoursierResolver(ec: ExecutionContext, downloadSources: Boolean) {
   val fileCache = FileCache[Task]()
 
-  def apply(deps: Seq[Dependency]): Future[Fetch.Result] = {
+  def asCoursier(dep: Dep.Concrete): Dependency =
+    Dependency(Module(coursier.Organization(dep.org), coursier.ModuleName(dep.mangledArtifact)), dep.version)
+
+  def apply(deps: SortedSet[Dep.Concrete]): Future[Fetch.Result] = {
     def go(remainingAttempts: Int): Future[Fetch.Result] = {
       val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
       Fetch[Task](fileCache)
-        .withDependencies(deps)
+        .withDependencies(deps.toList.map(asCoursier))
         .withMainArtifacts(true)
         .addClassifiers(newClassifiers: _*)
         .ioResult
