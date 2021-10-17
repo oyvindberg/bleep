@@ -2,12 +2,13 @@ package bleep
 
 import bleep.internal.Lazy
 import bleep.model.ScriptName
-import bloop.config.{ConfigCodecs, Config => b}
+import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths}
+import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 
@@ -31,31 +32,39 @@ object Main {
   val projectDir = buildFile.getParent
   val bloopFilesDir = projectDir / Defaults.BloopFolder
 
-  def ensureBloopFilesUpToDate(parsedProject: model.File): Lazy[List[b.File]] = {
+  def ensureBloopFilesUpToDate(parsedProject: model.File): Map[model.ProjectName, Lazy[b.File]] = {
     val hashFile = bloopFilesDir / ".digest"
     val currentHash = parsedProject.toString.hashCode().toString // todo: unstable hash
     val oldHash = Try(Files.readString(hashFile, UTF_8)).toOption
 
-    val lazyBloopFiles: Lazy[List[b.File]] = Lazy {
-      val resolver = new CoursierResolver(ExecutionContext.global, downloadSources = true)
-      generateBloopFiles(parsedProject, cwd, resolver)
-    }
-
     if (oldHash.contains(currentHash)) {
       println(s"$bloopFilesDir up to date")
+
+      parsedProject.projects.map { case (projectName, _) =>
+        val load = Lazy {
+          val contents = Files.readString(projectDir.resolve(s".bloop/${projectName.value}.json"))
+          jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
+        }
+        (projectName, load)
+      }
+
     } else {
-      val bloopFiles = lazyBloopFiles.forceGet()
-      bloopFiles.foreach { p =>
+      val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] = {
+        val resolver = new CoursierResolver(ExecutionContext.global, downloadSources = true)
+        generateBloopFiles(parsedProject, cwd, resolver)
+      }
+
+      bloopFiles.foreach { case (projectName, lazyP) =>
+        val p = lazyP.forceGet(projectName.value)
         val json = jsoniter_scala.core.writeToString(p, jsoniter_scala.core.WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
         Files.createDirectories(bloopFilesDir)
-        val toPath = bloopFilesDir / (p.project.name + ".json")
+        val toPath = bloopFilesDir / (projectName.value + ".json")
         Files.writeString(toPath, json, UTF_8)
       }
       Files.writeString(hashFile, currentHash, UTF_8)
       println(s"Wrote ${bloopFiles.size} files to $bloopFilesDir")
+      bloopFiles
     }
-
-    lazyBloopFiles
   }
 
   def cli(cmd: String): Unit =
@@ -68,7 +77,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val parsedProject: model.File = parseProjectFile(Files.readString(buildFile))
-    val lazyBloopFiles = ensureBloopFilesUpToDate(parsedProject)
+    val bloopProjects = ensureBloopFilesUpToDate(parsedProject)
 
     args.toList match {
       case List("compile") =>
@@ -80,7 +89,7 @@ object Main {
         cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
 
         scriptDefs.values.foreach { scriptDef =>
-          val bloopProject = lazyBloopFiles.forceGet().find(_.project.name == scriptDef.project.value).get
+          val bloopProject = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
 
           val projectClassPath =
             //  todo: bloop doesn't put the files where we want it to

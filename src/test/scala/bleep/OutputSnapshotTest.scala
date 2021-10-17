@@ -1,7 +1,7 @@
 package bleep
 
 import bloop.config.{Config, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{WriterConfig, writeToString}
+import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -43,6 +43,11 @@ class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     val input = ResourceReader.resourceAsString("/test1.json")
     val parsedProject = parseProjectFile(input)
     val bloopFiles = generateBloopFiles(parsedProject, workspaceDir, resolver)
-    writeAndCompare(workspaceDir, bloopFiles)
+    writeAndCompare(
+      workspaceDir,
+      bloopFiles.map { case (projectName, lazyProject) =>
+        lazyProject.forceGet(projectName.value)
+      }.toList
+    )
   }
 }

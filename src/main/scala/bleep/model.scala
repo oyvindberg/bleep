@@ -195,6 +195,7 @@ object model {
   case class ProjectName(value: String) extends AnyVal
 
   object ProjectName {
+    implicit val ordering: Ordering[ProjectName] = Ordering.by(_.value)
     implicit val decodes: Decoder[ProjectName] = Decoder[String].map(ProjectName.apply)
     implicit val keyDecodes: KeyDecoder[ProjectName] = KeyDecoder[String].map(ProjectName.apply)
   }

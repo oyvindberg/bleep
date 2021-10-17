@@ -7,16 +7,19 @@ import coursier.Classifier
 import coursier.core.Configuration
 
 import java.nio.file.Path
-import scala.collection.immutable.SortedSet
+import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object generateBloopFiles {
-  def apply(file: model.File, workspaceDir: Path, resolver: CoursierResolver): List[b.File] = {
+  def apply(file: model.File, workspaceDir: Path, resolver: CoursierResolver): SortedMap[ProjectName, Lazy[b.File]] = {
     verify(file)
 
-    lazy val resolvedProjects: Map[ProjectName, Lazy[b.File]] =
-      file.projects.map { case (projectName, project) =>
+    // sorted to ensure consistency
+    val sortedProjects = SortedMap.empty[ProjectName, model.Project] ++ file.projects
+
+    lazy val resolvedProjects: SortedMap[ProjectName, Lazy[b.File]] =
+      sortedProjects.map { case (projectName, project) =>
         projectName -> Lazy(
           translateProject(
             resolver,
@@ -29,15 +32,12 @@ object generateBloopFiles {
             name =>
               resolvedProjects
                 .getOrElse(name, sys.error(s"Project ${projectName.value} depends on non-existing project ${name.value}"))
-                .get
-                .getOrElse(sys.error(s"Circular dependency detected at ${projectName.value}"))
+                .forceGet(projectName.value)
           )
         )
       }
 
-    resolvedProjects.map { case (projectName, resolvedProject) =>
-      resolvedProject.get.getOrElse(sys.error(s"Circular dependency detected at ${projectName.value}"))
-    }.toList
+    resolvedProjects
   }
 
   def verify(file: model.File): Unit =
@@ -47,7 +47,7 @@ object generateBloopFiles {
         scripts.foreach { case (scriptName, scriptDefs) =>
           scriptDefs.values.foreach { scriptDef =>
             if (file.projects.contains(scriptDef.project)) ()
-            else sys.error(s"script ${scriptName.value} referse nonexisting project ${scriptDef.project.value}")
+            else sys.error(s"script ${scriptName.value} references nonexisting project ${scriptDef.project.value}")
           }
         }
     }
