@@ -16,7 +16,7 @@ object Main {
   implicit val cwd: Path = Paths.get(System.getProperty("user.dir"))
 
   // keep looking up until we find build file
-  val buildFile: Path = {
+  def findBleepJson: Either[String, Path] = {
     def is(f: File): Option[File] =
       Option(f.list()) match {
         case Some(list) if list.contains(Defaults.BuildFileName) => Some(new File(f, Defaults.BuildFileName))
@@ -26,13 +26,14 @@ object Main {
     def search(f: File): Option[File] =
       is(f).orElse(Option(f.getParentFile).flatMap(search))
 
-    search(cwd.toFile).getOrElse(sys.error(s"Couldn't find ${Defaults.BuildFileName} from $cwd")).toPath
+    search(cwd.toFile) match {
+      case Some(found) => Right(found.toPath)
+      case None        => Left(s"Couldn't find ${Defaults.BuildFileName} from $cwd")
+    }
   }
 
-  val projectDir = buildFile.getParent
-  val bloopFilesDir = projectDir / Defaults.BloopFolder
-
-  def ensureBloopFilesUpToDate(parsedProject: model.File): Map[model.ProjectName, Lazy[b.File]] = {
+  def ensureBloopFilesUpToDate(buildDir: Path, parsedProject: model.File): Map[model.ProjectName, Lazy[b.File]] = {
+    val bloopFilesDir = buildDir / Defaults.BloopFolder
     val hashFile = bloopFilesDir / ".digest"
     val currentHash = parsedProject.toString.hashCode().toString // todo: unstable hash
     val oldHash = Try(Files.readString(hashFile, UTF_8)).toOption
@@ -42,7 +43,7 @@ object Main {
 
       parsedProject.projects.map { case (projectName, _) =>
         val load = Lazy {
-          val contents = Files.readString(projectDir / s".bloop/${projectName.value}.json")
+          val contents = Files.readString(bloopFilesDir / s"${projectName.value}.json")
           jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
         }
         (projectName, load)
@@ -67,27 +68,38 @@ object Main {
     }
   }
 
-  def main(args: Array[String]): Unit = {
-    val parsedProject: model.File = parseProjectFile(Files.readString(buildFile))
-    val bloopProjects = ensureBloopFilesUpToDate(parsedProject)
-
+  def main(args: Array[String]): Unit =
     args.toList match {
-      case List("compile") =>
-        cli(s"bloop compile ${parsedProject.projects.keys.map(_.value).mkString(" ")}")
-      case List("test") =>
-        cli(s"bloop test ${parsedProject.projects.keys.map(_.value).mkString(" ")}")
-      case head :: rest if parsedProject.scripts.exists(_.contains(ScriptName(head))) =>
-        val scriptDefs = parsedProject.scripts.get(ScriptName(head))
-        cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
+      case List("import") =>
+      case args =>
+        findBleepJson match {
+          case Left(err) => sys.error(err)
+          case Right(buildPath) =>
+            val buildDirPath = buildPath.getParent
+            val build = model.parseFile(Files.readString(buildPath)) match {
+              case Left(error) => throw error
+              case Right(file) => file
+            }
+            val bloopProjects = ensureBloopFilesUpToDate(buildDirPath, build)
 
-        scriptDefs.values.foreach { scriptDef =>
-          val bloopFile = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
-          val fullClassPath = fixedClasspath(bloopFile.project)
+            args match {
+              case List("compile") =>
+                cli(s"bloop compile ${build.projects.keys.map(_.value).mkString(" ")}")
+              case List("test") =>
+                cli(s"bloop test ${build.projects.keys.map(_.value).mkString(" ")}")
+              case head :: rest if build.scripts.exists(_.contains(ScriptName(head))) =>
+                val scriptDefs = build.scripts.get(ScriptName(head))
+                cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
 
-          cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${rest.mkString(" ")}")
+                scriptDefs.values.foreach { scriptDef =>
+                  val bloopFile = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
+                  val fullClassPath = fixedClasspath(bloopFile.project)
+
+                  cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${rest.mkString(" ")}")
+                }
+              case _ =>
+                cli(s"bloop ${args.mkString(" ")}")
+            }
         }
-      case _ =>
-        cli(s"bloop ${args.mkString(" ")}")
     }
-  }
 }

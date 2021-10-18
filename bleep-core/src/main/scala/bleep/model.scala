@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.EnumDecoder
 import io.circe.generic.semiauto.deriveDecoder
-import io.circe.{Decoder, DecodingFailure, KeyDecoder}
+import io.circe._
 
 object model {
 
@@ -263,4 +263,7 @@ object model {
   object File {
     implicit val decodes: Decoder[File] = deriveDecoder
   }
+
+  def parseFile(json: String): Either[Error, File] =
+    parser.decode[model.File](json)
 }
