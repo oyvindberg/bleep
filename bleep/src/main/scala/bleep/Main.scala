@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 
 object Main {
-  val cwd: Path = Paths.get(System.getProperty("user.dir"))
+  implicit val cwd: Path = Paths.get(System.getProperty("user.dir"))
 
   // keep looking up until we find build file
   val buildFile: Path = {

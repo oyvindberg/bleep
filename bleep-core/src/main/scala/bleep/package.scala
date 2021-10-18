@@ -12,8 +12,8 @@ package object bleep {
       }
   }
 
-  def cli(cmd: String): Unit =
-    sys.process.Process(cmd).! match {
+  def cli(cmd: String)(implicit cwd: Path): Unit =
+    sys.process.Process(cmd, cwd = Some(cwd.toFile)).! match {
       case 0 => ()
       case n =>
         System.err.println(s"FAILED: $cmd")
