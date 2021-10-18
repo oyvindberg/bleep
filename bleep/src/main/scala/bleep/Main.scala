@@ -42,7 +42,7 @@ object Main {
 
       parsedProject.projects.map { case (projectName, _) =>
         val load = Lazy {
-          val contents = Files.readString(projectDir.resolve(s".bloop/${projectName.value}.json"))
+          val contents = Files.readString(projectDir / s".bloop/${projectName.value}.json")
           jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
         }
         (projectName, load)
@@ -67,14 +67,6 @@ object Main {
     }
   }
 
-  def cli(cmd: String): Unit =
-    sys.process.Process(cmd).! match {
-      case 0 => ()
-      case n =>
-        System.err.println(s"FAILED: $cmd")
-        System.exit(n)
-    }
-
   def main(args: Array[String]): Unit = {
     val parsedProject: model.File = parseProjectFile(Files.readString(buildFile))
     val bloopProjects = ensureBloopFilesUpToDate(parsedProject)
@@ -89,7 +81,7 @@ object Main {
         cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
 
         scriptDefs.values.foreach { scriptDef =>
-          val bloopFile: b.File = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
+          val bloopFile = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
           val fullClassPath = fixedClasspath(bloopFile.project)
 
           cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${rest.mkString(" ")}")

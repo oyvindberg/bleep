@@ -1,6 +1,6 @@
-package bleep.tasks
+package bleep
+package tasks
 
-import bleep.fixedClasspath
 import bloop.config.Config.Project
 
 import java.io.File
@@ -24,12 +24,12 @@ class NativeImageTasks(
     nativeImageOptions: Seq[String] = Nil
 ) {
 
-  val target = project.directory.resolve("target")
-  val targetNativeImageInternal = target.resolve("native-image-internal")
-  val targetNativeImage = target.resolve("native-image")
+  val target = project.directory / "target"
+  val targetNativeImageInternal = target / "native-image-internal"
+  val targetNativeImage = target / "native-image"
 
   // The binary that is produced by native-image
-  def nativeImageOutput: Path = target.resolve(project.name)
+  def nativeImageOutput: Path = target / project.name
 
   final class MessageOnlyException(override val toString: String) extends RuntimeException(toString)
 
@@ -75,7 +75,7 @@ class NativeImageTasks(
     val graalHome = nativeImageGraalHome
     if (nativeImageInstalled) {
       val binary = if (Properties.isWin) "native-image.cmd" else "native-image"
-      val path = graalHome.resolve("bin").resolve(binary)
+      val path = graalHome / "bin" / binary
       List[String](path.toString)
     } else {
       val cmd =
@@ -83,7 +83,7 @@ class NativeImageTasks(
           ".cmd"
         else
           ""
-      val ni = graalHome.resolve("bin").resolve(s"native-image$cmd")
+      val ni = graalHome / "bin" / s"native-image$cmd"
       if (!Files.isExecutable(ni)) {
         val gu = ni.resolveSibling(s"gu$cmd")
         Process(List(gu.toString, "install", "native-image")).!
@@ -121,7 +121,7 @@ class NativeImageTasks(
 //    }
 
   // Directory where `native-image-agent` should put generated configurations.
-  def nativeImageAgentOutputDir: Path = target.resolve("native-image-configs")
+  def nativeImageAgentOutputDir: Path = target / "native-image-configs"
 
   // Whether `native-image-agent` should merge generated configurations.
   // See https://www.graalvm.org/reference-manual/native-image/BuildConfiguration/#assisted-configuration-of-native-image-builds for details
@@ -140,7 +140,7 @@ class NativeImageTasks(
     //   error, especially on Windows.
     // * we print the full command to the console and the manifest jar makes
     //   it more readable and easier to copy-paste.
-    val manifest = targetNativeImageInternal.resolve("manifest.jar")
+    val manifest = targetNativeImageInternal / "manifest.jar"
     Files.createDirectories(manifest.getParent)
     createManifestJar(manifest, cp)
     val nativeClasspath = manifest.toAbsolutePath.toString
@@ -194,7 +194,7 @@ class NativeImageTasks(
           "To fix this problem, define the `nativeImageCoursier` task to return the path to a Coursier binary."
       )
     }
-    val out = outDir.resolve(filename)
+    val out = outDir / filename
     Files.copy(in, out, StandardCopyOption.REPLACE_EXISTING)
     out.toFile.setExecutable(true)
     out

@@ -1,4 +1,5 @@
-package bleep.infra
+package bleep
+package infra
 
 import bleep.tasks.NativeImageTasks
 import bloop.config.ConfigCodecs
@@ -9,18 +10,10 @@ import java.nio.file.{Files, Path, Paths}
 object GenNativeImage {
   val workspaceDir: Path = Paths.get(System.getProperty("user.dir"))
 
-  def cli(cmd: String): Unit =
-    sys.process.Process(cmd).! match {
-      case 0 => ()
-      case n =>
-        System.err.println(s"FAILED: $cmd")
-        System.exit(n)
-    }
-
   def main(args: Array[String]): Unit = {
     cli("bloop compile bleep")
 
-    val contents = Files.readString(workspaceDir.resolve(".bloop/bleep.json"))
+    val contents = Files.readString(workspaceDir / ".bloop/bleep.json")
     val project = jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
     val plugin = new NativeImageTasks(
       project.project,

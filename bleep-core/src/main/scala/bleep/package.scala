@@ -11,4 +11,12 @@ package object bleep {
         case Right(relPath) => path / relPath
       }
   }
+
+  def cli(cmd: String): Unit =
+    sys.process.Process(cmd).! match {
+      case 0 => ()
+      case n =>
+        System.err.println(s"FAILED: $cmd")
+        System.exit(n)
+    }
 }

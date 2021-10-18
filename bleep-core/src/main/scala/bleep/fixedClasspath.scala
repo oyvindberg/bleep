@@ -17,10 +17,7 @@ object fixedClasspath {
 
   def apply(bloopProject: b.Project): List[Path] = {
     def bloopCliClassesDir(projName: String): Path =
-      bloopProject.workspaceDir.get
-        .resolve(Defaults.BloopFolder)
-        .resolve(projName)
-        .resolve("bloop-bsp-clients-classes/classes-bloop-cli")
+      bloopProject.workspaceDir.get / Defaults.BloopFolder / projName / "bloop-bsp-clients-classes/classes-bloop-cli"
 
     val projectName = model.ProjectName(bloopProject.name)
 
