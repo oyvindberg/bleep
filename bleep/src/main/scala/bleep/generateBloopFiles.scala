@@ -140,12 +140,7 @@ object generateBloopFiles {
     val setup = {
       val provided = mergedScala.flatMap(_.setup)
       b.CompileSetup(
-        order = provided.flatMap(_.order) match {
-          case Some(model.CompileOrder.JavaThenScala) => b.JavaThenScala
-          case Some(model.CompileOrder.ScalaThenJava) => b.ScalaThenJava
-          case Some(model.CompileOrder.Mixed)         => b.Mixed
-          case None                                   => b.CompileSetup.empty.order
-        },
+        order = provided.flatMap(_.order).getOrElse(b.CompileSetup.empty.order),
         addLibraryToBootClasspath = provided.flatMap(_.addLibraryToBootClasspath).getOrElse(b.CompileSetup.empty.addLibraryToBootClasspath),
         addCompilerToClasspath = provided.flatMap(_.addCompilerToClasspath).getOrElse(b.CompileSetup.empty.addCompilerToClasspath),
         addExtraJarsToClasspath = provided.flatMap(_.addExtraJarsToClasspath).getOrElse(b.CompileSetup.empty.addExtraJarsToClasspath),

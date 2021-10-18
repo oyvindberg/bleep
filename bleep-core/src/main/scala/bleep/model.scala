@@ -1,17 +1,20 @@
 package bleep
 
-import bleep.internal.EnumDecoder
-import io.circe.generic.semiauto.deriveDecoder
+import bleep.internal.EnumCodec
+import bloop.config.Config
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe._
 
 object model {
 
   implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
+  implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
 
   case class Java(options: Option[JsonList[String]])
 
   object Java {
     implicit val decodes: Decoder[Java] = deriveDecoder
+    implicit val encodes: Encoder[Java] = deriveEncoder
 
     def merge(xs: Option[Java]*): Option[Java] =
       xs.flatten.reduceOption((j1, j2) =>
@@ -25,38 +28,37 @@ object model {
 
   object TestFramework {
     implicit val decodes: Decoder[TestFramework] = deriveDecoder
+    implicit val encodes: Encoder[TestFramework] = deriveEncoder
   }
   case class TestArgument(args: List[String], framework: Option[TestFramework])
 
   object TestArgument {
     implicit val decodes: Decoder[TestArgument] = deriveDecoder
+    implicit val encodes: Encoder[TestArgument] = deriveEncoder
   }
 
   case class TestOptions(excludes: List[String], arguments: List[TestArgument])
 
   object TestOptions {
     implicit val decodes: Decoder[TestOptions] = deriveDecoder
+    implicit val encodes: Encoder[TestOptions] = deriveEncoder
   }
 
   case class Test(frameworks: List[TestFramework], options: TestOptions)
 
   object Test {
     implicit val decodes: Decoder[Test] = deriveDecoder
+    implicit val encodes: Encoder[Test] = deriveEncoder
   }
 
-  sealed abstract class CompileOrder(val id: String)
-
-  object CompileOrder extends EnumDecoder[CompileOrder] {
-    case object Mixed extends CompileOrder("mixed")
-    case object JavaThenScala extends CompileOrder("java->scala")
-    case object ScalaThenJava extends CompileOrder("scala->java")
-
-    final val All: Map[String, CompileOrder] =
-      List(Mixed, JavaThenScala, ScalaThenJava).map(x => x.id -> x).toMap
+  object CompileOrder extends EnumCodec[Config.CompileOrder] {
+    final val All: Map[String, Config.CompileOrder] =
+      List(Config.Mixed, Config.JavaThenScala, Config.ScalaThenJava).map(x => x.id -> x).toMap
   }
+  import CompileOrder.{decodesEnum, encodesEnum}
 
   case class CompileSetup(
-      order: Option[CompileOrder],
+      order: Option[Config.CompileOrder],
       addLibraryToBootClasspath: Option[Boolean],
       addCompilerToClasspath: Option[Boolean],
       addExtraJarsToClasspath: Option[Boolean],
@@ -76,7 +78,9 @@ object model {
           filterLibraryFromClasspath = s1.filterLibraryFromClasspath.orElse(s2.filterLibraryFromClasspath)
         )
       )
+
     implicit val decodes: Decoder[CompileSetup] = deriveDecoder
+    implicit val encodes: Encoder[CompileSetup] = deriveEncoder
   }
 
   case class Scala(
@@ -87,6 +91,7 @@ object model {
 
   object Scala {
     implicit val decodes: Decoder[Scala] = deriveDecoder
+    implicit val encodes: Encoder[Scala] = deriveEncoder
 
     def merge(xs: Option[Scala]*): Option[Scala] =
       xs.flatten.reduceOption { (s1, s2) =>
@@ -114,9 +119,12 @@ object model {
 
     case class Native(override val config: Option[NativeConfig], override val mainClass: Option[String]) extends Platform("native", config, mainClass)
 
-    implicit val decodesJs: Decoder[Js] = deriveDecoder[Js]
-    implicit val decodesJvm: Decoder[Jvm] = deriveDecoder[Jvm]
-    implicit val decodesNative: Decoder[Native] = deriveDecoder[Native]
+    implicit val decodesJs: Decoder[Js] = deriveDecoder
+    implicit val encodesJs: Encoder[Js] = deriveEncoder
+    implicit val decodesJvm: Decoder[Jvm] = deriveDecoder
+    implicit val encodesJvm: Encoder[Jvm] = deriveEncoder
+    implicit val decodesNative: Decoder[Native] = deriveDecoder
+    implicit val encodesNative: Encoder[Native] = deriveEncoder
 
     implicit val decodes: Decoder[Platform] = Decoder.instance(c =>
       for {
@@ -129,14 +137,26 @@ object model {
         }
       } yield platform
     )
+
+    implicit val encodes: Encoder[Platform] = Encoder.instance { platform =>
+      val obj = platform match {
+        case x: Js     => encodesJs(x)
+        case x: Jvm    => encodesJvm(x)
+        case x: Native => encodesNative(x)
+      }
+      obj.mapObject(_.add("name", Json.fromString(platform.name)))
+    }
   }
 
   sealed trait PlatformConfig
 
   object PlatformConfig {
     implicit val decodesJvm: Decoder[JvmConfig] = deriveDecoder
+    implicit val encodesJvm: Encoder[JvmConfig] = deriveEncoder
     implicit val decodesJs: Decoder[JsConfig] = deriveDecoder
+    implicit val encodesJs: Encoder[JsConfig] = deriveEncoder
     implicit val decodesNative: Decoder[NativeConfig] = deriveDecoder
+    implicit val encodesNative: Encoder[NativeConfig] = deriveEncoder
   }
   case class JvmConfig(
       //      home: Option[Path],
@@ -145,7 +165,7 @@ object model {
 
   sealed abstract class LinkerMode(val id: String)
 
-  object LinkerMode extends EnumDecoder[LinkerMode] {
+  object LinkerMode extends EnumCodec[LinkerMode] {
     case object Debug extends LinkerMode("debug")
     case object Release extends LinkerMode("release")
     val All = List(Debug, Release).map(x => x.id -> x).toMap
@@ -153,7 +173,7 @@ object model {
 
   sealed abstract class ModuleKindJS(val id: String)
 
-  object ModuleKindJS extends EnumDecoder[ModuleKindJS] {
+  object ModuleKindJS extends EnumCodec[ModuleKindJS] {
     case object NoModule extends ModuleKindJS("none")
     case object CommonJSModule extends ModuleKindJS("commonjs")
     case object ESModule extends ModuleKindJS("esmodule")
@@ -189,6 +209,7 @@ object model {
   case class NativeOptions(linker: List[String], compiler: List[String])
 
   object NativeOptions {
+    implicit val encodes: Encoder[NativeOptions] = deriveEncoder
     implicit val decodes: Decoder[NativeOptions] = deriveDecoder
   }
 
@@ -197,7 +218,9 @@ object model {
   object ProjectName {
     implicit val ordering: Ordering[ProjectName] = Ordering.by(_.value)
     implicit val decodes: Decoder[ProjectName] = Decoder[String].map(ProjectName.apply)
+    implicit val encodes: Encoder[ProjectName] = Encoder[String].contramap(_.value)
     implicit val keyDecodes: KeyDecoder[ProjectName] = KeyDecoder[String].map(ProjectName.apply)
+    implicit val keyEncodes: KeyEncoder[ProjectName] = KeyEncoder[String].contramap(_.value)
   }
 
   case class Project(
@@ -213,18 +236,21 @@ object model {
 
   object Project {
     implicit val decodes: Decoder[Project] = deriveDecoder
+    implicit val encodes: Encoder[Project] = deriveEncoder
   }
 
   case class ScriptName(value: String) extends AnyVal
 
   object ScriptName {
     implicit val decodes: Decoder[ScriptName] = Decoder[String].map(ScriptName.apply)
+    implicit val encodes: Encoder[ScriptName] = Encoder[String].contramap(_.value)
     implicit val keyDecodes: KeyDecoder[ScriptName] = KeyDecoder[String].map(ScriptName.apply)
+    implicit val keyEncodes: KeyEncoder[ScriptName] = KeyEncoder[String].contramap(_.value)
   }
   case class ScriptDef(project: ProjectName, main: String)
 
   object ScriptDef {
-    implicit def decodes: Decoder[ScriptDef] = Decoder.instance(c =>
+    implicit val decodes: Decoder[ScriptDef] = Decoder.instance(c =>
       c.as[String].flatMap { str =>
         str.split("/") match {
           case Array(projectName, main) =>
@@ -234,6 +260,7 @@ object model {
         }
       }
     )
+    implicit val encodes: Encoder[ScriptDef] = Encoder.instance(sd => Json.fromString(s"${sd.project.value}/${sd.main}"))
   }
 
   case class File(
@@ -262,6 +289,7 @@ object model {
 
   object File {
     implicit val decodes: Decoder[File] = deriveDecoder
+    implicit val encodes: Encoder[File] = deriveEncoder
   }
 
   def parseFile(json: String): Either[Error, File] =

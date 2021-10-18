@@ -1,7 +1,7 @@
 package bleep
 
 import cats.syntax.traverse._
-import io.circe.{Decoder, Json}
+import io.circe.{Decoder, Encoder, Json}
 
 // T should not be a json array
 //    "foo": null,
@@ -32,4 +32,11 @@ object JsonList {
         )
       } yield ts
     )
+
+  implicit def encodes[T](implicit T: Encoder[T]): Encoder[JsonList[T]] =
+    Encoder.instance {
+      case JsonList(Nil)         => Json.Null
+      case JsonList(head :: Nil) => T(head)
+      case JsonList(values)      => Json.fromValues(values.map(T.apply))
+    }
 }

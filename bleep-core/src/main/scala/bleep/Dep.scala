@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.Dep.quote
-import io.circe.{Decoder, DecodingFailure}
+import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
 sealed trait Dep {
   def org: String
@@ -119,4 +119,23 @@ object Dep {
         dep <- parse(str).left.map(str => DecodingFailure(str, c.history))
       } yield dep
     )
+
+  implicit def encodes: Encoder[Dep] =
+    Encoder.instance { dep =>
+      def go(dep: Dep): String =
+        dep match {
+          case concrete: Concrete =>
+            s"${concrete.org}:${concrete.mangledArtifact}:${concrete.version}"
+          case For3Use2_13(dep) =>
+            go(dep) + ",for3use213"
+          case Scala(org, name, version) =>
+            s"$org::$name:$version"
+          case ScalaFullVersion(_, _, _) =>
+            sys.error("find a way to encode this")
+          case ScalaJs(org, name, version) =>
+            s"$org:::$name:$version"
+        }
+
+      Json.fromString(go(dep))
+    }
 }
