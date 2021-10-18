@@ -7,13 +7,20 @@
     "native-image": "infrastructure/bleep.infra.GenNativeImage"
   },
   "projects": {
-    "bleep": {
-      "folder": ".",
+    "bleep-core": {
       "dependencies": [
         "io.circe::circe-core:0.14.1",
         "io.circe::circe-parser:0.14.1",
         "io.circe::circe-generic:0.14.1",
-        "ch.epfl.scala::bloop-config:1.4.9",
+        "ch.epfl.scala::bloop-config:1.4.9"
+      ]
+    },
+    "bleep-tasks": {
+      "dependsOn": "bleep-core"
+    },
+    "bleep": {
+      "dependsOn": "bleep-core",
+      "dependencies": [
         "io.get-coursier::coursier:2.0.16",
         "org.scalameta:svm-subs:101.0.0"
       ],
@@ -28,13 +35,7 @@
       "dependsOn": "bleep"
     },
     "infrastructure": {
-      "folder": "infrastructure",
-      "scala": {
-        "version": "2.13.6"
-      },
-      "dependencies": [
-        "ch.epfl.scala::bloop-config:1.4.9"
-      ]
+      "dependsOn": "bleep-tasks"
     }
   }
 }

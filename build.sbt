@@ -1,16 +1,32 @@
-lazy val bleep = project
-  .in(file("."))
-  .enablePlugins(GitVersioning, NativeImagePlugin, TpolecatPlugin)
+val commonSettings: Project => Project =
+  _.enablePlugins(GitVersioning, TpolecatPlugin)
+    .settings(
+      organization := "no.arktekk",
+      scalaVersion := "2.13.6",
+      scalacOptions -= "-Xfatal-warnings"
+    )
+
+lazy val `bleep-core` = project
+  .configure(commonSettings)
   .settings(
-    name := "bleep",
-    organization := "no.arktekk",
-    scalaVersion := "2.13.6",
-    scalacOptions -= "-Xfatal-warnings",
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
-      "ch.epfl.scala" %% "bloop-config" % "1.4.9",
+      "ch.epfl.scala" %% "bloop-config" % "1.4.9"
+    )
+  )
+
+lazy val `bleep-tasks` = project
+  .configure(commonSettings)
+  .dependsOn(`bleep-core`)
+
+lazy val bleep = project
+  .configure(commonSettings)
+  .dependsOn(`bleep-core`)
+  .enablePlugins(NativeImagePlugin)
+  .settings(
+    libraryDependencies ++= Seq(
       "io.get-coursier" %% "coursier" % "2.0.16",
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0"
@@ -19,12 +35,10 @@ lazy val bleep = project
   )
 
 lazy val infrastructure = project
-  .enablePlugins(TpolecatPlugin)
+  .dependsOn(`bleep-tasks`)
+  .configure(commonSettings)
   .settings(
-    scalaVersion := "2.13.6",
-    scalacOptions -= "-Xfatal-warnings",
     libraryDependencies ++= Seq(
-      "ch.epfl.scala" %% "bloop-config" % "1.4.9",
-      "org.scalameta" % "svm-subs" % "101.0.0"
+      "ch.epfl.scala" %% "bloop-config" % "1.4.9"
     )
   )

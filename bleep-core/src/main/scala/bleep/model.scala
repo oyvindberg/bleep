@@ -242,7 +242,23 @@ object model {
       java: Option[Java],
       scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
       projects: Map[ProjectName, Project]
-  )
+  ) {
+    def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
+      def getLocalProject(name: model.ProjectName) =
+        projects.getOrElse(name, sys.error(s"Project ${projName.value} depends on non-existing project ${name.value}"))
+
+      val builder = Map.newBuilder[model.ProjectName, model.Project]
+
+      def go(n: model.ProjectName, p: model.Project): Unit = {
+        builder += ((n, p))
+        p.dependsOn.flat.foreach(depName => go(depName, getLocalProject(depName)))
+      }
+
+      projects(projName).dependsOn.flat.foreach(projectName => go(projectName, getLocalProject(projectName)))
+
+      builder.result()
+    }
+  }
 
   object File {
     implicit val decodes: Decoder[File] = deriveDecoder

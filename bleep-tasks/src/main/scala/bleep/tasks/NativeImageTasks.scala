@@ -1,23 +1,18 @@
-package bleep.infra
+package bleep.tasks
 
+import bleep.fixedClasspath
 import bloop.config.Config.Project
 
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import java.util.jar.Attributes
-import java.util.jar.JarOutputStream
-import java.util.jar.Manifest
+import java.nio.file.{Files, Path, Paths, StandardCopyOption}
+import java.util.jar.{Attributes, JarOutputStream, Manifest}
 import scala.collection.mutable
 import scala.sys.process.Process
 import scala.util.Properties
 
-/**
- * Ported from https://github.com/scalameta/sbt-native-image
- */
-class NativeImagePlugin(
+/** Ported from https://github.com/scalameta/sbt-native-image
+  */
+class NativeImageTasks(
     project: Project,
     // The version of GraalVM to use by default.
     nativeImageVersion: String = "20.2.0",
@@ -26,7 +21,8 @@ class NativeImagePlugin(
     // The JVM version index to use, one of: cs (default) | jabba
     nativeImageJvmIndex: String = "cs",
     // Extra command-line arguments that should be forwarded to the native-image optimizer.
-    nativeImageOptions: Seq[String] = Nil) {
+    nativeImageOptions: Seq[String] = Nil
+) {
 
   val target = project.directory.resolve("target")
   val targetNativeImageInternal = target.resolve("native-image-internal")
@@ -136,15 +132,7 @@ class NativeImagePlugin(
     val main = project.platform.flatMap(_.mainClass)
     val binaryName = nativeImageOutput
 
-    val projectClassPath =
-      // bloopProject.project.classesDir todo: bloop doesn't put the files where we want it to
-      project.directory.resolve(s".bloop/${project.name}/bloop-bsp-clients-classes/classes-bloop-cli")
-
-    val cp = List(
-      List(projectClassPath),
-      project.resources.getOrElse(Nil),
-      project.classpath
-    ).flatten
+    val cp = fixedClasspath(project)
 
     // NOTE(olafur): we pass in a manifest jar instead of the full classpath
     // for two reasons:
@@ -242,8 +230,7 @@ class NativeImagePlugin(
           //this happens if the dependency jar resides on a different drive then the manifest, i.e. C:\Coursier\Cache and D:\myapp\target
           //copy dependency next to manifest as fallback
           case _: IllegalArgumentException =>
-            import java.nio.file.Files
-            import java.nio.file.StandardCopyOption
+            import java.nio.file.{Files, StandardCopyOption}
             Files.copy(
               dependencyPath,
               manifestPath.resolve(path.getFileName),

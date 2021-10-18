@@ -1,5 +1,6 @@
 package bleep.infra
 
+import bleep.tasks.NativeImageTasks
 import bloop.config.ConfigCodecs
 import com.github.plokhotnyuk.jsoniter_scala
 
@@ -21,10 +22,10 @@ object GenNativeImage {
 
     val contents = Files.readString(workspaceDir.resolve(".bloop/bleep.json"))
     val project = jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
-    val plugin = new NativeImagePlugin(
+    val plugin = new NativeImageTasks(
       project.project,
       nativeImageOptions = List(
-        "--no-fallback",
+        "--no-fallback"
       )
     )
     plugin.nativeImage()

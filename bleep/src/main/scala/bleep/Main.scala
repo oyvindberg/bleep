@@ -89,17 +89,8 @@ object Main {
         cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
 
         scriptDefs.values.foreach { scriptDef =>
-          val bloopProject = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
-
-          val projectClassPath =
-            //  todo: bloop doesn't put the files where we want it to
-            bloopFilesDir.resolve(scriptDef.project.value).resolve("bloop-bsp-clients-classes/classes-bloop-cli")
-
-          val fullClassPath = List(
-            List(projectClassPath),
-            bloopProject.project.resources.getOrElse(Nil),
-            bloopProject.project.classpath
-          ).flatten
+          val bloopFile: b.File = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
+          val fullClassPath = fixedClasspath(bloopFile.project)
 
           cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${rest.mkString(" ")}")
         }
