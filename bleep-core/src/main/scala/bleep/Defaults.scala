@@ -1,24 +1,33 @@
 package bleep
 
-import java.nio.file.Path
-
 object Defaults {
   val BuildFileName = "bleep.json"
 
   val BloopFolder = ".bloop"
 
-  def sourceDirs(projectFolder: Path, scalaVersion: Versions.Scala, scope: String): List[Path] =
+  def sourceDirs(maybeScalaVersion: Option[Versions.Scala], scope: String): List[RelPath] =
     List(
-      projectFolder / s"src/$scope/scala",
-      projectFolder / s"src/$scope/scala-${scalaVersion.binVersion}",
-      projectFolder / s"src/$scope/scala-${scalaVersion.epoch}",
-      projectFolder / s"src/$scope/java",
-      projectFolder / s"target/scala-${scalaVersion.binVersion}/src_managed/$scope"
-    )
+      List(RelPath.force(s"src/$scope/java")),
+      maybeScalaVersion match {
+        case Some(scalaVersion) =>
+          List(
+            RelPath.force(s"src/$scope/scala"),
+            RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
+            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
+            RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
+          )
+        case None =>
+          Nil
+      }
+    ).flatten
 
-  def resourceDirs(projectFolder: Path, scalaVersion: Versions.Scala, scope: String): List[Path] =
+  def resourceDirs(maybeScalaVersion: Option[Versions.Scala], scope: String): List[RelPath] =
     List(
-      projectFolder / s"src/$scope/resources",
-      projectFolder / s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope"
-    )
+      List(RelPath.force(s"src/$scope/resources")),
+      maybeScalaVersion match {
+        case Some(scalaVersion) =>
+          List(RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope"))
+        case None => Nil
+      }
+    ).flatten
 }

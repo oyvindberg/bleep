@@ -85,8 +85,8 @@ object generateBloopFiles {
     val mergedJava: Option[model.Java] =
       model.Java.merge(proj.java, inFile.java)
 
-    val scalaVersion: Versions.Scala =
-      mergedScala.flatMap(_.version).getOrElse(sys.error(s"no scalaVersion provided for project ${projName.value}"))
+    val scalaVersion: Option[Versions.Scala] =
+      mergedScala.flatMap(_.version)
 
     val scalacOptions: List[String] =
       mergedScala.flatMap(_.options).flat
@@ -95,8 +95,18 @@ object generateBloopFiles {
       val transitiveDeps: Seq[Dep] =
         proj.dependencies.flat ++ inFile.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.flat }
 
-      val concreteDeps: SortedSet[Dep.Concrete] =
-        SortedSet.empty[Dep.Concrete] ++ transitiveDeps.map(dep => dep.concrete(scalaVersion, scalaJsVersion))
+      val concreteDeps: SortedSet[Dep.Concrete] = {
+        val seq = transitiveDeps.map {
+          case concrete: Dep.Concrete => concrete
+          case dep =>
+            scalaVersion match {
+              case Some(scalaVersion) => dep.concrete(scalaVersion, scalaJsVersion)
+              case None               => sys.error(s"Need a configured scala version to resolve $dep")
+            }
+        }
+
+        SortedSet.empty[Dep.Concrete] ++ seq
+      }
 
       val result = Await.result(resolver(concreteDeps), Duration.Inf)
 
@@ -126,31 +136,44 @@ object generateBloopFiles {
       b.Resolution(modules)
     }
 
-    val scalaCompiler: Dep.Concrete =
-      scalaVersion.compiler.concrete(scalaVersion, scalaJsVersion)
-
-    val resolvedScalaCompiler: List[java.nio.file.Path] =
-      Await.result(resolver(SortedSet(scalaCompiler)), Duration.Inf).files.toList.map(_.toPath)
-
     val classPath: List[Path] = {
       allTransitiveBloop.values.map(_.project.classesDir).toList ++
         resolution.modules.flatMap(_.artifacts).map(_.path)
     }
 
-    val setup = {
-      val provided = mergedScala.flatMap(_.setup)
-      b.CompileSetup(
-        order = provided.flatMap(_.order).getOrElse(b.CompileSetup.empty.order),
-        addLibraryToBootClasspath = provided.flatMap(_.addLibraryToBootClasspath).getOrElse(b.CompileSetup.empty.addLibraryToBootClasspath),
-        addCompilerToClasspath = provided.flatMap(_.addCompilerToClasspath).getOrElse(b.CompileSetup.empty.addCompilerToClasspath),
-        addExtraJarsToClasspath = provided.flatMap(_.addExtraJarsToClasspath).getOrElse(b.CompileSetup.empty.addExtraJarsToClasspath),
-        manageBootClasspath = provided.flatMap(_.manageBootClasspath).getOrElse(b.CompileSetup.empty.manageBootClasspath),
-        filterLibraryFromClasspath = provided.flatMap(_.filterLibraryFromClasspath).getOrElse(b.CompileSetup.empty.filterLibraryFromClasspath)
-      )
-    }
-
     val isTest = projName.value.endsWith("-test")
     val scope = if (isTest) "test" else "main"
+
+    val configuredScala: Option[b.Scala] =
+      scalaVersion.map { scalaVersion =>
+        val scalaCompiler: Dep.Concrete =
+          scalaVersion.compiler.concrete(scalaVersion, scalaJsVersion)
+
+        val resolvedScalaCompiler: List[Path] =
+          Await.result(resolver(SortedSet(scalaCompiler)), Duration.Inf).files.toList.map(_.toPath)
+
+        val setup = {
+          val provided = mergedScala.flatMap(_.setup)
+          b.CompileSetup(
+            order = provided.flatMap(_.order).getOrElse(b.CompileSetup.empty.order),
+            addLibraryToBootClasspath = provided.flatMap(_.addLibraryToBootClasspath).getOrElse(b.CompileSetup.empty.addLibraryToBootClasspath),
+            addCompilerToClasspath = provided.flatMap(_.addCompilerToClasspath).getOrElse(b.CompileSetup.empty.addCompilerToClasspath),
+            addExtraJarsToClasspath = provided.flatMap(_.addExtraJarsToClasspath).getOrElse(b.CompileSetup.empty.addExtraJarsToClasspath),
+            manageBootClasspath = provided.flatMap(_.manageBootClasspath).getOrElse(b.CompileSetup.empty.manageBootClasspath),
+            filterLibraryFromClasspath = provided.flatMap(_.filterLibraryFromClasspath).getOrElse(b.CompileSetup.empty.filterLibraryFromClasspath)
+          )
+        }
+
+        b.Scala(
+          organization = scalaVersion.compiler.org,
+          name = scalaCompiler.mangledArtifact,
+          version = scalaCompiler.version,
+          options = scalacOptions,
+          jars = resolvedScalaCompiler,
+          analysis = Some(projectFolder / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / "inc_compile_2.12.zip"),
+          setup = Some(setup)
+        )
+      }
 
     b.File(
       "1.4.0",
@@ -160,7 +183,7 @@ object generateBloopFiles {
         Some(workspaceDir),
         proj.sources match {
           case Some(providedSources) => providedSources.values.map(relPath => projectFolder / relPath)
-          case None                  => Defaults.sourceDirs(projectFolder, scalaVersion, scope)
+          case None                  => Defaults.sourceDirs(scalaVersion, scope).map(projectFolder / _)
         },
         sourcesGlobs = None,
         sourceRoots = None,
@@ -172,19 +195,9 @@ object generateBloopFiles {
           case Some(providedResources) =>
             Some(providedResources.values.map(relPath => projectFolder / relPath))
           case None =>
-            Some(Defaults.resourceDirs(projectFolder, scalaVersion, scope))
+            Some(Defaults.resourceDirs(scalaVersion, scope).map(projectFolder / _))
         },
-        scala = Some(
-          b.Scala(
-            organization = scalaVersion.compiler.org,
-            name = scalaCompiler.mangledArtifact,
-            version = scalaCompiler.version,
-            options = scalacOptions,
-            jars = resolvedScalaCompiler,
-            analysis = Some(projectFolder / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / "inc_compile_2.12.zip"),
-            setup = Some(setup)
-          )
-        ),
+        scala = configuredScala,
         java = Some(
           b.Java(
             options = mergedJava.flatMap(_.options).flat

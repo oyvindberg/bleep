@@ -271,17 +271,15 @@ object model {
       projects: Map[ProjectName, Project]
   ) {
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
-      def getLocalProject(name: model.ProjectName) =
-        projects.getOrElse(name, sys.error(s"Project ${projName.value} depends on non-existing project ${name.value}"))
-
       val builder = Map.newBuilder[model.ProjectName, model.Project]
 
-      def go(n: model.ProjectName, p: model.Project): Unit = {
+      def go(n: model.ProjectName): Unit = {
+        val p = projects.getOrElse(n, sys.error(s"Project ${projName.value} depends on non-existing project ${n.value}"))
         builder += ((n, p))
-        p.dependsOn.flat.foreach(depName => go(depName, getLocalProject(depName)))
+        p.dependsOn.flat.foreach(go)
       }
 
-      projects(projName).dependsOn.flat.foreach(projectName => go(projectName, getLocalProject(projectName)))
+      projects(projName).dependsOn.flat.foreach(go)
 
       builder.result()
     }

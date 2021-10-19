@@ -10,6 +10,21 @@ sealed trait Dep {
   def for3Use2_13(is3: Boolean): Dep =
     if (is3) Dep.For3Use2_13(this) else this
 
+  // todo: look up the details
+  def asCoursier: String =
+    this match {
+      case concrete: Dep.Concrete =>
+        s"${concrete.org}:${concrete.mangledArtifact}:${concrete.version}"
+      case Dep.For3Use2_13(dep) =>
+        s"${dep.asCoursier},for3use213"
+      case Dep.Scala(org, name, version) =>
+        s"$org::$name:$version"
+      case Dep.ScalaFullVersion(_, _, _) =>
+        sys.error("find a way to encode this")
+      case Dep.ScalaJs(org, name, version) =>
+        s"$org:::$name:$version"
+    }
+
   def asSbt: String =
     this match {
       case Dep.Mangled(_, dep) =>
@@ -24,6 +39,7 @@ sealed trait Dep {
         s"${quote(org)} % ${quote(artifact)} % ${quote(version)} cross CrossVersion.Full()"
       case Dep.For3Use2_13(dep) =>
         s"""(${dep.asSbt}).cross(CrossVersion.for3Use2_13)"""
+      case Dep.WithConfiguration =>
     }
 
   def concrete(scalaVersion: Versions.Scala, maybeScalaJs: Option[Versions.ScalaJs]): Dep.Concrete =
@@ -82,7 +98,7 @@ object Dep {
     override def version: String = dep.version
   }
 
-  def parse(_str: String): Either[String, Dep] = {
+  def parseCoursierString(_str: String): Either[String, Dep] = {
     val splitFlags = _str.split(",")
     val flags = splitFlags.drop(1).toSet
 
@@ -116,26 +132,10 @@ object Dep {
     Decoder.instance(c =>
       for {
         str <- c.as[String]
-        dep <- parse(str).left.map(str => DecodingFailure(str, c.history))
+        dep <- parseCoursierString(str).left.map(str => DecodingFailure(str, c.history))
       } yield dep
     )
 
   implicit def encodes: Encoder[Dep] =
-    Encoder.instance { dep =>
-      def go(dep: Dep): String =
-        dep match {
-          case concrete: Concrete =>
-            s"${concrete.org}:${concrete.mangledArtifact}:${concrete.version}"
-          case For3Use2_13(dep) =>
-            go(dep) + ",for3use213"
-          case Scala(org, name, version) =>
-            s"$org::$name:$version"
-          case ScalaFullVersion(_, _, _) =>
-            sys.error("find a way to encode this")
-          case ScalaJs(org, name, version) =>
-            s"$org:::$name:$version"
-        }
-
-      Json.fromString(go(dep))
-    }
+    Encoder.instance(dep => Json.fromString(dep.asCoursier))
 }

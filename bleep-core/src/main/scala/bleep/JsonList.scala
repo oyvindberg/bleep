@@ -8,7 +8,9 @@ import io.circe.{Decoder, Encoder, Json}
 //    "foo": "a",
 //    "foo": ["a"],
 // are all allowed and put into a `List`
-case class JsonList[T](values: List[T])
+case class JsonList[T](values: List[T]) {
+  def isEmpty = values.isEmpty
+}
 
 object JsonList {
   implicit class Flatten[T](ts: Option[JsonList[T]]) {
