@@ -1,4 +1,7 @@
-import java.nio.file.Path
+import bloop.config.{Config, ConfigCodecs}
+import com.github.plokhotnyuk.jsoniter_scala
+
+import java.nio.file.{Files, Path}
 
 package object bleep {
   implicit class PathOps(path: Path) {
@@ -19,4 +22,10 @@ package object bleep {
         System.err.println(s"FAILED: $cmd")
         System.exit(n)
     }
+
+  def readBloopFile(bloopFilesDir: Path, projectName: model.ProjectName): Config.File = {
+    val file = bloopFilesDir / s"${projectName.value}.json"
+    val contents = Files.readString(file)
+    jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
+  }
 }

@@ -42,10 +42,7 @@ object Main {
       println(s"$bloopFilesDir up to date")
 
       parsedProject.projects.map { case (projectName, _) =>
-        val load = Lazy {
-          val contents = Files.readString(bloopFilesDir / s"${projectName.value}.json")
-          jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
-        }
+        val load = Lazy(readBloopFile(bloopFilesDir, projectName))
         (projectName, load)
       }
 
