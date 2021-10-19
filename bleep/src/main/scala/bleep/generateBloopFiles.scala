@@ -2,8 +2,9 @@ package bleep
 
 import bleep.internal.Lazy
 import bloop.config.{Config => b}
-import coursier.Classifier
+import coursier.{Classifier, Dependency}
 import coursier.core.Configuration
+import coursier.parse.JavaOrScalaDependency
 
 import java.nio.file.Path
 import scala.collection.immutable.{SortedMap, SortedSet}
@@ -11,6 +12,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object generateBloopFiles {
+  implicit val ordering: Ordering[Dependency] =
+    Ordering.by(_.toString())
+
   def apply(file: model.File, workspaceDir: Path, resolver: CoursierResolver): SortedMap[model.ProjectName, Lazy[b.File]] = {
     verify(file)
 
@@ -26,7 +30,6 @@ object generateBloopFiles {
             projectName,
             project,
             file,
-            None,
             name =>
               resolvedProjects
                 .getOrElse(name, sys.error(s"Project ${projectName.value} depends on non-existing project ${name.value}"))
@@ -56,7 +59,6 @@ object generateBloopFiles {
       projName: model.ProjectName,
       proj: model.Project,
       inFile: model.File,
-      scalaJsVersion: Option[Versions.ScalaJs],
       getBloopProject: model.ProjectName => b.File
   ): b.File = {
     val projectFolder: Path =
@@ -92,20 +94,18 @@ object generateBloopFiles {
       mergedScala.flatMap(_.options).flat
 
     val resolution: b.Resolution = {
-      val transitiveDeps: Seq[Dep] =
+      val transitiveDeps: Seq[JavaOrScalaDependency] =
         proj.dependencies.flat ++ inFile.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.flat }
 
-      val concreteDeps: SortedSet[Dep.Concrete] = {
-        val seq = transitiveDeps.map {
-          case concrete: Dep.Concrete => concrete
-          case dep =>
-            scalaVersion match {
-              case Some(scalaVersion) => dep.concrete(scalaVersion, scalaJsVersion)
-              case None               => sys.error(s"Need a configured scala version to resolve $dep")
-            }
+      val concreteDeps: SortedSet[Dependency] = {
+        val seq = transitiveDeps.map { dep =>
+          scalaVersion match {
+            case Some(scalaVersion) => dep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, "todo: scala.js version")
+            case None               => sys.error(s"Need a configured scala version to resolve $dep")
+          }
         }
 
-        SortedSet.empty[Dep.Concrete] ++ seq
+        SortedSet.empty[Dependency] ++ seq
       }
 
       val result = Await.result(resolver(concreteDeps), Duration.Inf)
@@ -146,8 +146,8 @@ object generateBloopFiles {
 
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
-        val scalaCompiler: Dep.Concrete =
-          scalaVersion.compiler.concrete(scalaVersion, scalaJsVersion)
+        val scalaCompiler: Dependency =
+          scalaVersion.compiler.dependency(scalaVersion.scalaVersion)
 
         val resolvedScalaCompiler: List[Path] =
           Await.result(resolver(SortedSet(scalaCompiler)), Duration.Inf).files.toList.map(_.toPath)
@@ -165,8 +165,8 @@ object generateBloopFiles {
         }
 
         b.Scala(
-          organization = scalaVersion.compiler.org,
-          name = scalaCompiler.mangledArtifact,
+          organization = scalaCompiler.module.organization.value,
+          name = scalaCompiler.module.name.value,
           version = scalaCompiler.version,
           options = scalacOptions,
           jars = resolvedScalaCompiler,
@@ -190,7 +190,10 @@ object generateBloopFiles {
         dependencies = proj.dependsOn.flat.map(_.value),
         classpath = classPath,
         out = workspaceDir / Defaults.BloopFolder / projName.value,
-        classesDir = workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes",
+        classesDir = scalaVersion match {
+          case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
+          case None               => workspaceDir / Defaults.BloopFolder / projName.value / "classes"
+        },
         resources = proj.resources match {
           case Some(providedResources) =>
             Some(providedResources.values.map(relPath => projectFolder / relPath))

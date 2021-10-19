@@ -5,10 +5,10 @@
     "directory": "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery",
     "workspaceDir": "<HOME>/pr/bleep/bloop-test-files/test1",
     "sources": [
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/java",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala-2.12",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala-2",
-      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/java",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/scala-2.12/src_managed/main"
     ],
     "dependencies": [

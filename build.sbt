@@ -10,6 +10,7 @@ lazy val `bleep-core` = project
   .configure(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
+      "io.get-coursier" %% "coursier" % "2.0.16",
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
@@ -27,7 +28,6 @@ lazy val bleep = project
   .enablePlugins(NativeImagePlugin)
   .settings(
     libraryDependencies ++= Seq(
-      "io.get-coursier" %% "coursier" % "2.0.16",
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0"
     ),

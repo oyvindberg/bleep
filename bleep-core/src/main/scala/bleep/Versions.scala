@@ -1,5 +1,7 @@
 package bleep
 
+import coursier.parse.JavaOrScalaDependency
+
 object Versions {
   // this accepts any nightly or milestone with the same binversion as a major release. good enough for now
   private val Version = "(\\d+).(\\d+).(\\d+).*".r
@@ -12,15 +14,15 @@ object Versions {
     val scalaOrganization: String =
       "org.scala-lang"
 
-    val compiler: Dep =
+    val compiler: JavaOrScalaDependency =
       if (is3) Dep.Scala(scalaOrganization, "scala3-compiler", scalaVersion)
       else Dep.Java(scalaOrganization, "scala-compiler", scalaVersion)
 
-    val library: Dep.Java =
+    val library: JavaOrScalaDependency =
       if (is3) Scala213.library
       else Dep.Java(scalaOrganization, "scala-library", scalaVersion)
 
-    val dottyLibrary: Option[Dep.Java] =
+    val dottyLibrary: Option[JavaOrScalaDependency] =
       if (is3) Some(Dep.Java(scalaOrganization, "scala3-library", scalaVersion))
       else None
 
@@ -30,7 +32,7 @@ object Versions {
       case other                  => other
     }
 
-    val compilerBridge: Option[Dep.Java] =
+    val compilerBridge: Option[JavaOrScalaDependency] =
       if (is3)
         Some(Dep.Java(scalaOrganization, "scala3-sbt-bridge", scalaVersion))
       else None

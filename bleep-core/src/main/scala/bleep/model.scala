@@ -4,6 +4,8 @@ import bleep.internal.EnumCodec
 import bloop.config.Config
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe._
+import Dep.{decodesDep, encodesDep}
+import coursier.parse.JavaOrScalaDependency
 
 object model {
 
@@ -228,7 +230,7 @@ object model {
       dependsOn: Option[JsonList[ProjectName]],
       sources: Option[JsonList[RelPath]],
       resources: Option[JsonList[RelPath]],
-      dependencies: Option[JsonList[Dep]],
+      dependencies: Option[JsonList[JavaOrScalaDependency]],
       java: Option[Java],
       scala: Option[Scala],
       platform: Option[Platform]
