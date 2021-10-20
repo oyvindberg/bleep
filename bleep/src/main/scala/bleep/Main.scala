@@ -2,8 +2,9 @@ package bleep
 
 import bleep.internal.Lazy
 import bleep.model.ScriptName
-import bloop.config.{Config => b, ConfigCodecs}
+import bloop.config.{ConfigCodecs, Config => b}
 import com.github.plokhotnyuk.jsoniter_scala
+import io.circe.syntax._
 
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
@@ -68,6 +69,15 @@ object Main {
   def main(args: Array[String]): Unit =
     args.toList match {
       case List("import") =>
+        val file = importBloopFilesFromSbt(cwd)
+        Files.writeString(
+          cwd / Defaults.BuildFileName,
+          file.asJson.deepDropNullValues.spaces2,
+          UTF_8
+        )
+
+//        cli("mv .bloop .bloop_imported")
+
       case args =>
         findBleepJson match {
           case Left(err) => sys.error(err)

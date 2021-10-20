@@ -108,7 +108,7 @@ object generateBloopFiles {
         SortedSet.empty[Dependency] ++ seq
       }
 
-      val result = Await.result(resolver(concreteDeps), Duration.Inf)
+      val result = Await.result(resolver(concreteDeps, inFile.resolvers.flat), Duration.Inf)
 
       val modules: List[b.Module] =
         result.fullDetailedArtifacts
@@ -137,8 +137,8 @@ object generateBloopFiles {
     }
 
     val classPath: List[Path] = {
-      allTransitiveBloop.values.map(_.project.classesDir).toList ++
-        resolution.modules.flatMap(_.artifacts).map(_.path)
+      allTransitiveBloop.values.map(_.project.classesDir).toList.sorted ++
+        resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path).sorted
     }
 
     val isTest = projName.value.endsWith("-test")
@@ -150,7 +150,7 @@ object generateBloopFiles {
           scalaVersion.compiler.dependency(scalaVersion.scalaVersion)
 
         val resolvedScalaCompiler: List[Path] =
-          Await.result(resolver(SortedSet(scalaCompiler)), Duration.Inf).files.toList.map(_.toPath)
+          Await.result(resolver(SortedSet(scalaCompiler), inFile.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
 
         val setup = {
           val provided = mergedScala.flatMap(_.setup)

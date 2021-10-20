@@ -7,10 +7,17 @@ import io.circe._
 import Dep.{decodesDep, encodesDep}
 import coursier.parse.JavaOrScalaDependency
 
+import java.net.URI
+
 object model {
 
   implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
   implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
+  implicit val decodesURI: Decoder[URI] = Decoder[String].emap(str =>
+    try Right(URI.create(str))
+    catch { case x: IllegalArgumentException => Left(x.getMessage) }
+  )
+  implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
 
   case class Java(options: Option[JsonList[String]])
 
@@ -270,7 +277,8 @@ object model {
       scala: Option[Scala],
       java: Option[Java],
       scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
-      projects: Map[ProjectName, Project]
+      projects: Map[ProjectName, Project],
+      resolvers: Option[JsonList[URI]]
   ) {
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
       val builder = Map.newBuilder[model.ProjectName, model.Project]

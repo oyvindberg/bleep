@@ -17,11 +17,8 @@ object RelPath {
     if (str.startsWith("/")) Left(s"$str should be a relative path")
     else Right(RelPath(str.split("/").filterNot(seg => seg.isEmpty || seg == ".").toList))
 
-  def relativeTo(shorter: Path, longer: Path): Either[String, RelPath] =
-    if (longer.startsWith(shorter))
-      Right(new RelPath(longer.iterator().asScala.toList.drop(shorter.getNameCount).map(_.toString)))
-    else
-      Left(s"expected $shorter to be contained within $longer")
+  def relativeTo(shorter: Path, longer: Path): RelPath =
+    force(shorter.relativize(longer).toString)
 
   implicit def decodesRelPath: Decoder[RelPath] =
     Decoder[String].emap(apply)
