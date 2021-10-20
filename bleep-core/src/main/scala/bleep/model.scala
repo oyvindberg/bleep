@@ -235,6 +235,8 @@ object model {
   case class Project(
       folder: Option[RelPath],
       dependsOn: Option[JsonList[ProjectName]],
+      `source-layout`: Option[SourceLayout],
+      `sbt-scope`: Option[String],
       sources: Option[JsonList[RelPath]],
       resources: Option[JsonList[RelPath]],
       dependencies: Option[JsonList[JavaOrScalaDependency]],
@@ -272,7 +274,7 @@ object model {
     implicit val encodes: Encoder[ScriptDef] = Encoder.instance(sd => Json.fromString(s"${sd.project.value}/${sd.main}"))
   }
 
-  case class File(
+  case class Build(
       version: String,
       scala: Option[Scala],
       java: Option[Java],
@@ -295,11 +297,11 @@ object model {
     }
   }
 
-  object File {
-    implicit val decodes: Decoder[File] = deriveDecoder
-    implicit val encodes: Encoder[File] = deriveEncoder
+  object Build {
+    implicit val decodes: Decoder[Build] = deriveDecoder
+    implicit val encodes: Encoder[Build] = deriveEncoder
   }
 
-  def parseFile(json: String): Either[Error, File] =
-    parser.decode[model.File](json)
+  def parseBuild(json: String): Either[Error, Build] =
+    parser.decode[model.Build](json)
 }

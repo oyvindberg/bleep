@@ -5,8 +5,8 @@
     "directory": "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery",
     "workspaceDir": "<HOME>/pr/bleep/bloop-test-files/test1",
     "sources": [
-      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/java",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/java",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala-2.12",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/scala-2",
       "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/scala-2.12/src_managed/main"
@@ -17,29 +17,20 @@
     "classpath": [
       "<HOME>/pr/bleep/bloop-test-files/test1/.bloop/common/scala-2.12/classes",
       "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3-sources.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1-sources.jar",
       "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.12.3/circe-core_2.12-0.12.3.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.12.3/circe-core_2.12-0.12.3-sources.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3-sources.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10-sources.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0-sources.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0-sources.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0-sources.jar",
       "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.12.3/circe-generic_2.12-0.12.3.jar",
-      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.12.3/circe-generic_2.12-0.12.3-sources.jar"
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.12.3/circe-numbers_2.12-0.12.3.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.10/scala-library-2.12.10.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.0.0/cats-core_2.12-2.0.0.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0.jar",
+      "<HOME>/.cache/coursier/v1/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar"
     ],
     "out": "<HOME>/pr/bleep/bloop-test-files/test1/.bloop/bigquery",
     "classesDir": "<HOME>/pr/bleep/bloop-test-files/test1/.bloop/bigquery/scala-2.12/classes",
     "resources": [
-      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/resources",
-      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/scala-2.12/resource_managed/main"
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/target/scala-2.12/resource_managed/main",
+      "<HOME>/pr/bleep/bloop-test-files/test1/clients/bigquery/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.Lazy
+import bleep.internal.{rewriteDependentData, Lazy}
 import bloop.config.{Config => b}
 import coursier.{Classifier, Dependency}
 import coursier.core.Configuration
@@ -15,39 +15,28 @@ object generateBloopFiles {
   implicit val ordering: Ordering[Dependency] =
     Ordering.by(_.toString())
 
-  def apply(file: model.File, workspaceDir: Path, resolver: CoursierResolver): SortedMap[model.ProjectName, Lazy[b.File]] = {
-    verify(file)
+  def apply(build: model.Build, workspaceDir: Path, resolver: CoursierResolver): SortedMap[model.ProjectName, Lazy[b.File]] = {
+    verify(build)
 
-    // sorted to ensure consistency
-    val sortedProjects = SortedMap.empty[model.ProjectName, model.Project] ++ file.projects
-
-    lazy val resolvedProjects: SortedMap[model.ProjectName, Lazy[b.File]] =
-      sortedProjects.map { case (projectName, project) =>
-        projectName -> Lazy(
-          translateProject(
-            resolver,
-            workspaceDir,
-            projectName,
-            project,
-            file,
-            name =>
-              resolvedProjects
-                .getOrElse(name, sys.error(s"Project ${projectName.value} depends on non-existing project ${name.value}"))
-                .forceGet(projectName.value)
-          )
-        )
-      }
-
-    resolvedProjects
+    rewriteDependentData(build.projects) { (projectName, project, getDep) =>
+      translateProject(
+        resolver,
+        workspaceDir,
+        projectName,
+        project,
+        build,
+        getBloopProject = dep => getDep(dep).forceGet(s"${projectName.value} => ${dep.value}")
+      )
+    }
   }
 
-  def verify(file: model.File): Unit =
-    file.scripts match {
+  def verify(build: model.Build): Unit =
+    build.scripts match {
       case None => ()
       case Some(scripts) =>
         scripts.foreach { case (scriptName, scriptDefs) =>
           scriptDefs.values.foreach { scriptDef =>
-            if (file.projects.contains(scriptDef.project)) ()
+            if (build.projects.contains(scriptDef.project)) ()
             else sys.error(s"script ${scriptName.value} references non-existing project ${scriptDef.project.value}")
           }
         }
@@ -58,7 +47,7 @@ object generateBloopFiles {
       workspaceDir: Path,
       projName: model.ProjectName,
       proj: model.Project,
-      inFile: model.File,
+      build: model.Build,
       getBloopProject: model.ProjectName => b.File
   ): b.File = {
     val projectFolder: Path =
@@ -82,10 +71,10 @@ object generateBloopFiles {
     }
 
     val mergedScala: Option[model.Scala] =
-      model.Scala.merge(proj.scala, inFile.scala)
+      model.Scala.merge(proj.scala, build.scala)
 
     val mergedJava: Option[model.Java] =
-      model.Java.merge(proj.java, inFile.java)
+      model.Java.merge(proj.java, build.java)
 
     val scalaVersion: Option[Versions.Scala] =
       mergedScala.flatMap(_.version)
@@ -95,7 +84,7 @@ object generateBloopFiles {
 
     val resolution: b.Resolution = {
       val transitiveDeps: Seq[JavaOrScalaDependency] =
-        proj.dependencies.flat ++ inFile.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.flat }
+        proj.dependencies.flat ++ build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.flat }
 
       val concreteDeps: SortedSet[Dependency] = {
         val seq = transitiveDeps.map { dep =>
@@ -108,7 +97,7 @@ object generateBloopFiles {
         SortedSet.empty[Dependency] ++ seq
       }
 
-      val result = Await.result(resolver(concreteDeps, inFile.resolvers.flat), Duration.Inf)
+      val result = Await.result(resolver(concreteDeps, build.resolvers.flat), Duration.Inf)
 
       val modules: List[b.Module] =
         result.fullDetailedArtifacts
@@ -141,16 +130,13 @@ object generateBloopFiles {
         resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path).sorted
     }
 
-    val isTest = projName.value.endsWith("-test")
-    val scope = if (isTest) "test" else "main"
-
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
           scalaVersion.compiler.dependency(scalaVersion.scalaVersion)
 
         val resolvedScalaCompiler: List[Path] =
-          Await.result(resolver(SortedSet(scalaCompiler), inFile.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
+          Await.result(resolver(SortedSet(scalaCompiler), build.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
 
         val setup = {
           val provided = mergedScala.flatMap(_.setup)
@@ -175,31 +161,36 @@ object generateBloopFiles {
         )
       }
 
+    val scope = proj.`sbt-scope`.getOrElse("main")
+
+    def sourceLayout = proj.`source-layout` match {
+      case Some(sourceLayout) => sourceLayout
+      case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
+    }
+
+    val sources: List[Path] =
+      sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ proj.sources.flat map (projectFolder / _)
+
+    val resources: List[Path] =
+      sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ proj.resources.flat map (projectFolder / _)
+
     b.File(
       "1.4.0",
       b.Project(
         projName.value,
         projectFolder,
         Some(workspaceDir),
-        proj.sources match {
-          case Some(providedSources) => providedSources.values.map(relPath => projectFolder / relPath)
-          case None                  => Defaults.sourceDirs(scalaVersion, scope).map(projectFolder / _)
-        },
+        sources = sources,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = proj.dependsOn.flat.map(_.value),
+        dependencies = allTransitiveBloop.keys.map(_.value).toList.sorted,
         classpath = classPath,
         out = workspaceDir / Defaults.BloopFolder / projName.value,
         classesDir = scalaVersion match {
           case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
           case None               => workspaceDir / Defaults.BloopFolder / projName.value / "classes"
         },
-        resources = proj.resources match {
-          case Some(providedResources) =>
-            Some(providedResources.values.map(relPath => projectFolder / relPath))
-          case None =>
-            Some(Defaults.resourceDirs(scalaVersion, scope).map(projectFolder / _))
-        },
+        resources = Some(resources).filterNot(_.isEmpty),
         scala = configuredScala,
         java = Some(
           b.Java(
@@ -207,7 +198,7 @@ object generateBloopFiles {
           )
         ),
         sbt = None,
-        test = if (isTest) Some(b.Test.defaultConfiguration) else None,
+        test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
         // platform is mostly todo:
         platform = proj.platform.flatMap {
           case model.Platform.Jvm(config, mainClass, runtimeConfig) =>

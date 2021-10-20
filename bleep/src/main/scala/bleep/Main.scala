@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.Lazy
 import bleep.model.ScriptName
-import bloop.config.{ConfigCodecs, Config => b}
+import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 import io.circe.syntax._
 
@@ -33,7 +33,7 @@ object Main {
     }
   }
 
-  def ensureBloopFilesUpToDate(buildDir: Path, parsedProject: model.File): Map[model.ProjectName, Lazy[b.File]] = {
+  def ensureBloopFilesUpToDate(buildDir: Path, parsedProject: model.Build): Map[model.ProjectName, Lazy[b.File]] = {
     val bloopFilesDir = buildDir / Defaults.BloopFolder
     val hashFile = bloopFilesDir / ".digest"
     val currentHash = parsedProject.toString.hashCode().toString // todo: unstable hash
@@ -69,10 +69,10 @@ object Main {
   def main(args: Array[String]): Unit =
     args.toList match {
       case List("import") =>
-        val file = importBloopFilesFromSbt(cwd)
+        val build = deduplicateBuild(importBloopFilesFromSbt(cwd))
         Files.writeString(
           cwd / Defaults.BuildFileName,
-          file.asJson.deepDropNullValues.spaces2,
+          build.asJson.deepDropNullValues.spaces2,
           UTF_8
         )
 
@@ -83,9 +83,9 @@ object Main {
           case Left(err) => sys.error(err)
           case Right(buildPath) =>
             val buildDirPath = buildPath.getParent
-            val build = model.parseFile(Files.readString(buildPath)) match {
-              case Left(error) => throw error
-              case Right(file) => file
+            val build = model.parseBuild(Files.readString(buildPath)) match {
+              case Left(error)  => throw error
+              case Right(build) => build
             }
             val bloopProjects = ensureBloopFilesUpToDate(buildDirPath, build)
 

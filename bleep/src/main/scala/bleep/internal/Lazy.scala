@@ -10,7 +10,7 @@ sealed trait Lazy[T] {
   def get: Option[T]
 
   final def forceGet(circumstance: String): T =
-    get.getOrElse(sys.error(s"Unexpected circular value at $circumstance"))
+    get.getOrElse(sys.error(s"Unexpected circular: $circumstance"))
 
   final def map[U](f: T => U): Lazy[U] =
     new Lazy.Mapped(this, f)

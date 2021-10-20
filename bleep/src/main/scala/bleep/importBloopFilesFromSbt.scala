@@ -12,7 +12,7 @@ import java.util.stream.Collectors
 import scala.jdk.CollectionConverters._
 
 object importBloopFilesFromSbt {
-  def apply(buildDir: Path): model.File = {
+  def apply(buildDir: Path): model.Build = {
     val bloopFilesDir = buildDir / Defaults.BloopFolder
 
     if (Files.exists(bloopFilesDir / ".digest")) {
@@ -58,7 +58,7 @@ object importBloopFilesFromSbt {
       }
 
       val dependsOn: Option[JsonList[model.ProjectName]] =
-        Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply))).filterNot(_.isEmpty)
+        Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply)))
 
       val scalaVersion: Option[Versions.Scala] =
         bloopProject.scala.map(s => Versions.Scala(s.version))
@@ -66,88 +66,67 @@ object importBloopFilesFromSbt {
       val isTest = projectName.value.endsWith("-test")
       val scope = if (isTest) "test" else "main"
 
-      val sourceDirs: Option[JsonList[RelPath]] = {
-        val defaultRelPaths = Defaults.sourceDirs(scalaVersion, scope)
-        val givenRelPaths: List[RelPath] =
-          bloopProject.sources.map { absoluteDir =>
-            RelPath.relativeTo(bloopProject.directory, absoluteDir)
-          }
+      val sourcesRelPaths: List[RelPath] =
+        bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
 
-        givenRelPaths.filterNot(defaultRelPaths.contains) match {
-          case Nil => None
-          case _   => Some(JsonList(givenRelPaths))
-        }
-      }
-
-      val resourceDirs: Option[JsonList[RelPath]] = {
-        val defaultRelPaths = Defaults.resourceDirs(scalaVersion, scope)
-        val givenRelPaths: List[RelPath] =
-          bloopProject.resources.getOrElse(Nil).map { absoluteDir =>
-            RelPath.relativeTo(bloopProject.directory, absoluteDir)
-          }
-
-        givenRelPaths.filterNot(defaultRelPaths.contains) match {
-          case Nil => None
-          case _   => Some(JsonList(givenRelPaths))
-        }
-      }
+      val resourcesRelPaths: List[RelPath] =
+        bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
 
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
       val dependencies: List[JavaOrScalaDependency] =
-        resolution.modules
-          .map { mod =>
-            def withConf(dep: Dependency): Dependency =
-              mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
+        resolution.modules.map { mod =>
+          def withConf(dep: Dependency): Dependency =
+            mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
 
-            def java: JavaOrScalaDependency.JavaDependency = {
-              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
-              JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
-            }
-
-            val sdep: JavaOrScalaDependency = scalaVersion match {
-              case Some(scalaVersion) =>
-                val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
-                val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
-                val platform = {
-                  val sjs1 = mod.name.indexOf("_sjs1")
-                  val sjs06 = mod.name.indexOf("_sjs0.6")
-                  if (sjs1 != -1) sjs1 else sjs06
-                }
-
-                List(full, scala, platform).filterNot(_ == -1).minOption match {
-                  case None => java
-                  case Some(modNameEndIdx) =>
-                    val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
-                    JavaOrScalaDependency.ScalaDependency(
-                      withConf(dep),
-                      fullCrossVersion = full != -1,
-                      withPlatformSuffix = platform != -1,
-                      Set.empty
-                    )
-                }
-              case None =>
-                java
-            }
-
-            import Dep.{encodesDep, decodesDep}
-            import io.circe.syntax._
-            io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
-              case Left(x)  => throw x
-              case Right(x) => x
-            }
+          def java: JavaOrScalaDependency.JavaDependency = {
+            val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
+            JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
           }
 
+          val sdep: JavaOrScalaDependency = scalaVersion match {
+            case Some(scalaVersion) =>
+              val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
+              val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
+              val platform = {
+                val sjs1 = mod.name.indexOf("_sjs1")
+                val sjs06 = mod.name.indexOf("_sjs0.6")
+                if (sjs1 != -1) sjs1 else sjs06
+              }
+
+              List(full, scala, platform).filterNot(_ == -1).minOption match {
+                case None => java
+                case Some(modNameEndIdx) =>
+                  val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
+                  JavaOrScalaDependency.ScalaDependency(
+                    withConf(dep),
+                    fullCrossVersion = full != -1,
+                    withPlatformSuffix = platform != -1,
+                    Set.empty
+                  )
+              }
+            case None =>
+              java
+          }
+
+          import Dep.{encodesDep, decodesDep}
+          import io.circe.syntax._
+          io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
+            case Left(x)  => throw x
+            case Right(x) => x
+          }
+        }
+
       val configuredJava: Option[model.Java] =
-        bloopProject.java.map(java => model.Java(options = Some(JsonList(java.options)).filterNot(_.isEmpty)))
+        bloopProject.java.map(java => model.Java(options = Some(JsonList(java.options))))
 
       val configuredScala: Option[model.Scala] =
         bloopProject.scala.map(s =>
           model.Scala(
             version = Some(Versions.Scala(s.version)),
             // todo: compiler plugins
-            options = Some(JsonList(s.options)).filterNot(_.isEmpty),
+            options = Some(JsonList(s.options)),
             setup = s.setup.map(setup =>
               model.CompileSetup(
                 order = Some(setup.order).filterNot(_ == Config.CompileSetup.empty.order),
@@ -175,15 +154,17 @@ object importBloopFilesFromSbt {
       projectName -> model.Project(
         folder = folder,
         dependsOn = dependsOn,
-        sources = sourceDirs,
-        resources = resourceDirs,
+        sources = Some(JsonList(sourcesRelPaths)),
+        resources = Some(JsonList(resourcesRelPaths)),
         dependencies = Some(JsonList(dependencies)),
         java = configuredJava,
         scala = configuredScala,
-        platform = configuredPlatform
+        platform = configuredPlatform,
+        `source-layout` = None,
+        `sbt-scope` = Some(scope)
       )
     }
 
-    model.File("1", None, None, None, projects, resolvers = Some(JsonList(resolvers)))
+    model.Build("1", None, None, None, projects, resolvers = Some(JsonList(resolvers)))
   }
 }

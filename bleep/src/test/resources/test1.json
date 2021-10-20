@@ -5,17 +5,20 @@
   },
   "projects": {
     "common": {
+      "sbt-scope": "main",
       "dependencies": [
         "io.circe::circe-generic:0.12.3"
       ]
     },
     "bigquery": {
+      "sbt-scope": "main",
       "folder": "clients/bigquery",
       "dependsOn": [
         "common"
       ]
     },
     "bigquery-test": {
+      "sbt-scope": "main",
       "folder": "clients/bigquery",
       "sources": "src/test/scala",
       "dependsOn": [
