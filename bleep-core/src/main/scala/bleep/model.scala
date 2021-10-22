@@ -168,21 +168,47 @@ object model {
     }
   }
 
-  sealed abstract class Platform(val name: String, val config: Option[PlatformConfig], val mainClass: Option[String])
+  sealed abstract class Platform(val name: String)
 
   object Platform {
 
-    case class Js(override val config: Option[JsConfig], override val mainClass: Option[String]) extends Platform("js", config, mainClass)
+    case class Js(
+        version: String,
+        mode: LinkerMode,
+        kind: ModuleKindJS,
+        emitSourceMaps: Boolean,
+        jsdom: Option[Boolean],
+        output: Option[RelPath],
+        //      nodePath: Option[Path],
+        //      toolchain: List[Path]
+        mainClass: Option[String]
+    ) extends Platform("js")
 
     case class Jvm(
-        override val config: Option[JvmConfig],
-        override val mainClass: Option[String],
-        runtimeConfig: Option[JvmConfig]
+        //      home: Option[Path],
+        options: Option[JsonList[String]],
+        mainClass: Option[String],
+        //      runtimeHome: Option[Path],
+        runtimeOptions: Option[JsonList[String]]
         //        classpath: Option[List[Path]],
         //        resources: Option[List[Path]]
-    ) extends Platform("jvm", config, mainClass)
+    ) extends Platform("jvm")
 
-    case class Native(override val config: Option[NativeConfig], override val mainClass: Option[String]) extends Platform("native", config, mainClass)
+    case class Native(
+        version: String,
+        mode: LinkerMode,
+        gc: String,
+        targetTriple: Option[String],
+        //      clang: Path,
+        //      clangpp: Path,
+        //      toolchain: List[Path],
+        options: NativeOptions,
+        linkStubs: Boolean,
+        check: Boolean,
+        dump: Boolean,
+        //      output: Option[Path]
+        mainClass: Option[String]
+    ) extends Platform("native")
 
     implicit val decodesJs: Decoder[Js] = deriveDecoder
     implicit val encodesJs: Encoder[Js] = deriveEncoder
@@ -213,21 +239,6 @@ object model {
     }
   }
 
-  sealed trait PlatformConfig
-
-  object PlatformConfig {
-    implicit val decodesJvm: Decoder[JvmConfig] = deriveDecoder
-    implicit val encodesJvm: Encoder[JvmConfig] = deriveEncoder
-    implicit val decodesJs: Decoder[JsConfig] = deriveDecoder
-    implicit val encodesJs: Encoder[JsConfig] = deriveEncoder
-    implicit val decodesNative: Decoder[NativeConfig] = deriveDecoder
-    implicit val encodesNative: Encoder[NativeConfig] = deriveEncoder
-  }
-  case class JvmConfig(
-      //      home: Option[Path],
-      options: List[String]
-  ) extends PlatformConfig
-
   sealed abstract class LinkerMode(val id: String)
 
   object LinkerMode extends EnumCodec[LinkerMode] {
@@ -244,32 +255,6 @@ object model {
     case object ESModule extends ModuleKindJS("esmodule")
     val All = List(NoModule, CommonJSModule, ESModule).map(x => x.id -> x).toMap
   }
-
-  case class JsConfig(
-      version: String,
-      mode: LinkerMode,
-      kind: ModuleKindJS,
-      emitSourceMaps: Boolean,
-      jsdom: Option[Boolean],
-      output: Option[RelPath]
-      //      nodePath: Option[Path],
-      //      toolchain: List[Path]
-  ) extends PlatformConfig
-
-  case class NativeConfig(
-      version: String,
-      mode: LinkerMode,
-      gc: String,
-      targetTriple: Option[String],
-      //      clang: Path,
-      //      clangpp: Path,
-      //      toolchain: List[Path],
-      options: NativeOptions,
-      linkStubs: Boolean,
-      check: Boolean,
-      dump: Boolean
-      //      output: Option[Path]
-  ) extends PlatformConfig
 
   case class NativeOptions(linker: List[String], compiler: List[String])
 
