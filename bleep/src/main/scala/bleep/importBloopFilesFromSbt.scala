@@ -47,124 +47,156 @@ object importBloopFilesFromSbt {
         .distinct
         .filterNot(_ == Defaults.MavenCentral)
 
-    val projects = bloopProjectFiles.map { case (projectName, bloopFile) =>
-      val bloopProject = bloopFile.project
+    val scalas: Map[model.Scala, model.ScalaId] =
+      bloopProjectFiles
+        .flatMap { case (_, p) => p.project.scala.map(translateScala) }
+        .groupBy(_.version.map(_.binVersion))
+        .flatMap { case (Some(version), scalaConfigs) =>
+          // sort by 1) most usage, 2) longest definition
+          // I know, will refactor tihs
+          val sorted =
+            scalaConfigs
+              .groupBy(_.toString)
+              .map { case (_, sames) => sames.head -> sames.size }
+              .toList
+              .sortBy { case (config, numUsage) => (-numUsage, -config.toString.length) }
 
-      val folder: Option[RelPath] = {
-        RelPath.relativeTo(buildDir, bloopProject.directory) match {
-          case RelPath(List(projectName.value)) => None
-          case relPath                          => Some(relPath)
-        }
-      }
-
-      val dependsOn: Option[JsonList[model.ProjectName]] =
-        Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply)))
-
-      val scalaVersion: Option[Versions.Scala] =
-        bloopProject.scala.map(s => Versions.Scala(s.version))
-
-      val isTest = projectName.value.endsWith("-test")
-      val scope = if (isTest) "test" else "main"
-
-      val sourcesRelPaths: List[RelPath] =
-        bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
-
-      val resourcesRelPaths: List[RelPath] =
-        bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
-
-      val resolution = bloopProject.resolution
-        .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
-
-      val dependencies: List[JavaOrScalaDependency] =
-        resolution.modules.map { mod =>
-          def withConf(dep: Dependency): Dependency =
-            mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
-
-          def java: JavaOrScalaDependency.JavaDependency = {
-            val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
-            JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
-          }
-
-          val sdep: JavaOrScalaDependency = scalaVersion match {
-            case Some(scalaVersion) =>
-              val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
-              val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
-              val platform = {
-                val sjs1 = mod.name.indexOf("_sjs1")
-                val sjs06 = mod.name.indexOf("_sjs0.6")
-                if (sjs1 != -1) sjs1 else sjs06
-              }
-
-              List(full, scala, platform).filterNot(_ == -1).minOption match {
-                case None => java
-                case Some(modNameEndIdx) =>
-                  val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
-                  JavaOrScalaDependency.ScalaDependency(
-                    withConf(dep),
-                    fullCrossVersion = full != -1,
-                    withPlatformSuffix = platform != -1,
-                    Set.empty
-                  )
-              }
-            case None =>
-              java
-          }
-
-          import Dep.{encodesDep, decodesDep}
-          import io.circe.syntax._
-          io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
-            case Left(x)  => throw x
-            case Right(x) => x
+          sorted.map(_._1).zipWithIndex.map { case (s, n) =>
+            val translated = s
+            val id = n match {
+              case 0 => model.ScalaId(version)
+              case n => model.ScalaId(s"$version-$n")
+            }
+            (s, id)
           }
         }
 
-      val configuredJava: Option[model.Java] =
-        bloopProject.java.map(java => model.Java(options = Some(JsonList(java.options))))
+    val projectHasFiles = bloopProjectFiles.flatMap { case (projectName, bloopFile) =>
+      def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
+      if ((bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles) Some(projectName)
+      else None
+    }.toSet
 
-      val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(s =>
-          model.Scala(
-            version = Some(Versions.Scala(s.version)),
-            // todo: compiler plugins
-            options = Some(JsonList(s.options)),
-            setup = s.setup.map(setup =>
-              model.CompileSetup(
-                order = Some(setup.order).filterNot(_ == Config.CompileSetup.empty.order),
-                addLibraryToBootClasspath = Some(setup.addLibraryToBootClasspath).filterNot(_ == Config.CompileSetup.empty.addLibraryToBootClasspath),
-                addCompilerToClasspath = Some(setup.addCompilerToClasspath).filterNot(_ == Config.CompileSetup.empty.addCompilerToClasspath),
-                addExtraJarsToClasspath = Some(setup.addExtraJarsToClasspath).filterNot(_ == Config.CompileSetup.empty.addExtraJarsToClasspath),
-                manageBootClasspath = Some(setup.manageBootClasspath).filterNot(_ == Config.CompileSetup.empty.manageBootClasspath),
-                filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath).filterNot(_ == Config.CompileSetup.empty.filterLibraryFromClasspath)
-              )
-            )
-          )
+    val projects = bloopProjectFiles.collect {
+      case (projectName, bloopFile) if projectHasFiles(projectName) =>
+        val bloopProject = bloopFile.project
+
+        val folder: Option[RelPath] = {
+          RelPath.relativeTo(buildDir, bloopProject.directory) match {
+            case RelPath(List(projectName.value)) => None
+            case relPath                          => Some(relPath)
+          }
+        }
+
+        val dependsOn: Option[JsonList[model.ProjectName]] =
+          Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply).filter(projectHasFiles)))
+
+        val scalaVersion: Option[Versions.Scala] =
+          bloopProject.scala.map(s => Versions.Scala(s.version))
+
+        val isTest = projectName.value.endsWith("-test")
+        val scope = if (isTest) "test" else "main"
+
+        val sourcesRelPaths: List[RelPath] =
+          bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
+
+        val resourcesRelPaths: List[RelPath] =
+          bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
+
+        val resolution = bloopProject.resolution
+          .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
+
+        val dependencies: List[JavaOrScalaDependency] =
+          resolution.modules.map { mod =>
+            def withConf(dep: Dependency): Dependency =
+              mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
+
+            def java: JavaOrScalaDependency.JavaDependency = {
+              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
+              JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
+            }
+
+            val sdep: JavaOrScalaDependency = scalaVersion match {
+              case Some(scalaVersion) =>
+                val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
+                val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
+                val platform = {
+                  val sjs1 = mod.name.indexOf("_sjs1")
+                  val sjs06 = mod.name.indexOf("_sjs0.6")
+                  if (sjs1 != -1) sjs1 else sjs06
+                }
+
+                List(full, scala, platform).filterNot(_ == -1).minOption match {
+                  case None => java
+                  case Some(modNameEndIdx) =>
+                    val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
+                    JavaOrScalaDependency.ScalaDependency(
+                      withConf(dep),
+                      fullCrossVersion = full != -1,
+                      withPlatformSuffix = platform != -1,
+                      Set.empty
+                    )
+                }
+              case None =>
+                java
+            }
+
+            import io.circe.syntax._
+            import model.Project.{decodesDep, encodesDep}
+            io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
+              case Left(x)  => throw x
+              case Right(x) => x
+            }
+          }
+
+        val configuredJava: Option[model.Java] =
+          bloopProject.java.map(java => model.Java(options = Some(JsonList(java.options))))
+
+        val configuredScala: Option[model.ScalaId] =
+          bloopProject.scala.map(scalaConfig => scalas(translateScala(scalaConfig)))
+
+        // todo: platform is still wip
+        val configuredPlatform: Option[Platform.Jvm] =
+          bloopProject.platform.flatMap {
+            case Config.Platform.Js(config, mainClass) => None
+            case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
+              val newConfig = model.JvmConfig(options = config.options)
+              val newRuntimeConfig = runtimeConfig.map(c => model.JvmConfig(options = c.options))
+              Some(model.Platform.Jvm(Some(newConfig), mainClass, newRuntimeConfig))
+            case Config.Platform.Native(config, mainClass) => None
+          }
+
+        projectName -> model.Project(
+          folder = folder,
+          dependsOn = dependsOn,
+          sources = Some(JsonList(sourcesRelPaths)),
+          resources = Some(JsonList(resourcesRelPaths)),
+          dependencies = Some(JsonList(dependencies)),
+          java = configuredJava,
+          scala = configuredScala,
+          platform = configuredPlatform,
+          `source-layout` = None,
+          `sbt-scope` = Some(scope)
         )
-
-      // todo: platform is still wip
-      val configuredPlatform: Option[Platform.Jvm] =
-        bloopProject.platform.flatMap {
-          case Config.Platform.Js(config, mainClass) => None
-          case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
-            val newConfig = model.JvmConfig(options = config.options)
-            val newRuntimeConfig = runtimeConfig.map(c => model.JvmConfig(options = c.options))
-            Some(model.Platform.Jvm(Some(newConfig), mainClass, newRuntimeConfig))
-          case Config.Platform.Native(config, mainClass) => None
-        }
-
-      projectName -> model.Project(
-        folder = folder,
-        dependsOn = dependsOn,
-        sources = Some(JsonList(sourcesRelPaths)),
-        resources = Some(JsonList(resourcesRelPaths)),
-        dependencies = Some(JsonList(dependencies)),
-        java = configuredJava,
-        scala = configuredScala,
-        platform = configuredPlatform,
-        `source-layout` = None,
-        `sbt-scope` = Some(scope)
-      )
     }
 
-    model.Build("1", None, None, None, projects, resolvers = Some(JsonList(resolvers)))
+    model.Build("1", projects, Some(scalas.map { case (v, k) => (k, v) }), None, None, resolvers = Some(JsonList(resolvers)))
   }
+
+  def translateScala(s: Config.Scala): model.Scala =
+    model.Scala(
+      version = Some(Versions.Scala(s.version)),
+      // todo: compiler plugins
+      options = Some(JsonList(s.options)),
+      setup = s.setup.map(setup =>
+        model.CompileSetup(
+          order = Some(setup.order).filterNot(_ == Config.CompileSetup.empty.order),
+          addLibraryToBootClasspath = Some(setup.addLibraryToBootClasspath).filterNot(_ == Config.CompileSetup.empty.addLibraryToBootClasspath),
+          addCompilerToClasspath = Some(setup.addCompilerToClasspath).filterNot(_ == Config.CompileSetup.empty.addCompilerToClasspath),
+          addExtraJarsToClasspath = Some(setup.addExtraJarsToClasspath).filterNot(_ == Config.CompileSetup.empty.addExtraJarsToClasspath),
+          manageBootClasspath = Some(setup.manageBootClasspath).filterNot(_ == Config.CompileSetup.empty.manageBootClasspath),
+          filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath).filterNot(_ == Config.CompileSetup.empty.filterLibraryFromClasspath)
+        )
+      )
+    )
 }

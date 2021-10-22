@@ -1,11 +1,9 @@
 package bleep
 
 import coursier._
-import coursier.core.Configuration
-import coursier.parse.{DependencyParser, JavaOrScalaDependency}
-import io.circe.{Decoder, DecodingFailure, Encoder, Json}
+import coursier.parse.JavaOrScalaDependency
 
-object Dep {
+object Deps {
   def Java(org: String, name: String, version: String): JavaOrScalaDependency =
     JavaOrScalaDependency.JavaDependency(Dependency(Module(Organization(org), ModuleName(name)), version), Set.empty)
 
@@ -32,19 +30,4 @@ object Dep {
       withPlatformSuffix = true,
       Set.empty
     )
-
-  implicit def decodesDep: Decoder[JavaOrScalaDependency] =
-    Decoder.instance(c =>
-      for {
-        str <- c.as[String]
-        tuple <- DependencyParser.javaOrScalaDependencyParams(str, Configuration.empty).left.map(err => DecodingFailure(err, c.history))
-      } yield tuple._1
-    )
-
-  implicit def encodesDep: Encoder[JavaOrScalaDependency] =
-    Encoder.instance {
-      case dep: JavaOrScalaDependency.JavaDependency =>
-        Json.fromString(s"${dep.module}:${dep.dependency.version}")
-      case dep: JavaOrScalaDependency.ScalaDependency => Json.fromString(dep.repr)
-    }
 }

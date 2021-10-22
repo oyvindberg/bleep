@@ -2,22 +2,14 @@ package bleep
 
 import bleep.internal.EnumCodec
 import bloop.config.Config
+import coursier.core.Configuration
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe._
-import Dep.{decodesDep, encodesDep}
-import coursier.parse.JavaOrScalaDependency
+import coursier.parse.{DependencyParser, JavaOrScalaDependency}
 
 import java.net.URI
 
 object model {
-
-  implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
-  implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
-  implicit val decodesURI: Decoder[URI] = Decoder[String].emap(str =>
-    try Right(URI.create(str))
-    catch { case x: IllegalArgumentException => Left(x.getMessage) }
-  )
-  implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
 
   case class Java(options: Option[JsonList[String]])
 
@@ -92,6 +84,15 @@ object model {
     implicit val encodes: Encoder[CompileSetup] = deriveEncoder
   }
 
+  case class ScalaId(value: String) extends AnyVal 
+  object ScalaId {
+    implicit val ordering: Ordering[ScalaId] = Ordering.by(_.value)
+    implicit val decodes: Decoder[ScalaId] = Decoder[String].map(ScalaId.apply)
+    implicit val encodes: Encoder[ScalaId] = Encoder[String].contramap(_.value)
+    implicit val keyDecodes: KeyDecoder[ScalaId] = KeyDecoder[String].map(ScalaId.apply)
+    implicit val keyEncodes: KeyEncoder[ScalaId] = KeyEncoder[String].contramap(_.value)
+  }
+
   case class Scala(
       version: Option[Versions.Scala],
       options: Option[JsonList[String]],
@@ -99,17 +100,11 @@ object model {
   )
 
   object Scala {
+    implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
+    implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
+
     implicit val decodes: Decoder[Scala] = deriveDecoder
     implicit val encodes: Encoder[Scala] = deriveEncoder
-
-    def merge(xs: Option[Scala]*): Option[Scala] =
-      xs.flatten.reduceOption { (s1, s2) =>
-        Scala(
-          version = s1.version.orElse(s2.version),
-          options = s1.options.orElse(s2.options),
-          setup = CompileSetup.merge(s1.setup, s2.setup)
-        )
-      }
   }
 
   sealed abstract class Platform(val name: String, val config: Option[PlatformConfig], val mainClass: Option[String])
@@ -241,11 +236,26 @@ object model {
       resources: Option[JsonList[RelPath]],
       dependencies: Option[JsonList[JavaOrScalaDependency]],
       java: Option[Java],
-      scala: Option[Scala],
+      scala: Option[ScalaId],
       platform: Option[Platform]
   )
 
   object Project {
+    implicit val decodesDep: Decoder[JavaOrScalaDependency] =
+      Decoder.instance(c =>
+        for {
+          str <- c.as[String]
+          tuple <- DependencyParser.javaOrScalaDependencyParams(str, Configuration.empty).left.map(err => DecodingFailure(err, c.history))
+        } yield tuple._1
+      )
+
+    implicit val encodesDep: Encoder[JavaOrScalaDependency] =
+      Encoder.instance {
+        case dep: JavaOrScalaDependency.JavaDependency =>
+          Json.fromString(s"${dep.module}:${dep.dependency.version}")
+        case dep: JavaOrScalaDependency.ScalaDependency => Json.fromString(dep.repr)
+      }
+
     implicit val decodes: Decoder[Project] = deriveDecoder
     implicit val encodes: Encoder[Project] = deriveEncoder
   }
@@ -276,10 +286,10 @@ object model {
 
   case class Build(
       version: String,
-      scala: Option[Scala],
+      projects: Map[ProjectName, Project],
+      scala: Option[Map[ScalaId, Scala]],
       java: Option[Java],
       scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
-      projects: Map[ProjectName, Project],
       resolvers: Option[JsonList[URI]]
   ) {
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
@@ -298,6 +308,12 @@ object model {
   }
 
   object Build {
+    implicit val decodesURI: Decoder[URI] = Decoder[String].emap(str =>
+      try Right(URI.create(str))
+      catch { case x: IllegalArgumentException => Left(x.getMessage) }
+    )
+    implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
+
     implicit val decodes: Decoder[Build] = deriveDecoder
     implicit val encodes: Encoder[Build] = deriveEncoder
   }

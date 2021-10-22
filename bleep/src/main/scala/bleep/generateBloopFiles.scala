@@ -70,17 +70,21 @@ object generateBloopFiles {
       builder.result()
     }
 
-    val mergedScala: Option[model.Scala] =
-      model.Scala.merge(proj.scala, build.scala)
+    val maybeScala: Option[model.Scala] =
+      for {
+        requiredScala <- proj.scala
+        scalas <- build.scala
+        found <- scalas.get(requiredScala)
+      } yield found
 
     val mergedJava: Option[model.Java] =
       model.Java.merge(proj.java, build.java)
 
     val scalaVersion: Option[Versions.Scala] =
-      mergedScala.flatMap(_.version)
+      maybeScala.flatMap(_.version)
 
     val scalacOptions: List[String] =
-      mergedScala.flatMap(_.options).flat
+      maybeScala.flatMap(_.options).flat
 
     val resolution: b.Resolution = {
       val transitiveDeps: Seq[JavaOrScalaDependency] =
@@ -139,7 +143,7 @@ object generateBloopFiles {
           Await.result(resolver(SortedSet(scalaCompiler), build.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
 
         val setup = {
-          val provided = mergedScala.flatMap(_.setup)
+          val provided = maybeScala.flatMap(_.setup)
           b.CompileSetup(
             order = provided.flatMap(_.order).getOrElse(b.CompileSetup.empty.order),
             addLibraryToBootClasspath = provided.flatMap(_.addLibraryToBootClasspath).getOrElse(b.CompileSetup.empty.addLibraryToBootClasspath),

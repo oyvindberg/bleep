@@ -19,8 +19,14 @@ object deduplicateBuild {
         p.dependencies.flat.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependencies.flat }.toSet).sortBy(_.module.toString).distinctBy(_.module)
 
       val (sourceLayout, sources, resources) = {
-        val scalaVersion: Option[Versions.Scala] =
-          p.scala.flatMap(_.version)
+        val scalaVersion: Option[Versions.Scala] = {
+          for {
+            requiredScala <- p.scala
+            scalas <- build.scala
+            found <- scalas.get(requiredScala)
+            foundVersion <- found.version
+          } yield foundVersion
+        }
 
         val inferredSourceLayout: Option[SourceLayout] =
           p.`source-layout`.orElse {
