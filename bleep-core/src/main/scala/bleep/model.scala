@@ -65,26 +65,50 @@ object model {
       addExtraJarsToClasspath: Option[Boolean],
       manageBootClasspath: Option[Boolean],
       filterLibraryFromClasspath: Option[Boolean]
-  )
+  ) {
+    def isEmpty: Boolean =
+      this match {
+        case CompileSetup(None, None, None, None, None, None) => true
+        case _                                                => false
+      }
 
-  object CompileSetup {
-    def merge(xs: Option[CompileSetup]*): Option[CompileSetup] =
-      xs.flatten.reduceOption((s1, s2) =>
-        CompileSetup(
-          order = s1.order.orElse(s2.order),
-          addLibraryToBootClasspath = s1.addLibraryToBootClasspath.orElse(s2.addLibraryToBootClasspath),
-          addCompilerToClasspath = s1.addCompilerToClasspath.orElse(s2.addCompilerToClasspath),
-          addExtraJarsToClasspath = s1.addExtraJarsToClasspath.orElse(s2.addExtraJarsToClasspath),
-          manageBootClasspath = s1.manageBootClasspath.orElse(s2.manageBootClasspath),
-          filterLibraryFromClasspath = s1.filterLibraryFromClasspath.orElse(s2.filterLibraryFromClasspath)
-        )
+    def intersect(other: CompileSetup): CompileSetup =
+      CompileSetup(
+        order = if (order == other.order) order else None,
+        addLibraryToBootClasspath = if (addLibraryToBootClasspath == other.addLibraryToBootClasspath) addLibraryToBootClasspath else None,
+        addCompilerToClasspath = if (addCompilerToClasspath == other.addCompilerToClasspath) addCompilerToClasspath else None,
+        addExtraJarsToClasspath = if (addExtraJarsToClasspath == other.addExtraJarsToClasspath) addExtraJarsToClasspath else None,
+        manageBootClasspath = if (manageBootClasspath == other.manageBootClasspath) manageBootClasspath else None,
+        filterLibraryFromClasspath = if (filterLibraryFromClasspath == other.filterLibraryFromClasspath) filterLibraryFromClasspath else None
       )
 
+    def removeAll(other: CompileSetup): CompileSetup =
+      CompileSetup(
+        order = if (order == other.order) None else order,
+        addLibraryToBootClasspath = if (addLibraryToBootClasspath == other.addLibraryToBootClasspath) None else addLibraryToBootClasspath,
+        addCompilerToClasspath = if (addCompilerToClasspath == other.addCompilerToClasspath) None else addCompilerToClasspath,
+        addExtraJarsToClasspath = if (addExtraJarsToClasspath == other.addExtraJarsToClasspath) None else addExtraJarsToClasspath,
+        manageBootClasspath = if (manageBootClasspath == other.manageBootClasspath) None else manageBootClasspath,
+        filterLibraryFromClasspath = if (filterLibraryFromClasspath == other.filterLibraryFromClasspath) None else filterLibraryFromClasspath
+      )
+
+    def or(other: CompileSetup): CompileSetup =
+      CompileSetup(
+        order = order.orElse(other.order),
+        addLibraryToBootClasspath = addLibraryToBootClasspath.orElse(other.addLibraryToBootClasspath),
+        addCompilerToClasspath = addCompilerToClasspath.orElse(other.addCompilerToClasspath),
+        addExtraJarsToClasspath = addExtraJarsToClasspath.orElse(other.addExtraJarsToClasspath),
+        manageBootClasspath = manageBootClasspath.orElse(other.manageBootClasspath),
+        filterLibraryFromClasspath = filterLibraryFromClasspath.orElse(other.filterLibraryFromClasspath)
+      )
+  }
+
+  object CompileSetup {
     implicit val decodes: Decoder[CompileSetup] = deriveDecoder
     implicit val encodes: Encoder[CompileSetup] = deriveEncoder
   }
 
-  case class ScalaId(value: String) extends AnyVal 
+  case class ScalaId(value: String) extends AnyVal
   object ScalaId {
     implicit val ordering: Ordering[ScalaId] = Ordering.by(_.value)
     implicit val decodes: Decoder[ScalaId] = Decoder[String].map(ScalaId.apply)
@@ -94,17 +118,54 @@ object model {
   }
 
   case class Scala(
+      `extends`: Option[ScalaId],
       version: Option[Versions.Scala],
-      options: Option[JsonList[String]],
+      options: Option[Options],
       setup: Option[CompileSetup]
-  )
+  ) {
+    def intersect(other: Scala): Scala =
+      Scala(
+        `extends` = if (`extends` == other.`extends`) `extends` else None,
+        version = if (`version` == other.`version`) `version` else None,
+        options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty),
+        setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty)
+      )
+
+    def removeAll(other: Scala): Scala =
+      Scala(
+        `extends` = if (`extends` == other.`extends`) None else `extends`,
+        version = if (`version` == other.`version`) None else `version`,
+        options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty),
+        setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty)
+      )
+
+    def or(other: Scala): Scala =
+      Scala(
+        `extends` = `extends`.orElse(other.`extends`),
+        version = version.orElse(other.version),
+        options = List(options, other.options).flatten.reduceOption(_ ++ _),
+        setup = List(setup, other.setup).flatten.reduceOption(_ or _)
+      )
+  }
 
   object Scala {
     implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
     implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
 
-    implicit val decodes: Decoder[Scala] = deriveDecoder
-    implicit val encodes: Encoder[Scala] = deriveEncoder
+    val fullDecodes: Decoder[Scala] = deriveDecoder
+    val fullEncodes: Encoder[Scala] = deriveEncoder
+
+    implicit val decodes: Decoder[Scala] = Decoder.instance(c =>
+      c.as[Option[ScalaId]].flatMap {
+        case Some(extends_) => Right(Scala(`extends` = Some(extends_), None, None, None))
+        case None           => fullDecodes(c)
+      }
+    )
+
+    implicit val encodes: Encoder[Scala] = Encoder.instance {
+      case Scala(Some(extends_), None, None, None) => Encoder[ScalaId].apply(extends_)
+      case full                                    => fullEncodes(full)
+    }
   }
 
   sealed abstract class Platform(val name: String, val config: Option[PlatformConfig], val mainClass: Option[String])
@@ -236,7 +297,7 @@ object model {
       resources: Option[JsonList[RelPath]],
       dependencies: Option[JsonList[JavaOrScalaDependency]],
       java: Option[Java],
-      scala: Option[ScalaId],
+      scala: Option[Scala],
       platform: Option[Platform]
   )
 

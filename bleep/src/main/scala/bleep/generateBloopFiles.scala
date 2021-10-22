@@ -70,12 +70,17 @@ object generateBloopFiles {
       builder.result()
     }
 
-    val maybeScala: Option[model.Scala] =
-      for {
-        requiredScala <- proj.scala
-        scalas <- build.scala
-        found <- scalas.get(requiredScala)
-      } yield found
+    val maybeScala: Option[model.Scala] = {
+      def go(s: model.Scala): model.Scala =
+        s.`extends` match {
+          case Some(id) =>
+            val found = build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
+            s.or(go(found))
+          case None =>
+            s
+        }
+      proj.scala.map(go)
+    }
 
     val mergedJava: Option[model.Java] =
       model.Java.merge(proj.java, build.java)
@@ -83,8 +88,8 @@ object generateBloopFiles {
     val scalaVersion: Option[Versions.Scala] =
       maybeScala.flatMap(_.version)
 
-    val scalacOptions: List[String] =
-      maybeScala.flatMap(_.options).flat
+    val scalacOptions: Options =
+      maybeScala.flatMap(_.options).getOrElse(Options.Empty)
 
     val resolution: b.Resolution = {
       val transitiveDeps: Seq[JavaOrScalaDependency] =
@@ -158,7 +163,7 @@ object generateBloopFiles {
           organization = scalaCompiler.module.organization.value,
           name = scalaCompiler.module.name.value,
           version = scalaCompiler.version,
-          options = scalacOptions,
+          options = scalacOptions.render,
           jars = resolvedScalaCompiler,
           analysis = Some(projectFolder / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / "inc_compile_2.12.zip"),
           setup = Some(setup)

@@ -47,28 +47,15 @@ object importBloopFilesFromSbt {
         .distinct
         .filterNot(_ == Defaults.MavenCentral)
 
-    val scalas: Map[model.Scala, model.ScalaId] =
+    val scalas: Map[model.ScalaId, model.Scala] =
       bloopProjectFiles
         .flatMap { case (_, p) => p.project.scala.map(translateScala) }
         .groupBy(_.version.map(_.binVersion))
-        .flatMap { case (Some(version), scalaConfigs) =>
-          // sort by 1) most usage, 2) longest definition
-          // I know, will refactor tihs
-          val sorted =
-            scalaConfigs
-              .groupBy(_.toString)
-              .map { case (_, sames) => sames.head -> sames.size }
-              .toList
-              .sortBy { case (config, numUsage) => (-numUsage, -config.toString.length) }
-
-          sorted.map(_._1).zipWithIndex.map { case (s, n) =>
-            val translated = s
-            val id = n match {
-              case 0 => model.ScalaId(version)
-              case n => model.ScalaId(s"$version-$n")
-            }
-            (s, id)
-          }
+        .flatMap {
+          case (None, _) => Map.empty
+          case (Some(binVersion), scalaConfigs) =>
+            val intersected = scalaConfigs.tail.foldLeft(scalaConfigs.head)(_.intersect(_))
+            Map(model.ScalaId(binVersion) -> intersected)
         }
 
     val projectHasFiles = bloopProjectFiles.flatMap { case (projectName, bloopFile) =>
@@ -152,8 +139,18 @@ object importBloopFilesFromSbt {
         val configuredJava: Option[model.Java] =
           bloopProject.java.map(java => model.Java(options = Some(JsonList(java.options))))
 
-        val configuredScala: Option[model.ScalaId] =
-          bloopProject.scala.map(scalaConfig => scalas(translateScala(scalaConfig)))
+        val configuredScala: Option[model.Scala] =
+          bloopProject.scala.map { scalaConfig =>
+            val translated = translateScala(scalaConfig)
+            translated.version match {
+              case Some(version) =>
+                val scalaId = model.ScalaId(version.binVersion)
+                val shared = scalas(scalaId)
+                translated.removeAll(shared).copy(`extends` = Some(scalaId))
+
+              case None => translated
+            }
+          }
 
         // todo: platform is still wip
         val configuredPlatform: Option[Platform.Jvm] =
@@ -180,14 +177,15 @@ object importBloopFilesFromSbt {
         )
     }
 
-    model.Build("1", projects, Some(scalas.map { case (v, k) => (k, v) }), None, None, resolvers = Some(JsonList(resolvers)))
+    model.Build("1", projects, Some(scalas), None, None, resolvers = Some(JsonList(resolvers)))
   }
 
   def translateScala(s: Config.Scala): model.Scala =
     model.Scala(
+      `extends` = None,
       version = Some(Versions.Scala(s.version)),
       // todo: compiler plugins
-      options = Some(JsonList(s.options)),
+      options = Some(Options(s.options)),
       setup = s.setup.map(setup =>
         model.CompileSetup(
           order = Some(setup.order).filterNot(_ == Config.CompileSetup.empty.order),

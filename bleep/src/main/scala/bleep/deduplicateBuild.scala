@@ -20,19 +20,22 @@ object deduplicateBuild {
 
       val (sourceLayout, sources, resources) = {
         val scalaVersion: Option[Versions.Scala] = {
-          for {
-            requiredScala <- p.scala
-            scalas <- build.scala
-            found <- scalas.get(requiredScala)
-            foundVersion <- found.version
-          } yield foundVersion
+          def go(scala: model.Scala): Option[Versions.Scala] =
+            scala.version.orElse {
+              scala.`extends`.zip(build.scala).flatMap{case (id, scalas) => go(scalas(id))}
+            }
+          p.scala.flatMap(go)
         }
 
         val inferredSourceLayout: Option[SourceLayout] =
           p.`source-layout`.orElse {
-            val withIntersection: Iterable[(Int, SourceLayout)] =
-              SourceLayout.All.values.map(sl => (sl.sources(scalaVersion, p.`sbt-scope`).intersect(p.sources.flat).length, sl)).filter { case (n, _) => n > 0 }
-            withIntersection.maxByOption(_._1).map(_._2)
+            SourceLayout.All.values.maxByOption { layout =>
+              val fromLayout = layout.sources(scalaVersion, p.`sbt-scope`).toSet
+              val fromProject = p.sources.flat.toSet
+              val matching = fromLayout.intersect(fromProject).size
+              val notMatching = fromLayout.removedAll(fromProject).size
+              (matching, -notMatching)
+            }
           }
 
         inferredSourceLayout match {
