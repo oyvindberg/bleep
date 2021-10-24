@@ -153,15 +153,11 @@ object model {
     val fullDecodes: Decoder[Scala] = deriveDecoder
     val fullEncodes: Encoder[Scala] = deriveEncoder
 
-    val decodeShort = Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None))
+    val shortDecodes: Decoder[Scala] =
+      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None))
+
     implicit val decodes: Decoder[Scala] =
-      decodeShort.or(fullDecodes)
-//      Decoder.instance(c =>
-//      c.as[Option[ScalaId]].flatMap {
-//        case Some(extends_) => Right(Scala(`extends` = Some(extends_), None, None, None))
-//        case None           => fullDecodes(c)
-//      }
-//    )
+      shortDecodes.or(fullDecodes)
 
     implicit val encodes: Encoder[Scala] = Encoder.instance {
       case Scala(Some(extends_), None, None, None) => Encoder[ScalaId].apply(extends_)
@@ -345,7 +341,7 @@ object model {
       } yield platform
     )
 
-    def decodes(platforms: Option[Map[PlatformId, Platform]]): Decoder[Platform] = {
+    def decodes(platforms: Option[Map[PlatformId, Platform]]): Decoder[Platform] =
       platforms match {
         case Some(platforms) =>
           val decodeShort = PlatformId.decodes.emap { id =>
@@ -361,15 +357,14 @@ object model {
 
         case None => decodeFull
       }
-    }
 
     implicit val encodes: Encoder[Platform] = Encoder.instance {
       case Js(Some(extends_), None, None, None, None, None, None) => extends_.asJson
-      case platform @ (x: Js)                                     => encodesJs(x).mapObject(_.add("name", platform.name.asJson))
+      case x: Js                                                  => encodesJs(x).mapObject(_.add("name", x.name.asJson))
       case Jvm(Some(extends_), None, None, None)                  => extends_.asJson
-      case platform @ (x: Jvm)                                    => encodesJvm(x).mapObject(_.add("name", platform.name.asJson))
+      case x: Jvm                                                 => encodesJvm(x).mapObject(_.add("name", x.name.asJson))
       case Native(Some(extends_), None, None, None, None)         => extends_.asJson
-      case platform @ (x: Native)                                 => encodesNative(x).mapObject(_.add("name", platform.name.asJson))
+      case x: Native                                              => encodesNative(x).mapObject(_.add("name", x.name.asJson))
     }
   }
 
@@ -478,19 +473,20 @@ object model {
     )
     implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
 
-    implicit def decodes: Decoder[Build] = {
+    implicit val decodes: Decoder[Build] =
       Decoder.instance(c =>
         for {
           version <- c.downField("version").as[String]
           platforms <- c.downField("platforms").as(Decoder.decodeOption(Decoder.decodeMap(PlatformId.keyDecodes, Platform.decodes(None))))
-          projects <- c.downField("projects").as[Map[ProjectName, Project]](Decoder.decodeMap(ProjectName.keyDecodes, Project.decodes(Platform.decodes(platforms))))
+          projects <- c
+            .downField("projects")
+            .as[Map[ProjectName, Project]](Decoder.decodeMap(ProjectName.keyDecodes, Project.decodes(Platform.decodes(platforms))))
           scala <- c.downField("scala").as[Option[Map[ScalaId, Scala]]]
           java <- c.downField("java").as[Option[Java]]
           scripts <- c.downField("scripts").as[Option[Map[ScriptName, JsonList[ScriptDef]]]]
           resolvers <- c.downField("resolvers").as[Option[JsonList[URI]]]
         } yield Build(version, projects, platforms, scala, java, scripts, resolvers)
       )
-    }
     implicit val encodes: Encoder[Build] = deriveEncoder
   }
 
