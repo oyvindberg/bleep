@@ -1,46 +1,143 @@
 {
   "version": "1",
   "scala": {
-    "version": "2.13.6"
+    "2.13": {
+      "version": "2.13.6",
+      "options": [
+        "-Vtype-diffs",
+        "-Vimplicits",
+        "-Wvalue-discard",
+        "-Wunused:privates",
+        "-Wunused:patvars",
+        "-Wunused:params",
+        "-Wunused:locals",
+        "-Wunused:imports",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wnumeric-widen",
+        "-Wextra-implicit",
+        "-Wdead-code",
+        "-Wunused:nowarn",
+        "-Xlint:-byname-implicit",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:stars-align",
+        "-Xlint:private-shadow",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:package-object-classes",
+        "-Xlint:option-implicit",
+        "-Xlint:nullary-unit",
+        "-Xlint:missing-interpolator",
+        "-Xlint:infer-any",
+        "-Xlint:inaccessible",
+        "-Xlint:doc-detached",
+        "-Xlint:deprecation",
+        "-Xlint:delayedinit-select",
+        "-Xlint:constant",
+        "-Xlint:adapted-args",
+        "-Xcheckinit",
+        "-unchecked",
+        "-language:implicitConversions",
+        "-language:higherKinds",
+        "-language:experimental.macros",
+        "-language:existentials",
+        "-feature",
+        "-explaintypes",
+        "-encoding",
+        "utf8"
+      ]
+    }
   },
   "scripts": {
     "native-image": "infrastructure/bleep.infra.GenNativeImage"
   },
   "projects": {
+    "bleep": {
+      "dependsOn": "bleep-core",
+      "source-layout": "normal",
+      "sbt-scope": "main",
+      "dependencies": "org.scalameta:svm-subs:101.0.0",
+      "scala": "2.13",
+      "platform": "jvm"
+    },
     "bleep-core": {
+      "source-layout": "normal",
       "sbt-scope": "main",
       "dependencies": [
-        "io.get-coursier::coursier:2.0.16",
+        "ch.epfl.scala::bloop-config:1.4.9",
+        "com.chuusai::shapeless:2.3.7",
+        "com.github.alexarchambault::argonaut-shapeless_6.2:1.2.0",
+        "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0",
+        "io.argonaut::argonaut:6.2.5",
         "io.circe::circe-core:0.14.1",
-        "io.circe::circe-parser:0.14.1",
         "io.circe::circe-generic:0.14.1",
-        "ch.epfl.scala::bloop-config:1.4.9"
-      ]
+        "io.circe::circe-jawn:0.14.1",
+        "io.circe::circe-numbers:0.14.1",
+        "io.circe::circe-parser:0.14.1",
+        "io.get-coursier::coursier:2.0.16",
+        "io.get-coursier::coursier-cache:2.0.16",
+        "io.get-coursier::coursier-core:2.0.16",
+        "io.get-coursier::coursier-util:2.0.16",
+        "io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3",
+        "io.github.alexarchambault:concurrent-reference-hash-map:1.0.0",
+        "org.fusesource.jansi:jansi:1.18",
+        "org.scala-lang.modules::scala-collection-compat:2.2.0",
+        "org.scala-lang.modules::scala-xml:1.3.0",
+        "org.scala-lang:scala-library:2.13.6",
+        "org.scala-lang:scala-reflect:2.13.6",
+        "org.typelevel::cats-core:2.6.1",
+        "org.typelevel::cats-kernel:2.6.1",
+        "org.typelevel::jawn-parser:1.1.2",
+        "org.typelevel::simulacrum-scalafix-annotations:0.5.4"
+      ],
+      "scala": "2.13",
+      "platform": "jvm"
     },
     "bleep-tasks": {
-      "sbt-scope": "main",
-      "dependsOn": "bleep-core"
-    },
-    "bleep": {
-      "sbt-scope": "main",
       "dependsOn": "bleep-core",
-      "dependencies": [
-        "org.scalameta:svm-subs:101.0.0"
-      ],
-      "platform": {
-        "name": "jvm",
-        "mainClass": "bleep.Main"
-      }
+      "source-layout": "normal",
+      "sbt-scope": "main",
+      "scala": "2.13",
+      "platform": "jvm"
     },
     "bleep-test": {
+      "folder": "bleep",
+      "dependsOn": "bleep",
+      "source-layout": "normal",
       "sbt-scope": "test",
-      "folder": ".",
-      "dependencies": "org.scalatest::scalatest:3.2.10",
-      "dependsOn": "bleep"
+      "dependencies": [
+        "org.scalactic::scalactic:3.2.10",
+        "org.scalatest::scalatest:3.2.10",
+        "org.scalatest::scalatest-core:3.2.10",
+        "org.scalatest::scalatest-diagrams:3.2.10",
+        "org.scalatest::scalatest-featurespec:3.2.10",
+        "org.scalatest::scalatest-flatspec:3.2.10",
+        "org.scalatest::scalatest-freespec:3.2.10",
+        "org.scalatest::scalatest-funspec:3.2.10",
+        "org.scalatest::scalatest-funsuite:3.2.10",
+        "org.scalatest::scalatest-matchers-core:3.2.10",
+        "org.scalatest::scalatest-mustmatchers:3.2.10",
+        "org.scalatest::scalatest-propspec:3.2.10",
+        "org.scalatest::scalatest-refspec:3.2.10",
+        "org.scalatest::scalatest-shouldmatchers:3.2.10",
+        "org.scalatest::scalatest-wordspec:3.2.10",
+        "org.scalatest:scalatest-compatible:3.2.10"
+      ],
+      "scala": "2.13",
+      "platform": "jvm"
     },
     "infrastructure": {
+      "dependsOn": "bleep-tasks",
+      "source-layout": "normal",
       "sbt-scope": "main",
-      "dependsOn": "bleep-tasks"
+      "scala": "2.13",
+      "platform": "jvm"
+    }
+  },
+  "platforms": {
+    "jvm": {
+      "options": "-Duser.dir=/home/n645892/pr/bleep",
+      "name": "jvm"
     }
   }
 }

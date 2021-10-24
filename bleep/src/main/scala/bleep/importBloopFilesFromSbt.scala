@@ -29,7 +29,13 @@ object importBloopFilesFromSbt {
         .toList
 
     val bloopProjectFiles: Map[model.ProjectName, Config.File] =
-      projectNames.map(name => name -> readBloopFile(bloopFilesDir, name)).toMap
+      projectNames
+        .map(name => name -> readBloopFile(bloopFilesDir, name))
+        .toMap
+        .filter { case (_, bloopFile) =>
+          def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
+          (bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles
+        }
 
     val buildResolvers: List[URI] =
       bloopProjectFiles
@@ -37,10 +43,11 @@ object importBloopFilesFromSbt {
           bloopFile.project.resolution
             .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
             .modules
-            .map { mod =>
+            .flatMap { mod =>
               val initialOrg = Paths.get(mod.organization.split("\\.").head)
               val uriFragments = mod.artifacts.head.path.iterator().asScala.dropWhile(_ != Paths.get("https")).drop(1).takeWhile(_ != initialOrg)
-              URI.create(uriFragments.map(_.toString).mkString("https://", "/", ""))
+              if (uriFragments.isEmpty) None
+              else Some(URI.create(uriFragments.map(_.toString).mkString("https://", "/", "")))
             }
         }
         .toList
@@ -90,88 +97,80 @@ object importBloopFilesFromSbt {
             Map(model.ScalaId(binVersion) -> withoutPlatformCompilerPlugins)
         }
 
-    val projectHasFiles: Set[model.ProjectName] =
-      bloopProjectFiles.flatMap { case (projectName, bloopFile) =>
-        def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
-        if ((bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles) Some(projectName)
-        else None
-      }.toSet
+    val projects = bloopProjectFiles.map { case (projectName, bloopFile) =>
+      val bloopProject = bloopFile.project
 
-    val projects = bloopProjectFiles.collect {
-      case (projectName, bloopFile) if projectHasFiles(projectName) =>
-        val bloopProject = bloopFile.project
+      val folder: Option[RelPath] = {
+        RelPath.relativeTo(buildDir, bloopProject.directory) match {
+          case RelPath(List(projectName.value)) => None
+          case relPath                          => Some(relPath)
+        }
+      }
 
-        val folder: Option[RelPath] = {
-          RelPath.relativeTo(buildDir, bloopProject.directory) match {
-            case RelPath(List(projectName.value)) => None
-            case relPath                          => Some(relPath)
+      val dependsOn: Option[JsonList[model.ProjectName]] =
+        Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply).filter(bloopProjectFiles.contains)))
+
+      val scalaVersion: Option[Versions.Scala] =
+        bloopProject.scala.map(s => Versions.Scala(s.version))
+
+      val isTest = projectName.value.endsWith("-test")
+      val scope = if (isTest) "test" else "main"
+
+      val sourcesRelPaths: List[RelPath] =
+        bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
+
+      val resourcesRelPaths: List[RelPath] =
+        bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
+
+      val resolution = bloopProject.resolution
+        .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
+
+      val dependencies: List[JavaOrScalaDependency] =
+        resolution.modules.map(mod => parseDependency(scalaVersion, mod))
+
+      val configuredJava: Option[model.Java] =
+        bloopProject.java
+          .map { java =>
+            buildJava.foldLeft(translateJava(java))((acc, buildJava) => acc.removeAll(buildJava))
+          }
+          .filterNot(_.options.isEmpty)
+
+      val configuredScala: Option[model.Scala] =
+        bloopProject.scala.map { scalaConfig =>
+          val translated = translateScala(scalaConfig)
+          translated.version match {
+            case Some(version) =>
+              val scalaId = model.ScalaId(version.binVersion)
+              val shared = buildScalas(scalaId)
+              translated.removeAll(shared).copy(`extends` = Some(scalaId))
+
+            case None => translated
           }
         }
 
-        val dependsOn: Option[JsonList[model.ProjectName]] =
-          Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply).filter(projectHasFiles)))
-
-        val scalaVersion: Option[Versions.Scala] =
-          bloopProject.scala.map(s => Versions.Scala(s.version))
-
-        val isTest = projectName.value.endsWith("-test")
-        val scope = if (isTest) "test" else "main"
-
-        val sourcesRelPaths: List[RelPath] =
-          bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
-
-        val resourcesRelPaths: List[RelPath] =
-          bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
-
-        val resolution = bloopProject.resolution
-          .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
-
-        val dependencies: List[JavaOrScalaDependency] =
-          resolution.modules.map(mod => parseDependency(scalaVersion, mod))
-
-        val configuredJava: Option[model.Java] =
-          bloopProject.java
-            .map { java =>
-              buildJava.foldLeft(translateJava(java))((acc, buildJava) => acc.removeAll(buildJava))
-            }
-            .filterNot(_.options.isEmpty)
-
-        val configuredScala: Option[model.Scala] =
-          bloopProject.scala.map { scalaConfig =>
-            val translated = translateScala(scalaConfig)
-            translated.version match {
-              case Some(version) =>
-                val scalaId = model.ScalaId(version.binVersion)
-                val shared = buildScalas(scalaId)
-                translated.removeAll(shared).copy(`extends` = Some(scalaId))
-
-              case None => translated
-            }
-          }
-
-        val configuredPlatform: Option[model.Platform] =
-          bloopProject.platform
-            .map(translatePlatform(_, bloopProject))
-            .map(platform =>
-              model.Platform.unsafeReduce(platform, buildPlatforms(platform.name))(
-                (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
-                (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
-                (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name))
-              )
+      val configuredPlatform: Option[model.Platform] =
+        bloopProject.platform
+          .map(translatePlatform(_, bloopProject))
+          .map(platform =>
+            model.Platform.unsafeReduce(platform, buildPlatforms(platform.name))(
+              (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
+              (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
+              (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name))
             )
+          )
 
-        projectName -> model.Project(
-          folder = folder,
-          dependsOn = dependsOn,
-          sources = Some(JsonList(sourcesRelPaths)),
-          resources = Some(JsonList(resourcesRelPaths)),
-          dependencies = Some(JsonList(dependencies)),
-          java = configuredJava,
-          scala = configuredScala,
-          platform = configuredPlatform,
-          `source-layout` = None,
-          `sbt-scope` = Some(scope)
-        )
+      projectName -> model.Project(
+        folder = folder,
+        dependsOn = dependsOn,
+        sources = Some(JsonList(sourcesRelPaths)),
+        resources = Some(JsonList(resourcesRelPaths)),
+        dependencies = Some(JsonList(dependencies)),
+        java = configuredJava,
+        scala = configuredScala,
+        platform = configuredPlatform,
+        `source-layout` = None,
+        `sbt-scope` = Some(scope)
+      )
     }
 
     model.Build("1", projects, Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = Some(JsonList(buildResolvers)))
