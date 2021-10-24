@@ -11,19 +11,41 @@ import io.circe.syntax._
 import java.net.URI
 
 object model {
+  implicit val decodesDep: Decoder[JavaOrScalaDependency] =
+    Decoder.instance(c =>
+      for {
+        str <- c.as[String]
+        tuple <- DependencyParser.javaOrScalaDependencyParams(str, Configuration.empty).left.map(err => DecodingFailure(err, c.history))
+      } yield tuple._1
+    )
 
-  case class Java(options: Option[JsonList[String]])
+  implicit val encodesDep: Encoder[JavaOrScalaDependency] =
+    Encoder.instance {
+      case dep: JavaOrScalaDependency.JavaDependency =>
+        Json.fromString(s"${dep.module}:${dep.dependency.version}")
+      case dep: JavaOrScalaDependency.ScalaDependency => Json.fromString(dep.repr)
+    }
+
+  case class Java(options: Option[Options]) extends SetLike[Java] {
+    override def intersect(other: Java): Java =
+      Java(
+        options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty)
+      )
+
+    override def removeAll(other: Java): Java =
+      Java(
+        options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty)
+      )
+
+    override def union(other: Java): Java =
+      Java(
+        options = List(options, other.options).flatten.reduceOption(_ union _)
+      )
+  }
 
   object Java {
     implicit val decodes: Decoder[Java] = deriveDecoder
     implicit val encodes: Encoder[Java] = deriveEncoder
-
-    def merge(xs: Option[Java]*): Option[Java] =
-      xs.flatten.reduceOption((j1, j2) =>
-        Java(
-          options = j1.options.orElse(j2.options)
-        )
-      )
   }
 
   case class TestFramework(names: List[String])
@@ -119,14 +141,16 @@ object model {
       `extends`: Option[ScalaId],
       version: Option[Versions.Scala],
       options: Option[Options],
-      setup: Option[CompileSetup]
+      setup: Option[CompileSetup],
+      compilerPlugins: Option[JsonList[JavaOrScalaDependency]]
   ) extends SetLike[Scala] {
     override def intersect(other: Scala): Scala =
       Scala(
         `extends` = if (`extends` == other.`extends`) `extends` else None,
         version = if (`version` == other.`version`) `version` else None,
         options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty),
-        setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty)
+        setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty),
+        compilerPlugins = compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.intersect(_2.values)) }.filterNot(_.isEmpty)
       )
 
     override def removeAll(other: Scala): Scala =
@@ -134,7 +158,9 @@ object model {
         `extends` = if (`extends` == other.`extends`) None else `extends`,
         version = if (`version` == other.`version`) None else `version`,
         options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty),
-        setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty)
+        setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty),
+        compilerPlugins =
+          compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.filterNot(_2.values.contains)) }.filterNot(_.isEmpty)
       )
 
     override def union(other: Scala): Scala =
@@ -142,7 +168,8 @@ object model {
         `extends` = `extends`.orElse(other.`extends`),
         version = version.orElse(other.version),
         options = List(options, other.options).flatten.reduceOption(_ union _),
-        setup = List(setup, other.setup).flatten.reduceOption(_ union _)
+        setup = List(setup, other.setup).flatten.reduceOption(_ union _),
+        compilerPlugins = List(compilerPlugins, other.compilerPlugins).flatten.reduceOption((_1, _2) => JsonList((_1.values ++ _2.values).distinct))
       )
   }
 
@@ -154,14 +181,14 @@ object model {
     val fullEncodes: Encoder[Scala] = deriveEncoder
 
     val shortDecodes: Decoder[Scala] =
-      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None))
+      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None, None))
 
     implicit val decodes: Decoder[Scala] =
       shortDecodes.or(fullDecodes)
 
     implicit val encodes: Encoder[Scala] = Encoder.instance {
-      case Scala(Some(extends_), None, None, None) => Encoder[ScalaId].apply(extends_)
-      case full                                    => fullEncodes(full)
+      case Scala(Some(extends_), None, None, None, None) => Encoder[ScalaId].apply(extends_)
+      case full                                          => fullEncodes(full)
     }
   }
 
@@ -176,6 +203,7 @@ object model {
 
   sealed abstract class Platform(val name: PlatformId) {
     def `extends`: Option[PlatformId]
+    def compilerPlugin: Option[JavaOrScalaDependency]
   }
 
   object Platform {
@@ -202,6 +230,9 @@ object model {
         mainClass: Option[String]
     ) extends Platform(PlatformId("js"))
         with SetLike[Js] {
+
+      override def compilerPlugin: Option[JavaOrScalaDependency] = version.map(_.compilerPlugin)
+
       override def intersect(other: Js): Js =
         Js(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
@@ -247,10 +278,13 @@ object model {
         //        resources: Option[List[Path]]
     ) extends Platform(PlatformId("jvm"))
         with SetLike[Jvm] {
+
+      override def compilerPlugin: Option[JavaOrScalaDependency] = None
+
       override def intersect(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
-          options = List(options, other.options).flatten.reduceOption(_.intersect(_)),
+          options = List(options, other.options).flatten.reduceOption(_.intersect(_)).filterNot(_.isEmpty),
           mainClass = if (mainClass == other.mainClass) mainClass else None,
           runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.intersect(_))
         )
@@ -258,7 +292,7 @@ object model {
       override def removeAll(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) None else `extends`,
-          options = List(options, other.options).flatten.reduceOption(_.removeAll(_)),
+          options = List(options, other.options).flatten.reduceOption(_.removeAll(_)).filterNot(_.isEmpty),
           mainClass = if (mainClass == other.mainClass) None else mainClass,
           runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.removeAll(_))
         )
@@ -290,6 +324,9 @@ object model {
         mainClass: Option[String]
     ) extends Platform(PlatformId("native"))
         with SetLike[Native] {
+
+      override def compilerPlugin: Option[JavaOrScalaDependency] = ???
+
       override def intersect(other: Native): Native =
         Native(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
@@ -398,21 +435,6 @@ object model {
   )
 
   object Project {
-    implicit val decodesDep: Decoder[JavaOrScalaDependency] =
-      Decoder.instance(c =>
-        for {
-          str <- c.as[String]
-          tuple <- DependencyParser.javaOrScalaDependencyParams(str, Configuration.empty).left.map(err => DecodingFailure(err, c.history))
-        } yield tuple._1
-      )
-
-    implicit val encodesDep: Encoder[JavaOrScalaDependency] =
-      Encoder.instance {
-        case dep: JavaOrScalaDependency.JavaDependency =>
-          Json.fromString(s"${dep.module}:${dep.dependency.version}")
-        case dep: JavaOrScalaDependency.ScalaDependency => Json.fromString(dep.repr)
-      }
-
     def decodes(implicit platformDecoder: Decoder[Platform]): Decoder[Project] = deriveDecoder
     implicit val encodes: Encoder[Project] = deriveEncoder
   }

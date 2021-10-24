@@ -7,4 +7,5 @@ object Defaults {
   val BuildFileName = "bleep.json"
 
   val BloopFolder = ".bloop"
+  val ScalaPluginPrefix = "-Xplugin:"
 }

@@ -33,8 +33,7 @@ object Versions {
     }
 
     val compilerBridge: Option[JavaOrScalaDependency] =
-      if (is3)
-        Some(Deps.Java(scalaOrganization, "scala3-sbt-bridge", scalaVersion))
+      if (is3) Some(Deps.Java(scalaOrganization, "scala3-sbt-bridge", scalaVersion))
       else None
   }
 
@@ -52,6 +51,7 @@ object Versions {
 
     val scalaJsOrganization = "org.scala-js"
     val sbtPlugin = Deps.Scala(scalaJsOrganization, "sbt-scalajs", scalaJsVersion)
+    val compilerPlugin = Deps.ScalaFullVersion(scalaJsOrganization, "scalajs-compiler", scalaJsVersion)
   }
 
   val ScalaJs1 = ScalaJs("1.7.0")

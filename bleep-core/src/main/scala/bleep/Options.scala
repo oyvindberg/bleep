@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.Options.Opt
 import bleep.internal.SetLike
 import io.circe.{Decoder, Encoder}
 
@@ -15,6 +16,12 @@ class Options(val values: List[Options.Opt]) extends AnyVal with SetLike[Options
   override def union(other: Options) = new Options((values ::: other.values).distinct)
   override def intersect(other: Options) = new Options(values.intersect(other.values))
   override def removeAll(other: Options) = new Options(values.filterNot(other.values.contains))
+
+  def nameFilter(pred: String => Boolean): Options =
+    new Options(values.filter {
+      case Opt.Flag(name)        => pred(name)
+      case Opt.WithArgs(name, _) => pred(name)
+    })
 }
 
 object Options {

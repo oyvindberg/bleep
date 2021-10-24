@@ -56,16 +56,17 @@ object generateBloopFiles {
         case None          => workspaceDir / projName.value
       }
 
-    val allTransitiveBloop: Map[model.ProjectName, b.File] = {
+    val allTransitiveTranslated: Map[model.ProjectName, b.File] = {
       val builder = Map.newBuilder[model.ProjectName, b.File]
 
-      def go(n: model.ProjectName, p: b.File): Unit = {
+      def go(n: model.ProjectName): Unit = {
+        val p = getBloopProject(n)
         if (n == projName) sys.error(s"project ${projName.value} transitively depends on itself")
         builder += ((n, p))
-        p.project.dependencies.foreach(projectName => go(model.ProjectName(projectName), getBloopProject(model.ProjectName(projectName))))
+        p.project.dependencies.foreach(projectName => go(model.ProjectName(projectName)))
       }
 
-      proj.dependsOn.flat.foreach(projectName => go(projectName, getBloopProject(projectName)))
+      proj.dependsOn.flat.foreach(go)
 
       builder.result()
     }
@@ -83,13 +84,10 @@ object generateBloopFiles {
     }
 
     val mergedJava: Option[model.Java] =
-      model.Java.merge(proj.java, build.java)
+      List(proj.java, build.java).flatten.reduceOption(_ union _)
 
     val scalaVersion: Option[Versions.Scala] =
       maybeScala.flatMap(_.version)
-
-    val scalacOptions: Options =
-      maybeScala.flatMap(_.options).getOrElse(Options.Empty)
 
     val explodedPlatform: Option[model.Platform] =
       proj.platform.map { platform =>
@@ -153,8 +151,8 @@ object generateBloopFiles {
     val platformSuffix =
       explodedPlatform match {
         case Some(x: model.Platform.Js)     => s"sjs${x.version.get.scalaJsBinVersion}"
-        case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeVersion}"
-        case _                           => ""
+        case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeBinVersion}"
+        case _                              => ""
       }
 
     val resolution: b.Resolution = {
@@ -201,7 +199,7 @@ object generateBloopFiles {
     }
 
     val classPath: List[Path] = {
-      allTransitiveBloop.values.map(_.project.classesDir).toList.sorted ++
+      allTransitiveTranslated.values.map(_.project.classesDir).toList.sorted ++
         resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path).sorted
     }
 
@@ -225,13 +223,29 @@ object generateBloopFiles {
           )
         }
 
+        val compilerPlugins: Options = {
+          maybeScala.toList.flatMap(_.compilerPlugins.flat) match {
+            case Nil => Options.Empty
+            case nonEmpty: List[JavaOrScalaDependency] =>
+              val reps = SortedSet.empty[Dependency] ++ nonEmpty.map(_.dependency(scalaVersion.scalaVersion))
+              val resolved = Await.result(resolver(reps, build.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
+              val relevant = resolved.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
+              new Options(relevant.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
+          }
+        }
+
+        val scalacOptions: Options =
+          maybeScala.flatMap(_.options).getOrElse(Options.Empty) union compilerPlugins
+
         b.Scala(
           organization = scalaCompiler.module.organization.value,
           name = scalaCompiler.module.name.value,
           version = scalaCompiler.version,
           options = scalacOptions.render,
           jars = resolvedScalaCompiler,
-          analysis = Some(projectFolder / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / "inc_compile_2.12.zip"),
+          analysis = Some(
+            projectFolder / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / s"inc_compile_${scalaVersion.binVersion}.zip"
+          ),
           setup = Some(setup)
         )
       }
@@ -258,7 +272,7 @@ object generateBloopFiles {
         sources = sources,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = allTransitiveBloop.keys.map(_.value).toList.sorted,
+        dependencies = allTransitiveTranslated.keys.map(_.value).toList.sorted,
         classpath = classPath,
         out = workspaceDir / Defaults.BloopFolder / projName.value,
         classesDir = scalaVersion match {
@@ -269,12 +283,11 @@ object generateBloopFiles {
         scala = configuredScala,
         java = Some(
           b.Java(
-            options = mergedJava.flatMap(_.options).flat
+            options = mergedJava.flatMap(_.options).getOrElse(Options.Empty).render
           )
         ),
         sbt = None,
         test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
-        // platform is mostly todo:
         platform = configuredPlatform,
         resolution = Some(resolution),
         tags = None

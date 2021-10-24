@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.Options.Opt
 import bloop.config.Config
 import coursier.core.Configuration
 import coursier.parse.JavaOrScalaDependency
@@ -30,7 +31,7 @@ object importBloopFilesFromSbt {
     val bloopProjectFiles: Map[model.ProjectName, Config.File] =
       projectNames.map(name => name -> readBloopFile(bloopFilesDir, name)).toMap
 
-    val resolvers: List[URI] =
+    val buildResolvers: List[URI] =
       bloopProjectFiles
         .flatMap { case (projectName, bloopFile) =>
           bloopFile.project.resolution
@@ -46,18 +47,12 @@ object importBloopFilesFromSbt {
         .distinct
         .filterNot(_ == Defaults.MavenCentral)
 
-    val scalas: Map[model.ScalaId, model.Scala] =
+    val buildJava: Option[model.Java] =
       bloopProjectFiles
-        .flatMap { case (_, p) => p.project.scala.map(translateScala) }
-        .groupBy(_.version.map(_.binVersion))
-        .flatMap {
-          case (None, _) => Map.empty
-          case (Some(binVersion), scalaConfigs) =>
-            val intersected = scalaConfigs.tail.foldLeft(scalaConfigs.head)(_.intersect(_))
-            Map(model.ScalaId(binVersion) -> intersected)
-        }
+        .flatMap { case (_, p) => p.project.java.map(translateJava) }
+        .reduceOption(_ intersect _)
 
-    val platforms: Map[model.PlatformId, model.Platform] = {
+    val buildPlatforms: Map[model.PlatformId, model.Platform] = {
       val allPlatforms = bloopProjectFiles.flatMap { case (_, p) => p.project.platform.map(translatePlatform(_, p.project)) }.toList
       List(
         allPlatforms.collect { case x: model.Platform.Jvm => x }.reduceOption(_.intersect(_)),
@@ -66,11 +61,41 @@ object importBloopFilesFromSbt {
       ).flatten.map(x => x.name -> x).toMap
     }
 
-    val projectHasFiles = bloopProjectFiles.flatMap { case (projectName, bloopFile) =>
-      def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
-      if ((bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles) Some(projectName)
-      else None
-    }.toSet
+    val compilerPlugins: List[JavaOrScalaDependency] =
+      buildPlatforms.flatMap { case (_, platform) => platform.compilerPlugin }.toList
+
+    val buildScalas: Map[model.ScalaId, model.Scala] =
+      bloopProjectFiles
+        .flatMap { case (_, p) => p.project.scala.map(translateScala) }
+        .groupBy(_.version.map(_.binVersion))
+        .flatMap {
+          case (None, _) => Map.empty
+          case (Some(binVersion), scalaConfigs) =>
+            val scalaVersions = scalaConfigs.flatMap(_.version).toList.distinct
+            val intersected = scalaConfigs.tail.foldLeft(scalaConfigs.head)(_ intersect _)
+
+            val withoutPlatformCompilerPlugins = {
+              def keepSharedOption(name: String): Boolean =
+                if (name.startsWith(Defaults.ScalaPluginPrefix)) {
+                  compilerPlugins.exists { dep =>
+                    scalaVersions.forall { scalaVersion =>
+                      val d = dep.dependency(scalaVersion.scalaVersion)
+                      !name.endsWith(s"${d.module.name}-${d.version}.jar") // scalajs-compiler_2.12.15-1.7.1.jar
+                    }
+                  }
+                } else true
+
+              intersected.copy(options = intersected.options.map(_.nameFilter(keepSharedOption)))
+            }
+            Map(model.ScalaId(binVersion) -> withoutPlatformCompilerPlugins)
+        }
+
+    val projectHasFiles: Set[model.ProjectName] =
+      bloopProjectFiles.flatMap { case (projectName, bloopFile) =>
+        def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
+        if ((bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles) Some(projectName)
+        else None
+      }.toSet
 
     val projects = bloopProjectFiles.collect {
       case (projectName, bloopFile) if projectHasFiles(projectName) =>
@@ -102,50 +127,14 @@ object importBloopFilesFromSbt {
           .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
         val dependencies: List[JavaOrScalaDependency] =
-          resolution.modules.map { mod =>
-            def withConf(dep: Dependency): Dependency =
-              mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
-
-            def java: JavaOrScalaDependency.JavaDependency = {
-              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
-              JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
-            }
-
-            val sdep: JavaOrScalaDependency = scalaVersion match {
-              case Some(scalaVersion) =>
-                val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
-                val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
-                val platform = {
-                  val sjs1 = mod.name.indexOf("_sjs1")
-                  val sjs06 = mod.name.indexOf("_sjs0.6")
-                  if (sjs1 != -1) sjs1 else sjs06
-                }
-
-                List(full, scala, platform).filterNot(_ == -1).minOption match {
-                  case None => java
-                  case Some(modNameEndIdx) =>
-                    val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
-                    JavaOrScalaDependency.ScalaDependency(
-                      withConf(dep),
-                      fullCrossVersion = full != -1,
-                      withPlatformSuffix = platform != -1,
-                      Set.empty
-                    )
-                }
-              case None =>
-                java
-            }
-
-            import io.circe.syntax._
-            import model.Project.{decodesDep, encodesDep}
-            io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
-              case Left(x)  => throw x
-              case Right(x) => x
-            }
-          }
+          resolution.modules.map(mod => parseDependency(scalaVersion, mod))
 
         val configuredJava: Option[model.Java] =
-          bloopProject.java.map(java => model.Java(options = Some(JsonList(java.options))))
+          bloopProject.java
+            .map { java =>
+              buildJava.foldLeft(translateJava(java))((acc, buildJava) => acc.removeAll(buildJava))
+            }
+            .filterNot(_.options.isEmpty)
 
         val configuredScala: Option[model.Scala] =
           bloopProject.scala.map { scalaConfig =>
@@ -153,7 +142,7 @@ object importBloopFilesFromSbt {
             translated.version match {
               case Some(version) =>
                 val scalaId = model.ScalaId(version.binVersion)
-                val shared = scalas(scalaId)
+                val shared = buildScalas(scalaId)
                 translated.removeAll(shared).copy(`extends` = Some(scalaId))
 
               case None => translated
@@ -164,7 +153,7 @@ object importBloopFilesFromSbt {
           bloopProject.platform
             .map(translatePlatform(_, bloopProject))
             .map(platform =>
-              model.Platform.unsafeReduce(platform, platforms(platform.name))(
+              model.Platform.unsafeReduce(platform, buildPlatforms(platform.name))(
                 (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
                 (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
                 (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name))
@@ -185,8 +174,53 @@ object importBloopFilesFromSbt {
         )
     }
 
-    model.Build("1", projects, Some(platforms), Some(scalas), None, None, resolvers = Some(JsonList(resolvers)))
+    model.Build("1", projects, Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = Some(JsonList(buildResolvers)))
   }
+
+  def parseDependency(scalaVersion: Option[Versions.Scala], mod: Config.Module): JavaOrScalaDependency = {
+    def withConf(dep: Dependency): Dependency =
+      mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
+
+    def java: JavaOrScalaDependency.JavaDependency = {
+      val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
+      JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
+    }
+
+    val sdep: JavaOrScalaDependency = scalaVersion match {
+      case Some(scalaVersion) =>
+        val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
+        val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
+        val platform = {
+          val sjs1 = mod.name.indexOf("_sjs1")
+          val sjs06 = mod.name.indexOf("_sjs0.6")
+          if (sjs1 != -1) sjs1 else sjs06
+        }
+
+        List(full, scala, platform).filterNot(_ == -1).minOption match {
+          case None => java
+          case Some(modNameEndIdx) =>
+            val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
+            JavaOrScalaDependency.ScalaDependency(
+              withConf(dep),
+              fullCrossVersion = full != -1,
+              withPlatformSuffix = platform != -1,
+              Set.empty
+            )
+        }
+      case None =>
+        java
+    }
+
+    import io.circe.syntax._
+    import model.{decodesDep, encodesDep}
+    io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
+      case Left(x)  => throw x
+      case Right(x) => x
+    }
+  }
+
+  def translateJava(java: Config.Java): model.Java =
+    model.Java(options = Some(Options(java.options)).filterNot(_.isEmpty))
 
   def translatePlatform(platform: Config.Platform, bloopProject: Config.Project): model.Platform =
     platform match {
@@ -220,12 +254,27 @@ object importBloopFilesFromSbt {
         )
     }
 
-  def translateScala(s: Config.Scala): model.Scala =
+  def translateScala(s: Config.Scala): model.Scala = {
+    val options = Options(s.options)
+
+    val (plugins, rest) = options.values.partition {
+      case Options.Opt.Flag(name) if name.startsWith(Defaults.ScalaPluginPrefix) => true
+      case _                                                                     => false
+    }
+
+    val compilerPlugins = plugins.collect { case Opt.Flag(pluginStr) =>
+      // /home/nnn/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.15/1.7.1/scalajs-compiler_2.12.15-1.7.1.pom
+      // todo: this should be much smarter. we can for instance read the corresponding pom file to determine coordinates
+      pluginStr.split("/maven2/")(1).split("/").toList.reverse match {
+        case _ :: version :: artifact :: reverseOrg =>
+          parseDependency(Some(Versions.Scala(s.version)), Config.Module(reverseOrg.reverse.mkString("."), artifact, version, None, Nil))
+      }
+    }
+
     model.Scala(
       `extends` = None,
       version = Some(Versions.Scala(s.version)),
-      // todo: compiler plugins
-      options = Some(Options(s.options)),
+      options = Some(new Options(rest)),
       setup = s.setup.map(setup =>
         model.CompileSetup(
           order = Some(setup.order).filterNot(_ == Config.CompileSetup.empty.order),
@@ -235,6 +284,8 @@ object importBloopFilesFromSbt {
           manageBootClasspath = Some(setup.manageBootClasspath).filterNot(_ == Config.CompileSetup.empty.manageBootClasspath),
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath).filterNot(_ == Config.CompileSetup.empty.filterLibraryFromClasspath)
         )
-      )
+      ),
+      compilerPlugins = Some(JsonList(compilerPlugins)).filterNot(_.isEmpty)
     )
+  }
 }
