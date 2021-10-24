@@ -219,7 +219,7 @@ object importBloopFilesFromSbt {
   }
 
   def translateJava(java: Config.Java): model.Java =
-    model.Java(options = Some(Options(java.options)).filterNot(_.isEmpty))
+    model.Java(options = Some(Options(java.options)))
 
   def translatePlatform(platform: Config.Platform, bloopProject: Config.Project): model.Platform =
     platform match {
@@ -238,9 +238,9 @@ object importBloopFilesFromSbt {
       case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
         model.Platform.Jvm(
           `extends` = None,
-          options = Some(Options(config.options)).filterNot(_.isEmpty),
+          options = Some(Options(config.options)),
           mainClass,
-          runtimeOptions = runtimeConfig.flatMap(rc => Some(Options(rc.options)).filterNot(_.isEmpty))
+          runtimeOptions = runtimeConfig.flatMap(rc => Some(Options(rc.options)))
         )
 
       case Config.Platform.Native(config, mainClass) =>
@@ -284,7 +284,7 @@ object importBloopFilesFromSbt {
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath).filterNot(_ == Config.CompileSetup.empty.filterLibraryFromClasspath)
         )
       ),
-      compilerPlugins = Some(JsonList(compilerPlugins)).filterNot(_.isEmpty)
+      compilerPlugins = Some(JsonList(compilerPlugins))
     )
   }
 }

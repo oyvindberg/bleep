@@ -279,7 +279,7 @@ object generateBloopFiles {
           case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
           case None               => workspaceDir / Defaults.BloopFolder / projName.value / "classes"
         },
-        resources = Some(resources).filterNot(_.isEmpty),
+        resources = Some(resources),
         scala = configuredScala,
         java = Some(
           b.Java(

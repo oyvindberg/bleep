@@ -42,7 +42,7 @@ object deduplicateBuild {
           case Some(sl) =>
             val shortenedSources = p.sources.flat.filterNot(sl.sources(scalaVersion, p.`sbt-scope`).toSet)
             val shortenedResources = p.resources.flat.filterNot(sl.resources(scalaVersion, p.`sbt-scope`).toSet)
-            (Some(sl), Option(JsonList(shortenedSources)).filterNot(_.isEmpty), Option(JsonList(shortenedResources)).filterNot(_.isEmpty))
+            (Some(sl), Option(JsonList(shortenedSources)), Option(JsonList(shortenedResources)))
           case None =>
             (None, p.sources, p.resources)
         }
@@ -50,12 +50,12 @@ object deduplicateBuild {
 
       model.Project(
         folder = p.folder,
-        dependsOn = Some(JsonList(dependsOn)).filterNot(_.isEmpty),
+        dependsOn = Some(JsonList(dependsOn)),
         `source-layout` = sourceLayout,
         `sbt-scope` = p.`sbt-scope`,
         sources = sources,
         resources = resources,
-        dependencies = Some(JsonList(dependencies)).filterNot(_.isEmpty),
+        dependencies = Some(JsonList(dependencies)),
         java = p.java,
         scala = p.scala,
         platform = p.platform

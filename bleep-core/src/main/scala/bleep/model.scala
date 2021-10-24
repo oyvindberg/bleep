@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{EnumCodec, SetLike}
+import bleep.internal.{EnumCodec, SetLike, ShortenJson}
 import bloop.config.Config
 import coursier.core.Configuration
 import coursier.parse.{DependencyParser, JavaOrScalaDependency}
@@ -28,19 +28,13 @@ object model {
 
   case class Java(options: Option[Options]) extends SetLike[Java] {
     override def intersect(other: Java): Java =
-      Java(
-        options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty)
-      )
+      Java(options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) })
 
     override def removeAll(other: Java): Java =
-      Java(
-        options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty)
-      )
+      Java(options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) })
 
     override def union(other: Java): Java =
-      Java(
-        options = List(options, other.options).flatten.reduceOption(_ union _)
-      )
+      Java(options = List(options, other.options).flatten.reduceOption(_ union _))
   }
 
   object Java {
@@ -148,19 +142,18 @@ object model {
       Scala(
         `extends` = if (`extends` == other.`extends`) `extends` else None,
         version = if (`version` == other.`version`) `version` else None,
-        options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty),
-        setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) }.filterNot(_.isEmpty),
-        compilerPlugins = compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.intersect(_2.values)) }.filterNot(_.isEmpty)
+        options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) },
+        setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) },
+        compilerPlugins = compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.intersect(_2.values)) }
       )
 
     override def removeAll(other: Scala): Scala =
       Scala(
         `extends` = if (`extends` == other.`extends`) None else `extends`,
         version = if (`version` == other.`version`) None else `version`,
-        options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty),
-        setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) }.filterNot(_.isEmpty),
-        compilerPlugins =
-          compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.filterNot(_2.values.contains)) }.filterNot(_.isEmpty)
+        options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) },
+        setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) },
+        compilerPlugins = compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.filterNot(_2.values.contains)) }
       )
 
     override def union(other: Scala): Scala =
@@ -186,9 +179,15 @@ object model {
     implicit val decodes: Decoder[Scala] =
       shortDecodes.or(fullDecodes)
 
-    implicit val encodes: Encoder[Scala] = Encoder.instance {
-      case Scala(Some(extends_), None, None, None, None) => Encoder[ScalaId].apply(extends_)
-      case full                                          => fullEncodes(full)
+    implicit val encodes: Encoder[Scala] = Encoder.instance { s =>
+      fullEncodes(s).foldWith(ShortenJson).withObject {
+        case obj if obj.size == 1 =>
+          obj("extends") match {
+            case Some(extendsValue) => extendsValue
+            case _                  => obj.asJson
+          }
+        case obj => obj.asJson
+      }
     }
   }
 
@@ -284,7 +283,7 @@ object model {
       override def intersect(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
-          options = List(options, other.options).flatten.reduceOption(_.intersect(_)).filterNot(_.isEmpty),
+          options = List(options, other.options).flatten.reduceOption(_.intersect(_)),
           mainClass = if (mainClass == other.mainClass) mainClass else None,
           runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.intersect(_))
         )
@@ -292,7 +291,7 @@ object model {
       override def removeAll(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) None else `extends`,
-          options = List(options, other.options).flatten.reduceOption(_.removeAll(_)).filterNot(_.isEmpty),
+          options = List(options, other.options).flatten.reduceOption(_.removeAll(_)),
           mainClass = if (mainClass == other.mainClass) None else mainClass,
           runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.removeAll(_))
         )
@@ -395,13 +394,17 @@ object model {
         case None => decodeFull
       }
 
-    implicit val encodes: Encoder[Platform] = Encoder.instance {
-      case Js(Some(extends_), None, None, None, None, None, None) => extends_.asJson
-      case x: Js                                                  => encodesJs(x).mapObject(_.add("name", x.name.asJson))
-      case Jvm(Some(extends_), None, None, None)                  => extends_.asJson
-      case x: Jvm                                                 => encodesJvm(x).mapObject(_.add("name", x.name.asJson))
-      case Native(Some(extends_), None, None, None, None)         => extends_.asJson
-      case x: Native                                              => encodesNative(x).mapObject(_.add("name", x.name.asJson))
+    implicit val encodes: Encoder[Platform] = Encoder.instance { p =>
+      val json = p match {
+        case x: Js     => encodesJs(x)
+        case x: Jvm    => encodesJvm(x)
+        case x: Native => encodesNative(x)
+      }
+
+      json.foldWith(ShortenJson).withObject {
+        case obj if obj.size == 1 && obj("extends").nonEmpty => obj("extends").get
+        case other                                           => other.add("name", p.name.asJson).asJson
+      }
     }
   }
 

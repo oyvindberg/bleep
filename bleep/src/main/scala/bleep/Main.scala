@@ -1,8 +1,8 @@
 package bleep
 
-import bleep.internal.Lazy
+import bleep.internal.{Lazy, ShortenJson}
 import bleep.model.ScriptName
-import bloop.config.{Config => b, ConfigCodecs}
+import bloop.config.{ConfigCodecs, Config => b}
 import com.github.plokhotnyuk.jsoniter_scala
 import io.circe.syntax._
 
@@ -72,7 +72,7 @@ object Main {
         val build = deduplicateBuild(importBloopFilesFromSbt(cwd))
         Files.writeString(
           cwd / Defaults.BuildFileName,
-          build.asJson.deepDropNullValues.spaces2,
+          build.asJson.foldWith(ShortenJson).spaces2,
           UTF_8
         )
 
