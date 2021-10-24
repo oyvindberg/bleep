@@ -3,7 +3,6 @@ package bleep
 import io.circe.{Decoder, Encoder}
 
 import java.nio.file.Path
-import scala.jdk.CollectionConverters._
 
 case class RelPath private (segments: List[String])
 

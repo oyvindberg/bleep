@@ -1,18 +1,20 @@
 package bleep
 
+import bleep.internal.SetLike
 import io.circe.{Decoder, Encoder}
 
 /** A description of javac/scalac options.
   *
   * Because some options have arguments we need to take some care when operating on them as sets
   */
-class Options(val values: List[Options.Opt]) extends AnyVal {
+class Options(val values: List[Options.Opt]) extends AnyVal with SetLike[Options] {
   def render: List[String] = values.flatMap(_.render)
-  def ++(other: Options) = new Options(values ::: other.values)
   def sorted = new Options(values.sorted)
-  def intersect(other: Options) = new Options(values.intersect(other.values))
-  def removeAll(other: Options) = new Options(values.filterNot(other.values.contains))
-  def isEmpty = values.isEmpty
+  def isEmpty: Boolean = values.isEmpty
+
+  override def union(other: Options) = new Options((values ::: other.values).distinct)
+  override def intersect(other: Options) = new Options(values.intersect(other.values))
+  override def removeAll(other: Options) = new Options(values.filterNot(other.values.contains))
 }
 
 object Options {

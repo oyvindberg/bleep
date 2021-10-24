@@ -66,10 +66,11 @@ object deduplicateBuild {
 
     model.Build(
       version = build.version,
+      projects = forcedProjects,
+      platforms = build.platforms,
       scala = build.scala,
       java = build.java,
       scripts = build.scripts,
-      projects = forcedProjects,
       resolvers = build.resolvers
     )
   }

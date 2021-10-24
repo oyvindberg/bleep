@@ -2,9 +2,9 @@ package bleep
 
 import bleep.internal.{rewriteDependentData, Lazy}
 import bloop.config.{Config => b}
-import coursier.{Classifier, Dependency}
 import coursier.core.Configuration
 import coursier.parse.JavaOrScalaDependency
+import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
 import scala.collection.immutable.{SortedMap, SortedSet}
@@ -75,7 +75,7 @@ object generateBloopFiles {
         s.`extends` match {
           case Some(id) =>
             val found = build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
-            s.or(go(found))
+            s.union(go(found))
           case None =>
             s
         }
@@ -91,6 +91,72 @@ object generateBloopFiles {
     val scalacOptions: Options =
       maybeScala.flatMap(_.options).getOrElse(Options.Empty)
 
+    val explodedPlatform: Option[model.Platform] =
+      proj.platform.map { platform =>
+        def fail(msg: String) =
+          sys.error(s"${projName.value}/${platform.name.value}: $msg")
+
+        def explode(platform: model.Platform): model.Platform =
+          platform.`extends` match {
+            case Some(id) =>
+              build.platforms.flatMap(_.get(id)) match {
+                case Some(referenced) =>
+                  model.Platform.unsafeReduce(platform, explode(referenced))(_ union _, _ union _, _ union _)
+
+                case None =>
+                  fail(s"Extends non-existing platform ${id.value}")
+              }
+            case None => platform
+          }
+
+        explode(platform)
+      }
+
+    val configuredPlatform: Option[b.Platform] =
+      explodedPlatform.map { platform =>
+        def fail(msg: String) =
+          sys.error(s"${projName.value}/${platform.name.value}: $msg")
+
+        platform match {
+          case model.Platform.Js(_, version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
+            b.Platform.Js(
+              b.JsConfig(
+                version = version match {
+                  case Some(value) => value.scalaJsVersion
+                  case None        => fail("missing `version`")
+                },
+                mode = mode.getOrElse(b.JsConfig.empty.mode),
+                kind = kind.getOrElse(b.JsConfig.empty.kind),
+                emitSourceMaps = emitSourceMaps.getOrElse(b.JsConfig.empty.emitSourceMaps),
+                jsdom = jsdom,
+                output = None,
+                nodePath = None,
+                toolchain = Nil
+              ),
+              mainClass
+            )
+          case model.Platform.Jvm(_, options, mainClass, runtimeOptions) =>
+            b.Platform.Jvm(
+              config = b.JvmConfig(
+                home = None,
+                options = options.map(_.render).getOrElse(Nil)
+              ),
+              mainClass = mainClass,
+              runtimeConfig = runtimeOptions.map(ro => b.JvmConfig(home = None, options = ro.render)),
+              classpath = None,
+              resources = None
+            )
+          case model.Platform.Native(_, version, mode, gc, mainClass) => ???
+        }
+      }
+
+    val platformSuffix =
+      explodedPlatform match {
+        case Some(x: model.Platform.Js)     => s"sjs${x.version.get.scalaJsBinVersion}"
+        case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeVersion}"
+        case _                           => ""
+      }
+
     val resolution: b.Resolution = {
       val transitiveDeps: Seq[JavaOrScalaDependency] =
         proj.dependencies.flat ++ build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.flat }
@@ -98,7 +164,7 @@ object generateBloopFiles {
       val concreteDeps: SortedSet[Dependency] = {
         val seq = transitiveDeps.map { dep =>
           scalaVersion match {
-            case Some(scalaVersion) => dep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, "todo: scala.js version")
+            case Some(scalaVersion) => dep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, platformSuffix)
             case None               => sys.error(s"Need a configured scala version to resolve $dep")
           }
         }
@@ -209,19 +275,7 @@ object generateBloopFiles {
         sbt = None,
         test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
         // platform is mostly todo:
-        platform = proj.platform.flatMap {
-          case model.Platform.Jvm(config, mainClass, runtimeConfig) =>
-            Some(
-              b.Platform.Jvm(
-                config = b.JvmConfig.empty,
-                mainClass = mainClass,
-                runtimeConfig = None,
-                classpath = None,
-                resources = None
-              )
-            )
-          case _ => None
-        },
+        platform = configuredPlatform,
         resolution = Some(resolution),
         tags = None
       )

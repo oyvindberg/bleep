@@ -55,4 +55,13 @@ object Versions {
   }
 
   val ScalaJs1 = ScalaJs("1.7.0")
+
+  case class ScalaNative(scalaNativeVersion: String) {
+    val scalaNativeBinVersion: String =
+      scalaNativeVersion match {
+        case Version("1", _, _) => "1"
+        case Version("0", x, _) => s"0.$x"
+        case other              => other
+      }
+  }
 }

@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.model.Platform
 import bloop.config.Config
 import coursier.core.Configuration
 import coursier.parse.JavaOrScalaDependency
@@ -57,6 +56,15 @@ object importBloopFilesFromSbt {
             val intersected = scalaConfigs.tail.foldLeft(scalaConfigs.head)(_.intersect(_))
             Map(model.ScalaId(binVersion) -> intersected)
         }
+
+    val platforms: Map[model.PlatformId, model.Platform] = {
+      val allPlatforms = bloopProjectFiles.flatMap { case (_, p) => p.project.platform.map(translatePlatform(_, p.project)) }.toList
+      List(
+        allPlatforms.collect { case x: model.Platform.Jvm => x }.reduceOption(_.intersect(_)),
+        allPlatforms.collect { case x: model.Platform.Js => x }.reduceOption(_.intersect(_)),
+        allPlatforms.collect { case x: model.Platform.Native => x }.reduceOption(_.intersect(_))
+      ).flatten.map(x => x.name -> x).toMap
+    }
 
     val projectHasFiles = bloopProjectFiles.flatMap { case (projectName, bloopFile) =>
       def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
@@ -152,16 +160,16 @@ object importBloopFilesFromSbt {
             }
           }
 
-        // todo: platform is still wip
-        val configuredPlatform: Option[Platform.Jvm] =
-          bloopProject.platform.flatMap {
-            case Config.Platform.Js(config, mainClass) => None
-            case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
-              val newConfig = model.JvmConfig(options = config.options)
-              val newRuntimeConfig = runtimeConfig.map(c => model.JvmConfig(options = c.options))
-              Some(model.Platform.Jvm(Some(newConfig), mainClass, newRuntimeConfig))
-            case Config.Platform.Native(config, mainClass) => None
-          }
+        val configuredPlatform: Option[model.Platform] =
+          bloopProject.platform
+            .map(translatePlatform(_, bloopProject))
+            .map(platform =>
+              model.Platform.unsafeReduce(platform, platforms(platform.name))(
+                (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
+                (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name)),
+                (p1, p2) => p1.removeAll(p2).copy(`extends` = Some(platform.name))
+              )
+            )
 
         projectName -> model.Project(
           folder = folder,
@@ -177,8 +185,40 @@ object importBloopFilesFromSbt {
         )
     }
 
-    model.Build("1", projects, Some(scalas), None, None, resolvers = Some(JsonList(resolvers)))
+    model.Build("1", projects, Some(platforms), Some(scalas), None, None, resolvers = Some(JsonList(resolvers)))
   }
+
+  def translatePlatform(platform: Config.Platform, bloopProject: Config.Project): model.Platform =
+    platform match {
+      case Config.Platform.Js(config, mainClass) =>
+        model.Platform.Js(
+          `extends` = None,
+          version = Some(Versions.ScalaJs(config.version)),
+          mode = Some(config.mode),
+          kind = Some(config.kind),
+          emitSourceMaps = Some(config.emitSourceMaps),
+          jsdom = config.jsdom,
+//          output = config.output.map(output => RelPath.relativeTo(bloopProject.directory, output)),
+          mainClass = mainClass
+        )
+
+      case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
+        model.Platform.Jvm(
+          `extends` = None,
+          options = Some(Options(config.options)).filterNot(_.isEmpty),
+          mainClass,
+          runtimeOptions = runtimeConfig.flatMap(rc => Some(Options(rc.options)).filterNot(_.isEmpty))
+        )
+
+      case Config.Platform.Native(config, mainClass) =>
+        model.Platform.Native(
+          `extends` = None,
+          version = Some(Versions.ScalaNative(config.version)),
+          mode = Some(config.mode),
+          gc = Some(config.gc),
+          mainClass = mainClass
+        )
+    }
 
   def translateScala(s: Config.Scala): model.Scala =
     model.Scala(

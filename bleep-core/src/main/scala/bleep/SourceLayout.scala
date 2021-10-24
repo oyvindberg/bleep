@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.EnumCodec
+import io.circe.Codec
 
 sealed abstract class SourceLayout(val id: String) {
   protected def scalaSources(scalaVersion: Versions.Scala, scope: String): List[RelPath]
@@ -23,9 +24,10 @@ sealed abstract class SourceLayout(val id: String) {
   }
 }
 
-object SourceLayout extends EnumCodec[SourceLayout] {
-  override val All: Map[String, SourceLayout] =
-    List(CrossPure, CrossFull, Normal, Java).map(x => x.id -> x).toMap
+object SourceLayout {
+  val All = List(CrossPure, CrossFull, Normal, Java).map(x => x.id -> x).toMap
+
+  implicit val codec: Codec[SourceLayout] = EnumCodec.codec(All)
 
   case object Java extends SourceLayout("java") {
     override protected def scalaSources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
