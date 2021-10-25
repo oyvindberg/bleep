@@ -1,5 +1,8 @@
 {
   "version" : "1",
+  "scripts": {
+    "native-image": "infrastructure/bleep.infra.GenNativeImage"
+  },
   "projects" : {
     "bleep" : {
       "dependsOn" : "bleep-core",
@@ -7,37 +10,19 @@
       "sbt-scope" : "main",
       "dependencies" : "org.scalameta:svm-subs:101.0.0",
       "scala" : "2.13",
-      "platform" : "jvm"
+      "platform" : {
+        "extends" : "jvm",
+        "mainClass" : "bleep.Main"
+      }
     },
     "bleep-core" : {
       "source-layout" : "normal",
       "sbt-scope" : "main",
       "dependencies" : [
         "ch.epfl.scala::bloop-config:1.4.9",
-        "com.chuusai::shapeless:2.3.7",
-        "com.github.alexarchambault::argonaut-shapeless_6.2:1.2.0",
-        "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0",
-        "io.argonaut::argonaut:6.2.5",
-        "io.circe::circe-core:0.14.1",
         "io.circe::circe-generic:0.14.1",
-        "io.circe::circe-jawn:0.14.1",
-        "io.circe::circe-numbers:0.14.1",
         "io.circe::circe-parser:0.14.1",
-        "io.get-coursier::coursier:2.0.16",
-        "io.get-coursier::coursier-cache:2.0.16",
-        "io.get-coursier::coursier-core:2.0.16",
-        "io.get-coursier::coursier-util:2.0.16",
-        "io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3",
-        "io.github.alexarchambault:concurrent-reference-hash-map:1.0.0",
-        "org.fusesource.jansi:jansi:1.18",
-        "org.scala-lang.modules::scala-collection-compat:2.2.0",
-        "org.scala-lang.modules::scala-xml:1.3.0",
-        "org.scala-lang:scala-library:2.13.6",
-        "org.scala-lang:scala-reflect:2.13.6",
-        "org.typelevel::cats-core:2.6.1",
-        "org.typelevel::cats-kernel:2.6.1",
-        "org.typelevel::jawn-parser:1.1.2",
-        "org.typelevel::simulacrum-scalafix-annotations:0.5.4"
+        "io.get-coursier::coursier:2.0.16"
       ],
       "scala" : "2.13",
       "platform" : "jvm"
@@ -54,24 +39,7 @@
       "dependsOn" : "bleep",
       "source-layout" : "normal",
       "sbt-scope" : "test",
-      "dependencies" : [
-        "org.scalactic::scalactic:3.2.10",
-        "org.scalatest::scalatest:3.2.10",
-        "org.scalatest::scalatest-core:3.2.10",
-        "org.scalatest::scalatest-diagrams:3.2.10",
-        "org.scalatest::scalatest-featurespec:3.2.10",
-        "org.scalatest::scalatest-flatspec:3.2.10",
-        "org.scalatest::scalatest-freespec:3.2.10",
-        "org.scalatest::scalatest-funspec:3.2.10",
-        "org.scalatest::scalatest-funsuite:3.2.10",
-        "org.scalatest::scalatest-matchers-core:3.2.10",
-        "org.scalatest::scalatest-mustmatchers:3.2.10",
-        "org.scalatest::scalatest-propspec:3.2.10",
-        "org.scalatest::scalatest-refspec:3.2.10",
-        "org.scalatest::scalatest-shouldmatchers:3.2.10",
-        "org.scalatest::scalatest-wordspec:3.2.10",
-        "org.scalatest:scalatest-compatible:3.2.10"
-      ],
+      "dependencies" : "org.scalatest::scalatest:3.2.10",
       "scala" : "2.13",
       "platform" : "jvm"
     },

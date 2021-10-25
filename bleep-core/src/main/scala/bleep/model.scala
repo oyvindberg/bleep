@@ -395,7 +395,21 @@ object model {
             }
           }
 
-          decodeShort.or(decodeFull)
+          val hasExtendsButNotName = Decoder.instance(c =>
+            c.get[PlatformId]("extends").flatMap { id =>
+              platforms.get(id) match {
+                case Some(found) =>
+                  found match {
+                    case _: Js     => decodesJs(c)
+                    case _: Jvm    => decodesJvm(c)
+                    case _: Native => decodesNative(c)
+                  }
+                case None => Left(DecodingFailure(s"${id.value} is not a defined platform", c.history))
+              }
+            }
+          )
+
+          decodeShort.or(hasExtendsButNotName).or(decodeFull)
 
         case None => decodeFull
       }
@@ -407,9 +421,10 @@ object model {
         case x: Native => encodesNative(x)
       }
 
-      json.foldWith(ShortenJson).withObject {
-        case obj if obj.size == 1 && obj("extends").nonEmpty => obj("extends").get
-        case other                                           => other.add("name", p.name.asJson).asJson
+      val shortened = json.withObject(_.add("name", p.name.asJson).asJson).foldWith(ShortenJson)
+      shortened.withObject {
+        case obj if obj.size == 2 && obj("extends").nonEmpty => obj("extends").get
+        case other => other.asJson
       }
     }
   }
