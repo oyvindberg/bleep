@@ -40,22 +40,22 @@ object importBloopFilesFromSbt {
           (bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles
         }
 
-    val buildResolvers: List[URI] =
-      bloopProjectFiles
-        .flatMap { case (projectName, bloopFile) =>
-          bloopFile.project.resolution
-            .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
-            .modules
-            .flatMap { mod =>
-              val initialOrg = Paths.get(mod.organization.split("\\.").head)
-              val uriFragments = mod.artifacts.head.path.iterator().asScala.dropWhile(_ != Paths.get("https")).drop(1).takeWhile(_ != initialOrg)
-              if (uriFragments.isEmpty) None
-              else Some(URI.create(uriFragments.map(_.toString).mkString("https://", "/", "")))
-            }
-        }
-        .toList
-        .distinct
-        .filterNot(_ == Defaults.MavenCentral)
+    val buildResolvers: JsonSet[URI] =
+      JsonSet(
+        bloopProjectFiles
+          .flatMap { case (projectName, bloopFile) =>
+            bloopFile.project.resolution
+              .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
+              .modules
+              .flatMap { mod =>
+                val initialOrg = Paths.get(mod.organization.split("\\.").head)
+                val uriFragments = mod.artifacts.head.path.iterator().asScala.dropWhile(_ != Paths.get("https")).drop(1).takeWhile(_ != initialOrg)
+                if (uriFragments.isEmpty) None
+                else Some(URI.create(uriFragments.map(_.toString).mkString("https://", "/", "")))
+              }
+          }
+          .filterNot(_ == Defaults.MavenCentral)
+      )
 
     val buildJava: Option[model.Java] =
       bloopProjectFiles
@@ -201,7 +201,7 @@ object importBloopFilesFromSbt {
       )
     }
 
-    model.Build("1", projects, Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = JsonSet(buildResolvers))
+    model.Build("1", Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = buildResolvers, projects)
   }
 
   case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[(Configuration, Dependency)])

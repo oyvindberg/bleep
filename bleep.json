@@ -3,54 +3,6 @@
   "scripts": {
     "native-image": "infrastructure/bleep.infra.GenNativeImage"
   },
-  "projects" : {
-    "bleep" : {
-      "dependsOn" : "bleep-core",
-      "source-layout" : "normal",
-      "sbt-scope" : "main",
-      "dependencies" : "org.scalameta:svm-subs:101.0.0",
-      "scala" : "2.13",
-      "platform" : {
-        "extends" : "jvm",
-        "mainClass" : "bleep.Main"
-      }
-    },
-    "bleep-core" : {
-      "source-layout" : "normal",
-      "sbt-scope" : "main",
-      "dependencies" : [
-        "ch.epfl.scala::bloop-config:1.4.9",
-        "io.circe::circe-generic:0.14.1",
-        "io.circe::circe-parser:0.14.1",
-        "io.get-coursier::coursier:2.0.16"
-      ],
-      "scala" : "2.13",
-      "platform" : "jvm"
-    },
-    "bleep-tasks" : {
-      "dependsOn" : "bleep-core",
-      "source-layout" : "normal",
-      "sbt-scope" : "main",
-      "scala" : "2.13",
-      "platform" : "jvm"
-    },
-    "bleep-test" : {
-      "folder" : "bleep",
-      "dependsOn" : "bleep",
-      "source-layout" : "normal",
-      "sbt-scope" : "test",
-      "dependencies" : "org.scalatest::scalatest:3.2.10",
-      "scala" : "2.13",
-      "platform" : "jvm"
-    },
-    "infrastructure" : {
-      "dependsOn" : "bleep-tasks",
-      "source-layout" : "normal",
-      "sbt-scope" : "main",
-      "scala" : "2.13",
-      "platform" : "jvm"
-    }
-  },
   "platforms" : {
     "jvm" : {
       "options" : "-Duser.dir=/home/n645892/pr/bleep",
@@ -103,6 +55,52 @@
         "-encoding",
         "utf8"
       ]
+    }
+  },
+  "projects" : {
+    "bleep" : {
+      "dependsOn" : "bleep-core",
+      "source-layout" : "normal",
+      "sbt-scope" : "main",
+      "dependencies" : "org.scalameta:svm-subs:101.0.0",
+      "scala" : "2.13",
+      "platform" : "jvm"
+    },
+    "bleep-core" : {
+      "source-layout" : "normal",
+      "sbt-scope" : "main",
+      "dependencies" : [
+        "ch.epfl.scala::bloop-config:1.4.9",
+        "io.circe::circe-generic:0.14.1",
+        "io.circe::circe-parser:0.14.1",
+        "io.get-coursier::coursier:2.0.16",
+        "org.scala-lang:scala-reflect:2.13.6"
+      ],
+      "scala" : "2.13",
+      "platform" : "jvm"
+    },
+    "bleep-tasks" : {
+      "dependsOn" : "bleep-core",
+      "source-layout" : "normal",
+      "sbt-scope" : "main",
+      "scala" : "2.13",
+      "platform" : "jvm"
+    },
+    "bleep-test" : {
+      "folder" : "bleep",
+      "dependsOn" : "bleep",
+      "source-layout" : "normal",
+      "sbt-scope" : "test",
+      "dependencies" : "org.scalatest::scalatest:3.2.10",
+      "scala" : "2.13",
+      "platform" : "jvm"
+    },
+    "infrastructure" : {
+      "dependsOn" : "bleep-tasks",
+      "source-layout" : "normal",
+      "sbt-scope" : "main",
+      "scala" : "2.13",
+      "platform" : "jvm"
     }
   }
 }

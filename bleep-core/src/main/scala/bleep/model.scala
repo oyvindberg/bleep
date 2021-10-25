@@ -37,7 +37,7 @@ object model {
       Java(options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) })
 
     override def removeAll(other: Java): Java =
-      Java(options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) })
+      Java(options = List(options, other.options).flatten.reduceOption(_ removeAll _))
 
     override def union(other: Java): Java =
       Java(options = List(options, other.options).flatten.reduceOption(_ union _))
@@ -86,11 +86,6 @@ object model {
       manageBootClasspath: Option[Boolean],
       filterLibraryFromClasspath: Option[Boolean]
   ) extends SetLike[CompileSetup] {
-    def isEmpty =
-      this match {
-        case CompileSetup(None, None, None, None, None, None) => true
-        case _                                                => false
-      }
 
     override def intersect(other: CompileSetup): CompileSetup =
       CompileSetup(
@@ -157,8 +152,8 @@ object model {
       Scala(
         `extends` = if (`extends` == other.`extends`) None else `extends`,
         version = if (`version` == other.`version`) None else `version`,
-        options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) },
-        setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) },
+        options = List(options, other.options).flatten.reduceOption(_ removeAll _),
+        setup = List(setup, other.setup).flatten.reduceOption(_ removeAll _),
         compilerPlugins = compilerPlugins.removeAll(other.compilerPlugins)
       )
 
@@ -490,12 +485,12 @@ object model {
 
   case class Build(
       version: String,
-      projects: Map[ProjectName, Project],
       platforms: Option[Map[PlatformId, Platform]],
       scala: Option[Map[ScalaId, Scala]],
       java: Option[Java],
       scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
-      resolvers: JsonSet[URI]
+      resolvers: JsonSet[URI],
+      projects: Map[ProjectName, Project]
   ) {
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
       val builder = Map.newBuilder[model.ProjectName, model.Project]
@@ -531,7 +526,7 @@ object model {
           java <- c.downField("java").as[Option[Java]]
           scripts <- c.downField("scripts").as[Option[Map[ScriptName, JsonList[ScriptDef]]]]
           resolvers <- c.downField("resolvers").as[JsonSet[URI]]
-        } yield Build(version, projects, platforms, scala, java, scripts, resolvers)
+        } yield Build(version, platforms, scala, java, scripts, resolvers, projects)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
   }
