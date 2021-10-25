@@ -9,20 +9,17 @@ object deduplicateBuild {
       val shortenedDeps: Map[model.ProjectName, model.Project] =
         build.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, getDep(pn).forceGet(pn.value)) }
 
-      val dependsOn: List[model.ProjectName] =
-        p.dependsOn.flat.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependsOn.flat }.toSet)
+      val dependsOn: JsonSet[model.ProjectName] =
+        p.dependsOn.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependsOn.values }.toSet)
 
-      val directDeps: List[model.Project] =
-        dependsOn.map(pn => shortenedDeps(pn))
-
-      val dependencies: List[JavaOrScalaDependency] = {
+      val dependencies: JsonSet[JavaOrScalaDependency] = {
         val includedInDependees: Set[JavaOrScalaDependency] =
-          shortenedDeps.flatMap { case (_, p) => p.dependencies.flat }.toSet
+          shortenedDeps.flatMap { case (_, p) => p.dependencies.values }.toSet
 
-        val newInThisProject: List[JavaOrScalaDependency] =
-          p.dependencies.flat.filterNot(includedInDependees)
+        val newInThisProject: JsonSet[JavaOrScalaDependency] =
+          p.dependencies.filterNot(includedInDependees)
 
-        newInThisProject.sortBy(_.module.toString).distinctBy(_.module)
+        newInThisProject
       }
 
       val (sourceLayout, sources, resources) = {
@@ -38,7 +35,7 @@ object deduplicateBuild {
           p.`source-layout`.orElse {
             SourceLayout.All.values.maxByOption { layout =>
               val fromLayout = layout.sources(scalaVersion, p.`sbt-scope`).toSet
-              val fromProject = p.sources.flat.toSet
+              val fromProject = p.sources.values.toSet
               val matching = fromLayout.intersect(fromProject).size
               val notMatching = fromLayout.removedAll(fromProject).size
               (matching, -notMatching)
@@ -47,9 +44,9 @@ object deduplicateBuild {
 
         inferredSourceLayout match {
           case Some(sl) =>
-            val shortenedSources = p.sources.flat.filterNot(sl.sources(scalaVersion, p.`sbt-scope`).toSet)
-            val shortenedResources = p.resources.flat.filterNot(sl.resources(scalaVersion, p.`sbt-scope`).toSet)
-            (Some(sl), Option(JsonList(shortenedSources)), Option(JsonList(shortenedResources)))
+            val shortenedSources = p.sources.values.filterNot(sl.sources(scalaVersion, p.`sbt-scope`).toSet)
+            val shortenedResources = p.resources.values.filterNot(sl.resources(scalaVersion, p.`sbt-scope`).toSet)
+            (Some(sl), JsonSet(shortenedSources), JsonSet(shortenedResources))
           case None =>
             (None, p.sources, p.resources)
         }
@@ -57,12 +54,12 @@ object deduplicateBuild {
 
       model.Project(
         folder = p.folder,
-        dependsOn = Some(JsonList(dependsOn)),
+        dependsOn = dependsOn,
         `source-layout` = sourceLayout,
         `sbt-scope` = p.`sbt-scope`,
         sources = sources,
         resources = resources,
-        dependencies = Some(JsonList(dependencies)),
+        dependencies = dependencies,
         java = p.java,
         scala = p.scala,
         platform = p.platform

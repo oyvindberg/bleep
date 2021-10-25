@@ -1,13 +1,14 @@
 package bleep
 
 import bleep.internal.{rewriteDependentData, Lazy}
+import bleep.model.orderingDep
 import bloop.config.{Config => b}
 import coursier.core.Configuration
 import coursier.parse.JavaOrScalaDependency
 import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
-import scala.collection.immutable.{SortedMap, SortedSet}
+import scala.collection.immutable.SortedMap
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -66,7 +67,7 @@ object generateBloopFiles {
         p.project.dependencies.foreach(projectName => go(model.ProjectName(projectName)))
       }
 
-      proj.dependsOn.flat.foreach(go)
+      proj.dependsOn.values.foreach(go)
 
       builder.result()
     }
@@ -156,21 +157,18 @@ object generateBloopFiles {
       }
 
     val resolution: b.Resolution = {
-      val transitiveDeps: Seq[JavaOrScalaDependency] =
-        proj.dependencies.flat ++ build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.flat }
+      val transitiveDeps: JsonSet[JavaOrScalaDependency] =
+        proj.dependencies union JsonSet(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values })
 
-      val concreteDeps: SortedSet[Dependency] = {
-        val seq = transitiveDeps.map { dep =>
+      val concreteDeps: JsonSet[Dependency] =
+        transitiveDeps.map { dep =>
           scalaVersion match {
             case Some(scalaVersion) => dep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, platformSuffix)
             case None               => sys.error(s"Need a configured scala version to resolve $dep")
           }
         }
 
-        SortedSet.empty[Dependency] ++ seq
-      }
-
-      val result = Await.result(resolver(concreteDeps, build.resolvers.flat), Duration.Inf)
+      val result = Await.result(resolver(concreteDeps, build.resolvers), Duration.Inf)
 
       val modules: List[b.Module] =
         result.fullDetailedArtifacts
@@ -198,9 +196,9 @@ object generateBloopFiles {
       b.Resolution(modules)
     }
 
-    val classPath: List[Path] = {
-      allTransitiveTranslated.values.map(_.project.classesDir).toList.sorted ++
-        resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path).sorted
+    val classPath: JsonSet[Path] = JsonSet {
+      allTransitiveTranslated.values.map(_.project.classesDir) ++
+        resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path)
     }
 
     val configuredScala: Option[b.Scala] =
@@ -209,7 +207,7 @@ object generateBloopFiles {
           scalaVersion.compiler.dependency(scalaVersion.scalaVersion)
 
         val resolvedScalaCompiler: List[Path] =
-          Await.result(resolver(SortedSet(scalaCompiler), build.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
+          Await.result(resolver(JsonSet(List(scalaCompiler)), build.resolvers), Duration.Inf).files.toList.map(_.toPath)
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup)
@@ -224,11 +222,11 @@ object generateBloopFiles {
         }
 
         val compilerPlugins: Options = {
-          maybeScala.toList.flatMap(_.compilerPlugins.flat) match {
-            case Nil => Options.Empty
-            case nonEmpty: List[JavaOrScalaDependency] =>
-              val reps = SortedSet.empty[Dependency] ++ nonEmpty.map(_.dependency(scalaVersion.scalaVersion))
-              val resolved = Await.result(resolver(reps, build.resolvers.flat), Duration.Inf).files.toList.map(_.toPath)
+          maybeScala.fold(JsonSet.empty[JavaOrScalaDependency])(_.compilerPlugins) match {
+            case empty if empty.values.isEmpty => Options.Empty
+            case nonEmpty =>
+              val reps = nonEmpty.map(_.dependency(scalaVersion.scalaVersion))
+              val resolved = Await.result(resolver(reps, build.resolvers), Duration.Inf).files.toList.map(_.toPath)
               val relevant = resolved.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
               new Options(relevant.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
           }
@@ -258,10 +256,10 @@ object generateBloopFiles {
     }
 
     val sources: List[Path] =
-      sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ proj.sources.flat map (projectFolder / _)
+      sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ proj.sources.values map (projectFolder / _)
 
     val resources: List[Path] =
-      sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ proj.resources.flat map (projectFolder / _)
+      sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ proj.resources.values map (projectFolder / _)
 
     b.File(
       "1.4.0",
@@ -272,8 +270,8 @@ object generateBloopFiles {
         sources = sources,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = allTransitiveTranslated.keys.map(_.value).toList.sorted,
-        classpath = classPath,
+        dependencies = JsonSet(allTransitiveTranslated.keys.map(_.value)).values.toList,
+        classpath = classPath.values.toList,
         out = workspaceDir / Defaults.BloopFolder / projName.value,
         classesDir = scalaVersion match {
           case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"

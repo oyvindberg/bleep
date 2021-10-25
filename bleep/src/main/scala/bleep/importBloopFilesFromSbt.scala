@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.Options.Opt
+import bleep.model.orderingDep
 import bloop.config.Config
 import coursier.core.compatibility.xmlParseSax
 import coursier.core.{Configuration, Project}
@@ -109,8 +110,8 @@ object importBloopFilesFromSbt {
         }
       }
 
-      val dependsOn: Option[JsonList[model.ProjectName]] =
-        Some(JsonList(bloopProject.dependencies.map(model.ProjectName.apply).filter(bloopProjectFiles.contains)))
+      val dependsOn: JsonSet[model.ProjectName] =
+        JsonSet(bloopProject.dependencies.map(model.ProjectName.apply).filter(bloopProjectFiles.contains))
 
       val scalaVersion: Option[Versions.Scala] =
         bloopProject.scala.map(s => Versions.Scala(s.version))
@@ -128,10 +129,17 @@ object importBloopFilesFromSbt {
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
       val dependencies: List[JavaOrScalaDependency] = {
-        val parsed = resolution.modules.map(mod => ParsedDependency(scalaVersion, mod))
+        val parsed: List[ParsedDependency] =
+          resolution.modules.map(mod => ParsedDependency(scalaVersion, mod))
+
+        val activeConfigs: Set[Configuration] =
+          if (isTest) Set(Configuration.empty, Configuration.compile, Configuration.default, Configuration.test)
+          else Set(Configuration.empty, Configuration.compile, Configuration.default)
 
         val allDeps: Set[(Module, String)] =
-          parsed.flatMap { case ParsedDependency(_, deps) => deps.map(_.moduleVersion) }.toSet
+          parsed.flatMap { case ParsedDependency(_, deps) =>
+            deps.collect { case (conf, d) if activeConfigs(conf) => (d.module, d.version) }
+          }.toSet
 
         // only keep those not referenced by another dependency
         parsed.flatMap { case ParsedDependency(javaOrScalaDependency, _) =>
@@ -182,9 +190,9 @@ object importBloopFilesFromSbt {
       projectName -> model.Project(
         folder = folder,
         dependsOn = dependsOn,
-        sources = Some(JsonList(sourcesRelPaths)),
-        resources = Some(JsonList(resourcesRelPaths)),
-        dependencies = Some(JsonList(dependencies)),
+        sources = JsonSet(sourcesRelPaths),
+        resources = JsonSet(resourcesRelPaths),
+        dependencies = JsonSet(dependencies),
         java = configuredJava,
         scala = configuredScala,
         platform = configuredPlatform,
@@ -193,10 +201,10 @@ object importBloopFilesFromSbt {
       )
     }
 
-    model.Build("1", projects, Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = Some(JsonList(buildResolvers)))
+    model.Build("1", projects, Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = JsonSet(buildResolvers))
   }
 
-  case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[Dependency])
+  case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[(Configuration, Dependency)])
 
   object ParsedDependency {
     def apply(scalaVersion: Option[Versions.Scala], mod: Config.Module): ParsedDependency = {
@@ -235,7 +243,7 @@ object importBloopFilesFromSbt {
         case None               => java
       }
 
-      val dependencies: List[Dependency] =
+      val dependencies: List[(Configuration, Dependency)] =
         mod.artifacts.flatMap {
           case a if a.classifier.nonEmpty => Nil
           case a =>
@@ -250,7 +258,7 @@ object importBloopFilesFromSbt {
                 println(s"Couldn't determine dependencies for $mod: $errMsg")
                 Nil
               case Right(project) =>
-                project.dependencies.map(_._2)
+                project.dependencies
             }
         }
 
@@ -330,7 +338,7 @@ object importBloopFilesFromSbt {
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath).filterNot(_ == Config.CompileSetup.empty.filterLibraryFromClasspath)
         )
       ),
-      compilerPlugins = Some(JsonList(compilerPlugins))
+      compilerPlugins = JsonSet(compilerPlugins)
     )
   }
 }

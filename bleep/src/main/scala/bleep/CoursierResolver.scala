@@ -6,19 +6,18 @@ import coursier.util.Task
 import coursier.{Classifier, Dependency, Fetch, MavenRepository}
 
 import java.net.URI
-import scala.collection.immutable.SortedSet
 import scala.concurrent.{ExecutionContext, Future}
 
 class CoursierResolver(ec: ExecutionContext, downloadSources: Boolean) {
   val fileCache = FileCache[Task]()
 
-  def apply(deps: SortedSet[Dependency], repositories: Seq[URI]): Future[Fetch.Result] = {
+  def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Future[Fetch.Result] = {
     def go(remainingAttempts: Int): Future[Fetch.Result] = {
       val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
       Fetch[Task](fileCache)
-        .withDependencies(deps.toList)
-        .addRepositories(repositories.map(uri => MavenRepository(uri.toString)): _*)
+        .withDependencies(deps.values.toList)
+        .addRepositories(repositories.values.toList.map(uri => MavenRepository(uri.toString)): _*)
         .withMainArtifacts(true)
         .addClassifiers(newClassifiers: _*)
         .ioResult

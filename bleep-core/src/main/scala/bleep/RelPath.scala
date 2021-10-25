@@ -19,9 +19,12 @@ object RelPath {
   def relativeTo(shorter: Path, longer: Path): RelPath =
     force(shorter.relativize(longer).toString)
 
-  implicit def decodesRelPath: Decoder[RelPath] =
+  implicit val decodesRelPath: Decoder[RelPath] =
     Decoder[String].emap(apply)
 
-  implicit def encodesRelPath: Encoder[RelPath] =
+  implicit val encodesRelPath: Encoder[RelPath] =
     Encoder[String].contramap(_.segments.mkString("/"))
+
+  implicit val ordering: Ordering[RelPath] =
+    Ordering.by(_.segments.mkString(""))
 }

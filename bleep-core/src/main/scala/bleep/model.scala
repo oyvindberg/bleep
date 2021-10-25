@@ -26,6 +26,12 @@ object model {
       case dep: JavaOrScalaDependency.ScalaDependency => Json.fromString(dep.repr)
     }
 
+  implicit val orderingDep: Ordering[JavaOrScalaDependency] =
+    Ordering.by { incompleteDep =>
+      val dep = incompleteDep.dependency("2.13.1")
+      (dep.module.repr, dep.version, dep.configuration)
+    }
+
   case class Java(options: Option[Options]) extends SetLike[Java] {
     override def intersect(other: Java): Java =
       Java(options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) })
@@ -136,7 +142,7 @@ object model {
       version: Option[Versions.Scala],
       options: Option[Options],
       setup: Option[CompileSetup],
-      compilerPlugins: Option[JsonList[JavaOrScalaDependency]]
+      compilerPlugins: JsonSet[JavaOrScalaDependency]
   ) extends SetLike[Scala] {
     override def intersect(other: Scala): Scala =
       Scala(
@@ -144,7 +150,7 @@ object model {
         version = if (`version` == other.`version`) `version` else None,
         options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) },
         setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) },
-        compilerPlugins = compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.intersect(_2.values)) }
+        compilerPlugins = compilerPlugins.intersect(other.compilerPlugins)
       )
 
     override def removeAll(other: Scala): Scala =
@@ -153,7 +159,7 @@ object model {
         version = if (`version` == other.`version`) None else `version`,
         options = options.zip(other.options).map { case (_1, _2) => _1.removeAll(_2) },
         setup = setup.zip(other.setup).map { case (_1, _2) => _1.removeAll(_2) },
-        compilerPlugins = compilerPlugins.zip(other.compilerPlugins).map { case (_1, _2) => JsonList(_1.values.filterNot(_2.values.contains)) }
+        compilerPlugins = compilerPlugins.removeAll(other.compilerPlugins)
       )
 
     override def union(other: Scala): Scala =
@@ -162,7 +168,7 @@ object model {
         version = version.orElse(other.version),
         options = List(options, other.options).flatten.reduceOption(_ union _),
         setup = List(setup, other.setup).flatten.reduceOption(_ union _),
-        compilerPlugins = List(compilerPlugins, other.compilerPlugins).flatten.reduceOption((_1, _2) => JsonList((_1.values ++ _2.values).distinct))
+        compilerPlugins = compilerPlugins.union(other.compilerPlugins)
       )
   }
 
@@ -174,7 +180,7 @@ object model {
     val fullEncodes: Encoder[Scala] = deriveEncoder
 
     val shortDecodes: Decoder[Scala] =
-      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None, None))
+      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None, JsonSet.empty))
 
     implicit val decodes: Decoder[Scala] =
       shortDecodes.or(fullDecodes)
@@ -426,12 +432,12 @@ object model {
 
   case class Project(
       folder: Option[RelPath],
-      dependsOn: Option[JsonList[ProjectName]],
+      dependsOn: JsonSet[ProjectName],
       `source-layout`: Option[SourceLayout],
       `sbt-scope`: Option[String],
-      sources: Option[JsonList[RelPath]],
-      resources: Option[JsonList[RelPath]],
-      dependencies: Option[JsonList[JavaOrScalaDependency]],
+      sources: JsonSet[RelPath],
+      resources: JsonSet[RelPath],
+      dependencies: JsonSet[JavaOrScalaDependency],
       java: Option[Java],
       scala: Option[Scala],
       platform: Option[Platform]
@@ -474,7 +480,7 @@ object model {
       scala: Option[Map[ScalaId, Scala]],
       java: Option[Java],
       scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
-      resolvers: Option[JsonList[URI]]
+      resolvers: JsonSet[URI]
   ) {
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
       val builder = Map.newBuilder[model.ProjectName, model.Project]
@@ -482,10 +488,10 @@ object model {
       def go(n: model.ProjectName): Unit = {
         val p = projects.getOrElse(n, sys.error(s"Project ${projName.value} depends on non-existing project ${n.value}"))
         builder += ((n, p))
-        p.dependsOn.flat.foreach(go)
+        p.dependsOn.values.foreach(go)
       }
 
-      projects(projName).dependsOn.flat.foreach(go)
+      projects(projName).dependsOn.values.foreach(go)
 
       builder.result()
     }
@@ -509,7 +515,7 @@ object model {
           scala <- c.downField("scala").as[Option[Map[ScalaId, Scala]]]
           java <- c.downField("java").as[Option[Java]]
           scripts <- c.downField("scripts").as[Option[Map[ScriptName, JsonList[ScriptDef]]]]
-          resolvers <- c.downField("resolvers").as[Option[JsonList[URI]]]
+          resolvers <- c.downField("resolvers").as[JsonSet[URI]]
         } yield Build(version, projects, platforms, scala, java, scripts, resolvers)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
