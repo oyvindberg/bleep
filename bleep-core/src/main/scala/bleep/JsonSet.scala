@@ -13,21 +13,24 @@ import scala.collection.immutable.SortedSet
 //    "foo": ["a"],
 // are all allowed and put into a `SortedSet`
 //
-case class JsonSet[T](values: SortedSet[T]) extends SetLike[JsonSet[T]] {
-  def isEmpty = values.isEmpty
-
+case class JsonSet[T](values: SortedSet[T]) extends Function[T, Boolean] with SetLike[JsonSet[T]] {
+  override def apply(t: T): Boolean = values.apply(t)
   override def intersect(other: JsonSet[T]): JsonSet[T] = JsonSet(values.intersect(other.values))
   override def removeAll(other: JsonSet[T]): JsonSet[T] = JsonSet(values.filterNot(other.values.toSet))
   override def union(other: JsonSet[T]): JsonSet[T] = JsonSet(values.union(other.values))
 
+  def isEmpty = values.isEmpty
+  def size = values.size
+  def ++(other: JsonSet[T]): JsonSet[T] = union(other)
   def filterNot(pred: T => Boolean): JsonSet[T] = new JsonSet[T](values.filterNot(pred))
   def map[U: Ordering](f: T => U): JsonSet[U] = new JsonSet[U](values.map(t => f(t)))
   def flatMap[U: Ordering](f: T => JsonSet[U]): JsonSet[U] = new JsonSet[U](values.flatMap(t => f(t).values))
 }
 
 object JsonSet {
-  def apply[T: Ordering](values: Iterable[T]) = new JsonSet(SortedSet.empty[T] ++ values)
-  def empty[T: Ordering]: JsonSet[T] = JsonSet(Nil)
+  def fromIterable[T: Ordering](values: Iterable[T]) = new JsonSet(SortedSet.empty[T] ++ values)
+  def apply[T: Ordering](values: T*) = new JsonSet(SortedSet.empty[T] ++ values)
+  def empty[T: Ordering]: JsonSet[T] = JsonSet()
 
   implicit def decodes[T: Decoder: Ordering]: Decoder[JsonSet[T]] = {
     val base = Decoder.instance(c =>
@@ -38,7 +41,7 @@ object JsonSet {
           _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t))),
           _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t))),
           _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t))),
-          array => array.toList.traverse(Decoder[T].decodeJson).map(JsonSet(_)),
+          array => array.toList.traverse(Decoder[T].decodeJson).map(JsonSet.fromIterable(_)),
           _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t)))
         )
       } yield ts

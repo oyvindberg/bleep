@@ -22,43 +22,13 @@ object deduplicateBuild {
         newInThisProject
       }
 
-      val (sourceLayout, sources, resources) = {
-        val scalaVersion: Option[Versions.Scala] = {
-          def go(scala: model.Scala): Option[Versions.Scala] =
-            scala.version.orElse {
-              scala.`extends`.zip(build.scala).flatMap{case (id, scalas) => go(scalas(id))}
-            }
-          p.scala.flatMap(go)
-        }
-
-        val inferredSourceLayout: Option[SourceLayout] =
-          p.`source-layout`.orElse {
-            SourceLayout.All.values.maxByOption { layout =>
-              val fromLayout = layout.sources(scalaVersion, p.`sbt-scope`).toSet
-              val fromProject = p.sources.values.toSet
-              val matching = fromLayout.intersect(fromProject).size
-              val notMatching = fromLayout.removedAll(fromProject).size
-              (matching, -notMatching)
-            }
-          }
-
-        inferredSourceLayout match {
-          case Some(sl) =>
-            val shortenedSources = p.sources.values.filterNot(sl.sources(scalaVersion, p.`sbt-scope`).toSet)
-            val shortenedResources = p.resources.values.filterNot(sl.resources(scalaVersion, p.`sbt-scope`).toSet)
-            (Some(sl), JsonSet(shortenedSources), JsonSet(shortenedResources))
-          case None =>
-            (None, p.sources, p.resources)
-        }
-      }
-
       model.Project(
         folder = p.folder,
         dependsOn = dependsOn,
-        `source-layout` = sourceLayout,
+        `source-layout` = p.`source-layout`,
         `sbt-scope` = p.`sbt-scope`,
-        sources = sources,
-        resources = resources,
+        sources = p.sources,
+        resources = p.resources,
         dependencies = dependencies,
         java = p.java,
         scala = p.scala,

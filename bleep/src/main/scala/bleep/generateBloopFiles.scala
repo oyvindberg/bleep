@@ -158,7 +158,7 @@ object generateBloopFiles {
 
     val resolution: b.Resolution = {
       val transitiveDeps: JsonSet[JavaOrScalaDependency] =
-        proj.dependencies union JsonSet(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values })
+        proj.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values }))
 
       val concreteDeps: JsonSet[Dependency] =
         transitiveDeps.map { dep =>
@@ -196,7 +196,7 @@ object generateBloopFiles {
       b.Resolution(modules)
     }
 
-    val classPath: JsonSet[Path] = JsonSet {
+    val classPath: JsonSet[Path] = JsonSet.fromIterable {
       allTransitiveTranslated.values.map(_.project.classesDir) ++
         resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path)
     }
@@ -207,7 +207,7 @@ object generateBloopFiles {
           scalaVersion.compiler.dependency(scalaVersion.scalaVersion)
 
         val resolvedScalaCompiler: List[Path] =
-          Await.result(resolver(JsonSet(List(scalaCompiler)), build.resolvers), Duration.Inf).files.toList.map(_.toPath)
+          Await.result(resolver(JsonSet(scalaCompiler), build.resolvers), Duration.Inf).files.toList.map(_.toPath)
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup)
@@ -255,11 +255,11 @@ object generateBloopFiles {
       case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
     }
 
-    val sources: List[Path] =
-      sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ proj.sources.values map (projectFolder / _)
+    val sources: JsonSet[Path] =
+      (sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.sources.values)).map(projectFolder / _)
 
-    val resources: List[Path] =
-      sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ proj.resources.values map (projectFolder / _)
+    val resources: JsonSet[Path] =
+      (sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.resources.values)).map(projectFolder / _)
 
     b.File(
       "1.4.0",
@@ -267,17 +267,17 @@ object generateBloopFiles {
         projName.value,
         projectFolder,
         Some(workspaceDir),
-        sources = sources,
+        sources = sources.values.toList,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = JsonSet(allTransitiveTranslated.keys.map(_.value)).values.toList,
+        dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = workspaceDir / Defaults.BloopFolder / projName.value,
         classesDir = scalaVersion match {
           case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
           case None               => workspaceDir / Defaults.BloopFolder / projName.value / "classes"
         },
-        resources = Some(resources),
+        resources = Some(resources.values.toList),
         scala = configuredScala,
         java = Some(
           b.Java(

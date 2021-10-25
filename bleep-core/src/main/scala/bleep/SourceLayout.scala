@@ -1,44 +1,58 @@
 package bleep
 
-import bleep.internal.EnumCodec
-import io.circe.Codec
+import io.circe.{Decoder, Encoder}
 
 sealed abstract class SourceLayout(val id: String) {
-  protected def scalaSources(scalaVersion: Versions.Scala, scope: String): List[RelPath]
-  protected def scalaResources(scalaVersion: Versions.Scala, scope: String): List[RelPath]
+  protected def scalaSources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath]
+  protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath]
 
-  final def sources(maybeScalaVersion: Option[Versions.Scala], maybeScope: Option[String]): List[RelPath] = {
+  final def sources(maybeScalaVersion: Option[Versions.Scala], maybeScope: Option[String]): JsonSet[RelPath] = {
     val scope = maybeScope.getOrElse("")
     maybeScalaVersion match {
       case Some(scalaVersion) => scalaSources(scalaVersion, scope)
-      case None               => List(RelPath.force(s"src/$scope/java"))
+      case None               => JsonSet(RelPath.force(s"src/$scope/java"))
     }
   }
 
-  final def resources(maybeScalaVersion: Option[Versions.Scala], maybeScope: Option[String]): List[RelPath] = {
+  final def resources(maybeScalaVersion: Option[Versions.Scala], maybeScope: Option[String]): JsonSet[RelPath] = {
     val scope = maybeScope.getOrElse("")
     maybeScalaVersion match {
       case Some(scalaVersion) => scalaResources(scalaVersion, scope)
-      case None               => List(RelPath.force(s"src/$scope/resources"))
+      case None               => JsonSet(RelPath.force(s"src/$scope/resources"))
     }
   }
 }
 
 object SourceLayout {
-  val All = List(CrossPure, CrossFull, Normal, Java).map(x => x.id -> x).toMap
+  val All = List(CrossPure, CrossFull, Normal, Java, None_).map(x => x.id -> x).toMap
 
-  implicit val codec: Codec[SourceLayout] = EnumCodec.codec(All)
+  implicit val decoder: Decoder[SourceLayout] =
+    Decoder[Option[String]].emap {
+      case Some(str) => All.get(str).toRight(s"$str not among ${All.keys.mkString(", ")}")
+      case None      => Right(Normal)
+    }
+
+  implicit val encoder: Encoder[SourceLayout] =
+    Encoder[Option[String]].contramap {
+      case Normal => None
+      case other  => Some(other.id)
+    }
+
+  case object None_ extends SourceLayout("none") {
+    override protected def scalaSources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] = JsonSet.empty
+    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] = JsonSet.empty
+  }
 
   case object Java extends SourceLayout("java") {
-    override protected def scalaSources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
-      List(RelPath.force(s"src/$scope/java"))
-    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
-      List(RelPath.force(s"src/$scope/resources"))
+    override protected def scalaSources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
+      JsonSet(RelPath.force(s"src/$scope/java"))
+    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
+      JsonSet(RelPath.force(s"src/$scope/resources"))
   }
 
   case object Normal extends SourceLayout("normal") {
-    override protected def scalaSources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
-      List(
+    override protected def scalaSources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
+      JsonSet(
         RelPath.force(s"src/$scope/scala"),
         RelPath.force(s"src/$scope/java"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
@@ -46,8 +60,8 @@ object SourceLayout {
         RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
       )
 
-    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
-      List(
+    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
+      JsonSet(
         RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope"),
         RelPath.force(s"src/$scope/resources")
       )
@@ -55,7 +69,7 @@ object SourceLayout {
 
   case object CrossPure extends SourceLayout("cross-pure") {
     override protected def scalaSources(scalaVersion: Versions.Scala, scope: String) =
-      List(
+      JsonSet(
         RelPath.force(s"src/$scope/scala"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
@@ -66,8 +80,8 @@ object SourceLayout {
         RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
       )
 
-    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
-      List(
+    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
+      JsonSet(
         RelPath.force(s"src/$scope/resources"),
         RelPath.force(s"../src/$scope/resources"),
         RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope")
@@ -76,7 +90,7 @@ object SourceLayout {
 
   case object CrossFull extends SourceLayout("cross-full") {
     override protected def scalaSources(scalaVersion: Versions.Scala, scope: String) =
-      List(
+      JsonSet(
         RelPath.force(s"src/$scope/scala"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
@@ -87,8 +101,8 @@ object SourceLayout {
         RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
       )
 
-    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): List[RelPath] =
-      List(
+    override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
+      JsonSet(
         RelPath.force(s"src/$scope/resources"),
         RelPath.force(s"../shared/src/$scope/resources"),
         RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope")

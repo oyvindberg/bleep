@@ -41,7 +41,7 @@ object importBloopFilesFromSbt {
         }
 
     val buildResolvers: JsonSet[URI] =
-      JsonSet(
+      JsonSet.fromIterable(
         bloopProjectFiles
           .flatMap { case (projectName, bloopFile) =>
             bloopFile.project.resolution
@@ -111,7 +111,7 @@ object importBloopFilesFromSbt {
       }
 
       val dependsOn: JsonSet[model.ProjectName] =
-        JsonSet(bloopProject.dependencies.map(model.ProjectName.apply).filter(bloopProjectFiles.contains))
+        JsonSet.fromIterable(bloopProject.dependencies.map(model.ProjectName.apply).filter(bloopProjectFiles.contains))
 
       val scalaVersion: Option[Versions.Scala] =
         bloopProject.scala.map(s => Versions.Scala(s.version))
@@ -119,11 +119,27 @@ object importBloopFilesFromSbt {
       val isTest = projectName.value.endsWith("-test")
       val scope = if (isTest) "test" else "main"
 
-      val sourcesRelPaths: List[RelPath] =
-        bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
+      val (sourceLayout, sources, resources) = {
+        val sourcesRelPaths: JsonSet[RelPath] =
+          JsonSet.fromIterable(bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir)))
 
-      val resourcesRelPaths: List[RelPath] =
-        bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir))
+        val resourcesRelPaths: JsonSet[RelPath] =
+          JsonSet.fromIterable(bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir)))
+
+        val inferredSourceLayout: SourceLayout =
+          SourceLayout.All.values.maxBy { layout =>
+            val fromLayout = layout.sources(scalaVersion, Some(scope))
+            val fromProject = sourcesRelPaths
+            val matching = fromLayout.intersect(fromProject).size
+            val notMatching = fromLayout.removeAll(fromProject).size
+            (matching, -notMatching)
+          }
+
+        val shortenedSources = sourcesRelPaths.filterNot(inferredSourceLayout.sources(scalaVersion, Some(scope)))
+        val shortenedResources = resourcesRelPaths.filterNot(inferredSourceLayout.resources(scalaVersion, Some(scope)))
+
+        (inferredSourceLayout, shortenedSources, shortenedResources)
+      }
 
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
@@ -190,13 +206,13 @@ object importBloopFilesFromSbt {
       projectName -> model.Project(
         folder = folder,
         dependsOn = dependsOn,
-        sources = JsonSet(sourcesRelPaths),
-        resources = JsonSet(resourcesRelPaths),
-        dependencies = JsonSet(dependencies),
+        sources = sources,
+        resources = resources,
+        dependencies = JsonSet.fromIterable(dependencies),
         java = configuredJava,
         scala = configuredScala,
         platform = configuredPlatform,
-        `source-layout` = None,
+        `source-layout` = Some(sourceLayout),
         `sbt-scope` = Some(scope)
       )
     }
@@ -338,7 +354,7 @@ object importBloopFilesFromSbt {
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath).filterNot(_ == Config.CompileSetup.empty.filterLibraryFromClasspath)
         )
       ),
-      compilerPlugins = JsonSet(compilerPlugins)
+      compilerPlugins = JsonSet.fromIterable(compilerPlugins)
     )
   }
 }

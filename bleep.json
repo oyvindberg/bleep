@@ -60,14 +60,12 @@
   "projects" : {
     "bleep" : {
       "dependsOn" : "bleep-core",
-      "source-layout" : "normal",
       "sbt-scope" : "main",
       "dependencies" : "org.scalameta:svm-subs:101.0.0",
       "scala" : "2.13",
       "platform" : "jvm"
     },
     "bleep-core" : {
-      "source-layout" : "normal",
       "sbt-scope" : "main",
       "dependencies" : [
         "ch.epfl.scala::bloop-config:1.4.9",
@@ -81,15 +79,13 @@
     },
     "bleep-tasks" : {
       "dependsOn" : "bleep-core",
-      "source-layout" : "normal",
       "sbt-scope" : "main",
       "scala" : "2.13",
       "platform" : "jvm"
     },
     "bleep-test" : {
-      "folder" : "bleep",
+      "folder" : "./bleep",
       "dependsOn" : "bleep",
-      "source-layout" : "normal",
       "sbt-scope" : "test",
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "scala" : "2.13",
@@ -97,7 +93,6 @@
     },
     "infrastructure" : {
       "dependsOn" : "bleep-tasks",
-      "source-layout" : "normal",
       "sbt-scope" : "main",
       "scala" : "2.13",
       "platform" : "jvm"
