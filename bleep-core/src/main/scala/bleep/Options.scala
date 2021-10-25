@@ -8,7 +8,7 @@ import io.circe.{Decoder, Encoder}
   *
   * Because some options have arguments we need to take some care when operating on them as sets
   */
-class Options(val values: List[Options.Opt]) extends AnyVal with SetLike[Options] {
+case class Options(values: List[Options.Opt]) extends SetLike[Options] {
   def render: List[String] = values.flatMap(_.render)
   def sorted = new Options(values.sorted)
   def isEmpty: Boolean = values.isEmpty
@@ -26,10 +26,10 @@ class Options(val values: List[Options.Opt]) extends AnyVal with SetLike[Options
 
 object Options {
   val Empty = new Options(Nil)
-  implicit val decodes: Decoder[Options] = Decoder[JsonList[String]].map(list => Options(list.values))
+  implicit val decodes: Decoder[Options] = Decoder[JsonList[String]].map(list => Options.parse(list.values))
   implicit val encodes: Encoder[Options] = Encoder[JsonList[String]].contramap(opts => JsonList(opts.render))
 
-  def apply(strings: List[String]): Options = {
+  def parse(strings: List[String]): Options = {
     val opts = strings.foldLeft(List.empty[Options.Opt]) {
       case (current :: rest, arg) if !arg.startsWith("-") => current.withArg(arg) :: rest
       case (acc, str) if str.startsWith("-")              => Opt.Flag(str) :: acc

@@ -2,7 +2,9 @@ package bleep
 
 import bleep.Options.Opt
 import bloop.config.Config
-import coursier.core.Configuration
+import coursier.core.compatibility.xmlParseSax
+import coursier.core.{Configuration, Project}
+import coursier.maven.PomParser
 import coursier.parse.JavaOrScalaDependency
 import coursier.{Dependency, Module, ModuleName, Organization}
 
@@ -125,8 +127,26 @@ object importBloopFilesFromSbt {
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
-      val dependencies: List[JavaOrScalaDependency] =
-        resolution.modules.map(mod => parseDependency(scalaVersion, mod))
+      val dependencies: List[JavaOrScalaDependency] = {
+        val parsed = resolution.modules.map(mod => ParsedDependency(scalaVersion, mod))
+
+        val allDeps: Set[(Module, String)] =
+          parsed.flatMap { case ParsedDependency(_, deps) => deps.map(_.moduleVersion) }.toSet
+
+        // only keep those not referenced by another dependency
+        parsed.flatMap { case ParsedDependency(javaOrScalaDependency, _) =>
+          val keep: Boolean =
+            (scalaVersion, javaOrScalaDependency) match {
+              case (Some(scalaVersion), scalaDep: JavaOrScalaDependency.ScalaDependency) =>
+                !allDeps.contains(scalaDep.dependency(scalaVersion.scalaVersion).moduleVersion)
+              case (None, _: JavaOrScalaDependency.ScalaDependency) =>
+                true
+              case (_, javaDep: JavaOrScalaDependency.JavaDependency) =>
+                !allDeps(javaDep.dependency.moduleVersion)
+            }
+          if (keep) Some(javaOrScalaDependency) else None
+        }
+      }
 
       val configuredJava: Option[model.Java] =
         bloopProject.java
@@ -176,17 +196,19 @@ object importBloopFilesFromSbt {
     model.Build("1", projects, Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = Some(JsonList(buildResolvers)))
   }
 
-  def parseDependency(scalaVersion: Option[Versions.Scala], mod: Config.Module): JavaOrScalaDependency = {
-    def withConf(dep: Dependency): Dependency =
-      mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
+  case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[Dependency])
 
-    def java: JavaOrScalaDependency.JavaDependency = {
-      val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
-      JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
-    }
+  object ParsedDependency {
+    def apply(scalaVersion: Option[Versions.Scala], mod: Config.Module): ParsedDependency = {
+      def withConf(dep: Dependency): Dependency =
+        mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
 
-    val sdep: JavaOrScalaDependency = scalaVersion match {
-      case Some(scalaVersion) =>
+      def java: JavaOrScalaDependency.JavaDependency = {
+        val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
+        JavaOrScalaDependency.JavaDependency(withConf(dep), Set.empty)
+      }
+
+      def parseArtifact(scalaVersion: Versions.Scala): JavaOrScalaDependency = {
         val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
         val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
         val platform = {
@@ -206,20 +228,44 @@ object importBloopFilesFromSbt {
               Set.empty
             )
         }
-      case None =>
-        java
-    }
+      }
 
-    import io.circe.syntax._
-    import model.{decodesDep, encodesDep}
-    io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
-      case Left(x)  => throw x
-      case Right(x) => x
+      val sdep: JavaOrScalaDependency = scalaVersion match {
+        case Some(scalaVersion) => parseArtifact(scalaVersion)
+        case None               => java
+      }
+
+      val dependencies: List[Dependency] =
+        mod.artifacts.flatMap {
+          case a if a.classifier.nonEmpty => Nil
+          case a =>
+            val pomPath = a.path.getParent / a.path.getFileName.toString.replace(".jar", ".pom")
+
+            val parsedPom: Either[String, Project] =
+              if (Files.exists(pomPath)) xmlParseSax(Files.readString(pomPath), new PomParser).project
+              else Left(s"$pomPath doesn't exist")
+
+            parsedPom match {
+              case Left(errMsg) =>
+                println(s"Couldn't determine dependencies for $mod: $errMsg")
+                Nil
+              case Right(project) =>
+                project.dependencies.map(_._2)
+            }
+        }
+
+      // todo: investigate native-image bug around here
+      import io.circe.syntax._
+      import model.{decodesDep, encodesDep}
+      io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
+        case Left(x)  => throw x
+        case Right(x) => ParsedDependency(x, dependencies)
+      }
     }
   }
 
   def translateJava(java: Config.Java): model.Java =
-    model.Java(options = Some(Options(java.options)))
+    model.Java(options = Some(Options.parse(java.options)))
 
   def translatePlatform(platform: Config.Platform, bloopProject: Config.Project): model.Platform =
     platform match {
@@ -238,9 +284,9 @@ object importBloopFilesFromSbt {
       case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
         model.Platform.Jvm(
           `extends` = None,
-          options = Some(Options(config.options)),
+          options = Some(Options.parse(config.options)),
           mainClass,
-          runtimeOptions = runtimeConfig.flatMap(rc => Some(Options(rc.options)))
+          runtimeOptions = runtimeConfig.flatMap(rc => Some(Options.parse(rc.options)))
         )
 
       case Config.Platform.Native(config, mainClass) =>
@@ -254,7 +300,7 @@ object importBloopFilesFromSbt {
     }
 
   def translateScala(s: Config.Scala): model.Scala = {
-    val options = Options(s.options)
+    val options = Options.parse(s.options)
 
     val (plugins, rest) = options.values.partition {
       case Options.Opt.Flag(name) if name.startsWith(Defaults.ScalaPluginPrefix) => true
@@ -266,7 +312,7 @@ object importBloopFilesFromSbt {
       // todo: this should be much smarter. we can for instance read the corresponding pom file to determine coordinates
       pluginStr.split("/maven2/")(1).split("/").toList.reverse match {
         case _ :: version :: artifact :: reverseOrg =>
-          parseDependency(Some(Versions.Scala(s.version)), Config.Module(reverseOrg.reverse.mkString("."), artifact, version, None, Nil))
+          ParsedDependency(Some(Versions.Scala(s.version)), Config.Module(reverseOrg.reverse.mkString("."), artifact, version, None, Nil)).dep
       }
     }
 

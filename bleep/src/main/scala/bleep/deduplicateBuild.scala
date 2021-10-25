@@ -15,8 +15,15 @@ object deduplicateBuild {
       val directDeps: List[model.Project] =
         dependsOn.map(pn => shortenedDeps(pn))
 
-      val dependencies: List[JavaOrScalaDependency] =
-        p.dependencies.flat.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependencies.flat }.toSet).sortBy(_.module.toString).distinctBy(_.module)
+      val dependencies: List[JavaOrScalaDependency] = {
+        val includedInDependees: Set[JavaOrScalaDependency] =
+          shortenedDeps.flatMap { case (_, p) => p.dependencies.flat }.toSet
+
+        val newInThisProject: List[JavaOrScalaDependency] =
+          p.dependencies.flat.filterNot(includedInDependees)
+
+        newInThisProject.sortBy(_.module.toString).distinctBy(_.module)
+      }
 
       val (sourceLayout, sources, resources) = {
         val scalaVersion: Option[Versions.Scala] = {
