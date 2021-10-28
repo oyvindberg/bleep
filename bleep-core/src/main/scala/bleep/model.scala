@@ -416,10 +416,12 @@ object model {
         case x: Native => encodesNative(x)
       }
 
-      val shortened = json.withObject(_.add("name", p.name.asJson).asJson).foldWith(ShortenJson)
+      val shortened = json.foldWith(ShortenJson)
       shortened.withObject {
-        case obj if obj.size == 2 && obj("extends").nonEmpty => obj("extends").get
-        case other => other.asJson
+        case obj if obj.size == 1 && obj("extends").nonEmpty =>
+          obj("extends").get
+        case obj                                             =>
+          if (obj("extends").nonEmpty) obj.asJson else obj.add("name", p.name.asJson).asJson
       }
     }
   }

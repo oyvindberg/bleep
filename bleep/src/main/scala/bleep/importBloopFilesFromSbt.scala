@@ -63,7 +63,7 @@ object importBloopFilesFromSbt {
         .reduceOption(_ intersect _)
 
     val buildPlatforms: Map[model.PlatformId, model.Platform] = {
-      val allPlatforms = bloopProjectFiles.flatMap { case (_, p) => p.project.platform.map(translatePlatform(_, p.project)) }.toList
+      val allPlatforms = bloopProjectFiles.flatMap { case (_, p) => p.project.platform.map(translatePlatform(_, p.project)) }.toList.distinct
       List(
         allPlatforms.collect { case x: model.Platform.Jvm => x }.reduceOption(_.intersect(_)),
         allPlatforms.collect { case x: model.Platform.Js => x }.reduceOption(_.intersect(_)),
