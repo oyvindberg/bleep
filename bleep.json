@@ -63,7 +63,10 @@
       "sbt-scope" : "main",
       "dependencies" : "org.scalameta:svm-subs:101.0.0",
       "scala" : "2.13",
-      "platform" : "jvm"
+      "platform" : {
+        "extends": "jvm",
+        "mainClass": "bleep.Main"
+      }
     },
     "bleep-core" : {
       "sbt-scope" : "main",
