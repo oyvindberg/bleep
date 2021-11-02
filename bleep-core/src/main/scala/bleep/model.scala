@@ -32,15 +32,32 @@ object model {
       (dep.module.repr, dep.version, dep.configuration)
     }
 
-  case class Java(options: Option[Options]) extends SetLike[Java] {
+  implicit val decodesURI: Decoder[URI] = Decoder[String].emap(str =>
+    try Right(URI.create(str))
+    catch { case x: IllegalArgumentException => Left(x.getMessage) }
+  )
+  implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
+
+  case class Java(options: Options) extends SetLike[Java] {
     override def intersect(other: Java): Java =
-      Java(options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) })
+      Java(options = options.intersect(other.options))
 
     override def removeAll(other: Java): Java =
-      Java(options = List(options, other.options).flatten.reduceOption(_ removeAll _))
+      Java(options = options.removeAll(other.options))
 
     override def union(other: Java): Java =
-      Java(options = List(options, other.options).flatten.reduceOption(_ union _))
+      Java(options = options.union(other.options))
+
+    def isEmpty: Boolean =
+      this match {
+        case Java(options) => options.isEmpty
+      }
+
+    def explode(build: model.Build): model.Java =
+      build.java.foldLeft(this)(_ union _)
+
+    def parent(build: model.Build): Option[Java] =
+      build.java
   }
 
   object Java {
@@ -135,7 +152,7 @@ object model {
   case class Scala(
       `extends`: Option[ScalaId],
       version: Option[Versions.Scala],
-      options: Option[Options],
+      options: Options,
       setup: Option[CompileSetup],
       compilerPlugins: JsonSet[JavaOrScalaDependency]
   ) extends SetLike[Scala] {
@@ -143,7 +160,7 @@ object model {
       Scala(
         `extends` = if (`extends` == other.`extends`) `extends` else None,
         version = if (`version` == other.`version`) `version` else None,
-        options = options.zip(other.options).map { case (_1, _2) => _1.intersect(_2) },
+        options = options.intersect(other.options),
         setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) },
         compilerPlugins = compilerPlugins.intersect(other.compilerPlugins)
       )
@@ -152,7 +169,7 @@ object model {
       Scala(
         `extends` = if (`extends` == other.`extends`) None else `extends`,
         version = if (`version` == other.`version`) None else `version`,
-        options = List(options, other.options).flatten.reduceOption(_ removeAll _),
+        options = options.removeAll(other.options),
         setup = List(setup, other.setup).flatten.reduceOption(_ removeAll _),
         compilerPlugins = compilerPlugins.removeAll(other.compilerPlugins)
       )
@@ -161,10 +178,27 @@ object model {
       Scala(
         `extends` = `extends`.orElse(other.`extends`),
         version = version.orElse(other.version),
-        options = List(options, other.options).flatten.reduceOption(_ union _),
+        options = options.union(other.options),
         setup = List(setup, other.setup).flatten.reduceOption(_ union _),
         compilerPlugins = compilerPlugins.union(other.compilerPlugins)
       )
+
+    def explode(build: model.Build): model.Scala = {
+      def go(s: model.Scala): model.Scala =
+        s.`extends` match {
+          case Some(id) =>
+            val found = build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
+            s.union(go(found))
+          case None =>
+            s
+        }
+
+      go(this)
+    }
+    def parent(build: model.Build): Option[Scala] =
+      `extends` map { id =>
+        build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
+      }
   }
 
   object Scala {
@@ -175,7 +209,7 @@ object model {
     val fullEncodes: Encoder[Scala] = deriveEncoder
 
     val shortDecodes: Decoder[Scala] =
-      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, None, None, JsonSet.empty))
+      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, Options.empty, None, JsonSet.empty))
 
     implicit val decodes: Decoder[Scala] =
       shortDecodes.or(fullDecodes)
@@ -201,22 +235,53 @@ object model {
     implicit val keyEncodes: KeyEncoder[PlatformId] = KeyEncoder[String].contramap(_.value)
   }
 
-  sealed abstract class Platform(val name: PlatformId) {
+  sealed abstract class Platform(val name: PlatformId) extends SetLike[Platform] {
     def `extends`: Option[PlatformId]
     def compilerPlugin: Option[JavaOrScalaDependency]
+
+    def explode(build: model.Build): model.Platform = {
+      def go(p: model.Platform): model.Platform =
+        p.parent(build) match {
+          case Some(foundParent) => p.union(go(foundParent))
+          case None              => p
+        }
+
+      go(this)
+    }
+
+    def parent(build: model.Build): Option[Platform] =
+      `extends` map { id =>
+        build.platforms
+          .flatMap(platforms => platforms.get(id))
+          .getOrElse(sys.error(s"Platform ${name.value} referenced non-existing platform definition ${id.value}"))
+      }
+
+    override def removeAll(other: Platform): Platform =
+      (this, other) match {
+        case (one: Platform.Js, two: Platform.Js)         => one.removeAllJs(two)
+        case (one: Platform.Jvm, two: Platform.Jvm)       => one.removeAllJvm(two)
+        case (one: Platform.Native, two: Platform.Native) => one.removeAllNative(two)
+        case (one, two)                                   => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
+      }
+
+    override def union(other: Platform): Platform =
+      (this, other) match {
+        case (one: Platform.Js, two: Platform.Js)         => one.unionJs(two)
+        case (one: Platform.Jvm, two: Platform.Jvm)       => one.unionJvm(two)
+        case (one: Platform.Native, two: Platform.Native) => one.unionNative(two)
+        case (one, two)                                   => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
+      }
+
+    override def intersect(other: Platform): Platform =
+      (this, other) match {
+        case (one: Platform.Js, two: Platform.Js)         => one.intersectJs(two)
+        case (one: Platform.Jvm, two: Platform.Jvm)       => one.intersectJvm(two)
+        case (one: Platform.Native, two: Platform.Native) => one.intersectNative(two)
+        case (one, two)                                   => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
+      }
   }
 
   object Platform {
-    type ReduceOf[P] = (P, P) => P
-
-    def unsafeReduce(one: Platform, two: Platform)(js: ReduceOf[Js], jvm: ReduceOf[Jvm], native: ReduceOf[Native]): Platform =
-      (one, two) match {
-        case (one: Js, two: Js)         => js(one, two)
-        case (one: Jvm, two: Jvm)       => jvm(one, two)
-        case (one: Native, two: Native) => native(one, two)
-        case (one, two)                 => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
-      }
-
     case class Js(
         `extends`: Option[PlatformId],
         version: Option[Versions.ScalaJs],
@@ -228,12 +293,12 @@ object model {
 //      nodePath: Option[Path],
 //      toolchain: List[Path]
         mainClass: Option[String]
-    ) extends Platform(PlatformId("js"))
-        with SetLike[Js] {
+//        mapSourceURI: Option[URI]
+    ) extends Platform(PlatformId("js")) {
 
       override def compilerPlugin: Option[JavaOrScalaDependency] = version.map(_.compilerPlugin)
 
-      override def intersect(other: Js): Js =
+      def intersectJs(other: Js): Js =
         Js(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
           version = if (version == other.version) version else None,
@@ -242,9 +307,10 @@ object model {
           emitSourceMaps = if (emitSourceMaps == other.emitSourceMaps) emitSourceMaps else None,
           jsdom = if (jsdom == other.jsdom) jsdom else None,
           mainClass = if (mainClass == other.mainClass) mainClass else None
+//          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
         )
 
-      override def removeAll(other: Js): Js =
+      def removeAllJs(other: Js): Js =
         Js(
           `extends` = if (`extends` == other.`extends`) None else `extends`,
           version = if (version == other.version) None else version,
@@ -253,9 +319,10 @@ object model {
           emitSourceMaps = if (emitSourceMaps == other.emitSourceMaps) None else emitSourceMaps,
           jsdom = if (jsdom == other.jsdom) None else jsdom,
           mainClass = if (mainClass == other.mainClass) None else mainClass
+//          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
         )
 
-      override def union(other: Js): Js =
+      def unionJs(other: Js): Js =
         Js(
           `extends` = `extends`.orElse(other.`extends`),
           version = version.orElse(other.version),
@@ -264,6 +331,7 @@ object model {
           emitSourceMaps = emitSourceMaps.orElse(other.emitSourceMaps),
           jsdom = jsdom.orElse(other.jsdom),
           mainClass = mainClass.orElse(other.mainClass)
+//          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
         )
     }
 
@@ -276,12 +344,11 @@ object model {
         runtimeOptions: Option[Options]
         //        classpath: Option[List[Path]],
         //        resources: Option[List[Path]]
-    ) extends Platform(PlatformId("jvm"))
-        with SetLike[Jvm] {
+    ) extends Platform(PlatformId("jvm")) {
 
       override def compilerPlugin: Option[JavaOrScalaDependency] = None
 
-      override def intersect(other: Jvm): Jvm =
+      def intersectJvm(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
           options = List(options, other.options).flatten.reduceOption(_.intersect(_)),
@@ -289,7 +356,7 @@ object model {
           runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.intersect(_))
         )
 
-      override def removeAll(other: Jvm): Jvm =
+      def removeAllJvm(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) None else `extends`,
           options = List(options, other.options).flatten.reduceOption(_.removeAll(_)),
@@ -297,7 +364,7 @@ object model {
           runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.removeAll(_))
         )
 
-      override def union(other: Jvm): Jvm =
+      def unionJvm(other: Jvm): Jvm =
         Jvm(
           `extends` = `extends`.orElse(other.`extends`),
           options = List(options, other.options).flatten.reduceOption(_ union _),
@@ -322,12 +389,11 @@ object model {
 //      dump: Option[Boolean],
 //      output: Option[Path]
         mainClass: Option[String]
-    ) extends Platform(PlatformId("native"))
-        with SetLike[Native] {
+    ) extends Platform(PlatformId("native")) {
 
       override def compilerPlugin: Option[JavaOrScalaDependency] = ???
 
-      override def intersect(other: Native): Native =
+      def intersectNative(other: Native): Native =
         Native(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
           version = if (version == other.version) version else None,
@@ -336,7 +402,7 @@ object model {
           mainClass = if (mainClass == other.mainClass) mainClass else None
         )
 
-      override def removeAll(other: Native): Native =
+      def removeAllNative(other: Native): Native =
         Native(
           `extends` = if (`extends` == other.`extends`) None else `extends`,
           version = if (version == other.version) None else version,
@@ -345,7 +411,7 @@ object model {
           mainClass = if (mainClass == other.mainClass) None else mainClass
         )
 
-      override def union(other: Native): Native =
+      def unionNative(other: Native): Native =
         Native(
           `extends` = `extends`.orElse(other.`extends`),
           version = version.orElse(other.version),
@@ -354,6 +420,7 @@ object model {
           mainClass = mainClass.orElse(other.mainClass)
         )
     }
+
     implicit val decodesScalaJsVersion: Decoder[Versions.ScalaJs] = Decoder[String].map(Versions.ScalaJs.apply)
     implicit val encodesScalaJsVersion: Encoder[Versions.ScalaJs] = Encoder[String].contramap(_.scalaJsVersion)
     implicit val decodesScalaNativeVersion: Decoder[Versions.ScalaNative] = Decoder[String].map(Versions.ScalaNative.apply)
@@ -383,10 +450,10 @@ object model {
         case Some(platforms) =>
           val decodeShort = PlatformId.decodes.emap { id =>
             platforms.get(id) match {
-              case Some(Js(_, _, _, _, _, _, _)) => Right(Js(Some(id), None, None, None, None, None, None))
-              case Some(Jvm(_, _, _, _))         => Right(Jvm(Some(id), None, None, None))
-              case Some(Native(_, _, _, _, _))   => Right(Native(Some(id), None, None, None, None))
-              case None                          => Left(s"${id.value} is not a defined platform")
+              case Some(_: Js)     => Right(Js(`extends` = Some(id), None, None, None, None, None, None))
+              case Some(_: Jvm)    => Right(Jvm(`extends` = Some(id), None, None, None))
+              case Some(_: Native) => Right(Native(`extends` = Some(id), None, None, None, None))
+              case None            => Left(s"${id.value} is not a defined platform")
             }
           }
 
@@ -417,12 +484,14 @@ object model {
       }
 
       val shortened = json.foldWith(ShortenJson)
-      shortened.withObject {
-        case obj if obj.size == 1 && obj("extends").nonEmpty =>
-          obj("extends").get
-        case obj                                             =>
-          if (obj("extends").nonEmpty) obj.asJson else obj.add("name", p.name.asJson).asJson
-      }
+      shortened
+        .withObject {
+          case obj if obj.size == 1 && obj("extends").nonEmpty =>
+            obj("extends").get
+          case obj =>
+            if (obj("extends").nonEmpty) obj.asJson else obj.add("name", p.name.asJson).asJson
+        }
+        .withNull(Json.fromFields(List("name" -> p.name.asJson)))
     }
   }
 
@@ -494,6 +563,7 @@ object model {
       resolvers: JsonSet[URI],
       projects: Map[ProjectName, Project]
   ) {
+
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
       val builder = Map.newBuilder[model.ProjectName, model.Project]
 
@@ -510,12 +580,6 @@ object model {
   }
 
   object Build {
-    implicit val decodesURI: Decoder[URI] = Decoder[String].emap(str =>
-      try Right(URI.create(str))
-      catch { case x: IllegalArgumentException => Left(x.getMessage) }
-    )
-    implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
-
     implicit val decodes: Decoder[Build] =
       Decoder.instance(c =>
         for {

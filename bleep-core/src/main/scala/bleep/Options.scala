@@ -25,7 +25,7 @@ case class Options(values: List[Options.Opt]) extends SetLike[Options] {
 }
 
 object Options {
-  val Empty = new Options(Nil)
+  val empty = new Options(Nil)
   implicit val decodes: Decoder[Options] = Decoder[JsonList[String]].map(list => Options.parse(list.values))
   implicit val encodes: Encoder[Options] = Encoder[JsonList[String]].contramap(opts => JsonList(opts.render))
 

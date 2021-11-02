@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.{Lazy, ShortenJson}
 import bleep.model.ScriptName
-import bloop.config.{ConfigCodecs, Config => b}
+import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 import io.circe.syntax._
 

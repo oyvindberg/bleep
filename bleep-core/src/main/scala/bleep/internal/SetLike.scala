@@ -5,4 +5,3 @@ trait SetLike[T] extends Any {
   def removeAll(other: T): T
   def union(other: T): T
 }
-

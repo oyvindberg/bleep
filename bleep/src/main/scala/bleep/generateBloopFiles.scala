@@ -84,69 +84,46 @@ object generateBloopFiles {
       proj.scala.map(go)
     }
 
-    val mergedJava: Option[model.Java] =
-      List(proj.java, build.java).flatten.reduceOption(_ union _)
+    val explodedJava: Option[model.Java] =
+      proj.java.map(_.explode(build))
 
     val scalaVersion: Option[Versions.Scala] =
       maybeScala.flatMap(_.version)
 
     val explodedPlatform: Option[model.Platform] =
-      proj.platform.map { platform =>
-        def fail(msg: String) =
-          sys.error(s"${projName.value}/${platform.name.value}: $msg")
-
-        def explode(platform: model.Platform): model.Platform =
-          platform.`extends` match {
-            case Some(id) =>
-              build.platforms.flatMap(_.get(id)) match {
-                case Some(referenced) =>
-                  model.Platform.unsafeReduce(platform, explode(referenced))(_ union _, _ union _, _ union _)
-
-                case None =>
-                  fail(s"Extends non-existing platform ${id.value}")
-              }
-            case None => platform
-          }
-
-        explode(platform)
-      }
+      proj.platform.map(_.explode(build))
 
     val configuredPlatform: Option[b.Platform] =
-      explodedPlatform.map { platform =>
-        def fail(msg: String) =
-          sys.error(s"${projName.value}/${platform.name.value}: $msg")
-
-        platform match {
-          case model.Platform.Js(_, version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
-            b.Platform.Js(
-              b.JsConfig(
-                version = version match {
-                  case Some(value) => value.scalaJsVersion
-                  case None        => fail("missing `version`")
-                },
-                mode = mode.getOrElse(b.JsConfig.empty.mode),
-                kind = kind.getOrElse(b.JsConfig.empty.kind),
-                emitSourceMaps = emitSourceMaps.getOrElse(b.JsConfig.empty.emitSourceMaps),
-                jsdom = jsdom,
-                output = None,
-                nodePath = None,
-                toolchain = Nil
-              ),
-              mainClass
-            )
-          case model.Platform.Jvm(_, options, mainClass, runtimeOptions) =>
-            b.Platform.Jvm(
-              config = b.JvmConfig(
-                home = None,
-                options = options.map(_.render).getOrElse(Nil)
-              ),
-              mainClass = mainClass,
-              runtimeConfig = runtimeOptions.map(ro => b.JvmConfig(home = None, options = ro.render)),
-              classpath = None,
-              resources = None
-            )
-          case model.Platform.Native(_, version, mode, gc, mainClass) => ???
-        }
+      explodedPlatform.map {
+        case model.Platform.Js(_, version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
+          b.Platform.Js(
+            b.JsConfig(
+              version = version match {
+                case Some(value) => value.scalaJsVersion
+                case None        => sys.error("missing `version`")
+              },
+              mode = mode.getOrElse(b.JsConfig.empty.mode),
+              kind = kind.getOrElse(b.JsConfig.empty.kind),
+              emitSourceMaps = emitSourceMaps.getOrElse(b.JsConfig.empty.emitSourceMaps),
+              jsdom = jsdom,
+              output = None,
+              nodePath = None,
+              toolchain = Nil
+            ),
+            mainClass
+          )
+        case model.Platform.Jvm(_, options, mainClass, runtimeOptions) =>
+          b.Platform.Jvm(
+            config = b.JvmConfig(
+              home = None,
+              options = options.map(_.render).getOrElse(Nil)
+            ),
+            mainClass = mainClass,
+            runtimeConfig = runtimeOptions.map(ro => b.JvmConfig(home = None, options = ro.render)),
+            classpath = None,
+            resources = None
+          )
+        case model.Platform.Native(_, version, mode, gc, mainClass) => ???
       }
 
     val platformSuffix =
@@ -210,20 +187,20 @@ object generateBloopFiles {
           Await.result(resolver(JsonSet(scalaCompiler), build.resolvers), Duration.Inf).files.toList.map(_.toPath)
 
         val setup = {
-          val provided = maybeScala.flatMap(_.setup)
+          val provided = maybeScala.flatMap(_.setup).map(_.union(Defaults.DefaultCompileSetup)).getOrElse(Defaults.DefaultCompileSetup)
           b.CompileSetup(
-            order = provided.flatMap(_.order).getOrElse(b.CompileSetup.empty.order),
-            addLibraryToBootClasspath = provided.flatMap(_.addLibraryToBootClasspath).getOrElse(b.CompileSetup.empty.addLibraryToBootClasspath),
-            addCompilerToClasspath = provided.flatMap(_.addCompilerToClasspath).getOrElse(b.CompileSetup.empty.addCompilerToClasspath),
-            addExtraJarsToClasspath = provided.flatMap(_.addExtraJarsToClasspath).getOrElse(b.CompileSetup.empty.addExtraJarsToClasspath),
-            manageBootClasspath = provided.flatMap(_.manageBootClasspath).getOrElse(b.CompileSetup.empty.manageBootClasspath),
-            filterLibraryFromClasspath = provided.flatMap(_.filterLibraryFromClasspath).getOrElse(b.CompileSetup.empty.filterLibraryFromClasspath)
+            order = provided.order.get,
+            addLibraryToBootClasspath = provided.addLibraryToBootClasspath.get,
+            addCompilerToClasspath = provided.addCompilerToClasspath.get,
+            addExtraJarsToClasspath = provided.addExtraJarsToClasspath.get,
+            manageBootClasspath = provided.manageBootClasspath.get,
+            filterLibraryFromClasspath = provided.filterLibraryFromClasspath.get
           )
         }
 
         val compilerPlugins: Options = {
           maybeScala.fold(JsonSet.empty[JavaOrScalaDependency])(_.compilerPlugins) match {
-            case empty if empty.values.isEmpty => Options.Empty
+            case empty if empty.values.isEmpty => Options.empty
             case nonEmpty =>
               val reps = nonEmpty.map(_.dependency(scalaVersion.scalaVersion))
               val resolved = Await.result(resolver(reps, build.resolvers), Duration.Inf).files.toList.map(_.toPath)
@@ -233,7 +210,7 @@ object generateBloopFiles {
         }
 
         val scalacOptions: Options =
-          maybeScala.flatMap(_.options).getOrElse(Options.Empty) union compilerPlugins
+          maybeScala.fold(Options.empty)(_.options).union(compilerPlugins)
 
         b.Scala(
           organization = scalaCompiler.module.organization.value,
@@ -281,7 +258,7 @@ object generateBloopFiles {
         scala = configuredScala,
         java = Some(
           b.Java(
-            options = mergedJava.flatMap(_.options).getOrElse(Options.Empty).render
+            options = explodedJava.map(_.options).getOrElse(Options.empty).render
           )
         ),
         sbt = None,

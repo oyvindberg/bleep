@@ -4,7 +4,7 @@ import coursier._
 import coursier.parse.JavaOrScalaDependency
 
 object Deps {
-  def Java(org: String, name: String, version: String): JavaOrScalaDependency =
+  def Java(org: String, name: String, version: String): JavaOrScalaDependency.JavaDependency =
     JavaOrScalaDependency.JavaDependency(Dependency(Module(Organization(org), ModuleName(name)), version), Set.empty)
 
   def Scala(org: String, name: String, version: String): JavaOrScalaDependency =
