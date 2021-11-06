@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path, Paths}
 
 class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val resolver = new CoursierResolver(scala.concurrent.ExecutionContext.global, downloadSources = true)
+  val resolver = CoursierResolver(scala.concurrent.ExecutionContext.global, downloadSources = true, None)
   val workspaceDirBase = Paths.get("bloop-test-files").toAbsolutePath
 
   def anonymize(str: String): String = {

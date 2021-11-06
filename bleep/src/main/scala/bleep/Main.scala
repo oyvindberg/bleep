@@ -2,9 +2,10 @@ package bleep
 
 import bleep.internal.{Lazy, ShortenJson}
 import bleep.model.ScriptName
-import bloop.config.{Config => b, ConfigCodecs}
+import bloop.config.{ConfigCodecs, Config => b}
 import com.github.plokhotnyuk.jsoniter_scala
 import io.circe.syntax._
+import net.harawata.appdirs.{AppDirs, AppDirsFactory}
 
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
@@ -15,6 +16,8 @@ import scala.util.Try
 
 object Main {
   implicit val cwd: Path = Paths.get(System.getProperty("user.dir"))
+  val appDirs: AppDirs = AppDirsFactory.getInstance()
+  val cacheDir = Paths.get(appDirs.getUserCacheDir("bleep", "1", "com.olvind"))
 
   // keep looking up until we find build file
   def findBleepJson: Either[String, Path] = {
@@ -49,7 +52,7 @@ object Main {
 
     } else {
       val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] = {
-        val resolver = new CoursierResolver(ExecutionContext.global, downloadSources = true)
+        val resolver = CoursierResolver(ExecutionContext.global, downloadSources = true, Some(cacheDir))
         generateBloopFiles(parsedProject, cwd, resolver)
       }
 

@@ -75,6 +75,7 @@
         "io.circe::circe-generic:0.14.1",
         "io.circe::circe-parser:0.14.1",
         "io.get-coursier::coursier:2.0.16",
+        "net.harawata:appdirs:1.2.1",
         "org.scala-lang:scala-reflect:2.13.6"
       ],
       "scala" : "2.13",

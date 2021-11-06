@@ -148,7 +148,7 @@ object generateBloopFiles {
       val result = Await.result(resolver(concreteDeps, build.resolvers), Duration.Inf)
 
       val modules: List[b.Module] =
-        result.fullDetailedArtifacts
+        result.detailedArtifacts
           .groupBy { case (dep, _, _, _) => dep.module }
           .map { case (module, files) =>
             val (dep, _, _, _) = files.head
@@ -158,7 +158,7 @@ object generateBloopFiles {
               name = module.name.value,
               version = dep.version,
               configurations = if (dep.configuration == Configuration.empty) None else Some(dep.configuration.value),
-              artifacts = files.collect { case (_, pub, _, Some(file)) =>
+              artifacts = files.collect { case (_, pub, _, file) =>
                 b.Artifact(
                   dep.module.name.value,
                   if (pub.classifier == Classifier.empty) None else Some(pub.classifier.value),

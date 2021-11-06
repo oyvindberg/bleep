@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.internal.codecs.codecURI
 import bleep.internal.{EnumCodec, SetLike, ShortenJson}
 import bloop.config.Config
 import coursier.core.Configuration
@@ -31,12 +32,6 @@ object model {
       val dep = incompleteDep.dependency("2.13.1")
       (dep.module.repr, dep.version, dep.configuration)
     }
-
-  implicit val decodesURI: Decoder[URI] = Decoder[String].emap(str =>
-    try Right(URI.create(str))
-    catch { case x: IllegalArgumentException => Left(x.getMessage) }
-  )
-  implicit val encodesURI: Encoder[URI] = Encoder[String].contramap(_.toString)
 
   case class Java(options: Options) extends SetLike[Java] {
     override def intersect(other: Java): Java =

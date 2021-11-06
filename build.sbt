@@ -14,7 +14,8 @@ lazy val `bleep-core` = project
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
-      "ch.epfl.scala" %% "bloop-config" % "1.4.9"
+      "ch.epfl.scala" %% "bloop-config" % "1.4.9",
+      "net.harawata" % "appdirs" % "1.2.1"
     )
   )
 
