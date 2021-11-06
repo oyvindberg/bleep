@@ -92,8 +92,7 @@ object importBloopFilesFromSbt {
           resolution.modules.map(mod => ParsedDependency(scalaVersion, mod))
 
         val activeConfigs: Set[Configuration] =
-          if (isTest) Set(Configuration.empty, Configuration.compile, Configuration.default, Configuration.test)
-          else Set(Configuration.empty, Configuration.compile, Configuration.default)
+          Set(Configuration.empty, Configuration.compile, Configuration.default)
 
         val allDeps: Set[(Module, String)] =
           parsed.flatMap { case ParsedDependency(_, deps) =>
