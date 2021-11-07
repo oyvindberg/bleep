@@ -51,7 +51,7 @@ object generateBloopFiles {
       build: model.Build,
       getBloopProject: model.ProjectName => b.File
   ): b.File = {
-    val projectFolder: Path =
+    val projectPath: Path =
       proj.folder match {
         case Some(relPath) => workspaceDir / relPath
         case None          => workspaceDir / projName.value
@@ -72,6 +72,8 @@ object generateBloopFiles {
       builder.result()
     }
 
+    val templateDirs = Options.TemplateDirs(workspaceDir, projectPath)
+
     val maybeScala: Option[model.Scala] = {
       def go(s: model.Scala): model.Scala =
         s.`extends` match {
@@ -91,7 +93,10 @@ object generateBloopFiles {
       maybeScala.flatMap(_.version)
 
     val explodedPlatform: Option[model.Platform] =
-      proj.platform.map(_.explode(build))
+      proj.platform.map(_.explode(build)).map {
+        case x: model.Platform.Jvm => x.unionJvm(Defaults.Jvm)
+        case x => x
+      }
 
     val configuredPlatform: Option[b.Platform] =
       explodedPlatform.map {
@@ -116,10 +121,10 @@ object generateBloopFiles {
           b.Platform.Jvm(
             config = b.JvmConfig(
               home = None,
-              options = options.map(_.render).getOrElse(Nil)
+              options = templateDirs.toAbsolutePaths.opts(options).render
             ),
             mainClass = mainClass,
-            runtimeConfig = runtimeOptions.map(ro => b.JvmConfig(home = None, options = ro.render)),
+            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.toAbsolutePaths.opts(runtimeOptions).render)),
             classpath = None,
             resources = None
           )
@@ -216,10 +221,10 @@ object generateBloopFiles {
           organization = scalaCompiler.module.organization.value,
           name = scalaCompiler.module.name.value,
           version = scalaCompiler.version,
-          options = scalacOptions.render,
+          options = templateDirs.toAbsolutePaths.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
           analysis = Some(
-            projectFolder / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / s"inc_compile_${scalaVersion.binVersion}.zip"
+            projectPath / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / s"inc_compile_${scalaVersion.binVersion}.zip"
           ),
           setup = Some(setup)
         )
@@ -233,16 +238,16 @@ object generateBloopFiles {
     }
 
     val sources: JsonSet[Path] =
-      (sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.sources.values)).map(projectFolder / _)
+      (sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.sources.values)).map(projectPath / _)
 
     val resources: JsonSet[Path] =
-      (sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.resources.values)).map(projectFolder / _)
+      (sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.resources.values)).map(projectPath / _)
 
     b.File(
       "1.4.0",
       b.Project(
         projName.value,
-        projectFolder,
+        projectPath,
         Some(workspaceDir),
         sources = sources.values.toList,
         sourcesGlobs = None,
@@ -258,7 +263,7 @@ object generateBloopFiles {
         scala = configuredScala,
         java = Some(
           b.Java(
-            options = explodedJava.map(_.options).getOrElse(Options.empty).render
+            options = templateDirs.toAbsolutePaths.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render
           )
         ),
         sbt = None,

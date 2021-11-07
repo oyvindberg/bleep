@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.rewriteDependentData
+import bleep.model.Platform
 import coursier.parse.JavaOrScalaDependency
 
 object deduplicateBuild {
@@ -44,7 +45,7 @@ object deduplicateBuild {
 
       val shortenedPlatform: Option[model.Platform] =
         p.platform.map { platform =>
-          platform.parent(build).foldLeft(platform) { case (acc, parent) => acc.removeAll(parent.explode(build)) }
+          removePlatformDefaults(platform.parent(build).foldLeft(platform) { case (acc, parent) => acc.removeAll(parent.explode(build)) })
         }
 
       model.Project(
@@ -66,7 +67,7 @@ object deduplicateBuild {
     model.Build(
       version = build.version,
       projects = forcedProjects,
-      platforms = build.platforms,
+      platforms = build.platforms.map(_.map { case (id, p) => (id, removePlatformDefaults(p)) }),
       scala = build.scala.map(_.map { case (id, s) => (id, removeScalaDefaults(s)) }),
       java = build.java,
       scripts = build.scripts,
@@ -76,4 +77,11 @@ object deduplicateBuild {
 
   def removeScalaDefaults(ret: model.Scala): model.Scala =
     ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))
+
+  def removePlatformDefaults(x: model.Platform): model.Platform =
+    x match {
+      case x: Platform.Js     => x
+      case x: Platform.Jvm    => x.removeAllJvm(Defaults.Jvm)
+      case x: Platform.Native => x
+    }
 }

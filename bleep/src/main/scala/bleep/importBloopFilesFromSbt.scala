@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.Options.Opt
+import bleep.Options.{Opt, TemplateDirs}
 import bleep.model.orderingDep
 import bloop.config.Config
 import coursier.core.compatibility.xmlParseSax
@@ -114,14 +114,16 @@ object importBloopFilesFromSbt {
         }
       }
 
+      val templateDirs = Options.TemplateDirs(buildDir, bloopProject.directory)
+
       val configuredJava: Option[model.Java] =
-        bloopProject.java.map(translateJava)
+        bloopProject.java.map(translateJava(templateDirs))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(scalaConfig => translateScala(scalaConfig))
+        bloopProject.scala.map(translateScala(templateDirs))
 
       val configuredPlatform: Option[model.Platform] =
-        bloopProject.platform.map(translatePlatform(_, bloopProject))
+        bloopProject.platform.map(translatePlatform(_, bloopProject, templateDirs))
 
       projectName -> model.Project(
         folder = folder,
@@ -245,10 +247,10 @@ object importBloopFilesFromSbt {
     }
   }
 
-  def translateJava(java: Config.Java): model.Java =
-    model.Java(options = Options.parse(java.options))
+  def translateJava(templateDirs: TemplateDirs)(java: Config.Java): model.Java =
+    model.Java(options = Options.parse(java.options, Some(templateDirs)))
 
-  def translatePlatform(platform: Config.Platform, bloopProject: Config.Project): model.Platform =
+  def translatePlatform(platform: Config.Platform, bloopProject: Config.Project, templateDirs: Options.TemplateDirs): model.Platform =
     platform match {
       case Config.Platform.Js(config, mainClass) =>
 //        val mapSourceURI
@@ -270,9 +272,9 @@ object importBloopFilesFromSbt {
       case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
         val translatedPlatform = model.Platform.Jvm(
           `extends` = Some(platformName(platform)),
-          options = Some(Options.parse(config.options)),
+          options = Options.parse(config.options, Some(templateDirs)),
           mainClass,
-          runtimeOptions = runtimeConfig.flatMap(rc => Some(Options.parse(rc.options)))
+          runtimeOptions = runtimeConfig.map(rc => Options.parse(rc.options, Some(templateDirs))).getOrElse(Options.empty)
         )
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
@@ -286,8 +288,8 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(s: Config.Scala): model.Scala = {
-    val options = Options.parse(s.options)
+  def translateScala(templateDirs: Options.TemplateDirs)(s: Config.Scala): model.Scala = {
+    val options = Options.parse(s.options, Some(templateDirs))
 
     val (plugins, rest) = options.values.partition {
       case Options.Opt.Flag(name) if name.startsWith(Defaults.ScalaPluginPrefix) => true

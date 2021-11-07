@@ -5,7 +5,6 @@
   },
   "platforms" : {
     "jvm" : {
-      "options" : "-Duser.dir=/home/n645892/pr/bleep",
       "name" : "jvm"
     }
   },

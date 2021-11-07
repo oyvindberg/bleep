@@ -333,10 +333,10 @@ object model {
     case class Jvm(
         `extends`: Option[PlatformId],
         //      home: Option[Path],
-        options: Option[Options],
+        options: Options,
         mainClass: Option[String],
         //      runtimeHome: Option[Path],
-        runtimeOptions: Option[Options]
+        runtimeOptions: Options
         //        classpath: Option[List[Path]],
         //        resources: Option[List[Path]]
     ) extends Platform(PlatformId("jvm")) {
@@ -346,25 +346,25 @@ object model {
       def intersectJvm(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) `extends` else None,
-          options = List(options, other.options).flatten.reduceOption(_.intersect(_)),
+          options = options.intersect(other.options),
           mainClass = if (mainClass == other.mainClass) mainClass else None,
-          runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.intersect(_))
+          runtimeOptions = runtimeOptions.intersect(other.runtimeOptions)
         )
 
       def removeAllJvm(other: Jvm): Jvm =
         Jvm(
           `extends` = if (`extends` == other.`extends`) None else `extends`,
-          options = List(options, other.options).flatten.reduceOption(_.removeAll(_)),
+          options = options.removeAll(other.options),
           mainClass = if (mainClass == other.mainClass) None else mainClass,
-          runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_.removeAll(_))
+          runtimeOptions = runtimeOptions.removeAll(other.runtimeOptions)
         )
 
       def unionJvm(other: Jvm): Jvm =
         Jvm(
           `extends` = `extends`.orElse(other.`extends`),
-          options = List(options, other.options).flatten.reduceOption(_ union _),
+          options = options.union(other.options),
           mainClass = mainClass.orElse(other.mainClass),
-          runtimeOptions = List(runtimeOptions, other.runtimeOptions).flatten.reduceOption(_ union _)
+          runtimeOptions = runtimeOptions.union(other.runtimeOptions)
         )
     }
 
@@ -446,7 +446,7 @@ object model {
           val decodeShort = PlatformId.decodes.emap { id =>
             platforms.get(id) match {
               case Some(_: Js)     => Right(Js(`extends` = Some(id), None, None, None, None, None, None))
-              case Some(_: Jvm)    => Right(Jvm(`extends` = Some(id), None, None, None))
+              case Some(_: Jvm)    => Right(Jvm(`extends` = Some(id), Options.empty, None, Options.empty))
               case Some(_: Native) => Right(Native(`extends` = Some(id), None, None, None, None))
               case None            => Left(s"${id.value} is not a defined platform")
             }

@@ -19,4 +19,12 @@ object Defaults {
     manageBootClasspath = Some(Config.CompileSetup.empty.manageBootClasspath),
     filterLibraryFromClasspath = Some(Config.CompileSetup.empty.filterLibraryFromClasspath)
   )
+
+  val Jvm: model.Platform.Jvm =
+    model.Platform.Jvm(
+      `extends` = None,
+      options = Options(List(Options.Opt.Flag("-Duser.dir=${BUILD_DIR}"))),
+      mainClass = None,
+      runtimeOptions = Options.empty
+    )
 }
