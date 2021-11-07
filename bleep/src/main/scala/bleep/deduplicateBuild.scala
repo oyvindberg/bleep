@@ -39,7 +39,7 @@ object deduplicateBuild {
 
           val ret = removeInherited.getOrElse(projectScala)
 
-          ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))
+          removeScalaDefaults(ret)
         }
 
       val shortenedPlatform: Option[model.Platform] =
@@ -67,10 +67,13 @@ object deduplicateBuild {
       version = build.version,
       projects = forcedProjects,
       platforms = build.platforms,
-      scala = build.scala,
+      scala = build.scala.map(_.map { case (id, s) => (id, removeScalaDefaults(s)) }),
       java = build.java,
       scripts = build.scripts,
       resolvers = build.resolvers
     )
   }
+
+  def removeScalaDefaults(ret: model.Scala): model.Scala =
+    ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))
 }
