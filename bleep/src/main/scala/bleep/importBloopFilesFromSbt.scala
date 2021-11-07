@@ -298,12 +298,10 @@ object importBloopFilesFromSbt {
 
     val version = Versions.Scala(s.version)
     val compilerPlugins = plugins.collect { case Opt.Flag(pluginStr) =>
-      // /home/nnn/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.15/1.7.1/scalajs-compiler_2.12.15-1.7.1.pom
-      // todo: this should be much smarter. we can for instance read the corresponding pom file to determine coordinates
-      pluginStr.split("/maven2/")(1).split("/").toList.reverse match {
-        case _ :: v :: artifact :: reverseOrg =>
-          ParsedDependency(Some(version), Config.Module(reverseOrg.reverse.mkString("."), artifact, v, None, Nil)).dep
-      }
+      val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
+      val pomPath = jarPath.getParent / jarPath.getFileName.toString.replace(".jar", ".pom")
+      val Right(pom) = xmlParseSax(Files.readString(pomPath), new PomParser).project
+      ParsedDependency(Some(version), Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
     model.Scala(
