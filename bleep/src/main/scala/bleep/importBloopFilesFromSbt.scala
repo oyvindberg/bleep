@@ -119,11 +119,11 @@ object importBloopFilesFromSbt {
       val configuredJava: Option[model.Java] =
         bloopProject.java.map(translateJava(templateDirs))
 
-      val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(templateDirs))
-
       val configuredPlatform: Option[model.Platform] =
-        bloopProject.platform.map(translatePlatform(_, bloopProject, templateDirs))
+        bloopProject.platform.map(translatePlatform(_, templateDirs))
+
+      val configuredScala: Option[model.Scala] =
+        bloopProject.scala.map(translateScala(templateDirs, configuredPlatform))
 
       projectName -> model.Project(
         folder = folder,
@@ -250,14 +250,9 @@ object importBloopFilesFromSbt {
   def translateJava(templateDirs: TemplateDirs)(java: Config.Java): model.Java =
     model.Java(options = Options.parse(java.options, Some(templateDirs)))
 
-  def translatePlatform(platform: Config.Platform, bloopProject: Config.Project, templateDirs: Options.TemplateDirs): model.Platform =
+  def translatePlatform(platform: Config.Platform, templateDirs: Options.TemplateDirs): model.Platform =
     platform match {
       case Config.Platform.Js(config, mainClass) =>
-//        val mapSourceURI
-//        "-P:scalajs:mapSourceURI:file:/home/n645892/pr/http4s/->https://raw.githubusercontent.com/http4s/http4s/v1.0.0-M29-SNAPSHOT/"
-//        options.values.collect {
-//          case Opt.Flag()
-//        }
         val translatedPlatform = model.Platform.Js(
           `extends` = Some(platformName(platform)),
           version = Some(Versions.ScalaJs(config.version)),
@@ -288,7 +283,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(templateDirs: Options.TemplateDirs)(s: Config.Scala): model.Scala = {
+  def translateScala(templateDirs: Options.TemplateDirs, platform: Option[model.Platform])(s: Config.Scala): model.Scala = {
     val options = Options.parse(s.options, Some(templateDirs))
 
     val (plugins, rest) = options.values.partition {
@@ -304,6 +299,11 @@ object importBloopFilesFromSbt {
       ParsedDependency(Some(version), Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
+    val filteredCompilerPlugins =
+      platform.flatMap(_.compilerPlugin).foldLeft(compilerPlugins) { case (all, fromPlatform) =>
+        all.filterNot(_ == fromPlatform)
+      }
+
     model.Scala(
       `extends` = Some(scalaName(version)),
       version = Some(version),
@@ -318,7 +318,7 @@ object importBloopFilesFromSbt {
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath)
         )
       ),
-      compilerPlugins = JsonSet.fromIterable(compilerPlugins)
+      compilerPlugins = JsonSet.fromIterable(filteredCompilerPlugins)
     )
   }
 }

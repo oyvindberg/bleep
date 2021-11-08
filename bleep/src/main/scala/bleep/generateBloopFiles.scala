@@ -95,7 +95,7 @@ object generateBloopFiles {
     val explodedPlatform: Option[model.Platform] =
       proj.platform.map(_.explode(build)).map {
         case x: model.Platform.Jvm => x.unionJvm(Defaults.Jvm)
-        case x => x
+        case x                     => x
       }
 
     val configuredPlatform: Option[b.Platform] =
@@ -204,14 +204,19 @@ object generateBloopFiles {
         }
 
         val compilerPlugins: Options = {
-          maybeScala.fold(JsonSet.empty[JavaOrScalaDependency])(_.compilerPlugins) match {
-            case empty if empty.values.isEmpty => Options.empty
-            case nonEmpty =>
-              val reps = nonEmpty.map(_.dependency(scalaVersion.scalaVersion))
-              val resolved = Await.result(resolver(reps, build.resolvers), Duration.Inf).files.toList.map(_.toPath)
-              val relevant = resolved.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
-              new Options(relevant.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
-          }
+          val fromPlatform = explodedPlatform.flatMap(_.compilerPlugin)
+          val fromScala = maybeScala.fold(JsonSet.empty[JavaOrScalaDependency])(_.compilerPlugins)
+          val specified: JsonSet[JavaOrScalaDependency] =
+            fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
+
+          val deps: JsonSet[Dependency] =
+            specified.map(_.dependency(scalaVersion.scalaVersion))
+          val artifacts: List[Path] =
+            Await.result(resolver(deps, build.resolvers), Duration.Inf).files.toList.map(_.toPath)
+          val relevantArtifacts: List[Path] =
+            artifacts.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
+
+          new Options(relevantArtifacts.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
         }
 
         val scalacOptions: Options =

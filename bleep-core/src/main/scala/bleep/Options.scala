@@ -58,7 +58,7 @@ object Options {
   def parse(strings: List[String], maybeRelativize: Option[Options.TemplateDirs]): Options = {
     val relativeStrings = maybeRelativize match {
       case Some(relativize) => strings.map(relativize.fromAbsolutePaths.string)
-      case None => strings
+      case None             => strings
     }
 
     val opts = relativeStrings.foldLeft(List.empty[Options.Opt]) {
