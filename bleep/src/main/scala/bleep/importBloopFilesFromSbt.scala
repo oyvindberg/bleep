@@ -87,6 +87,18 @@ object importBloopFilesFromSbt {
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
+      val templateDirs = Options.TemplateDirs(buildDir, bloopProject.directory)
+
+      val configuredPlatform: Option[model.Platform] =
+        bloopProject.platform.map(translatePlatform(_, templateDirs))
+
+      val platformSuffix =
+        configuredPlatform match {
+          case Some(x: model.Platform.Js)     => s"sjs${x.version.fold("1")(_.scalaJsBinVersion)}"
+          case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeBinVersion}"
+          case _                              => ""
+        }
+
       val dependencies: List[JavaOrScalaDependency] = {
         val parsed: List[ParsedDependency] =
           resolution.modules.map(mod => ParsedDependency(scalaVersion, mod))
@@ -96,7 +108,7 @@ object importBloopFilesFromSbt {
 
         val allDeps: Set[(Module, String)] =
           parsed.flatMap { case ParsedDependency(_, deps) =>
-            deps.collect { case (conf, d) if activeConfigs(conf) => (d.module, d.version) }
+            deps.collect { case (conf, d) if activeConfigs(conf) => d.moduleVersion }
           }.toSet
 
         // only keep those not referenced by another dependency
@@ -104,7 +116,7 @@ object importBloopFilesFromSbt {
           val keep: Boolean =
             (scalaVersion, javaOrScalaDependency) match {
               case (Some(scalaVersion), scalaDep: JavaOrScalaDependency.ScalaDependency) =>
-                !allDeps.contains(scalaDep.dependency(scalaVersion.scalaVersion).moduleVersion)
+                !allDeps.contains(scalaDep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, platformSuffix).moduleVersion)
               case (None, _: JavaOrScalaDependency.ScalaDependency) =>
                 true
               case (_, javaDep: JavaOrScalaDependency.JavaDependency) =>
@@ -114,13 +126,8 @@ object importBloopFilesFromSbt {
         }
       }
 
-      val templateDirs = Options.TemplateDirs(buildDir, bloopProject.directory)
-
       val configuredJava: Option[model.Java] =
         bloopProject.java.map(translateJava(templateDirs))
-
-      val configuredPlatform: Option[model.Platform] =
-        bloopProject.platform.map(translatePlatform(_, templateDirs))
 
       val configuredScala: Option[model.Scala] =
         bloopProject.scala.map(translateScala(templateDirs, configuredPlatform))
@@ -222,7 +229,7 @@ object importBloopFilesFromSbt {
         mod.artifacts.flatMap {
           case a if a.classifier.nonEmpty => Nil
           case a =>
-            val pomPath = a.path.getParent / a.path.getFileName.toString.replace(".jar", ".pom")
+            val pomPath = findPomPath(a.path)
 
             val parsedPom: Either[String, Project] =
               if (Files.exists(pomPath)) xmlParseSax(Files.readString(pomPath), new PomParser).project
@@ -247,6 +254,15 @@ object importBloopFilesFromSbt {
     }
   }
 
+  private def findPomPath(jar: Path) = {
+    val isIvy = jar.getParent.getFileName.toString == "jars"
+
+    if (isIvy)
+      jar.getParent.getParent / "poms" / jar.getFileName.toString.replace(".jar", ".pom")
+    else
+      jar.getParent / jar.getFileName.toString.replace(".jar", ".pom")
+  }
+
   def translateJava(templateDirs: TemplateDirs)(java: Config.Java): model.Java =
     model.Java(options = Options.parse(java.options, Some(templateDirs)))
 
@@ -255,7 +271,7 @@ object importBloopFilesFromSbt {
       case Config.Platform.Js(config, mainClass) =>
         val translatedPlatform = model.Platform.Js(
           `extends` = Some(platformName(platform)),
-          version = Some(Versions.ScalaJs(config.version)),
+          version = Some(config.version).filterNot(_.isEmpty).map(Versions.ScalaJs),
           mode = Some(config.mode),
           kind = Some(config.kind),
           emitSourceMaps = Some(config.emitSourceMaps),
@@ -294,7 +310,7 @@ object importBloopFilesFromSbt {
     val version = Versions.Scala(s.version)
     val compilerPlugins = plugins.collect { case Opt.Flag(pluginStr) =>
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
-      val pomPath = jarPath.getParent / jarPath.getFileName.toString.replace(".jar", ".pom")
+      val pomPath = findPomPath(jarPath)
       val Right(pom) = xmlParseSax(Files.readString(pomPath), new PomParser).project
       ParsedDependency(Some(version), Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }

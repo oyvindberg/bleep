@@ -7,6 +7,8 @@ object Versions {
   private val Version = "(\\d+).(\\d+).(\\d+).*".r
 
   case class Scala(scalaVersion: String) {
+    require(scalaVersion.nonEmpty)
+
     val is3 = scalaVersion.startsWith("3.")
 
     val epoch = scalaVersion.head
@@ -42,6 +44,8 @@ object Versions {
   val Scala3 = Scala("3.0.2")
 
   case class ScalaJs(scalaJsVersion: String) {
+    require(scalaJsVersion.nonEmpty)
+
     val scalaJsBinVersion: String =
       scalaJsVersion match {
         case Version("1", _, _)   => "1"
