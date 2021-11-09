@@ -57,12 +57,12 @@ object SourceLayout {
         RelPath.force(s"src/$scope/java"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
         RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
-        RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
+        srcManaged(scalaVersion, scope)
       )
 
     override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
       JsonSet(
-        RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope"),
+        resourceManaged(scalaVersion, scope),
         RelPath.force(s"src/$scope/resources")
       )
   }
@@ -77,14 +77,14 @@ object SourceLayout {
         RelPath.force(s"../src/$scope/scala-${scalaVersion.binVersion}"),
         RelPath.force(s"../src/$scope/scala-${scalaVersion.epoch}"),
         RelPath.force(s"../src/$scope/scala"),
-        RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
+        srcManaged(scalaVersion, scope)
       )
 
     override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
       JsonSet(
         RelPath.force(s"src/$scope/resources"),
         RelPath.force(s"../src/$scope/resources"),
-        RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope")
+        resourceManaged(scalaVersion, scope)
       )
   }
 
@@ -98,14 +98,26 @@ object SourceLayout {
         RelPath.force(s"../shared/src/$scope/scala-${scalaVersion.binVersion}"),
         RelPath.force(s"../shared/src/$scope/scala-${scalaVersion.epoch}"),
         RelPath.force(s"../shared/src/$scope/scala"),
-        RelPath.force(s"target/scala-${scalaVersion.binVersion}/src_managed/$scope")
+        srcManaged(scalaVersion, scope)
       )
 
     override protected def scalaResources(scalaVersion: Versions.Scala, scope: String): JsonSet[RelPath] =
       JsonSet(
         RelPath.force(s"src/$scope/resources"),
         RelPath.force(s"../shared/src/$scope/resources"),
-        RelPath.force(s"target/scala-${scalaVersion.binVersion}/resource_managed/$scope")
+        resourceManaged(scalaVersion, scope)
       )
+  }
+
+  private def resourceManaged(scalaVersion: Versions.Scala, scope: String): RelPath = {
+    // seems like a surprising default in sbt
+    val v = if (scalaVersion.is3) scalaVersion.scalaVersion else scalaVersion.binVersion
+    RelPath.force(s"target/scala-$v/resource_managed/$scope")
+  }
+
+  private def srcManaged(scalaVersion: Versions.Scala, scope: String): RelPath = {
+    // seems like a surprising default in sbt
+    val v = if (scalaVersion.is3) scalaVersion.scalaVersion else scalaVersion.binVersion
+    RelPath.force(s"target/scala-$v/src_managed/$scope")
   }
 }
