@@ -83,6 +83,8 @@
     "bleep-tasks" : {
       "dependsOn" : "bleep-core",
       "sbt-scope" : "main",
+      "sources" : "./liberated/sbt-git-versioning/src/main/scala",
+      "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
       "scala" : "2.13",
       "platform" : "jvm"
     },

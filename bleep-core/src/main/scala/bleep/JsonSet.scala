@@ -49,7 +49,7 @@ object JsonSet {
     Decoder.decodeOption(base).map(_.getOrElse(empty))
   }
 
-  implicit def encodes[T: Encoder: Ordering]: Encoder[JsonSet[T]] =
+  implicit def encodes[T: Encoder]: Encoder[JsonSet[T]] =
     Encoder.instance[JsonSet[T]] { set =>
       set.values.toList match {
         case Nil         => Json.Null

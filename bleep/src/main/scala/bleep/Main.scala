@@ -78,6 +78,7 @@ object Main {
           build.asJson.foldWith(ShortenJson).spaces2,
           UTF_8
         )
+        ()
 
 //        cli("mv .bloop .bloop_imported")
 

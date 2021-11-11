@@ -22,6 +22,14 @@ lazy val `bleep-core` = project
 lazy val `bleep-tasks` = project
   .configure(commonSettings)
   .dependsOn(`bleep-core`)
+  .settings(
+    libraryDependencies ++= List(
+      "se.sawano.java" % "alphanumeric-comparator" % "1.4.1"
+    ),
+    Compile / unmanagedSourceDirectories ++= List(
+      baseDirectory.value / "liberated/sbt-git-versioning/src/main/scala",
+    )
+  )
 
 lazy val bleep = project
   .configure(commonSettings)
