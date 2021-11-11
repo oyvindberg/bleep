@@ -18,7 +18,7 @@ object GenNativeImage {
 
     val project = readBloopFile(cwd / Defaults.BloopFolder, projectName)
 
-    val plugin = new NativeImageTasks(
+    val plugin = new NativeImagePlugin(
       project.project,
       nativeImageOptions = List(
         "--no-fallback"

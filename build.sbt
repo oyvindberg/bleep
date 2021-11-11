@@ -27,7 +27,11 @@ lazy val `bleep-tasks` = project
       "se.sawano.java" % "alphanumeric-comparator" % "1.4.1"
     ),
     Compile / unmanagedSourceDirectories ++= List(
+      baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/scala",
       baseDirectory.value / "liberated/sbt-git-versioning/src/main/scala",
+    ),
+    Compile / unmanagedResourceDirectories ++= List(
+      baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/resources",
     )
   )
 

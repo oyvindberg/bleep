@@ -1,3 +1,6 @@
 [submodule "bleep-tasks/liberated/sbt-git-versioning"]
 	path = bleep-tasks/liberated/sbt-git-versioning
 	url = git@github.com:oyvindberg/sbt-git-versioning.git
+[submodule "bleep-tasks/liberated/sbt-native-image"]
+	path = bleep-tasks/liberated/sbt-native-image
+	url = git@github.com:oyvindberg/sbt-native-image.git
