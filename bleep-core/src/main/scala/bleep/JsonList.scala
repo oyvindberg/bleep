@@ -16,6 +16,9 @@ case class JsonList[T](values: List[T]) extends SetLike[JsonList[T]] {
   override def intersect(other: JsonList[T]): JsonList[T] = JsonList(values.intersect(other.values))
   override def removeAll(other: JsonList[T]): JsonList[T] = JsonList(values.filterNot(other.values.toSet))
   override def union(other: JsonList[T]): JsonList[T] = JsonList((values ++ other.values).distinct)
+
+  override def toString(): String =
+    values.toString()
 }
 
 object JsonList {
