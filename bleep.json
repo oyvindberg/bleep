@@ -1,7 +1,8 @@
 {
   "version" : "1",
   "scripts": {
-    "native-image": "infrastructure/bleep.infra.GenNativeImage"
+    "native-image": "infrastructure/bleep.infra.GenNativeImage",
+    "jars": "infrastructure/bleep.infra.PackageAll"
   },
   "platforms" : {
     "jvm" : {
@@ -85,7 +86,8 @@
       "sbt-scope" : "main",
       "sources" : [
         "./liberated/sbt-git-versioning/src/main/scala",
-        "./liberated/sbt-native-image/plugin/src/main/scala"
+        "./liberated/sbt-native-image/plugin/src/main/scala",
+        "./liberated/bloop-packager/src/main/scala"
       ],
       "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
       "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",

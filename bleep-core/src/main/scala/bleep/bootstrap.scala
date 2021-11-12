@@ -30,7 +30,11 @@ object bootstrap {
       *   will either all be resolved and written immediately if outdated, or read and parsed on demand
       */
     case class Ok(buildDirPath: Path, build: model.Build, bloopFiles: Map[model.ProjectName, Lazy[b.File]], activeProject: Option[model.ProjectName])
-        extends Bootstrapped
+        extends Bootstrapped {
+
+      lazy val projects: List[b.Project] =
+        bloopFiles.map {case (_, lazyProject) => lazyProject.forceGet("").project }.toList
+    }
   }
 
   def fromCwd: Bootstrapped =
