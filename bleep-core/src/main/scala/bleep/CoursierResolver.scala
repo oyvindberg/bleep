@@ -11,6 +11,7 @@ import io.circe._
 
 import java.io.File
 import java.net.URI
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -19,8 +20,60 @@ trait CoursierResolver {
 }
 
 object CoursierResolver {
-  def apply(ec: ExecutionContext, downloadSources: Boolean, cacheIn: Option[Path]): CoursierResolver =
-    cacheIn.foldLeft(new Direct(ec, downloadSources): CoursierResolver) { case (cr, path) => new Cached(cr, path, ec) }
+  def apply(ec: ExecutionContext, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
+    cacheIn.foldLeft(new Direct(ec, downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(cr, path, ec) }
+
+  final case class Authentications(configs: Map[URI, Authentication])
+  object Authentications {
+    val empty: Authentications = Authentications(Map.empty)
+    private type Elem = Map[URI, Authentication]
+
+    implicit val authenticationCodec: Codec[Authentication] =
+      Codec.forProduct7[Authentication, Option[String], Option[String], Option[Map[String, String]], Option[Boolean], Option[String], Option[Boolean], Option[
+        Boolean
+      ]](
+        "user",
+        "password",
+        "headers",
+        "optional",
+        "realm",
+        "httpsOnly",
+        "passOnRedirect"
+      )((user, pass, headers, optional, realm, httpsOnly, redirect) =>
+        Authentication(
+          user.getOrElse(""),
+          pass,
+          headers.map(_.toList).getOrElse(Nil),
+          optional.getOrElse(false),
+          realm,
+          httpsOnly.getOrElse(true),
+          redirect.getOrElse(true)
+        )
+      )(x => (Some(x.user), x.passwordOpt, Some(x.httpHeaders.toMap), Some(x.optional), x.realmOpt, Some(x.httpsOnly), Some(x.passOnRedirect)))
+
+    implicit val keyEncoder: KeyEncoder[URI] = KeyEncoder.encodeKeyString.contramap(_.toString)
+    implicit val keyDecoder: KeyDecoder[URI] = KeyDecoder.decodeKeyString.map(URI.create)
+
+    implicit val resolverConfigCodec: Codec[Authentications] =
+      Codec.from(Decoder[Elem], Encoder[Elem]).iemap(m => Right(Authentications(m)))(_.configs)
+
+    def fromFile(path: Path, logger: Logger): Authentications =
+      if (Files.exists(path)) {
+        val json = Files.readString(path, StandardCharsets.UTF_8)
+        io.circe.parser
+          .decode[Authentications](json)
+          .fold(
+            err => {
+              logger.warn(s"Failed to parse resolver authentication from $path, [$err]")
+              empty
+            },
+            identity
+          )
+      } else {
+        logger.info(s"No authentication information found in $path")
+        empty
+      }
+  }
 
   // this is a simplified version of the original `Fetch.Result` with a json codec
   case class Result(
@@ -79,7 +132,7 @@ object CoursierResolver {
     // format: on
   }
 
-  private class Direct(ec: ExecutionContext, downloadSources: Boolean) extends CoursierResolver {
+  private class Direct(ec: ExecutionContext, downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
     val fileCache = FileCache[Task]()
 
     override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Future[CoursierResolver.Result] = {
@@ -88,7 +141,7 @@ object CoursierResolver {
 
         Fetch[Task](fileCache)
           .withDependencies(deps.values.toList)
-          .addRepositories(repositories.values.toList.map(uri => MavenRepository(uri.toString)): _*)
+          .addRepositories(repositories.values.toList.map(uri => MavenRepository(uri.toString, resolverConfigs.configs.get(uri))): _*)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
           .ioResult
