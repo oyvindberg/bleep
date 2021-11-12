@@ -593,5 +593,5 @@ object model {
   }
 
   def parseBuild(json: String): Either[Error, Build] =
-    parser.decode[model.Build](json)
+    parser.decode[model.Build](json.linesIterator.filterNot(_.trim().startsWith("//")).mkString("\n"))
 }
