@@ -59,7 +59,10 @@
   },
   "projects" : {
     "bleep" : {
-      "dependsOn" : "bleep-core",
+      "dependsOn" : [
+        "bleep-core",
+        "bloop-rifle"
+      ],
       "sbt-scope" : "main",
       "dependencies" : [
         "org.scalameta:svm-subs:101.0.0",
@@ -74,7 +77,7 @@
     "bleep-core" : {
       "sbt-scope" : "main",
       "dependencies" : [
-        "ch.epfl.scala::bloop-config:1.4.9",
+        "ch.epfl.scala::bloop-config:1.4.11",
         "io.circe::circe-generic:0.14.1",
         "io.circe::circe-parser:0.14.1",
         "io.get-coursier::coursier:2.0.16",
@@ -88,9 +91,9 @@
       "dependsOn" : "bleep-core",
       "sbt-scope" : "main",
       "sources" : [
+        "./liberated/bloop-packager/src/main/scala",
         "./liberated/sbt-git-versioning/src/main/scala",
-        "./liberated/sbt-native-image/plugin/src/main/scala",
-        "./liberated/bloop-packager/src/main/scala"
+        "./liberated/sbt-native-image/plugin/src/main/scala"
       ],
       "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
       "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
@@ -102,6 +105,26 @@
       "dependsOn" : "bleep",
       "sbt-scope" : "test",
       "dependencies" : "org.scalatest::scalatest:3.2.10",
+      "scala" : "2.13",
+      "platform" : "jvm"
+    },
+    "bloop-rifle" : {
+      "sbt-scope" : "main",
+      "dependencies" : [
+        "ch.epfl.scala::bloop-config:1.4.11",
+        "ch.epfl.scala:bsp4j:2.0.0-M14",
+        "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2",
+        "com.google.code.findbugs:jsr305:3.0.2",
+        "com.google.code.gson:gson:2.8.9",
+        "com.google.errorprone:error_prone_annotations:2.2.0",
+        "com.google.guava:guava:27.1-jre",
+        "com.google.j2objc:j2objc-annotations:1.1",
+        "me.vican.jorge::snailgun-core:0.4.0",
+        "org.checkerframework:checker-qual:2.5.2",
+        "org.codehaus.mojo:animal-sniffer-annotations:1.17",
+        "org.graalvm.nativeimage:svm:21.2.0",
+        "org.scala-lang:scala-library:2.13.6"
+      ],
       "scala" : "2.13",
       "platform" : "jvm"
     },

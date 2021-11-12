@@ -14,7 +14,7 @@ lazy val `bleep-core` = project
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
-      "ch.epfl.scala" %% "bloop-config" % "1.4.9",
+      "ch.epfl.scala" %% "bloop-config" % "1.4.11",
       "net.harawata" % "appdirs" % "1.2.1"
     )
   )
@@ -36,9 +36,21 @@ lazy val `bleep-tasks` = project
     )
   )
 
+lazy val `bloop-rifle` =
+  project.configure(commonSettings)
+    .settings(
+      libraryDependencies ++= List(
+        "ch.epfl.scala" % "bsp4j" % "2.0.0-M14",
+        "me.vican.jorge" %% "snailgun-core"  % "0.4.0",
+        "ch.epfl.scala" %% "bloop-config" % "1.4.11",
+        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" %"1.4.1-aa-2",
+        "org.graalvm.nativeimage" % "svm" % "20.2.0"
+      )
+    )
+
 lazy val bleep = project
   .configure(commonSettings)
-  .dependsOn(`bleep-core`)
+  .dependsOn(`bleep-core`, `bloop-rifle`)
   .enablePlugins(NativeImagePlugin)
   .settings(
     libraryDependencies ++= Seq(
