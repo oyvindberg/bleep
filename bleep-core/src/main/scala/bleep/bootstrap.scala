@@ -17,6 +17,7 @@ import scala.util.Try
 object bootstrap {
   private val appDirs: AppDirs = AppDirsFactory.getInstance()
   private val cacheDir = Paths.get(appDirs.getUserCacheDir("bleep", "1", "com.olvind"))
+  private val configDir = Paths.get(appDirs.getUserConfigDir("bleep", "1", "com.olvind"))
 
   sealed trait Bootstrapped
 
@@ -37,6 +38,11 @@ object bootstrap {
     }
   }
 
+  def loadResolverConfigs: CoursierResolver.Authentications = {
+    val repoConfigFile = configDir / "coursier-repositories.json"
+    CoursierResolver.Authentications.fromFile(repoConfigFile, Logger.Println)
+  }
+
   def fromCwd: Bootstrapped =
     from(Paths.get(System.getProperty("user.dir")))
 
@@ -52,6 +58,7 @@ object bootstrap {
             val hashFile = bloopFilesDir / ".digest"
             val currentHash = build.toString.hashCode().toString // todo: unstable hash
             val oldHash = Try(Files.readString(hashFile, UTF_8)).toOption
+            val resolverConfigs = loadResolverConfigs
 
             val activeProject: Option[model.ProjectName] = {
               val withRelativeLength =
@@ -81,7 +88,7 @@ object bootstrap {
 
             } else {
               val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] = {
-                val resolver = CoursierResolver(ExecutionContext.global, downloadSources = true, Some(cacheDir))
+                val resolver = CoursierResolver(ExecutionContext.global, downloadSources = true, Some(cacheDir), resolverConfigs)
                 generateBloopFiles(build, buildDirPath, resolver)
               }
 
