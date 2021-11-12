@@ -29,10 +29,10 @@ lazy val `bleep-tasks` = project
     Compile / unmanagedSourceDirectories ++= List(
       baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/scala",
       baseDirectory.value / "liberated/sbt-git-versioning/src/main/scala",
-      baseDirectory.value / "liberated/bloop-packager/src/main/scala",
+      baseDirectory.value / "liberated/bloop-packager/src/main/scala"
     ),
     Compile / unmanagedResourceDirectories ++= List(
-      baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/resources",
+      baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/resources"
     )
   )
 
@@ -43,7 +43,8 @@ lazy val bleep = project
   .settings(
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
-      "org.scalameta" % "svm-subs" % "101.0.0"
+      "org.scalameta" % "svm-subs" % "101.0.0",
+      "com.monovore" %% "decline-effect" % "2.1.0"
     ),
     Compile / mainClass := Some("bleep.Main")
   )

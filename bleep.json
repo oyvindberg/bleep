@@ -61,7 +61,10 @@
     "bleep" : {
       "dependsOn" : "bleep-core",
       "sbt-scope" : "main",
-      "dependencies" : "org.scalameta:svm-subs:101.0.0",
+      "dependencies" : [
+        "org.scalameta:svm-subs:101.0.0",
+        "com.monovore::decline-effect:2.1.0"
+      ],
       "scala" : "2.13",
       "platform" : {
         "extends": "jvm",

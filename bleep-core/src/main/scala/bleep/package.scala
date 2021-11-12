@@ -15,13 +15,8 @@ package object bleep {
       }
   }
 
-  def cli(cmd: String)(implicit cwd: Path): Unit =
-    sys.process.Process(cmd, cwd = Some(cwd.toFile)).! match {
-      case 0 => ()
-      case n =>
-        System.err.println(s"FAILED: $cmd")
-        System.exit(n)
-    }
+  def cli(cmd: String)(implicit cwd: Path): Int =
+    sys.process.Process(cmd, cwd = Some(cwd.toFile)).!
 
   def readBloopFile(bloopFilesDir: Path, projectName: model.ProjectName): Config.File = {
     val file = bloopFilesDir / s"${projectName.value}.json"
