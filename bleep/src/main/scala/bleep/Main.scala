@@ -1,73 +1,15 @@
 package bleep
 
-import bleep.internal.{Lazy, ShortenJson}
+import bleep.bootstrap.Bootstrapped
+import bleep.internal.ShortenJson
 import bleep.model.ScriptName
-import bloop.config.{Config => b, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala
 import io.circe.syntax._
-import net.harawata.appdirs.{AppDirs, AppDirsFactory}
 
-import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path, Paths}
-import scala.collection.immutable.SortedMap
-import scala.concurrent.ExecutionContext
-import scala.util.Try
 
 object Main {
-  implicit val cwd: Path = Paths.get(System.getProperty("user.dir"))
-  val appDirs: AppDirs = AppDirsFactory.getInstance()
-  val cacheDir = Paths.get(appDirs.getUserCacheDir("bleep", "1", "com.olvind"))
-
-  // keep looking up until we find build file
-  def findBleepJson: Either[String, Path] = {
-    def is(f: File): Option[File] =
-      Option(f.list()) match {
-        case Some(list) if list.contains(Defaults.BuildFileName) => Some(new File(f, Defaults.BuildFileName))
-        case _                                                   => None
-      }
-
-    def search(f: File): Option[File] =
-      is(f).orElse(Option(f.getParentFile).flatMap(search))
-
-    search(cwd.toFile) match {
-      case Some(found) => Right(found.toPath)
-      case None        => Left(s"Couldn't find ${Defaults.BuildFileName} from $cwd")
-    }
-  }
-
-  def ensureBloopFilesUpToDate(buildDir: Path, parsedProject: model.Build): Map[model.ProjectName, Lazy[b.File]] = {
-    val bloopFilesDir = buildDir / Defaults.BloopFolder
-    val hashFile = bloopFilesDir / ".digest"
-    val currentHash = parsedProject.toString.hashCode().toString // todo: unstable hash
-    val oldHash = Try(Files.readString(hashFile, UTF_8)).toOption
-
-    if (oldHash.contains(currentHash)) {
-      println(s"$bloopFilesDir up to date")
-
-      parsedProject.projects.map { case (projectName, _) =>
-        val load = Lazy(readBloopFile(bloopFilesDir, projectName))
-        (projectName, load)
-      }
-
-    } else {
-      val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] = {
-        val resolver = CoursierResolver(ExecutionContext.global, downloadSources = true, Some(cacheDir))
-        generateBloopFiles(parsedProject, cwd, resolver)
-      }
-
-      bloopFiles.foreach { case (projectName, lazyP) =>
-        val p = lazyP.forceGet(projectName.value)
-        val json = jsoniter_scala.core.writeToString(p, jsoniter_scala.core.WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
-        Files.createDirectories(bloopFilesDir)
-        val toPath = bloopFilesDir / (projectName.value + ".json")
-        Files.writeString(toPath, json, UTF_8)
-      }
-      Files.writeString(hashFile, currentHash, UTF_8)
-      println(s"Wrote ${bloopFiles.size} files to $bloopFilesDir")
-      bloopFiles
-    }
-  }
+  val cwd: Path = Paths.get(System.getProperty("user.dir"))
 
   def main(args: Array[String]): Unit =
     args.toList match {
@@ -83,15 +25,14 @@ object Main {
 //        cli("mv .bloop .bloop_imported")
 
       case args =>
-        findBleepJson match {
-          case Left(err) => sys.error(err)
-          case Right(buildPath) =>
-            val buildDirPath = buildPath.getParent
-            val build = model.parseBuild(Files.readString(buildPath)) match {
-              case Left(error)  => throw error
-              case Right(build) => build
-            }
-            val bloopProjects = ensureBloopFilesUpToDate(buildDirPath, build)
+        bootstrap.from(cwd) match {
+          case Bootstrapped.InvalidJson(e) =>
+            throw e
+          case Bootstrapped.BuildNotFound =>
+            sys.error(s"Couldn't find a bleep build in (parent directories of) $cwd")
+          case Bootstrapped.Ok(buildDirPath, build, parsedProjects, activeProject) =>
+            implicit val wd: Path = buildDirPath
+            activeProject.foreach(p => println(s"active project: ${p.value}"))
 
             args match {
               case List("compile") =>
@@ -103,7 +44,7 @@ object Main {
                 cli(s"bloop compile ${scriptDefs.values.map(_.project.value).distinct.mkString(" ")}")
 
                 scriptDefs.values.foreach { scriptDef =>
-                  val bloopFile = bloopProjects(scriptDef.project).forceGet(scriptDef.project.value)
+                  val bloopFile = parsedProjects(scriptDef.project).forceGet(scriptDef.project.value)
                   val fullClassPath = fixedClasspath(bloopFile.project)
 
                   cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${rest.mkString(" ")}")

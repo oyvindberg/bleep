@@ -52,10 +52,7 @@ object generateBloopFiles {
       getBloopProject: model.ProjectName => b.File
   ): b.File = {
     val projectPath: Path =
-      proj.folder match {
-        case Some(relPath) => workspaceDir / relPath
-        case None          => workspaceDir / projName.value
-      }
+      workspaceDir / proj.folder.getOrElse(RelPath.force(projName.value))
 
     val allTransitiveTranslated: Map[model.ProjectName, b.File] = {
       val builder = Map.newBuilder[model.ProjectName, b.File]

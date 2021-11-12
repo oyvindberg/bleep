@@ -29,6 +29,7 @@ lazy val `bleep-tasks` = project
     Compile / unmanagedSourceDirectories ++= List(
       baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/scala",
       baseDirectory.value / "liberated/sbt-git-versioning/src/main/scala",
+      baseDirectory.value / "liberated/bloop-packager/src/main/scala",
     ),
     Compile / unmanagedResourceDirectories ++= List(
       baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/resources",

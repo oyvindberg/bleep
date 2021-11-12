@@ -7,6 +7,8 @@ import java.nio.file.Path
 case class RelPath private (segments: List[String])
 
 object RelPath {
+  val empty = RelPath(Nil)
+
   def force(str: String): RelPath = apply(str) match {
     case Left(errMsg) => sys.error(errMsg)
     case Right(value) => value

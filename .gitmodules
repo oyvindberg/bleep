@@ -4,3 +4,6 @@
 [submodule "bleep-tasks/liberated/sbt-native-image"]
 	path = bleep-tasks/liberated/sbt-native-image
 	url = git@github.com:oyvindberg/sbt-native-image.git
+[submodule "bleep-tasks/liberated/bloop-packager"]
+	path = bleep-tasks/liberated/bloop-packager
+	url = git@github.com:oyvindberg/bloop-packager.git

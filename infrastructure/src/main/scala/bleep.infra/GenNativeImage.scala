@@ -1,30 +1,29 @@
 package bleep
 package infra
 
+import bleep.bootstrap.Bootstrapped
 import bleep.model.ProjectName
 import bleep.tasks._
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
-object GenNativeImage {
-  implicit val cwd: Path = Paths.get(System.getProperty("user.dir"))
+object GenNativeImage extends App {
+  bootstrap.fromCwd match {
+    case Bootstrapped.BuildNotFound  => ???
+    case Bootstrapped.InvalidJson(e) => ???
+    case Bootstrapped.Ok(buildDirPath, _, lazyBloopFiles, _) =>
+      implicit val wd: Path = buildDirPath
 
-  def main(args: Array[String]): Unit = {
-    val gitVersioningPlugin = new GitVersioningPlugin(cwd, Logger.Println)()
-    println(gitVersioningPlugin.version)
+      val gitVersioningPlugin = new GitVersioningPlugin(buildDirPath, Logger.Println)()
+      println(gitVersioningPlugin.version)
 
-    val projectName = ProjectName("bleep")
-    cli(s"bloop compile ${projectName.value}")
+      val projectName = ProjectName("bleep")
+      val project = lazyBloopFiles(projectName).forceGet(projectName.value)
 
-    val project = readBloopFile(cwd / Defaults.BloopFolder, projectName)
+      cli(s"bloop compile ${projectName.value}")
 
-    val plugin = new NativeImagePlugin(
-      project.project,
-      nativeImageOptions = List(
-        "--no-fallback"
-      )
-    )
-    val path = plugin.nativeImage()
-    println(s"Created native-image at $path")
+      val plugin = new NativeImagePlugin(project.project, nativeImageOptions = List("--no-fallback"))
+      val path = plugin.nativeImage()
+      println(s"Created native-image at $path")
   }
 }

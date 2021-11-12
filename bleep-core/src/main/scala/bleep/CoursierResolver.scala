@@ -6,8 +6,8 @@ import coursier.core._
 import coursier.error.{FetchError, ResolutionError}
 import coursier.util.{Artifact, Task}
 import coursier.{Fetch, MavenRepository}
-import io.circe.syntax.EncoderOps
-import io.circe.{parser, Codec, Decoder, Encoder, KeyDecoder, KeyEncoder}
+import io.circe.syntax._
+import io.circe._
 
 import java.io.File
 import java.net.URI
