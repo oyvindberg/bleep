@@ -1,3 +1,5 @@
+name := "bleep-root"
+
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
     .settings(
