@@ -5,11 +5,11 @@ object stderr {
   // Same as pprint.log, except we log things to stderr rather than stdout
 
   def log[T](
-    x: sourcecode.Text[T],
-    tag: String = "",
-    width: Int = pprint.defaultWidth,
-    height: Int = pprint.defaultHeight,
-    indent: Int = pprint.defaultIndent
+      x: sourcecode.Text[T],
+      tag: String = "",
+      width: Int = pprint.defaultWidth,
+      height: Int = pprint.defaultHeight,
+      indent: Int = pprint.defaultIndent
   )(implicit line: sourcecode.Line, fileName: sourcecode.FileName): T = {
 
     val tagStrs =

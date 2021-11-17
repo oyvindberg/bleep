@@ -17,7 +17,7 @@ package object bsp {
   }
 
   implicit class BuildTargetIdentifierExt(
-    private val item: bsp4j.BuildTargetIdentifier
+      private val item: bsp4j.BuildTargetIdentifier
   ) extends AnyVal {
     def duplicate(): bsp4j.BuildTargetIdentifier =
       new bsp4j.BuildTargetIdentifier(item.getUri)
@@ -46,7 +46,7 @@ package object bsp {
   }
 
   implicit class BuildTargetCapabilitiesExt(
-    private val capabilities: bsp4j.BuildTargetCapabilities
+      private val capabilities: bsp4j.BuildTargetCapabilities
   ) extends AnyVal {
     def duplicate(): bsp4j.BuildTargetCapabilities =
       new bsp4j.BuildTargetCapabilities(
@@ -72,7 +72,7 @@ package object bsp {
     }
   }
   implicit class WorkspaceBuildTargetsResultExt(
-    private val res: bsp4j.WorkspaceBuildTargetsResult
+      private val res: bsp4j.WorkspaceBuildTargetsResult
   ) extends AnyVal {
     def duplicate(): bsp4j.WorkspaceBuildTargetsResult =
       new bsp4j.WorkspaceBuildTargetsResult(res.getTargets.asScala.toList.map(_.duplicate()).asJava)
@@ -83,7 +83,7 @@ package object bsp {
       new bsp4j.Location(loc.getUri, loc.getRange.duplicate())
   }
   implicit class DiagnosticRelatedInformationExt(
-    private val info: bsp4j.DiagnosticRelatedInformation
+      private val info: bsp4j.DiagnosticRelatedInformation
   ) extends AnyVal {
     def duplicate(): bsp4j.DiagnosticRelatedInformation =
       new bsp4j.DiagnosticRelatedInformation(info.getLocation.duplicate(), info.getMessage)

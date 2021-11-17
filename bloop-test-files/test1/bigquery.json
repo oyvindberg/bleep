@@ -24,10 +24,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.0.0/cats-kernel_2.12-2.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.0.0/cats-macros_2.12-2.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
-      "<PROJECT>/bloop-test-files/test1/.bloop/common/scala-2.12/classes"
+      "<PROJECT>/bloop-test-files/test1/.bleep/.bloop/common/scala-2.12/classes"
     ],
-    "out": "<PROJECT>/bloop-test-files/test1/.bloop/bigquery",
-    "classesDir": "<PROJECT>/bloop-test-files/test1/.bloop/bigquery/scala-2.12/classes",
+    "out": "<PROJECT>/bloop-test-files/test1/.bleep/.bloop/bigquery",
+    "classesDir": "<PROJECT>/bloop-test-files/test1/.bleep/.bloop/bigquery/scala-2.12/classes",
     "resources": [
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/src/main/resources",
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/scala-2.12/resource_managed/main"

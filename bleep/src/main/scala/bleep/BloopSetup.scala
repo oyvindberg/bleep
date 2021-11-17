@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.generateBloopFiles.ordering
-import bleep.internal.{Directories, Os}
+import bleep.internal.Os
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
@@ -17,13 +17,13 @@ import scala.util.{Failure, Properties, Success, Try}
 
 class BloopSetup(
     javaPath: String,
-    directories: Directories,
+    directories: UserPaths,
     build: model.Build,
     resolver: CoursierResolver,
     // Protocol to use to open a BSP connection with Bloop: tcp | local | default
     bloopBspProtocol: Option[String],
     // Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like "`\\.\pipe\…`")
-    bloopBspSocket: Option[String],
+    bloopBspSocket: Option[String]
 ) {
   lazy val bloopRifleConfig = {
     val baseConfig = BloopRifleConfig.default(bloopClassPath)

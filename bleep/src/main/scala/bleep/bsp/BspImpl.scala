@@ -13,16 +13,16 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 final class BspImpl(
-  logger: Logger,
-  bloopRifleConfig: BloopRifleConfig,
-  buildPath: Path,
-  threads: BspThreads,
-  in: InputStream,
-  out: OutputStream
-)  {
+    logger: Logger,
+    bloopRifleConfig: BloopRifleConfig,
+    buildPath: Path,
+    threads: BspThreads,
+    in: InputStream,
+    out: OutputStream
+) {
 
   val bloopRifleLogger = new MyBloopRifleLogger(logger, true, true)
-  var remoteServer: BloopServer    = null
+  var remoteServer: BloopServer = null
   var actualLocalServer: BspServer = null
 
   def classesRootDir(root: Path): Path =
@@ -72,17 +72,16 @@ final class BspImpl(
     Future.firstCompletedOf(futures)(es)
   }
 
-  def shutdown(): Unit = {
+  def shutdown(): Unit =
     if (remoteServer != null)
       remoteServer.shutdown()
-  }
 }
 
 object BspImpl {
 
   // from https://githubsp4j.com/com-lihaoyi/Ammonite/blob/7eb58c58ec8c252dc5bd1591b041fcae01cccf90/amm/interp/src/main/scala/ammonite/interp/script/AmmoniteBuildServer.scala#L550-L565
   private def naiveJavaFutureToScalaFuture[T](
-    f: java.util.concurrent.Future[T]
+      f: java.util.concurrent.Future[T]
   ): Future[T] = {
     val p = Promise[T]()
     val t = new Thread {

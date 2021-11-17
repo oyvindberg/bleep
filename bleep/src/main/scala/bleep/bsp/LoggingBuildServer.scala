@@ -9,7 +9,7 @@ import java.util.concurrent.CompletableFuture
 trait LoggingBuildServer extends bsp4j.BuildServer {
   protected def underlying: bsp4j.BuildServer
   override def buildInitialize(
-    params: bsp4j.InitializeBuildParams
+      params: bsp4j.InitializeBuildParams
   ): CompletableFuture[bsp4j.InitializeBuildResult] =
     underlying.buildInitialize(stderr.log(params)).logF
   override def onBuildExit(): Unit =
@@ -19,21 +19,21 @@ trait LoggingBuildServer extends bsp4j.BuildServer {
   override def buildShutdown(): CompletableFuture[Object] =
     underlying.buildShutdown().logF
   override def buildTargetCleanCache(
-    params: bsp4j.CleanCacheParams
+      params: bsp4j.CleanCacheParams
   ): CompletableFuture[bsp4j.CleanCacheResult] =
     underlying.buildTargetCleanCache(stderr.log(params)).logF
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] =
     underlying.buildTargetCompile(stderr.log(params)).logF
   override def buildTargetDependencySources(
-    params: bsp4j.DependencySourcesParams
+      params: bsp4j.DependencySourcesParams
   ): CompletableFuture[bsp4j.DependencySourcesResult] =
     underlying.buildTargetDependencySources(stderr.log(params)).logF
   override def buildTargetInverseSources(
-    params: bsp4j.InverseSourcesParams
+      params: bsp4j.InverseSourcesParams
   ): CompletableFuture[bsp4j.InverseSourcesResult] =
     underlying.buildTargetInverseSources(stderr.log(params)).logF
   override def buildTargetResources(
-    params: bsp4j.ResourcesParams
+      params: bsp4j.ResourcesParams
   ): CompletableFuture[bsp4j.ResourcesResult] =
     underlying.buildTargetResources(stderr.log(params)).logF
   override def buildTargetRun(params: bsp4j.RunParams): CompletableFuture[bsp4j.RunResult] =
@@ -46,7 +46,6 @@ trait LoggingBuildServer extends bsp4j.BuildServer {
     underlying.workspaceBuildTargets().logF
   override def workspaceReload(): CompletableFuture[Object] =
     underlying.workspaceReload().logF
-  override def buildTargetDependencyModules(params: DependencyModulesParams)
-    : CompletableFuture[DependencyModulesResult] =
+  override def buildTargetDependencyModules(params: DependencyModulesParams): CompletableFuture[DependencyModulesResult] =
     underlying.buildTargetDependencyModules(stderr.log(params)).logF
 }

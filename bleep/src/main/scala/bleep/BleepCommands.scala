@@ -1,7 +1,6 @@
 package bleep
 
-import bleep.bootstrap.Bootstrapped
-import bleep.internal.{Directories, MyBloopRifleLogger, Os, ShortenJson}
+import bleep.internal.{MyBloopRifleLogger, Os, ShortenJson}
 import bleep.model.{ProjectName, ScriptName}
 import cats.data.{NonEmptyList, ValidatedNel}
 import cats.effect.{ExitCode, IO}
@@ -20,16 +19,12 @@ sealed trait BleepCommands {
 }
 
 object BleepCommands {
-  def runWithEnv(runIo: Bootstrapped.Ok => IO[ExitCode]): IO[ExitCode] =
+  def runWithEnv(runIo: Started => IO[ExitCode]): IO[ExitCode] =
     bootstrap.from(Os.cwd) match {
-      case Bootstrapped.InvalidJson(e) =>
-        IO(e.printStackTrace()).as(ExitCode.Error)
-      case Bootstrapped.BuildNotFound =>
-        IO(System.err.println(s"Couldn't find a bleep build in (parent directories of) ${Os.cwd}")).as(ExitCode.Error)
-
-      case bootstrap: Bootstrapped.Ok =>
-        bootstrap.activeProject.foreach(p => println(s"active project: ${p.value}"))
-        runIo(bootstrap)
+      case Left(th) => IO.raiseError(th)
+      case Right(started) =>
+        started.activeProject.foreach(p => println(s"active project: ${p.value}"))
+        runIo(started)
     }
 
   object bspClient extends bsp4j.BuildClient {
@@ -44,14 +39,14 @@ object BleepCommands {
 
   case object Compile extends BleepCommands {
     override def run(): IO[ExitCode] =
-      runWithEnv { bootstrap =>
+      runWithEnv { started =>
         val bloopSetup = new BloopSetup(
           "/usr/bin/java",
-          Directories.default,
-          bootstrap.build,
-          bootstrap.resolver,
+          started.directories,
+          started.build,
+          started.resolver,
           bloopBspProtocol = None,
-          bloopBspSocket = None,
+          bloopBspSocket = None
         )
 
         IO {
@@ -59,18 +54,17 @@ object BleepCommands {
             bloopSetup.bloopRifleConfig,
             "bleep",
             Defaults.version,
-            bootstrap.buildDirPath / ".bleep",
-            bootstrap.buildDirPath / ".bleep" / "classes",
+            started.buildPaths.dotBleepDir,
+            started.buildPaths.dotBleepDir / "classes",
             bspClient,
             BloopThreads.create(),
-            new MyBloopRifleLogger(bootstrap.logger, true, true)
+            new MyBloopRifleLogger(started.logger, true, true)
           ) { server =>
-            def targetId(name: ProjectName): bsp4j.BuildTargetIdentifier = {
-              new bsp4j.BuildTargetIdentifier(bootstrap.buildDirPath.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
-            }
-            val targets = bootstrap.activeProject match {
+            def targetId(name: ProjectName): bsp4j.BuildTargetIdentifier =
+              new bsp4j.BuildTargetIdentifier(started.buildPaths.buildDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
+            val targets = started.activeProject match {
               case Some(value) => List(targetId(value)).asJava
-              case None        => bootstrap.build.projects.keys.map(targetId).toList.asJava
+              case None        => started.build.projects.keys.map(targetId).toList.asJava
             }
             println(server.server.workspaceBuildTargets().get().getTargets)
             println(server.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get())
@@ -80,10 +74,12 @@ object BleepCommands {
   }
 
   case object Import extends BleepCommands {
-    override def run(): IO[ExitCode] = IO{
-      val build = deduplicateBuild(importBloopFilesFromSbt(Os.cwd))
+    override def run(): IO[ExitCode] = IO {
+      val buildPaths = BuildPaths(Os.cwd / Defaults.BuildFileName)
+
+      val build = deduplicateBuild(importBloopFilesFromSbt(buildPaths))
       Files.writeString(
-        Os.cwd / Defaults.BuildFileName,
+        buildPaths.bleepJsonFile,
         build.asJson.foldWith(ShortenJson).spaces2,
         UTF_8
       )
@@ -93,27 +89,27 @@ object BleepCommands {
 
   case object Test extends BleepCommands {
     override def run(): IO[ExitCode] =
-      runWithEnv { bootstrap =>
-        val projects = bootstrap.build.projects.keys.map(_.value).mkString(" ")
-        IO(ExitCode(cli(s"bloop test $projects")(bootstrap.buildDirPath)))
+      runWithEnv { started =>
+        val projects = started.build.projects.keys.map(_.value).mkString(" ")
+        IO(ExitCode(cli(s"bloop test $projects")(started.buildPaths.buildDir)))
       }
   }
 
   case class Script(name: String, args: List[String]) extends BleepCommands {
     override def run(): IO[ExitCode] =
-      runWithEnv(bootstrap =>
+      runWithEnv(started =>
         IO {
-          val scriptDefs = bootstrap.build.scripts.get(ScriptName(name))
+          val scriptDefs = started.build.scripts.get(ScriptName(name))
           val projects = scriptDefs.values.map(_.project.value).distinct.mkString(" ")
-          cli(s"bloop compile $projects")(bootstrap.buildDirPath)
+          cli(s"bloop compile $projects")(started.buildPaths.buildDir)
         }.flatMap { code =>
-          val scriptDefs = bootstrap.build.scripts.get(ScriptName(name))
+          val scriptDefs = started.build.scripts.get(ScriptName(name))
           scriptDefs.values
             .traverse { scriptDef =>
               IO {
-                val bloopFile = bootstrap.bloopFiles(scriptDef.project).forceGet(scriptDef.project.value)
+                val bloopFile = started.bloopFiles(scriptDef.project).forceGet(scriptDef.project.value)
                 val fullClassPath = fixedClasspath(bloopFile.project)
-                cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${args.mkString(" ")}")(bootstrap.buildDirPath)
+                cli(s"java -cp ${fullClassPath.mkString(":")} ${scriptDef.main} ${args.mkString(" ")}")(started.buildPaths.buildDir)
               }
             }
             .map(NonEmptyList(code, _))

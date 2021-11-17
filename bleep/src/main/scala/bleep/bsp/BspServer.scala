@@ -8,7 +8,7 @@ import scala.build.bloop.{ScalaDebugServer, ScalaDebugServerForwardStubs}
 import scala.concurrent.{Future, Promise}
 
 class BspServer(
-    bloopServer: bsp4j.BuildServer with bsp4j.ScalaBuildServer with bsp4j.JavaBuildServer with ScalaDebugServer,
+    bloopServer: bsp4j.BuildServer with bsp4j.ScalaBuildServer with bsp4j.JavaBuildServer with ScalaDebugServer
 ) extends bsp4j.BuildServer
     with bsp4j.ScalaBuildServer
     with bsp4j.JavaBuildServer

@@ -10,21 +10,21 @@ trait BuildServerForwardStubs extends bsp4j.BuildServer {
   override def buildShutdown(): CompletableFuture[Object] =
     forwardTo.buildShutdown()
   override def buildTargetCleanCache(
-    params: bsp4j.CleanCacheParams
+      params: bsp4j.CleanCacheParams
   ): CompletableFuture[bsp4j.CleanCacheResult] =
     forwardTo.buildTargetCleanCache(params)
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] =
     forwardTo.buildTargetCompile(params)
   override def buildTargetDependencySources(
-    params: bsp4j.DependencySourcesParams
+      params: bsp4j.DependencySourcesParams
   ): CompletableFuture[bsp4j.DependencySourcesResult] =
     forwardTo.buildTargetDependencySources(params)
   override def buildTargetInverseSources(
-    params: bsp4j.InverseSourcesParams
+      params: bsp4j.InverseSourcesParams
   ): CompletableFuture[bsp4j.InverseSourcesResult] =
     forwardTo.buildTargetInverseSources(params)
   override def buildTargetResources(
-    params: bsp4j.ResourcesParams
+      params: bsp4j.ResourcesParams
   ): CompletableFuture[bsp4j.ResourcesResult] =
     forwardTo.buildTargetResources(params)
   override def buildTargetRun(params: bsp4j.RunParams): CompletableFuture[bsp4j.RunResult] =
@@ -37,7 +37,6 @@ trait BuildServerForwardStubs extends bsp4j.BuildServer {
     forwardTo.workspaceBuildTargets()
   override def workspaceReload(): CompletableFuture[Object] =
     forwardTo.workspaceReload()
-  override def buildTargetDependencyModules(params: DependencyModulesParams)
-    : CompletableFuture[DependencyModulesResult] =
+  override def buildTargetDependencyModules(params: DependencyModulesParams): CompletableFuture[DependencyModulesResult] =
     forwardTo.buildTargetDependencyModules(params)
 }
