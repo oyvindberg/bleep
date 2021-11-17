@@ -1,7 +1,7 @@
 package bleep
 
 import bloop.config.{Config, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
+import com.github.plokhotnyuk.jsoniter_scala.core.{WriterConfig, writeToString}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -13,10 +13,10 @@ class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   val resolver = CoursierResolver(scala.concurrent.ExecutionContext.global, downloadSources = true, None, CoursierResolver.Authentications.empty)
   val workspaceDirBase = Paths.get("bloop-test-files").toAbsolutePath
 
-  def anonymize(str: String): String = {
-    val home = System.getProperty("user.home")
-    str.replace(home, "<HOME>")
-  }
+  def anonymize(str: String): String =
+    str
+      .replace(System.getProperty("user.dir"), "<PROJECT>")
+      .replace(System.getProperty("user.home"), "<HOME>")
 
   val isCi: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt
