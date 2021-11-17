@@ -13,7 +13,7 @@ object GenNativeImage extends App {
   bootstrap.fromCwd match {
     case Bootstrapped.BuildNotFound  => ???
     case Bootstrapped.InvalidJson(e) => ???
-    case Bootstrapped.Ok(buildDirPath, _, lazyBloopFiles, _) =>
+    case Bootstrapped.Ok(buildDirPath, _, lazyBloopFiles, _, _, _) =>
       implicit val wd: Path = buildDirPath
 
       val projectName = ProjectName("bleep")
@@ -21,7 +21,7 @@ object GenNativeImage extends App {
 
       cli(s"bloop compile ${projectName.value}")
 
-      val plugin = new NativeImagePlugin(project.project, nativeImageOptions = List("--no-fallback"))
+      val plugin = new NativeImagePlugin(project.project, nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"))
       val path = plugin.nativeImage()
       println(s"Created native-image at $path")
   }

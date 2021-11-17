@@ -9,6 +9,9 @@ sealed trait Lazy[T] {
 
   def get: Option[T]
 
+  final def forceGet: T =
+    get.getOrElse(sys.error(s"Unexpected circular"))
+
   final def forceGet(circumstance: String): T =
     get.getOrElse(sys.error(s"Unexpected circular: $circumstance"))
 

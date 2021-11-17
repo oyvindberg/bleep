@@ -256,10 +256,10 @@ object generateBloopFiles {
         sourceRoots = None,
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
-        out = workspaceDir / Defaults.BloopFolder / projName.value,
+        out = workspaceDir / Defaults.BleepBloopFolder / projName.value,
         classesDir = scalaVersion match {
-          case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
-          case None               => workspaceDir / Defaults.BloopFolder / projName.value / "classes"
+          case Some(scalaVersion) => workspaceDir / Defaults.BleepBloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
+          case None               => workspaceDir / Defaults.BleepBloopFolder / projName.value / "classes"
         },
         resources = Some(resources.values.toList),
         scala = configuredScala,

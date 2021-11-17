@@ -9,18 +9,17 @@ final case class BloopThreads(
 ) {
   def shutdown(): Unit =
     jsonrpc.shutdown()
+    //startServerChecks.shutdown()
 }
 
 object BloopThreads {
   def create(): BloopThreads = {
-    val jsonrpc = Executors.newFixedThreadPool(4, daemonThreadFactory("scala-cli-bsp-jsonrpc"))
-    val startServerChecks = Executors.newSingleThreadScheduledExecutor(
-      daemonThreadFactory("scala-cli-bloop-rifle")
-    )
+    val jsonrpc = Executors.newFixedThreadPool(4, daemonThreadFactory("bleep-bsp-jsonrpc"))
+    val startServerChecks = Executors.newSingleThreadScheduledExecutor(daemonThreadFactory("bleep-bloop-rifle"))
     BloopThreads(jsonrpc, startServerChecks)
   }
 
-  private def daemonThreadFactory(prefix: String): ThreadFactory =
+  def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
       val counter = new AtomicInteger
       def threadNumber() = counter.incrementAndGet()

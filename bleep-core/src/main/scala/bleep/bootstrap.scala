@@ -1,10 +1,10 @@
 package bleep
 
-import bleep.internal.Lazy
+import bleep.internal.{Directories, Lazy}
 import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
+import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 import io.circe
-import net.harawata.appdirs.{AppDirs, AppDirsFactory}
 
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
@@ -15,9 +15,6 @@ import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 object bootstrap {
-  private val appDirs: AppDirs = AppDirsFactory.getInstance()
-  private val cacheDir = Paths.get(appDirs.getUserCacheDir("bleep", "1", "com.olvind"))
-  private val configDir = Paths.get(appDirs.getUserConfigDir("bleep", "1", "com.olvind"))
 
   sealed trait Bootstrapped
 
@@ -30,23 +27,34 @@ object bootstrap {
       * @param bloopFiles
       *   will either all be resolved and written immediately if outdated, or read and parsed on demand
       */
-    case class Ok(buildDirPath: Path, build: model.Build, bloopFiles: Map[model.ProjectName, Lazy[b.File]], activeProject: Option[model.ProjectName])
-        extends Bootstrapped {
+    case class Ok(
+        buildDirPath: Path,
+        build: model.Build,
+        bloopFiles: Map[model.ProjectName, Lazy[b.File]],
+        activeProject: Option[model.ProjectName],
+        lazyResolver: Lazy[CoursierResolver],
+        logger: Logger
+    ) extends Bootstrapped {
+
+      def resolver = lazyResolver.forceGet
 
       lazy val projects: List[b.Project] =
-        bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet("").project }.toList
+        bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet.project }.toList
     }
-  }
-
-  def loadResolverConfigs: CoursierResolver.Authentications = {
-    val repoConfigFile = configDir / "coursier-repositories.json"
-    CoursierResolver.Authentications.fromFile(repoConfigFile, Logger.Println)
   }
 
   def fromCwd: Bootstrapped =
     from(Paths.get(System.getProperty("user.dir")))
 
-  def from(cwd: Path): Bootstrapped =
+  def from(cwd: Path): Bootstrapped = {
+    val lazyResolver: Lazy[CoursierResolver] = Lazy {
+      val authentications = {
+        val repoConfigFile = Directories.default.configDir / "coursier-repositories.json"
+        CoursierResolver.Authentications.fromFile(repoConfigFile, Logger.Println)
+      }
+      CoursierResolver(ExecutionContext.global, downloadSources = true, Some(Directories.default.cacheDir), authentications)
+    }
+
     findBleepJson(cwd) match {
       case Some(bleepJsonPath) =>
         model.parseBuild(Files.readString(bleepJsonPath)) match {
@@ -54,11 +62,10 @@ object bootstrap {
           case Right(build) =>
             val buildDirPath = bleepJsonPath.getParent
 
-            val bloopFilesDir = buildDirPath / Defaults.BloopFolder
+            val bloopFilesDir = buildDirPath / Defaults.BleepBloopFolder
             val hashFile = bloopFilesDir / ".digest"
             val currentHash = build.toString.hashCode().toString // todo: unstable hash
             val oldHash = Try(Files.readString(hashFile, UTF_8)).toOption
-            val resolverConfigs = loadResolverConfigs
 
             val activeProject: Option[model.ProjectName] = {
               val withRelativeLength =
@@ -84,28 +91,27 @@ object bootstrap {
                 val load = Lazy(readBloopFile(bloopFilesDir, projectName))
                 (projectName, load)
               }
-              Bootstrapped.Ok(buildDirPath, build, readLazily, activeProject)
+              Bootstrapped.Ok(buildDirPath, build, readLazily, activeProject, lazyResolver, Logger.Println)
 
             } else {
-              val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] = {
-                val resolver = CoursierResolver(ExecutionContext.global, downloadSources = true, Some(cacheDir), resolverConfigs)
-                generateBloopFiles(build, buildDirPath, resolver)
-              }
+              val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] =
+                generateBloopFiles(build, buildDirPath, lazyResolver.forceGet)
 
               bloopFiles.foreach { case (projectName, lazyP) =>
                 val p = lazyP.forceGet(projectName.value)
-                val json = jsoniter_scala.core.writeToString(p, jsoniter_scala.core.WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
+                val json = writeToString(p, jsoniter_scala.core.WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
                 Files.createDirectories(bloopFilesDir)
                 val toPath = bloopFilesDir / (projectName.value + ".json")
                 Files.writeString(toPath, json, UTF_8)
               }
               Files.writeString(hashFile, currentHash, UTF_8)
               println(s"Wrote ${bloopFiles.size} files to $bloopFilesDir")
-              Bootstrapped.Ok(buildDirPath, build, bloopFiles, activeProject)
+              Bootstrapped.Ok(buildDirPath, build, bloopFiles, activeProject, lazyResolver, Logger.Println)
             }
         }
       case None => Bootstrapped.BuildNotFound
     }
+  }
 
   // keep looking up until we find build file
   def findBleepJson(from: Path): Option[Path] = {

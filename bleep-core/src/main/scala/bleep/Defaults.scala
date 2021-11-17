@@ -5,10 +5,13 @@ import bloop.config.Config
 import java.net.URI
 
 object Defaults {
+  val version = "0.0.1"
+
   val MavenCentral = URI.create("https://repo1.maven.org/maven2")
   val BuildFileName = "bleep.json"
 
   val BloopFolder = ".bloop"
+  val BleepBloopFolder = ".bleep/.bloop"
   val ScalaPluginPrefix = "-Xplugin:"
 
   val DefaultCompileSetup = model.CompileSetup(

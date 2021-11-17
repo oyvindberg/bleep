@@ -65,8 +65,9 @@
       ],
       "sbt-scope" : "main",
       "dependencies" : [
-        "org.scalameta:svm-subs:101.0.0",
-        "com.monovore::decline-effect:2.1.0"
+        "com.lihaoyi::pprint:0.6.6",
+        "com.monovore::decline-effect:2.1.0",
+        "org.scalameta:svm-subs:101.0.0"
       ],
       "scala" : "2.13",
       "platform" : {
@@ -122,7 +123,7 @@
         "me.vican.jorge::snailgun-core:0.4.0",
         "org.checkerframework:checker-qual:2.5.2",
         "org.codehaus.mojo:animal-sniffer-annotations:1.17",
-        "org.graalvm.nativeimage:svm:21.2.0",
+        "org.graalvm.nativeimage:svm:20.2.0",
         "org.scala-lang:scala-library:2.13.6"
       ],
       "scala" : "2.13",
