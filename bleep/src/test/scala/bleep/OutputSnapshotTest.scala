@@ -1,7 +1,7 @@
 package bleep
 
 import bloop.config.{Config, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{WriterConfig, writeToString}
+import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
