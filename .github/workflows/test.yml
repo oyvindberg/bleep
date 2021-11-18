@@ -24,8 +24,8 @@ jobs:
         with:
           java-version: graalvm-ce-java11@21.1.0
       - name: Scalafmt Check
-        run: sbt -client scalafmtCheckAll
+        run: sbt --client scalafmtCheckAll
       - name: "Test"
-        run: sbt -client "test"
+        run: sbt --client "test"
       - name: "Native image"
-        run: sbt -client nativeImage
+        run: sbt --client nativeImage
