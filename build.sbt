@@ -4,7 +4,7 @@ val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
     .settings(
       organization := "no.arktekk",
-      scalaVersion := "2.13.6",
+      scalaVersion := "2.13.7",
       scalacOptions -= "-Xfatal-warnings"
     )
 

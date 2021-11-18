@@ -30,7 +30,7 @@ object Util {
     new File(if (Properties.isWin) "NUL" else "/dev/null")
 
   def randomPort(): Int = {
-    val s    = new ServerSocket(0)
+    val s = new ServerSocket(0)
     val port = s.getLocalPort
     s.close()
     port

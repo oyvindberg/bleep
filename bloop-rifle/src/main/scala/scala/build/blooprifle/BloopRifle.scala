@@ -20,9 +20,9 @@ object BloopRifle {
     *   Whether a server is running or not.
     */
   def check(
-    config: BloopRifleConfig,
-    logger: BloopRifleLogger,
-    scheduler: ScheduledExecutorService
+      config: BloopRifleConfig,
+      logger: BloopRifleLogger,
+      scheduler: ScheduledExecutorService
   ): Boolean = {
     def check() =
       Operations.check(
@@ -42,11 +42,11 @@ object BloopRifle {
     *   A future, that gets completed when the server is done starting (and can thus be used).
     */
   def startServer(
-    config: BloopRifleConfig,
-    scheduler: ScheduledExecutorService,
-    logger: BloopRifleLogger,
-    version: String,
-    bloopJava: String
+      config: BloopRifleConfig,
+      scheduler: ScheduledExecutorService,
+      logger: BloopRifleLogger,
+      version: String,
+      bloopJava: String
   ): Future[Unit] =
     config.classPath(version) match {
       case Left(ex) => Future.failed(new Exception("Error getting Bloop class path", ex))
@@ -66,17 +66,16 @@ object BloopRifle {
 
   /** Opens a BSP connection to a running bloop server.
     *
-    * Starts a thread to read output from the nailgun connection, and another one to pass input to
-    * it.
+    * Starts a thread to read output from the nailgun connection, and another one to pass input to it.
     *
     * @param logger
     * @return
     *   A [[BspConnection]] object, that can be used to close the connection.
     */
   def bsp(
-    config: BloopRifleConfig,
-    workingDir: Path,
-    logger: BloopRifleLogger
+      config: BloopRifleConfig,
+      workingDir: Path,
+      logger: BloopRifleLogger
   ): BspConnection = {
 
     val bspSocketOrPort = config.bspSocketOrPort.map(_()).getOrElse {
@@ -113,9 +112,9 @@ object BloopRifle {
       new BspConnection {
         def address = conn.address
         def openSocket(
-          period: FiniteDuration,
-          timeout: FiniteDuration
-        )          = conn.openSocket(period, timeout)
+            period: FiniteDuration,
+            timeout: FiniteDuration
+        ) = conn.openSocket(period, timeout)
         def closed = conn.closed
         def stop(): Unit = {
           if (devNullOs != null)
@@ -123,8 +122,7 @@ object BloopRifle {
           conn.stop()
         }
       }
-    }
-    catch {
+    } catch {
       case NonFatal(e) =>
         if (devNullOs != null)
           devNullOs.close()
@@ -133,9 +131,9 @@ object BloopRifle {
   }
 
   def exit(
-    config: BloopRifleConfig,
-    workingDir: Path,
-    logger: BloopRifleLogger
+      config: BloopRifleConfig,
+      workingDir: Path,
+      logger: BloopRifleLogger
   ): Int = {
 
     val in = config.bspStdin.getOrElse {
@@ -163,8 +161,7 @@ object BloopRifle {
         err,
         logger
       )
-    }
-    catch {
+    } catch {
       case NonFatal(e) =>
         if (devNullOs != null)
           devNullOs.close()
@@ -178,17 +175,16 @@ object BloopRifle {
 
   // Probably we should implement an endpoint in Bloop to get this
   // information in better form. I'm not sure error here should be escalated or ignored.
-  private def extractVersionFromBloopAbout(stdoutFromBloopAbout: String)
-    : Option[BloopServerRuntimeInfo] = {
+  private def extractVersionFromBloopAbout(stdoutFromBloopAbout: String): Option[BloopServerRuntimeInfo] = {
 
     val bloopVersionRegex = "bloop v(.*)\\s".r
-    val bloopJvmRegex     = "Running on Java JDK v([0-9._A-Za-z]+) [(](.*)[)]".r
+    val bloopJvmRegex = "Running on Java JDK v([0-9._A-Za-z]+) [(](.*)[)]".r
 
     for {
-      bloopVersion    <- bloopVersionRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
+      bloopVersion <- bloopVersionRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
       bloopJvmVersion <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(1))
-      javaHome        <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(2))
-      jvmRelease      <- VersionUtil.jvmRelease(bloopJvmVersion)
+      javaHome <- bloopJvmRegex.findFirstMatchIn(stdoutFromBloopAbout).map(_.group(2))
+      jvmRelease <- VersionUtil.jvmRelease(bloopJvmVersion)
     } yield BloopServerRuntimeInfo(
       bloopVersion = BloopVersion(bloopVersion),
       jvmVersion = jvmRelease,
@@ -197,10 +193,10 @@ object BloopRifle {
   }
 
   def getCurrentBloopVersion(
-    config: BloopRifleConfig,
-    logger: BloopRifleLogger,
-    workdir: Path,
-    scheduler: ScheduledExecutorService
+      config: BloopRifleConfig,
+      logger: BloopRifleLogger,
+      workdir: Path,
+      scheduler: ScheduledExecutorService
   ): Either[BloopAboutFailure, BloopServerRuntimeInfo] = {
     val isRunning = BloopRifle.check(config, logger, scheduler)
 
@@ -221,18 +217,17 @@ object BloopRifle {
         case Some(value) => Right(value)
         case None        => Left(ParsingFailed(bloopAboutOutput))
       }
-    }
-    else
+    } else
       Left(BloopNotRunning)
   }
 }
 
 sealed trait BloopAboutFailure
-case object BloopNotRunning                        extends BloopAboutFailure
+case object BloopNotRunning extends BloopAboutFailure
 case class ParsingFailed(bloopAboutOutput: String) extends BloopAboutFailure
 
 case class BloopServerRuntimeInfo(
-  bloopVersion: BloopVersion,
-  jvmVersion: Int,
-  javaHome: String
+    bloopVersion: BloopVersion,
+    jvmVersion: Int,
+    javaHome: String
 )

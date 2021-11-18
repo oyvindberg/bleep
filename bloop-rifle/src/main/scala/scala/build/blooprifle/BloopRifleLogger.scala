@@ -24,12 +24,12 @@ trait BloopRifleLogger { self =>
 
   def nailgunLogger: SnailgunLogger =
     new SnailgunLogger {
-      val name: String                      = "bloop"
-      val isVerbose: Boolean                = true
-      def debug(msg: String): Unit          = self.debug("nailgun debug: " + msg)
-      def error(msg: String): Unit          = self.debug("nailgun error: " + msg)
-      def warn(msg: String): Unit           = self.debug("nailgun warn: " + msg)
-      def info(msg: String): Unit           = self.debug("nailgun info: " + msg)
+      val name: String = "bloop"
+      val isVerbose: Boolean = true
+      def debug(msg: String): Unit = self.debug("nailgun debug: " + msg)
+      def error(msg: String): Unit = self.debug("nailgun error: " + msg)
+      def warn(msg: String): Unit = self.debug("nailgun warn: " + msg)
+      def info(msg: String): Unit = self.debug("nailgun info: " + msg)
       def trace(exception: Throwable): Unit = self.debug("nailgun trace: " + exception.toString)
     }
 }
@@ -40,8 +40,8 @@ object BloopRifleLogger {
       def info(msg: => String) = {}
       def debug(msg: => String) = {}
       def error(msg: => String, ex: Throwable) = {}
-      def bloopBspStdout        = None
-      def bloopBspStderr        = None
+      def bloopBspStdout = None
+      def bloopBspStderr = None
       def bloopCliInheritStdout = false
       def bloopCliInheritStderr = false
     }
