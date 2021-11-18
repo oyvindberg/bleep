@@ -14,11 +14,11 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
     - uses: actions/checkout@v2
-    - uses: coursier/cache-action@v5
+    - uses: coursier/cache-action@v6
     - name: Set up JDK
-      uses: olafurpg/setup-scala@v10
+      uses: olafurpg/setup-scala@v11
       with:
-        java-version: graalvm@
+        java-version: graalvm-ce-java11@21.1.0
     - name: Scalafmt Check
       run: sbt scalafmtCheckAll
     - name: "Test"
