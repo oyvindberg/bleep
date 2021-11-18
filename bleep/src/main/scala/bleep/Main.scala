@@ -12,9 +12,9 @@ object Main
       header = "Bleep for bloop!"
     ) {
   override def main: Opts[IO[ExitCode]] =
-    NonEmptyList.of(compile, test, script).reduce(_ orElse _).map(_.run())
+    NonEmptyList.of(compile, test, script).reduce[Opts[BleepCommands]](_ orElse _).map(_.run())
 
-  private val compile = Opts.subcommand("compile", "compile all project")(Opts(Compile))
-  private val test = Opts.subcommand("test", "compile all project")(Opts(Compile))
+  private val compile = Opts.subcommand("compile", "compile all projects")(Opts(Compile))
+  private val test = Opts.subcommand("test", "test all projects")(Opts(Test))
   private val script = Opts.subcommand("script", "run script")(Opts.argument[Script]())
 }
