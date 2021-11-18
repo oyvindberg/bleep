@@ -26,9 +26,9 @@ object Operations {
     *   Whether a server is running or not.
     */
   def check(
-    host: String,
-    port: Int,
-    logger: BloopRifleLogger
+      host: String,
+      port: Int,
+      logger: BloopRifleLogger
   ): Boolean =
     // inspired by https://github.com/scalacenter/bloop/blob/cbddb8baaf639a4e08ee630f1ebc559dc70255a8/bloopgun/src/main/scala/bloop/bloopgun/core/Shell.scala#L174-L202
     Util.withSocket { socket =>
@@ -38,8 +38,7 @@ object Operations {
       try {
         socket.connect(new InetSocketAddress(host, port))
         socket.isConnected()
-      }
-      catch {
+      } catch {
         case _: ConnectException => false
       }
     }
@@ -58,15 +57,15 @@ object Operations {
     *   A future, that gets completed when the server is done starting (and can thus be used).
     */
   def startServer(
-    host: String,
-    port: Int,
-    javaPath: String,
-    javaOpts: Seq[String],
-    classPath: Seq[Path],
-    scheduler: ScheduledExecutorService,
-    waitInterval: FiniteDuration,
-    timeout: Duration,
-    logger: BloopRifleLogger
+      host: String,
+      port: Int,
+      javaPath: String,
+      javaOpts: Seq[String],
+      classPath: Seq[Path],
+      scheduler: ScheduledExecutorService,
+      waitInterval: FiniteDuration,
+      timeout: Duration,
+      logger: BloopRifleLogger
   ): Future[Unit] = {
 
     val command =
@@ -139,8 +138,7 @@ object Operations {
 
   /** Opens a BSP connection to a running bloop server.
     *
-    * Starts a thread to read output from the nailgun connection, and another one to pass input to
-    * it.
+    * Starts a thread to read output from the nailgun connection, and another one to pass input to it.
     *
     * @param host
     * @param port
@@ -152,21 +150,21 @@ object Operations {
     *   A [[BspConnection]] object, that can be used to close the connection.
     */
   def bsp(
-    host: String,
-    port: Int,
-    bspSocketOrPort: BspConnectionAddress,
-    workingDir: Path,
-    in: InputStream,
-    out: OutputStream,
-    err: OutputStream,
-    logger: BloopRifleLogger
+      host: String,
+      port: Int,
+      bspSocketOrPort: BspConnectionAddress,
+      workingDir: Path,
+      in: InputStream,
+      out: OutputStream,
+      err: OutputStream,
+      logger: BloopRifleLogger
   ): BspConnection = {
 
-    val stop0         = new AtomicBoolean
+    val stop0 = new AtomicBoolean
     val nailgunClient = TcpClient(host, port)
-    val streams       = Streams(in, out, err)
+    val streams = Streams(in, out, err)
 
-    val promise    = Promise[Int]()
+    val promise = Promise[Int]()
     val threadName = "bloop-rifle-nailgun-out"
     val protocolArgs = bspSocketOrPort match {
       case t: BspConnectionAddress.Tcp =>
@@ -209,9 +207,9 @@ object Operations {
         case t: BspConnectionAddress.Tcp =>
           new Socket(host, t.port)
         case s: BspConnectionAddress.UnixDomainSocket =>
-          val socketFile     = s.path
-          var count          = 0
-          val maxCount       = (timeout / period).toInt
+          val socketFile = s.path
+          var count = 0
+          val maxCount = (timeout / period).toInt
           var socket: Socket = null
           while (socket == null && count < maxCount && closed.value.isEmpty) {
             logger.debug {
@@ -233,8 +231,7 @@ object Operations {
                     case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
                       throw ex.getCause
                   }
-                }
-                catch {
+                } catch {
                   case ExCause(ex0: NativeErrorException) if ignoredErrnos(ex0.returnCode) =>
                     logger.debug(s"Error when connecting to $socketFile: ${ex0.getMessage}")
                     null
@@ -247,16 +244,15 @@ object Operations {
           if (socket != null) {
             logger.debug(s"BSP connection at $socketFile opened")
             socket
-          }
-          else if (closed.value.isEmpty)
+          } else if (closed.value.isEmpty)
             sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
           else
             sys.error(
               s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
             )
         case p: BspConnectionAddress.WindowsNamedPipe =>
-          var count          = 0
-          val maxCount       = (timeout / period).toInt
+          var count = 0
+          val maxCount = (timeout / period).toInt
           var socket: Socket = null
           while (socket == null && count < maxCount && closed.value.isEmpty) {
             Thread.sleep(period.toMillis)
@@ -271,8 +267,7 @@ object Operations {
                   case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
                     throw ex.getCause
                 }
-              }
-              catch {
+              } catch {
                 case ex: IOException
                     if ex.getMessage != null &&
                       ex.getMessage.contains("The system cannot find the file specified.") =>
@@ -287,8 +282,7 @@ object Operations {
           if (socket != null) {
             logger.debug(s"BSP connection at ${p.name} opened")
             socket
-          }
-          else if (closed.value.isEmpty)
+          } else if (closed.value.isEmpty)
             sys.error(s"Timeout while waiting for BSP socket to be created in ${p.name}")
           else
             sys.error(
@@ -301,18 +295,18 @@ object Operations {
   }
 
   def exit(
-    host: String,
-    port: Int,
-    workingDir: Path,
-    in: InputStream,
-    out: OutputStream,
-    err: OutputStream,
-    logger: BloopRifleLogger
+      host: String,
+      port: Int,
+      workingDir: Path,
+      in: InputStream,
+      out: OutputStream,
+      err: OutputStream,
+      logger: BloopRifleLogger
   ): Int = {
 
-    val stop0         = new AtomicBoolean
+    val stop0 = new AtomicBoolean
     val nailgunClient = TcpClient(host, port)
-    val streams       = Streams(in, out, err)
+    val streams = Streams(in, out, err)
 
     nailgunClient.run(
       "exit",
@@ -327,19 +321,19 @@ object Operations {
   }
 
   def about(
-    host: String,
-    port: Int,
-    workingDir: Path,
-    in: InputStream,
-    out: OutputStream,
-    err: OutputStream,
-    logger: BloopRifleLogger,
-    scheduler: ExecutorService
+      host: String,
+      port: Int,
+      workingDir: Path,
+      in: InputStream,
+      out: OutputStream,
+      err: OutputStream,
+      logger: BloopRifleLogger,
+      scheduler: ExecutorService
   ): Int = {
 
-    val stop0         = new AtomicBoolean
+    val stop0 = new AtomicBoolean
     val nailgunClient = TcpClient(host, port)
-    val streams       = Streams(in, out, err)
+    val streams = Streams(in, out, err)
 
     timeout(30.seconds, scheduler, logger) {
       nailgunClient.run(
@@ -357,17 +351,16 @@ object Operations {
   }
 
   def timeout[T](
-    duration: Duration,
-    scheduler: ExecutorService,
-    logger: BloopRifleLogger
+      duration: Duration,
+      scheduler: ExecutorService,
+      logger: BloopRifleLogger
   )(body: => T) = {
     val p = Promise[T]()
     scheduler.execute { () =>
       try {
         val retCode = body
         p.tryComplete(Success(retCode))
-      }
-      catch {
+      } catch {
         case t: Throwable =>
           logger.debug(s"Caught $t while trying to run code with timeout")
       }

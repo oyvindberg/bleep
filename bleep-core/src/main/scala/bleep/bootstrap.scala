@@ -34,7 +34,7 @@ object bootstrap {
         extends Bootstrapped {
 
       lazy val projects: List[b.Project] =
-        bloopFiles.map {case (_, lazyProject) => lazyProject.forceGet("").project }.toList
+        bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet("").project }.toList
     }
   }
 

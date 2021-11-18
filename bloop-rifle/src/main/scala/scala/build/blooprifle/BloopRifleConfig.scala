@@ -7,35 +7,35 @@ import scala.concurrent.duration._
 import scala.util.Try
 
 final case class BloopRifleConfig(
-  host: String,
-  port: Int,
-  javaPath: String,
-  javaOpts: Seq[String],
-  classPath: String => Either[Throwable, Seq[File]],
-  bspSocketOrPort: Option[() => BspConnectionAddress],
-  bspStdin: Option[InputStream],
-  bspStdout: Option[OutputStream],
-  bspStderr: Option[OutputStream],
-  period: FiniteDuration,
-  timeout: FiniteDuration,
-  startCheckPeriod: FiniteDuration,
-  startCheckTimeout: FiniteDuration,
-  initTimeout: FiniteDuration,
-  minimumBloopJvm: Int,
-  retainedBloopVersion: BloopRifleConfig.BloopVersionConstraint
+    host: String,
+    port: Int,
+    javaPath: String,
+    javaOpts: Seq[String],
+    classPath: String => Either[Throwable, Seq[File]],
+    bspSocketOrPort: Option[() => BspConnectionAddress],
+    bspStdin: Option[InputStream],
+    bspStdout: Option[OutputStream],
+    bspStderr: Option[OutputStream],
+    period: FiniteDuration,
+    timeout: FiniteDuration,
+    startCheckPeriod: FiniteDuration,
+    startCheckTimeout: FiniteDuration,
+    initTimeout: FiniteDuration,
+    minimumBloopJvm: Int,
+    retainedBloopVersion: BloopRifleConfig.BloopVersionConstraint
 )
 
 object BloopRifleConfig {
 
   sealed trait BloopVersionConstraint { def version: BloopVersion }
   case class AtLeast(version: BloopVersion) extends BloopVersionConstraint
-  case class Strict(version: BloopVersion)  extends BloopVersionConstraint
+  case class Strict(version: BloopVersion) extends BloopVersionConstraint
 
   def hardCodedDefaultHost = "127.0.0.1"
   def hardCodedDefaultPort = 8212
 
   lazy val defaultHost: String = {
-    val fromEnv   = Option(System.getenv("BLOOP_SERVER")).filter(_.nonEmpty)
+    val fromEnv = Option(System.getenv("BLOOP_SERVER")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.server").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
@@ -45,7 +45,8 @@ object BloopRifleConfig {
     val fromEnv = Option(System.getenv("BLOOP_PORT"))
       .filter(_.nonEmpty)
       .flatMap(s => Try(s.toInt).toOption)
-    def fromProps = sys.props.get("bloop.port")
+    def fromProps = sys.props
+      .get("bloop.port")
       .filter(_.nonEmpty)
       .flatMap(s => Try(s.toInt).toOption)
     fromEnv
@@ -58,11 +59,11 @@ object BloopRifleConfig {
     Seq(
       "-Xss4m",
       "-XX:MaxInlineLevel=20", // Specific option for faster C2, ignored by GraalVM
-      "-XX:+UseParallelGC"     // Full parallel GC is the best choice for Scala compilation
+      "-XX:+UseParallelGC" // Full parallel GC is the best choice for Scala compilation
     )
 
   lazy val defaultJavaOpts: Seq[String] = {
-    val fromEnv   = Option(System.getenv("BLOOP_JAVA_OPTS")).filter(_.nonEmpty)
+    val fromEnv = Option(System.getenv("BLOOP_JAVA_OPTS")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.java-opts").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
@@ -78,21 +79,21 @@ object BloopRifleConfig {
     Constants.bloopScalaVersion
 
   lazy val defaultModule: String = {
-    val fromEnv   = Option(System.getenv("BLOOP_MODULE")).map(_.trim).filter(_.nonEmpty)
+    val fromEnv = Option(System.getenv("BLOOP_MODULE")).map(_.trim).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.module").map(_.trim).filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultModule)
   }
   lazy val defaultVersion: String = {
-    val fromEnv   = Option(System.getenv("BLOOP_VERSION")).filter(_.nonEmpty)
+    val fromEnv = Option(System.getenv("BLOOP_VERSION")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.version").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultVersion)
   }
   lazy val defaultScalaVersion: String = {
-    val fromEnv   = Option(System.getenv("BLOOP_SCALA_VERSION")).filter(_.nonEmpty)
+    val fromEnv = Option(System.getenv("BLOOP_SCALA_VERSION")).filter(_.nonEmpty)
     def fromProps = sys.props.get("bloop.scala-version").filter(_.nonEmpty)
     fromEnv
       .orElse(fromProps)
@@ -100,7 +101,7 @@ object BloopRifleConfig {
   }
 
   def default(
-    bloopClassPath: String => Either[Throwable, Seq[File]]
+      bloopClassPath: String => Either[Throwable, Seq[File]]
   ): BloopRifleConfig =
     BloopRifleConfig(
       host = defaultHost,
