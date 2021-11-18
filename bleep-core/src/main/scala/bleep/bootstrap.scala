@@ -7,7 +7,7 @@ import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
@@ -76,15 +76,13 @@ object bootstrap {
               }
             }
 
-            if (oldHash.contains(currentHash)) {
+            val bloopFiles = if (oldHash.contains(currentHash)) {
               println(s"${buildPaths.dotBloopDir} up to date")
 
-              val readLazily: Map[model.ProjectName, Lazy[b.File]] = build.projects.map { case (projectName, _) =>
+              build.projects.map { case (projectName, _) =>
                 val load = Lazy(readBloopFile(buildPaths.dotBloopDir, projectName))
                 (projectName, load)
               }
-              Right(Started(buildPaths, build, readLazily, activeProject, lazyResolver, directories, Logger.Println))
-
             } else {
               val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] =
                 generateBloopFiles(build, buildPaths, lazyResolver.forceGet)
@@ -98,8 +96,10 @@ object bootstrap {
               }
               Files.writeString(buildPaths.digestFile, currentHash, UTF_8)
               println(s"Wrote ${bloopFiles.size} files to ${buildPaths.dotBloopDir}")
-              Right(Started(buildPaths, build, bloopFiles, activeProject, lazyResolver, directories, Logger.Println))
+              bloopFiles
             }
+
+            Right(Started(buildPaths, build, bloopFiles, activeProject, lazyResolver, directories, Logger.Println))
         }
       case None => Left(new BuildException.BuildNotFound(cwd))
     }

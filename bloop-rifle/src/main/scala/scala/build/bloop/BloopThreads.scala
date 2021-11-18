@@ -9,7 +9,7 @@ final case class BloopThreads(
 ) {
   def shutdown(): Unit =
     jsonrpc.shutdown()
-    //startServerChecks.shutdown()
+  // startServerChecks.shutdown()
 }
 
 object BloopThreads {

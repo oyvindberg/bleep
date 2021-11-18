@@ -1,17 +1,19 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{MyBloopRifleLogger, Os, ShortenJson}
+import bleep.internal.{Argv0, MyBloopRifleLogger, Os, ShortenJson}
 import bleep.model.{ProjectName, ScriptName}
 import cats.data.{NonEmptyList, ValidatedNel}
 import cats.effect.{ExitCode, IO}
 import cats.implicits.{catsSyntaxValidatedId, toTraverseOps}
 import ch.epfl.scala.bsp4j
 import com.monovore.decline.Argument
+import io.circe.Encoder
 import io.circe.syntax._
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
+import java.nio.file.{Files, StandardOpenOption}
+import java.util
 import scala.build.bloop.{BloopServer, BloopThreads}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -65,10 +67,12 @@ object BleepCommands {
           ) { server =>
             def targetId(name: ProjectName): bsp4j.BuildTargetIdentifier =
               new bsp4j.BuildTargetIdentifier(started.buildPaths.buildDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
+
             val targets = started.activeProject match {
               case Some(value) => List(targetId(value)).asJava
               case None        => started.build.projects.keys.map(targetId).toList.asJava
             }
+
             println(server.server.workspaceBuildTargets().get().getTargets)
             println(server.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get())
           }
@@ -95,6 +99,41 @@ object BleepCommands {
       runWithEnv { started =>
         val projects = started.build.projects.keys.map(_.value).mkString(" ")
         IO(ExitCode(cli(s"bloop test $projects")(started.buildPaths.buildDir)))
+      }
+  }
+
+  case object SetupIde extends BleepCommands {
+    implicit def encodesUtilList[T: Encoder]: Encoder[util.List[T]] = Encoder[List[T]].contramap(_.asScala.toList)
+    implicit val encoder: Encoder[bsp4j.BspConnectionDetails] =
+      Encoder.forProduct5[bsp4j.BspConnectionDetails, String, util.List[String], String, String, util.List[String]](
+        "name",
+        "argv",
+        "version",
+        "bspVersion",
+        "languages"
+      )(x => (x.getName, x.getArgv, x.getVersion, x.getBspVersion, x.getLanguages))
+
+    override def run(): IO[ExitCode] =
+      runWithEnv { started =>
+        IO {
+          val progName = (new Argv0).get("bleep")
+          val details = new bsp4j.BspConnectionDetails(
+            "bleep",
+            util.List.of(progName, "bsp"),
+            Defaults.version,
+            scala.build.blooprifle.internal.Constants.bspVersion,
+            List("scala", "java").asJava
+          )
+          Files.createDirectories(started.buildPaths.bspBleepJsonFile.getParent)
+          Files.writeString(
+            started.buildPaths.bspBleepJsonFile,
+            details.asJson.spaces2,
+            StandardOpenOption.WRITE,
+            StandardOpenOption.TRUNCATE_EXISTING,
+            StandardOpenOption.CREATE
+          )
+          ExitCode.Success
+        }
       }
   }
 
