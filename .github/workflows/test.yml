@@ -11,7 +11,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
+        include:
+          - os: ubuntu-latest
+            jobType: 1
+          - os: macos-latest
+            jobType: 1
+          - os: windows-latest
+            jobType: 2
     runs-on: ${{matrix.os}}
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
@@ -24,6 +30,7 @@ jobs:
         with:
           java-version: graalvm-ce-java11@21.1.0
       - name: Scalafmt Check
+        if: ${{matrix.jobType == 1}}
         shell: bash
         run: sbt --client scalafmtCheckAll
       - name: "Test"
@@ -32,3 +39,11 @@ jobs:
       - name: "Native image"
         shell: bash
         run: sbt --client nativeImage
+      - name: Cleanup before cache
+        shell: bash
+        run: |
+          rm -rf "$HOME/.ivy2/local" || true
+          find $HOME/Library/Caches/Coursier/v1        -name "ivydata-*.properties" -delete || true
+          find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
+          find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
+          find $HOME/.sbt                              -name "*.lock"               -delete || true
