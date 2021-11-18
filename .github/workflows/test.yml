@@ -1,0 +1,27 @@
+name: Build and Test
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    type: [ synchronize ]
+
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    steps:
+    - uses: actions/checkout@v2
+    - uses: coursier/cache-action@v5
+    - name: Set up JDK
+      uses: olafurpg/setup-scala@v10
+      with:
+        java-version: graalvm@
+    - name: Scalafmt Check
+      run: sbt scalafmtCheckAll
+    - name: "Test"
+      run: sbt "test"
+    - name: "Native image"
+      run: sbt nativeImage
