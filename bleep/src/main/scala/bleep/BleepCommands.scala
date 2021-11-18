@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.bsp.BspImpl
 import bleep.internal.{MyBloopRifleLogger, Os, ShortenJson}
 import bleep.model.{ProjectName, ScriptName}
 import cats.data.{NonEmptyList, ValidatedNel}
@@ -12,6 +13,8 @@ import io.circe.syntax._
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import scala.build.bloop.{BloopServer, BloopThreads}
+import scala.concurrent.Await
+import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters._
 
 sealed trait BleepCommands {
@@ -20,7 +23,7 @@ sealed trait BleepCommands {
 
 object BleepCommands {
   def runWithEnv(runIo: Started => IO[ExitCode]): IO[ExitCode] =
-    bootstrap.from(Os.cwd) match {
+    bootstrap.fromCwd match {
       case Left(th) => IO.raiseError(th)
       case Right(started) =>
         started.activeProject.foreach(p => println(s"active project: ${p.value}"))
@@ -39,19 +42,19 @@ object BleepCommands {
 
   case object Compile extends BleepCommands {
     override def run(): IO[ExitCode] =
-      runWithEnv { started =>
-        val bloopSetup = new BloopSetup(
+      runWithEnv { started: Started =>
+        val bloopRifleConfig = new BloopSetup(
           "/usr/bin/java",
           started.directories,
           started.build,
           started.resolver,
           bloopBspProtocol = None,
           bloopBspSocket = None
-        )
+        ).bloopRifleConfig
 
         IO {
           BloopServer.withBuildServer(
-            bloopSetup.bloopRifleConfig,
+            bloopRifleConfig,
             "bleep",
             Defaults.version,
             started.buildPaths.dotBleepDir,
@@ -92,6 +95,40 @@ object BleepCommands {
       runWithEnv { started =>
         val projects = started.build.projects.keys.map(_.value).mkString(" ")
         IO(ExitCode(cli(s"bloop test $projects")(started.buildPaths.buildDir)))
+      }
+  }
+
+  case object Bsp extends BleepCommands {
+    override def run(): IO[ExitCode] =
+      runWithEnv { started =>
+        IO {
+          val bloopRifleConfig = new BloopSetup(
+            "/usr/bin/java",
+            started.directories,
+            started.build,
+            started.resolver,
+            bloopBspProtocol = None,
+            bloopBspSocket = None
+          ).bloopRifleConfig
+
+          bsp.BspThreads.withThreads { threads =>
+            val bsp = new BspImpl(
+              started.logger,
+              bloopRifleConfig,
+              buildPath = started.buildPaths.dotBleepDir,
+              threads,
+              System.in,
+              System.out,
+              () => bootstrap.fromCwd
+            )
+
+            try {
+              val doneFuture = bsp.run()
+              Await.result(doneFuture, Duration.Inf)
+            } finally bsp.shutdown()
+          }
+          ExitCode.Success
+        }
       }
   }
 

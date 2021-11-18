@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.Lazy
+import bleep.internal.{Lazy, Os}
 import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
@@ -36,7 +36,7 @@ case class Started(
 
 object bootstrap {
   def fromCwd: Either[BuildException, Started] =
-    from(Paths.get(System.getProperty("user.dir")))
+    from(Os.cwd)
 
   def from(cwd: Path): Either[BuildException, Started] = {
     val directories = UserPaths.fromAppDirs

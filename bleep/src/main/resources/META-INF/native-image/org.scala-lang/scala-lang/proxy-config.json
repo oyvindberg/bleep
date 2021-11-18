@@ -10,9 +10,5 @@
   [
     "scala.build.bloop.ScalaDebugServer",
     "org.eclipse.lsp4j.jsonrpc.Endpoint"
-  ],
-  [
-    "scala.build.bloop.ScalaDebugServerForwardStubs",
-    "org.eclipse.lsp4j.jsonrpc.Endpoint"
   ]
 ]

@@ -5,7 +5,7 @@ import bleep.internal.MyBloopRifleLogger
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
-import java.io.{InputStream, OutputStream}
+import java.io._
 import java.nio.file.Path
 import scala.build.bloop.BloopServer
 import scala.build.blooprifle.BloopRifleConfig
@@ -18,18 +18,18 @@ final class BspImpl(
     buildPath: Path,
     threads: BspThreads,
     in: InputStream,
-    out: OutputStream
+    out: OutputStream,
+    ensureBloopUpToDate: () => Unit
 ) {
 
   val bloopRifleLogger = new MyBloopRifleLogger(logger, true, true)
   var remoteServer: BloopServer = null
-  var actualLocalServer: BspServer = null
 
   def classesRootDir(root: Path): Path =
     root / ".bleep" / "classes"
 
   def run(): Future[Unit] = {
-    val localClient = new BspClient(None)
+    val localClient = new BspForwardClient(None)
 
     remoteServer = BloopServer.buildServer(
       bloopRifleConfig,
@@ -42,8 +42,8 @@ final class BspImpl(
       bloopRifleLogger
     )
 
-    val localServer: bsp4j.BuildServer with bsp4j.ScalaBuildServer with bsp4j.JavaBuildServer =
-      new BspServer(remoteServer.server)
+    val localServer: BspForwardServer =
+      new BspForwardServer(remoteServer.server, ensureBloopUpToDate)
 
     val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]()
       .setExecutorService(threads.buildThreads.bloop.jsonrpc) // FIXME No
@@ -62,12 +62,10 @@ final class BspImpl(
       else
         "Listening to incoming JSONRPC BSP requests."
     }
-    val f = launcher.startListening()
-
     val es = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
     val futures = Seq(
-      BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(es),
-      actualLocalServer.initiateShutdown
+      BspImpl.naiveJavaFutureToScalaFuture(launcher.startListening()).map(_ => ())(es),
+      localServer.initiateShutdown
     )
     Future.firstCompletedOf(futures)(es)
   }
