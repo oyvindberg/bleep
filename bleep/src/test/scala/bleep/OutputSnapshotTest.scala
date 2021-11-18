@@ -2,6 +2,7 @@ package bleep
 
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
+import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -15,6 +16,7 @@ class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
 
   def anonymize(str: String): String =
     str
+      .replace(CoursierPaths.cacheDirectory().toString, "<COURSIER>")
       .replace(System.getProperty("user.dir"), "<PROJECT>")
       .replace(System.getProperty("user.home"), "<HOME>")
 
