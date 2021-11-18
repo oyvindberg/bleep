@@ -3,27 +3,29 @@ on:
   push:
     branches: [ '*' ]
   pull_request:
-    type: [ synchronize ]
+    types: [ synchronize ]
 
 jobs:
   test:
     timeout-minutes: 10
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{matrix.os}}
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-    - uses: coursier/cache-action@v6
-    - name: Set up JDK
-      uses: olafurpg/setup-scala@v11
-      with:
-        java-version: graalvm-ce-java11@21.1.0
-    - name: Scalafmt Check
-      run: sbt scalafmtCheckAll
-    - name: "Test"
-      run: sbt "test"
-    - name: "Native image"
-      run: sbt nativeImage
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: coursier/cache-action@v6
+      - name: Set up JDK
+        uses: olafurpg/setup-scala@v11
+        with:
+          java-version: graalvm-ce-java11@21.1.0
+      - name: Scalafmt Check
+        run: sbt -client scalafmtCheckAll
+      - name: "Test"
+        run: sbt -client "test"
+      - name: "Native image"
+        run: sbt -client nativeImage
