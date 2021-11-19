@@ -59,7 +59,7 @@ lazy val bleep = project
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
-      "com.monovore" %% "decline-effect" % "2.1.0"
+      "com.monovore" %% "decline-effect" % "2.2.0"
     ),
     Compile / mainClass := Some("bleep.Main")
   )
