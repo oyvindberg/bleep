@@ -16,13 +16,13 @@ object generateBloopFiles {
   implicit val ordering: Ordering[Dependency] =
     Ordering.by(_.toString())
 
-  def apply(build: model.Build, workspaceDir: Path, resolver: CoursierResolver): SortedMap[model.ProjectName, Lazy[b.File]] = {
+  def apply(build: model.Build, buildPaths: BuildPaths, resolver: CoursierResolver): SortedMap[model.ProjectName, Lazy[b.File]] = {
     verify(build)
 
     rewriteDependentData(build.projects) { (projectName, project, getDep) =>
       translateProject(
         resolver,
-        workspaceDir,
+        buildPaths,
         projectName,
         project,
         build,
@@ -45,14 +45,14 @@ object generateBloopFiles {
 
   def translateProject(
       resolver: CoursierResolver,
-      workspaceDir: Path,
+      buildPaths: BuildPaths,
       projName: model.ProjectName,
       proj: model.Project,
       build: model.Build,
       getBloopProject: model.ProjectName => b.File
   ): b.File = {
-    val projectPath: Path =
-      workspaceDir / proj.folder.getOrElse(RelPath.force(projName.value))
+    val projectPaths: ProjectPaths =
+      buildPaths.from(projName, proj)
 
     val allTransitiveTranslated: Map[model.ProjectName, b.File] = {
       val builder = Map.newBuilder[model.ProjectName, b.File]
@@ -69,7 +69,7 @@ object generateBloopFiles {
       builder.result()
     }
 
-    val templateDirs = Options.TemplateDirs(workspaceDir, projectPath)
+    val templateDirs = Options.TemplateDirs(buildPaths.buildDir, projectPaths.dir)
 
     val maybeScala: Option[model.Scala] = {
       def go(s: model.Scala): model.Scala =
@@ -225,9 +225,7 @@ object generateBloopFiles {
           version = scalaCompiler.version,
           options = templateDirs.toAbsolutePaths.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
-          analysis = Some(
-            projectPath / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / s"inc_compile_${scalaVersion.binVersion}.zip"
-          ),
+          analysis = Some(projectPaths.incrementalAnalysis(scalaVersion)),
           setup = Some(setup)
         )
       }
@@ -240,34 +238,27 @@ object generateBloopFiles {
     }
 
     val sources: JsonSet[Path] =
-      (sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.sources.values)).map(projectPath / _)
+      (sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.sources.values)).map(projectPaths.dir / _)
 
     val resources: JsonSet[Path] =
-      (sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.resources.values)).map(projectPath / _)
+      (sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.resources.values)).map(projectPaths.dir / _)
 
     b.File(
       "1.4.0",
       b.Project(
         projName.value,
-        projectPath,
-        Some(workspaceDir),
+        projectPaths.dir,
+        Some(buildPaths.buildDir),
         sources = sources.values.toList,
         sourcesGlobs = None,
         sourceRoots = None,
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
-        out = workspaceDir / Defaults.BloopFolder / projName.value,
-        classesDir = scalaVersion match {
-          case Some(scalaVersion) => workspaceDir / Defaults.BloopFolder / projName.value / s"scala-${scalaVersion.binVersion}" / "classes"
-          case None               => workspaceDir / Defaults.BloopFolder / projName.value / "classes"
-        },
+        out = projectPaths.targetDir,
+        classesDir = projectPaths.classes(scalaVersion, isTest = false),
         resources = Some(resources.values.toList),
         scala = configuredScala,
-        java = Some(
-          b.Java(
-            options = templateDirs.toAbsolutePaths.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render
-          )
-        ),
+        java = Some(b.Java(options = templateDirs.toAbsolutePaths.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,
         test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
         platform = configuredPlatform,

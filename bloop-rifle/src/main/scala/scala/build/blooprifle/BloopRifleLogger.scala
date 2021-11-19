@@ -2,8 +2,6 @@ package scala.build.blooprifle
 
 import snailgun.logging.{Logger => SnailgunLogger}
 
-import java.io.OutputStream
-
 import scala.util.control.NonFatal
 
 trait BloopRifleLogger { self =>
@@ -17,8 +15,6 @@ trait BloopRifleLogger { self =>
         error(s"Error running $name", e)
     }
   }
-  def bloopBspStdout: Option[OutputStream]
-  def bloopBspStderr: Option[OutputStream]
   def bloopCliInheritStdout: Boolean
   def bloopCliInheritStderr: Boolean
 
@@ -40,8 +36,6 @@ object BloopRifleLogger {
       def info(msg: => String) = {}
       def debug(msg: => String) = {}
       def error(msg: => String, ex: Throwable) = {}
-      def bloopBspStdout = None
-      def bloopBspStderr = None
       def bloopCliInheritStdout = false
       def bloopCliInheritStderr = false
     }
