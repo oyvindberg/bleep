@@ -11,7 +11,7 @@
   },
   "scala" : {
     "2.13" : {
-      "version" : "2.13.6",
+      "version" : "2.13.7",
       "options" : [
         "-Vtype-diffs",
         "-Vimplicits",
@@ -66,7 +66,7 @@
       "sbt-scope" : "main",
       "dependencies" : [
         "com.lihaoyi::pprint:0.6.6",
-        "com.monovore::decline-effect:2.1.0",
+        "com.monovore::decline-effect:2.2.0",
         "org.scalameta:svm-subs:101.0.0"
       ],
       "scala" : "2.13",
@@ -83,7 +83,7 @@
         "io.circe::circe-parser:0.14.1",
         "io.get-coursier::coursier:2.0.16",
         "net.harawata:appdirs:1.2.1",
-        "org.scala-lang:scala-reflect:2.13.6"
+        "org.scala-lang:scala-reflect:2.13.7"
       ],
       "scala" : "2.13",
       "platform" : "jvm"
@@ -113,7 +113,7 @@
       "sbt-scope" : "main",
       "dependencies" : [
         "ch.epfl.scala::bloop-config:1.4.11",
-        "ch.epfl.scala:bsp4j:2.0.0-M14",
+        "ch.epfl.scala:bsp4j:2.0.0",
         "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2",
         "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.code.gson:gson:2.8.9",
@@ -124,7 +124,7 @@
         "org.checkerframework:checker-qual:2.5.2",
         "org.codehaus.mojo:animal-sniffer-annotations:1.17",
         "org.graalvm.nativeimage:svm:20.2.0",
-        "org.scala-lang:scala-library:2.13.6"
+        "org.scala-lang:scala-library:2.13.7"
       ],
       "scala" : "2.13",
       "platform" : "jvm"
