@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.{Lazy, Os}
 import bleep.logging.{Logger, Pattern}
-import bloop.config.{ConfigCodecs, Config => b}
+import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 

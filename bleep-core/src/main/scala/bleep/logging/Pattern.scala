@@ -40,7 +40,7 @@ object Pattern {
 
   object default extends Pattern {
     override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx): Str = {
-      val Color  = colorFor(m.logLevel)
+      val Color = colorFor(m.logLevel)
       val Subtle = subtleColorFor(m.logLevel)
       val source = if (t.source.startsWith("\"") || t.source.startsWith("s\"")) "" else t.source
 
@@ -61,7 +61,7 @@ object Pattern {
         throwable match {
           case None     => ""
           case Some(th) => Subtle(formatThrowable(th))
-        },
+        }
       )
     }
   }

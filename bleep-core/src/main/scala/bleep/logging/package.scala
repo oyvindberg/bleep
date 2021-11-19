@@ -15,15 +15,15 @@ package object logging {
 
   def appendable[A <: Appendable](
       appendable: A,
-      pattern:    Pattern = Pattern.default,
-      ctx:        Ctx = emptyContext,
+      pattern: Pattern = Pattern.default,
+      ctx: Ctx = emptyContext
   ): Logger.Aux[A] =
     new AppendableLogger(appendable, pattern, ctx)
 
   def writer[W <: Writer](
-      writer:  W       = System.out,
+      writer: W = System.out,
       pattern: Pattern = Pattern.default,
-      ctx:     Ctx     = emptyContext,
+      ctx: Ctx = emptyContext
   ): Logger.Aux[W] =
     new WriterLogger(new AppendableLogger(writer, pattern, ctx))
 
