@@ -28,7 +28,7 @@ object BleepCommands {
     bootstrap.fromCwd match {
       case Left(th) => IO.raiseError(th)
       case Right(started) =>
-        started.activeProject.foreach(p => println(s"active project: ${p.value}"))
+        started.activeProject.foreach(p => started.logger.info(s"active project: ${p.value}"))
         runIo(started)
     }
 
@@ -71,7 +71,6 @@ object BleepCommands {
               case None        => started.build.projects.keys.map(targetId).toList.asJava
             }
 
-            println(server.server.workspaceBuildTargets().get().getTargets)
             println(server.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get())
           }
         }.as(ExitCode.Success)
@@ -82,12 +81,13 @@ object BleepCommands {
     override def run(): IO[ExitCode] = IO {
       val buildPaths = BuildPaths(Os.cwd / Defaults.BuildFileName)
 
-      val build = deduplicateBuild(importBloopFilesFromSbt(buildPaths))
+      val build = deduplicateBuild(importBloopFilesFromSbt(bootstrap.logger, buildPaths))
       Files.writeString(
         buildPaths.bleepJsonFile,
         build.asJson.foldWith(ShortenJson).spaces2,
         UTF_8
       )
+      bootstrap.logger.info(s"Imported ${build.projects.size} projects")
       ExitCode.Success
     }
   }

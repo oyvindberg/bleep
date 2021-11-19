@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.Options.{Opt, TemplateDirs}
+import bleep.logging.Logger
 import bleep.model.orderingDep
 import bloop.config.Config
 import coursier.core.compatibility.xmlParseSax
@@ -18,7 +19,7 @@ object importBloopFilesFromSbt {
   def platformName(platform: Config.Platform): model.PlatformId = model.PlatformId(platform.name)
   def scalaName(version: Versions.Scala): model.ScalaId = model.ScalaId(version.binVersion)
 
-  def apply(buildPaths: BuildPaths): model.Build = {
+  def apply(logger: Logger, buildPaths: BuildPaths): model.Build = {
     val projectNames: List[model.ProjectName] =
       Files
         .list(buildPaths.dotBloopDir)
@@ -95,7 +96,7 @@ object importBloopFilesFromSbt {
 
       val dependencies: List[JavaOrScalaDependency] = {
         val parsed: List[ParsedDependency] =
-          resolution.modules.map(mod => ParsedDependency(scalaVersion, mod))
+          resolution.modules.map(mod => ParsedDependency(logger, scalaVersion, mod))
 
         val activeConfigs: Set[Configuration] =
           Set(Configuration.empty, Configuration.compile, Configuration.default)
@@ -124,7 +125,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(templateDirs))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(templateDirs, configuredPlatform))
+        bloopProject.scala.map(translateScala(logger, templateDirs, configuredPlatform))
 
       projectName -> model.Project(
         folder = folder,
@@ -186,7 +187,7 @@ object importBloopFilesFromSbt {
   case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[(Configuration, Dependency)])
 
   object ParsedDependency {
-    def apply(scalaVersion: Option[Versions.Scala], mod: Config.Module): ParsedDependency = {
+    def apply(logger: Logger, scalaVersion: Option[Versions.Scala], mod: Config.Module): ParsedDependency = {
       def withConf(dep: Dependency): Dependency =
         mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
 
@@ -231,7 +232,7 @@ object importBloopFilesFromSbt {
 
             parsedPom match {
               case Left(errMsg) =>
-                println(s"Couldn't determine dependencies for $mod: $errMsg")
+                logger.warn(s"Couldn't determine dependencies for $mod: $errMsg")
                 Nil
               case Right(project) =>
                 project.dependencies
@@ -293,7 +294,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(templateDirs: Options.TemplateDirs, platform: Option[model.Platform])(s: Config.Scala): model.Scala = {
+  def translateScala(logger: Logger, templateDirs: Options.TemplateDirs, platform: Option[model.Platform])(s: Config.Scala): model.Scala = {
     val options = Options.parse(s.options, Some(templateDirs))
 
     val (plugins, rest) = options.values.partition {
@@ -306,7 +307,7 @@ object importBloopFilesFromSbt {
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
       val pomPath = findPomPath(jarPath)
       val Right(pom) = xmlParseSax(Files.readString(pomPath), new PomParser).project
-      ParsedDependency(Some(version), Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
+      ParsedDependency(logger, Some(version), Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
     val filteredCompilerPlugins =

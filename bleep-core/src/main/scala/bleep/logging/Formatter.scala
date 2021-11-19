@@ -2,8 +2,9 @@ package bleep.logging
 
 import java.io.File
 import java.net.URI
-
 import fansi.Str
+
+import java.nio.file.Path
 
 trait Formatter[T] {
   def apply(t: T): Str
@@ -12,17 +13,16 @@ trait Formatter[T] {
 object Formatter {
   @inline def apply[T: Formatter](t: T): Str = implicitly[Formatter[T]].apply(t)
 
-  implicit def Tuple2Formatter[T1: Formatter, T2: Formatter]: Formatter[(T1, T2)] = {
-    case (t1, t2) => Str.join(Formatter(t1), ", ", Formatter(t2))
+  implicit def Tuple2Formatter[T1: Formatter, T2: Formatter]: Formatter[(T1, T2)] = { case (t1, t2) =>
+    Str.join(Formatter(t1), ", ", Formatter(t2))
   }
 
-  implicit def Tuple3Formatter[T1: Formatter, T2: Formatter, T3: Formatter]: Formatter[(T1, T2, T3)] = {
-    case (t1, t2, t3) => Str.join(Formatter(t1), ", ", Formatter(t2), ", ", Formatter(t3))
+  implicit def Tuple3Formatter[T1: Formatter, T2: Formatter, T3: Formatter]: Formatter[(T1, T2, T3)] = { case (t1, t2, t3) =>
+    Str.join(Formatter(t1), ", ", Formatter(t2), ", ", Formatter(t3))
   }
 
-  implicit def Tuple4Formatter[T1: Formatter, T2: Formatter, T3: Formatter, T4: Formatter]
-      : Formatter[(T1, T2, T3, T4)] = {
-    case (t1, t2, t3, t4) => Str.join(Formatter(t1), ", ", Formatter(t2), ", ", Formatter(t3), ", ", Formatter(t4))
+  implicit def Tuple4Formatter[T1: Formatter, T2: Formatter, T3: Formatter, T4: Formatter]: Formatter[(T1, T2, T3, T4)] = { case (t1, t2, t3, t4) =>
+    Str.join(Formatter(t1), ", ", Formatter(t2), ", ", Formatter(t3), ", ", Formatter(t4))
   }
 
   implicit def EitherFormatter[L: Formatter, R: Formatter]: Formatter[Either[L, R]] =
@@ -37,7 +37,7 @@ object Formatter {
         arr(idx) = "["
         idx += 1
         ts.foreach { t =>
-          arr(idx)     = Formatter(t)
+          arr(idx) = Formatter(t)
           arr(idx + 1) = ", "
           idx += 2
         }
@@ -55,7 +55,7 @@ object Formatter {
         arr(idx) = "["
         idx += 1
         ts.foreach { t =>
-          arr(idx)     = Formatter(t)
+          arr(idx) = Formatter(t)
           arr(idx + 1) = ", "
           idx += 2
         }
@@ -72,26 +72,26 @@ object Formatter {
         var idx = 0
         arr(idx) = "["
         idx += 1
-        kvs.foreach {
-          case (k, v) =>
-            arr(idx + 0) = Formatter(k)
-            arr(idx + 1) = " => "
-            arr(idx + 2) = Formatter(v)
-            arr(idx + 3) = ", "
-            idx += 4
+        kvs.foreach { case (k, v) =>
+          arr(idx + 0) = Formatter(k)
+          arr(idx + 1) = " => "
+          arr(idx + 2) = Formatter(v)
+          arr(idx + 3) = ", "
+          idx += 4
         }
 
         arr(idx - 1) = "]"
         Str.join(arr: _*)
       }
 
-  implicit val StrFormatter:    Formatter[Str]    = x => x
+  implicit val StrFormatter: Formatter[Str] = x => x
   implicit val StringFormatter: Formatter[String] = x => x
-  implicit val IntFormatter:    Formatter[Int]    = _.toString
-  implicit val LongFormatter:   Formatter[Long]   = _.toString
-  implicit val UnitFormatter:   Formatter[Unit]   = _ => ""
-  implicit val FileFormatter:   Formatter[File]   = _.getName
-  implicit val URIFormatter:    Formatter[URI]    = _.toString
+  implicit val IntFormatter: Formatter[Int] = _.toString
+  implicit val LongFormatter: Formatter[Long] = _.toString
+  implicit val UnitFormatter: Formatter[Unit] = _ => ""
+  implicit val FileFormatter: Formatter[File] = _.getName
+  implicit val URIFormatter: Formatter[URI] = _.toString
+  implicit val PathFormatter: Formatter[Path] = _.toString
 
   implicit def ThrowableFormatter[Th <: Throwable]: Formatter[Th] = {
     case th: Throwable if th.getMessage != null => Str.join(th.getClass.getName, ": ", th.getMessage)

@@ -2,6 +2,7 @@ package bleep
 package bsp
 
 import bleep.internal.MyBloopRifleLogger
+import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
