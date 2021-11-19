@@ -1,23 +1,26 @@
 package bleep.logging
 
-import java.io.Writer
-import java.time.Instant
-
 import fansi.Str
 import sourcecode.{Enclosing, File, Line, Text}
 
-trait Logger[U] { self =>
-  def underlying: U
+import java.io.Writer
+import java.time.Instant
 
-  def withContext[T: Formatter](key: String, value: T): Logger[U]
+trait Logger { self =>
+  type Underlying
+  def underlying: Underlying
 
-  final def withContext[T: Formatter](value: Text[T]): Logger[U] =
+  def withContext[T: Formatter](key: String, value: T): Logger.Aux[Underlying]
+
+  final def withContext[T: Formatter](value: Text[T]): Logger.Aux[Underlying] =
     self.withContext(value.source, value.value)
 
   def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit
 }
 
 object Logger {
+  type Aux[U] = Logger { type Underlying = U }
+
   case class Stored(message: Str, throwable: Option[Throwable], metadata: Metadata, ctx: Ctx)
 
   private[logging] class Store() {
@@ -30,7 +33,9 @@ object Logger {
       reversed.to(Array).reverse
   }
 
-  private[logging] final class StoringLogger(store: Store, val ctx: Ctx) extends Logger[Array[Stored]] {
+  private[logging] final class StoringLogger(store: Store, val ctx: Ctx) extends Logger {
+    override type Underlying = Array[Stored]
+
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit =
       store.store(Stored(Formatter(t.value), throwable, metadata, ctx))
 
@@ -41,34 +46,35 @@ object Logger {
       store.normal
   }
 
-  private[logging] final class AppendableLogger[A <: Appendable](val underlying: A, pattern: Pattern, val context: Ctx)
-      extends Logger[A] {
-
+  private[logging] final class AppendableLogger[U <: Appendable](val underlying: U, pattern: Pattern, val context: Ctx) extends Logger {
+    type Underlying = U
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
       val formatted = pattern(t, throwable, metadata, context)
       underlying.append(formatted.render + "\n")
       ()
     }
 
-    override def withContext[T: Formatter](key: String, value: T): AppendableLogger[A] =
+    override def withContext[T: Formatter](key: String, value: T): AppendableLogger[U] =
       new AppendableLogger(underlying, pattern, context + (Str(key) -> Formatter(value)))
   }
 
-  private[logging] final class WriterLogger[W <: Writer](appendable: AppendableLogger[W]) extends Logger[W] {
-    override def underlying: W = appendable.underlying
+  private[logging] final class WriterLogger[U <: Writer](appendable: AppendableLogger[U]) extends Logger {
+    override type Underlying = U
+    override def underlying: U = appendable.underlying
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
       appendable.log(t, throwable, metadata)
       appendable.underlying.flush()
     }
 
-    override def withContext[T: Formatter](key: String, value: T): WriterLogger[W] =
-      new WriterLogger[W](appendable.withContext(key, value))
+    override def withContext[T: Formatter](key: String, value: T): WriterLogger[U] =
+      new WriterLogger[U](appendable.withContext(key, value))
 
   }
 
-  private[logging] final class Zipped[T1, T2](one: Logger[T1], two: Logger[T2]) extends Logger[(T1, T2)] {
-    override def underlying: (T1, T2) =
+  private[logging] final class Zipped[U1, U2](one: Logger.Aux[U1], two: Logger.Aux[U2]) extends Logger {
+    override type Underlying = (U1, U2)
+    override def underlying: (U1, U2) =
       (one.underlying, two.underlying)
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
@@ -76,11 +82,12 @@ object Logger {
       two.log(t, throwable, metadata)
     }
 
-    override def withContext[T: Formatter](key: String, value: T): Zipped[T1, T2] =
+    override def withContext[T: Formatter](key: String, value: T): Zipped[U1, U2] =
       new Zipped(one.withContext(key, value), two.withContext(key, value))
   }
 
-  private[logging] final class WithFilter[U](wrapped: Logger[U], minLogLevel: LogLevel) extends Logger[U] {
+  private[logging] final class WithFilter[U](wrapped: Logger.Aux[U], minLogLevel: LogLevel) extends Logger {
+    override type Underlying = U
     override def underlying: U = wrapped.underlying
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
@@ -89,20 +96,22 @@ object Logger {
       }
 
     override def withContext[T: Formatter](key: String, value: T) =
-      new WithFilter(wrapped.withContext(key, value), minLogLevel)
+      new WithFilter[Underlying](wrapped.withContext(key, value), minLogLevel)
   }
 
-  private[logging] final class Mapped[U, UU](wrapped: Logger[U], f: U => UU) extends Logger[UU] {
+  private[logging] final class Mapped[U, UU](wrapped: Logger.Aux[U], f: U => UU) extends Logger {
+    override type Underlying = UU
     override def underlying: UU = f(wrapped.underlying)
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
       wrapped.log(t, throwable, m)
 
-    override def withContext[T: Formatter](key: String, value: T) =
+    override def withContext[T: Formatter](key: String, value: T): Logger.Aux[Underlying] =
       new Mapped(wrapped.withContext(key, value), f)
   }
 
-  private[logging] final class Synchronized[U](wrapped: Logger[U]) extends Logger[U] {
+  private[logging] final class Synchronized[U](wrapped: Logger.Aux[U]) extends Logger {
+    override type Underlying = U
     override def underlying: U = wrapped.underlying
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
@@ -112,35 +121,34 @@ object Logger {
       new Synchronized(wrapped.withContext(key, value))
   }
 
-  object DevNull extends Logger[Unit] {
+  object DevNull extends Logger {
+    override type Underlying = Unit
     override def underlying: Unit = ()
-    override def withContext[T: Formatter](key:  String, value: T): Logger[Unit] = this
-    override def log[T:         Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = ()
+    override def withContext[T: Formatter](key: String, value: T): Logger.Aux[Unit] = this
+    override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = ()
   }
 
-  implicit final class LoggerOps[U](private val self: Logger[U]) extends AnyVal {
-    def zipWith[UU](other: Logger[UU]): Logger[(U, UU)] =
+  implicit final class LoggerOps[U](private val self: Logger.Aux[U]) extends AnyVal {
+    def zipWith[UU](other: Logger.Aux[UU]): Logger.Aux[(U, UU)] =
       new Zipped(self, other)
 
-    def filter(minLogLevel: LogLevel): Logger[U] =
+    def filter(minLogLevel: LogLevel): Logger.Aux[U] =
       new WithFilter(self, minLogLevel)
 
-    def void: Logger[Unit] =
+    def void: Logger.Aux[Unit] =
       new Mapped[U, Unit](self, _ => ())
 
-    def syncAccess: Logger[U] =
+    def syncAccess: Logger.Aux[U] =
       new Synchronized(self)
   }
 
-  case class LoggedException(message: Str) extends Throwable(message.plainText)
-
-  implicit final class LoggingOps[U](private val self: Logger[U]) extends AnyVal {
+  implicit final class LoggingOps(private val self: Logger) extends AnyVal {
     @inline def apply[T: Formatter](
-        logLevel:  LogLevel,
-        t:         => Text[T],
+        logLevel: LogLevel,
+        t: => Text[T],
         throwable: Option[Throwable] = None,
-        instant:   Instant = Instant.now,
-    )(implicit l:  Line, f: File, e: Enclosing): Unit =
+        instant: Instant = Instant.now
+    )(implicit l: Line, f: File, e: Enclosing): Unit =
       self.log(t, throwable, new Metadata(instant, logLevel, l, f, e))
 
     @inline def trace[T: Formatter](t: => Text[T])(implicit l: Line, f: File, e: Enclosing): Unit =
@@ -172,15 +180,5 @@ object Logger {
 
     @inline def error[T: Formatter](t: => Text[T], th: Throwable)(implicit l: Line, f: File, e: Enclosing): Unit =
       apply(LogLevel.error, t, Some(th))
-
-    @inline def fatal[T: Formatter](t: Text[T])(implicit l: Line, f: File, e: Enclosing): Nothing = {
-      val message = Formatter(t.value)
-      val th      = LoggedException(message)
-      error(message, th)
-      throw th
-    }
-
-    @inline def fatalMaybe[T: Formatter](t: Text[T], maybe: Boolean)(implicit l: Line, f: File, e: Enclosing): Unit =
-      if (maybe) fatal(t) else warn(t)
   }
 }
