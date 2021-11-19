@@ -17,9 +17,7 @@ import scala.util.{Failure, Properties, Success, Try}
 
 class BloopSetup(
     javaPath: String,
-    directories: UserPaths,
-    build: model.Build,
-    resolver: CoursierResolver,
+    started: Started,
     // Protocol to use to open a BSP connection with Bloop: tcp | local | default
     bloopBspProtocol: Option[String],
     // Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like "`\\.\pipe\…`")
@@ -43,7 +41,7 @@ class BloopSetup(
         .map(msg => new BuildException.ModuleFormatError(modString, msg))
         .flatMap { mod =>
           val run: Future[CoursierResolver.Result] =
-            resolver(JsonSet(Dependency(mod, bloopVersion)), build.resolvers)
+            started.resolver(JsonSet(Dependency(mod, bloopVersion)), started.build.resolvers)
 
           val res: CoursierResolver.Result = Await.result(run, Duration.Inf)
           Right(res.files)
@@ -122,15 +120,17 @@ class BloopSetup(
     if (deleteOnExit)
       Runtime.getRuntime.addShutdownHook(
         new Thread("delete-bloop-bsp-named-socket") {
-          override def run() =
+          override def run() = {
             Files.deleteIfExists(socket)
+            ()
+          }
         }
       )
     socket.toFile.getCanonicalFile
   }
 
   private def socketDirectory(): Path = {
-    val dir = directories.bspSocketDir
+    val dir = started.directories.bspSocketDir
     // Ensuring that whenever dir exists, it has the right permissions
     if (!Files.isDirectory(dir)) {
       val tmpDir = dir.getParent / s".${dir.getFileName}.tmp-${pidOrRandom.merge}"
@@ -147,7 +147,10 @@ class BloopSetup(
             }
           case _: FileAlreadyExistsException =>
         }
-      } finally Files.deleteIfExists(tmpDir)
+      } finally {
+        Files.deleteIfExists(tmpDir)
+        ()
+      }
     }
     dir
   }

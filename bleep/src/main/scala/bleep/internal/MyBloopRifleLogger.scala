@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.Logger
+import bleep.logging.Logger
 
 import scala.build.blooprifle.BloopRifleLogger
 

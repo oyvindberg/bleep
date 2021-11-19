@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.codecs._
+import bleep.logging.Logger
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core._
 import coursier.error.{FetchError, ResolutionError}
@@ -20,8 +21,8 @@ trait CoursierResolver {
 }
 
 object CoursierResolver {
-  def apply(ec: ExecutionContext, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
-    cacheIn.foldLeft(new Direct(ec, downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(cr, path, ec) }
+  def apply(ec: ExecutionContext, logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
+    cacheIn.foldLeft(new Direct(ec, downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(logger, cr, path, ec) }
 
   final case class Authentications(configs: Map[URI, Authentication])
   object Authentications {
@@ -160,7 +161,7 @@ object CoursierResolver {
     }
   }
 
-  private class Cached(underlying: CoursierResolver, in: Path, ec: ExecutionContext) extends CoursierResolver {
+  private class Cached(logger: Logger, underlying: CoursierResolver, in: Path, ec: ExecutionContext) extends CoursierResolver {
     override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Future[Result] =
       if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps, repositories)
       else {
@@ -173,10 +174,8 @@ object CoursierResolver {
             parser.decode[Cached.Both](Files.readString(cachePath)) match {
               // collision detection is done here: handle it by just overwriting the file
               case Right(Cached.Both(`request`, result)) if result.files.forall(_.exists()) =>
-                println(s"read $cachePath")
                 Some(result)
               case _ =>
-                println(s"deleted $cachePath")
                 Files.delete(cachePath)
                 None
             }
@@ -185,10 +184,11 @@ object CoursierResolver {
         cachedResult match {
           case Some(value) => Future.successful(value)
           case None =>
+            val depNames = deps.map(_.module.name.value).values
+            logger.withContext(cachePath).withContext(depNames).debug(s"coursier cache miss")
             underlying(deps, repositories).map { result =>
               Files.createDirectories(cachePath.getParent)
               Files.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
-              println(s"wrote cache $cachePath")
               result
             }(ec)
         }

@@ -1,11 +1,12 @@
 package bleep
 
 import bleep.internal.{Lazy, Os}
+import bleep.logging.{Logger, Pattern}
 import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 
-import java.io.File
+import java.io.{File, PrintStream}
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
@@ -38,15 +39,19 @@ object bootstrap {
   def fromCwd: Either[BuildException, Started] =
     from(Os.cwd)
 
+  val logger: Logger.Aux[PrintStream] =
+    logging.appendable(System.out, Pattern.default)
+
   def from(cwd: Path): Either[BuildException, Started] = {
     val directories = UserPaths.fromAppDirs
 
     val lazyResolver: Lazy[CoursierResolver] = Lazy {
       CoursierResolver(
         ExecutionContext.global,
+        logger,
         downloadSources = true,
         Some(directories.cacheDir),
-        CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, Logger.Println)
+        CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, logger)
       )
     }
 
@@ -77,7 +82,7 @@ object bootstrap {
             }
 
             val bloopFiles = if (oldHash.contains(currentHash)) {
-              println(s"${buildPaths.dotBloopDir} up to date")
+              logger.debug(s"${buildPaths.dotBloopDir} up to date")
 
               build.projects.map { case (projectName, _) =>
                 val load = Lazy(readBloopFile(buildPaths.dotBloopDir, projectName))
@@ -95,11 +100,11 @@ object bootstrap {
                 Files.writeString(toPath, json, UTF_8)
               }
               Files.writeString(buildPaths.digestFile, currentHash, UTF_8)
-              println(s"Wrote ${bloopFiles.size} files to ${buildPaths.dotBloopDir}")
+              logger.debug(s"Wrote ${bloopFiles.size} files to ${buildPaths.dotBloopDir}")
               bloopFiles
             }
 
-            Right(Started(buildPaths, build, bloopFiles, activeProject, lazyResolver, directories, Logger.Println))
+            Right(Started(buildPaths, build, bloopFiles, activeProject, lazyResolver, directories, logger))
         }
       case None => Left(new BuildException.BuildNotFound(cwd))
     }

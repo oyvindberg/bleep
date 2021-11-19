@@ -18,9 +18,9 @@ object GenNativeImage extends App {
 
       cli(s"bloop compile ${projectName.value}")
 
-      val plugin = new NativeImagePlugin(project.project, nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"))
+      val plugin = new NativeImagePlugin(project.project, started.logger, nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"))
       val path = plugin.nativeImage()
-      println(s"Created native-image at $path")
+      started.logger.info(s"Created native-image at $path")
   }
 }
 
@@ -35,9 +35,9 @@ object PackageAll extends App {
 
       cli(s"bloop compile ${projectNames.mkString(" ")}")
 
-      PackagePlugin.run(started.projects, PackageCommand.Jars(projectNames))
+      PackagePlugin.run(started.logger, started.projects, PackageCommand.Jars(projectNames))
 
-      val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, Logger.Println)()
-      println(gitVersioningPlugin.version)
+      val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, started.logger)()
+      started.logger.info(gitVersioningPlugin.version)
   }
 }

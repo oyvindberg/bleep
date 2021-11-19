@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.logging.Logger
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
 import coursier.paths.CoursierPaths
@@ -12,7 +13,8 @@ import java.nio.file.{Files, Path, Paths}
 import scala.util.Properties
 
 class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val resolver = CoursierResolver(scala.concurrent.ExecutionContext.global, downloadSources = true, None, CoursierResolver.Authentications.empty)
+  val resolver =
+    CoursierResolver(scala.concurrent.ExecutionContext.global, Logger.DevNull, downloadSources = true, None, CoursierResolver.Authentications.empty)
   val workspaceDirBase = Paths.get("bloop-test-files").toAbsolutePath
 
   def anonymize(str: String): String =
