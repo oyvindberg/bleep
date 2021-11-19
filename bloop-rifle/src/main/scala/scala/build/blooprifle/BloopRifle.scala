@@ -19,11 +19,7 @@ object BloopRifle {
     * @return
     *   Whether a server is running or not.
     */
-  def check(
-      config: BloopRifleConfig,
-      logger: BloopRifleLogger,
-      scheduler: ScheduledExecutorService
-  ): Boolean = {
+  def check(config: BloopRifleConfig, logger: BloopRifleLogger): Boolean = {
     def check() =
       Operations.check(
         config.host,
@@ -198,7 +194,7 @@ object BloopRifle {
       workdir: Path,
       scheduler: ScheduledExecutorService
   ): Either[BloopAboutFailure, BloopServerRuntimeInfo] = {
-    val isRunning = BloopRifle.check(config, logger, scheduler)
+    val isRunning = BloopRifle.check(config, logger)
 
     if (isRunning) {
       val bufferedOStream = new ByteArrayOutputStream(100000)
