@@ -55,7 +55,10 @@ class BspForwardServer(remote: BuildServer, ensureBloopUpToDate: () => Unit) ext
     remote.buildShutdown()
   }
 
-  override def onBuildExit(): Unit = stderr.log("onBuildExit")
+  override def onBuildExit(): Unit = {
+    stderr.log("onBuildExit")
+    ()
+  }
 
   def initiateShutdown: Future[Unit] =
     shutdownPromise.future

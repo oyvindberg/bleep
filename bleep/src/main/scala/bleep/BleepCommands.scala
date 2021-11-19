@@ -47,9 +47,7 @@ object BleepCommands {
       runWithEnv { started: Started =>
         val bloopRifleConfig = new BloopSetup(
           "/usr/bin/java",
-          started.directories,
-          started.build,
-          started.resolver,
+          started,
           bloopBspProtocol = None,
           bloopBspSocket = None
         ).bloopRifleConfig
@@ -143,9 +141,7 @@ object BleepCommands {
         IO {
           val bloopRifleConfig = new BloopSetup(
             "/usr/bin/java",
-            started.directories,
-            started.build,
-            started.resolver,
+            started,
             bloopBspProtocol = None,
             bloopBspSocket = None
           ).bloopRifleConfig
@@ -158,7 +154,11 @@ object BleepCommands {
               threads,
               System.in,
               System.out,
-              () => bootstrap.fromCwd
+              ensureBloopUpToDate = () => {
+                // run for side effects
+                bootstrap.fromCwd
+                ()
+              }
             )
 
             try {
