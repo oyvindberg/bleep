@@ -39,13 +39,14 @@ lazy val `bleep-tasks` = project
   )
 
 lazy val `bloop-rifle` =
-  project.configure(commonSettings)
+  project
+    .configure(commonSettings)
     .settings(
       libraryDependencies ++= List(
         "ch.epfl.scala" % "bsp4j" % "2.0.0-M14",
-        "me.vican.jorge" %% "snailgun-core"  % "0.4.0",
+        "me.vican.jorge" %% "snailgun-core" % "0.4.0",
         "ch.epfl.scala" %% "bloop-config" % "1.4.11",
-        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" %"1.4.1-aa-2",
+        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-2",
         "org.graalvm.nativeimage" % "svm" % "20.2.0"
       )
     )
@@ -58,7 +59,7 @@ lazy val bleep = project
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
-      "com.monovore" %% "decline-effect" % "2.1.0"
+      "com.monovore" %% "decline-effect" % "2.2.0"
     ),
     Compile / mainClass := Some("bleep.Main")
   )
