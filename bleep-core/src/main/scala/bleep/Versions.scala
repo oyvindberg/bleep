@@ -39,7 +39,7 @@ object Versions {
       else None
   }
 
-  val Scala212 = Scala("2.12.14")
+  val Scala212 = Scala("2.12.15")
   val Scala213 = Scala("2.13.5")
   val Scala3 = Scala("3.0.2")
 
