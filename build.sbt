@@ -43,7 +43,7 @@ lazy val `bloop-rifle` =
     .configure(commonSettings)
     .settings(
       libraryDependencies ++= List(
-        "ch.epfl.scala" % "bsp4j" % "2.0.0-M14",
+        "ch.epfl.scala" % "bsp4j" % "2.0.0",
         "me.vican.jorge" %% "snailgun-core" % "0.4.0",
         "ch.epfl.scala" %% "bloop-config" % "1.4.11",
         "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-2",
