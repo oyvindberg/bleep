@@ -1,13 +1,15 @@
 package bleep.commands
 
-import bleep.{BleepCommand, Defaults}
 import bleep.internal.Argv0
+import bleep.{BleepCommand, Defaults}
 import cats.effect.{ExitCode, IO}
 import ch.epfl.scala.bsp4j
 import io.circe.Encoder
+import io.circe.syntax._
 
 import java.nio.file.{Files, StandardOpenOption}
 import java.util
+import scala.jdk.CollectionConverters._
 
 case object SetupIde extends BleepCommand {
   implicit def encodesUtilList[T: Encoder]: Encoder[util.List[T]] = Encoder[List[T]].contramap(_.asScala.toList)

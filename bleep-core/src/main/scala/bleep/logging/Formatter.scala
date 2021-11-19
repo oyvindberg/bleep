@@ -28,7 +28,7 @@ object Formatter {
   implicit def EitherFormatter[L: Formatter, R: Formatter]: Formatter[Either[L, R]] =
     _.fold(Formatter[L], Formatter[R])
 
-  implicit def TraversableFormatter[C[t] <: Traversable[t], T: Formatter]: Formatter[C[T]] =
+  implicit def IterableFormatter[C[t] <: Iterable[t], T: Formatter]: Formatter[C[T]] =
     ts =>
       if (ts.isEmpty) ""
       else {
@@ -43,7 +43,7 @@ object Formatter {
         }
 
         arr(idx - 1) = "]"
-        Str.join(arr: _*)
+        Str.join(arr.toIndexedSeq: _*)
       }
 
   implicit def ArrayFormatter[T: Formatter]: Formatter[Array[T]] =
@@ -61,7 +61,7 @@ object Formatter {
         }
 
         arr(idx - 1) = "]"
-        Str.join(arr: _*)
+        Str.join(arr.toIndexedSeq: _*)
       }
 
   implicit def MapFormatter[K: Formatter, V: Formatter]: Formatter[Map[K, V]] =
@@ -81,7 +81,7 @@ object Formatter {
         }
 
         arr(idx - 1) = "]"
-        Str.join(arr: _*)
+        Str.join(arr.toIndexedSeq: _*)
       }
 
   implicit val StrFormatter: Formatter[Str] = x => x

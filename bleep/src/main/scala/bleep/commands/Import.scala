@@ -1,8 +1,9 @@
-package bleep.commands
+package bleep
+package commands
 
-import bleep.{BleepCommand, BuildPaths, Defaults, bootstrap, deduplicateBuild, importBloopFilesFromSbt}
 import bleep.internal.{Os, ShortenJson}
 import cats.effect.{ExitCode, IO}
+import io.circe.syntax._
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files

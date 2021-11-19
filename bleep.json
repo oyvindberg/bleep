@@ -79,6 +79,7 @@
       "sbt-scope" : "main",
       "dependencies" : [
         "ch.epfl.scala::bloop-config:1.4.11",
+        "com.lihaoyi::fansi:0.2.14",
         "io.circe::circe-generic:0.14.1",
         "io.circe::circe-parser:0.14.1",
         "io.get-coursier::coursier:2.0.16",
