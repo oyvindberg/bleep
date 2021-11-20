@@ -51,8 +51,10 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
     logger.withContext("type", params.getType.getValue).withContext("originId", params.getOriginId).info(s"show message: ${params.getMessage}")
+
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withContext("type", params.getType.getValue).withContext("originId", params.getOriginId).info(s"build message: ${params.getMessage}")
+    logger.withContext("type", params.getType.getValue).withOptContext("originId", Option(params.getOriginId)).info(s"build message: ${params.getMessage}")
+
   override def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit =
     extract(params.getData).foreach { id =>
       active(id) = None
