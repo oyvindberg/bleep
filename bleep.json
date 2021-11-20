@@ -66,7 +66,7 @@
       "sbt-scope" : "main",
       "dependencies" : [
         "com.lihaoyi::pprint:0.6.6",
-        "com.monovore::decline-effect:2.2.0",
+        "com.monovore::decline:2.2.0",
         "org.scalameta:svm-subs:101.0.0"
       ],
       "scala" : "2.13",
@@ -131,7 +131,10 @@
       "platform" : "jvm"
     },
     "infrastructure" : {
-      "dependsOn" : "bleep-tasks",
+      "dependsOn" : [
+        "bleep",
+        "bleep-tasks"
+      ],
       "sbt-scope" : "main",
       "scala" : "2.13",
       "platform" : "jvm"

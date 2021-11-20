@@ -2,43 +2,46 @@ package bleep
 
 import bleep.internal.{BspClientDisplayProgress, MyBloopRifleLogger}
 import bleep.model.ProjectName
-import cats.effect.{ExitCode, IO}
+import cats.data.NonEmptyList
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 
 import java.util
 import scala.build.bloop.{BloopServer, BloopThreads}
-import scala.jdk.CollectionConverters._
 
 trait BleepCommandRemote extends BleepCommand {
-  def targetId(buildPaths: BuildPaths, name: ProjectName): bsp4j.BuildTargetIdentifier =
-    new bsp4j.BuildTargetIdentifier(buildPaths.buildDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
+  def started: Started
 
-  def chosenTargets(started: Started): util.List[BuildTargetIdentifier] =
-    started.chosenProjects.map(projectName => targetId(started.buildPaths, projectName)).asJava
+  def chosenTargets(started: Started, fromCommandLine: Option[NonEmptyList[model.ProjectName]]): util.List[bsp4j.BuildTargetIdentifier] =
+    buildTargets(started.buildPaths, chosenProjects(started, fromCommandLine))
 
-  def runWithServer(started: Started, bloop: BloopServer): Unit
+  def buildTargets(buildPaths: BuildPaths, projects: List[model.ProjectName]): util.List[bsp4j.BuildTargetIdentifier] = {
+    def targetId(buildPaths: BuildPaths, name: ProjectName): bsp4j.BuildTargetIdentifier =
+      new bsp4j.BuildTargetIdentifier(buildPaths.buildDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
-  override final def run(): IO[ExitCode] =
-    runWithEnv { started: Started =>
-      val bloopRifleConfig = new BloopSetup(
-        "/usr/bin/java",
-        started,
-        bloopBspProtocol = None,
-        bloopBspSocket = None
-      ).bloopRifleConfig
+    import scala.jdk.CollectionConverters._
 
-      IO {
-        BloopServer.withBuildServer(
-          bloopRifleConfig,
-          "bleep",
-          Defaults.version,
-          started.buildPaths.dotBleepDir,
-          started.buildPaths.dotBleepDir / "classes",
-          BspClientDisplayProgress(started.logger),
-          BloopThreads.create(),
-          new MyBloopRifleLogger(started.logger, true, true)
-        )(bloop => runWithServer(started, bloop))
-      }.as(ExitCode.Success)
-    }
+    projects.map(projectName => targetId(buildPaths, projectName)).asJava
+  }
+
+  def runWithServer(bloop: BloopServer): Unit
+
+  override final def run(): Unit = {
+    val bloopRifleConfig = new BloopSetup(
+      "/usr/bin/java",
+      started,
+      bloopBspProtocol = None,
+      bloopBspSocket = None
+    ).bloopRifleConfig
+
+    BloopServer.withBuildServer(
+      bloopRifleConfig,
+      "bleep",
+      Defaults.version,
+      started.buildPaths.dotBleepDir,
+      started.buildPaths.dotBleepDir / "classes",
+      BspClientDisplayProgress(started.logger),
+      BloopThreads.create(),
+      new MyBloopRifleLogger(started.logger, true, true)
+    )(runWithServer)
+  }
 }

@@ -1,15 +1,17 @@
 package bleep
 
-import cats.effect.{ExitCode, IO}
+import cats.data.NonEmptyList
 
 trait BleepCommand {
-  def runWithEnv(runIo: Started => IO[ExitCode]): IO[ExitCode] =
-    bootstrap.fromCwd match {
-      case Left(th) => IO.raiseError(th)
-      case Right(started) =>
-        started.activeProject.foreach(p => started.logger.info(s"active project: ${p.value}"))
-        runIo(started)
+  def chosenProjects(started: Started, maybeFromCommandLine: Option[NonEmptyList[model.ProjectName]]): List[model.ProjectName] =
+    maybeFromCommandLine match {
+      case Some(fromCommandLine) => fromCommandLine.toList
+      case None =>
+        started.activeProjectFromPath match {
+          case Some(value) => List(value)
+          case None        => started.bloopFiles.keys.toList
+        }
     }
 
-  def run(): IO[ExitCode]
+  def run(): Unit
 }

@@ -1,18 +1,18 @@
 package bleep
 
 import bleep.internal.{Lazy, Os}
-import bleep.logging.{Logger, Pattern}
+import bleep.logging.Logger
 import bloop.config.{Config => b, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 
-import java.io.{File, PrintStream}
+import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /** @param build
   *   non-exploded variant, at least for now
@@ -23,17 +23,11 @@ case class Started(
     buildPaths: BuildPaths,
     build: model.Build,
     bloopFiles: Map[model.ProjectName, Lazy[b.File]],
-    activeProject: Option[model.ProjectName],
+    activeProjectFromPath: Option[model.ProjectName],
     lazyResolver: Lazy[CoursierResolver],
     directories: UserPaths,
     logger: Logger
 ) {
-  def chosenProjects: List[model.ProjectName] =
-    activeProject match {
-      case Some(value) => List(value)
-      case None        => bloopFiles.keys.toList
-    }
-
   def resolver = lazyResolver.forceGet
 
   lazy val projects: List[b.Project] =
@@ -41,13 +35,23 @@ case class Started(
 }
 
 object bootstrap {
-  def fromCwd: Either[BuildException, Started] =
-    from(Os.cwd)
+  // suitable for scripts
+  def simple(f: Started => Unit): Unit = {
+    val logger = logging.stdout
+    from(logger, Os.cwd) match {
+      case Left(buildException) => logger.error("Couldn't initialize bleep", buildException)
+      case Right(started) =>
+        Try(f(started)) match {
+          case Failure(exception) => logger.error("failed :(", exception)
+          case Success(_)         => ()
+        }
+    }
+  }
 
-  val logger: Logger.Aux[PrintStream] =
-    logging.appendable(System.out, Pattern.default)
+  def fromCwd(logger: Logger): Either[BuildException, Started] =
+    from(logger, Os.cwd)
 
-  def from(cwd: Path): Either[BuildException, Started] = {
+  def from(logger: Logger, cwd: Path): Either[BuildException, Started] = {
     val directories = UserPaths.fromAppDirs
 
     val lazyResolver: Lazy[CoursierResolver] = Lazy {
