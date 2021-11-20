@@ -87,10 +87,10 @@ object bootstrap {
             }
 
             val bloopFiles = if (oldHash.contains(currentHash)) {
-              logger.debug(s"${buildPaths.dotBloopDir} up to date")
+              logger.debug(s"${buildPaths.bleepBloopDir} up to date")
 
               build.projects.map { case (projectName, _) =>
-                val load = Lazy(readBloopFile(buildPaths.dotBloopDir, projectName))
+                val load = Lazy(readBloopFile(buildPaths.bleepBloopDir, projectName))
                 (projectName, load)
               }
             } else {
@@ -105,7 +105,7 @@ object bootstrap {
                 Files.writeString(toPath, json, UTF_8)
               }
               Files.writeString(buildPaths.digestFile, currentHash, UTF_8)
-              logger.debug(s"Wrote ${bloopFiles.size} files to ${buildPaths.dotBloopDir}")
+              logger.debug(s"Wrote ${bloopFiles.size} files to ${buildPaths.bleepBloopDir}")
               bloopFiles
             }
 
