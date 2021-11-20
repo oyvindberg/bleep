@@ -1,6 +1,6 @@
 package bleep.commands
 
-import bleep.{BleepCommand, cli, fixedClasspath}
+import bleep.{cli, fixedClasspath, BleepCommand}
 import bleep.model.ScriptName
 import cats.data.{NonEmptyList, ValidatedNel}
 import cats.effect.{ExitCode, IO}

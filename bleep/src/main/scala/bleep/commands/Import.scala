@@ -22,4 +22,3 @@ case object Import extends BleepCommand {
     ExitCode.Success
   }
 }
-

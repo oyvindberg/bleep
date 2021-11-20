@@ -12,7 +12,8 @@ object BspClientDisplayProgress {
   def apply(logger: Logger) = new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)))
 }
 
-class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]]) extends bsp4j.BuildClient {
+class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]])
+    extends bsp4j.BuildClient {
   def extract(anyRef: AnyRef): Option[BuildTargetIdentifier] =
     anyRef match {
       case obj: com.google.gson.JsonObject =>

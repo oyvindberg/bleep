@@ -1,6 +1,6 @@
 package bleep.commands
 
-import bleep.{BleepCommand, BloopSetup, bootstrap, bsp}
+import bleep.{bootstrap, bsp, BleepCommand, BloopSetup}
 import bleep.bsp.BspImpl
 import cats.effect.{ExitCode, IO}
 

@@ -11,8 +11,8 @@ case object Test extends BleepCommandRemote {
     val chosenProjects = chosenTargets(started)
     val result = bloop.server.buildTargetTest(new TestParams(chosenProjects)).get()
     result.getStatusCode match {
-      case bsp4j.StatusCode.OK => started.logger.info("Tests succeeded")
-      case bsp4j.StatusCode.ERROR => started.logger.warn("Tests failed")
+      case bsp4j.StatusCode.OK        => started.logger.info("Tests succeeded")
+      case bsp4j.StatusCode.ERROR     => started.logger.warn("Tests failed")
       case bsp4j.StatusCode.CANCELLED => started.logger.info("Tests cancelled")
     }
   }
