@@ -19,6 +19,7 @@ case object Clean extends BleepCommand {
               FileUtils.deleteDirectory(outFolder)
               started.logger.info(s"Deleted $outFolder")
             }
+          case _ => ()
         }
         ExitCode.Success
       }
