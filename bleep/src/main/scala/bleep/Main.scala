@@ -11,12 +11,13 @@ object Main
     ) {
 
   override def main: Opts[IO[ExitCode]] =
-    List(compile, test, script, `import`, bsp, setupIde).reduce[Opts[BleepCommand]](_.orElse(_)).map(_.run())
-
-  private val compile = Opts.subcommand("compile", "compile all projects")(Opts(commands.Compile))
-  private val test = Opts.subcommand("test", "test all projects")(Opts(commands.Test))
-  private val script = Opts.subcommand("script", "run script")(Opts.argument[commands.Script]())
-  private val `import` = Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import))
-  private val bsp = Opts.subcommand("bsp", "bsp integration")(Opts(commands.Bsp))
-  private val setupIde = Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(Opts(commands.SetupIde))
+    List(
+      Opts.subcommand("compile", "compile projects")(Opts(commands.Compile)),
+      Opts.subcommand("test", "test projects")(Opts(commands.Test)),
+      Opts.subcommand("script", "run script")(Opts.argument[commands.Script]()),
+      Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import)),
+      Opts.subcommand("bsp", "bsp integration")(Opts(commands.Bsp)),
+      Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(Opts(commands.SetupIde)),
+      Opts.subcommand("clean", "clean")(Opts(commands.Clean))
+    ).reduce[Opts[BleepCommand]](_.orElse(_)).map(_.run())
 }

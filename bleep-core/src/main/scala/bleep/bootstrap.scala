@@ -28,6 +28,11 @@ case class Started(
     directories: UserPaths,
     logger: Logger
 ) {
+  def chosenProjects: List[model.ProjectName] =
+    activeProject match {
+      case Some(value) => List(value)
+      case None        => bloopFiles.keys.toList
+    }
 
   def resolver = lazyResolver.forceGet
 
