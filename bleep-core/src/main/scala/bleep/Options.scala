@@ -48,7 +48,7 @@ object Options {
 
     object fromAbsolutePaths extends Replacer(map)
 
-    object toAbsolutePaths extends Replacer(map.map { case (absPath, ref) => (absPath, ref) })
+    object toAbsolutePaths extends Replacer(map.map { case (ref, absPath) => (absPath, ref) })
   }
 
   val empty = new Options(Nil)

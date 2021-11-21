@@ -213,7 +213,7 @@ object generateBloopFiles {
           val relevantArtifacts: List[Path] =
             artifacts.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
 
-          new Options(relevantArtifacts.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
+          new Options(relevantArtifacts.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")).distinct)
         }
 
         val scalacOptions: Options =

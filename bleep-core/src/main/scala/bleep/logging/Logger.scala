@@ -15,6 +15,12 @@ trait Logger { self =>
   final def withContext[T: Formatter](value: Text[T]): Logger.Aux[Underlying] =
     self.withContext(value.source, value.value)
 
+  final def withOptContext[T: Formatter](key: String, maybeValue: Option[T]): Logger.Aux[Underlying] =
+    maybeValue match {
+      case Some(value) => self.withContext(key, value)
+      case None        => self
+    }
+
   def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit
 }
 

@@ -14,7 +14,7 @@ object Pattern {
     f"[${l.name.value}%-5s]"
 
   @inline def colorFor(l: LogLevel): EscapeAttr =
-    l.level match {
+    (l.level: @unchecked) match {
       case LogLevel.trace.level => Color.Reset
       case LogLevel.debug.level => Color.Green
       case LogLevel.info.level  => Color.Blue
@@ -23,7 +23,7 @@ object Pattern {
     }
 
   @inline def subtleColorFor(l: LogLevel): EscapeAttr =
-    l.level match {
+    (l.level: @unchecked) match {
       case LogLevel.trace.level => Color.Reset
       case LogLevel.debug.level => Color.LightGreen
       case LogLevel.info.level  => Color.LightBlue
@@ -42,7 +42,6 @@ object Pattern {
     override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx): Str = {
       val Color = colorFor(m.logLevel)
       val Subtle = subtleColorFor(m.logLevel)
-      val source = if (t.source.startsWith("\"") || t.source.startsWith("s\"")) "" else t.source
 
       Str.join(
         Color(prefixFor(m.logLevel)),
@@ -52,8 +51,6 @@ object Pattern {
         Subtle(Formatter(new File(m.file.value))),
         ":",
         Subtle(Formatter(m.line.value)),
-        " ",
-        Color(source),
         " ",
         Color(Formatter(t.value)),
         " ",

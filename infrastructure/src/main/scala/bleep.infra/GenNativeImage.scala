@@ -5,39 +5,24 @@ import bleep.model.ProjectName
 import bleep.tasks._
 import net.hamnaberg.blooppackager.PackagePlugin
 
-import java.nio.file.Path
-
 object GenNativeImage extends App {
-  bootstrap.fromCwd match {
-    case Left(value) => throw value
-    case Right(started) =>
-      implicit val wd: Path = started.buildPaths.buildDir
+  bootstrap.simple { started =>
+    val projectName = ProjectName("bleep")
+    val project = started.bloopFiles(projectName).forceGet(projectName.value)
 
-      val projectName = ProjectName("bleep")
-      val project = started.bloopFiles(projectName).forceGet(projectName.value)
-
-      cli(s"bloop compile ${projectName.value}")
-
-      val plugin = new NativeImagePlugin(project.project, started.logger, nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"))
-      val path = plugin.nativeImage()
-      started.logger.info(s"Created native-image at $path")
+    val plugin = new NativeImagePlugin(project.project, started.logger, nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"))
+    val path = plugin.nativeImage()
+    started.logger.info(s"Created native-image at $path")
   }
 }
 
 object PackageAll extends App {
-  bootstrap.fromCwd match {
-    case Left(value) => throw value
-    case Right(started) =>
-      implicit val wd: Path = started.buildPaths.buildDir
+  bootstrap.simple { started =>
+    val all: List[String] = started.projects.map(_.name)
 
-      val projectNames: List[String] =
-        started.projects.map(_.name)
+    PackagePlugin.run(started.logger, started.projects, PackageCommand.Jars(all))
 
-      cli(s"bloop compile ${projectNames.mkString(" ")}")
-
-      PackagePlugin.run(started.logger, started.projects, PackageCommand.Jars(projectNames))
-
-      val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, started.logger)()
-      started.logger.info(gitVersioningPlugin.version)
+    val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, started.logger)()
+    started.logger.info(gitVersioningPlugin.version)
   }
 }
