@@ -12,8 +12,7 @@ object BspClientDisplayProgress {
   def apply(logger: Logger) = new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)))
 }
 
-class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]])
-    extends bsp4j.BuildClient {
+class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, bsp4j.TaskProgressParams]) extends bsp4j.BuildClient {
   def extract(anyRef: AnyRef): Option[BuildTargetIdentifier] =
     anyRef match {
       case obj: com.google.gson.JsonObject =>
@@ -31,18 +30,15 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
   var lastProgress: Option[String] = None
   def render(): Unit = {
     val progress = active.toList
-      .map { case (task, maybeProgress) =>
-        val percentage: String =
-          maybeProgress match {
-            case Some(progress) =>
-              val percentage = progress.getProgress.toDouble / progress.getTotal * 100
-              s"${percentage.toInt}%"
-            case None => "started"
-          }
+      .map { case (task, progress) =>
+        val percentage: String = {
+          val percentage = progress.getProgress.toDouble / progress.getTotal * 100
+          s"${percentage.toInt}%"
+        }
         Str.join(Bold.On(Str(task.getUri.split("=").last)), ": ", percentage)
       }
-      .mkString(", ")
-    if (lastProgress.contains(progress)) ()
+      .mkString("Compiling ", ", ", "")
+    if (lastProgress.contains(progress) || active.isEmpty) ()
     else {
       logger.info(progress)
       lastProgress = Some(progress)
@@ -50,20 +46,17 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
   }
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.withContext("type", params.getType.getValue).withContext("originId", params.getOriginId).info(s"show message: ${params.getMessage}")
+    logger.withContext("type", params.getType.name).withContext("originId", params.getOriginId).info(s"show message: ${params.getMessage}")
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withContext("type", params.getType.getValue).withOptContext("originId", Option(params.getOriginId)).info(s"build message: ${params.getMessage}")
+    logger.withContext("type", params.getType.name()).withOptContext("originId", Option(params.getOriginId)).info(params.getMessage)
 
   override def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit =
-    extract(params.getData).foreach { id =>
-      active(id) = None
-      render()
-    }
+    ()
 
   override def onBuildTaskProgress(params: bsp4j.TaskProgressParams): Unit =
     extract(params.getData).foreach { id =>
-      active(id) = Some(params)
+      active(id) = params
       render()
     }
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
@@ -94,8 +87,7 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
         d.getRange.getEnd.getCharacter.toString
       )
 
-      val configuredLogger = Option(d.getCode).foldLeft(logger.withContext(location))((l, code) => l.withContext(code))
-      configuredLogger.apply(logLevel, d.getMessage)
+      logger.withContext(location).withOptContext("code", Option(d.getCode)).apply(logLevel, d.getMessage)
     }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)
