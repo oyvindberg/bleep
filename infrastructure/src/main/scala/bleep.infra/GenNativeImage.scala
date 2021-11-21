@@ -6,7 +6,7 @@ import bleep.tasks._
 import net.hamnaberg.blooppackager.PackagePlugin
 
 object GenNativeImage extends App {
-  bootstrap.simple { started =>
+  bootstrap.forScript("GenNativeImage") { started =>
     val projectName = ProjectName("bleep")
     val project = started.bloopFiles(projectName).forceGet(projectName.value)
 
@@ -17,7 +17,7 @@ object GenNativeImage extends App {
 }
 
 object PackageAll extends App {
-  bootstrap.simple { started =>
+  bootstrap.forScript("PackageAll") { started =>
     val all: List[String] = started.projects.map(_.name)
 
     PackagePlugin.run(started.logger, started.projects, PackageCommand.Jars(all))

@@ -10,6 +10,7 @@ import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
+import java.time.Instant
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
@@ -46,9 +47,9 @@ case class Started(
 }
 
 object bootstrap {
-  // suitable for scripts
-  def simple(f: Started => Unit): Unit = {
-    val logger = logging.stdout
+  def forScript(scriptName: String)(f: Started => Unit): Unit = {
+    val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName)))
+
     from(logger, Os.cwd) match {
       case Left(buildException) => logger.error("Couldn't initialize bleep", buildException)
       case Right(started) =>

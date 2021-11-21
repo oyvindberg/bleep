@@ -10,24 +10,24 @@ package object logging {
 
   private[logging] val emptyContext: Ctx = Map.empty
 
-  def stdout: Logger.Aux[Unit] =
-    appendable(System.out).void
+  def stdout(pattern: Pattern): Logger.Aux[Unit] =
+    appendable(System.out, pattern).void
 
   def appendable[A <: Appendable](
       appendable: A,
-      pattern: Pattern = Pattern.default,
+      pattern: Pattern,
       ctx: Ctx = emptyContext
   ): Logger.Aux[A] =
     new AppendableLogger(appendable, pattern, ctx)
 
   def writer[W <: Writer](
-      writer: W = System.out,
-      pattern: Pattern = Pattern.default,
+      writer: W,
+      pattern: Pattern,
       ctx: Ctx = emptyContext
   ): Logger.Aux[W] =
     new WriterLogger(new AppendableLogger(writer, pattern, ctx))
 
-  def stringWriter(pattern: Pattern = Pattern.default, ctx: Ctx = emptyContext): Logger.Aux[StringWriter] =
+  def stringWriter(pattern: Pattern, ctx: Ctx = emptyContext): Logger.Aux[StringWriter] =
     writer(new StringWriter, pattern, ctx)
 
   def storing(ctx: Ctx = emptyContext): Logger.Aux[Array[Stored]] =

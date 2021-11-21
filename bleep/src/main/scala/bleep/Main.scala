@@ -1,18 +1,19 @@
 package bleep
 
 import bleep.internal.Os
-import bleep.logging.{Logger, Pattern}
+import bleep.logging.{LogLevel, Logger}
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import com.monovore.decline._
 
 import java.io.PrintStream
 import java.nio.file.Path
+import java.time.Instant
 import scala.util.{Failure, Success, Try}
 
 object Main {
   val logger: Logger.Aux[PrintStream] =
-    logging.appendable(System.out, Pattern.default)
+    logging.appendable(System.out, LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
 
   val cwd: Path =
     Os.cwd
