@@ -63,6 +63,7 @@ object bootstrap {
     from(logger, Os.cwd)
 
   def from(logger: Logger, cwd: Path): Either[BuildException, Started] = {
+    val t0 = System.currentTimeMillis()
     val directories = UserPaths.fromAppDirs
 
     val lazyResolver: Lazy[CoursierResolver] = Lazy {
@@ -123,7 +124,8 @@ object bootstrap {
               logger.debug(s"Wrote ${bloopFiles.size} files to ${buildPaths.bleepBloopDir}")
               bloopFiles
             }
-
+            val td = System.currentTimeMillis() - t0
+            logger.info(s"bootstrapped in $td ms")
             Right(Started(buildPaths, build, bloopFiles, activeProject, lazyResolver, directories, logger))
         }
       case None => Left(new BuildException.BuildNotFound(cwd))
