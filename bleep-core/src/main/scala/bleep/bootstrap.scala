@@ -3,6 +3,7 @@ package bleep
 import bleep.internal.{Lazy, Os}
 import bleep.logging.Logger
 import bloop.config.{Config => b, ConfigCodecs}
+import cats.data.NonEmptyList
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 
@@ -32,6 +33,16 @@ case class Started(
 
   lazy val projects: List[b.Project] =
     bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet.project }.toList
+
+  def chosenProjects(maybeFromCommandLine: Option[NonEmptyList[model.ProjectName]]): List[model.ProjectName] =
+    maybeFromCommandLine match {
+      case Some(fromCommandLine) => fromCommandLine.toList
+      case None =>
+        activeProjectFromPath match {
+          case Some(value) => List(value)
+          case None        => bloopFiles.keys.toList
+        }
+    }
 }
 
 object bootstrap {
