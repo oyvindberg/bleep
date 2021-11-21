@@ -28,7 +28,7 @@ object Main {
             Opts(commands.SetupIde(BuildPaths(cwd / "bleep.json"), logger))
           ),
           Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import(logger))),
-          Opts(() => logger.error("couldn't initialize bleep", buildException))
+          Opts.arguments[String]().orNone.map(_ => () => logger.error("couldn't initialize", buildException))
         )
 
       case Right(started) =>
@@ -64,6 +64,7 @@ object Main {
         ).flatten
     }
   }
+
   def main(args: Array[String]): Unit =
     Command("bleep", "Bleeping fast build!")(mainOpts.reduce(_.orElse(_))).parse(args.toIndexedSeq, sys.env) match {
       case Left(help) => System.err.println(help)
