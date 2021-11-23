@@ -76,10 +76,16 @@ object Logger {
       lastWasProgress: AtomicBoolean = new AtomicBoolean(false) // need to share this across instances after `withContext`
   ) extends Logger { self =>
     type Underlying = U
+    val CleanCurrentLine = "\u001b[K"
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
       val formatted = pattern(t, throwable, metadata, context)
-      underlying.append(formatted.render + "\n")
+      if (lastWasProgress.get()) {
+        underlying.append(CleanCurrentLine + formatted.render + "\n")
+      } else {
+        underlying.append(formatted.render + "\n")
+      }
+
       lastWasProgress.set(false)
       ()
     }
@@ -91,8 +97,7 @@ object Logger {
       override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
         val formatted = pattern(text, throwable, metadata, context)
         if (lastWasProgress.get()) {
-          val CleanCurrentLine = "\u001b[K"
-          underlying.append(CleanCurrentLine + formatted.render + "\r") // clean current line, finish with carriage return
+          underlying.append(CleanCurrentLine + formatted.render + "\r")
         } else {
           underlying.append(formatted.render + "\r")
           lastWasProgress.set(true)
@@ -185,7 +190,7 @@ object Logger {
     override def progressMonitor: Option[LoggerFn] = None
   }
 
-  implicit final class LoggerSyntax[U](private val self: Logger.Aux[U]) extends AnyVal {
+  implicit final class LoggerAuxSyntax[U](private val self: Logger.Aux[U]) extends AnyVal {
     def zipWith[UU](other: Logger.Aux[UU]): Logger.Aux[(U, UU)] =
       new Zipped(self, other)
 

@@ -9,7 +9,8 @@ import scala.collection.mutable
 
 // a bsp client which will display compilation diagnostics and progress to a logger
 object BspClientDisplayProgress {
-  def apply(logger: Logger) = new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)))
+  def apply(logger: Logger): BspClientDisplayProgress =
+    new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)))
 }
 
 class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]])
@@ -90,8 +91,7 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
         d.getRange.getEnd.getCharacter.toString
       )
 
-      val configuredLogger = Option(d.getCode).foldLeft(logger.withContext(location))((l, code) => l.withContext(code))
-      configuredLogger.apply(logLevel, d.getMessage)
+      logger.withContext(location).withOptContext("code", Option(d.getCode)).apply(logLevel, d.getMessage)
     }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)
