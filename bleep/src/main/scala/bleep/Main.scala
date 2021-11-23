@@ -1,18 +1,19 @@
 package bleep
 
 import bleep.internal.Os
-import bleep.logging.{Logger, Pattern}
+import bleep.logging.{LogLevel, Logger}
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import com.monovore.decline._
 
 import java.io.PrintStream
 import java.nio.file.Path
+import java.time.Instant
 import scala.util.{Failure, Success, Try}
 
 object Main {
   val logger: Logger.Aux[PrintStream] =
-    logging.appendable(System.out, Pattern.default)
+    logging.stdout(LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
 
   val cwd: Path =
     Os.cwd
@@ -28,7 +29,7 @@ object Main {
             Opts(commands.SetupIde(BuildPaths(cwd / "bleep.json"), logger))
           ),
           Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import(logger))),
-          Opts(() => logger.error("couldn't initialize bleep", buildException))
+          Opts.arguments[String]().orNone.map(_ => () => logger.error("couldn't initialize", buildException))
         )
 
       case Right(started) =>
@@ -64,6 +65,7 @@ object Main {
         ).flatten
     }
   }
+
   def main(args: Array[String]): Unit =
     Command("bleep", "Bleeping fast build!")(mainOpts.reduce(_.orElse(_))).parse(args.toIndexedSeq, sys.env) match {
       case Left(help) => System.err.println(help)

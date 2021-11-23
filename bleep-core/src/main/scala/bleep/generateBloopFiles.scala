@@ -183,7 +183,7 @@ object generateBloopFiles {
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
-          scalaVersion.compiler.dependency(scalaVersion.scalaVersion)
+          scalaVersion.compiler.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, "")
 
         val resolvedScalaCompiler: List[Path] =
           Await.result(resolver(JsonSet(scalaCompiler), build.resolvers), Duration.Inf).files.toList.map(_.toPath)

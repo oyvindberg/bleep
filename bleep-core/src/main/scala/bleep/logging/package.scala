@@ -1,35 +1,27 @@
 package bleep
 
-import java.io.{StringWriter, Writer}
-
-import bleep.logging.Logger.{AppendableLogger, Stored, StoringLogger, WriterLogger}
 import fansi.Str
+
+import java.io.{PrintStream, StringWriter}
 
 package object logging {
   type Ctx = Map[Str, Str]
 
   private[logging] val emptyContext: Ctx = Map.empty
 
-  def stdout: Logger.Aux[Unit] =
-    appendable(System.out).void
+  def stdout(pattern: Pattern, ctx: Ctx = emptyContext): Logger.Aux[PrintStream] =
+    new Logger.ConsoleLogger(System.out, pattern, ctx)
 
   def appendable[A <: Appendable](
       appendable: A,
-      pattern: Pattern = Pattern.default,
+      pattern: Pattern,
       ctx: Ctx = emptyContext
   ): Logger.Aux[A] =
-    new AppendableLogger(appendable, pattern, ctx)
+    new Logger.AppendableLogger(appendable, pattern, ctx)
 
-  def writer[W <: Writer](
-      writer: W = System.out,
-      pattern: Pattern = Pattern.default,
-      ctx: Ctx = emptyContext
-  ): Logger.Aux[W] =
-    new WriterLogger(new AppendableLogger(writer, pattern, ctx))
+  def stringWriter(pattern: Pattern, ctx: Ctx = emptyContext): Logger.Aux[StringWriter] =
+    appendable(new StringWriter, pattern, ctx)
 
-  def stringWriter(pattern: Pattern = Pattern.default, ctx: Ctx = emptyContext): Logger.Aux[StringWriter] =
-    writer(new StringWriter, pattern, ctx)
-
-  def storing(ctx: Ctx = emptyContext): Logger.Aux[Array[Stored]] =
-    new StoringLogger(new Logger.Store, ctx)
+  def storing(ctx: Ctx = emptyContext): Logger.Aux[Array[Logger.Stored]] =
+    new Logger.StoringLogger(new Logger.Store, ctx)
 }

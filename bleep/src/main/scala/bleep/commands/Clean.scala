@@ -8,7 +8,7 @@ import java.nio.file.Files
 
 case class Clean(started: Started, opts: CommonOpts, projects: Option[NonEmptyList[model.ProjectName]]) extends BleepCommand {
   override def run(): Unit = {
-    val isChosen = chosenProjects(started, projects).toSet
+    val isChosen = started.chosenProjects(projects).toSet
     started.bloopFiles.foreach {
       case (projectName, lazyProject) if isChosen(projectName) =>
         val outFolder = lazyProject.forceGet.project.out
