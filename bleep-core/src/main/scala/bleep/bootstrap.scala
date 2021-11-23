@@ -25,7 +25,7 @@ case class Started(
     buildPaths: BuildPaths,
     build: model.Build,
     bloopFiles: Map[model.ProjectName, Lazy[b.File]],
-    activeProjectFromPath: Option[model.ProjectName],
+    activeProjectsFromPath: List[model.ProjectName],
     lazyResolver: Lazy[CoursierResolver],
     directories: UserPaths,
     logger: Logger
@@ -39,9 +39,9 @@ case class Started(
     maybeFromCommandLine match {
       case Some(fromCommandLine) => fromCommandLine.toList
       case None =>
-        activeProjectFromPath match {
-          case Some(value) => List(value)
-          case None        => bloopFiles.keys.toList
+        activeProjectsFromPath match {
+          case Nil      => bloopFiles.keys.toList
+          case nonEmpty => nonEmpty
         }
     }
 }
@@ -86,8 +86,8 @@ object bootstrap {
             val currentHash = build.toString.hashCode().toString
             val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
 
-            val activeProject: Option[model.ProjectName] = {
-              val withRelativeLength =
+            val activeProjects: List[model.ProjectName] = {
+              val withRelativeLength: Map[model.ProjectName, Int] =
                 build.projects.flatMap { case (name, p) =>
                   val folder = buildPaths.buildDir / p.folder.getOrElse(RelPath.force(name.value))
                   val relative = cwd.relativize(folder)
@@ -95,11 +95,9 @@ object bootstrap {
                   else Some((name, relative.getNameCount))
                 }
 
-              withRelativeLength.values.minOption.flatMap { min =>
-                withRelativeLength.filter(_._2 == min).keys.toList match {
-                  case one :: Nil => Some(one)
-                  case _          => None
-                }
+              withRelativeLength.values.minOption match {
+                case Some(min) => withRelativeLength.filter(_._2 == min).keys.toList
+                case None      => Nil
               }
             }
 
@@ -127,7 +125,7 @@ object bootstrap {
             }
             val td = System.currentTimeMillis() - t0
             logger.info(s"bootstrapped in $td ms")
-            Right(Started(buildPaths, build, bloopFiles, activeProject, lazyResolver, directories, logger))
+            Right(Started(buildPaths, build, bloopFiles, activeProjects, lazyResolver, directories, logger))
         }
       case None => Left(new BuildException.BuildNotFound(cwd))
     }

@@ -98,6 +98,7 @@ object Logger {
         val formatted = pattern(text, throwable, metadata, context)
         if (lastWasProgress.get()) {
           underlying.append(CleanCurrentLine + formatted.render + "\r")
+          ()
         } else {
           underlying.append(formatted.render + "\r")
           lastWasProgress.set(true)
