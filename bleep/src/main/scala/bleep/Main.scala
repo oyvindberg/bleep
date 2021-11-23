@@ -13,7 +13,7 @@ import scala.util.{Failure, Success, Try}
 
 object Main {
   val logger: Logger.Aux[PrintStream] =
-    logging.appendable(System.out, LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
+    logging.stdout(LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
 
   val cwd: Path =
     Os.cwd

@@ -11,11 +11,18 @@ object LogPatterns {
   def prefixFor(l: LogLevel): String =
     f"[${l.name.value}%-5s]"
 
+  def emojiFor(l: LogLevel) =
+    l match {
+      case LogLevel.debug => "\uD83D\uDCD8"
+      case LogLevel.info  => "\uD83D\uDCD7"
+      case LogLevel.warn  => "\uD83D\uDCD9"
+      case LogLevel.error => "\uD83D\uDCD5"
+    }
+
   @inline def colorFor(l: LogLevel): EscapeAttr =
     (l.level: @unchecked) match {
       // https://www.ditig.com/256-colors-cheat-sheet
       // chosen to be somewhat subtle (though I guess that's up for discussion), and to work both on white/black background
-      case LogLevel.trace.level => Color.Full(102)
       case LogLevel.debug.level => Color.Full(102)
 //      case LogLevel.trace.level => Color.Full(223) /* 223 NavajoWhite1	#ffd7af	rgb(255,215,175)	hsl(30,100%,84%) */
 //      case LogLevel.debug.level => Color.Full(139 /* 139 Grey63	#af87af	rgb(175,135,175)	hsl(300,20%,60%) */ )
@@ -42,6 +49,8 @@ object LogPatterns {
 
       val millis = Duration.between(t0, m.instant).toMillis
       Str.join(
+        emojiFor(m.logLevel),
+        " ",
         Color(scriptName.fold("")(name => s"$name: ")),
         Color(Formatter(t.value)),
         " ",

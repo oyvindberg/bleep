@@ -27,23 +27,19 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
       case _ => None
     }
 
-  var lastProgress: Option[String] = None
-  def render(): Unit = {
-    val progress = active.toList
-      .map { case (task, progress) =>
-        val percentage: String = {
-          val percentage = progress.getProgress.toDouble / progress.getTotal * 100
-          s"${percentage.toInt}%"
+  def render(): Unit =
+    logger.progressMonitor.foreach { pm =>
+      val progress = active.toList
+        .map { case (task, progress) =>
+          val percentage: String = {
+            val percentage = progress.getProgress.toDouble / progress.getTotal * 100
+            s"${percentage.toInt}%"
+          }
+          Str.join(Bold.On(Str(task.getUri.split("=").last)), ": ", percentage)
         }
-        Str.join(Bold.On(Str(task.getUri.split("=").last)), ": ", percentage)
-      }
-      .mkString("Compiling ", ", ", "")
-    if (lastProgress.contains(progress) || active.isEmpty) ()
-    else {
-      logger.info(progress)
-      lastProgress = Some(progress)
+        .mkString("Compiling ", ", ", "")
+      pm.info(progress)
     }
-  }
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
     logger.withContext("type", params.getType.name).withContext("originId", params.getOriginId).info(s"show message: ${params.getMessage}")
