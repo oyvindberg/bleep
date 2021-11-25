@@ -59,7 +59,7 @@ object Main {
           }
         ),
         Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import(logger))),
-        Opts.subcommand("complete", "tab-completions")(
+        Opts.subcommand("_complete", "tab-completions")(
           (Opts.argument[String]("COMP_LINE"), Opts.argument[Int]("COMP_CWORD"), Opts.argument[Int]("COMP_POINT")).mapN {
             case (compLine, compCword, compPoint) =>
               new BleepCommand {
@@ -91,7 +91,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     // don't produce garbage output when completing
     val logger =
-      if (args.headOption.contains("complete")) Logger.DevNull
+      if (args.headOption.contains("_complete")) Logger.DevNull
       else logging.stdout(LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
 
     Command("bleep", "Bleeping fast build!")(mainOpts(logger).foldK).parse(args.toIndexedSeq, sys.env) match {
