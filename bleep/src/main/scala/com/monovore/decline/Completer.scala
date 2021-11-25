@@ -2,9 +2,9 @@ package com.monovore.decline
 
 import com.monovore.decline.Completer._
 
-class Completer(possibleCompletionsForMetavar: String => List[String]) extends App {
+final class Completer(possibleCompletionsForMetavar: String => List[String]) extends App {
 
-  def bash[A](compLine: String, compCword: Int, compPoint: Int)(x: Opts[A]): List[String] = {
+  def bash[A](compLine: String, compCword: Int, compPoint: Int)(x: Opts[A]): List[Completion] = {
     val args = bashToArgs(compLine, compCword, compPoint)
     completeOpts(args)(x).value
   }
@@ -12,9 +12,10 @@ class Completer(possibleCompletionsForMetavar: String => List[String]) extends A
   def completeOpts[A](args: List[String])(x: Opts[A]): Res =
     x match {
       case Opts.Subcommand(command) =>
-        if (args.isEmpty) Res.Found(List(command.name))
+        val found = Res.Found(List(Completion(command.name, nonEmpty(command.header))))
+        if (args.isEmpty) found
         else if (args.head == command.name) completeOpts(args.tail)(command.options).commitNonEmpty
-        else if (isStartOf(args.head, command.name)) Res.Found(List(command.name)).commitNonEmptyIf(args.head.nonEmpty)
+        else if (isStartOf(args.head, command.name)) found.commitNonEmptyIf(args.head.nonEmpty)
         else Res.Empty
 
       case Opts.App(f, a) =>
@@ -39,15 +40,15 @@ class Completer(possibleCompletionsForMetavar: String => List[String]) extends A
       names.collectFirst { case x: Opts.LongName => x }.getOrElse(names.head).toString
 
     x match {
-      case Opt.Regular(names, metavar, _, _) =>
-        if (args.isEmpty) Res.Found(List(pickName(names)))
-        else if (args.sizeIs == 1) completeName(names.map(_.toString), args.head).commitNonEmptyIf(args.head.nonEmpty)
+      case Opt.Regular(names, metavar, help, _) =>
+        if (args.isEmpty) Res.Found(List(Completion(pickName(names), nonEmpty(help))))
+        else if (args.sizeIs == 1) completeName(names.map(_.toString), args.head, nonEmpty(help)).commitNonEmptyIf(args.head.nonEmpty)
         else if (names.exists(_.toString == args.head)) completeMetaVar(args.tail, metavar).commitNonEmpty
         else Res.Empty
 
-      case Opt.Flag(names, _, _) =>
-        if (args.isEmpty) Res.Found(List(pickName(names)))
-        else if (args.sizeIs == 1) completeName(names.map(_.toString), args.head).commitNonEmptyIf(args.head.nonEmpty)
+      case Opt.Flag(names, help, _) =>
+        if (args.isEmpty) Res.Found(List(Completion(pickName(names), Some(help).filterNot(_.isEmpty))))
+        else if (args.sizeIs == 1) completeName(names.map(_.toString), args.head, nonEmpty(help)).commitNonEmptyIf(args.head.nonEmpty)
         else Res.Empty
 
       case Opt.Argument(metavar) =>
@@ -55,8 +56,11 @@ class Completer(possibleCompletionsForMetavar: String => List[String]) extends A
     }
   }
 
-  def completeName[A](nameStrings: List[String], arg: String): Res =
-    Res.Found(nameStrings.collect { case name if isStartOf(arg, name) => name })
+  private def nonEmpty[A](help: String): Option[String] =
+    Some(help).filterNot(_.isEmpty)
+
+  def completeName[A](nameStrings: List[String], arg: String, description: Option[String]): Res =
+    Res.Found(nameStrings.collect { case name if isStartOf(arg, name) => Completion(name, description) })
 
   def isStartOf[A](arg: String, name: String): Boolean =
     name.startsWith(arg) && arg != name
@@ -64,12 +68,14 @@ class Completer(possibleCompletionsForMetavar: String => List[String]) extends A
   def completeMetaVar(args: List[String], metavar: String): Res = {
     val all = possibleCompletionsForMetavar(metavar)
 
-    if (!args.exists(_.trim.nonEmpty)) Res.Found(all)
-    else if (args.sizeIs == 1) Res.Found(all.collect { case name if name.startsWith(args.head) && args.head != name => name })
+    if (!args.exists(_.trim.nonEmpty)) Res.Found(all.map(one => Completion(one, nonEmpty(metavar))))
+    else if (args.sizeIs == 1) Res.Found(all.collect { case name if name.startsWith(args.head) && args.head != name => Completion(name, nonEmpty(metavar)) })
     else Res.Empty
   }
 }
 object Completer {
+  case class Completion(value: String, description: Option[String])
+
   def bashToArgs(compLine: String, compCword: Int, compPoint: Int): List[String] = {
     val words: List[String] =
       compLine.take(compPoint).split("\\s+").toList.slice(1, compCword + 1)
@@ -78,7 +84,7 @@ object Completer {
   }
 
   sealed trait Res {
-    def value: List[String]
+    def value: List[Completion]
     def commitNonEmpty: Res = this match {
       case Res.Found(value) if value.nonEmpty => Res.Commit(value)
       case res                                => res
@@ -97,10 +103,10 @@ object Completer {
   }
 
   object Res {
-    def commitNonEmpty(values: List[String]): Res = Res.Found(values).commitNonEmpty
+    def commitNonEmpty(values: List[Completion]): Res = Res.Found(values).commitNonEmpty
 
-    case class Commit(value: List[String]) extends Res
-    case class Found(value: List[String]) extends Res
+    case class Commit(value: List[Completion]) extends Res
+    case class Found(value: List[Completion]) extends Res
     val Empty: Res = Found(Nil)
   }
 }

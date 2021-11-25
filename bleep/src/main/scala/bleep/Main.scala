@@ -18,7 +18,7 @@ object Main {
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
 
-  def mainOpts(logger: Logger): List[Opts[BleepCommand]] = {
+  def mainOpts(logger: Logger): Opts[BleepCommand] = {
     lazy val bootstrapped: Either[BuildException, Started] =
       bootstrap.from(logger, cwd)
 
@@ -38,7 +38,7 @@ object Main {
     val projectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
       Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).orNone
 
-    lazy val ret: List[Opts[BleepCommand]] = List(
+    lazy val ret: Opts[BleepCommand] = List(
       List(
         Opts.subcommand("compile", "compile projects")(
           (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Compile(forceStarted, opts, projectNames) }
@@ -68,7 +68,7 @@ object Main {
                     case "project name" => projectNameMap.keys.toList
                     case _              => Nil
                   })
-                  completer.bash(compLine, compCword, compPoint)(ret.foldK).foreach(println)
+                  completer.bash(compLine, compCword, compPoint)(ret).foreach(c => println(c.value))
                 }
               }
           }
@@ -83,7 +83,7 @@ object Main {
             )
           }
       }
-    ).flatten
+    ).flatten.foldK
 
     ret
   }
@@ -94,7 +94,7 @@ object Main {
       if (args.headOption.contains("_complete")) Logger.DevNull
       else logging.stdout(LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
 
-    Command("bleep", "Bleeping fast build!")(mainOpts(logger).foldK).parse(args.toIndexedSeq, sys.env) match {
+    Command("bleep", "Bleeping fast build!")(mainOpts(logger)).parse(args.toIndexedSeq, sys.env) match {
       case Left(help) => System.err.println(help)
       case Right(cmd) =>
         Try(cmd.run()) match {
