@@ -265,13 +265,7 @@ object importBloopFilesFromSbt {
             }
         }
 
-      // todo: investigate native-image bug around here
-      import io.circe.syntax._
-      import model.{decodesDep, encodesDep}
-      io.circe.parser.decode[JavaOrScalaDependency](sdep.asJson.spaces2) match {
-        case Left(x)  => throw x
-        case Right(x) => ParsedDependency(x, dependencies)
-      }
+      ParsedDependency(sdep, dependencies)
     }
   }
 
