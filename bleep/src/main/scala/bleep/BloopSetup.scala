@@ -11,8 +11,6 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util
 import java.util.{Locale, Random}
 import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 import scala.util.{Failure, Properties, Success, Try}
 
 class BloopSetup(
@@ -40,11 +38,10 @@ class BloopSetup(
         .left
         .map(msg => new BuildException.ModuleFormatError(modString, msg))
         .flatMap { mod =>
-          val run: Future[CoursierResolver.Result] =
-            started.resolver(JsonSet(Dependency(mod, bloopVersion)), started.build.resolvers)
-
-          val res: CoursierResolver.Result = Await.result(run, Duration.Inf)
-          Right(res.files)
+          started.resolver(JsonSet(Dependency(mod, bloopVersion)), started.build.resolvers) match {
+            case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
+            case Right(res)          => Right(res.files)
+          }
         }
   }
 

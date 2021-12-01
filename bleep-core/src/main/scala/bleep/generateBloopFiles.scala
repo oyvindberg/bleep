@@ -4,13 +4,12 @@ import bleep.internal.{rewriteDependentData, Lazy}
 import bleep.model.orderingDep
 import bloop.config.{Config => b}
 import coursier.core.Configuration
+import coursier.error.CoursierError
 import coursier.parse.JavaOrScalaDependency
 import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
 import scala.collection.immutable.SortedMap
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 object generateBloopFiles {
   implicit val ordering: Ordering[Dependency] =
@@ -20,7 +19,7 @@ object generateBloopFiles {
     verify(build)
 
     rewriteDependentData(build.projects) { (projectName, project, getDep) =>
-      translateProject(
+      try translateProject(
         resolver,
         buildPaths,
         projectName,
@@ -28,6 +27,10 @@ object generateBloopFiles {
         build,
         getBloopProject = dep => getDep(dep).forceGet(s"${projectName.value} => ${dep.value}")
       )
+      catch {
+        // add some context
+        case cause: CoursierError => throw BuildException.ResolveError(cause, projectName)
+      }
     }
   }
 
@@ -43,6 +46,7 @@ object generateBloopFiles {
         }
     }
 
+  @throws[CoursierError]
   def translateProject(
       resolver: CoursierResolver,
       buildPaths: BuildPaths,
@@ -148,7 +152,10 @@ object generateBloopFiles {
           }
         }
 
-      val result = Await.result(resolver(concreteDeps, build.resolvers), Duration.Inf)
+      val result = resolver(concreteDeps, build.resolvers) match {
+        case Left(coursierError) => throw coursierError
+        case Right(value)        => value
+      }
 
       val modules: List[b.Module] =
         result.detailedArtifacts
@@ -187,7 +194,10 @@ object generateBloopFiles {
           scalaVersion.compiler.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, "")
 
         val resolvedScalaCompiler: List[Path] =
-          Await.result(resolver(JsonSet(scalaCompiler), build.resolvers), Duration.Inf).files.toList.map(_.toPath)
+          resolver(JsonSet(scalaCompiler), build.resolvers) match {
+            case Left(coursierError) => throw coursierError
+            case Right(res)          => res.files.toList.map(_.toPath)
+          }
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup).map(_.union(Defaults.DefaultCompileSetup)).getOrElse(Defaults.DefaultCompileSetup)
@@ -209,8 +219,13 @@ object generateBloopFiles {
 
           val deps: JsonSet[Dependency] =
             specified.map(_.dependency(scalaVersion.scalaVersion))
+
           val artifacts: List[Path] =
-            Await.result(resolver(deps, build.resolvers), Duration.Inf).files.toList.map(_.toPath)
+            resolver(deps, build.resolvers) match {
+              case Left(coursierError) => throw coursierError
+              case Right(res)          => res.files.toList.map(_.toPath)
+            }
+
           val relevantArtifacts: List[Path] =
             artifacts.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
 
