@@ -202,16 +202,26 @@ object importBloopFilesFromSbt {
           if (sjs1 != -1) sjs1 else sjs06
         }
 
-        List(full, scala, platform).filterNot(_ == -1).minOption match {
+        List(full, scala).filterNot(_ == -1).minOption match {
           case None => java
-          case Some(modNameEndIdx) =>
-            val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(modNameEndIdx))), mod.version)
-            JavaOrScalaDependency.ScalaDependency(
-              withConf(dep),
-              fullCrossVersion = full != -1,
-              withPlatformSuffix = platform != -1,
-              Set.empty
-            )
+          case Some(beforeScalaThing) =>
+            if (platform != -1) {
+              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(platform))), mod.version)
+              JavaOrScalaDependency.ScalaDependency(
+                withConf(dep),
+                fullCrossVersion = full != -1,
+                withPlatformSuffix = true,
+                Set.empty
+              )
+            } else {
+              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(beforeScalaThing))), mod.version)
+              JavaOrScalaDependency.ScalaDependency(
+                withConf(dep),
+                fullCrossVersion = full != -1,
+                withPlatformSuffix = false,
+                Set.empty
+              )
+            }
         }
       }
 
