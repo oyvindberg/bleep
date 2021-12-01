@@ -2,7 +2,7 @@ package bleep.internal
 
 import bleep.logging.{LogLevel, Logger}
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.BuildTargetIdentifier
+import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
 import fansi.{Bold, Str}
 
 import scala.collection.mutable
@@ -32,7 +32,7 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
   def render(): Unit =
     logger.progressMonitor.foreach { pm =>
       val progress = active.toList
-        .map { case (task, maybeProgress) =>
+        .map { case (buildTargetId, maybeProgress) =>
           val percentage: String =
             maybeProgress match {
               case Some(progress) =>
@@ -40,17 +40,28 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
                 s"${percentage.toInt}%"
               case None => "started"
             }
-          Str.join(Bold.On(Str(task.getUri.split("=").last)), ": ", percentage)
+          Str.join(renderBuildTarget(buildTargetId), ": ", percentage)
         }
         .mkString("Compiling ", ", ", "")
       pm.info(progress)
     }
 
+  def renderBuildTarget(buildTargetId: BuildTargetIdentifier): Str =
+    Bold.On(Str(buildTargetId.getUri.split("=").last))
+
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.withContext("type", params.getType.getValue).withContext("originId", params.getOriginId).info(s"show message: ${params.getMessage}")
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), s"show message: ${params.getMessage}")
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withContext("type", params.getType.getValue).withOptContext("originId", Option(params.getOriginId)).info(s"build message: ${params.getMessage}")
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), s"log message: ${params.getMessage}")
+
+  def logLevelFor(messageType: MessageType): LogLevel =
+    messageType match {
+      case bsp4j.MessageType.ERROR       => LogLevel.error
+      case bsp4j.MessageType.WARNING     => LogLevel.warn
+      case bsp4j.MessageType.INFORMATION => LogLevel.info
+      case bsp4j.MessageType.LOG         => LogLevel.info
+    }
 
   override def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit =
     extract(params.getData).foreach { id =>
@@ -91,7 +102,7 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
         d.getRange.getEnd.getCharacter.toString
       )
 
-      logger.withContext(location).withOptContext("code", Option(d.getCode)).apply(logLevel, d.getMessage)
+      logger.withContext(location).withOptContext("code", Option(d.getCode)).apply(logLevel, renderBuildTarget(params.getBuildTarget) + " " + d.getMessage)
     }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)
