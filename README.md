@@ -1,7 +1,84 @@
-# bleep
+# A bleeping fast scala build tool!
 
-Named after the censored expletive a developer will mutter almost inaudibly after
-seeing how damn fast it starts compiling your scala code.
+Yes, yes, yes. Yet another build tool. 
+
+Bleep emphasizes 
+- **fast**
+- **simple**
+- **automatic import from sbt**
+- **one second project import into your IDE through BSP**
+
+Intrigued? Keep reading!
+
+## Status
+
+Bleep automatically imports and builds huge projects, like tapir or http4s. 
+
+However, it's very early days. There hasn't been a milestone release yet. 
+
+So please try it out, please get involved. But let's not spread the word too widely just yet. 
+Even the name is likely to change.
+
+## What, exactly?
+
+If you have an interest in build tools you'll probably know Bloop, the Scala build server.
+
+Bloop has already defined an almost perfect json format for describing how to build, run, test, debug, link and so on.
+This json format has two drawbacks:
+- bound to one machine
+- verbose
+
+Bleep uses coursier to enable you to write essentially portable Bloop json files without the boilerplate.
+
+Bleep is compiled with native image to be fast, it starts ~instantly.
+
+For an up to date example of what a bleep build file see [bleep.json in this repo](./bleep.json).
+
+## But what about X?
+
+Yes, your build does other things. 
+
+It generates code, it distributes artifacts, it builds websites. Probably a lot more
+
+But none of this has to be in the build itself!
+
+Bleep introduces `scripts`. 
+Defined in your build file as the `scripts` in a `package.json`, it allows you to run any class with a `main` method.
+```json
+{
+  "scripts": {
+    "native-image": "mymodule/mypackage.GenNativeImage"
+  }
+}
+```
+
+Bleep provides you with the entire build in a structured format, so you can query projects,
+paths and so on.
+
+```scala
+import bleep.bootstrap
+import bleep.model.ProjectName
+import bleep.tasks._
+
+object GenNativeImage extends App {
+  bootstrap.forScript("GenNativeImage") { started =>
+    val projectName = ProjectName("myproject")
+    val project = started.bloopFiles(projectName).forceGet
+
+    val plugin = new NativeImagePlugin(project.project, started.logger, nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"))
+    val path = plugin.nativeImage()
+    started.logger.info(s"Created native-image at $path")
+  }
+}
+```
+
+It might already be clear to you, but anyways:
+
+- you can start this program from bleep (`bleep native-image`), from your IDE, from anywhere
+- you can debug it like a normal program
+- you can include any dependencies you want, from any scala version. No class loader issues.
+- you have all the structured info from the build, without having to express code in your build
+- the NativeImagePlugin is directly ported from sbt. In fact most interesting sbt plugins can be ported quite easily! setting = `val`, task = `def`.
 
 ## How to build bleep
 
