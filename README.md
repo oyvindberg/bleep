@@ -10,6 +10,10 @@ Bleep emphasizes
 
 Intrigued? Keep reading!
 
+
+https://user-images.githubusercontent.com/247937/144330278-9eac4179-71fb-4937-8ac5-3c94df76caa0.mp4
+
+
 ## Status
 
 Bleep automatically imports and builds huge projects, like tapir or http4s. 
