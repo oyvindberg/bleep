@@ -41,8 +41,24 @@ object importBloopFilesFromSbt {
     val projects = bloopProjectFiles.map { case (projectName, bloopFile) =>
       val bloopProject = bloopFile.project
 
+      val directory =
+        if (bloopProject.directory.startsWith(buildPaths.buildDir / ".sbt/matrix")) {
+          def inferDirectory(sources: List[Path]) = {
+            val src = Paths.get("src")
+            def aboveSrc(p: Path): Option[Path] =
+              if (p == null) None
+              else if (p.getFileName == src) Some(p.getParent)
+              else aboveSrc(p.getParent)
+
+            sources.flatMap(aboveSrc).groupBy(identity).maxBy(_._2.length)._1
+          }
+
+          inferDirectory(bloopProject.sources)
+
+        } else bloopProject.directory
+
       val folder: Option[RelPath] = {
-        RelPath.relativeTo(buildPaths.buildDir, bloopProject.directory) match {
+        RelPath.relativeTo(buildPaths.buildDir, directory) match {
           case RelPath(List(projectName.value)) => None
           case relPath                          => Some(relPath)
         }
@@ -59,10 +75,10 @@ object importBloopFilesFromSbt {
 
       val (sourceLayout, sources, resources) = {
         val sourcesRelPaths: JsonSet[RelPath] =
-          JsonSet.fromIterable(bloopProject.sources.map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir)))
+          JsonSet.fromIterable(bloopProject.sources.map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
 
         val resourcesRelPaths: JsonSet[RelPath] =
-          JsonSet.fromIterable(bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(bloopProject.directory, absoluteDir)))
+          JsonSet.fromIterable(bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
 
         val inferredSourceLayout: SourceLayout =
           SourceLayout.All.values.maxBy { layout =>
@@ -82,7 +98,7 @@ object importBloopFilesFromSbt {
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
-      val templateDirs = Options.TemplateDirs(buildPaths.buildDir, bloopProject.directory)
+      val templateDirs = Options.TemplateDirs(buildPaths.buildDir, directory)
 
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, templateDirs))
@@ -281,7 +297,7 @@ object importBloopFilesFromSbt {
           kind = Some(config.kind),
           emitSourceMaps = Some(config.emitSourceMaps),
           jsdom = config.jsdom,
-//          output = config.output.map(output => RelPath.relativeTo(bloopProject.directory, output)),
+//          output = config.output.map(output => RelPath.relativeTo(directory, output)),
           mainClass = mainClass
         )
         translatedPlatform
