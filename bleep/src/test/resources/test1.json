@@ -1,29 +1,29 @@
 {
   "version": "1",
-  "scala": {
-    "2.12": {
-      "version": "2.12.6"
+  "templates": {
+    "default": {
+      "scala": {
+        "version": "2.12.6"
+      },
+      "sbt-scope": "main"
     }
   },
   "projects": {
     "common": {
-      "scala": "2.12",
-      "sbt-scope": "main",
+      "extends": "default",
       "dependencies": [
         "io.circe::circe-generic:0.12.3"
       ]
     },
     "bigquery": {
-      "scala": "2.12",
-      "sbt-scope": "main",
+      "extends": "default",
       "folder": "clients/bigquery",
       "dependsOn": [
         "common"
       ]
     },
     "bigquery-test": {
-      "scala": "2.12",
-      "sbt-scope": "main",
+      "extends": "default",
       "folder": "clients/bigquery",
       "sources": "src/test/scala",
       "dependsOn": [

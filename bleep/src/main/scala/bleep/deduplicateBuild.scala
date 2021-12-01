@@ -6,6 +6,15 @@ import coursier.parse.JavaOrScalaDependency
 
 object deduplicateBuild {
   def apply(build: model.Build): model.Build = {
+    val templates = build.templates.map { templates =>
+      templates.map { case (templateId, templateProject) =>
+        templateId -> templateProject.copy(
+          scala = templateProject.scala.map(removeScalaDefaults),
+          platform = templateProject.platform.map(removePlatformDefaults)
+        )
+      }
+    }
+
     val projects = rewriteDependentData[model.ProjectName, model.Project, model.Project](build.projects) { (projectName, p, getDep) =>
       val shortenedDeps: Map[model.ProjectName, model.Project] =
         build.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, getDep(pn).forceGet(pn.value)) }
@@ -23,32 +32,8 @@ object deduplicateBuild {
         newInThisProject
       }
 
-      val shortenedJava: Option[model.Java] = {
-        val shortened = build.java match {
-          case Some(buildJava) => p.java.map(_.removeAll(buildJava))
-          case None            => p.java
-        }
-        shortened.filterNot(_.isEmpty)
-      }
-
-      val shortenedScala: Option[model.Scala] =
-        p.scala.map { projectScala =>
-          val removeInherited = for {
-            parentScala <- projectScala.parent(build)
-            explodedParentScala = parentScala.explode(build)
-          } yield projectScala.removeAll(explodedParentScala)
-
-          val ret = removeInherited.getOrElse(projectScala)
-
-          removeScalaDefaults(ret)
-        }
-
-      val shortenedPlatform: Option[model.Platform] =
-        p.platform.map { platform =>
-          removePlatformDefaults(platform.parent(build).foldLeft(platform) { case (acc, parent) => acc.removeAll(parent.explode(build)) })
-        }
-
       model.Project(
+        `extends` = p.`extends`,
         folder = p.folder,
         dependsOn = shortenedDependsOn,
         `source-layout` = p.`source-layout`,
@@ -56,9 +41,10 @@ object deduplicateBuild {
         sources = p.sources,
         resources = p.resources,
         dependencies = shortenedDependencies,
-        java = shortenedJava,
-        scala = shortenedScala,
-        platform = shortenedPlatform
+        java = p.java,
+        scala = p.scala.map(removeScalaDefaults),
+        platform = p.platform.map(removePlatformDefaults),
+        p.testFrameworks
       )
     }
 
@@ -66,10 +52,8 @@ object deduplicateBuild {
 
     model.Build(
       version = build.version,
+      templates = templates,
       projects = forcedProjects,
-      platforms = build.platforms.map(_.map { case (id, p) => (id, removePlatformDefaults(p)) }),
-      scala = build.scala.map(_.map { case (id, s) => (id, removeScalaDefaults(s)) }),
-      java = build.java,
       scripts = build.scripts,
       resolvers = build.resolvers
     )

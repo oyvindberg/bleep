@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.codecs.codecURI
-import bleep.internal.{EnumCodec, SetLike, ShortenJson}
+import bleep.internal.{EnumCodec, SetLike, ShortenAndSortJson}
 import bloop.config.Config
 import coursier.core.{Attributes, Classifier, Configuration}
 import coursier.parse.{DependencyParser, JavaOrScalaDependency, ModuleParser}
@@ -86,44 +86,18 @@ object model {
       this match {
         case Java(options) => options.isEmpty
       }
-
-    def explode(build: model.Build): model.Java =
-      build.java.foldLeft(this)(_ union _)
-
-    def parent(build: model.Build): Option[Java] =
-      build.java
   }
 
   object Java {
     implicit val decodes: Decoder[Java] = deriveDecoder
     implicit val encodes: Encoder[Java] = deriveEncoder
   }
+  case class TestFrameworkName(value: String)
 
-  case class TestFramework(names: List[String])
-
-  object TestFramework {
-    implicit val decodes: Decoder[TestFramework] = deriveDecoder
-    implicit val encodes: Encoder[TestFramework] = deriveEncoder
-  }
-  case class TestArgument(args: List[String], framework: Option[TestFramework])
-
-  object TestArgument {
-    implicit val decodes: Decoder[TestArgument] = deriveDecoder
-    implicit val encodes: Encoder[TestArgument] = deriveEncoder
-  }
-
-  case class TestOptions(excludes: List[String], arguments: List[TestArgument])
-
-  object TestOptions {
-    implicit val decodes: Decoder[TestOptions] = deriveDecoder
-    implicit val encodes: Encoder[TestOptions] = deriveEncoder
-  }
-
-  case class Test(frameworks: List[TestFramework], options: TestOptions)
-
-  object Test {
-    implicit val decodes: Decoder[Test] = deriveDecoder
-    implicit val encodes: Encoder[Test] = deriveEncoder
+  object TestFrameworkName {
+    implicit val decodes: Decoder[TestFrameworkName] = Decoder[String].map(TestFrameworkName.apply)
+    implicit val encodes: Encoder[TestFrameworkName] = Encoder[String].contramap(_.value)
+    implicit val ordering: Ordering[TestFrameworkName] = Ordering[String].on(_.value)
   }
 
   implicit val compileOrder: Codec[Config.CompileOrder] =
@@ -167,6 +141,11 @@ object model {
         manageBootClasspath = manageBootClasspath.orElse(other.manageBootClasspath),
         filterLibraryFromClasspath = filterLibraryFromClasspath.orElse(other.filterLibraryFromClasspath)
       )
+
+    override def isEmpty: Boolean = this match {
+      case CompileSetup(order, addLibraryToBootClasspath, addCompilerToClasspath, addExtraJarsToClasspath, manageBootClasspath, filterLibraryFromClasspath) =>
+        order.isEmpty && addLibraryToBootClasspath.isEmpty && addCompilerToClasspath.isEmpty && addExtraJarsToClasspath.isEmpty && manageBootClasspath.isEmpty && filterLibraryFromClasspath.isEmpty
+    }
   }
 
   object CompileSetup {
@@ -174,17 +153,7 @@ object model {
     implicit val encodes: Encoder[CompileSetup] = deriveEncoder
   }
 
-  case class ScalaId(value: String) extends AnyVal
-  object ScalaId {
-    implicit val ordering: Ordering[ScalaId] = Ordering.by(_.value)
-    implicit val decodes: Decoder[ScalaId] = Decoder[String].map(ScalaId.apply)
-    implicit val encodes: Encoder[ScalaId] = Encoder[String].contramap(_.value)
-    implicit val keyDecodes: KeyDecoder[ScalaId] = KeyDecoder[String].map(ScalaId.apply)
-    implicit val keyEncodes: KeyEncoder[ScalaId] = KeyEncoder[String].contramap(_.value)
-  }
-
   case class Scala(
-      `extends`: Option[ScalaId],
       version: Option[Versions.Scala],
       options: Options,
       setup: Option[CompileSetup],
@@ -192,7 +161,6 @@ object model {
   ) extends SetLike[Scala] {
     override def intersect(other: Scala): Scala =
       Scala(
-        `extends` = if (`extends` == other.`extends`) `extends` else None,
         version = if (`version` == other.`version`) `version` else None,
         options = options.intersect(other.options),
         setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) },
@@ -201,7 +169,6 @@ object model {
 
     override def removeAll(other: Scala): Scala =
       Scala(
-        `extends` = if (`extends` == other.`extends`) None else `extends`,
         version = if (`version` == other.`version`) None else `version`,
         options = options.removeAll(other.options),
         setup = List(setup, other.setup).flatten.reduceOption(_ removeAll _),
@@ -210,28 +177,16 @@ object model {
 
     override def union(other: Scala): Scala =
       Scala(
-        `extends` = `extends`.orElse(other.`extends`),
         version = version.orElse(other.version),
         options = options.union(other.options),
         setup = List(setup, other.setup).flatten.reduceOption(_ union _),
         compilerPlugins = compilerPlugins.union(other.compilerPlugins)
       )
 
-    def explode(build: model.Build): model.Scala = {
-      def go(s: model.Scala): model.Scala =
-        s.`extends` match {
-          case Some(id) =>
-            val found = build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
-            s.union(go(found))
-          case None =>
-            s
-        }
-
-      go(this)
-    }
-    def parent(build: model.Build): Option[Scala] =
-      `extends` map { id =>
-        build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
+    override def isEmpty: Boolean =
+      this match {
+        case Scala(version, options, setup, compilerPlugins) =>
+          version.isEmpty && options.isEmpty && setup.fold(true)(_.isEmpty) && compilerPlugins.isEmpty
       }
   }
 
@@ -239,25 +194,8 @@ object model {
     implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
     implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
 
-    val fullDecodes: Decoder[Scala] = deriveDecoder
-    val fullEncodes: Encoder[Scala] = deriveEncoder
-
-    val shortDecodes: Decoder[Scala] =
-      Decoder[ScalaId].map(extends_ => Scala(`extends` = Some(extends_), None, Options.empty, None, JsonSet.empty))
-
-    implicit val decodes: Decoder[Scala] =
-      shortDecodes.or(fullDecodes)
-
-    implicit val encodes: Encoder[Scala] = Encoder.instance { s =>
-      fullEncodes(s).foldWith(ShortenJson).withObject {
-        case obj if obj.size == 1 =>
-          obj("extends") match {
-            case Some(extendsValue) => extendsValue
-            case _                  => obj.asJson
-          }
-        case obj => obj.asJson
-      }
-    }
+    implicit val decodes: Decoder[Scala] = deriveDecoder
+    implicit val Encodes: Encoder[Scala] = deriveEncoder
   }
 
   case class PlatformId(value: String) extends AnyVal
@@ -269,33 +207,29 @@ object model {
     implicit val keyEncodes: KeyEncoder[PlatformId] = KeyEncoder[String].contramap(_.value)
   }
 
+  case class TemplateId(value: String) extends AnyVal
+  object TemplateId {
+    implicit val ordering: Ordering[TemplateId] = Ordering.by(_.value)
+    implicit val decodes: Decoder[TemplateId] = Decoder[String].map(TemplateId.apply)
+    implicit val encodes: Encoder[TemplateId] = Encoder[String].contramap(_.value)
+    implicit val keyDecodes: KeyDecoder[TemplateId] = KeyDecoder[String].map(TemplateId.apply)
+    implicit val keyEncodes: KeyEncoder[TemplateId] = KeyEncoder[String].contramap(_.value)
+  }
+
   sealed abstract class Platform(val name: PlatformId) extends SetLike[Platform] {
-    def `extends`: Option[PlatformId]
     def compilerPlugin: Option[JavaOrScalaDependency]
 
-    def explode(build: model.Build): model.Platform = {
-      def go(p: model.Platform): model.Platform =
-        p.parent(build) match {
-          case Some(foundParent) => p.union(go(foundParent))
-          case None              => p
-        }
-
-      go(this)
-    }
-
-    def parent(build: model.Build): Option[Platform] =
-      `extends` map { id =>
-        build.platforms
-          .flatMap(platforms => platforms.get(id))
-          .getOrElse(sys.error(s"Platform ${name.value} referenced non-existing platform definition ${id.value}"))
+    override def removeAll(other: Platform): Platform =
+      safeRemoveAll(other).getOrElse {
+        sys.error(s"Cannot mix ${name.value} and ${other.name.value}")
       }
 
-    override def removeAll(other: Platform): Platform =
+    def safeRemoveAll(other: Platform): Option[Platform] =
       (this, other) match {
-        case (one: Platform.Js, two: Platform.Js)         => one.removeAllJs(two)
-        case (one: Platform.Jvm, two: Platform.Jvm)       => one.removeAllJvm(two)
-        case (one: Platform.Native, two: Platform.Native) => one.removeAllNative(two)
-        case (one, two)                                   => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
+        case (one: Platform.Js, two: Platform.Js)         => Some(one.removeAllJs(two))
+        case (one: Platform.Jvm, two: Platform.Jvm)       => Some(one.removeAllJvm(two))
+        case (one: Platform.Native, two: Platform.Native) => Some(one.removeAllNative(two))
+        case _                                            => None
       }
 
     override def union(other: Platform): Platform =
@@ -307,17 +241,31 @@ object model {
       }
 
     override def intersect(other: Platform): Platform =
+      safeIntersect(other).getOrElse {
+        sys.error(s"Cannot mix ${name.value} and ${other.name.value}")
+      }
+
+    def safeIntersect(other: Platform): Option[Platform] =
       (this, other) match {
-        case (one: Platform.Js, two: Platform.Js)         => one.intersectJs(two)
-        case (one: Platform.Jvm, two: Platform.Jvm)       => one.intersectJvm(two)
-        case (one: Platform.Native, two: Platform.Native) => one.intersectNative(two)
-        case (one, two)                                   => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
+        case (one: Platform.Js, two: Platform.Js)         => Some(one.intersectJs(two))
+        case (one: Platform.Jvm, two: Platform.Jvm)       => Some(one.intersectJvm(two))
+        case (one: Platform.Native, two: Platform.Native) => Some(one.intersectNative(two))
+        case _                                            => None
+      }
+
+    override def isEmpty: Boolean =
+      this match {
+        case Platform.Js(version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
+          version.isEmpty && mode.isEmpty && kind.isEmpty & emitSourceMaps.isEmpty & jsdom.isEmpty & mainClass.isEmpty
+        case Platform.Jvm(options, mainClass, runtimeOptions) =>
+          options.isEmpty && mainClass.isEmpty && runtimeOptions.isEmpty
+        case Platform.Native(version, mode, gc, mainClass) =>
+          version.isEmpty && mode.isEmpty && gc.isEmpty && mainClass.isEmpty
       }
   }
 
   object Platform {
     case class Js(
-        `extends`: Option[PlatformId],
         version: Option[Versions.ScalaJs],
         mode: Option[Config.LinkerMode],
         kind: Option[Config.ModuleKindJS],
@@ -334,7 +282,6 @@ object model {
 
       def intersectJs(other: Js): Js =
         Js(
-          `extends` = if (`extends` == other.`extends`) `extends` else None,
           version = if (version == other.version) version else None,
           mode = if (mode == other.mode) mode else None,
           kind = if (kind == other.kind) kind else None,
@@ -346,7 +293,6 @@ object model {
 
       def removeAllJs(other: Js): Js =
         Js(
-          `extends` = if (`extends` == other.`extends`) None else `extends`,
           version = if (version == other.version) None else version,
           mode = if (mode == other.mode) None else mode,
           kind = if (kind == other.kind) None else kind,
@@ -358,7 +304,6 @@ object model {
 
       def unionJs(other: Js): Js =
         Js(
-          `extends` = `extends`.orElse(other.`extends`),
           version = version.orElse(other.version),
           mode = mode.orElse(other.mode),
           kind = kind.orElse(other.kind),
@@ -370,7 +315,6 @@ object model {
     }
 
     case class Jvm(
-        `extends`: Option[PlatformId],
         //      home: Option[Path],
         options: Options,
         mainClass: Option[String],
@@ -384,7 +328,6 @@ object model {
 
       def intersectJvm(other: Jvm): Jvm =
         Jvm(
-          `extends` = if (`extends` == other.`extends`) `extends` else None,
           options = options.intersect(other.options),
           mainClass = if (mainClass == other.mainClass) mainClass else None,
           runtimeOptions = runtimeOptions.intersect(other.runtimeOptions)
@@ -392,7 +335,6 @@ object model {
 
       def removeAllJvm(other: Jvm): Jvm =
         Jvm(
-          `extends` = if (`extends` == other.`extends`) None else `extends`,
           options = options.removeAll(other.options),
           mainClass = if (mainClass == other.mainClass) None else mainClass,
           runtimeOptions = runtimeOptions.removeAll(other.runtimeOptions)
@@ -400,7 +342,6 @@ object model {
 
       def unionJvm(other: Jvm): Jvm =
         Jvm(
-          `extends` = `extends`.orElse(other.`extends`),
           options = options.union(other.options),
           mainClass = mainClass.orElse(other.mainClass),
           runtimeOptions = runtimeOptions.union(other.runtimeOptions)
@@ -408,7 +349,6 @@ object model {
     }
 
     case class Native(
-        `extends`: Option[PlatformId],
         version: Option[Versions.ScalaNative],
         mode: Option[Config.LinkerMode],
         gc: Option[String],
@@ -429,7 +369,6 @@ object model {
 
       def intersectNative(other: Native): Native =
         Native(
-          `extends` = if (`extends` == other.`extends`) `extends` else None,
           version = if (version == other.version) version else None,
           mode = if (mode == other.mode) mode else None,
           gc = if (gc == other.gc) gc else None,
@@ -438,7 +377,6 @@ object model {
 
       def removeAllNative(other: Native): Native =
         Native(
-          `extends` = if (`extends` == other.`extends`) None else `extends`,
           version = if (version == other.version) None else version,
           mode = if (mode == other.mode) None else mode,
           gc = if (gc == other.gc) None else gc,
@@ -447,7 +385,6 @@ object model {
 
       def unionNative(other: Native): Native =
         Native(
-          `extends` = `extends`.orElse(other.`extends`),
           version = version.orElse(other.version),
           mode = mode.orElse(other.mode),
           gc = gc.orElse(other.gc),
@@ -467,7 +404,7 @@ object model {
     val decodesNative: Decoder[Native] = deriveDecoder
     val encodesNative: Encoder[Native] = deriveEncoder
 
-    val decodeFull: Decoder[Platform] = Decoder.instance(c =>
+    implicit val decodes: Decoder[Platform] = Decoder.instance(c =>
       for {
         name <- c.get[String]("name")
         platform <- name match {
@@ -479,37 +416,6 @@ object model {
       } yield platform
     )
 
-    def decodes(platforms: Option[Map[PlatformId, Platform]]): Decoder[Platform] =
-      platforms match {
-        case Some(platforms) =>
-          val decodeShort = PlatformId.decodes.emap { id =>
-            platforms.get(id) match {
-              case Some(_: Js)     => Right(Js(`extends` = Some(id), None, None, None, None, None, None))
-              case Some(_: Jvm)    => Right(Jvm(`extends` = Some(id), Options.empty, None, Options.empty))
-              case Some(_: Native) => Right(Native(`extends` = Some(id), None, None, None, None))
-              case None            => Left(s"${id.value} is not a defined platform")
-            }
-          }
-
-          val hasExtendsButNotName = Decoder.instance(c =>
-            c.get[PlatformId]("extends").flatMap { id =>
-              platforms.get(id) match {
-                case Some(found) =>
-                  found match {
-                    case _: Js     => decodesJs(c)
-                    case _: Jvm    => decodesJvm(c)
-                    case _: Native => decodesNative(c)
-                  }
-                case None => Left(DecodingFailure(s"${id.value} is not a defined platform", c.history))
-              }
-            }
-          )
-
-          decodeShort.or(hasExtendsButNotName).or(decodeFull)
-
-        case None => decodeFull
-      }
-
     implicit val encodes: Encoder[Platform] = Encoder.instance { p =>
       val json = p match {
         case x: Js     => encodesJs(x)
@@ -517,15 +423,7 @@ object model {
         case x: Native => encodesNative(x)
       }
 
-      val shortened = json.foldWith(ShortenJson)
-      shortened
-        .withObject {
-          case obj if obj.size == 1 && obj("extends").nonEmpty =>
-            obj("extends").get
-          case obj =>
-            if (obj("extends").nonEmpty) obj.asJson else obj.add("name", p.name.asJson).asJson
-        }
-        .withNull(Json.fromFields(List("name" -> p.name.asJson)))
+      json.foldWith(ShortenAndSortJson).mapObject(obj => obj.add("name", p.name.asJson))
     }
   }
 
@@ -546,6 +444,7 @@ object model {
   }
 
   case class Project(
+      `extends`: JsonList[TemplateId],
       folder: Option[RelPath],
       dependsOn: JsonSet[ProjectName],
       `source-layout`: Option[SourceLayout],
@@ -555,11 +454,70 @@ object model {
       dependencies: JsonSet[JavaOrScalaDependency],
       java: Option[Java],
       scala: Option[Scala],
-      platform: Option[Platform]
-  )
+      platform: Option[Platform],
+      testFrameworks: JsonSet[TestFrameworkName]
+  ) extends SetLike[Project] {
+    override def intersect(other: Project): Project =
+      Project(
+        `extends` = `extends`.intersect(other.`extends`),
+        folder = if (folder == other.folder) folder else None,
+        dependsOn = dependsOn.intersect(other.dependsOn),
+        `source-layout` = if (`source-layout` == other.`source-layout`) `source-layout` else None,
+        `sbt-scope` = if (`sbt-scope` == other.`sbt-scope`) `sbt-scope` else None,
+        sources = sources.intersect(other.sources),
+        resources = resources.intersect(other.resources),
+        dependencies = dependencies.intersect(other.dependencies),
+        java = java.zip(other.java).map { case (_1, _2) => _1.intersect(_2) },
+        scala = scala.zip(other.scala).map { case (_1, _2) => _1.intersect(_2) },
+        platform = platform.zip(other.platform).flatMap { case (_1, _2) => _1.safeIntersect(_2) },
+        testFrameworks = testFrameworks.intersect(other.testFrameworks)
+      )
+
+    override def removeAll(other: Project): Project =
+      Project(
+        `extends` = `extends`.removeAll(other.`extends`),
+        folder = if (folder == other.folder) None else folder,
+        dependsOn = dependsOn.removeAll(other.dependsOn),
+        `source-layout` = if (`source-layout` == other.`source-layout`) None else `source-layout`,
+        `sbt-scope` = if (`sbt-scope` == other.`sbt-scope`) None else `sbt-scope`,
+        sources = sources.removeAll(other.sources),
+        resources = resources.removeAll(other.resources),
+        dependencies = dependencies.removeAll(other.dependencies),
+        java = List(java, other.java).flatten.reduceOption(_ removeAll _),
+        scala = List(scala, other.scala).flatten.reduceOption(_ removeAll _),
+        platform = (platform, other.platform) match {
+          case (Some(one), Some(two)) => one.safeRemoveAll(two).orElse(platform)
+          case _                      => platform
+        },
+        testFrameworks = testFrameworks.removeAll(other.testFrameworks)
+      )
+
+    override def union(other: Project): Project =
+      Project(
+        `extends` = `extends`.union(other.`extends`),
+        folder = folder.orElse(other.folder),
+        dependsOn = dependsOn.union(other.dependsOn),
+        `source-layout` = `source-layout`.orElse(other.`source-layout`),
+        `sbt-scope` = `sbt-scope`.orElse(other.`sbt-scope`),
+        sources = sources.union(other.sources),
+        resources = resources.union(other.resources),
+        dependencies = dependencies.union(other.dependencies),
+        java = List(java, other.java).flatten.reduceOption(_ union _),
+        scala = List(scala, other.scala).flatten.reduceOption(_ union _),
+        // may throw
+        platform = List(platform, other.platform).flatten.reduceOption(_ union _),
+        testFrameworks = testFrameworks.union(other.testFrameworks)
+      )
+
+    override def isEmpty: Boolean = this match {
+      case Project(extends_, folder, dependsOn, sourceLayout, sbtScope, sources, resources, dependencies, java, scala, platform, testFrameworks) =>
+        extends_.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
+          .fold(true)(_.isEmpty) && scala.fold(true)(_.isEmpty) && platform.fold(true)(_.isEmpty) && testFrameworks.isEmpty
+    }
+  }
 
   object Project {
-    def decodes(implicit platformDecoder: Decoder[Platform]): Decoder[Project] = deriveDecoder
+    implicit val decodes: Decoder[Project] = deriveDecoder
     implicit val encodes: Encoder[Project] = deriveEncoder
   }
 
@@ -590,13 +548,19 @@ object model {
 
   case class Build(
       version: String,
-      platforms: Option[Map[PlatformId, Platform]],
-      scala: Option[Map[ScalaId, Scala]],
-      java: Option[Java],
+      templates: Option[Map[TemplateId, Project]],
       scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
       resolvers: JsonSet[URI],
       projects: Map[ProjectName, Project]
   ) {
+    def explode(project: Project): Project = {
+      def go(project: Project): Project =
+        project.`extends`.values.foldLeft(project) { case (p, parentId) =>
+          p.union(go(templates.get(parentId)))
+        }
+
+      go(project)
+    }
 
     def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
       val builder = Map.newBuilder[model.ProjectName, model.Project]
@@ -618,15 +582,11 @@ object model {
       Decoder.instance(c =>
         for {
           version <- c.downField("version").as[String]
-          platforms <- c.downField("platforms").as(Decoder.decodeOption(Decoder.decodeMap(PlatformId.keyDecodes, Platform.decodes(None))))
-          projects <- c
-            .downField("projects")
-            .as[Map[ProjectName, Project]](Decoder.decodeMap(ProjectName.keyDecodes, Project.decodes(Platform.decodes(platforms))))
-          scala <- c.downField("scala").as[Option[Map[ScalaId, Scala]]]
-          java <- c.downField("java").as[Option[Java]]
+          templates <- c.downField("templates").as[Option[Map[TemplateId, Project]]]
+          projects <- c.downField("projects").as[Map[ProjectName, Project]]
           scripts <- c.downField("scripts").as[Option[Map[ScriptName, JsonList[ScriptDef]]]]
           resolvers <- c.downField("resolvers").as[JsonSet[URI]]
-        } yield Build(version, platforms, scala, java, scripts, resolvers, projects)
+        } yield Build(version, templates, scripts, resolvers, projects)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
   }

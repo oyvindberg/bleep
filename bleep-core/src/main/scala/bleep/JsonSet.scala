@@ -16,7 +16,7 @@ import scala.collection.immutable.SortedSet
 case class JsonSet[T](values: SortedSet[T]) extends Function[T, Boolean] with SetLike[JsonSet[T]] {
   override def apply(t: T): Boolean = values.apply(t)
   override def intersect(other: JsonSet[T]): JsonSet[T] = JsonSet(values.intersect(other.values))
-  override def removeAll(other: JsonSet[T]): JsonSet[T] = JsonSet(values.filterNot(other.values.toSet))
+  override def removeAll(other: JsonSet[T]): JsonSet[T] = JsonSet(values.filterNot(other.values))
   override def union(other: JsonSet[T]): JsonSet[T] = JsonSet(values.union(other.values))
 
   def isEmpty = values.isEmpty
