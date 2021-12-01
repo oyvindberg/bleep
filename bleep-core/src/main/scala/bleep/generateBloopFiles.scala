@@ -101,8 +101,9 @@ object generateBloopFiles {
           b.Platform.Js(
             b.JsConfig(
               version = version match {
-                case Some(value) => value.scalaJsVersion
-                case None        => sys.error("missing `version`")
+                case Some(value)                             => value.scalaJsVersion
+                case None if scalaVersion.fold(false)(_.is3) => ""
+                case None                                    => sys.error("missing `version`")
               },
               mode = mode.getOrElse(b.JsConfig.empty.mode),
               kind = kind.getOrElse(b.JsConfig.empty.kind),
@@ -130,7 +131,7 @@ object generateBloopFiles {
 
     val platformSuffix =
       explodedPlatform match {
-        case Some(x: model.Platform.Js)     => s"sjs${x.version.get.scalaJsBinVersion}"
+        case Some(x: model.Platform.Js)     => s"sjs${x.version.fold("1")(_.scalaJsBinVersion)}"
         case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeBinVersion}"
         case _                              => ""
       }
