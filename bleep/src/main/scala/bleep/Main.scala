@@ -29,13 +29,13 @@ object Main {
       case Right(started) => started
     }
 
-    val projectNameMap: Map[String, model.ProjectName] =
+    def projectNameMap: Map[String, model.ProjectName] =
       bootstrapped match {
         case Left(_)        => Map.empty
         case Right(started) => started.build.projects.keys.map(projectName => projectName.value -> projectName).toMap
       }
 
-    val projectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
+    def projectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
       Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).orNone
 
     lazy val ret: Opts[BleepCommand] = List(
