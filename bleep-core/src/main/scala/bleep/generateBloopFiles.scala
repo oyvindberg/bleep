@@ -140,7 +140,7 @@ object generateBloopFiles {
         case _                              => ""
       }
 
-    val resolution: b.Resolution = {
+    val resolvedDependencies = {
       val transitiveDeps: JsonSet[JavaOrScalaDependency] =
         proj.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values }))
 
@@ -151,14 +151,15 @@ object generateBloopFiles {
             case None               => sys.error(s"Need a configured scala version to resolve $dep")
           }
         }
-
-      val result = resolver(concreteDeps, build.resolvers) match {
+      resolver(concreteDeps, build.resolvers) match {
         case Left(coursierError) => throw coursierError
         case Right(value)        => value
       }
+    }
 
+    val resolution: b.Resolution = {
       val modules: List[b.Module] =
-        result.detailedArtifacts
+        resolvedDependencies.detailedArtifacts
           .groupBy { case (dep, _, _, _) => dep.module }
           .map { case (module, files) =>
             val (dep, _, _, _) = files.head
@@ -183,10 +184,8 @@ object generateBloopFiles {
       b.Resolution(modules)
     }
 
-    val classPath: JsonSet[Path] = JsonSet.fromIterable {
-      allTransitiveTranslated.values.map(_.project.classesDir) ++
-        resolution.modules.flatMap(_.artifacts.collect { case x if !x.classifier.contains(Classifier.sources.value) => x }).map(_.path)
-    }
+    val classPath: JsonSet[Path] =
+      JsonSet.fromIterable(allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedDependencies.jars)
 
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
@@ -196,7 +195,7 @@ object generateBloopFiles {
         val resolvedScalaCompiler: List[Path] =
           resolver(JsonSet(scalaCompiler), build.resolvers) match {
             case Left(coursierError) => throw coursierError
-            case Right(res)          => res.files.toList.map(_.toPath)
+            case Right(res)          => res.jars
           }
 
         val setup = {
@@ -223,7 +222,7 @@ object generateBloopFiles {
           val artifacts: List[Path] =
             resolver(deps, build.resolvers) match {
               case Left(coursierError) => throw coursierError
-              case Right(res)          => res.files.toList.map(_.toPath)
+              case Right(res)          => res.jars
             }
 
           val relevantArtifacts: List[Path] =

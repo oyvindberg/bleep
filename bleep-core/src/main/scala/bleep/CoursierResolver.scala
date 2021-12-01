@@ -82,19 +82,16 @@ object CoursierResolver {
       fullExtraArtifacts: Seq[(Artifact, Option[File])]
   ) {
     def detailedArtifacts: Seq[(Dependency, Publication, Artifact, File)] =
-      fullDetailedArtifacts.collect { case (dep, pub, art, Some(file)) =>
-        (dep, pub, art, file)
-      }
+      fullDetailedArtifacts.collect { case (dep, pub, art, Some(file)) => (dep, pub, art, file) }
 
-    def fullArtifacts: Seq[(Artifact, Option[File])] = {
-      val artifacts = fullDetailedArtifacts.map { case (_, _, a, f) => (a, f) } ++ fullExtraArtifacts
-      artifacts.distinct
-    }
-    def artifacts: Seq[(Artifact, File)] =
-      fullArtifacts.collect { case (art, Some(file)) => (art, file) }
+    def files: List[File] =
+      fullDetailedArtifacts
+        .collect { case (_, publication, _, Some(file)) if publication.classifier == Classifier.empty => file }
+        .distinct
+        .toList
 
-    def files: Seq[File] =
-      artifacts.map(_._2).distinct
+    def jars: List[Path] =
+      files.map(_.toPath)
   }
 
   private object Result {
