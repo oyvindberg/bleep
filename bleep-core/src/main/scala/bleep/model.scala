@@ -12,10 +12,13 @@ import io.circe.syntax._
 import java.net.URI
 
 object model {
-  def asDependency(dep: JavaOrScalaDependency) = dep match {
-    case d: JavaOrScalaDependency.JavaDependency  => d.dependency
-    case d: JavaOrScalaDependency.ScalaDependency => d.dependency("2.13.1")
-  }
+  // warning: this assumes a scala version in a context where we don't know.
+  // current usage looks safe, but perhaps some refactoring can change this
+  private def unsafeAsDependency(dep: JavaOrScalaDependency) =
+    dep match {
+      case d: JavaOrScalaDependency.JavaDependency  => d.dependency
+      case d: JavaOrScalaDependency.ScalaDependency => d.dependency("2.13", "2.13.1", "flaff")
+    }
 
   implicit val decodesDep: Decoder[JavaOrScalaDependency] =
     Decoder.instance { c =>
@@ -41,7 +44,7 @@ object model {
 
   implicit val encodesDep: Encoder[JavaOrScalaDependency] =
     Encoder.instance { d =>
-      val dep = asDependency(d)
+      val dep = unsafeAsDependency(d)
 
       val needsFull = d.exclude.nonEmpty || dep.optional || dep.attributes.classifier.nonEmpty
 
@@ -65,7 +68,7 @@ object model {
 
   implicit val orderingDep: Ordering[JavaOrScalaDependency] =
     Ordering.by { incompleteDep =>
-      val dep = asDependency(incompleteDep)
+      val dep = unsafeAsDependency(incompleteDep)
       (dep.module.repr, dep.version, dep.configuration)
     }
 
