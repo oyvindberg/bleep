@@ -109,3 +109,17 @@ sbt> nativeImage
 # runs image, very fast 
 sbt> nativeImageRun  
 ```
+
+## Acknowledgements
+
+All the hard work is already done by 
+[Bloop](https://github.com/scalacenter/bloop),
+[Coursier](https://github.com/coursier/coursier),
+and [GraalVM native image](https://www.graalvm.org/reference-manual/native-image/).
+
+The basis for the model used by bleep is defined by Bloop.
+
+Bleep integrates code from some external projects:
+
+- the code for integrating with BSP is copied and/or heavily inspired by [scala-cli](https://github.com/VirtusLab/scala-cli)
+- a few sbt plugins. the exact list can be found in [.gitmodules](./.gitmodules).
