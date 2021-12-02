@@ -14,6 +14,24 @@ package object bleep {
         case Right(relPath) => path / relPath
       }
   }
+  private[bleep] implicit class IterableOps[I[t] <: Iterable[t], T](private val ts: I[T]) extends AnyVal {
+    // surprisingly difficult to express with default collections
+    def optReduce(op: (T, T) => Option[T]): Option[T] = {
+      val it = ts.iterator
+      var acc: Option[T] = None
+      var first = true
+      while (it.hasNext && (acc.nonEmpty || first)) {
+        val x = it.next()
+        if (first) {
+          acc = Some(x)
+          first = false
+        } else {
+          acc = op(acc.get, x)
+        }
+      }
+      acc
+    }
+  }
 
   def cli(cmd: String)(implicit cwd: Path): Unit =
     sys.process.Process(cmd, cwd = Some(cwd.toFile)).! match {

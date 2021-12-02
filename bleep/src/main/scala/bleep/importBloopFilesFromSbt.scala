@@ -16,8 +16,6 @@ import java.util.stream.Collectors
 import scala.jdk.CollectionConverters._
 
 object importBloopFilesFromSbt {
-  def platformName(platform: Config.Platform): model.PlatformId = model.PlatformId(platform.name)
-  def scalaName(version: Versions.Scala): model.ScalaId = model.ScalaId(version.binVersion)
 
   def apply(logger: Logger, buildPaths: BuildPaths): model.Build = {
     val projectNames: List[model.ProjectName] =
@@ -34,7 +32,13 @@ object importBloopFilesFromSbt {
         .map(name => name -> readBloopFile(buildPaths.dotBloopDir, name))
         .toMap
         .filter { case (_, bloopFile) =>
-          def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).findFirst().isPresent
+          def isSource(path: Path): Boolean =
+            path.toString match {
+              case p if p.endsWith(".scala") => true
+              case p if p.endsWith(".java")  => true
+              case _                         => false
+            }
+          def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent
           (bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles
         }
 
@@ -143,7 +147,12 @@ object importBloopFilesFromSbt {
       val configuredScala: Option[model.Scala] =
         bloopProject.scala.map(translateScala(logger, templateDirs, configuredPlatform))
 
+      val testFrameworks: JsonSet[model.TestFrameworkName] =
+        if (isTest) JsonSet.fromIterable(bloopProject.test.toList.flatMap(_.frameworks).flatMap(_.names).map(model.TestFrameworkName.apply))
+        else JsonSet.empty
+
       projectName -> model.Project(
+        `extends` = JsonList.empty,
         folder = folder,
         dependsOn = dependsOn,
         sources = sources,
@@ -153,32 +162,17 @@ object importBloopFilesFromSbt {
         scala = configuredScala,
         platform = configuredPlatform,
         `source-layout` = Some(sourceLayout),
-        `sbt-scope` = Some(scope)
+        `sbt-scope` = Some(scope),
+        testFrameworks = testFrameworks
       )
     }
 
-    val buildJava: Option[model.Java] =
-      projects.values.flatMap(_.java).toList.distinct.reduceOption(_ intersect _)
+    val templates = Templates.inferFromExistingProjects(projects.values.toList)
 
-    val buildPlatforms: Map[model.PlatformId, model.Platform] = {
-      val allPlatforms: List[model.Platform] =
-        projects.values.flatMap(_.platform).toList.distinct
-
-      List(
-        allPlatforms.collect { case x: model.Platform.Jvm => x }.reduceOption(_.intersectJvm(_)).map(_.copy(`extends` = None)),
-        allPlatforms.collect { case x: model.Platform.Js => x }.reduceOption(_.intersectJs(_)).map(_.copy(`extends` = None)),
-        allPlatforms.collect { case x: model.Platform.Native => x }.reduceOption(_.intersectNative(_)).map(_.copy(`extends` = None))
-      ).flatten.map(x => x.name -> x).toMap
+    val shortenedProjects = projects.map { case (projectName, project) =>
+      val shortened = Templates.applyTemplates(templates, project)
+      (projectName, shortened)
     }
-
-    val buildScalas: Map[model.ScalaId, model.Scala] =
-      projects
-        .flatMap { case (_, p) => p.scala }
-        .groupBy(scala => scala.version.map(scalaName))
-        .flatMap {
-          case (None, _)                     => Map.empty
-          case (Some(scalaId), scalaConfigs) => Map(scalaId -> scalaConfigs.reduce(_.intersect(_)).copy(`extends` = None))
-        }
 
     val buildResolvers: JsonSet[URI] =
       JsonSet.fromIterable(
@@ -197,7 +191,10 @@ object importBloopFilesFromSbt {
           .filterNot(_ == Defaults.MavenCentral)
       )
 
-    model.Build("1", Some(buildPlatforms), Some(buildScalas), buildJava, None, resolvers = buildResolvers, projects)
+    val templatesMassaged: Option[Map[model.TemplateId, model.Project]] =
+      Some(templates.map { case (templateDef, templateProject) => (templateDef.templateName, templateProject) }).filter(_.nonEmpty)
+
+    model.Build("1", templatesMassaged, None, resolvers = buildResolvers, shortenedProjects)
   }
 
   case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[(Configuration, Dependency)])
@@ -285,7 +282,6 @@ object importBloopFilesFromSbt {
     platform match {
       case Config.Platform.Js(config, mainClass) =>
         val translatedPlatform = model.Platform.Js(
-          `extends` = Some(platformName(platform)),
           version = Some(config.version).filterNot(_.isEmpty).map(Versions.ScalaJs),
           mode = Some(config.mode),
           kind = Some(config.kind),
@@ -297,7 +293,6 @@ object importBloopFilesFromSbt {
         translatedPlatform
       case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
         val translatedPlatform = model.Platform.Jvm(
-          `extends` = Some(platformName(platform)),
           options = Options.parse(config.options, Some(templateDirs)),
           mainClass,
           runtimeOptions = runtimeConfig.map(rc => Options.parse(rc.options, Some(templateDirs))).getOrElse(Options.empty)
@@ -305,7 +300,6 @@ object importBloopFilesFromSbt {
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
-          `extends` = Some(platformName(platform)),
           version = Some(Versions.ScalaNative(config.version)),
           mode = Some(config.mode),
           gc = Some(config.gc),
@@ -336,7 +330,6 @@ object importBloopFilesFromSbt {
       }
 
     model.Scala(
-      `extends` = Some(scalaName(version)),
       version = Some(version),
       options = new Options(rest),
       setup = s.setup.map(setup =>

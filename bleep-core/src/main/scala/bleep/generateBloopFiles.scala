@@ -51,10 +51,12 @@ object generateBloopFiles {
       resolver: CoursierResolver,
       buildPaths: BuildPaths,
       projName: model.ProjectName,
-      proj: model.Project,
+      proj2: model.Project,
       build: model.Build,
       getBloopProject: model.ProjectName => b.File
   ): b.File = {
+    val proj = build.explode(proj2)
+
     val projectPaths: ProjectPaths =
       buildPaths.from(projName, proj)
 
@@ -75,33 +77,24 @@ object generateBloopFiles {
 
     val templateDirs = Options.TemplateDirs(buildPaths.buildDir, projectPaths.dir)
 
-    val maybeScala: Option[model.Scala] = {
-      def go(s: model.Scala): model.Scala =
-        s.`extends` match {
-          case Some(id) =>
-            val found = build.scala.flatMap(scalas => scalas.get(id)).getOrElse(sys.error(s"referenced non-existing scala definition ${id.value}"))
-            s.union(go(found))
-          case None =>
-            s
-        }
-      proj.scala.map(go)
-    }
+    val maybeScala: Option[model.Scala] =
+      proj.scala
 
     val explodedJava: Option[model.Java] =
-      proj.java.map(_.explode(build))
+      proj.java
 
     val scalaVersion: Option[Versions.Scala] =
       maybeScala.flatMap(_.version)
 
     val explodedPlatform: Option[model.Platform] =
-      proj.platform.map(_.explode(build)).map {
+      proj.platform.map {
         case x: model.Platform.Jvm => x.unionJvm(Defaults.Jvm)
         case x                     => x
       }
 
     val configuredPlatform: Option[b.Platform] =
       explodedPlatform.map {
-        case model.Platform.Js(_, version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
+        case model.Platform.Js(version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
           b.Platform.Js(
             b.JsConfig(
               version = version match {
@@ -119,7 +112,7 @@ object generateBloopFiles {
             ),
             mainClass
           )
-        case model.Platform.Jvm(_, options, mainClass, runtimeOptions) =>
+        case model.Platform.Jvm(options, mainClass, runtimeOptions) =>
           b.Platform.Jvm(
             config = b.JvmConfig(
               home = None,
@@ -130,7 +123,7 @@ object generateBloopFiles {
             classpath = None,
             resources = None
           )
-        case model.Platform.Native(_, version, mode, gc, mainClass) => ???
+        case model.Platform.Native(version, mode, gc, mainClass) => ???
       }
 
     val platformSuffix =
@@ -228,7 +221,7 @@ object generateBloopFiles {
           val relevantArtifacts: List[Path] =
             artifacts.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
 
-          new Options(relevantArtifacts.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")).distinct)
+          Options.fromIterable(relevantArtifacts.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
         }
 
         val scalacOptions: Options =

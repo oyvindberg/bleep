@@ -1,84 +1,23 @@
 {
-  "version" : "1",
-  "scripts": {
-    "native-image": "infrastructure/bleep.infra.GenNativeImage",
-    "jars": "infrastructure/bleep.infra.PackageAll"
-  },
-  "platforms" : {
-    "jvm" : {
-      "name" : "jvm"
-    }
-  },
-  "scala" : {
-    "2.13" : {
-      "version" : "2.13.7",
-      "options" : [
-        "-Vtype-diffs",
-        "-Vimplicits",
-        "-Wvalue-discard",
-        "-Wunused:privates",
-        "-Wunused:patvars",
-        "-Wunused:params",
-        "-Wunused:locals",
-        "-Wunused:imports",
-        "-Wunused:explicits",
-        "-Wunused:implicits",
-        "-Wnumeric-widen",
-        "-Wextra-implicit",
-        "-Wdead-code",
-        "-Wunused:nowarn",
-        "-Xlint:-byname-implicit",
-        "-Xlint:type-parameter-shadow",
-        "-Xlint:strict-unsealed-patmat",
-        "-Xlint:stars-align",
-        "-Xlint:private-shadow",
-        "-Xlint:poly-implicit-overload",
-        "-Xlint:package-object-classes",
-        "-Xlint:option-implicit",
-        "-Xlint:nullary-unit",
-        "-Xlint:missing-interpolator",
-        "-Xlint:infer-any",
-        "-Xlint:inaccessible",
-        "-Xlint:doc-detached",
-        "-Xlint:deprecation",
-        "-Xlint:delayedinit-select",
-        "-Xlint:constant",
-        "-Xlint:adapted-args",
-        "-Xcheckinit",
-        "-unchecked",
-        "-language:implicitConversions",
-        "-language:higherKinds",
-        "-language:experimental.macros",
-        "-language:existentials",
-        "-feature",
-        "-explaintypes",
-        "-encoding",
-        "utf8"
-      ]
-    }
-  },
   "projects" : {
     "bleep" : {
-      "dependsOn" : [
-        "bleep-core",
-        "bloop-rifle"
-      ],
-      "sbt-scope" : "main",
       "dependencies" : [
         "com.lihaoyi::pprint:0.6.6",
         "com.monovore::decline:2.2.0",
         "org.scalameta:svm-subs:101.0.0"
       ],
-      "scala" : "2.13",
+      "dependsOn" : [
+        "bleep-core",
+        "bloop-rifle"
+      ],
+      "extends" : "template-common-main",
       "platform" : {
-        "extends": "jvm",
+        "name": "jvm",
         "mainClass": "bleep.Main"
       }
     },
     "bleep-core" : {
-      "sbt-scope" : "main",
       "dependencies" : [
-        "ch.epfl.scala::bloop-config:1.4.11",
         "com.lihaoyi::fansi:0.2.14",
         "io.circe::circe-generic:0.14.1",
         "io.circe::circe-parser:0.14.1",
@@ -86,34 +25,38 @@
         "net.harawata:appdirs:1.2.1",
         "org.scala-lang:scala-reflect:2.13.7"
       ],
-      "scala" : "2.13",
-      "platform" : "jvm"
+      "extends" : "template-common-main"
     },
     "bleep-tasks" : {
+      "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
       "dependsOn" : "bleep-core",
-      "sbt-scope" : "main",
+      "extends" : "template-common-main",
+      "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
       "sources" : [
         "./liberated/bloop-packager/src/main/scala",
         "./liberated/sbt-git-versioning/src/main/scala",
         "./liberated/sbt-native-image/plugin/src/main/scala"
-      ],
-      "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
-      "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
-      "scala" : "2.13",
-      "platform" : "jvm"
+      ]
     },
     "bleep-test" : {
-      "folder" : "./bleep",
-      "dependsOn" : "bleep",
-      "sbt-scope" : "test",
       "dependencies" : "org.scalatest::scalatest:3.2.10",
-      "scala" : "2.13",
-      "platform" : "jvm"
+      "dependsOn" : "bleep",
+      "extends" : "template-common",
+      "folder" : "./bleep",
+      "sbt-scope" : "test",
+      "testFrameworks" : [
+        "com.novocode.junit.JUnitFramework",
+        "munit.Framework",
+        "org.scalacheck.ScalaCheckFramework",
+        "org.scalatest.tools.Framework",
+        "org.scalatest.tools.ScalaTestFramework",
+        "org.specs.runner.SpecsFramework",
+        "org.specs2.runner.Specs2Framework",
+        "org.specs2.runner.SpecsFramework"
+      ]
     },
     "bloop-rifle" : {
-      "sbt-scope" : "main",
       "dependencies" : [
-        "ch.epfl.scala::bloop-config:1.4.11",
         "ch.epfl.scala:bsp4j:2.0.0",
         "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2",
         "com.google.code.findbugs:jsr305:3.0.2",
@@ -127,17 +70,74 @@
         "org.graalvm.nativeimage:svm:20.2.0",
         "org.scala-lang:scala-library:2.13.7"
       ],
-      "scala" : "2.13",
-      "platform" : "jvm"
+      "extends" : "template-common-main"
     },
     "infrastructure" : {
       "dependsOn" : [
         "bleep",
         "bleep-tasks"
       ],
-      "sbt-scope" : "main",
-      "scala" : "2.13",
-      "platform" : "jvm"
+      "extends" : "template-common-main"
     }
-  }
+  },
+  "scripts": {
+    "native-image": "infrastructure/bleep.infra.GenNativeImage",
+    "jars": "infrastructure/bleep.infra.PackageAll"
+  },
+  "templates" : {
+    "template-common" : {
+      "dependencies" : "ch.epfl.scala::bloop-config:1.4.11",
+      "scala" : {
+        "options" : [
+          "-Vimplicits",
+          "-Vtype-diffs",
+          "-Wdead-code",
+          "-Wextra-implicit",
+          "-Wnumeric-widen",
+          "-Wunused:explicits",
+          "-Wunused:implicits",
+          "-Wunused:imports",
+          "-Wunused:locals",
+          "-Wunused:nowarn",
+          "-Wunused:params",
+          "-Wunused:patvars",
+          "-Wunused:privates",
+          "-Wvalue-discard",
+          "-Xcheckinit",
+          "-Xlint:-byname-implicit",
+          "-Xlint:adapted-args",
+          "-Xlint:constant",
+          "-Xlint:delayedinit-select",
+          "-Xlint:deprecation",
+          "-Xlint:doc-detached",
+          "-Xlint:inaccessible",
+          "-Xlint:infer-any",
+          "-Xlint:missing-interpolator",
+          "-Xlint:nullary-unit",
+          "-Xlint:option-implicit",
+          "-Xlint:package-object-classes",
+          "-Xlint:poly-implicit-overload",
+          "-Xlint:private-shadow",
+          "-Xlint:stars-align",
+          "-Xlint:strict-unsealed-patmat",
+          "-Xlint:type-parameter-shadow",
+          "-encoding",
+          "utf8",
+          "-explaintypes",
+          "-feature",
+          "-language:existentials",
+          "-language:experimental.macros",
+          "-language:higherKinds",
+          "-language:implicitConversions",
+          "-unchecked"
+        ],
+        "version" : "2.13.7"
+      }
+    },
+    "template-common-main" : {
+      "extends" : "template-common",
+      "sbt-scope" : "main"
+    }
+  },
+  "version" : "1"
 }

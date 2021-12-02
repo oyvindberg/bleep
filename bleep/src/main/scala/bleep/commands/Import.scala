@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{Os, ShortenJson}
+import bleep.internal.{Os, ShortenAndSortJson}
 import bleep.logging.Logger
 import io.circe.syntax._
 
@@ -15,7 +15,7 @@ case class Import(logger: Logger) extends BleepCommand {
     val build = deduplicateBuild(importBloopFilesFromSbt(logger, buildPaths))
     Files.writeString(
       buildPaths.bleepJsonFile,
-      build.asJson.foldWith(ShortenJson).spaces2,
+      build.asJson.foldWith(ShortenAndSortJson).spaces2,
       UTF_8
     )
     logger.info(s"Imported ${build.projects.size} projects")

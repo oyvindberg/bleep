@@ -1,5 +1,7 @@
 name := "bleep-root"
 
+Global / bloopConfigDir := baseDirectory.value / s".bleep/import/bloop-${scalaBinaryVersion.value}"
+
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
     .settings(
