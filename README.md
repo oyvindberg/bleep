@@ -84,6 +84,15 @@ It might already be clear to you, but anyways:
 - you have all the structured info from the build, without having to express code in your build
 - the NativeImagePlugin is directly ported from sbt. In fact most interesting sbt plugins can be ported quite easily! setting = `val`, task = `def`.
 
+## CLI
+
+Bleep also aims to provide a top notch CLI experience
+
+
+https://user-images.githubusercontent.com/247937/144334308-215c1351-11d3-4452-ad66-2529fd7450f1.mp4
+
+
+
 ## How to build bleep
 
 You should have following on your `$PATH`:
