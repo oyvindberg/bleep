@@ -3,8 +3,6 @@ package bleep
 import bleep.internal.codecs.codecURI
 import bleep.internal.{EnumCodec, SetLike, ShortenAndSortJson}
 import bloop.config.Config
-import coursier.core.{Attributes, Classifier, Configuration}
-import coursier.parse.{DependencyParser, JavaOrScalaDependency, ModuleParser}
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax._
@@ -12,66 +10,6 @@ import io.circe.syntax._
 import java.net.URI
 
 object model {
-  // warning: this assumes a scala version in a context where we don't know.
-  // current usage looks safe, but perhaps some refactoring can change this
-  private def unsafeAsDependency(dep: JavaOrScalaDependency) =
-    dep match {
-      case d: JavaOrScalaDependency.JavaDependency  => d.dependency
-      case d: JavaOrScalaDependency.ScalaDependency => d.dependency("2.13", "2.13.1", "flaff")
-    }
-
-  implicit val decodesDep: Decoder[JavaOrScalaDependency] =
-    Decoder.instance { c =>
-      def parseDep(s: String) =
-        DependencyParser.javaOrScalaDependencyParams(s, Configuration.empty).map(_._1).left.map(err => DecodingFailure(err, c.history))
-      def parseModule(modules: List[String]) =
-        ModuleParser.javaOrScalaModules(modules).either.left.map(err => DecodingFailure(err.mkString(" "), c.history))
-
-      val fromString = c.as[String].flatMap(parseDep)
-
-      val full = for {
-        dependency <- c.get[String]("module").flatMap(parseDep)
-        exclude <- c.get[Option[List[String]]]("excludes").map(_.getOrElse(Nil)).flatMap(parseModule)
-        classifier <- c.get[Option[String]]("classifier")
-        optional <- c.get[Option[Boolean]]("optional").map(_.getOrElse(false))
-      } yield dependency
-        .addExclude(exclude: _*)
-        .withUnderlyingDependency(d =>
-          classifier.map(cls => d.withAttributes(d.attributes.withClassifier(Classifier(cls)))).getOrElse(d).withOptional(optional)
-        )
-      fromString.orElse(full)
-    }
-
-  implicit val encodesDep: Encoder[JavaOrScalaDependency] =
-    Encoder.instance { d =>
-      val dep = unsafeAsDependency(d)
-
-      val needsFull = d.exclude.nonEmpty || dep.optional || dep.attributes.classifier.nonEmpty
-
-      val jsonString = d match {
-        case dep: JavaOrScalaDependency.JavaDependency =>
-          Json.fromString(s"${dep.module}:${dep.dependency.version}")
-        case dep: JavaOrScalaDependency.ScalaDependency =>
-          Json.fromString(dep.withUnderlyingDependency(_.withOptional(false).withAttributes(Attributes.empty)).repr)
-      }
-      if (needsFull) {
-        Json
-          .obj(
-            "module" := jsonString,
-            "excludes" := Option.when(d.exclude.nonEmpty)(d.exclude.map(_.toString)),
-            "optional" := dep.optional,
-            "classifier" := Option.when(dep.attributes.classifier.nonEmpty)(dep.attributes.classifier.value)
-          )
-          .dropNullValues
-      } else jsonString
-    }
-
-  implicit val orderingDep: Ordering[JavaOrScalaDependency] =
-    Ordering.by { incompleteDep =>
-      val dep = unsafeAsDependency(incompleteDep)
-      (dep.module.repr, dep.version, dep.configuration)
-    }
-
   case class Java(options: Options) extends SetLike[Java] {
     override def intersect(other: Java): Java =
       Java(options = options.intersect(other.options))

@@ -2,12 +2,10 @@ package bleep
 
 import bleep.Options.{Opt, TemplateDirs}
 import bleep.logging.Logger
-import bleep.model.orderingDep
 import bloop.config.Config
 import coursier.core.compatibility.xmlParseSax
 import coursier.core.{Configuration, Project}
 import coursier.maven.PomParser
-import coursier.parse.JavaOrScalaDependency
 import coursier.{Dependency, Module, ModuleName, Organization}
 
 import java.net.URI
@@ -131,7 +129,7 @@ object importBloopFilesFromSbt {
           val keep: Boolean =
             (scalaVersion, javaOrScalaDependency) match {
               case (Some(scalaVersion), scalaDep: JavaOrScalaDependency.ScalaDependency) =>
-                !allDeps.contains(scalaDep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, platformSuffix).moduleVersion)
+                !allDeps.contains(scalaDep.dependency(scalaVersion, platformSuffix).moduleVersion)
               case (None, _: JavaOrScalaDependency.ScalaDependency) =>
                 true
               case (_, javaDep: JavaOrScalaDependency.JavaDependency) =>
