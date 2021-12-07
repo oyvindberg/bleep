@@ -1,7 +1,5 @@
 package bleep
 
-import coursier.parse.JavaOrScalaDependency
-
 object Versions {
   // this accepts any nightly or milestone with the same binversion as a major release. good enough for now
   private val Version = "(\\d+).(\\d+).(\\d+).*".r

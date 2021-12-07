@@ -1,7 +1,6 @@
 package bleep
 
 import coursier._
-import coursier.parse.JavaOrScalaDependency
 
 object Deps {
   def Java(org: String, name: String, version: String): JavaOrScalaDependency.JavaDependency =

@@ -1,11 +1,9 @@
 package bleep
 
 import bleep.internal.{rewriteDependentData, Lazy}
-import bleep.model.orderingDep
 import bloop.config.{Config => b}
 import coursier.core.Configuration
 import coursier.error.CoursierError
-import coursier.parse.JavaOrScalaDependency
 import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
@@ -140,7 +138,7 @@ object generateBloopFiles {
       val concreteDeps: JsonSet[Dependency] =
         transitiveDeps.map { dep =>
           scalaVersion match {
-            case Some(scalaVersion) => dep.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, platformSuffix)
+            case Some(scalaVersion) => dep.dependency(scalaVersion, platformSuffix)
             case None               => sys.error(s"Need a configured scala version to resolve $dep")
           }
         }
@@ -183,7 +181,7 @@ object generateBloopFiles {
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
-          scalaVersion.compiler.dependency(scalaVersion.binVersion, scalaVersion.scalaVersion, "")
+          scalaVersion.compiler.dependency(scalaVersion, "")
 
         val resolvedScalaCompiler: List[Path] =
           resolver(JsonSet(scalaCompiler), build.resolvers) match {
@@ -210,7 +208,7 @@ object generateBloopFiles {
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
 
           val deps: JsonSet[Dependency] =
-            specified.map(_.dependency(scalaVersion.scalaVersion))
+            specified.map(_.dependency(scalaVersion, platformName = ""))
 
           val artifacts: List[Path] =
             resolver(deps, build.resolvers) match {

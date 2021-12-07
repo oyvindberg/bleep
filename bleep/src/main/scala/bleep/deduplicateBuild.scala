@@ -2,7 +2,6 @@ package bleep
 
 import bleep.internal.rewriteDependentData
 import bleep.model.Platform
-import coursier.parse.JavaOrScalaDependency
 
 object deduplicateBuild {
   def apply(build: model.Build): model.Build = {
