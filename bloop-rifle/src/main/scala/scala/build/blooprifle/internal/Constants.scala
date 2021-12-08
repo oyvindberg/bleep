@@ -4,5 +4,5 @@ package scala.build.blooprifle.internal
 object Constants {
   def bloopVersion = "1.4.11"
   def bloopScalaVersion = "2.12.15"
-  def bspVersion = "2.0.0-M14"
+  def bspVersion = "2.0.0"
 }

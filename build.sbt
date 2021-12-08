@@ -1,5 +1,7 @@
 name := "bleep-root"
 
+Global / bloopConfigDir := baseDirectory.value / s".bleep/import/bloop-${scalaBinaryVersion.value}"
+
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
     .settings(
@@ -12,6 +14,7 @@ lazy val `bleep-core` = project
   .configure(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
+      "com.lihaoyi" %% "fansi" % "0.2.14",
       "io.get-coursier" %% "coursier" % "2.0.16",
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
@@ -43,11 +46,11 @@ lazy val `bloop-rifle` =
     .configure(commonSettings)
     .settings(
       libraryDependencies ++= List(
-        "ch.epfl.scala" % "bsp4j" % "2.0.0-M14",
+        "ch.epfl.scala" % "bsp4j" % "2.0.0",
         "me.vican.jorge" %% "snailgun-core" % "0.4.0",
         "ch.epfl.scala" %% "bloop-config" % "1.4.11",
-        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-2",
-        "org.graalvm.nativeimage" % "svm" % "20.3.4"
+        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-3",
+        "org.graalvm.nativeimage" % "svm" % "20.2.0"
       )
     )
 
@@ -59,13 +62,14 @@ lazy val bleep = project
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
-      "com.monovore" %% "decline-effect" % "2.1.0"
+      "com.monovore" %% "decline" % "2.2.0",
+      "com.lihaoyi" %% "pprint" % "0.6.6"
     ),
     Compile / mainClass := Some("bleep.Main")
   )
 
 lazy val infrastructure = project
-  .dependsOn(`bleep-tasks`)
+  .dependsOn(bleep, `bleep-tasks`)
   .configure(commonSettings)
   .settings(
     libraryDependencies ++= Seq(

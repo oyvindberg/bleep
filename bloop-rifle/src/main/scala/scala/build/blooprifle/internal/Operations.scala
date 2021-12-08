@@ -207,87 +207,94 @@ object Operations {
         case t: BspConnectionAddress.Tcp =>
           new Socket(host, t.port)
         case s: BspConnectionAddress.UnixDomainSocket =>
-          val socketFile = s.path
-          var count = 0
-          val maxCount = (timeout / period).toInt
-          var socket: Socket = null
-          while (socket == null && count < maxCount && closed.value.isEmpty) {
-            logger.debug {
-              if (socketFile.exists())
-                s"BSP connection $socketFile found but not open, waiting $period"
-              else
-                s"BSP connection at $socketFile not found, waiting $period"
-            }
-            Thread.sleep(period.toMillis)
-            if (socketFile.exists())
-              socket =
-                // format: off
-                try {
-                  try {
-                    (new NamedSocketBuilder).create(socketFile.getAbsolutePath)
-                  }
-                // format: on
-                  catch {
-                    case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
-                      throw ex.getCause
-                  }
-                } catch {
-                  case ExCause(ex0: NativeErrorException) if ignoredErrnos(ex0.returnCode) =>
-                    logger.debug(s"Error when connecting to $socketFile: ${ex0.getMessage}")
-                    null
-                  case e: NativeErrorException if ignoredErrnos(e.returnCode) =>
-                    logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
-                    null
-                }
-            count += 1
-          }
-          if (socket != null) {
-            logger.debug(s"BSP connection at $socketFile opened")
-            socket
-          } else if (closed.value.isEmpty)
-            sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
-          else
-            sys.error(
-              s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
-            )
+          sys.error("handle this later")
+//          val socketFile     = s.path
+//          var count          = 0
+//          val maxCount       = (timeout / period).toInt
+//          var socket: Socket = null
+//          while (socket == null && count < maxCount && closed.value.isEmpty) {
+//            logger.debug {
+//              if (socketFile.exists())
+//                s"BSP connection $socketFile found but not open, waiting $period"
+//              else
+//                s"BSP connection at $socketFile not found, waiting $period"
+//            }
+//            Thread.sleep(period.toMillis)
+//            if (socketFile.exists())
+//              socket =
+//                // format: off
+//                try {
+//                  try {
+//                    (new NamedSocketBuilder).create(socketFile.getAbsolutePath)
+//                  }
+//                // format: on
+//                  catch {
+//                    case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
+//                      throw ex.getCause
+//                  }
+//                }
+//                catch {
+//                  case ExCause(ex0: NativeErrorException) if ignoredErrnos(ex0.returnCode) =>
+//                    logger.debug(s"Error when connecting to $socketFile: ${ex0.getMessage}")
+//                    null
+//                  case e: NativeErrorException if ignoredErrnos(e.returnCode) =>
+//                    logger.debug(s"Error when connecting to $socketFile: ${e.getMessage}")
+//                    null
+//                }
+//            count += 1
+//          }
+//          if (socket != null) {
+//            logger.debug(s"BSP connection at $socketFile opened")
+//            socket
+//          }
+//          else if (closed.value.isEmpty)
+//            sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
+//          else
+//            sys.error(
+//              s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
+//            )
+
         case p: BspConnectionAddress.WindowsNamedPipe =>
-          var count = 0
-          val maxCount = (timeout / period).toInt
-          var socket: Socket = null
-          while (socket == null && count < maxCount && closed.value.isEmpty) {
-            Thread.sleep(period.toMillis)
-            socket =
-              // format: off
-              try {
-                try {
-                  (new NamedSocketBuilder).create(p.name)
-                }
-              // format: on
-                catch {
-                  case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
-                    throw ex.getCause
-                }
-              } catch {
-                case ex: IOException
-                    if ex.getMessage != null &&
-                      ex.getMessage.contains("The system cannot find the file specified.") =>
-                  logger.debug(s"Error when connecting to ${p.name}: ${ex.getMessage}")
-                  null
-                case e: NativeErrorException if e.returnCode == 111 =>
-                  logger.debug(s"Error when connecting to ${p.name}: ${e.getMessage}")
-                  null
-              }
-            count += 1
-          }
-          if (socket != null) {
-            logger.debug(s"BSP connection at ${p.name} opened")
-            socket
-          } else if (closed.value.isEmpty)
-            sys.error(s"Timeout while waiting for BSP socket to be created in ${p.name}")
-          else
-            sys.error(
-              s"Bloop BSP connection in ${p.name} was unexpectedly closed or bloop didn't start."
-            )
+          sys.error("handle this later")
+//          var count          = 0
+//          val maxCount       = (timeout / period).toInt
+//          var socket: Socket = null
+//          while (socket == null && count < maxCount && closed.value.isEmpty) {
+//            Thread.sleep(period.toMillis)
+//            socket =
+//              // format: off
+//              try {
+//                try {
+//                  (new NamedSocketBuilder).create(p.name)
+//                }
+//              // format: on
+//                catch {
+//                  case ex: RuntimeException if ex.getMessage == "NamedSocketBuilder" =>
+//                    throw ex.getCause
+//                }
+//              }
+//              catch {
+//                case ex: IOException
+//                    if ex.getMessage != null &&
+//                      ex.getMessage.contains("The system cannot find the file specified.") =>
+//                  logger.debug(s"Error when connecting to ${p.name}: ${ex.getMessage}")
+//                  null
+//                case e: NativeErrorException if e.returnCode == 111 =>
+//                  logger.debug(s"Error when connecting to ${p.name}: ${e.getMessage}")
+//                  null
+//              }
+//            count += 1
+//          }
+//          if (socket != null) {
+//            logger.debug(s"BSP connection at ${p.name} opened")
+//            socket
+//          }
+//          else if (closed.value.isEmpty)
+//            sys.error(s"Timeout while waiting for BSP socket to be created in ${p.name}")
+//          else
+//            sys.error(
+//              s"Bloop BSP connection in ${p.name} was unexpectedly closed or bloop didn't start."
+//            )
       }
       val closed = promise.future
       def stop() = stop0.set(true)

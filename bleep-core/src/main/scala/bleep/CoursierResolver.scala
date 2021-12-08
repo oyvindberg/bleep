@@ -1,27 +1,28 @@
 package bleep
 
 import bleep.internal.codecs._
+import bleep.logging.Logger
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core._
-import coursier.error.{FetchError, ResolutionError}
+import coursier.error.{CoursierError, FetchError, ResolutionError}
 import coursier.util.{Artifact, Task}
 import coursier.{Fetch, MavenRepository}
-import io.circe.syntax._
 import io.circe._
+import io.circe.syntax._
 
 import java.io.File
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 trait CoursierResolver {
-  def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Future[CoursierResolver.Result]
+  def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result]
 }
 
 object CoursierResolver {
-  def apply(ec: ExecutionContext, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
-    cacheIn.foldLeft(new Direct(ec, downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(cr, path, ec) }
+  def apply(ec: ExecutionContext, logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
+    cacheIn.foldLeft(new Direct(ec, downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(logger, cr, path) }
 
   final case class Authentications(configs: Map[URI, Authentication])
   object Authentications {
@@ -81,19 +82,16 @@ object CoursierResolver {
       fullExtraArtifacts: Seq[(Artifact, Option[File])]
   ) {
     def detailedArtifacts: Seq[(Dependency, Publication, Artifact, File)] =
-      fullDetailedArtifacts.collect { case (dep, pub, art, Some(file)) =>
-        (dep, pub, art, file)
-      }
+      fullDetailedArtifacts.collect { case (dep, pub, art, Some(file)) => (dep, pub, art, file) }
 
-    def fullArtifacts: Seq[(Artifact, Option[File])] = {
-      val artifacts = fullDetailedArtifacts.map { case (_, _, a, f) => (a, f) } ++ fullExtraArtifacts
-      artifacts.distinct
-    }
-    def artifacts: Seq[(Artifact, File)] =
-      fullArtifacts.collect { case (art, Some(file)) => (art, file) }
+    def files: List[File] =
+      fullDetailedArtifacts
+        .collect { case (_, publication, _, Some(file)) if publication.classifier == Classifier.empty => file }
+        .distinct
+        .toList
 
-    def files: Seq[File] =
-      artifacts.map(_._2).distinct
+    def jars: List[Path] =
+      files.map(_.toPath)
   }
 
   private object Result {
@@ -135,8 +133,8 @@ object CoursierResolver {
   private class Direct(ec: ExecutionContext, downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
     val fileCache = FileCache[Task]()
 
-    override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Future[CoursierResolver.Result] = {
-      def go(remainingAttempts: Int): Future[Fetch.Result] = {
+    override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result] = {
+      def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
         Fetch[Task](fileCache)
@@ -144,24 +142,23 @@ object CoursierResolver {
           .addRepositories(repositories.values.toList.map(uri => MavenRepository(uri.toString, resolverConfigs.configs.get(uri))): _*)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
-          .ioResult
-          .future()(ec)
-          .recoverWith {
-            case x: ResolutionError.CantDownloadModule if remainingAttempts > 0 && x.perRepositoryErrors.exists(_.contains("concurrent download")) =>
-              go(remainingAttempts - 1)
-            case x: FetchError.DownloadingArtifacts if remainingAttempts > 0 && x.errors.exists { case (_, artifactError) =>
-                  artifactError.isInstanceOf[ArtifactError.Recoverable]
-                } =>
-              go(remainingAttempts - 1)
-          }(ec)
+          .eitherResult() match {
+          case Left(x: ResolutionError.CantDownloadModule) if remainingAttempts > 0 && x.perRepositoryErrors.exists(_.contains("concurrent download")) =>
+            go(remainingAttempts - 1)
+          case Left(x: FetchError.DownloadingArtifacts) if remainingAttempts > 0 && x.errors.exists { case (_, artifactError) =>
+                artifactError.isInstanceOf[ArtifactError.Recoverable]
+              } =>
+            go(remainingAttempts - 1)
+          case other => other
+        }
       }
 
-      go(remainingAttempts = 3).map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))(ec)
+      go(remainingAttempts = 3).map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))
     }
   }
 
-  private class Cached(underlying: CoursierResolver, in: Path, ec: ExecutionContext) extends CoursierResolver {
-    override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Future[Result] =
+  private class Cached(logger: Logger, underlying: CoursierResolver, in: Path) extends CoursierResolver {
+    override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result] =
       if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps, repositories)
       else {
         val request = Cached.Request(deps, repositories)
@@ -173,24 +170,23 @@ object CoursierResolver {
             parser.decode[Cached.Both](Files.readString(cachePath)) match {
               // collision detection is done here: handle it by just overwriting the file
               case Right(Cached.Both(`request`, result)) if result.files.forall(_.exists()) =>
-                println(s"read $cachePath")
                 Some(result)
               case _ =>
-                println(s"deleted $cachePath")
                 Files.delete(cachePath)
                 None
             }
           } else None
 
         cachedResult match {
-          case Some(value) => Future.successful(value)
+          case Some(value) => Right(value)
           case None =>
+            val depNames = deps.map(_.module.name.value).values
+            logger.withContext(cachePath).withContext(depNames).debug(s"coursier cache miss")
             underlying(deps, repositories).map { result =>
               Files.createDirectories(cachePath.getParent)
               Files.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
-              println(s"wrote cache $cachePath")
               result
-            }(ec)
+            }
         }
       }
   }
