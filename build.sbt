@@ -49,7 +49,7 @@ lazy val `bloop-rifle` =
         "ch.epfl.scala" % "bsp4j" % "2.0.0",
         "me.vican.jorge" %% "snailgun-core" % "0.4.0",
         "ch.epfl.scala" %% "bloop-config" % "1.4.11",
-        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-2",
+        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-3",
         "org.graalvm.nativeimage" % "svm" % "20.2.0"
       )
     )
