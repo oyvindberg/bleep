@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.Options.{Opt, TemplateDirs}
+import bleep.internal.ScalaVersions
 import bleep.logging.Logger
 import bloop.config.Config
 import coursier.core.compatibility.xmlParseSax
@@ -14,6 +15,9 @@ import java.util.stream.Collectors
 import scala.jdk.CollectionConverters._
 
 object importBloopFilesFromSbt {
+  // I'm sure there is a useful difference, but it completely escapes me.
+  val DefaultConfigs: Set[Configuration] =
+    Set(Configuration.empty, Configuration.compile, Configuration.default)
 
   def apply(logger: Logger, buildPaths: BuildPaths): model.Build = {
     val projectNames: List[model.ProjectName] =
@@ -105,35 +109,27 @@ object importBloopFilesFromSbt {
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, templateDirs))
 
-      val platformSuffix =
-        configuredPlatform match {
-          case Some(x: model.Platform.Js)     => s"sjs${x.version.fold("1")(_.scalaJsBinVersion)}"
-          case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeBinVersion}"
-          case _                              => ""
+      val versions: ScalaVersions =
+        ScalaVersions.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
+          case Left(err)    => throw new BuildException.Text(projectName, err)
+          case Right(value) => value
         }
 
       val dependencies: List[JavaOrScalaDependency] = {
         val parsed: List[ParsedDependency] =
-          resolution.modules.map(mod => ParsedDependency(logger, scalaVersion, mod))
-
-        val activeConfigs: Set[Configuration] =
-          Set(Configuration.empty, Configuration.compile, Configuration.default)
+          resolution.modules.map(mod => ParsedDependency(logger, versions, mod))
 
         val allDeps: Set[(Module, String)] =
           parsed.flatMap { case ParsedDependency(_, deps) =>
-            deps.collect { case (conf, d) if activeConfigs(conf) => d.moduleVersion }
+            deps.collect { case (conf, d) if DefaultConfigs(conf) => d.moduleVersion }
           }.toSet
 
         // only keep those not referenced by another dependency
         parsed.flatMap { case ParsedDependency(javaOrScalaDependency, _) =>
           val keep: Boolean =
-            (scalaVersion, javaOrScalaDependency) match {
-              case (Some(scalaVersion), scalaDep: JavaOrScalaDependency.ScalaDependency) =>
-                !allDeps.contains(scalaDep.dependency(scalaVersion, platformSuffix).moduleVersion)
-              case (None, _: JavaOrScalaDependency.ScalaDependency) =>
-                true
-              case (_, javaDep: JavaOrScalaDependency.JavaDependency) =>
-                !allDeps(javaDep.dependency.moduleVersion)
+            javaOrScalaDependency.dependency(versions) match {
+              case Left(err)  => throw new BuildException.Text(projectName, err)
+              case Right(dep) => !allDeps.contains(dep.moduleVersion)
             }
           if (keep) Some(javaOrScalaDependency) else None
         }
@@ -143,7 +139,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(templateDirs))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(logger, templateDirs, configuredPlatform))
+        bloopProject.scala.map(translateScala(versions, logger, templateDirs, configuredPlatform))
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (isTest) JsonSet.fromIterable(bloopProject.test.toList.flatMap(_.frameworks).flatMap(_.names).map(model.TestFrameworkName.apply))
@@ -198,47 +194,47 @@ object importBloopFilesFromSbt {
   case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[(Configuration, Dependency)])
 
   object ParsedDependency {
-    def apply(logger: Logger, scalaVersion: Option[Versions.Scala], mod: Config.Module): ParsedDependency = {
-      def withConf(dep: Dependency): Dependency =
-        mod.configurations.foldLeft(dep)((dep, c) => dep.withConfiguration(Configuration(c)))
-
+    def apply(logger: Logger, versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
       def java = Deps.Java(mod.organization, mod.name, mod.version)
 
       def parseArtifact(scalaVersion: Versions.Scala): JavaOrScalaDependency = {
         val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
         val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
-        val platform = {
-          val sjs1 = mod.name.indexOf("_sjs1")
-          val sjs06 = mod.name.indexOf("_sjs0.6")
-          if (sjs1 != -1) sjs1 else sjs06
+        val platform = versions.platformSuffix(true) match {
+          case None         => -1
+          case Some(suffix) => mod.name.indexOf(suffix)
         }
+
+        val configuration = mod.configurations.map(Configuration.apply).filterNot(DefaultConfigs).getOrElse(JavaOrScalaDependency.defaults.configuration)
 
         List(full, scala).filterNot(_ == -1).minOption match {
           case None => java
           case Some(beforeScalaThing) =>
             if (platform != -1) {
-              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(platform))), mod.version)
               JavaOrScalaDependency.ScalaDependency(
-                withConf(dep),
+                Organization(mod.organization),
+                ModuleName(mod.name.take(platform)),
+                mod.version,
                 fullCrossVersion = full != -1,
                 withPlatformSuffix = true,
-                Set.empty
+                configuration = configuration
               )
             } else {
-              val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name.take(beforeScalaThing))), mod.version)
               JavaOrScalaDependency.ScalaDependency(
-                withConf(dep),
+                Organization(mod.organization),
+                ModuleName(mod.name.take(beforeScalaThing)),
+                mod.version,
                 fullCrossVersion = full != -1,
                 withPlatformSuffix = false,
-                Set.empty
+                configuration = configuration
               )
             }
         }
       }
 
-      val sdep: JavaOrScalaDependency = scalaVersion match {
-        case Some(scalaVersion) => parseArtifact(scalaVersion)
-        case None               => java
+      val sdep: JavaOrScalaDependency = versions match {
+        case scala: ScalaVersions.WithScala => parseArtifact(scala.scalaVersion)
+        case ScalaVersions.Java             => java
       }
 
       val dependencies: List[(Configuration, Dependency)] =
@@ -306,7 +302,9 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(logger: Logger, templateDirs: Options.TemplateDirs, platform: Option[model.Platform])(s: Config.Scala): model.Scala = {
+  def translateScala(versions: ScalaVersions, logger: Logger, templateDirs: Options.TemplateDirs, platform: Option[model.Platform])(
+      s: Config.Scala
+  ): model.Scala = {
     val options = Options.parse(s.options, Some(templateDirs))
 
     val (plugins, rest) = options.values.partition {
@@ -314,12 +312,11 @@ object importBloopFilesFromSbt {
       case _                                                                     => false
     }
 
-    val version = Versions.Scala(s.version)
     val compilerPlugins = plugins.collect { case Opt.Flag(pluginStr) =>
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
       val pomPath = findPomPath(jarPath)
       val Right(pom) = xmlParseSax(Files.readString(pomPath), new PomParser).project
-      ParsedDependency(logger, Some(version), Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
+      ParsedDependency(logger, versions, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
     val filteredCompilerPlugins =
@@ -328,7 +325,7 @@ object importBloopFilesFromSbt {
       }
 
     model.Scala(
-      version = Some(version),
+      version = Some(Versions.Scala(s.version)),
       options = new Options(rest),
       setup = s.setup.map(setup =>
         model.CompileSetup(

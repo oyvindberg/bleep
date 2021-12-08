@@ -63,7 +63,12 @@ object bootstrap {
   def fromCwd(logger: Logger): Either[BuildException, Started] =
     from(logger, Os.cwd)
 
-  def from(logger: Logger, cwd: Path): Either[BuildException, Started] = {
+  def from(logger: Logger, cwd: Path): Either[BuildException, Started] =
+    try Right(unsafeFrom(logger, cwd))
+    catch { case x: BuildException => Left(x) }
+
+  @throws[BuildException]
+  def unsafeFrom(logger: Logger, cwd: Path): Started = {
     val t0 = System.currentTimeMillis()
     val directories = UserPaths.fromAppDirs
 
@@ -80,7 +85,7 @@ object bootstrap {
     findBleepJson(cwd) match {
       case Some(bleepJsonPath) =>
         model.parseBuild(Files.readString(bleepJsonPath)) match {
-          case Left(th) => Left(new BuildException.InvalidJson(bleepJsonPath, th))
+          case Left(th) => throw new BuildException.InvalidJson(bleepJsonPath, th)
           case Right(build) =>
             val buildPaths = BuildPaths(bleepJsonPath)
             val currentHash = build.toString.hashCode().toString
@@ -125,9 +130,9 @@ object bootstrap {
             }
             val td = System.currentTimeMillis() - t0
             logger.info(s"bootstrapped in $td ms")
-            Right(Started(buildPaths, build, bloopFiles, activeProjects, lazyResolver, directories, logger))
+            Started(buildPaths, build, bloopFiles, activeProjects, lazyResolver, directories, logger)
         }
-      case None => Left(new BuildException.BuildNotFound(cwd))
+      case None => throw new BuildException.BuildNotFound(cwd)
     }
   }
 

@@ -96,13 +96,6 @@ object CoursierResolver {
 
   private object Result {
     // format: off
-    implicit val codecOrganization: Codec[Organization] = Codec.from(Decoder[String].map(Organization.apply), Encoder[String].contramap(_.value))
-    implicit val codecModuleName: Codec[ModuleName] = Codec.from(Decoder[String].map(ModuleName.apply), Encoder[String].contramap(_.value))
-    implicit val codecType: Codec[Type] = Codec.from(Decoder[String].map(Type.apply), Encoder[String].contramap(_.value))
-    implicit val codecExtension: Codec[Extension] = Codec.from(Decoder[String].map(Extension.apply), Encoder[String].contramap(_.value))
-    implicit val codecClassifier: Codec[Classifier] = Codec.from(Decoder[String].map(Classifier.apply), Encoder[String].contramap(_.value))
-    implicit val codecConfiguration: Codec[Configuration] = Codec.from(Decoder[String].map(Configuration.apply), Encoder[String].contramap(_.value))
-
     implicit val codecModule: Codec[Module] =
       Codec.forProduct3[Module, Organization, ModuleName, Map[String, String]]("organization", "name", "attributes")(Module.apply)(mod => (mod.organization, mod.name, mod.attributes))
 
