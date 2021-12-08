@@ -1,9 +1,8 @@
 package bleep
 
-import bleep.internal.{rewriteDependentData, Lazy}
+import bleep.internal.{rewriteDependentData, Lazy, ScalaVersions}
 import bloop.config.{Config => b}
 import coursier.core.Configuration
-import coursier.error.CoursierError
 import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
@@ -17,7 +16,7 @@ object generateBloopFiles {
     verify(build)
 
     rewriteDependentData(build.projects) { (projectName, project, getDep) =>
-      try translateProject(
+      translateProject(
         resolver,
         buildPaths,
         projectName,
@@ -25,10 +24,6 @@ object generateBloopFiles {
         build,
         getBloopProject = dep => getDep(dep).forceGet(s"${projectName.value} => ${dep.value}")
       )
-      catch {
-        // add some context
-        case cause: CoursierError => throw BuildException.ResolveError(cause, projectName)
-      }
     }
   }
 
@@ -44,7 +39,6 @@ object generateBloopFiles {
         }
     }
 
-  @throws[CoursierError]
   def translateProject(
       resolver: CoursierResolver,
       buildPaths: BuildPaths,
@@ -90,6 +84,12 @@ object generateBloopFiles {
         case x                     => x
       }
 
+    val versions: ScalaVersions =
+      ScalaVersions.fromExplodedProject(proj) match {
+        case Left(err)       => throw new BuildException.Text(projName, err)
+        case Right(versions) => versions
+      }
+
     val configuredPlatform: Option[b.Platform] =
       explodedPlatform.map {
         case model.Platform.Js(version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
@@ -124,26 +124,20 @@ object generateBloopFiles {
         case model.Platform.Native(version, mode, gc, mainClass) => ???
       }
 
-    val platformSuffix =
-      explodedPlatform match {
-        case Some(x: model.Platform.Js)     => s"sjs${x.version.fold("1")(_.scalaJsBinVersion)}"
-        case Some(x: model.Platform.Native) => s"native${x.version.get.scalaNativeBinVersion}"
-        case _                              => ""
-      }
-
-    val resolvedDependencies = {
+    val resolvedDependencies: CoursierResolver.Result = {
       val transitiveDeps: JsonSet[JavaOrScalaDependency] =
         proj.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values }))
 
       val concreteDeps: JsonSet[Dependency] =
         transitiveDeps.map { dep =>
-          scalaVersion match {
-            case Some(scalaVersion) => dep.dependency(scalaVersion, platformSuffix)
-            case None               => sys.error(s"Need a configured scala version to resolve $dep")
+          dep.dependency(versions) match {
+            case Left(err)    => throw new BuildException.Text(projName, err)
+            case Right(value) => value
           }
         }
+
       resolver(concreteDeps, build.resolvers) match {
-        case Left(coursierError) => throw coursierError
+        case Left(coursierError) => throw BuildException.ResolveError(coursierError, projName)
         case Right(value)        => value
       }
     }
@@ -181,11 +175,11 @@ object generateBloopFiles {
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
-          scalaVersion.compiler.dependency(scalaVersion, "")
+          scalaVersion.compiler.dependency(ScalaVersions.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
           resolver(JsonSet(scalaCompiler), build.resolvers) match {
-            case Left(coursierError) => throw coursierError
+            case Left(coursierError) => throw BuildException.ResolveError(coursierError, projName)
             case Right(res)          => res.jars
           }
 
@@ -208,11 +202,11 @@ object generateBloopFiles {
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
 
           val deps: JsonSet[Dependency] =
-            specified.map(_.dependency(scalaVersion, platformName = ""))
+            specified.map(_.dependency(ScalaVersions.Jvm(scalaVersion)))
 
           val artifacts: List[Path] =
             resolver(deps, build.resolvers) match {
-              case Left(coursierError) => throw coursierError
+              case Left(coursierError) => throw BuildException.ResolveError(coursierError, projName)
               case Right(res)          => res.jars
             }
 

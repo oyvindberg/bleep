@@ -29,6 +29,8 @@ object BuildException {
     def apply(cause: CoursierError, project: model.ProjectName): ResolveError = new ResolveError(cause, s"project ${project.value}")
   }
 
+  class Text(project: model.ProjectName, str: String) extends BuildException(s"${project.value}: $str")
+
   class Cause(
       val cause: Throwable,
       val error: String
