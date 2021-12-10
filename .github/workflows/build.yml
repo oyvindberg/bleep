@@ -1,0 +1,98 @@
+name: Build
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    types: [ synchronize ]
+
+jobs:
+  build:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: coursier/cache-action@v6
+      - name: Set up JDK
+        uses: olafurpg/setup-scala@v11
+        with:
+          java-version: graalvm-ce-java11@21.1.0
+      - name: Scalafmt Check
+        if: ${{ matrix.os != 'windows-latest' }}
+        shell: bash
+        run: sbt --client scalafmtCheckAll
+      - name: "Test"
+        shell: bash
+        run: sbt --client "test"
+      - name: "Assembly"
+        shell: bash
+        run: sbt --client "bleep/assembly"
+      - name: Temporarily save package
+        uses: actions/upload-artifact@v2
+        with:
+          name: java-binary
+          path: |
+            ${{ github.workspace }}/bleep/target/bleep-assembly.jar
+          retention-days: 1
+      - name: Cleanup before cache
+        shell: bash
+        run: |
+          rm -rf "$HOME/.ivy2/local" || true
+          find $HOME/Library/Caches/Coursier/v1        -name "ivydata-*.properties" -delete || true
+          find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
+          find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
+          find $HOME/.sbt                              -name "*.lock"               -delete || true
+
+  build-native-image:
+    name: Native image build on ${{ matrix.os }}
+    needs: [ build ]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            file_name: bleep-linux
+            artifact_name: linux-binary
+          - os: macos-latest
+            file_name: bleep-macos
+            artifact_name: macos-binary
+          - os: windows-latest
+            file_name: bleep-windows.exe
+            artifact_name: windows-binary
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - name: Download application package
+        uses: actions/download-artifact@v2
+        with:
+          name: java-binary
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '21.3.0'
+          java-version: '11'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build native image on Linux
+        run: mkdir dist && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }} && chmod 755 dist/${{ matrix.file_name }}
+        if: runner.os == 'Linux'
+      - name: Build native image on Mac OS X
+        run: mkdir dist && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }} && chmod 755 dist/${{ matrix.file_name }}
+        if: runner.os == 'macOS'
+      - name: Build native image on Windows
+        run: >-
+          mkdir dist && "C:\Program Files (x86)\Microsoft Visual
+          Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }}
+        if: runner.os == 'Windows'
+      - name: Test binary after build
+        run: ./dist/${{ matrix.file_name }} compile
+      - name: Temporarily save package
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            dist/bleep-*
+          retention-days: 1

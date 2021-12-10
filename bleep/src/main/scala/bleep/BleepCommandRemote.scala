@@ -27,7 +27,7 @@ trait BleepCommandRemote extends BleepCommand {
 
   override final def run(): Unit = {
     val bloopRifleConfig = new BloopSetup(
-      "/usr/bin/java",
+      JavaCmd.javacommand,
       started,
       bloopBspProtocol = None,
       bloopBspSocket = None

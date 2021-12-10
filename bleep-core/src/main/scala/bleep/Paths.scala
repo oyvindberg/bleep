@@ -1,6 +1,6 @@
 package bleep
 
-import net.harawata.appdirs.{AppDirs, AppDirsFactory}
+import coursier.cache.shaded.dirs.dev.dirs.ProjectDirectories
 
 import java.nio.file.{Path, Paths}
 
@@ -11,9 +11,9 @@ case class UserPaths(cacheDir: Path, configDir: Path) {
 
 object UserPaths {
   def fromAppDirs: UserPaths = {
-    val appDirs: AppDirs = AppDirsFactory.getInstance()
-    val cacheDir = Paths.get(appDirs.getUserCacheDir("bleep", "1", "com.olvind"))
-    val configDir = Paths.get(appDirs.getUserConfigDir("bleep", "1", "com.olvind"))
+    val dirs = ProjectDirectories.from("bleep", "1", "com.olvind")
+    val cacheDir = Paths.get(dirs.cacheDir)
+    val configDir = Paths.get(dirs.configDir)
 
     UserPaths(cacheDir, configDir)
   }
