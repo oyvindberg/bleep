@@ -20,9 +20,9 @@
       "dependencies" : [
         "com.lihaoyi::fansi:0.2.14",
         "io.circe::circe-generic:0.14.1",
-        "io.circe::circe-parser:0.14.1",
         "io.get-coursier::coursier:2.0.16",
         "net.harawata:appdirs:1.2.1",
+        "org.gnieh::diffson-circe:4.1.1",
         "org.scala-lang:scala-reflect:2.13.7"
       ],
       "extends" : "template-common-main"
@@ -58,7 +58,7 @@
     "bloop-rifle" : {
       "dependencies" : [
         "ch.epfl.scala:bsp4j:2.0.0",
-        "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-2",
+        "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-3",
         "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.code.gson:gson:2.8.9",
         "com.google.errorprone:error_prone_annotations:2.2.0",
