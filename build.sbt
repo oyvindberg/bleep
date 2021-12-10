@@ -1,6 +1,6 @@
 name := "bleep-root"
 
-Global / bloopConfigDir := baseDirectory.value / s".bleep/import/bloop-${scalaBinaryVersion.value}"
+//Global / bloopConfigDir := baseDirectory.value / s".bleep/import/bloop-${scalaBinaryVersion.value}"
 
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
@@ -19,6 +19,7 @@ lazy val `bleep-core` = project
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
+      "org.gnieh" %% "diffson-circe" % "4.1.1",
       "ch.epfl.scala" %% "bloop-config" % "1.4.11",
       "net.harawata" % "appdirs" % "1.2.1"
     )
