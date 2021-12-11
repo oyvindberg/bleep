@@ -1,9 +1,8 @@
 package bleep
 
-import bleep.internal.{ScalaVersions, ShortenAndSortJson}
 import bleep.internal.codecs._
-import coursier.{ModuleName, Organization}
-import coursier.core.{Versions => _, _}
+import bleep.internal.{ScalaVersions, ShortenAndSortJson}
+import coursier.core._
 import io.circe.syntax._
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
@@ -17,80 +16,14 @@ sealed trait Dep {
   val optional: Boolean
   val transitive: Boolean
 
-  final def repr: String =
-    this match {
-      case x: Dep.JavaDependency =>
-        x.organization.value + ":" + x.moduleName.value + ":" + version
-
-      case x: Dep.ScalaDependency =>
-        x.organization.value +
-          (if (x.fullCrossVersion) ":::" else "::") +
-          x.baseModuleName.value +
-          (if (x.withPlatformSuffix) "::" else ":") +
-          version
-    }
-
+  def repr: String
   def isSimple: Boolean
+  def dependency(versions: ScalaVersions): Either[String, Dependency]
 
-  // traverse is always the answer, unless you need unorderedFlatTraverse without parallelism
-  final def translatedExclusions(versions: ScalaVersions): Either[String, Set[(Organization, ModuleName)]] = {
-    var error: Option[String] = None
-    val rights = Set.newBuilder[(Organization, ModuleName)]
-
-    exclusions.foreach {
-      case JavaOrScalaModule.JavaModule(module) =>
-        rights += ((module.organization, module.name))
-
-      case mod @ JavaOrScalaModule.ScalaModule(baseModule, fullCrossVersion) =>
-        versions match {
-          case withScala: ScalaVersions.WithScala =>
-            // there is no place in the format to indicate platform. we exclude both when needed
-            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, needsPlatformSuffix = false) match {
-              case Some(moduleName) => rights += ((baseModule.organization, moduleName))
-              case None             => error = Some(s"Cannot include dependency with $withScala")
-            }
-
-            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, needsPlatformSuffix = true) match {
-              case Some(moduleName) =>
-                rights += ((baseModule.organization, moduleName))
-              case None => () // it's ok if this fails
-            }
-
-          case ScalaVersions.Java =>
-            error = Some(s"It doesn't make sense to exclude $mod in a pure java project")
-        }
-    }
-
-    error.toLeft(rights.result())
-  }
-
-  final def dependency(versions: ScalaVersions): Either[String, Dependency] =
-    this match {
-      case x: Dep.JavaDependency =>
-        val module = Module(x.organization, x.moduleName, x.attributes)
-        translatedExclusions(versions).map { exclusions =>
-          new Dependency(module, version, configuration = configuration, exclusions, publication, optional, transitive)
-        }
-      case x: Dep.ScalaDependency =>
-        versions match {
-          case withScala: ScalaVersions.WithScala =>
-            withScala.moduleName(x.baseModuleName, needsScala = true, x.fullCrossVersion, x.withPlatformSuffix) match {
-              case Some(moduleName) =>
-                val module = Module(x.organization, moduleName, x.attributes)
-                translatedExclusions(versions).map(exclusions => new Dependency(module, version, configuration, exclusions, publication, optional, transitive))
-              case None =>
-                Left(s"Cannot include dependency with $withScala")
-            }
-
-          case ScalaVersions.Java =>
-            Left(s"You need to configure a scala version to resolve ${x.repr}")
-        }
-    }
-
-  final def dependency(versions: ScalaVersions.WithScala): Dependency =
-    dependency(versions: ScalaVersions) match {
-      case Left(err)  => sys.error(s"should not happen (tm). got error $err")
-      case Right(dep) => dep
+  final def forceDependency(versions: ScalaVersions): Dependency =
+    dependency(versions) match {
+      case Left(err)         => throw new RuntimeException(s"Unexpected: $err")
+      case Right(dependency) => dependency
     }
 }
 
@@ -129,7 +62,7 @@ object Dep {
     val withPlatformSuffix: Boolean = false
   }
 
-  case class JavaDependency(
+  final case class JavaDependency(
       organization: Organization,
       moduleName: ModuleName,
       version: String,
@@ -140,16 +73,32 @@ object Dep {
       optional: Boolean = defaults.optional,
       transitive: Boolean = defaults.transitive
   ) extends Dep {
-    final def isSimple: Boolean =
+    def isSimple: Boolean =
       attributes == defaults.attributes &&
         configuration == defaults.configuration &&
         exclusions == defaults.exclusions &&
         publication == defaults.publication &&
         optional == defaults.optional &&
         transitive == defaults.transitive
+
+    def repr: String =
+      organization.value + ":" + moduleName.value + ":" + version
+
+    def dependency(versions: ScalaVersions): Either[String, Dependency] =
+      Dep.translatedExclusions(exclusions, versions).map { exclusions =>
+        new Dependency(
+          module = Module(organization, moduleName, attributes),
+          version = version,
+          configuration = configuration,
+          exclusions = exclusions,
+          publication = publication,
+          optional = optional,
+          transitive = transitive
+        )
+      }
   }
 
-  case class ScalaDependency(
+  final case class ScalaDependency(
       organization: Organization,
       baseModuleName: ModuleName,
       version: String,
@@ -162,13 +111,41 @@ object Dep {
       optional: Boolean = defaults.optional,
       transitive: Boolean = defaults.transitive
   ) extends Dep {
-    final def isSimple: Boolean =
+    def isSimple: Boolean =
       attributes == defaults.attributes &&
         configuration == defaults.configuration &&
         exclusions == defaults.exclusions &&
         publication == defaults.publication &&
         optional == defaults.optional &&
         transitive == defaults.transitive
+
+    def repr: String =
+      organization.value + (if (fullCrossVersion) ":::" else "::") + baseModuleName.value + (if (withPlatformSuffix) "::" else ":") + version
+
+    def dependency(versions: ScalaVersions): Either[String, Dependency] =
+      versions match {
+        case withScala: ScalaVersions.WithScala =>
+          withScala.moduleName(baseModuleName, needsScala = true, fullCrossVersion, withPlatformSuffix) match {
+            case Some(moduleName) =>
+              Dep.translatedExclusions(exclusions, versions).map { exclusions =>
+                new Dependency(
+                  module = Module(organization, moduleName, attributes),
+                  version = version,
+                  configuration = configuration,
+                  exclusions = exclusions,
+                  publication = publication,
+                  optional = optional,
+                  transitive = transitive
+                )
+              }
+            case None =>
+              Left(s"Cannot include dependency with $withScala")
+          }
+
+        case ScalaVersions.Java =>
+          Left(s"You need to configure a scala version to resolve $repr")
+      }
+
   }
 
   implicit val decodes: Decoder[Dep] =
@@ -285,4 +262,36 @@ object Dep {
 
   implicit val ordering: Ordering[Dep] =
     Ordering.by(dep => (dep.repr, dep.toString))
+
+  // traverse is always the answer, unless you need unorderedFlatTraverse without parallelism
+  def translatedExclusions(exclusions: List[JavaOrScalaModule], versions: ScalaVersions): Either[String, Set[(Organization, ModuleName)]] = {
+    var error: Option[String] = None
+    val rights = Set.newBuilder[(Organization, ModuleName)]
+
+    exclusions.foreach {
+      case JavaOrScalaModule.JavaModule(module) =>
+        rights += ((module.organization, module.name))
+
+      case mod @ JavaOrScalaModule.ScalaModule(baseModule, fullCrossVersion) =>
+        versions match {
+          case withScala: ScalaVersions.WithScala =>
+            // there is no place in the format to indicate platform. we exclude both when needed
+            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, needsPlatformSuffix = false) match {
+              case Some(moduleName) => rights += ((baseModule.organization, moduleName))
+              case None             => error = Some(s"Cannot include dependency with $withScala")
+            }
+
+            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, needsPlatformSuffix = true) match {
+              case Some(moduleName) =>
+                rights += ((baseModule.organization, moduleName))
+              case None => () // it's ok if this fails
+            }
+
+          case ScalaVersions.Java =>
+            error = Some(s"It doesn't make sense to exclude $mod in a pure java project")
+        }
+    }
+
+    error.toLeft(rights.result())
+  }
 }

@@ -175,7 +175,7 @@ object generateBloopFiles {
     val configuredScala: Option[b.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
-          scalaVersion.compiler.dependency(ScalaVersions.Jvm(scalaVersion))
+          scalaVersion.compiler.forceDependency(ScalaVersions.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
           resolver(JsonSet(scalaCompiler), build.resolvers) match {
@@ -202,7 +202,7 @@ object generateBloopFiles {
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
 
           val deps: JsonSet[Dependency] =
-            specified.map(_.dependency(ScalaVersions.Jvm(scalaVersion)))
+            specified.map(_.forceDependency(ScalaVersions.Jvm(scalaVersion)))
 
           val artifacts: List[Path] =
             resolver(deps, build.resolvers) match {
