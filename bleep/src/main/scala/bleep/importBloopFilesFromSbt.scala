@@ -115,7 +115,7 @@ object importBloopFilesFromSbt {
           case Right(value) => value
         }
 
-      val dependencies: List[JavaOrScalaDependency] = {
+      val dependencies: List[Dep] = {
         val parsed: List[ParsedDependency] =
           resolution.modules.map(mod => ParsedDependency(logger, versions, mod))
 
@@ -191,13 +191,13 @@ object importBloopFilesFromSbt {
     model.Build("1", templatesMassaged, None, resolvers = buildResolvers, shortenedProjects)
   }
 
-  case class ParsedDependency(dep: JavaOrScalaDependency, directDeps: List[(Configuration, Dependency)])
+  case class ParsedDependency(dep: Dep, directDeps: List[(Configuration, Dependency)])
 
   object ParsedDependency {
     def apply(logger: Logger, versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
-      def java = Deps.Java(mod.organization, mod.name, mod.version)
+      def java = Dep.Java(mod.organization, mod.name, mod.version)
 
-      def parseArtifact(scalaVersion: Versions.Scala): JavaOrScalaDependency = {
+      def parseArtifact(scalaVersion: Versions.Scala): Dep = {
         val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
         val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
         val platform = versions.platformSuffix(true) match {
@@ -205,13 +205,13 @@ object importBloopFilesFromSbt {
           case Some(suffix) => mod.name.indexOf(suffix)
         }
 
-        val configuration = mod.configurations.map(Configuration.apply).filterNot(DefaultConfigs).getOrElse(JavaOrScalaDependency.defaults.configuration)
+        val configuration = mod.configurations.map(Configuration.apply).filterNot(DefaultConfigs).getOrElse(Dep.defaults.configuration)
 
         List(full, scala).filterNot(_ == -1).minOption match {
           case None => java
           case Some(beforeScalaThing) =>
             if (platform != -1) {
-              JavaOrScalaDependency.ScalaDependency(
+              Dep.ScalaDependency(
                 Organization(mod.organization),
                 ModuleName(mod.name.take(platform)),
                 mod.version,
@@ -220,7 +220,7 @@ object importBloopFilesFromSbt {
                 configuration = configuration
               )
             } else {
-              JavaOrScalaDependency.ScalaDependency(
+              Dep.ScalaDependency(
                 Organization(mod.organization),
                 ModuleName(mod.name.take(beforeScalaThing)),
                 mod.version,
@@ -232,7 +232,7 @@ object importBloopFilesFromSbt {
         }
       }
 
-      val sdep: JavaOrScalaDependency = versions match {
+      val sdep: Dep = versions match {
         case scala: ScalaVersions.WithScala => parseArtifact(scala.scalaVersion)
         case ScalaVersions.Java             => java
       }

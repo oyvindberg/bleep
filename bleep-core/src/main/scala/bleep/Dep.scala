@@ -2,11 +2,12 @@ package bleep
 
 import bleep.internal.{ScalaVersions, ShortenAndSortJson}
 import bleep.internal.codecs._
+import coursier.{ModuleName, Organization}
 import coursier.core.{Versions => _, _}
 import io.circe.syntax._
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
-sealed trait JavaOrScalaDependency {
+sealed trait Dep {
   val organization: Organization
   val version: String
   val attributes: Map[String, String]
@@ -18,10 +19,10 @@ sealed trait JavaOrScalaDependency {
 
   final def repr: String =
     this match {
-      case x: JavaOrScalaDependency.JavaDependency =>
+      case x: Dep.JavaDependency =>
         x.organization.value + ":" + x.moduleName.value + ":" + version
 
-      case x: JavaOrScalaDependency.ScalaDependency =>
+      case x: Dep.ScalaDependency =>
         x.organization.value +
           (if (x.fullCrossVersion) ":::" else "::") +
           x.baseModuleName.value +
@@ -65,12 +66,12 @@ sealed trait JavaOrScalaDependency {
 
   final def dependency(versions: ScalaVersions): Either[String, Dependency] =
     this match {
-      case x: JavaOrScalaDependency.JavaDependency =>
+      case x: Dep.JavaDependency =>
         val module = Module(x.organization, x.moduleName, x.attributes)
         translatedExclusions(versions).map { exclusions =>
           new Dependency(module, version, configuration = configuration, exclusions, publication, optional, transitive)
         }
-      case x: JavaOrScalaDependency.ScalaDependency =>
+      case x: Dep.ScalaDependency =>
         versions match {
           case withScala: ScalaVersions.WithScala =>
             withScala.moduleName(x.baseModuleName, needsScala = true, x.fullCrossVersion, x.withPlatformSuffix) match {
@@ -93,17 +94,26 @@ sealed trait JavaOrScalaDependency {
     }
 }
 
-object JavaOrScalaDependency {
-  def parse(input: String): Either[String, JavaOrScalaDependency] =
+object Dep {
+  def Java(org: String, name: String, version: String): Dep.JavaDependency =
+    Dep.JavaDependency(Organization(org), ModuleName(name), version)
+
+  def Scala(org: String, name: String, version: String): Dep =
+    Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = false)
+
+  def ScalaFullVersion(org: String, name: String, version: String): Dep =
+    Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = true, withPlatformSuffix = false)
+
+  def parse(input: String): Either[String, Dep] =
     input.split(":") match {
       case Array(org, "", "", name, version) =>
-        Right(JavaOrScalaDependency.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = true, withPlatformSuffix = false))
+        Right(Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = true, withPlatformSuffix = false))
       case Array(org, "", name, version) =>
-        Right(JavaOrScalaDependency.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = false))
+        Right(Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = false))
       case Array(org, "", name, "", version) =>
         Right(Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = true))
       case Array(org, name, version) =>
-        Right(JavaOrScalaDependency.JavaDependency(Organization(org), ModuleName(name), version))
+        Right(Dep.JavaDependency(Organization(org), ModuleName(name), version))
       case _ =>
         Left(s"Not a valid dependency string: $input")
     }
@@ -129,7 +139,7 @@ object JavaOrScalaDependency {
       publication: Publication = defaults.publication,
       optional: Boolean = defaults.optional,
       transitive: Boolean = defaults.transitive
-  ) extends JavaOrScalaDependency {
+  ) extends Dep {
     final def isSimple: Boolean =
       attributes == defaults.attributes &&
         configuration == defaults.configuration &&
@@ -151,7 +161,7 @@ object JavaOrScalaDependency {
       publication: Publication = defaults.publication,
       optional: Boolean = defaults.optional,
       transitive: Boolean = defaults.transitive
-  ) extends JavaOrScalaDependency {
+  ) extends Dep {
     final def isSimple: Boolean =
       attributes == defaults.attributes &&
         configuration == defaults.configuration &&
@@ -161,17 +171,17 @@ object JavaOrScalaDependency {
         transitive == defaults.transitive
   }
 
-  implicit val decodes: Decoder[JavaOrScalaDependency] =
+  implicit val decodes: Decoder[Dep] =
     Decoder.instance { c =>
-      def parseR(input: String): Decoder.Result[JavaOrScalaDependency] =
+      def parseR(input: String): Decoder.Result[Dep] =
         parse(input).left.map(err => DecodingFailure(err, c.history))
 
-      val fromString: Decoder.Result[JavaOrScalaDependency] =
+      val fromString: Decoder.Result[Dep] =
         c.as[String].flatMap(parseR)
 
-      val full: Decoder.Result[JavaOrScalaDependency] =
+      val full: Decoder.Result[Dep] =
         c.get[String]("module").flatMap(parseR).flatMap {
-          case dependency: JavaOrScalaDependency.JavaDependency =>
+          case dependency: Dep.JavaDependency =>
             for {
               attributes <- c.get[Option[Map[String, String]]]("attributes")
               configuration <- c.get[Option[Configuration]]("configuration")
@@ -183,7 +193,7 @@ object JavaOrScalaDependency {
               publicationClassifier <- publicationC.get[Option[Classifier]]("classifier")
               optional <- c.get[Option[Boolean]]("optional")
               transitive <- c.get[Option[Boolean]]("transitive")
-            } yield JavaOrScalaDependency.JavaDependency(
+            } yield Dep.JavaDependency(
               organization = dependency.organization,
               moduleName = dependency.moduleName,
               version = dependency.version,
@@ -200,7 +210,7 @@ object JavaOrScalaDependency {
               transitive = transitive.getOrElse(dependency.transitive)
             )
 
-          case dependency: JavaOrScalaDependency.ScalaDependency =>
+          case dependency: Dep.ScalaDependency =>
             for {
               attributes <- c.get[Option[Map[String, String]]]("attributes")
               configuration <- c.get[Option[Configuration]]("configuration")
@@ -212,7 +222,7 @@ object JavaOrScalaDependency {
               publicationClassifier <- publicationC.get[Option[Classifier]]("classifier")
               optional <- c.get[Option[Boolean]]("optional")
               transitive <- c.get[Option[Boolean]]("transitive")
-            } yield JavaOrScalaDependency.ScalaDependency(
+            } yield Dep.ScalaDependency(
               organization = dependency.organization,
               baseModuleName = dependency.baseModuleName,
               version = dependency.version,
@@ -237,42 +247,42 @@ object JavaOrScalaDependency {
 
   private implicit val publicationEncoder: Encoder[Publication] = Encoder.instance(p =>
     Json.obj(
-      "name" := (if (p.name == JavaOrScalaDependency.defaults.publication.name) Json.Null else p.name.asJson),
-      "type" := (if (p.`type` == JavaOrScalaDependency.defaults.publication.`type`) Json.Null else p.`type`.asJson),
-      "ext" := (if (p.ext == JavaOrScalaDependency.defaults.publication.ext) Json.Null else p.ext.asJson),
-      "classifier" := (if (p.classifier == JavaOrScalaDependency.defaults.publication.classifier) Json.Null else p.classifier.asJson)
+      "name" := (if (p.name == Dep.defaults.publication.name) Json.Null else p.name.asJson),
+      "type" := (if (p.`type` == Dep.defaults.publication.`type`) Json.Null else p.`type`.asJson),
+      "ext" := (if (p.ext == Dep.defaults.publication.ext) Json.Null else p.ext.asJson),
+      "classifier" := (if (p.classifier == Dep.defaults.publication.classifier) Json.Null else p.classifier.asJson)
     )
   )
 
-  implicit val encodes: Encoder[JavaOrScalaDependency] =
+  implicit val encodes: Encoder[Dep] =
     Encoder.instance {
       case d if d.isSimple => d.repr.asJson
-      case x: JavaOrScalaDependency.JavaDependency =>
+      case x: Dep.JavaDependency =>
         Json
           .obj(
             "module" := x.repr.asJson,
-            "attributes" := (if (x.attributes == JavaOrScalaDependency.defaults.attributes) Json.Null else x.attributes.asJson),
-            "configuration" := (if (x.configuration == JavaOrScalaDependency.defaults.configuration) Json.Null else x.configuration.asJson),
-            "exclusions" := (if (x.exclusions == JavaOrScalaDependency.defaults.exclusions) Json.Null else x.exclusions.asJson),
-            "publication" := (if (x.publication == JavaOrScalaDependency.defaults.publication) Json.Null else x.publication.asJson),
-            "optional" := (if (x.optional == JavaOrScalaDependency.defaults.optional) Json.Null else x.optional.asJson),
-            "transitive" := (if (x.transitive == JavaOrScalaDependency.defaults.transitive) Json.Null else x.transitive.asJson)
+            "attributes" := (if (x.attributes == Dep.defaults.attributes) Json.Null else x.attributes.asJson),
+            "configuration" := (if (x.configuration == Dep.defaults.configuration) Json.Null else x.configuration.asJson),
+            "exclusions" := (if (x.exclusions == Dep.defaults.exclusions) Json.Null else x.exclusions.asJson),
+            "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
+            "optional" := (if (x.optional == Dep.defaults.optional) Json.Null else x.optional.asJson),
+            "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson)
           )
           .foldWith(ShortenAndSortJson)
       case x: ScalaDependency =>
         Json
           .obj(
             "module" := x.repr.asJson,
-            "attributes" := (if (x.attributes == JavaOrScalaDependency.defaults.attributes) Json.Null else x.attributes.asJson),
-            "configuration" := (if (x.configuration == JavaOrScalaDependency.defaults.configuration) Json.Null else x.configuration.asJson),
-            "exclusions" := (if (x.exclusions == JavaOrScalaDependency.defaults.exclusions) Json.Null else x.exclusions.asJson),
-            "publication" := (if (x.publication == JavaOrScalaDependency.defaults.publication) Json.Null else x.publication.asJson),
-            "optional" := (if (x.optional == JavaOrScalaDependency.defaults.optional) Json.Null else x.optional.asJson),
-            "transitive" := (if (x.transitive == JavaOrScalaDependency.defaults.transitive) Json.Null else x.transitive.asJson)
+            "attributes" := (if (x.attributes == Dep.defaults.attributes) Json.Null else x.attributes.asJson),
+            "configuration" := (if (x.configuration == Dep.defaults.configuration) Json.Null else x.configuration.asJson),
+            "exclusions" := (if (x.exclusions == Dep.defaults.exclusions) Json.Null else x.exclusions.asJson),
+            "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
+            "optional" := (if (x.optional == Dep.defaults.optional) Json.Null else x.optional.asJson),
+            "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson)
           )
           .foldWith(ShortenAndSortJson)
     }
 
-  implicit val ordering: Ordering[JavaOrScalaDependency] =
+  implicit val ordering: Ordering[Dep] =
     Ordering.by(dep => (dep.repr, dep.toString))
 }

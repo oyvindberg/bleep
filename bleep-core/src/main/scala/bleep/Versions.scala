@@ -14,16 +14,16 @@ object Versions {
     val scalaOrganization: String =
       "org.scala-lang"
 
-    val compiler: JavaOrScalaDependency =
-      if (is3) Deps.Scala(scalaOrganization, "scala3-compiler", scalaVersion)
-      else Deps.Java(scalaOrganization, "scala-compiler", scalaVersion)
+    val compiler: Dep =
+      if (is3) Dep.Scala(scalaOrganization, "scala3-compiler", scalaVersion)
+      else Dep.Java(scalaOrganization, "scala-compiler", scalaVersion)
 
-    val library: JavaOrScalaDependency =
+    val library: Dep =
       if (is3) Scala213.library
-      else Deps.Java(scalaOrganization, "scala-library", scalaVersion)
+      else Dep.Java(scalaOrganization, "scala-library", scalaVersion)
 
-    val dottyLibrary: Option[JavaOrScalaDependency] =
-      if (is3) Some(Deps.Java(scalaOrganization, "scala3-library", scalaVersion))
+    val dottyLibrary: Option[Dep] =
+      if (is3) Some(Dep.Java(scalaOrganization, "scala3-library", scalaVersion))
       else None
 
     val binVersion: String = scalaVersion match {
@@ -32,8 +32,8 @@ object Versions {
       case other                  => other
     }
 
-    val compilerBridge: Option[JavaOrScalaDependency] =
-      if (is3) Some(Deps.Java(scalaOrganization, "scala3-sbt-bridge", scalaVersion))
+    val compilerBridge: Option[Dep] =
+      if (is3) Some(Dep.Java(scalaOrganization, "scala3-sbt-bridge", scalaVersion))
       else None
   }
 
@@ -52,8 +52,8 @@ object Versions {
       }
 
     val scalaJsOrganization = "org.scala-js"
-    val sbtPlugin = Deps.Scala(scalaJsOrganization, "sbt-scalajs", scalaJsVersion)
-    val compilerPlugin = Deps.ScalaFullVersion(scalaJsOrganization, "scalajs-compiler", scalaJsVersion)
+    val sbtPlugin = Dep.Scala(scalaJsOrganization, "sbt-scalajs", scalaJsVersion)
+    val compilerPlugin = Dep.ScalaFullVersion(scalaJsOrganization, "scalajs-compiler", scalaJsVersion)
   }
 
   val ScalaJs1 = ScalaJs("1.7.0")

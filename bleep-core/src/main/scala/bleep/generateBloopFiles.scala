@@ -125,7 +125,7 @@ object generateBloopFiles {
       }
 
     val resolvedDependencies: CoursierResolver.Result = {
-      val transitiveDeps: JsonSet[JavaOrScalaDependency] =
+      val transitiveDeps: JsonSet[Dep] =
         proj.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values }))
 
       val concreteDeps: JsonSet[Dependency] =
@@ -197,8 +197,8 @@ object generateBloopFiles {
 
         val compilerPlugins: Options = {
           val fromPlatform = explodedPlatform.flatMap(_.compilerPlugin)
-          val fromScala = maybeScala.fold(JsonSet.empty[JavaOrScalaDependency])(_.compilerPlugins)
-          val specified: JsonSet[JavaOrScalaDependency] =
+          val fromScala = maybeScala.fold(JsonSet.empty[Dep])(_.compilerPlugins)
+          val specified: JsonSet[Dep] =
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
 
           val deps: JsonSet[Dependency] =
