@@ -1,40 +1,53 @@
 package bleep
 package internal
 
-import coursier.core.{Module, ModuleName}
+import coursier.core.ModuleName
 
 /** Encodes legal combinations of scala versions and platform versions */
 sealed trait ScalaVersions {
-
-  final def hasPlatformSuffix: Boolean =
-    platformSuffix(true).isDefined
-
-  final def platformSuffix(needsPlatformSuffix: Boolean): Option[String] =
-    if (!needsPlatformSuffix) Some("")
+  final def platformSuffix(forceJvm: Boolean): Option[String] =
+    if (forceJvm) Some("")
     else
       this match {
         case ScalaVersions.Java                        => None
-        case ScalaVersions.Jvm(_)                      => None
+        case ScalaVersions.Jvm(_)                      => Some("")
         case ScalaVersions.Js(_, None)                 => Some(s"_sjs1")
         case ScalaVersions.Js(_, Some(scalaJsVersion)) => Some(s"_sjs${scalaJsVersion.scalaJsBinVersion}")
         case ScalaVersions.Native(_, scalaNative)      => Some(s"_native${scalaNative.scalaNativeBinVersion}")
       }
 
-  final def scalaSuffix(needsScala: Boolean, needsFullCrossVersion: Boolean): Option[String] =
+  final def scalaSuffix(needsScala: Boolean, needsFullCrossVersion: Boolean, for3Use213: Boolean, for213use3: Boolean): Option[String] =
     this match {
       case scala: ScalaVersions.WithScala if needsFullCrossVersion =>
         Some("_" + scala.scalaVersion.scalaVersion)
+      case scala: ScalaVersions.WithScala if for3Use213 && scala.scalaVersion.is3 =>
+        Some("_2.13")
+      case scala: ScalaVersions.WithScala if for213use3 && scala.scalaVersion.binVersion == "2.13" =>
+        Some("_3")
       case scala: ScalaVersions.WithScala if needsScala =>
         Some("_" + scala.scalaVersion.binVersion)
-      case ScalaVersions.Java =>
-        if (needsFullCrossVersion || needsScala) None else Some("")
+      case ScalaVersions.Java if !needsScala =>
+        Some("")
+      case _ =>
+        None
     }
 
-  final def moduleName(baseModuleName: ModuleName, needsScala: Boolean, needsFullCrossVersion: Boolean, needsPlatformSuffix: Boolean): Option[ModuleName] =
+  final def fullSuffix(needsScala: Boolean, needsFullCrossVersion: Boolean, forceJvm: Boolean, for3Use213: Boolean, for213use3: Boolean): Option[String] =
     for {
-      p <- platformSuffix(needsPlatformSuffix)
-      s <- scalaSuffix(needsScala, needsFullCrossVersion)
-    } yield baseModuleName.map(_ + p + s)
+      p <- platformSuffix(forceJvm = forceJvm)
+      s <- scalaSuffix(needsScala = needsScala, needsFullCrossVersion = needsFullCrossVersion, for3Use213 = for3Use213, for213use3 = for213use3)
+    } yield p + s
+
+  final def moduleName(
+      baseModuleName: ModuleName,
+      needsScala: Boolean,
+      needsFullCrossVersion: Boolean,
+      forceJvm: Boolean,
+      for3Use213: Boolean,
+      for213Use3: Boolean
+  ): Option[ModuleName] =
+    fullSuffix(needsScala = needsScala, needsFullCrossVersion = needsFullCrossVersion, forceJvm = forceJvm, for3Use213 = for3Use213, for213use3 = for213Use3)
+      .map(s => baseModuleName.map(_ + s))
 }
 
 object ScalaVersions {
