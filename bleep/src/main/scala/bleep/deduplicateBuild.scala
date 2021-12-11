@@ -21,11 +21,11 @@ object deduplicateBuild {
       val shortenedDependsOn: JsonSet[model.ProjectName] =
         p.dependsOn.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependsOn.values }.toSet)
 
-      val shortenedDependencies: JsonSet[JavaOrScalaDependency] = {
-        val includedInDependees: Set[JavaOrScalaDependency] =
+      val shortenedDependencies: JsonSet[Dep] = {
+        val includedInDependees: Set[Dep] =
           shortenedDeps.flatMap { case (_, p) => p.dependencies.values }.toSet
 
-        val newInThisProject: JsonSet[JavaOrScalaDependency] =
+        val newInThisProject: JsonSet[Dep] =
           p.dependencies.filterNot(includedInDependees)
 
         newInThisProject

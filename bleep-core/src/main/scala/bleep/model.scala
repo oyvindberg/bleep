@@ -95,7 +95,7 @@ object model {
       version: Option[Versions.Scala],
       options: Options,
       setup: Option[CompileSetup],
-      compilerPlugins: JsonSet[JavaOrScalaDependency]
+      compilerPlugins: JsonSet[Dep]
   ) extends SetLike[Scala] {
     override def intersect(other: Scala): Scala =
       Scala(
@@ -155,7 +155,7 @@ object model {
   }
 
   sealed abstract class Platform(val name: PlatformId) extends SetLike[Platform] {
-    def compilerPlugin: Option[JavaOrScalaDependency]
+    def compilerPlugin: Option[Dep]
 
     override def removeAll(other: Platform): Platform =
       safeRemoveAll(other).getOrElse {
@@ -216,7 +216,7 @@ object model {
 //        mapSourceURI: Option[URI]
     ) extends Platform(PlatformId("js")) {
 
-      override def compilerPlugin: Option[JavaOrScalaDependency] = version.map(_.compilerPlugin)
+      override def compilerPlugin: Option[Dep] = version.map(_.compilerPlugin)
 
       def intersectJs(other: Js): Js =
         Js(
@@ -262,7 +262,7 @@ object model {
         //        resources: Option[List[Path]]
     ) extends Platform(PlatformId("jvm")) {
 
-      override def compilerPlugin: Option[JavaOrScalaDependency] = None
+      override def compilerPlugin: Option[Dep] = None
 
       def intersectJvm(other: Jvm): Jvm =
         Jvm(
@@ -303,7 +303,7 @@ object model {
         mainClass: Option[String]
     ) extends Platform(PlatformId("native")) {
 
-      override def compilerPlugin: Option[JavaOrScalaDependency] = ???
+      override def compilerPlugin: Option[Dep] = ???
 
       def intersectNative(other: Native): Native =
         Native(
@@ -389,7 +389,7 @@ object model {
       `sbt-scope`: Option[String],
       sources: JsonSet[RelPath],
       resources: JsonSet[RelPath],
-      dependencies: JsonSet[JavaOrScalaDependency],
+      dependencies: JsonSet[Dep],
       java: Option[Java],
       scala: Option[Scala],
       platform: Option[Platform],
