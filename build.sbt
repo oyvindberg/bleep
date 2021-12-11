@@ -64,7 +64,7 @@ lazy val bleep = project
       "org.scalatest" %% "scalatest" % "3.2.10" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
-      "com.lihaoyi" %% "pprint" % "0.6.6"
+      "com.lihaoyi" %% "pprint" % "0.7.0"
     ),
     Compile / mainClass := Some("bleep.Main")
   )
