@@ -24,7 +24,7 @@ object stderr {
       fansi.Color.Cyan(x.source),
       fansi.Str(": ")
     ) ++ tagStrs
-    val str = fansi.Str.join(prefix ++ pprint.tokenize(x.value, width, height, indent).toSeq: _*)
+    val str = fansi.Str.join(prefix ++ pprint.tokenize(x.value, width, height, indent).toSeq)
 
     System.err.println(str)
     x.value

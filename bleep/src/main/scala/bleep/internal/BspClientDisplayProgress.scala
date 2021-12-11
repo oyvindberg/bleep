@@ -40,7 +40,7 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
                 s"${percentage.toInt}%"
               case None => "started"
             }
-          Str.join(renderBuildTarget(buildTargetId), ": ", percentage)
+          Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
         .mkString("Compiling ", ", ", "")
       pm.info(progress)
@@ -91,15 +91,17 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
       }
 
       val location = Str.join(
-        params.getTextDocument.getUri,
-        ":",
-        d.getRange.getStart.getLine.toString,
-        ":",
-        d.getRange.getStart.getCharacter.toString,
-        " until ",
-        d.getRange.getEnd.getLine.toString,
-        ":",
-        d.getRange.getEnd.getCharacter.toString
+        List(
+          params.getTextDocument.getUri,
+          ":",
+          d.getRange.getStart.getLine.toString,
+          ":",
+          d.getRange.getStart.getCharacter.toString,
+          " until ",
+          d.getRange.getEnd.getLine.toString,
+          ":",
+          d.getRange.getEnd.getCharacter.toString
+        )
       )
 
       logger.withContext(location).withOptContext("code", Option(d.getCode)).apply(logLevel, renderBuildTarget(params.getBuildTarget) + " " + d.getMessage)

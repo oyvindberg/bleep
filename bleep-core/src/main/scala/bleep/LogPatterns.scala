@@ -49,16 +49,18 @@ object LogPatterns {
 
       val millis = Duration.between(t0, m.instant).toMillis
       Str.join(
-        emojiFor(m.logLevel),
-        " ",
-        Color(scriptName.fold("")(name => s"$name: ")),
-        Color(Formatter(t.value)),
-        " ",
-        Subtle(Formatter(ctx.updated("t", Str.join(millis.toString, " ms")))),
-        throwable match {
-          case None     => ""
-          case Some(th) => Color(formatThrowable(th))
-        }
+        List(
+          emojiFor(m.logLevel),
+          " ",
+          Color(scriptName.fold("")(name => s"$name: ")),
+          Color(Formatter(t.value)),
+          " ",
+          Subtle(Formatter(ctx.updated("t", Str(s"$millis ms")))),
+          throwable match {
+            case None     => ""
+            case Some(th) => Color(formatThrowable(th))
+          }
+        )
       )
     }
   }
