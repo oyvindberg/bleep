@@ -194,47 +194,42 @@ object importBloopFilesFromSbt {
   case class ParsedDependency(dep: Dep, directDeps: List[(Configuration, Dependency)])
 
   object ParsedDependency {
+    case class Variant(needsScala: Boolean, fullCrossVersion: Boolean, forceJvm: Boolean, for3Use213: Boolean, for213Use3: Boolean)
+
+    val ScalaVariants = List(
+      Variant(needsScala = true, fullCrossVersion = false, forceJvm = false, for3Use213 = false, for213Use3 = false),
+      Variant(needsScala = true, fullCrossVersion = false, forceJvm = false, for3Use213 = false, for213Use3 = true),
+      Variant(needsScala = true, fullCrossVersion = false, forceJvm = false, for3Use213 = true, for213Use3 = false),
+      Variant(needsScala = true, fullCrossVersion = false, forceJvm = true, for3Use213 = false, for213Use3 = false),
+      Variant(needsScala = true, fullCrossVersion = false, forceJvm = true, for3Use213 = false, for213Use3 = true),
+      Variant(needsScala = true, fullCrossVersion = false, forceJvm = true, for3Use213 = true, for213Use3 = false),
+      Variant(needsScala = true, fullCrossVersion = true, forceJvm = false, for3Use213 = false, for213Use3 = false),
+      Variant(needsScala = true, fullCrossVersion = true, forceJvm = true, for3Use213 = false, for213Use3 = false)
+    )
+
     def apply(logger: Logger, versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
-      def java = Dep.Java(mod.organization, mod.name, mod.version)
+      val variantBySuffix: List[(String, Variant)] =
+        ScalaVariants
+          .flatMap { case v @ Variant(needsScala, needsFullCrossVersion, forceJvm, for3Use213, for213use3) =>
+            versions.fullSuffix(needsScala, needsFullCrossVersion, forceJvm, for3Use213, for213use3).map(s => (s, v))
+          }
+          .sortBy(-_._1.length) // longest suffix first
 
-      def parseArtifact(scalaVersion: Versions.Scala): Dep = {
-        val full = mod.name.indexOf("_" + scalaVersion.scalaVersion)
-        val scala = mod.name.indexOf("_" + scalaVersion.binVersion)
-        val platform = versions.platformSuffix(true) match {
-          case None         => -1
-          case Some(suffix) => mod.name.indexOf(suffix)
-        }
+      val chosen = variantBySuffix.collectFirst { case (suffix, variant) if mod.name.endsWith(suffix) => (mod.name.dropRight(suffix.length), variant) }
 
-        val configuration = mod.configurations.map(Configuration.apply).filterNot(DefaultConfigs).getOrElse(Dep.defaults.configuration)
-
-        List(full, scala).filterNot(_ == -1).minOption match {
-          case None => java
-          case Some(beforeScalaThing) =>
-            if (platform != -1) {
-              Dep.ScalaDependency(
-                Organization(mod.organization),
-                ModuleName(mod.name.take(platform)),
-                mod.version,
-                fullCrossVersion = full != -1,
-                withPlatformSuffix = true,
-                configuration = configuration
-              )
-            } else {
-              Dep.ScalaDependency(
-                Organization(mod.organization),
-                ModuleName(mod.name.take(beforeScalaThing)),
-                mod.version,
-                fullCrossVersion = full != -1,
-                withPlatformSuffix = false,
-                configuration = configuration
-              )
-            }
-        }
-      }
-
-      val sdep: Dep = versions match {
-        case scala: ScalaVersions.WithScala => parseArtifact(scala.scalaVersion)
-        case ScalaVersions.Java             => java
+      val dep: Dep = chosen match {
+        case None =>
+          Dep.Java(mod.organization, mod.name, mod.version)
+        case Some((modName, scalaVariant)) =>
+          Dep.ScalaDependency(
+            Organization(mod.organization),
+            ModuleName(modName),
+            mod.version,
+            fullCrossVersion = scalaVariant.fullCrossVersion,
+            forceJvm = scalaVariant.forceJvm,
+            for3Use213 = scalaVariant.for3Use213,
+            for213Use3 = scalaVariant.for213Use3
+          )
       }
 
       val dependencies: List[(Configuration, Dependency)] =
@@ -256,7 +251,7 @@ object importBloopFilesFromSbt {
             }
         }
 
-      ParsedDependency(sdep, dependencies)
+      ParsedDependency(dep, dependencies)
     }
   }
 

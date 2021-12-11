@@ -31,27 +31,24 @@ object Dep {
   def Java(org: String, name: String, version: String): Dep.JavaDependency =
     Dep.JavaDependency(Organization(org), ModuleName(name), version)
 
-  def Scala(org: String, name: String, version: String): Dep =
-    Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = false)
+  def Scala(org: String, name: String, version: String): Dep.ScalaDependency =
+    Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false)
 
-  def ScalaFullVersion(org: String, name: String, version: String): Dep =
-    Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = true, withPlatformSuffix = false)
+  def ScalaFullVersion(org: String, name: String, version: String): Dep.ScalaDependency =
+    Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = true)
 
   def parse(input: String): Either[String, Dep] =
     input.split(":") match {
-      case Array(org, "", "", name, version) =>
-        Right(Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = true, withPlatformSuffix = false))
-      case Array(org, "", name, version) =>
-        Right(Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = false))
-      case Array(org, "", name, "", version) =>
-        Right(Dep.ScalaDependency(Organization(org), ModuleName(name), version, fullCrossVersion = false, withPlatformSuffix = true))
-      case Array(org, name, version) =>
-        Right(Dep.JavaDependency(Organization(org), ModuleName(name), version))
-      case _ =>
-        Left(s"Not a valid dependency string: $input")
+      case Array(org, "", "", name, version) => Right(ScalaFullVersion(org, name, version))
+      case Array(org, "", name, version)     => Right(Scala(org, name, version))
+      case Array(org, name, version)         => Right(Java(org, name, version))
+      case _                                 => Left(s"Not a valid dependency string: $input")
     }
 
   object defaults {
+    val forceJvm: Boolean = false
+    val for3Use213: Boolean = false
+    val for213Use3: Boolean = false
     val attributes: Map[String, String] = Map.empty
     val configuration: Configuration = Configuration.empty
     val exclusions: List[JavaOrScalaModule] = Nil
@@ -103,7 +100,9 @@ object Dep {
       baseModuleName: ModuleName,
       version: String,
       fullCrossVersion: Boolean,
-      withPlatformSuffix: Boolean,
+      forceJvm: Boolean = defaults.forceJvm,
+      for3Use213: Boolean = defaults.for3Use213,
+      for213Use3: Boolean = defaults.for213Use3,
       attributes: Map[String, String] = defaults.attributes,
       configuration: Configuration = defaults.configuration,
       exclusions: List[JavaOrScalaModule] = defaults.exclusions,
@@ -112,7 +111,10 @@ object Dep {
       transitive: Boolean = defaults.transitive
   ) extends Dep {
     def isSimple: Boolean =
-      attributes == defaults.attributes &&
+      forceJvm == defaults.forceJvm &&
+        for3Use213 == defaults.for3Use213 &&
+        for213Use3 == defaults.for213Use3 &&
+        attributes == defaults.attributes &&
         configuration == defaults.configuration &&
         exclusions == defaults.exclusions &&
         publication == defaults.publication &&
@@ -120,12 +122,19 @@ object Dep {
         transitive == defaults.transitive
 
     def repr: String =
-      organization.value + (if (fullCrossVersion) ":::" else "::") + baseModuleName.value + (if (withPlatformSuffix) "::" else ":") + version
+      s"${organization.value}${if (fullCrossVersion) ":::" else "::"}${baseModuleName.value}:$version"
 
     def dependency(versions: ScalaVersions): Either[String, Dependency] =
       versions match {
         case withScala: ScalaVersions.WithScala =>
-          withScala.moduleName(baseModuleName, needsScala = true, fullCrossVersion, withPlatformSuffix) match {
+          withScala.moduleName(
+            baseModuleName,
+            needsScala = true,
+            needsFullCrossVersion = fullCrossVersion,
+            forceJvm = forceJvm,
+            for3Use213 = for3Use213,
+            for213Use3 = for213Use3
+          ) match {
             case Some(moduleName) =>
               Dep.translatedExclusions(exclusions, versions).map { exclusions =>
                 new Dependency(
@@ -189,6 +198,9 @@ object Dep {
 
           case dependency: Dep.ScalaDependency =>
             for {
+              forceJvm <- c.get[Option[Boolean]]("forceJvm")
+              for3Use213 <- c.get[Option[Boolean]]("for3Use213")
+              for213Use3 <- c.get[Option[Boolean]]("for213Use3")
               attributes <- c.get[Option[Map[String, String]]]("attributes")
               configuration <- c.get[Option[Configuration]]("configuration")
               exclusions <- c.get[Option[List[JavaOrScalaModule]]]("exclusions")
@@ -204,7 +216,9 @@ object Dep {
               baseModuleName = dependency.baseModuleName,
               version = dependency.version,
               fullCrossVersion = dependency.fullCrossVersion,
-              withPlatformSuffix = dependency.withPlatformSuffix,
+              forceJvm = forceJvm.getOrElse(dependency.forceJvm),
+              for3Use213 = for3Use213.getOrElse(dependency.for3Use213),
+              for213Use3 = for213Use3.getOrElse(dependency.for213Use3),
               attributes = attributes.getOrElse(dependency.attributes),
               configuration = configuration.getOrElse(dependency.configuration),
               exclusions = exclusions.getOrElse(dependency.exclusions),
@@ -249,6 +263,9 @@ object Dep {
       case x: ScalaDependency =>
         Json
           .obj(
+            "forceJvm" := (if (x.forceJvm == Dep.defaults.forceJvm) Json.Null else x.forceJvm.asJson),
+            "for3Use213" := (if (x.for3Use213 == Dep.defaults.for3Use213) Json.Null else x.for3Use213.asJson),
+            "for213Use3" := (if (x.for213Use3 == Dep.defaults.for213Use3) Json.Null else x.for213Use3.asJson),
             "module" := x.repr.asJson,
             "attributes" := (if (x.attributes == Dep.defaults.attributes) Json.Null else x.attributes.asJson),
             "configuration" := (if (x.configuration == Dep.defaults.configuration) Json.Null else x.configuration.asJson),
@@ -276,12 +293,12 @@ object Dep {
         versions match {
           case withScala: ScalaVersions.WithScala =>
             // there is no place in the format to indicate platform. we exclude both when needed
-            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, needsPlatformSuffix = false) match {
+            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, forceJvm = false, for3Use213 = false, for213Use3 = false) match {
               case Some(moduleName) => rights += ((baseModule.organization, moduleName))
               case None             => error = Some(s"Cannot include dependency with $withScala")
             }
 
-            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, needsPlatformSuffix = true) match {
+            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, forceJvm = true, for3Use213 = false, for213Use3 = false) match {
               case Some(moduleName) =>
                 rights += ((baseModule.organization, moduleName))
               case None => () // it's ok if this fails
