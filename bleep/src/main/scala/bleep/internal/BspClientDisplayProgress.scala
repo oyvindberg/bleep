@@ -104,7 +104,10 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
         )
       )
 
-      logger.withContext(location).withOptContext("code", Option(d.getCode)).apply(logLevel, renderBuildTarget(params.getBuildTarget) + " " + d.getMessage)
+      logger
+        .withContext(location)
+        .withOptContext("code", Option(d.getCode))
+        .apply(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str(d.getMessage)))
     }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)
