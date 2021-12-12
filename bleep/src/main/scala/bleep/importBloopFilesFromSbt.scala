@@ -1,12 +1,10 @@
 package bleep
 
 import bleep.Options.{Opt, TemplateDirs}
-import bleep.internal.ScalaVersions
+import bleep.internal.{CachingPomReader, ScalaVersions}
 import bleep.logging.Logger
 import bloop.config.Config
-import coursier.core.compatibility.xmlParseSax
 import coursier.core.{Configuration, Project}
-import coursier.maven.PomParser
 import coursier.{Dependency, Module, ModuleName, Organization}
 
 import java.net.URI
@@ -43,6 +41,8 @@ object importBloopFilesFromSbt {
           def hasFiles(path: Path): Boolean = Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent
           (bloopFile.project.sources ++ bloopFile.project.resources.getOrElse(Nil)) exists hasFiles
         }
+
+    val pomReader = CachingPomReader()
 
     val projects = bloopProjectFiles.map { case (projectName, bloopFile) =>
       val bloopProject = bloopFile.project
@@ -117,7 +117,7 @@ object importBloopFilesFromSbt {
 
       val dependencies: List[Dep] = {
         val parsed: List[ParsedDependency] =
-          resolution.modules.map(mod => ParsedDependency(logger, versions, mod))
+          resolution.modules.map(mod => ParsedDependency(logger, pomReader, versions, mod))
 
         val allDeps: Set[(Module, String)] =
           parsed.flatMap { case ParsedDependency(_, deps) =>
@@ -139,7 +139,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(templateDirs))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(versions, logger, templateDirs, configuredPlatform))
+        bloopProject.scala.map(translateScala(versions, pomReader, logger, templateDirs, configuredPlatform))
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (isTest) JsonSet.fromIterable(bloopProject.test.toList.flatMap(_.frameworks).flatMap(_.names).map(model.TestFrameworkName.apply))
@@ -207,7 +207,7 @@ object importBloopFilesFromSbt {
       Variant(needsScala = true, fullCrossVersion = true, forceJvm = true, for3Use213 = false, for213Use3 = false)
     )
 
-    def apply(logger: Logger, versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
+    def apply(logger: Logger, pomReader: CachingPomReader, versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
       val variantBySuffix: List[(String, Variant)] =
         ScalaVariants
           .flatMap { case v @ Variant(needsScala, needsFullCrossVersion, forceJvm, for3Use213, for213use3) =>
@@ -238,11 +238,7 @@ object importBloopFilesFromSbt {
           case a =>
             val pomPath = findPomPath(a.path)
 
-            val parsedPom: Either[String, Project] =
-              if (Files.exists(pomPath)) xmlParseSax(Files.readString(pomPath), new PomParser).project
-              else Left(s"$pomPath doesn't exist")
-
-            parsedPom match {
+            pomReader(pomPath) match {
               case Left(errMsg) =>
                 logger.warn(s"Couldn't determine dependencies for $mod: $errMsg")
                 Nil
@@ -297,7 +293,13 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(versions: ScalaVersions, logger: Logger, templateDirs: Options.TemplateDirs, platform: Option[model.Platform])(
+  def translateScala(
+      versions: ScalaVersions,
+      pomReader: CachingPomReader,
+      logger: Logger,
+      templateDirs: Options.TemplateDirs,
+      platform: Option[model.Platform]
+  )(
       s: Config.Scala
   ): model.Scala = {
     val options = Options.parse(s.options, Some(templateDirs))
@@ -310,8 +312,8 @@ object importBloopFilesFromSbt {
     val compilerPlugins = plugins.collect { case Opt.Flag(pluginStr) =>
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
       val pomPath = findPomPath(jarPath)
-      val Right(pom) = xmlParseSax(Files.readString(pomPath), new PomParser).project
-      ParsedDependency(logger, versions, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
+      val Right(pom) = pomReader(pomPath)
+      ParsedDependency(logger, pomReader, versions, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
     val filteredCompilerPlugins =
