@@ -5,7 +5,10 @@
       "scala": {
         "version": "2.12.6"
       },
-      "sbt-scope": "main"
+      "sbt-scope": "main",
+      "platform": {
+        "name": "jvm"
+      }
     }
   },
   "projects": {
