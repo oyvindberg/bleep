@@ -16,7 +16,7 @@ sealed trait Dep {
   val optional: Boolean
   val transitive: Boolean
 
-  def repr: String
+  val repr: String
   def isSimple: Boolean
   def dependency(versions: ScalaVersions): Either[String, Dependency]
 
@@ -78,13 +78,13 @@ object Dep {
         optional == defaults.optional &&
         transitive == defaults.transitive
 
-    def repr: String =
+    val repr: String =
       organization.value + ":" + moduleName.value + ":" + version
 
     def dependency(versions: ScalaVersions): Either[String, Dependency] =
       Dep.translatedExclusions(exclusions, versions).map { exclusions =>
         new Dependency(
-          module = Module(organization, moduleName, attributes),
+          module = new Module(organization, moduleName, attributes),
           version = version,
           configuration = configuration,
           exclusions = exclusions,
@@ -121,7 +121,7 @@ object Dep {
         optional == defaults.optional &&
         transitive == defaults.transitive
 
-    def repr: String =
+    val repr: String =
       s"${organization.value}${if (fullCrossVersion) ":::" else "::"}${baseModuleName.value}:$version"
 
     def dependency(versions: ScalaVersions): Either[String, Dependency] =
@@ -138,7 +138,7 @@ object Dep {
             case Some(moduleName) =>
               Dep.translatedExclusions(exclusions, versions).map { exclusions =>
                 new Dependency(
-                  module = Module(organization, moduleName, attributes),
+                  module = new Module(organization, moduleName, attributes),
                   version = version,
                   configuration = configuration,
                   exclusions = exclusions,
@@ -278,7 +278,11 @@ object Dep {
     }
 
   implicit val ordering: Ordering[Dep] =
-    Ordering.by(dep => (dep.repr, dep.toString))
+    (x: Dep, y: Dep) =>
+      x.repr.compare(y.repr) match {
+        case 0 => x.toString.compareTo(y.toString) // this is rather slow
+        case n => n
+      }
 
   // traverse is always the answer, unless you need unorderedFlatTraverse without parallelism
   def translatedExclusions(exclusions: List[JavaOrScalaModule], versions: ScalaVersions): Either[String, Set[(Organization, ModuleName)]] = {
