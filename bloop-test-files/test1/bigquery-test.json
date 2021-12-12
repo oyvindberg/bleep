@@ -61,6 +61,22 @@
         
       ]
     },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<PROJECT>/bloop-test-files/test1"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
     "resolution": {
       "modules": [
         {
