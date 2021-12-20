@@ -274,28 +274,28 @@ object importBloopFilesFromSbt {
     platform match {
       case Config.Platform.Js(config, mainClass) =>
         val translatedPlatform = model.Platform.Js(
-          version = Some(config.version).filterNot(_.isEmpty).map(Versions.ScalaJs),
-          mode = Some(config.mode),
-          kind = Some(config.kind),
-          emitSourceMaps = Some(config.emitSourceMaps),
-          jsdom = config.jsdom,
+          jsVersion = Some(config.version).filterNot(_.isEmpty).map(Versions.ScalaJs),
+          jsMode = Some(config.mode),
+          jsKind = Some(config.kind),
+          jsEmitSourceMaps = Some(config.emitSourceMaps),
+          jsJsdom = config.jsdom,
 //          output = config.output.map(output => RelPath.relativeTo(directory, output)),
-          mainClass = mainClass
+          jsMainClass = mainClass
         )
         translatedPlatform
       case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
         val translatedPlatform = model.Platform.Jvm(
-          options = Options.parse(config.options, Some(templateDirs)),
+          jvmOptions = Options.parse(config.options, Some(templateDirs)),
           mainClass,
-          runtimeOptions = runtimeConfig.map(rc => Options.parse(rc.options, Some(templateDirs))).getOrElse(Options.empty)
+          jvmRuntimeOptions = runtimeConfig.map(rc => Options.parse(rc.options, Some(templateDirs))).getOrElse(Options.empty)
         )
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
-          version = Some(Versions.ScalaNative(config.version)),
-          mode = Some(config.mode),
-          gc = Some(config.gc),
-          mainClass = mainClass
+          nativeVersion = Some(Versions.ScalaNative(config.version)),
+          nativeMode = Some(config.mode),
+          nativeGc = Some(config.gc),
+          nativeMainClass = mainClass
         )
         translatedPlatform
     }

@@ -12,7 +12,6 @@
       ],
       "extends" : "template-common-main",
       "platform" : {
-        "name": "jvm",
         "mainClass": "bleep.Main"
       }
     },
@@ -87,6 +86,9 @@
   "templates" : {
     "template-common" : {
       "dependencies" : "ch.epfl.scala::bloop-config:1.4.11",
+      "platform" : {
+        "name" : "jvm"
+      },
       "scala" : {
         "options" : [
           "-Vimplicits",

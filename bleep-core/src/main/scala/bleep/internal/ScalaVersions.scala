@@ -66,10 +66,10 @@ object ScalaVersions {
     maybeScala match {
       case Some(scalaVersion) =>
         maybePlatform match {
-          case Some(_: model.Platform.Jvm) =>
+          case Some(model.Platform.Jvm(_)) =>
             Right(Jvm(scalaVersion))
-          case Some(x: model.Platform.Js) =>
-            x.version match {
+          case Some(model.Platform.Js(platform)) =>
+            platform.jsVersion match {
               case Some(scalaJsVersion) =>
                 if (scalaVersion.is3) Left("Must not specify scala.js version for scala 3 - it's bundled")
                 else Right(Js(scalaVersion, Some(scalaJsVersion)))
@@ -77,9 +77,8 @@ object ScalaVersions {
                 if (scalaVersion.is3) Right(Js(scalaVersion, None))
                 else Left(s"Must specify scala.js version for scala ${scalaVersion.scalaVersion}")
             }
-
-          case Some(x: model.Platform.Native) =>
-            x.version match {
+          case Some(model.Platform.Native(platform)) =>
+            platform.nativeVersion match {
               case Some(scalaNativeVersion) => Right(Native(scalaVersion, scalaNativeVersion))
               case None                     => Left(s"Must specify scala native version for scala ${scalaVersion.scalaVersion}")
             }

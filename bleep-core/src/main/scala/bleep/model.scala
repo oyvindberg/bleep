@@ -1,11 +1,10 @@
 package bleep
 
 import bleep.internal.codecs.codecURI
-import bleep.internal.{EnumCodec, SetLike, ShortenAndSortJson}
+import bleep.internal.{EnumCodec, SetLike}
 import bloop.config.Config
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.syntax._
 
 import java.net.URI
 
@@ -136,13 +135,16 @@ object model {
     implicit val Encodes: Encoder[Scala] = deriveEncoder
   }
 
-  case class PlatformId(value: String) extends AnyVal
+  sealed abstract class PlatformId(val value: String)
   object PlatformId {
-    implicit val ordering: Ordering[PlatformId] = Ordering.by(_.value)
-    implicit val decodes: Decoder[PlatformId] = Decoder[String].map(PlatformId.apply)
+    case object Jvm extends PlatformId("jvm")
+    case object Js extends PlatformId("js")
+    case object Native extends PlatformId("native")
+    val All = List[PlatformId](Jvm, Js, Native)
+    implicit val ordering: Ordering[PlatformId] = Ordering.by(All.indexOf)
+    implicit val decodes: Decoder[PlatformId] =
+      Decoder[String].emap(str => All.find(_.value == str).toRight(s"${str} is not among ${All.map(_.value).mkString(", ")}"))
     implicit val encodes: Encoder[PlatformId] = Encoder[String].contramap(_.value)
-    implicit val keyDecodes: KeyDecoder[PlatformId] = KeyDecoder[String].map(PlatformId.apply)
-    implicit val keyEncodes: KeyEncoder[PlatformId] = KeyEncoder[String].contramap(_.value)
   }
 
   case class TemplateId(value: String) extends AnyVal
@@ -154,215 +156,199 @@ object model {
     implicit val keyEncodes: KeyEncoder[TemplateId] = KeyEncoder[String].contramap(_.value)
   }
 
-  sealed abstract class Platform(val name: PlatformId) extends SetLike[Platform] {
-    def compilerPlugin: Option[Dep]
+  case class Platform(
+      name: Option[PlatformId],
+      jsVersion: Option[Versions.ScalaJs],
+      jsMode: Option[Config.LinkerMode],
+      jsKind: Option[Config.ModuleKindJS],
+      jsEmitSourceMaps: Option[Boolean],
+      jsJsdom: Option[Boolean],
+      //      output: Option[Path],
+      //      nodePath: Option[Path],
+      //      toolchain: List[Path]
+      jsMainClass: Option[String],
+      //        mapSourceURI: Option[URI]
+      //      home: Option[Path],
+      jvmOptions: Options,
+      jvmMainClass: Option[String],
+      //      runtimeHome: Option[Path],
+      jvmRuntimeOptions: Options,
+      //        classpath: Option[List[Path]],
+      //        resources: Option[List[Path]]
+      nativeVersion: Option[Versions.ScalaNative],
+      nativeMode: Option[Config.LinkerMode],
+      nativeGc: Option[String],
+      //      targetTriple: Option[String],
+      //      clang: Path,
+      //      clangpp: Path,
+      //      toolchain: List[Path],
+      //      linker: Option[List[String]],
+      //      compiler: Option[List[String]],
+      //      linkStubs: Option[Boolean],
+      //      check: Option[Boolean],
+      //      dump: Option[Boolean],
+      //      output: Option[Path]
+      nativeMainClass: Option[String]
+  ) extends SetLike[Platform] {
 
-    override def removeAll(other: Platform): Platform =
-      safeRemoveAll(other).getOrElse {
-        sys.error(s"Cannot mix ${name.value} and ${other.name.value}")
-      }
-
-    def safeRemoveAll(other: Platform): Option[Platform] =
-      (this, other) match {
-        case (one: Platform.Js, two: Platform.Js)         => Some(one.removeAllJs(two))
-        case (one: Platform.Jvm, two: Platform.Jvm)       => Some(one.removeAllJvm(two))
-        case (one: Platform.Native, two: Platform.Native) => Some(one.removeAllNative(two))
-        case _                                            => None
-      }
-
-    override def union(other: Platform): Platform =
-      (this, other) match {
-        case (one: Platform.Js, two: Platform.Js)         => one.unionJs(two)
-        case (one: Platform.Jvm, two: Platform.Jvm)       => one.unionJvm(two)
-        case (one: Platform.Native, two: Platform.Native) => one.unionNative(two)
-        case (one, two)                                   => sys.error(s"Cannot mix ${one.name.value} and ${two.name.value}")
+    def compilerPlugin: Option[Dep] =
+      this match {
+        case model.Platform.Js(platform)     => platform.jsVersion.map(_.compilerPlugin)
+        case model.Platform.Native(platform) => platform.nativeVersion.map(_.compilerPlugin)
+        case _                               => None
       }
 
     override def intersect(other: Platform): Platform =
-      safeIntersect(other).getOrElse {
-        sys.error(s"Cannot mix ${name.value} and ${other.name.value}")
-      }
+      new Platform(
+        name = if (name == other.name) name else None,
+        jsVersion = if (jsVersion == other.jsVersion) jsVersion else None,
+        jsMode = if (jsMode == other.jsMode) jsMode else None,
+        jsKind = if (jsKind == other.jsKind) jsKind else None,
+        jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) jsEmitSourceMaps else None,
+        jsJsdom = if (jsJsdom == other.jsJsdom) jsJsdom else None,
+        jsMainClass = if (jsMainClass == other.jsMainClass) jsMainClass else None,
+        //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
+        jvmOptions = jvmOptions.intersect(other.jvmOptions),
+        jvmMainClass = if (jvmMainClass == other.jvmMainClass) jvmMainClass else None,
+        jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
+        nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
+        nativeMode = if (nativeMode == other.nativeMode) nativeMode else None,
+        nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
+        nativeMainClass = if (nativeMainClass == other.nativeMainClass) nativeMainClass else None
+      )
 
-    def safeIntersect(other: Platform): Option[Platform] =
-      (this, other) match {
-        case (one: Platform.Js, two: Platform.Js)         => Some(one.intersectJs(two))
-        case (one: Platform.Jvm, two: Platform.Jvm)       => Some(one.intersectJvm(two))
-        case (one: Platform.Native, two: Platform.Native) => Some(one.intersectNative(two))
-        case _                                            => None
-      }
+    override def removeAll(other: Platform): Platform =
+      new Platform(
+        name = if (name == other.name) None else name,
+        jsVersion = if (jsVersion == other.jsVersion) None else jsVersion,
+        jsMode = if (jsMode == other.jsMode) None else jsMode,
+        jsKind = if (jsKind == other.jsKind) None else jsKind,
+        jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) None else jsEmitSourceMaps,
+        jsJsdom = if (jsJsdom == other.jsJsdom) None else jsJsdom,
+        jsMainClass = if (jsMainClass == other.jsMainClass) None else jsMainClass,
+        //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
+        jvmOptions = jvmOptions.removeAll(other.jvmOptions),
+        jvmMainClass = if (jvmMainClass == other.jvmMainClass) None else jvmMainClass,
+        jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
+        nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
+        nativeMode = if (nativeMode == other.nativeMode) None else nativeMode,
+        nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
+        nativeMainClass = if (nativeMainClass == other.nativeMainClass) None else nativeMainClass
+      )
+
+    override def union(other: Platform): Platform =
+      new Platform(
+        name = name.orElse(other.name),
+        jsVersion = jsVersion.orElse(other.jsVersion),
+        jsMode = jsMode.orElse(other.jsMode),
+        jsKind = jsKind.orElse(other.jsKind),
+        jsEmitSourceMaps = jsEmitSourceMaps.orElse(other.jsEmitSourceMaps),
+        jsJsdom = jsJsdom.orElse(other.jsJsdom),
+        jsMainClass = jsMainClass.orElse(other.jsMainClass),
+        //          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
+        jvmOptions = jvmOptions.union(other.jvmOptions),
+        jvmMainClass = jvmMainClass.orElse(other.jvmMainClass),
+        jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
+        nativeVersion = nativeVersion.orElse(other.nativeVersion),
+        nativeMode = nativeMode.orElse(other.nativeMode),
+        nativeGc = nativeGc.orElse(other.nativeGc),
+        nativeMainClass = nativeMainClass.orElse(other.nativeMainClass)
+      )
 
     override def isEmpty: Boolean =
-      this match {
-        case Platform.Js(version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
-          version.isEmpty && mode.isEmpty && kind.isEmpty & emitSourceMaps.isEmpty & jsdom.isEmpty & mainClass.isEmpty
-        case Platform.Jvm(options, mainClass, runtimeOptions) =>
-          options.isEmpty && mainClass.isEmpty && runtimeOptions.isEmpty
-        case Platform.Native(version, mode, gc, mainClass) =>
-          version.isEmpty && mode.isEmpty && gc.isEmpty && mainClass.isEmpty
-      }
+      name.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty & jsEmitSourceMaps.isEmpty & jsJsdom.isEmpty & jsMainClass.isEmpty &&
+        jvmOptions.isEmpty && jvmMainClass.isEmpty && jvmRuntimeOptions.isEmpty &&
+        nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty && nativeMainClass.isEmpty
   }
 
   object Platform {
-    case class Js(
-        version: Option[Versions.ScalaJs],
-        mode: Option[Config.LinkerMode],
-        kind: Option[Config.ModuleKindJS],
-        emitSourceMaps: Option[Boolean],
-        jsdom: Option[Boolean],
-//      output: Option[Path],
-//      nodePath: Option[Path],
-//      toolchain: List[Path]
-        mainClass: Option[String]
-//        mapSourceURI: Option[URI]
-    ) extends Platform(PlatformId("js")) {
-
-      override def compilerPlugin: Option[Dep] = version.map(_.compilerPlugin)
-
-      def intersectJs(other: Js): Js =
-        Js(
-          version = if (version == other.version) version else None,
-          mode = if (mode == other.mode) mode else None,
-          kind = if (kind == other.kind) kind else None,
-          emitSourceMaps = if (emitSourceMaps == other.emitSourceMaps) emitSourceMaps else None,
-          jsdom = if (jsdom == other.jsdom) jsdom else None,
-          mainClass = if (mainClass == other.mainClass) mainClass else None
-//          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
+    object Jvm {
+      def apply(jvmOptions: Options, jvmMainClass: Option[String], jvmRuntimeOptions: Options) =
+        new Platform(
+          name = Some(PlatformId.Jvm),
+          jsVersion = None,
+          jsMode = None,
+          jsKind = None,
+          jsEmitSourceMaps = None,
+          jsJsdom = None,
+          jsMainClass = None,
+          jvmOptions = jvmOptions,
+          jvmMainClass = jvmMainClass,
+          jvmRuntimeOptions = jvmRuntimeOptions,
+          nativeVersion = None,
+          nativeMode = None,
+          nativeGc = None,
+          nativeMainClass = None
         )
+      def unapply(x: Platform): Option[Platform] =
+        x.name.flatMap {
+          case PlatformId.Jvm => Some(x)
+          case _              => None
+        }
 
-      def removeAllJs(other: Js): Js =
-        Js(
-          version = if (version == other.version) None else version,
-          mode = if (mode == other.mode) None else mode,
-          kind = if (kind == other.kind) None else kind,
-          emitSourceMaps = if (emitSourceMaps == other.emitSourceMaps) None else emitSourceMaps,
-          jsdom = if (jsdom == other.jsdom) None else jsdom,
-          mainClass = if (mainClass == other.mainClass) None else mainClass
-//          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
-        )
-
-      def unionJs(other: Js): Js =
-        Js(
-          version = version.orElse(other.version),
-          mode = mode.orElse(other.mode),
-          kind = kind.orElse(other.kind),
-          emitSourceMaps = emitSourceMaps.orElse(other.emitSourceMaps),
-          jsdom = jsdom.orElse(other.jsdom),
-          mainClass = mainClass.orElse(other.mainClass)
-//          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
-        )
     }
-
-    case class Jvm(
-        //      home: Option[Path],
-        options: Options,
-        mainClass: Option[String],
-        //      runtimeHome: Option[Path],
-        runtimeOptions: Options
-        //        classpath: Option[List[Path]],
-        //        resources: Option[List[Path]]
-    ) extends Platform(PlatformId("jvm")) {
-
-      override def compilerPlugin: Option[Dep] = None
-
-      def intersectJvm(other: Jvm): Jvm =
-        Jvm(
-          options = options.intersect(other.options),
-          mainClass = if (mainClass == other.mainClass) mainClass else None,
-          runtimeOptions = runtimeOptions.intersect(other.runtimeOptions)
+    object Js {
+      def apply(
+          jsVersion: Option[Versions.ScalaJs],
+          jsMode: Option[Config.LinkerMode],
+          jsKind: Option[Config.ModuleKindJS],
+          jsEmitSourceMaps: Option[Boolean],
+          jsJsdom: Option[Boolean],
+          jsMainClass: Option[String]
+      ) =
+        new Platform(
+          name = Some(PlatformId.Js),
+          jsVersion = jsVersion,
+          jsMode = jsMode,
+          jsKind = jsKind,
+          jsEmitSourceMaps = jsEmitSourceMaps,
+          jsJsdom = jsJsdom,
+          jsMainClass = jsMainClass,
+          jvmOptions = Options.empty,
+          jvmMainClass = None,
+          jvmRuntimeOptions = Options.empty,
+          nativeVersion = None,
+          nativeMode = None,
+          nativeGc = None,
+          nativeMainClass = None
         )
-
-      def removeAllJvm(other: Jvm): Jvm =
-        Jvm(
-          options = options.removeAll(other.options),
-          mainClass = if (mainClass == other.mainClass) None else mainClass,
-          runtimeOptions = runtimeOptions.removeAll(other.runtimeOptions)
-        )
-
-      def unionJvm(other: Jvm): Jvm =
-        Jvm(
-          options = options.union(other.options),
-          mainClass = mainClass.orElse(other.mainClass),
-          runtimeOptions = runtimeOptions.union(other.runtimeOptions)
-        )
+      def unapply(x: Platform): Option[Platform] =
+        x.name.flatMap {
+          case PlatformId.Js => Some(x)
+          case _             => None
+        }
     }
-
-    case class Native(
-        version: Option[Versions.ScalaNative],
-        mode: Option[Config.LinkerMode],
-        gc: Option[String],
-//      targetTriple: Option[String],
-//      clang: Path,
-//      clangpp: Path,
-//      toolchain: List[Path],
-//      linker: Option[List[String]],
-//      compiler: Option[List[String]],
-//      linkStubs: Option[Boolean],
-//      check: Option[Boolean],
-//      dump: Option[Boolean],
-//      output: Option[Path]
-        mainClass: Option[String]
-    ) extends Platform(PlatformId("native")) {
-
-      override def compilerPlugin: Option[Dep] = ???
-
-      def intersectNative(other: Native): Native =
-        Native(
-          version = if (version == other.version) version else None,
-          mode = if (mode == other.mode) mode else None,
-          gc = if (gc == other.gc) gc else None,
-          mainClass = if (mainClass == other.mainClass) mainClass else None
+    object Native {
+      def apply(nativeVersion: Option[Versions.ScalaNative], nativeMode: Option[Config.LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
+        new Platform(
+          name = Some(PlatformId.Native),
+          jsVersion = None,
+          jsMode = None,
+          jsKind = None,
+          jsEmitSourceMaps = None,
+          jsJsdom = None,
+          jsMainClass = None,
+          jvmOptions = Options.empty,
+          jvmMainClass = None,
+          jvmRuntimeOptions = Options.empty,
+          nativeVersion = nativeVersion,
+          nativeMode = nativeMode,
+          nativeGc = nativeGc,
+          nativeMainClass = nativeMainClass
         )
-
-      def removeAllNative(other: Native): Native =
-        Native(
-          version = if (version == other.version) None else version,
-          mode = if (mode == other.mode) None else mode,
-          gc = if (gc == other.gc) None else gc,
-          mainClass = if (mainClass == other.mainClass) None else mainClass
-        )
-
-      def unionNative(other: Native): Native =
-        Native(
-          version = version.orElse(other.version),
-          mode = mode.orElse(other.mode),
-          gc = gc.orElse(other.gc),
-          mainClass = mainClass.orElse(other.mainClass)
-        )
+      def unapply(x: Platform): Option[Platform] =
+        x.name.flatMap {
+          case PlatformId.Native => Some(x)
+          case _                 => None
+        }
     }
 
     implicit val decodesScalaJsVersion: Decoder[Versions.ScalaJs] = Decoder[String].map(Versions.ScalaJs.apply)
     implicit val encodesScalaJsVersion: Encoder[Versions.ScalaJs] = Encoder[String].contramap(_.scalaJsVersion)
     implicit val decodesScalaNativeVersion: Decoder[Versions.ScalaNative] = Decoder[String].map(Versions.ScalaNative.apply)
     implicit val encodesScalaNativeVersion: Encoder[Versions.ScalaNative] = Encoder[String].contramap(_.scalaNativeVersion)
-
-    val decodesJs: Decoder[Js] = deriveDecoder
-    val encodesJs: Encoder[Js] = deriveEncoder
-    val decodesJvm: Decoder[Jvm] = deriveDecoder
-    val encodesJvm: Encoder[Jvm] = deriveEncoder
-    val decodesNative: Decoder[Native] = deriveDecoder
-    val encodesNative: Encoder[Native] = deriveEncoder
-
-    implicit val decodes: Decoder[Platform] = Decoder.instance(c =>
-      for {
-        name <- c.get[String]("name")
-        platform <- name match {
-          case "jvm"    => decodesJvm(c)
-          case "js"     => decodesJs(c)
-          case "native" => decodesNative(c)
-          case other    => Left(DecodingFailure(s"$other is not a valid platform", c.history))
-        }
-      } yield platform
-    )
-
-    implicit val encodes: Encoder[Platform] = Encoder.instance { p =>
-      val json = p match {
-        case x: Js     => encodesJs(x)
-        case x: Jvm    => encodesJvm(x)
-        case x: Native => encodesNative(x)
-      }
-
-      json.foldWith(ShortenAndSortJson).mapObject(obj => obj.add("name", p.name.asJson))
-    }
+    implicit val decodes: Decoder[Platform] = deriveDecoder
+    implicit val encodes: Encoder[Platform] = deriveEncoder
   }
 
   implicit val linkerModeCodec: Codec[Config.LinkerMode] =
@@ -407,7 +393,7 @@ object model {
         dependencies = dependencies.intersect(other.dependencies),
         java = java.zip(other.java).map { case (_1, _2) => _1.intersect(_2) },
         scala = scala.zip(other.scala).map { case (_1, _2) => _1.intersect(_2) },
-        platform = platform.zip(other.platform).flatMap { case (_1, _2) => _1.safeIntersect(_2) },
+        platform = platform.zip(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
         testFrameworks = testFrameworks.intersect(other.testFrameworks)
       )
 
@@ -424,7 +410,7 @@ object model {
         java = List(java, other.java).flatten.reduceOption(_ removeAll _),
         scala = List(scala, other.scala).flatten.reduceOption(_ removeAll _),
         platform = (platform, other.platform) match {
-          case (Some(one), Some(two)) => one.safeRemoveAll(two).orElse(platform)
+          case (Some(one), Some(two)) => one.removeAllDropEmpty(two)
           case _                      => platform
         },
         testFrameworks = testFrameworks.removeAll(other.testFrameworks)

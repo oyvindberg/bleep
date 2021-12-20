@@ -62,9 +62,5 @@ object deduplicateBuild {
     ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))
 
   def removePlatformDefaults(x: model.Platform): model.Platform =
-    x match {
-      case x: Platform.Js     => x
-      case x: Platform.Jvm    => x.removeAllJvm(Defaults.Jvm)
-      case x: Platform.Native => x
-    }
+    x.removeAll(Defaults.Jvm)
 }
