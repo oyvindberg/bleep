@@ -2,7 +2,7 @@
   "projects" : {
     "bleep" : {
       "dependencies" : [
-        "com.lihaoyi::pprint:0.6.6",
+        "com.lihaoyi::pprint:0.7.0",
         "com.monovore::decline:2.2.0",
         "org.scalameta:svm-subs:101.0.0"
       ],
@@ -18,7 +18,7 @@
     },
     "bleep-core" : {
       "dependencies" : [
-        "com.lihaoyi::fansi:0.2.14",
+        "com.lihaoyi::fansi:0.3.0",
         "io.circe::circe-generic:0.14.1",
         "io.get-coursier::coursier:2.0.16",
         "net.harawata:appdirs:1.2.1",

@@ -4,7 +4,7 @@ import bleep.Options.{Opt, TemplateDirs}
 import bleep.internal.{CachingPomReader, ScalaVersions}
 import bleep.logging.Logger
 import bloop.config.Config
-import coursier.core.{Configuration, Project}
+import coursier.core.Configuration
 import coursier.{Dependency, Module, ModuleName, Organization}
 
 import java.net.URI
@@ -125,13 +125,13 @@ object importBloopFilesFromSbt {
           }.toSet
 
         // only keep those not referenced by another dependency
-        parsed.flatMap { case ParsedDependency(javaOrScalaDependency, _) =>
+        parsed.flatMap { case ParsedDependency(dep, _) =>
           val keep: Boolean =
-            javaOrScalaDependency.dependency(versions) match {
+            dep.dependency(versions) match {
               case Left(err)  => throw new BuildException.Text(projectName, err)
               case Right(dep) => !allDeps.contains(dep.moduleVersion)
             }
-          if (keep) Some(javaOrScalaDependency) else None
+          if (keep) Some(dep) else None
         }
       }
 
@@ -139,7 +139,14 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(templateDirs))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(versions, pomReader, logger, templateDirs, configuredPlatform))
+        bloopProject.scala.map { bloopScala =>
+          versions match {
+            case ScalaVersions.Java =>
+              throw new BuildException.Text(projectName, "Need a scala version to import scala project")
+            case withScala: ScalaVersions.WithScala =>
+              translateScala(withScala, pomReader, logger, templateDirs, configuredPlatform)(bloopScala)
+          }
+        }
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (isTest) JsonSet.fromIterable(bloopProject.test.toList.flatMap(_.frameworks).flatMap(_.names).map(model.TestFrameworkName.apply))
@@ -294,14 +301,12 @@ object importBloopFilesFromSbt {
     }
 
   def translateScala(
-      versions: ScalaVersions,
+      versions: ScalaVersions.WithScala,
       pomReader: CachingPomReader,
       logger: Logger,
       templateDirs: Options.TemplateDirs,
       platform: Option[model.Platform]
-  )(
-      s: Config.Scala
-  ): model.Scala = {
+  )(s: Config.Scala): model.Scala = {
     val options = Options.parse(s.options, Some(templateDirs))
 
     val (plugins, rest) = options.values.partition {
@@ -313,7 +318,7 @@ object importBloopFilesFromSbt {
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
       val pomPath = findPomPath(jarPath)
       val Right(pom) = pomReader(pomPath)
-      ParsedDependency(logger, pomReader, versions, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
+      ParsedDependency(logger, pomReader, versions.asJvm, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
     val filteredCompilerPlugins =

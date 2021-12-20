@@ -55,7 +55,9 @@ object ScalaVersions {
 
   sealed trait WithScala extends ScalaVersions {
     def scalaVersion: Versions.Scala
+    def asJvm: Jvm = Jvm(scalaVersion)
   }
+
   case class Jvm(scalaVersion: Versions.Scala) extends WithScala
   case class Js(scalaVersion: Versions.Scala, maybeScalaJs: Option[Versions.ScalaJs]) extends WithScala
   case class Native(scalaVersion: Versions.Scala, scalaNative: Versions.ScalaNative) extends WithScala
