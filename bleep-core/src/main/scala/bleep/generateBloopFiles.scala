@@ -255,7 +255,7 @@ object generateBloopFiles {
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = projectPaths.targetDir,
-        classesDir = projectPaths.classes(scalaVersion, isTest = false),
+        classesDir = projectPaths.classes(scalaVersion, isTest = !proj.testFrameworks.isEmpty),
         resources = Some(resources.values.toList),
         scala = configuredScala,
         java = Some(b.Java(options = templateDirs.toAbsolutePaths.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
