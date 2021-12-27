@@ -47,7 +47,7 @@ object Templates {
       val scalas: List[ScalaVersion] =
         projects.flatMap(p => p.scala.flatMap(_.version)).distinct.map(v => ScalaVersion(v.binVersion))
       val platforms: List[Platform] =
-        projects.flatMap(p => p.platform.map(_.name)).distinct.map(platformId => Platform(platformId))
+        projects.flatMap(p => p.platform.flatMap(_.name)).distinct.map(platformId => Platform(platformId))
       val combined: List[PlatformScalaVersion] =
         scalas.flatMap(s => platforms.map(p => PlatformScalaVersion(p, s)))
 
@@ -78,7 +78,7 @@ object Templates {
       override def parents = List(Common)
       override def name = platformName.value
       override def include(p: model.Project): Boolean =
-        parents.forall(_.include(p)) && p.platform.exists(_.name == platformName)
+        parents.forall(_.include(p)) && p.platform.exists(_.name.contains(platformName))
     }
 
     case class ScalaVersion(binVersion: String) extends TemplateDef {

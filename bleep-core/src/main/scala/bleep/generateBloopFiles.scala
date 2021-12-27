@@ -80,8 +80,8 @@ object generateBloopFiles {
 
     val explodedPlatform: Option[model.Platform] =
       proj.platform.map {
-        case x: model.Platform.Jvm => x.unionJvm(Defaults.Jvm)
-        case x                     => x
+        case model.Platform.Jvm(platform) => platform.union(Defaults.Jvm)
+        case platform                     => platform
       }
 
     val versions: ScalaVersions =
@@ -92,36 +92,36 @@ object generateBloopFiles {
 
     val configuredPlatform: Option[b.Platform] =
       explodedPlatform.map {
-        case model.Platform.Js(version, mode, kind, emitSourceMaps, jsdom, mainClass) =>
+        case model.Platform.Js(platform) =>
           b.Platform.Js(
             b.JsConfig(
-              version = version match {
+              version = platform.jsVersion match {
                 case Some(value)                             => value.scalaJsVersion
                 case None if scalaVersion.fold(false)(_.is3) => ""
                 case None                                    => sys.error("missing `version`")
               },
-              mode = mode.getOrElse(b.JsConfig.empty.mode),
-              kind = kind.getOrElse(b.JsConfig.empty.kind),
-              emitSourceMaps = emitSourceMaps.getOrElse(b.JsConfig.empty.emitSourceMaps),
-              jsdom = jsdom,
+              mode = platform.jsMode.getOrElse(b.JsConfig.empty.mode),
+              kind = platform.jsKind.getOrElse(b.JsConfig.empty.kind),
+              emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(b.JsConfig.empty.emitSourceMaps),
+              jsdom = platform.jsJsdom,
               output = None,
               nodePath = None,
               toolchain = Nil
             ),
-            mainClass
+            platform.jsMainClass
           )
-        case model.Platform.Jvm(options, mainClass, runtimeOptions) =>
+        case model.Platform.Jvm(platform) =>
           b.Platform.Jvm(
             config = b.JvmConfig(
               home = None,
-              options = templateDirs.toAbsolutePaths.opts(options).render
+              options = templateDirs.toAbsolutePaths.opts(platform.jvmOptions).render
             ),
-            mainClass = mainClass,
-            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.toAbsolutePaths.opts(runtimeOptions).render)),
+            mainClass = platform.jvmMainClass,
+            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.toAbsolutePaths.opts(platform.jvmRuntimeOptions).render)),
             classpath = None,
             resources = None
           )
-        case model.Platform.Native(version, mode, gc, mainClass) => ???
+        case model.Platform.Native(platform) => ???
       }
 
     val resolvedDependencies: CoursierResolver.Result = {

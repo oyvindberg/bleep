@@ -65,5 +65,7 @@ object Versions {
         case Version("0", x, _) => s"0.$x"
         case other              => other
       }
+
+    def compilerPlugin: Dep = sys.error("todo: implement")
   }
 }
