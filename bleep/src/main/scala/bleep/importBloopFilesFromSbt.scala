@@ -63,12 +63,11 @@ object importBloopFilesFromSbt {
 
         } else bloopProject.directory
 
-      val folder: Option[RelPath] = {
+      val folder: Option[RelPath] =
         RelPath.relativeTo(buildPaths.buildDir, directory) match {
           case RelPath(List(projectName.value)) => None
           case relPath                          => Some(relPath)
         }
-      }
 
       val dependsOn: JsonSet[model.ProjectName] =
         JsonSet.fromIterable(bloopProject.dependencies.map(model.ProjectName.apply).filter(bloopProjectFiles.contains))
