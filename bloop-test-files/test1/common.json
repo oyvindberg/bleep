@@ -9,7 +9,8 @@
       "<PROJECT>/bloop-test-files/test1/common/src/main/scala",
       "<PROJECT>/bloop-test-files/test1/common/src/main/scala-2",
       "<PROJECT>/bloop-test-files/test1/common/src/main/scala-2.12",
-      "<PROJECT>/bloop-test-files/test1/common/target/scala-2.12/src_managed/main"
+      "<PROJECT>/bloop-test-files/test1/common/target/scala-2.12/src_managed/main",
+      "<PROJECT>/bloop-test-files/test1/common/target/src_managed/main"
     ],
     "dependencies": [
       
@@ -29,6 +30,7 @@
     "classesDir": "<PROJECT>/bloop-test-files/test1/.bleep/.bloop/common/scala-2.12/classes",
     "resources": [
       "<PROJECT>/bloop-test-files/test1/common/src/main/resources",
+      "<PROJECT>/bloop-test-files/test1/common/target/resource_managed/main",
       "<PROJECT>/bloop-test-files/test1/common/target/scala-2.12/resource_managed/main"
     ],
     "scala": {

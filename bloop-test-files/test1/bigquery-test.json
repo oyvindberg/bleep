@@ -10,7 +10,8 @@
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/src/main/scala-2",
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/src/main/scala-2.12",
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/src/test/scala",
-      "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/scala-2.12/src_managed/main"
+      "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/scala-2.12/src_managed/main",
+      "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/src_managed/main"
     ],
     "dependencies": [
       "common"
@@ -31,6 +32,7 @@
     "classesDir": "<PROJECT>/bloop-test-files/test1/.bleep/.bloop/bigquery-test/scala-2.12/classes",
     "resources": [
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/src/main/resources",
+      "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/resource_managed/main",
       "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/scala-2.12/resource_managed/main"
     ],
     "scala": {
