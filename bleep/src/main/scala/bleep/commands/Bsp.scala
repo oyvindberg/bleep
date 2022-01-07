@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 case class Bsp(opts: CommonOpts, started: Started) extends BleepCommand {
   override def run(): Unit = {
     val bloopRifleConfig = new BloopSetup(
-      "/usr/bin/java",
+      JavaCmd.javacommand,
       started,
       bloopBspProtocol = None,
       bloopBspSocket = None
