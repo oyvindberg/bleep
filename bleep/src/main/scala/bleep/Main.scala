@@ -34,9 +34,17 @@ object Main {
         case Left(_)        => Map.empty
         case Right(started) => started.build.projects.keys.map(projectName => projectName.value -> projectName).toMap
       }
+    def testProjectNameMap: Map[String, model.ProjectName] =
+      bootstrapped match {
+        case Left(_)        => Map.empty
+        case Right(started) => started.build.projects.collect { case (projectName, p) if !p.testFrameworks.isEmpty => projectName.value -> projectName }
+      }
 
     def projectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
       Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).orNone
+
+    def testProjectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
+      Opts.arguments("test project name")(Argument.fromMap("test project name", testProjectNameMap)).orNone
 
     lazy val ret: Opts[BleepCommand] = List(
       List(
@@ -44,7 +52,7 @@ object Main {
           (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Compile(forceStarted, opts, projectNames) }
         ),
         Opts.subcommand("test", "test projects")(
-          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Test(forceStarted, opts, projectNames) }
+          (CommonOpts.opts, testProjectNames).mapN { case (opts, projectNames) => commands.Test(forceStarted, opts, projectNames) }
         ),
         Opts.subcommand("bsp", "bsp integration")(
           CommonOpts.opts.map(opts => commands.Bsp(opts, forceStarted))
@@ -68,8 +76,9 @@ object Main {
               new BleepCommand {
                 override def run(): Unit = {
                   val completer = new Completer({
-                    case "project name" => projectNameMap.keys.toList
-                    case _              => Nil
+                    case "project name"      => projectNameMap.keys.toList
+                    case "test project name" => testProjectNameMap.keys.toList
+                    case _                   => Nil
                   })
                   completer.bash(compLine, compCword, compPoint)(ret).foreach(c => println(c.value))
                 }
