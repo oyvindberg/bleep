@@ -10,13 +10,16 @@ object GenNativeImage extends App {
     val projectName = ProjectName("bleep")
     val project = started.bloopFiles(projectName).forceGet(projectName.value)
 
+    // https://github.com/shyiko/jabba/pull/821/files
+    val index = "https://raw.githubusercontent.com/shyiko/jabba/54af2bdc0d895e23495bbee733673c2a36179a34/index.json"
+
     val plugin = new NativeImagePlugin(
       project.project,
       started.logger,
       nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"),
-      nativeImageJvm = "graalvm-ce-java11",
-      nativeImageVersion = "21.1.0",
-      nativeImageJvmIndex = "jabba"
+      nativeImageJvm = "graalvm-ce-java17",
+      nativeImageVersion = "21.3.0",
+      nativeImageJvmIndex = index
     )
     val path = plugin.nativeImage()
     started.logger.info(s"Created native-image at $path")
