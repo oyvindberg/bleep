@@ -65,7 +65,7 @@
         "me.vican.jorge::snailgun-core:0.4.0",
         "org.checkerframework:checker-qual:2.5.2",
         "org.codehaus.mojo:animal-sniffer-annotations:1.17",
-        "org.graalvm.nativeimage:svm:21.1.0",
+        "org.graalvm.nativeimage:svm:21.3.0",
         "org.scala-lang:scala-library:2.13.7"
       ],
       "extends" : "template-common-main"
@@ -84,7 +84,7 @@
   },
   "templates" : {
     "template-common" : {
-      "dependencies" : "ch.epfl.scala::bloop-config:1.4.11",
+      "dependencies" : "ch.epfl.scala::bloop-config:1.4.12",
       "platform" : {
         "name" : "jvm"
       },
