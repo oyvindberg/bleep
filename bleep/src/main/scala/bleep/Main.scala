@@ -102,8 +102,11 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     // don't produce garbage output when completing
+    // also need to refactor here. there is a circular dependency here where bootstrap needs parsed params, parsing params needs bootstrap
     val logger =
       if (args.headOption.contains("_complete")) Logger.DevNull
+      else if (args.contains("--no-color") || System.console() == null)
+        logging.stdout(LogPatterns.logFile).filter(LogLevel.info)
       else logging.stdout(LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
 
     Command("bleep", "Bleeping fast build!")(mainOpts(logger)).parse(args.toIndexedSeq, sys.env) match {

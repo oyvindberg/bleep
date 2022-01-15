@@ -89,7 +89,7 @@ jobs:
           Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }}
         if: runner.os == 'Windows'
       - name: Test binary after build
-        run: ./dist/${{ matrix.file_name }} compile
+        run: ./dist/${{ matrix.file_name }} compile --no-color
       - name: Temporarily save package
         uses: actions/upload-artifact@v2
         with:
