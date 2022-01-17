@@ -2,9 +2,16 @@ package bleep
 
 import bleep.internal.{rewriteDependentData, Lazy}
 
-import scala.collection.immutable.SortedMap
+import scala.collection.immutable.{SortedMap, SortedSet}
 
 object Templates {
+  case class CompressingProject(exploded: model.Project, current: model.Project) {
+    def toTemplate = CompressingTemplate(exploded, current)
+  }
+  case class CompressingTemplate(exploded: model.Project, current: model.Project) {
+    def toProject = CompressingProject(exploded, current)
+  }
+
   sealed trait TemplateDef {
     final lazy val templateName: model.TemplateId =
       model.TemplateId(s"template-$name")
@@ -54,6 +61,26 @@ object Templates {
       List(List(Common), scalas, platforms, combined).flatten.flatMap(t => List(t, Main(t), Test(t)))
     }
 
+    def crossTemplates(crossProjects: Iterable[model.Project]): List[TemplateDef] = {
+      val crossSetups: List[CrossSetup] =
+        crossProjects
+          .flatMap { p =>
+            if (p.cross.value.size < 2) None
+            else Some(CrossSetup(SortedSet.empty[model.CrossId] ++ p.cross.value.keys, parents = Nil))
+          }
+          .toList
+          .distinct
+
+      val withParents = crossSetups.map { cs =>
+        val parents = crossSetups.collect {
+          case maybeParent if maybeParent.crossIds.forall(cs.crossIds) && maybeParent.crossIds != cs.crossIds => maybeParent
+        }
+        cs.copy(parents = parents)
+      }
+
+      withParents.flatMap(t => List(t, Main(t), Test(t)))
+    }
+
     case object Common extends TemplateDef {
       override def name = "common"
       override def parents = Nil
@@ -78,14 +105,21 @@ object Templates {
       override def parents = List(Common)
       override def name = platformName.value
       override def include(p: model.Project): Boolean =
-        parents.forall(_.include(p)) && p.platform.exists(_.name.contains(platformName))
+        parents.forall(_.include(p)) && p.cross.isEmpty && p.platform.exists(_.name.contains(platformName))
     }
 
     case class ScalaVersion(binVersion: String) extends TemplateDef {
       override def name = s"scala-$binVersion"
       override def parents = List(Common)
       override def include(p: model.Project): Boolean =
-        parents.forall(_.include(p)) && p.scala.flatMap(_.version).exists(_.binVersion == binVersion)
+        parents.forall(_.include(p)) && p.cross.isEmpty && p.scala.flatMap(_.version).exists(_.binVersion == binVersion)
+    }
+
+    case class CrossSetup(crossIds: SortedSet[model.CrossId], parents: List[CrossSetup]) extends TemplateDef {
+      override def name = s"cross-${crossIds.map(_.value).mkString("-")}"
+      override def include(p: model.Project): Boolean =
+//        parents.forall(_.include(p)) &&
+        crossIds.forall(p.cross.value.keySet)
     }
 
     case class PlatformScalaVersion(platform: Platform, scalaVersion: ScalaVersion) extends TemplateDef {
@@ -95,25 +129,27 @@ object Templates {
     }
   }
 
-  def inferFromExistingProjects(projects: List[model.Project]): SortedMap[TemplateDef, model.Project] = {
-    val applicableTemplateDefs: List[TemplateDef] =
-      TemplateDef.applicableForProjects(projects)
-
+  def inferFromExistingProjects(applicableTemplateDefs: List[TemplateDef], projects: List[CompressingProject]): SortedMap[TemplateDef, CompressingTemplate] = {
     val templateDefsWithProjects: Map[TemplateDef, List[model.Project]] =
-      applicableTemplateDefs.map(t => (t, projects.filter(t.include))).toMap
+      applicableTemplateDefs.map { templateDef =>
+        val projectsForTemplate = projects.collect {
+          case CompressingProject(exploded, current) if templateDef.include(exploded) => current
+        }
+        (templateDef, projectsForTemplate)
+      }.toMap
 
-    val maybeTemplates: SortedMap[TemplateDef, Lazy[Option[model.Project]]] =
-      rewriteDependentData[TemplateDef, List[model.Project], Option[model.Project]](templateDefsWithProjects) {
+    val maybeTemplates: SortedMap[TemplateDef, Lazy[Option[CompressingTemplate]]] =
+      rewriteDependentData[TemplateDef, List[model.Project], Option[CompressingTemplate]](templateDefsWithProjects) {
         case (_, projects, _) if projects.sizeIs < 2 => None
         case (templateDef, projects, eval)           =>
           // check what all the picked projects have in common
-          val maybeInitialTemplate: Option[model.Project] =
-            projects.optReduce(_.intersectDropEmpty(_))
+          val maybeInitialTemplate: Option[CompressingTemplate] =
+            projects.optReduce(_.intersectDropEmpty(_)).map(p => CompressingTemplate(p, p))
 
-          val templateAfterParents: Option[model.Project] =
+          val templateAfterParents: Option[CompressingTemplate] =
             maybeInitialTemplate
               .map(initialTemplate => applyTemplates2(templateDef.allParents, eval.apply, initialTemplate))
-              .filterNot(p => p.copy(`extends` = JsonList.empty).isEmpty)
+              .filterNot(p => p.current.copy(`extends` = JsonList.empty).isEmpty)
 
           templateAfterParents
       }
@@ -121,33 +157,34 @@ object Templates {
     maybeTemplates.flatMap { case (templateDef, lazyP) => lazyP.forceGet.map(p => (templateDef, p)) }
   }
 
-  def applyTemplates(templates: Map[TemplateDef, model.Project], project: model.Project): model.Project = {
-    val applicableForProject: Map[TemplateDef, model.Project] =
-      templates.filter { case (templateDef, _) => templateDef.include(project) }
-
-    def go(project: model.Project, templateDef: TemplateDef): model.Project =
-      if (project.`extends`.values.contains(templateDef.templateName)) project
+  def applyTemplates(templates: Map[TemplateDef, CompressingTemplate], project: CompressingProject): CompressingProject = {
+    def go(project: CompressingProject, templateDef: TemplateDef): CompressingProject =
+      if (project.current.`extends`.values.contains(templateDef.templateName)) project
       else {
         val projectAppliedTemplateParents = templateDef.allParents.foldLeft(project)(go)
 
-        applicableForProject.get(templateDef: TemplateDef) match {
+        templates.get(templateDef) match {
           case Some(templateProject) => applyTemplate(templateDef, templateProject, projectAppliedTemplateParents)
           case None                  => projectAppliedTemplateParents
         }
       }
 
-    applicableForProject.keys.foldLeft(project)(go)
+    templates.keys.foldLeft(project)(go)
   }
 
   // same as above, with different signature. refactor sometime later
-  def applyTemplates2(templatesDefs: List[TemplateDef], getTemplate: TemplateDef => Lazy[Option[model.Project]], project: model.Project): model.Project = {
-    def go(project: model.Project, templateDef: TemplateDef): model.Project =
-      if (project.`extends`.values.contains(templateDef.templateName)) project
+  def applyTemplates2(
+      templatesDefs: List[TemplateDef],
+      getTemplate: TemplateDef => Lazy[Option[CompressingTemplate]],
+      project: CompressingTemplate
+  ): CompressingTemplate = {
+    def go(project: CompressingTemplate, templateDef: TemplateDef): CompressingTemplate =
+      if (project.current.`extends`.values.contains(templateDef.templateName)) project
       else {
         val projectAppliedTemplateParents = templateDef.allParents.foldLeft(project)(go)
 
         getTemplate(templateDef).forceGet match {
-          case Some(templateProject) => applyTemplate(templateDef, templateProject, projectAppliedTemplateParents)
+          case Some(templateProject) => applyTemplate(templateDef, templateProject, projectAppliedTemplateParents.toProject).toTemplate
           case None                  => projectAppliedTemplateParents
         }
       }
@@ -155,12 +192,25 @@ object Templates {
     templatesDefs.foldLeft(project)(go)
   }
 
-  def applyTemplate(templateDef: TemplateDef, templateProject: model.Project, project: model.Project): model.Project = {
-    val shortened = project.removeAll(templateProject)
-    val isShorted = shortened != project
-    val isSafe = shortened.union(templateProject).copy(`extends` = project.`extends`) == project
+  def stripExtends(p: model.Project): model.Project =
+    p.copy(`extends` = JsonList.empty, cross = JsonMap(p.cross.value.map { case (n, p) => (n, stripExtends(p)) }))
 
-    if (isShorted && isSafe) shortened.copy(`extends` = shortened.`extends` + templateDef.templateName)
-    else project
+  def applyTemplate(templateDef: TemplateDef, templateProject: CompressingTemplate, project: CompressingProject): CompressingProject = {
+    val shortened = project.current.removeAll(templateProject.exploded)
+    val isShortened = shortened != project.current
+
+    def doesntAddNew: Boolean =
+      stripExtends(templateProject.exploded.removeAll(project.exploded)).isEmpty
+
+    // primitive values will be overriden, so including these templates would be sound. however, it is confusing.
+    def doesntHaveIncompatiblePrimitives =
+      stripExtends(project.exploded.union(templateProject.exploded)) == stripExtends(templateProject.exploded.union(project.exploded))
+
+    if (isShortened && doesntAddNew && doesntHaveIncompatiblePrimitives) {
+      project.copy(
+        current = shortened.copy(`extends` = shortened.`extends` + templateDef.templateName),
+        exploded = project.exploded.copy(`extends` = project.exploded.`extends` + templateDef.templateName)
+      )
+    } else project
   }
 }

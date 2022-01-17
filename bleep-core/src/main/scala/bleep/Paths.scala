@@ -21,12 +21,11 @@ object UserPaths {
 
 case class BuildPaths(bleepJsonFile: Path) {
   val buildDir = bleepJsonFile.getParent
-  val dotBloopDir = buildDir / ".bloop"
   val dotBleepDir = buildDir / ".bleep"
   val digestFile = dotBleepDir / ".digest"
+  val bleepImportDir = dotBleepDir / "import"
   val bleepBloopDir = dotBleepDir / ".bloop"
-  val dotBspDir = buildDir / ".bsp"
-  val bspBleepJsonFile = dotBspDir / "bleep.json"
+  val bspBleepJsonFile = buildDir / ".bsp" / "bleep.json"
 
   def from(name: model.ProjectName, p: model.Project): ProjectPaths =
     ProjectPaths(
@@ -36,11 +35,11 @@ case class BuildPaths(bleepJsonFile: Path) {
 }
 
 case class ProjectPaths(dir: Path, targetDir: Path) {
-  def classes(scalaVersion: Option[Versions.Scala], isTest: Boolean): Path = {
+  def classes(crossId: Option[model.CrossId], isTest: Boolean): Path = {
     val classes = if (isTest) "test-classes" else "classes"
-    scalaVersion match {
-      case Some(scalaVersion) => targetDir / s"scala-${scalaVersion.binVersion}" / classes
-      case None               => targetDir / classes
+    crossId match {
+      case Some(crossId) => targetDir / crossId.value / classes
+      case None          => targetDir / classes
     }
   }
 
