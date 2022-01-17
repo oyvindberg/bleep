@@ -1,4 +1,7 @@
+import sbt.librarymanagement.For3Use2_13
+
 name := "bleep-root"
+crossScalaVersions := List("2.13.8", "3.1.1")
 
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
@@ -6,25 +9,33 @@ val commonSettings: Project => Project =
       organization := "no.arktekk",
       scalaVersion := "2.13.8",
       scalacOptions -= "-Xfatal-warnings",
-      crossPaths := false
+      excludeDependencies ++= List(
+        ExclusionRule("org.scala-lang.modules", "scala-collection-compat_2.13"),
+        ExclusionRule("org.scala-lang.modules", "scala-xml_3")
+      ).filter(_ => scalaVersion.value.startsWith("3"))
     )
 
+val crossSettings: Project => Project =
+  _.settings(
+    crossScalaVersions := List("2.13.8", "3.1.1")
+  )
+
 lazy val `bleep-core` = project
-  .configure(commonSettings)
+  .configure(commonSettings, crossSettings)
   .settings(
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "fansi" % "0.3.0",
-      "io.get-coursier" %% "coursier" % "2.0.16",
+      "io.get-coursier" %% "coursier" % "2.0.16" cross For3Use2_13(),
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
       "org.gnieh" %% "diffson-circe" % "4.1.1",
-      "ch.epfl.scala" %% "bloop-config" % "1.4.12"
+      "ch.epfl.scala" %% "bloop-config" % "1.4.12" cross For3Use2_13()
     )
   )
 
 lazy val `bleep-tasks` = project
-  .configure(commonSettings)
+  .configure(commonSettings, crossSettings)
   .dependsOn(`bleep-core`)
   .settings(
     libraryDependencies ++= List(
@@ -42,12 +53,12 @@ lazy val `bleep-tasks` = project
 
 lazy val `bloop-rifle` =
   project
-    .configure(commonSettings)
+    .configure(commonSettings, crossSettings)
     .settings(
       libraryDependencies ++= List(
         "ch.epfl.scala" % "bsp4j" % "2.0.0",
-        "me.vican.jorge" %% "snailgun-core" % "0.4.0",
-        "ch.epfl.scala" %% "bloop-config" % "1.4.12",
+        "me.vican.jorge" %% "snailgun-core" % "0.4.0" cross For3Use2_13(),
+        "ch.epfl.scala" %% "bloop-config" % "1.4.12" cross For3Use2_13(),
         "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-4",
         "org.graalvm.nativeimage" % "svm" % "21.3.0" % "provided"
       )
@@ -64,8 +75,8 @@ lazy val bleep = project
       "com.lihaoyi" %% "pprint" % "0.7.1",
       "org.graalvm.nativeimage" % "svm" % "21.3.0"
     ),
-    Compile / mainClass := Some("bleep.Main"),
-    nativeImageJvmIndex := "jabba",
+    Compile / bloopMainClass := Some("bleep.Main"),
+    nativeImageJvmIndex := "https://raw.githubusercontent.com/shyiko/jabba/54af2bdc0d895e23495bbee733673c2a36179a34/index.json",
     nativeImageJvm := "graalvm-ce-java17",
     nativeImageVersion := "21.3.0",
     assemblyMergeStrategy := {

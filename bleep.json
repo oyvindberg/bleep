@@ -10,25 +10,42 @@
         "bleep-core",
         "bloop-rifle"
       ],
-      "extends" : "template-common-main",
+      "extends" : [
+        "template-common-main",
+        "template-scala-2.13"
+      ],
       "platform" : {
-        "jvmMainClass": "bleep.Main"
+        "jvmMainClass" : "bleep.Main"
       }
     },
     "bleep-core" : {
+      "cross" : {
+        "jvm213" : {
+          "dependencies" : "org.scala-lang:scala-reflect:2.13.8"
+        },
+        "jvm3" : {
+          "dependencies" : "org.scala-lang::scala3-library:3.1.1"
+        }
+      },
       "dependencies" : [
+        {
+          "for3Use213" : true,
+          "module" : "ch.epfl.scala::bloop-config:1.4.12"
+        },
         "com.lihaoyi::fansi:0.3.0",
         "io.circe::circe-generic:0.14.1",
-        "io.get-coursier::coursier:2.0.16",
-        "org.gnieh::diffson-circe:4.1.1",
-        "org.scala-lang:scala-reflect:2.13.7"
+        {
+          "for3Use213" : true,
+          "module" : "io.get-coursier::coursier:2.0.16"
+        },
+        "org.gnieh::diffson-circe:4.1.1"
       ],
-      "extends" : "template-common-main"
+      "extends" : "template-cross-scala-2.13-3"
     },
     "bleep-tasks" : {
       "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
       "dependsOn" : "bleep-core",
-      "extends" : "template-common-main",
+      "extends" : "template-cross-scala-2.13-3",
       "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
       "sources" : [
         "./liberated/bloop-packager/src/main/scala",
@@ -39,8 +56,14 @@
     "bleep-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "bleep",
-      "extends" : "template-common",
+      "extends" : [
+        "template-common-main",
+        "template-scala-2.13"
+      ],
       "folder" : "./bleep",
+      "platform" : {
+        "jvmMainClass" : "bleep.Main"
+      },
       "sbt-scope" : "test",
       "testFrameworks" : [
         "com.novocode.junit.JUnitFramework",
@@ -54,7 +77,19 @@
       ]
     },
     "bloop-rifle" : {
+      "cross" : {
+        "jvm213" : {
+          "dependencies" : "org.scala-lang:scala-library:2.13.8"
+        },
+        "jvm3" : {
+          "dependencies" : "org.scala-lang::scala3-library:3.1.1"
+        }
+      },
       "dependencies" : [
+        {
+          "for3Use213" : true,
+          "module" : "ch.epfl.scala::bloop-config:1.4.12"
+        },
         "ch.epfl.scala:bsp4j:2.0.0",
         "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-4",
         "com.google.code.findbugs:jsr305:3.0.2",
@@ -62,20 +97,25 @@
         "com.google.errorprone:error_prone_annotations:2.2.0",
         "com.google.guava:guava:27.1-jre",
         "com.google.j2objc:j2objc-annotations:1.1",
-        "me.vican.jorge::snailgun-core:0.4.0",
+        {
+          "for3Use213" : true,
+          "module" : "me.vican.jorge::snailgun-core:0.4.0"
+        },
         "org.checkerframework:checker-qual:2.5.2",
         "org.codehaus.mojo:animal-sniffer-annotations:1.17",
-        "org.graalvm.nativeimage:svm:21.3.0",
-        "org.scala-lang:scala-library:2.13.7"
+        "org.graalvm.nativeimage:svm:21.3.0"
       ],
-      "extends" : "template-common-main"
+      "extends" : "template-cross-scala-2.13-3"
     },
     "infrastructure" : {
       "dependsOn" : [
         "bleep",
         "bleep-tasks"
       ],
-      "extends" : "template-common-main"
+      "extends" : [
+        "template-common-main",
+        "template-scala-2.13"
+      ]
     }
   },
   "scripts": {
@@ -84,10 +124,40 @@
   },
   "templates" : {
     "template-common" : {
-      "dependencies" : "ch.epfl.scala::bloop-config:1.4.12",
       "platform" : {
         "name" : "jvm"
       },
+      "scala" : {
+        "options" : [
+          "-encoding",
+          "utf8",
+          "-feature",
+          "-language:experimental.macros",
+          "-language:higherKinds",
+          "-language:implicitConversions",
+          "-unchecked"
+        ]
+      }
+    },
+    "template-common-main" : {
+      "extends" : "template-common",
+      "sbt-scope" : "main"
+    },
+    "template-cross-scala-2.13-3" : {
+      "cross" : {
+        "jvm213" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.13"
+          ]
+        },
+        "jvm3" : {
+          "extends" : "template-scala-3-main"
+        }
+      }
+    },
+    "template-scala-2.13" : {
+      "extends" : "template-common",
       "scala" : {
         "options" : [
           "-Vimplicits",
@@ -122,22 +192,36 @@
           "-Xlint:stars-align",
           "-Xlint:strict-unsealed-patmat",
           "-Xlint:type-parameter-shadow",
-          "-encoding",
-          "utf8",
           "-explaintypes",
-          "-feature",
-          "-language:existentials",
-          "-language:experimental.macros",
-          "-language:higherKinds",
-          "-language:implicitConversions",
-          "-unchecked"
+          "-language:existentials"
         ],
-        "version" : "2.13.7"
+        "version" : "2.13.8"
       }
     },
-    "template-common-main" : {
+    "template-scala-3" : {
       "extends" : "template-common",
-      "sbt-scope" : "main"
+      "sbt-scope" : "main",
+      "scala" : {
+        "options" : [
+          "-Ykind-projector",
+          "-deprecation",
+          "-explain",
+          "-explain-types"
+        ],
+        "version" : "3.1.1"
+      }
+    },
+    "template-scala-3-main" : {
+      "extends" : "template-common-main",
+      "scala" : {
+        "options" : [
+          "-Ykind-projector",
+          "-deprecation",
+          "-explain",
+          "-explain-types"
+        ],
+        "version" : "3.1.1"
+      }
     }
   },
   "version" : "1"

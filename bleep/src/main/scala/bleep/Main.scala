@@ -29,21 +29,21 @@ object Main {
       case Right(started) => started
     }
 
-    def projectNameMap: Map[String, model.ProjectName] =
+    def projectNameMap: Map[String, model.CrossProjectName] =
       bootstrapped match {
         case Left(_)        => Map.empty
         case Right(started) => started.build.projects.keys.map(projectName => projectName.value -> projectName).toMap
       }
-    def testProjectNameMap: Map[String, model.ProjectName] =
+    def testProjectNameMap: Map[String, model.CrossProjectName] =
       bootstrapped match {
         case Left(_)        => Map.empty
         case Right(started) => started.build.projects.collect { case (projectName, p) if !p.testFrameworks.isEmpty => projectName.value -> projectName }
       }
 
-    def projectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
+    def projectNames: Opts[Option[NonEmptyList[model.CrossProjectName]]] =
       Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).orNone
 
-    def testProjectNames: Opts[Option[NonEmptyList[model.ProjectName]]] =
+    def testProjectNames: Opts[Option[NonEmptyList[model.CrossProjectName]]] =
       Opts.arguments("test project name")(Argument.fromMap("test project name", testProjectNameMap)).orNone
 
     lazy val ret: Opts[BleepCommand] = List(

@@ -6,7 +6,7 @@ import cats.data.NonEmptyList
 
 import java.nio.file.Files
 
-case class Clean(started: Started, opts: CommonOpts, projects: Option[NonEmptyList[model.ProjectName]]) extends BleepCommand {
+case class Clean(started: Started, opts: CommonOpts, projects: Option[NonEmptyList[model.CrossProjectName]]) extends BleepCommand {
   override def run(): Unit = {
     val isChosen = started.chosenProjects(projects).toSet
     started.bloopFiles.foreach {

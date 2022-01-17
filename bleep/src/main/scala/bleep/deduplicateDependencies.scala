@@ -1,21 +1,11 @@
 package bleep
 
 import bleep.internal.rewriteDependentData
-import bleep.model.Platform
 
-object deduplicateBuild {
-  def apply(build: model.Build): model.Build = {
-    val templates = build.templates.map { templates =>
-      templates.map { case (templateId, templateProject) =>
-        templateId -> templateProject.copy(
-          scala = templateProject.scala.map(removeScalaDefaults),
-          platform = templateProject.platform.map(removePlatformDefaults)
-        )
-      }
-    }
-
-    val projects = rewriteDependentData[model.ProjectName, model.Project, model.Project](build.projects) { (projectName, p, getDep) =>
-      val shortenedDeps: Map[model.ProjectName, model.Project] =
+object deduplicateDependencies {
+  def apply(build: ExplodedBuild): ExplodedBuild = {
+    val projects = rewriteDependentData[model.CrossProjectName, model.Project, model.Project](build.projects) { (projectName, p, getDep) =>
+      val shortenedDeps: Map[model.CrossProjectName, model.Project] =
         build.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, getDep(pn).forceGet(pn.value)) }
 
       val shortenedDependsOn: JsonSet[model.ProjectName] =
@@ -33,6 +23,7 @@ object deduplicateBuild {
 
       model.Project(
         `extends` = p.`extends`,
+        cross = p.cross,
         folder = p.folder,
         dependsOn = shortenedDependsOn,
         `source-layout` = p.`source-layout`,
@@ -41,26 +32,20 @@ object deduplicateBuild {
         resources = p.resources,
         dependencies = shortenedDependencies,
         java = p.java,
-        scala = p.scala.map(removeScalaDefaults),
-        platform = p.platform.map(removePlatformDefaults),
+        scala = p.scala,
+        platform = p.platform,
         p.testFrameworks
       )
     }
 
     val forcedProjects = projects.map { case (projectName, lazyProject) => (projectName, lazyProject.forceGet(projectName.value)) }
 
-    model.Build(
+    ExplodedBuild(
       version = build.version,
-      templates = templates,
+      templates = build.templates,
       projects = forcedProjects,
       scripts = build.scripts,
       resolvers = build.resolvers
     )
   }
-
-  def removeScalaDefaults(ret: model.Scala): model.Scala =
-    ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))
-
-  def removePlatformDefaults(x: model.Platform): model.Platform =
-    x.removeAll(Defaults.Jvm)
 }

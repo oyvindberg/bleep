@@ -49,7 +49,7 @@ class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     val workspaceDir = workspaceDirBase / "test1"
     val input = ResourceReader.resourceAsString("/test1.json")
     val Right(build) = model.parseBuild(input)
-    val bloopFiles = generateBloopFiles(build, BuildPaths(workspaceDir / ".bleep.json"), resolver)
+    val bloopFiles = generateBloopFiles(ExplodedBuild.of(build), BuildPaths(workspaceDir / ".bleep.json"), resolver)
     writeAndCompare(
       workspaceDir,
       bloopFiles.map { case (projectName, lazyProject) =>
