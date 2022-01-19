@@ -1,10 +1,8 @@
 package bleep
 
 import bleep.Options.Opt
-import bleep.internal.SetLike
+import bleep.internal.{Replacements, SetLike}
 import io.circe.{Decoder, Encoder}
-
-import java.nio.file.Path
 
 /** A description of javac/scalac options.
   *
@@ -29,37 +27,13 @@ object Options {
   def fromIterable(opts: Iterable[Opt]): Options =
     new Options(opts.toSet)
 
-  // unfortunately we'll need to handle absolute paths in scalacOptions
-  case class TemplateDirs(build: Path, project: Path) {
-    private val map: List[(String, String)] =
-      List(
-        project.toString -> "${PROJECT_DIR}", // keep longest first
-        build.toString -> "${BUILD_DIR}"
-      )
-
-    class Replacer(replacements: List[(String, String)]) {
-      def string(str: String): String =
-        replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
-
-      def opts(options: Options): Options =
-        new Options(options.values.map {
-          case Opt.Flag(name)           => Opt.Flag(string(name))
-          case Opt.WithArgs(name, args) => Opt.WithArgs(string(name), args.map(string))
-        })
-    }
-
-    object fromAbsolutePaths extends Replacer(map)
-
-    object toAbsolutePaths extends Replacer(map.map { case (ref, absPath) => (absPath, ref) })
-  }
-
   val empty = new Options(Set.empty)
   implicit val decodes: Decoder[Options] = Decoder[JsonList[String]].map(list => Options.parse(list.values, maybeRelativize = None))
   implicit val encodes: Encoder[Options] = Encoder[JsonList[String]].contramap(opts => JsonList(opts.render))
 
-  def parse(strings: List[String], maybeRelativize: Option[Options.TemplateDirs]): Options = {
+  def parse(strings: List[String], maybeRelativize: Option[Replacements]): Options = {
     val relativeStrings = maybeRelativize match {
-      case Some(relativize) => strings.map(relativize.fromAbsolutePaths.string)
+      case Some(relativize) => strings.map(relativize.templatize.string)
       case None             => strings
     }
 

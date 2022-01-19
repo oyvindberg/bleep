@@ -1,7 +1,6 @@
 package bleep
 
-import bleep.Options.{Opt, TemplateDirs}
-import bleep.internal.{CachingPomReader, ScalaVersions}
+import bleep.internal.{CachingPomReader, Replacements, ScalaVersions}
 import bleep.logging.Logger
 import bloop.config.Config
 import coursier.core.Configuration
@@ -103,10 +102,11 @@ object importBloopFilesFromSbt {
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
 
-      val templateDirs = Options.TemplateDirs(buildPaths.buildDir, directory)
-
+      val replacementsDirs = Replacements.paths(buildPaths.buildDir, directory)
+      val replacementsVersions = Replacements.versions(scalaVersion, bloopProject.platform.map(_.name))
+      val replacements = replacementsDirs ++ replacementsVersions
       val configuredPlatform: Option[model.Platform] =
-        bloopProject.platform.map(translatePlatform(_, templateDirs))
+        bloopProject.platform.map(translatePlatform(_, replacements))
 
       val versions: ScalaVersions =
         ScalaVersions.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
@@ -135,7 +135,7 @@ object importBloopFilesFromSbt {
       }
 
       val configuredJava: Option[model.Java] =
-        bloopProject.java.map(translateJava(templateDirs))
+        bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
         bloopProject.scala.map { bloopScala =>
@@ -143,7 +143,7 @@ object importBloopFilesFromSbt {
             case ScalaVersions.Java =>
               throw new BuildException.Text(projectName, "Need a scala version to import scala project")
             case withScala: ScalaVersions.WithScala =>
-              translateScala(withScala, pomReader, logger, templateDirs, configuredPlatform)(bloopScala)
+              translateScala(withScala, pomReader, logger, replacementsDirs, replacementsVersions, configuredPlatform)(bloopScala)
           }
         }
 
@@ -266,10 +266,10 @@ object importBloopFilesFromSbt {
       jar.getParent / jar.getFileName.toString.replace(".jar", ".pom")
   }
 
-  def translateJava(templateDirs: TemplateDirs)(java: Config.Java): model.Java =
+  def translateJava(templateDirs: Replacements)(java: Config.Java): model.Java =
     model.Java(options = Options.parse(java.options, Some(templateDirs)))
 
-  def translatePlatform(platform: Config.Platform, templateDirs: Options.TemplateDirs): model.Platform =
+  def translatePlatform(platform: Config.Platform, templateDirs: Replacements): model.Platform =
     platform match {
       case Config.Platform.Js(config, mainClass) =>
         val translatedPlatform = model.Platform.Js(
@@ -303,17 +303,18 @@ object importBloopFilesFromSbt {
       versions: ScalaVersions.WithScala,
       pomReader: CachingPomReader,
       logger: Logger,
-      templateDirs: Options.TemplateDirs,
+      replacementsDirs: Replacements,
+      replacementsVersions: Replacements,
       platform: Option[model.Platform]
   )(s: Config.Scala): model.Scala = {
-    val options = Options.parse(s.options, Some(templateDirs))
+    val options = Options.parse(s.options, Some(replacementsDirs))
 
     val (plugins, rest) = options.values.partition {
       case Options.Opt.Flag(name) if name.startsWith(Defaults.ScalaPluginPrefix) => true
       case _                                                                     => false
     }
 
-    val compilerPlugins = plugins.collect { case Opt.Flag(pluginStr) =>
+    val compilerPlugins = plugins.collect { case Options.Opt.Flag(pluginStr) =>
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
       val pomPath = findPomPath(jarPath)
       val Right(pom) = pomReader(pomPath)
@@ -327,7 +328,7 @@ object importBloopFilesFromSbt {
 
     model.Scala(
       version = Some(Versions.Scala(s.version)),
-      options = new Options(rest),
+      options = replacementsVersions.templatize.opts(new Options(rest)),
       setup = s.setup.map(setup =>
         model.CompileSetup(
           order = Some(setup.order),
