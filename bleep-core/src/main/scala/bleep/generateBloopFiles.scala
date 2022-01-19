@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{rewriteDependentData, Lazy, ScalaVersions}
+import bleep.internal.{rewriteDependentData, Lazy, Replacements, ScalaVersions}
 import bloop.config.{Config => b}
 import coursier.core.Configuration
 import coursier.{Classifier, Dependency}
@@ -67,8 +67,6 @@ object generateBloopFiles {
       builder.result()
     }
 
-    val templateDirs = Options.TemplateDirs(buildPaths.buildDir, projectPaths.dir)
-
     val maybeScala: Option[model.Scala] =
       proj.scala
 
@@ -89,6 +87,10 @@ object generateBloopFiles {
         case Left(err)       => throw new BuildException.Text(projName, err)
         case Right(versions) => versions
       }
+
+    val templateDirs =
+      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
+        Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value))
 
     val configuredPlatform: Option[b.Platform] =
       explodedPlatform.map {
@@ -114,10 +116,10 @@ object generateBloopFiles {
           b.Platform.Jvm(
             config = b.JvmConfig(
               home = None,
-              options = templateDirs.toAbsolutePaths.opts(platform.jvmOptions).render
+              options = templateDirs.fill.opts(platform.jvmOptions).render
             ),
             mainClass = platform.jvmMainClass,
-            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.toAbsolutePaths.opts(platform.jvmRuntimeOptions).render)),
+            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.fill.opts(platform.jvmRuntimeOptions).render)),
             classpath = None,
             resources = None
           )
@@ -223,7 +225,7 @@ object generateBloopFiles {
           organization = scalaCompiler.module.organization.value,
           name = scalaCompiler.module.name.value,
           version = scalaCompiler.version,
-          options = templateDirs.toAbsolutePaths.opts(scalacOptions).render,
+          options = templateDirs.fill.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
           analysis = Some(projectPaths.incrementalAnalysis(scalaVersion)),
           setup = Some(setup)
@@ -258,7 +260,7 @@ object generateBloopFiles {
         classesDir = projectPaths.classes(scalaVersion, isTest = !proj.testFrameworks.isEmpty),
         resources = Some(resources.values.toList),
         scala = configuredScala,
-        java = Some(b.Java(options = templateDirs.toAbsolutePaths.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
+        java = Some(b.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,
         test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
         platform = configuredPlatform,
