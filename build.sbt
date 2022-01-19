@@ -49,7 +49,7 @@ lazy val `bloop-rifle` =
         "me.vican.jorge" %% "snailgun-core" % "0.4.0",
         "ch.epfl.scala" %% "bloop-config" % "1.4.12",
         "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-4",
-        "org.graalvm.nativeimage" % "svm" % "21.3.0" % "provided"
+        "org.graalvm.nativeimage" % "svm" % "21.3.1" % "provided"
       )
     )
 
@@ -62,7 +62,7 @@ lazy val bleep = project
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.1",
-      "org.graalvm.nativeimage" % "svm" % "21.3.0"
+      "org.graalvm.nativeimage" % "svm" % "21.3.1"
     ),
     Compile / mainClass := Some("bleep.Main"),
     nativeImageJvmIndex := "jabba",
