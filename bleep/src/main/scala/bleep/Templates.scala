@@ -62,11 +62,13 @@ object Templates {
     }
 
     def crossTemplates(crossProjects: Iterable[model.Project]): List[TemplateDef] = {
+      val allCross = SortedSet.empty[model.CrossId] ++ crossProjects.flatMap(_.cross.value.keys)
+
       val crossSetups: List[CrossSetup] =
         crossProjects
           .flatMap { p =>
             if (p.cross.value.size < 2) None
-            else Some(CrossSetup(SortedSet.empty[model.CrossId] ++ p.cross.value.keys, parents = Nil))
+            else Some(CrossSetup(SortedSet.empty[model.CrossId] ++ p.cross.value.keys, parents = Nil, all = allCross))
           }
           .toList
           .distinct
@@ -115,8 +117,25 @@ object Templates {
         parents.forall(_.include(p)) && p.cross.isEmpty && p.scala.flatMap(_.version).exists(_.binVersion == binVersion)
     }
 
-    case class CrossSetup(crossIds: SortedSet[model.CrossId], parents: List[CrossSetup]) extends TemplateDef {
-      override def name = s"cross-${crossIds.map(_.value).mkString("-")}"
+    case class CrossSetup(crossIds: SortedSet[model.CrossId], parents: List[CrossSetup], all: SortedSet[model.CrossId]) extends TemplateDef {
+      override def name: String = {
+        val baseName =
+          if (crossIds == all) "all"
+          else {
+            val allByPlatform = all.groupBy(_.value.takeWhile(_.isLetter))
+            crossIds
+              .groupBy(_.value.takeWhile(_.isLetter))
+              .map { case (platform, ids) =>
+                allByPlatform.get(platform) match {
+                  case Some(`ids`) => s"$platform-all"
+                  case _           => s"$platform-${ids.map(_.value.dropWhile(_.isLetter)).mkString("-")}"
+                }
+              }
+              .mkString("-")
+          }
+
+        s"cross-$baseName"
+      }
       override def include(p: model.Project): Boolean =
 //        parents.forall(_.include(p)) &&
         crossIds.forall(p.cross.value.keySet)
@@ -193,7 +212,10 @@ object Templates {
   }
 
   def stripExtends(p: model.Project): model.Project =
-    p.copy(`extends` = JsonList.empty, cross = JsonMap(p.cross.value.map { case (n, p) => (n, stripExtends(p)) }))
+    p.copy(
+      `extends` = JsonList.empty,
+      cross = JsonMap(p.cross.value.map { case (n, p) => (n, stripExtends(p)) }.filterNot { case (_, p) => p.isEmpty })
+    )
 
   def applyTemplate(templateDef: TemplateDef, templateProject: CompressingTemplate, project: CompressingProject): CompressingProject = {
     val shortened = project.current.removeAll(templateProject.exploded)
@@ -202,11 +224,15 @@ object Templates {
     def doesntAddNew: Boolean =
       stripExtends(templateProject.exploded.removeAll(project.exploded)).isEmpty
 
-    // primitive values will be overriden, so including these templates would be sound. however, it is confusing.
-    def doesntHaveIncompatiblePrimitives =
+    // primitive values will be overridden, so including these templates would be sound. however, it is confusing.
+    def doesntHaveIncompatiblePrimitives: Boolean =
       stripExtends(project.exploded.union(templateProject.exploded)) == stripExtends(templateProject.exploded.union(project.exploded))
 
-    if (isShortened && doesntAddNew && doesntHaveIncompatiblePrimitives) {
+    // this is needed since we disregard `extends` within cross projects, and also trim empty projects in `doesntAddNew`
+    def sameCrossVersions: Boolean =
+      templateProject.exploded.cross.value.keys.forall(project.exploded.cross.value.keySet)
+
+    if (isShortened && doesntAddNew && doesntHaveIncompatiblePrimitives && sameCrossVersions) {
       project.copy(
         current = shortened.copy(`extends` = shortened.`extends` + templateDef.templateName),
         exploded = project.exploded.copy(`extends` = project.exploded.`extends` + templateDef.templateName)

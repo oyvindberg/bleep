@@ -474,8 +474,8 @@ object model {
       )
 
     override def isEmpty: Boolean = this match {
-      case Project(extends_, variants, folder, dependsOn, sourceLayout, sbtScope, sources, resources, dependencies, java, scala, platform, testFrameworks) =>
-        extends_.isEmpty && variants.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
+      case Project(extends_, cross, folder, dependsOn, sourceLayout, sbtScope, sources, resources, dependencies, java, scala, platform, testFrameworks) =>
+        extends_.isEmpty && cross.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
           .fold(true)(_.isEmpty) && scala.fold(true)(_.isEmpty) && platform.fold(true)(_.isEmpty) && testFrameworks.isEmpty
     }
   }

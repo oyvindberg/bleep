@@ -11,6 +11,7 @@ import java.nio.file.Files
 import scala.collection.immutable.SortedMap
 
 case class Import(logger: Logger) extends BleepCommand {
+  val ignoreWhenInferringTemplates = Set.empty[model.ProjectName]
 
   /** The `Dep.ScalaDependency` structure has three fields we can only correctly determine in context of a given scala version. We need to propagate those three
     * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better
@@ -40,7 +41,7 @@ case class Import(logger: Logger) extends BleepCommand {
   override def run(): Unit = {
     val buildPaths = BuildPaths(Os.cwd / Defaults.BuildFileName)
 
-    cli("sbt 'set Global / bloopConfigDir := baseDirectory.value / s\".bleep/import/bloop-${scalaBinaryVersion.value}\"' +bloopInstall")(buildPaths.buildDir)
+//    cli("sbt 'set Global / bloopConfigDir := baseDirectory.value / s\".bleep/import/bloop-${scalaBinaryVersion.value}\"' +bloopInstall")(buildPaths.buildDir)
 
     val build0 = importBloopFilesFromSbt(logger, buildPaths)
 
@@ -67,7 +68,7 @@ case class Import(logger: Logger) extends BleepCommand {
     }
 
     val templates: SortedMap[TemplateDef, Templates.CompressingTemplate] = {
-      val projects: List[CompressingProject] = cp2.projects.values.toList
+      val projects: List[CompressingProject] = cp2.projects.filterNot { case (crossName, _) => ignoreWhenInferringTemplates(crossName.name) }.values.toList
       Templates.inferFromExistingProjects(
         TemplateDef.applicableForProjects(projects.map(_.exploded)),
         projects
@@ -102,7 +103,7 @@ case class Import(logger: Logger) extends BleepCommand {
       )
 
     val crossTemplates: SortedMap[TemplateDef, Templates.CompressingTemplate] = {
-      val projects = groupedCrossProjects.projects.values
+      val projects = groupedCrossProjects.projects.filterNot { case (name, _) => ignoreWhenInferringTemplates(name) }.values
       Templates.inferFromExistingProjects(
         TemplateDef.crossTemplates(projects.map(_.exploded)),
         projects.toList
