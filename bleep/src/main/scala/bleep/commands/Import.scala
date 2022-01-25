@@ -8,8 +8,7 @@ import io.circe.syntax._
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 
-case class Import(logger: Logger) extends BleepCommand {
-  val ignoreWhenInferringTemplates = Set.empty[model.ProjectName]
+case class Import(logger: Logger, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
 
   /** The `Dep.ScalaDependency` structure has three fields we can only correctly determine in context of a given scala version. We need to propagate those three
     * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better

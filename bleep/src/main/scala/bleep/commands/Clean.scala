@@ -2,11 +2,10 @@ package bleep
 package commands
 
 import bleep.internal.FileUtils
-import cats.data.NonEmptyList
 
 import java.nio.file.Files
 
-case class Clean(started: Started, opts: CommonOpts, projects: Option[NonEmptyList[model.CrossProjectName]]) extends BleepCommand {
+case class Clean(started: Started, opts: CommonOpts, projects: Option[List[model.CrossProjectName]]) extends BleepCommand {
   override def run(): Unit = {
     val isChosen = started.chosenProjects(projects).toSet
     started.bloopFiles.foreach {

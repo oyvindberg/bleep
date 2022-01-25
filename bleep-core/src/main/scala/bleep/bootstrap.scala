@@ -36,9 +36,9 @@ case class Started(
   lazy val bloopProjects: List[b.Project] =
     bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet.project }.toList
 
-  def chosenProjects(maybeFromCommandLine: Option[NonEmptyList[model.CrossProjectName]]): List[model.CrossProjectName] =
+  def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
     maybeFromCommandLine match {
-      case Some(fromCommandLine) => fromCommandLine.toList
+      case Some(fromCommandLine) => fromCommandLine
       case None =>
         activeProjectsFromPath match {
           case Nil      => bloopFiles.keys.toList
