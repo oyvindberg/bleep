@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.internal.{BspClientDisplayProgress, MyBloopRifleLogger}
-import cats.data.NonEmptyList
 import ch.epfl.scala.bsp4j
 
 import java.util
@@ -11,7 +10,7 @@ import scala.jdk.CollectionConverters._
 trait BleepCommandRemote extends BleepCommand {
   def started: Started
 
-  def chosenTargets(started: Started, fromCommandLine: Option[NonEmptyList[model.CrossProjectName]]): util.List[bsp4j.BuildTargetIdentifier] =
+  def chosenTargets(started: Started, fromCommandLine: Option[List[model.CrossProjectName]]): util.List[bsp4j.BuildTargetIdentifier] =
     buildTargets(started.buildPaths, started.chosenProjects(fromCommandLine))
 
   def buildTargets(buildPaths: BuildPaths, projects: List[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] = {

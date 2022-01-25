@@ -2,7 +2,6 @@ package bleep
 
 import bleep.internal.Os
 import bleep.logging.{LogLevel, Logger}
-import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._
 import com.monovore.decline._
@@ -29,22 +28,36 @@ object Main {
       case Right(started) => started
     }
 
-    def projectNameMap: Map[String, model.CrossProjectName] =
+    def projectCompletions(projects: Iterable[model.CrossProjectName]): Map[String, Iterable[model.CrossProjectName]] = {
+      val crossNames: Map[String, Iterable[model.CrossProjectName]] =
+        projects.map(projectName => projectName.value -> List(projectName)).toMap
+      val projectNames: Map[String, Iterable[model.CrossProjectName]] =
+        projects.groupBy { case model.CrossProjectName(name, _) => name.value }
+      val crossIds: Map[String, Iterable[model.CrossProjectName]] =
+        projects
+          .groupBy { case model.CrossProjectName(_, crossId) => crossId }
+          .collect { case (Some(crossId), names) => (crossId.value, names) }
+
+      crossIds ++ projectNames ++ crossNames
+
+    }
+    def projectNameMap: Map[String, Iterable[model.CrossProjectName]] =
       bootstrapped match {
         case Left(_)        => Map.empty
-        case Right(started) => started.build.projects.keys.map(projectName => projectName.value -> projectName).toMap
+        case Right(started) => projectCompletions(started.build.projects.keys)
       }
-    def testProjectNameMap: Map[String, model.CrossProjectName] =
+
+    def testProjectNameMap: Map[String, Iterable[model.CrossProjectName]] =
       bootstrapped match {
         case Left(_)        => Map.empty
-        case Right(started) => started.build.projects.collect { case (projectName, p) if !p.testFrameworks.isEmpty => projectName.value -> projectName }
+        case Right(started) => projectCompletions(started.build.projects.filter { case (_, p) => !p.testFrameworks.isEmpty }.keys)
       }
 
-    def projectNames: Opts[Option[NonEmptyList[model.CrossProjectName]]] =
-      Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).orNone
+    def projectNames: Opts[Option[List[model.CrossProjectName]]] =
+      Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).map(_.toList.flatten).orNone
 
-    def testProjectNames: Opts[Option[NonEmptyList[model.CrossProjectName]]] =
-      Opts.arguments("test project name")(Argument.fromMap("test project name", testProjectNameMap)).orNone
+    def testProjectNames: Opts[Option[List[model.CrossProjectName]]] =
+      Opts.arguments("test project name")(Argument.fromMap("test project name", testProjectNameMap)).map(_.toList.flatten).orNone
 
     lazy val ret: Opts[BleepCommand] = List(
       List(
@@ -69,7 +82,7 @@ object Main {
         Opts.subcommand("patch", "Apply patch from standard-in or file")(
           (CommonOpts.opts, Opts.option[Path]("file", "patch file, defaults to std-in").orNone).mapN((opts, file) => commands.Patch(forceStarted, opts, file))
         ),
-        Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import(logger))),
+        Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import(logger, Set.empty))),
         Opts.subcommand("_complete", "tab-completions")(
           (Opts.argument[String]("COMP_LINE"), Opts.argument[Int]("COMP_CWORD"), Opts.argument[Int]("COMP_POINT")).mapN {
             case (compLine, compCword, compPoint) =>
