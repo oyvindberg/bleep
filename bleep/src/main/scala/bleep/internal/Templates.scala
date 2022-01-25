@@ -1,6 +1,6 @@
-package bleep
+package bleep.internal
 
-import bleep.internal.{rewriteDependentData, Lazy}
+import bleep.{deduplicateDependencies, model, ExplodedBuild, JsonList, JsonMap}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
 
@@ -11,9 +11,13 @@ object Templates {
   case class CompressingTemplate(exploded: model.Project, current: model.Project) {
     def toProject = CompressingProject(exploded, current)
   }
+  case class CompressingProjects[Key](projects: Map[Key, CompressingProject]) {
+    def map(f: (Key, CompressingProject) => model.Project): CompressingProjects[Key] =
+      copy(projects = projects.map { case (n, cp) => (n, cp.copy(current = f(n, cp))) })
+  }
 
   sealed trait TemplateDef {
-    final lazy val templateName: model.TemplateId =
+    final lazy val templateId: model.TemplateId =
       model.TemplateId(s"template-$name")
 
     final lazy val allParents: List[TemplateDef] = {
@@ -148,6 +152,99 @@ object Templates {
     }
   }
 
+  /** Takes an exploded build, infers templates and applies them. also groups cross projects
+    */
+  def apply(build0: ExplodedBuild, ignoreWhenInferringTemplates: model.ProjectName => Boolean): model.Build = {
+
+    val initial: CompressingProjects[model.CrossProjectName] =
+      CompressingProjects(build0.projects.map { case (n, p) => (n, CompressingProject(p, p)) })
+
+    val deduplicated: CompressingProjects[model.CrossProjectName] = {
+      val build = build0.copy(projects = initial.projects.map { case (n, cp) => (n, cp.current) })
+      val deduplicatedProjects = deduplicateDependencies(build).projects
+      initial.map((n, _) => deduplicatedProjects(n))
+    }
+
+    val templates: SortedMap[TemplateDef, Templates.CompressingTemplate] = {
+      val projects: List[CompressingProject] =
+        deduplicated.projects.filterNot { case (crossName, _) => ignoreWhenInferringTemplates(crossName.name) }.values.toList
+
+      Templates.inferFromExistingProjects(
+        TemplateDef.applicableForProjects(projects.map(_.exploded)),
+        projects
+      )
+    }
+
+    val templated: CompressingProjects[model.CrossProjectName] = deduplicated.map { (name, cp) =>
+      Templates.applyTemplatesToProject(templates, cp).current
+    }
+
+    val groupedCrossProjects: CompressingProjects[model.ProjectName] =
+      CompressingProjects(
+        templated.projects.toSeq.groupBy(_._1.name).map {
+          case (name, Seq((model.CrossProjectName(_, None), one))) => (name, one)
+          case (name, crossProjects) =>
+            val compressingProjectByCrossId: Seq[(model.CrossId, CompressingProject)] =
+              crossProjects.map { case (crossProjectName, p) => (crossProjectName.crossId.get, p) }
+
+            val currentCross: model.Project = {
+              val common = compressingProjectByCrossId.map(_._2.current).reduce(_.intersect(_))
+              val cross = compressingProjectByCrossId.map { case (projectName, p) => (projectName, p.current.removeAll(common)) }.toMap
+              common.copy(cross = JsonMap(cross))
+            }
+            val explodedCross = {
+              val common = compressingProjectByCrossId.map(_._2.exploded).reduce(_.intersect(_))
+              val cross = compressingProjectByCrossId.map { case (projectName, p) => (projectName, p.exploded) }.toMap
+              common.copy(cross = JsonMap(cross))
+            }
+
+            (name, CompressingProject(explodedCross, currentCross))
+        }
+      )
+
+    val crossTemplates: SortedMap[TemplateDef, Templates.CompressingTemplate] = {
+      val projects = groupedCrossProjects.projects.filterNot { case (name, _) => ignoreWhenInferringTemplates(name) }.values
+      Templates.inferFromExistingProjects(
+        TemplateDef.crossTemplates(projects.map(_.exploded)),
+        projects.toList
+      )
+    }
+
+    val groupedTemplatedCrossProjects: CompressingProjects[model.ProjectName] =
+      groupedCrossProjects.map { case (name, project) =>
+        Templates.applyTemplatesToProject(crossTemplates, project).current
+      }
+
+    val build = model.Build(
+      build0.version,
+      massageTemplates(templates ++ crossTemplates),
+      build0.scripts,
+      build0.resolvers,
+      groupedTemplatedCrossProjects.projects.map { case (n, cp) => (n, cp.current) }
+    )
+
+    garbageCollectTemplates(build)
+  }
+
+  def garbageCollectTemplates(b: model.Build): model.Build = {
+    val seen = collection.mutable.Set.empty[model.TemplateId]
+    def go(p: model.Project): Unit = {
+      p.`extends`.values.foreach { templateId =>
+        seen += templateId
+        go(b.templates.get(templateId))
+      }
+
+      p.cross.value.values.foreach(go)
+    }
+
+    b.projects.values.foreach(go)
+
+    b.copy(templates = b.templates.map(_.filter { case (templateId, _) => seen(templateId) }))
+  }
+
+  def massageTemplates(templates: SortedMap[Templates.TemplateDef, CompressingTemplate]): Option[SortedMap[model.TemplateId, model.Project]] =
+    Some(templates.map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty))
+
   def inferFromExistingProjects(applicableTemplateDefs: List[TemplateDef], projects: List[CompressingProject]): SortedMap[TemplateDef, CompressingTemplate] = {
     val templateDefsWithProjects: Map[TemplateDef, List[model.Project]] =
       applicableTemplateDefs.map { templateDef =>
@@ -167,7 +264,7 @@ object Templates {
 
           val templateAfterParents: Option[CompressingTemplate] =
             maybeInitialTemplate
-              .map(initialTemplate => applyTemplates2(templateDef.allParents, eval.apply, initialTemplate))
+              .map(initialTemplate => applyTemplatesToTemplate(templateDef.allParents, eval.apply, initialTemplate))
               .filterNot(p => p.current.copy(`extends` = JsonList.empty).isEmpty)
 
           templateAfterParents
@@ -176,14 +273,14 @@ object Templates {
     maybeTemplates.flatMap { case (templateDef, lazyP) => lazyP.forceGet.map(p => (templateDef, p)) }
   }
 
-  def applyTemplates(templates: Map[TemplateDef, CompressingTemplate], project: CompressingProject): CompressingProject = {
+  def applyTemplatesToProject(templates: Map[TemplateDef, CompressingTemplate], project: CompressingProject): CompressingProject = {
     def go(project: CompressingProject, templateDef: TemplateDef): CompressingProject =
-      if (project.current.`extends`.values.contains(templateDef.templateName)) project
+      if (project.current.`extends`.values.contains(templateDef.templateId)) project
       else {
         val projectAppliedTemplateParents = templateDef.allParents.foldLeft(project)(go)
 
         templates.get(templateDef) match {
-          case Some(templateProject) => applyTemplate(templateDef, templateProject, projectAppliedTemplateParents)
+          case Some(templateProject) => tryApplyTemplate(templateDef.templateId, templateProject, projectAppliedTemplateParents)
           case None                  => projectAppliedTemplateParents
         }
       }
@@ -191,19 +288,19 @@ object Templates {
     templates.keys.foldLeft(project)(go)
   }
 
-  // same as above, with different signature. refactor sometime later
-  def applyTemplates2(
+  /* templates can extend templates*/
+  def applyTemplatesToTemplate(
       templatesDefs: List[TemplateDef],
       getTemplate: TemplateDef => Lazy[Option[CompressingTemplate]],
       project: CompressingTemplate
   ): CompressingTemplate = {
     def go(project: CompressingTemplate, templateDef: TemplateDef): CompressingTemplate =
-      if (project.current.`extends`.values.contains(templateDef.templateName)) project
+      if (project.current.`extends`.values.contains(templateDef.templateId)) project
       else {
         val projectAppliedTemplateParents = templateDef.allParents.foldLeft(project)(go)
 
         getTemplate(templateDef).forceGet match {
-          case Some(templateProject) => applyTemplate(templateDef, templateProject, projectAppliedTemplateParents.toProject).toTemplate
+          case Some(templateProject) => tryApplyTemplate(templateDef.templateId, templateProject, projectAppliedTemplateParents.toProject).toTemplate
           case None                  => projectAppliedTemplateParents
         }
       }
@@ -211,15 +308,15 @@ object Templates {
     templatesDefs.foldLeft(project)(go)
   }
 
-  def stripExtends(p: model.Project): model.Project =
-    p.copy(
-      `extends` = JsonList.empty,
-      cross = JsonMap(p.cross.value.map { case (n, p) => (n, stripExtends(p)) }.filterNot { case (_, p) => p.isEmpty })
-    )
-
-  def applyTemplate(templateDef: TemplateDef, templateProject: CompressingTemplate, project: CompressingProject): CompressingProject = {
+  def tryApplyTemplate(templateId: model.TemplateId, templateProject: CompressingTemplate, project: CompressingProject): CompressingProject = {
     val shortened = project.current.removeAll(templateProject.exploded)
     val isShortened = shortened != project.current
+
+    def stripExtends(p: model.Project): model.Project =
+      p.copy(
+        `extends` = JsonList.empty,
+        cross = JsonMap(p.cross.value.map { case (n, p) => (n, stripExtends(p)) }.filterNot { case (_, p) => p.isEmpty })
+      )
 
     def doesntAddNew: Boolean =
       stripExtends(templateProject.exploded.removeAll(project.exploded)).isEmpty
@@ -234,8 +331,8 @@ object Templates {
 
     if (isShortened && doesntAddNew && doesntHaveIncompatiblePrimitives && sameCrossVersions) {
       project.copy(
-        current = shortened.copy(`extends` = shortened.`extends` + templateDef.templateName),
-        exploded = project.exploded.copy(`extends` = project.exploded.`extends` + templateDef.templateName)
+        current = shortened.copy(`extends` = shortened.`extends` + templateId),
+        exploded = project.exploded.copy(`extends` = project.exploded.`extends` + templateId)
       )
     } else project
   }
