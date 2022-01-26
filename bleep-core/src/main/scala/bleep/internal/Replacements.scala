@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.{Options, Versions}
+import bleep.{Options, RelPath, Versions}
 
 import java.nio.file.Path
 
@@ -11,6 +11,9 @@ class Replacements private (val map: List[(String, String)]) {
   class Replacer(replacements: List[(String, String)]) {
     def string(str: String): String =
       replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
+
+    def relPath(relPath: RelPath): RelPath =
+      RelPath(relPath.segments.map(string))
 
     def opts(options: Options): Options =
       new Options(options.values.map {
@@ -42,14 +45,14 @@ object Replacements {
         scalaVersion match {
           case Some(scalaVersion) =>
             List(
-              // scalaVersion.epoch.toString -> "${SCALA_EPOCH}",
-              s"-${scalaVersion.binVersion}" -> "-${SCALA_BIN_VERSION}",
+              scalaVersion.epoch.toString -> "${SCALA_EPOCH}",
+              s"${scalaVersion.binVersion}" -> "${SCALA_BIN_VERSION}",
               scalaVersion.scalaVersion -> "${SCALA_VERSION}"
             )
           case None => Nil
         },
         platform match {
-          case Some(platform) => List(s"-$platform" -> "-${PLATFORM}")
+          case Some(platform) => List(s"$platform" -> "${PLATFORM}")
           case None           => Nil
         }
       ).flatten

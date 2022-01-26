@@ -529,10 +529,10 @@ object model {
 
   case class Build(
       version: String,
-      templates: Option[Map[TemplateId, Project]],
-      scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
+      templates: JsonMap[TemplateId, Project],
+      scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
       resolvers: JsonSet[URI],
-      projects: Map[ProjectName, Project]
+      projects: JsonMap[ProjectName, Project]
   )
 
   object Build {
@@ -540,9 +540,9 @@ object model {
       Decoder.instance(c =>
         for {
           version <- c.downField("version").as[String]
-          templates <- c.downField("templates").as[Option[Map[TemplateId, Project]]]
-          projects <- c.downField("projects").as[Map[ProjectName, Project]]
-          scripts <- c.downField("scripts").as[Option[Map[ScriptName, JsonList[ScriptDef]]]]
+          templates <- c.downField("templates").as[JsonMap[TemplateId, Project]]
+          projects <- c.downField("projects").as[JsonMap[ProjectName, Project]]
+          scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
           resolvers <- c.downField("resolvers").as[JsonSet[URI]]
         } yield Build(version, templates, scripts, resolvers, projects)
       )

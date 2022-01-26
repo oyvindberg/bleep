@@ -222,12 +222,19 @@ object generateBloopFiles {
       case Some(sourceLayout) => sourceLayout
       case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
     }
+    val replacementsVersions = Replacements.versions(scalaVersion, configuredPlatform.map(_.name))
 
-    val sources: JsonSet[Path] =
-      (sourceLayout.sources(scalaVersion, explodedProject.`sbt-scope`) ++ JsonSet.fromIterable(explodedProject.sources.values)).map(projectPaths.dir / _)
+    val sources: JsonSet[Path] = {
+      val fromSourceLayout = sourceLayout.sources(scalaVersion, explodedProject.`sbt-scope`)
+      val fromJson = JsonSet.fromIterable(explodedProject.sources.values.map(replacementsVersions.fill.relPath))
+      (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
+    }
 
-    val resources: JsonSet[Path] =
-      (sourceLayout.resources(scalaVersion, explodedProject.`sbt-scope`) ++ JsonSet.fromIterable(explodedProject.resources.values)).map(projectPaths.dir / _)
+    val resources: JsonSet[Path] = {
+      val fromJson = JsonSet.fromIterable(explodedProject.resources.values.map(replacementsVersions.fill.relPath))
+      val fromSourceLayout = sourceLayout.resources(scalaVersion, explodedProject.`sbt-scope`)
+      (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
+    }
 
     b.File(
       "1.4.0",
