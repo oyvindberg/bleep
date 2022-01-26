@@ -1,17 +1,26 @@
 package bleep
 
+import bleep.internal.Functions.stripExtends
+import bleep.internal.rewriteDependentData
 import bleep.model.CrossProjectName
 
 import java.net.URI
+import scala.collection.immutable.SortedMap
 import scala.collection.{immutable, SortedSet}
 
 case class ExplodedBuild(
     version: String,
-    templates: Option[Map[model.TemplateId, model.Project]],
-    scripts: Option[Map[model.ScriptName, JsonList[model.ScriptDef]]],
+    templates: Map[model.TemplateId, model.Project],
+    scripts: Map[model.ScriptName, JsonList[model.ScriptDef]],
     resolvers: JsonSet[URI],
     projects: Map[model.CrossProjectName, model.Project]
 ) {
+
+  def dropTemplates: ExplodedBuild =
+    copy(
+      templates = Map.empty,
+      projects = projects.map { case (crossName, p) => (crossName, stripExtends(p)) }
+    )
 
   // in json we just specify projectName, but in bleep we need to know which cross version to pick
   val resolvedDependsOn: Map[CrossProjectName, SortedSet[CrossProjectName]] = {
@@ -66,20 +75,23 @@ case class ExplodedBuild(
 
 object ExplodedBuild {
   def of(build: model.Build): ExplodedBuild = {
-    val explodedProjects: Map[model.CrossProjectName, model.Project] =
-      build.projects.flatMap { case (projectName, p) =>
-        def explodeTemplates(project: model.Project): model.Project =
-          project.`extends`.values.foldLeft(project) { case (p, parentId) =>
-            p.union(explodeTemplates(build.templates.get(parentId)))
-          }
+    val explodedTemplates: SortedMap[model.TemplateId, model.Project] =
+      rewriteDependentData.eager(build.templates.value) { (_, p, eval) =>
+        p.`extends`.values.foldLeft(p)((acc, templateId) => acc.union(eval(templateId).forceGet))
+      }
 
-        val explodedTemplates = explodeTemplates(p).copy(`extends` = JsonList.empty)
+    def explode(p: model.Project): model.Project =
+      p.`extends`.values.foldLeft(p)((acc, templateId) => acc.union(explodedTemplates(templateId)))
+
+    val explodedProjects: Map[model.CrossProjectName, model.Project] =
+      build.projects.value.flatMap { case (projectName, p) =>
+        val explodedP = explode(p)
 
         val explodeCross: Map[model.CrossProjectName, model.Project] =
-          if (explodedTemplates.cross.isEmpty) Map(model.CrossProjectName(projectName, None) -> explodedTemplates)
+          if (explodedP.cross.isEmpty) Map(model.CrossProjectName(projectName, None) -> explodedP)
           else {
-            explodedTemplates.cross.value.map { case (crossId, crossP) =>
-              (model.CrossProjectName(projectName, Some(crossId)), explodeTemplates(crossP).union(explodedTemplates))
+            explodedP.cross.value.map { case (crossId, crossP) =>
+              (model.CrossProjectName(projectName, Some(crossId)), explode(crossP).union(explodedP))
             }
           }
 
@@ -88,8 +100,8 @@ object ExplodedBuild {
 
     val ret = ExplodedBuild(
       version = build.version,
-      templates = build.templates,
-      scripts = build.scripts,
+      templates = explodedTemplates,
+      scripts = build.scripts.value,
       resolvers = build.resolvers,
       projects = explodedProjects
     )
@@ -100,14 +112,10 @@ object ExplodedBuild {
   }
 
   def verify(build: ExplodedBuild): Unit =
-    build.scripts match {
-      case None => ()
-      case Some(scripts) =>
-        scripts.foreach { case (scriptName, scriptDefs) =>
-          scriptDefs.values.foreach { scriptDef =>
-            if (build.projects.contains(scriptDef.project)) ()
-            else sys.error(s"script ${scriptName.value} references non-existing project ${scriptDef.project.value}")
-          }
-        }
+    build.scripts.foreach { case (scriptName, scriptDefs) =>
+      scriptDefs.values.foreach { scriptDef =>
+        if (build.projects.contains(scriptDef.project)) ()
+        else sys.error(s"script ${scriptName.value} references non-existing project ${scriptDef.project.value}")
+      }
     }
 }

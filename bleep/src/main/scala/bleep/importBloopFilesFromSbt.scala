@@ -117,6 +117,10 @@ object importBloopFilesFromSbt {
       val scalaVersion: Option[Versions.Scala] =
         bloopProject.scala.map(s => Versions.Scala(s.version))
 
+      val replacementsDirs = Replacements.paths(buildPaths.buildDir, directory)
+      val replacementsVersions = Replacements.versions(scalaVersion, bloopProject.platform.map(_.name))
+      val replacements = replacementsDirs ++ replacementsVersions
+
       val isTest = crossName.name.value.endsWith("-test")
       val scope = if (isTest) "test" else "main"
 
@@ -136,8 +140,15 @@ object importBloopFilesFromSbt {
             (matching, -notMatching)
           }
 
-        val shortenedSources = sourcesRelPaths.filterNot(inferredSourceLayout.sources(scalaVersion, Some(scope)))
-        val shortenedResources = resourcesRelPaths.filterNot(inferredSourceLayout.resources(scalaVersion, Some(scope)))
+        val shortenedSources =
+          sourcesRelPaths
+            .filterNot(inferredSourceLayout.sources(scalaVersion, Some(scope)))
+            .map(replacementsVersions.templatize.relPath)
+
+        val shortenedResources =
+          resourcesRelPaths
+            .filterNot(inferredSourceLayout.resources(scalaVersion, Some(scope)))
+            .map(replacementsVersions.templatize.relPath)
 
         (inferredSourceLayout, shortenedSources, shortenedResources)
       }
@@ -145,9 +156,6 @@ object importBloopFilesFromSbt {
       val resolution = bloopProject.resolution
         .getOrElse(sys.error(s"Expected bloop file for ${crossName.value} to have resolution"))
 
-      val replacementsDirs = Replacements.paths(buildPaths.buildDir, directory)
-      val replacementsVersions = Replacements.versions(scalaVersion, bloopProject.platform.map(_.name))
-      val replacements = replacementsDirs ++ replacementsVersions
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements))
 
@@ -228,7 +236,7 @@ object importBloopFilesFromSbt {
           .filterNot(_ == Defaults.MavenCentral)
       )
 
-    ExplodedBuild("1", None, None, resolvers = buildResolvers, projects)
+    ExplodedBuild("1", Map.empty, Map.empty, resolvers = buildResolvers, projects)
   }
 
   case class ParsedDependency(dep: Dep, directDeps: List[(Configuration, Dependency)])

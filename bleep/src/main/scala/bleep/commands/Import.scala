@@ -58,7 +58,7 @@ case class Import(logger: Logger, ignoreWhenInferringTemplates: Set[model.Projec
       UTF_8
     )
 
-    logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.size} projects")
+    logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.value.size} projects")
   }
 
   def removeScalaDefaults(ret: model.Scala): model.Scala =

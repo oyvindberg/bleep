@@ -109,7 +109,7 @@ object Main {
       bootstrapped match {
         case Left(_) => Nil
         case Right(started) =>
-          started.build.scripts.getOrElse(Map.empty).map { case (scriptName, scriptDefs) =>
+          started.build.scripts.map { case (scriptName, scriptDefs) =>
             Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
               stringArgs.map(args => commands.Script(forceStarted, scriptName, scriptDefs, args))
             )

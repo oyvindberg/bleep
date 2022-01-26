@@ -1,5 +1,6 @@
 package bleep.internal
 
+import bleep.internal.Functions.stripExtends
 import bleep.{deduplicateDependencies, model, ExplodedBuild, JsonList, JsonMap}
 
 import scala.collection.immutable.{SortedMap, SortedSet}
@@ -218,9 +219,9 @@ object Templates {
     val build = model.Build(
       build0.version,
       massageTemplates(templates ++ crossTemplates),
-      build0.scripts,
+      JsonMap(build0.scripts),
       build0.resolvers,
-      groupedTemplatedCrossProjects.projects.map { case (n, cp) => (n, cp.current) }
+      JsonMap(groupedTemplatedCrossProjects.projects.map { case (n, cp) => (n, cp.current) })
     )
 
     garbageCollectTemplates(build)
@@ -231,19 +232,19 @@ object Templates {
     def go(p: model.Project): Unit = {
       p.`extends`.values.foreach { templateId =>
         seen += templateId
-        go(b.templates.get(templateId))
+        go(b.templates.value(templateId))
       }
 
       p.cross.value.values.foreach(go)
     }
 
-    b.projects.values.foreach(go)
+    b.projects.value.values.foreach(go)
 
-    b.copy(templates = b.templates.map(_.filter { case (templateId, _) => seen(templateId) }))
+    b.copy(templates = JsonMap(b.templates.value.filter { case (templateId, _) => seen(templateId) }))
   }
 
-  def massageTemplates(templates: SortedMap[Templates.TemplateDef, CompressingTemplate]): Option[SortedMap[model.TemplateId, model.Project]] =
-    Some(templates.map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty))
+  def massageTemplates(templates: SortedMap[Templates.TemplateDef, CompressingTemplate]): JsonMap[model.TemplateId, model.Project] =
+    JsonMap(templates.map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty))
 
   def inferFromExistingProjects(applicableTemplateDefs: List[TemplateDef], projects: List[CompressingProject]): SortedMap[TemplateDef, CompressingTemplate] = {
     val templateDefsWithProjects: Map[TemplateDef, List[model.Project]] =
@@ -311,12 +312,6 @@ object Templates {
   def tryApplyTemplate(templateId: model.TemplateId, templateProject: CompressingTemplate, project: CompressingProject): CompressingProject = {
     val shortened = project.current.removeAll(templateProject.exploded)
     val isShortened = shortened != project.current
-
-    def stripExtends(p: model.Project): model.Project =
-      p.copy(
-        `extends` = JsonList.empty,
-        cross = JsonMap(p.cross.value.map { case (n, p) => (n, stripExtends(p)) }.filterNot { case (_, p) => p.isEmpty })
-      )
 
     def doesntAddNew: Boolean =
       stripExtends(templateProject.exploded.removeAll(project.exploded)).isEmpty
