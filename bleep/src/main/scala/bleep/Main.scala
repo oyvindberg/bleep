@@ -61,6 +61,13 @@ object Main {
 
     lazy val ret: Opts[BleepCommand] = List(
       List(
+        Opts.subcommand("build", "rewrite build")(
+          List(
+            Opts.subcommand("reapply-templates", "apply templates again. will minimize ")(
+              CommonOpts.opts.map(opts => commands.BuildReapplyTemplates(forceStarted, opts))
+            )
+          ).foldK
+        ),
         Opts.subcommand("compile", "compile projects")(
           (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Compile(forceStarted, opts, projectNames) }
         ),
