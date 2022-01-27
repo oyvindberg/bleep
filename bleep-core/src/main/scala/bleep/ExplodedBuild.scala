@@ -13,7 +13,8 @@ case class ExplodedBuild(
     templates: Map[model.TemplateId, model.Project],
     scripts: Map[model.ScriptName, JsonList[model.ScriptDef]],
     resolvers: JsonSet[URI],
-    projects: Map[model.CrossProjectName, model.Project]
+    projects: Map[model.CrossProjectName, model.Project],
+    retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]]
 ) {
 
   def dropTemplates: ExplodedBuild =
@@ -85,7 +86,7 @@ object ExplodedBuild {
 
     val explodedProjects: Map[model.CrossProjectName, model.Project] =
       build.projects.value.flatMap { case (projectName, p) =>
-        val explodedP = explode(p)
+        val explodedP = Defaults.addDefaults(explode(p))
 
         val explodeCross: Map[model.CrossProjectName, model.Project] =
           if (explodedP.cross.isEmpty) Map(model.CrossProjectName(projectName, None) -> explodedP)
@@ -98,12 +99,18 @@ object ExplodedBuild {
         explodeCross
       }
 
+    val retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]] =
+      build.projects.value.flatMap { case (projectName, p) =>
+        Some((projectName, p.`extends`))
+      }
+
     val ret = ExplodedBuild(
       version = build.version,
       templates = explodedTemplates,
       scripts = build.scripts.value,
       resolvers = build.resolvers,
-      projects = explodedProjects
+      projects = explodedProjects,
+      retainCrossTemplates = retainCrossTemplates
     )
 
     verify(ret)

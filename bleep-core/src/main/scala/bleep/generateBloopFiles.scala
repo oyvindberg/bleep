@@ -170,7 +170,7 @@ object generateBloopFiles {
           }
 
         val setup = {
-          val provided = maybeScala.flatMap(_.setup).map(_.union(Defaults.DefaultCompileSetup)).getOrElse(Defaults.DefaultCompileSetup)
+          val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
           b.CompileSetup(
             order = provided.order.get,
             addLibraryToBootClasspath = provided.addLibraryToBootClasspath.get,

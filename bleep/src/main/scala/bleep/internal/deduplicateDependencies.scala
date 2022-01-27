@@ -1,6 +1,5 @@
 package bleep
-
-import bleep.internal.rewriteDependentData
+package internal
 
 object deduplicateDependencies {
   def apply(build: ExplodedBuild): ExplodedBuild = {
@@ -45,7 +44,8 @@ object deduplicateDependencies {
       templates = build.templates,
       projects = forcedProjects,
       scripts = build.scripts,
-      resolvers = build.resolvers
+      resolvers = build.resolvers,
+      retainCrossTemplates = build.retainCrossTemplates
     )
   }
 }
