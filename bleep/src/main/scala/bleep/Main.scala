@@ -63,8 +63,11 @@ object Main {
       List(
         Opts.subcommand("build", "rewrite build")(
           List(
-            Opts.subcommand("reapply-templates", "apply templates again. will minimize ")(
-              CommonOpts.opts.map(opts => commands.BuildReapplyTemplates(forceStarted, opts))
+            Opts.subcommand("templates-reapply", "reapply templates.")(
+              CommonOpts.opts.map(opts => commands.BuildReapplyTemplates(forceStarted))
+            ),
+            Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
+              CommonOpts.opts.map(opts => commands.BuildReinferTemplates(forceStarted, Set.empty))
             )
           ).foldK
         ),

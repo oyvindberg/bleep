@@ -1,6 +1,6 @@
 package bleep
+package internal
 
-import bleep.internal.{CachingPomReader, Replacements, ScalaVersions}
 import bleep.logging.Logger
 import bloop.config.Config
 import coursier.core.Configuration
@@ -236,7 +236,7 @@ object importBloopFilesFromSbt {
           .filterNot(_ == Defaults.MavenCentral)
       )
 
-    ExplodedBuild("1", Map.empty, Map.empty, resolvers = buildResolvers, projects)
+    ExplodedBuild("1", Map.empty, Map.empty, resolvers = buildResolvers, projects, Map.empty)
   }
 
   case class ParsedDependency(dep: Dep, directDeps: List[(Configuration, Dependency)])

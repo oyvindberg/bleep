@@ -39,4 +39,18 @@ object Defaults {
       nativeGc = None,
       nativeMainClass = None
     )
+
+  def removeDefaults(proj: model.Project): model.Project =
+    proj.copy(
+      scala = proj.scala.map(ret => ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))),
+      platform = proj.platform.map(x => x.removeAll(Defaults.Jvm)),
+      `source-layout` = proj.`source-layout`.filterNot(_ == SourceLayout.Normal)
+    )
+
+  def addDefaults(proj: model.Project): model.Project =
+    proj.copy(
+      scala = proj.scala.map(x => x.copy(setup = Some(x.setup.fold(DefaultCompileSetup)(_.union(DefaultCompileSetup))))),
+      platform = proj.platform.map(x => if (x.name.contains(model.PlatformId.Jvm)) x.union(Defaults.Jvm) else x),
+      `source-layout` = proj.`source-layout`.orElse(Some(SourceLayout.Normal))
+    )
 }

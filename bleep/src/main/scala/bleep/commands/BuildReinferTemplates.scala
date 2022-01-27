@@ -6,10 +6,12 @@ import io.circe.syntax._
 
 import java.nio.file.Files
 
-case class BuildReapplyTemplates(started: Started) extends BleepCommand {
+case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
   override def run(): Unit = {
     val normalizedBuild = normalize(started.build)
-    val build = Templates.reapply(normalizedBuild, started.rawBuild.templates)
+    val droppedTemplates = normalizedBuild.dropTemplates
+
+    val build = Templates(droppedTemplates, ignoreWhenInferringTemplates)
 
     Files.writeString(
       started.buildPaths.bleepJsonFile,

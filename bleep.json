@@ -40,12 +40,12 @@
         },
         "org.gnieh::diffson-circe:4.1.1"
       ],
-      "extends" : "template-cross-scala-2.13-3"
+      "extends" : "template-cross-all"
     },
     "bleep-tasks" : {
       "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
       "dependsOn" : "bleep-core",
-      "extends" : "template-cross-scala-2.13-3",
+      "extends" : "template-cross-all",
       "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
       "sources" : [
         "./liberated/bloop-packager/src/main/scala",
@@ -56,10 +56,7 @@
     "bleep-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "bleep",
-      "extends" : [
-        "template-common-main",
-        "template-scala-2.13"
-      ],
+      "extends" : "template-scala-2.13",
       "folder" : "./bleep",
       "platform" : {
         "jvmMainClass" : "bleep.Main"
@@ -105,7 +102,7 @@
         "org.codehaus.mojo:animal-sniffer-annotations:1.17",
         "org.graalvm.nativeimage:svm:21.3.0"
       ],
-      "extends" : "template-cross-scala-2.13-3"
+      "extends" : "template-cross-all"
     },
     "infrastructure" : {
       "dependsOn" : [
@@ -143,18 +140,16 @@
       "extends" : "template-common",
       "sbt-scope" : "main"
     },
-    "template-cross-scala-2.13-3" : {
+    "template-cross-all" : {
       "cross" : {
         "jvm213" : {
-          "extends" : [
-            "template-common-main",
-            "template-scala-2.13"
-          ]
+          "extends" : "template-scala-2.13"
         },
         "jvm3" : {
-          "extends" : "template-scala-3-main"
+          "extends" : "template-scala-3"
         }
-      }
+      },
+      "extends" : "template-common-main"
     },
     "template-scala-2.13" : {
       "extends" : "template-common",
@@ -201,18 +196,6 @@
     "template-scala-3" : {
       "extends" : "template-common",
       "sbt-scope" : "main",
-      "scala" : {
-        "options" : [
-          "-Ykind-projector",
-          "-deprecation",
-          "-explain",
-          "-explain-types"
-        ],
-        "version" : "3.1.1"
-      }
-    },
-    "template-scala-3-main" : {
-      "extends" : "template-common-main",
       "scala" : {
         "options" : [
           "-Ykind-projector",
