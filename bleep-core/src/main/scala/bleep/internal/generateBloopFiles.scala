@@ -1,6 +1,6 @@
 package bleep
+package internal
 
-import bleep.internal.{rewriteDependentData, Lazy, Replacements, ScalaVersions}
 import bloop.config.{Config => b}
 import coursier.core.Configuration
 import coursier.{Classifier, Dependency}

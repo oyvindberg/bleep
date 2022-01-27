@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{Lazy, Os}
+import bleep.internal.{generateBloopFiles, Lazy, Os}
 import bleep.logging.Logger
 import bloop.config.{Config => b, ConfigCodecs}
 import cats.data.NonEmptyList
