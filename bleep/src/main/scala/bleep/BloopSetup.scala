@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.generateBloopFiles.ordering
+import bleep.internal.generateBloopFiles.ordering
 import bleep.internal.Os
 import coursier.core.Dependency
 import coursier.parse.ModuleParser

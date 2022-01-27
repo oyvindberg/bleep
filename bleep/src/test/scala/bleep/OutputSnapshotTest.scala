@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.internal.generateBloopFiles
 import bleep.logging.Logger
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
