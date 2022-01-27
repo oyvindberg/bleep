@@ -92,7 +92,7 @@ object Main {
         Opts.subcommand("patch", "Apply patch from standard-in or file")(
           (CommonOpts.opts, Opts.option[Path]("file", "patch file, defaults to std-in").orNone).mapN((opts, file) => commands.Patch(forceStarted, opts, file))
         ),
-        Opts.subcommand("import", "import existing build from files in .bloop")(Opts(commands.Import(logger, Set.empty))),
+        Opts.subcommand("import", "import existing build from files in .bloop")(commands.Import.opts.map(opts => commands.Import(logger, opts))),
         Opts.subcommand("_complete", "tab-completions")(
           (Opts.argument[String]("COMP_LINE"), Opts.argument[Int]("COMP_CWORD"), Opts.argument[Int]("COMP_POINT")).mapN {
             case (compLine, compCword, compPoint) =>
