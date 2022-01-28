@@ -13,7 +13,7 @@ class Replacements private (val map: List[(String, String)]) {
       replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
 
     def relPath(relPath: RelPath): RelPath =
-      RelPath(relPath.segments.map(string))
+      new RelPath(relPath.segments.map(string))
 
     def opts(options: Options): Options =
       new Options(options.values.map {

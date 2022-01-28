@@ -4,7 +4,7 @@ import io.circe.{Decoder, Encoder}
 
 import java.nio.file.Path
 
-case class RelPath private (segments: List[String])
+case class RelPath(segments: List[String])
 
 object RelPath {
   val empty = RelPath(Nil)
