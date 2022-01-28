@@ -34,7 +34,7 @@ object generateBloopFiles {
   ): b.File = {
 
     val projectPaths: ProjectPaths =
-      buildPaths.from(crossName.name, explodedProject)
+      buildPaths.from(crossName, explodedProject)
 
     val allTransitiveTranslated: Map[model.CrossProjectName, b.File] = {
       val builder = Map.newBuilder[model.CrossProjectName, b.File]
@@ -211,7 +211,7 @@ object generateBloopFiles {
           version = scalaCompiler.version,
           options = templateDirs.fill.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
-          analysis = Some(projectPaths.incrementalAnalysis(scalaVersion)),
+          analysis = Some(projectPaths.incrementalAnalysis),
           setup = Some(setup)
         )
       }
@@ -248,7 +248,7 @@ object generateBloopFiles {
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = projectPaths.targetDir,
-        classesDir = projectPaths.classes(crossName.crossId, isTest = !explodedProject.testFrameworks.isEmpty),
+        classesDir = projectPaths.classes,
         resources = Some(resources.values.toList),
         scala = configuredScala,
         java = Some(b.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
