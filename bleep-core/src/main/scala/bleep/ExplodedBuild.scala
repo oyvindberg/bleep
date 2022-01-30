@@ -1,8 +1,9 @@
 package bleep
 
 import bleep.internal.Functions.stripExtends
-import bleep.internal.rewriteDependentData
+import bleep.internal.{rewriteDependentData, ShortenAndSortJson}
 import bleep.model.CrossProjectName
+import io.circe.syntax._
 
 import java.net.URI
 import scala.collection.immutable.SortedMap
@@ -75,6 +76,27 @@ case class ExplodedBuild(
 }
 
 object ExplodedBuild {
+  def diffProjects(before: ExplodedBuild, after: ExplodedBuild): SortedMap[CrossProjectName, String] = {
+    val allProjects = before.projects.keySet ++ after.projects.keySet
+    val diffs = SortedMap.newBuilder[model.CrossProjectName, String]
+    allProjects.foreach { projectName =>
+      (before.projects.get(projectName), after.projects.get(projectName)) match {
+        case (Some(before), Some(after)) if after == before => ()
+        case (Some(before), Some(after)) =>
+          val onlyInBefore = before.removeAll(after).asJson.foldWith(ShortenAndSortJson).spaces2
+          val onlyInAfter = Option(after.removeAll(before)).asJson.foldWith(ShortenAndSortJson).spaces2
+          diffs += ((projectName, s"before: $onlyInBefore, after: $onlyInAfter"))
+        case (Some(_), None) =>
+          diffs += ((projectName, "was dropped"))
+        case (None, Some(_)) =>
+          diffs += ((projectName, "was added"))
+        case (None, None) =>
+          ()
+      }
+    }
+    diffs.result()
+  }
+
   def of(build: model.Build): ExplodedBuild = {
     val explodedTemplates: SortedMap[model.TemplateId, model.Project] =
       rewriteDependentData.eager(build.templates.value) { (_, p, eval) =>
@@ -86,13 +108,15 @@ object ExplodedBuild {
 
     val explodedProjects: Map[model.CrossProjectName, model.Project] =
       build.projects.value.flatMap { case (projectName, p) =>
-        val explodedP = Defaults.addDefaults(explode(p))
+        val explodedP = Defaults.add(explode(p))
 
         val explodeCross: Map[model.CrossProjectName, model.Project] =
           if (explodedP.cross.isEmpty) Map(model.CrossProjectName(projectName, None) -> explodedP)
           else {
             explodedP.cross.value.map { case (crossId, crossP) =>
-              (model.CrossProjectName(projectName, Some(crossId)), explode(crossP).union(explodedP))
+              val combinedWithCrossProject = explode(crossP).union(explodedP.copy(cross = JsonMap.empty))
+              val withDefaults = Defaults.add(combinedWithCrossProject)
+              (model.CrossProjectName(projectName, Some(crossId)), withDefaults)
             }
           }
 

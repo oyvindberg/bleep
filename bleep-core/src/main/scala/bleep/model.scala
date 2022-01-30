@@ -2,6 +2,7 @@ package bleep
 
 import bleep.internal.codecs.codecURI
 import bleep.internal.{EnumCodec, SetLike}
+import bleep.logging.Formatter
 import bloop.config.Config
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -387,6 +388,7 @@ object model {
   }
 
   object CrossProjectName {
+    implicit val formats: Formatter[CrossProjectName] = _.value
     implicit val ordering: Ordering[CrossProjectName] = Ordering.by(x => (x.name, x.crossId))
     implicit val decodes: Decoder[CrossProjectName] =
       Decoder.instance(c =>
