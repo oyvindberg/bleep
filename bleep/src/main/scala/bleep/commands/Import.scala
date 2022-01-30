@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{importBloopFilesFromSbt, normalize, Os, ShortenAndSortJson, Templates}
+import bleep.internal._
 import bleep.logging.Logger
 import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.monovore.decline.Opts
@@ -42,8 +42,16 @@ case class Import(logger: Logger, options: Import.Options) extends BleepCommand 
       cli("sbt 'set Global / bloopConfigDir := baseDirectory.value / s\".bleep/import/bloop-${scalaBinaryVersion.value}\"' +bloopInstall")(buildPaths.buildDir)
 
     val build0 = importBloopFilesFromSbt(logger, buildPaths)
-    val normalizedBuild = normalize(build0)
+    val normalizedBuild = normalizeBuild(build0)
     val build = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
+
+    // fail if we have done illegal rewrites during templating
+    ExplodedBuild.diffProjects(Defaults.add(normalizedBuild), ExplodedBuild.of(build).dropTemplates) match {
+      case empty if empty.isEmpty => ()
+      case diffs =>
+        logger.error("Project templating did illegal rewrites. Please report this as a bug")
+        diffs.foreach { case (projectName, msg) => logger.withContext(projectName).error(msg) }
+    }
 
     Files.writeString(
       buildPaths.bleepJsonFile,

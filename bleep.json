@@ -115,9 +115,9 @@
       ]
     }
   },
-  "scripts": {
-    "native-image": "infrastructure/bleep.infra.GenNativeImage",
-    "jars": "infrastructure/bleep.infra.PackageAll"
+  "scripts" : {
+    "jars" : "infrastructure/bleep.infra.PackageAll",
+    "native-image" : "infrastructure/bleep.infra.GenNativeImage"
   },
   "templates" : {
     "template-common" : {

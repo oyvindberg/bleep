@@ -48,7 +48,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.6/scala-reflect-2.12.6.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
       ],
-      "analysis": "<PROJECT>/bloop-test-files/test1/clients/bigquery/target/streams/compile/bloopAnalysisOut/_global/streams/inc_compile_2.12.zip",
+      "analysis": "<PROJECT>/bloop-test-files/test1/.bleep/.bloop/bigquery-test/inc_compile.zip",
       "setup": {
         "order": "mixed",
         "addLibraryToBootClasspath": true,

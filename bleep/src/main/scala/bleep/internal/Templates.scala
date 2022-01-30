@@ -17,7 +17,7 @@ object Templates {
   }
 
   implicit class ProjectOps(p: model.Project) {
-    def addTemplate(t: model.TemplateId): model.Project =
+    def withTemplate(t: model.TemplateId): model.Project =
       p.copy(`extends` = p.`extends` + t)
   }
 
@@ -306,21 +306,24 @@ object Templates {
       applicableTemplateDefs: List[TemplateDef],
       projects: List[ProjectKeepExploded]
   ): SortedMap[TemplateDef, TemplateKeepExploded] = {
-    val templateDefsWithProjects: Map[TemplateDef, List[model.Project]] =
+    val templateDefsWithProjects: Map[TemplateDef, List[ProjectKeepExploded]] =
       applicableTemplateDefs.map { templateDef =>
         val projectsForTemplate = projects.collect {
-          case ProjectKeepExploded(exploded, current) if templateDef.include(exploded) => current
+          case pe @ ProjectKeepExploded(exploded, _) if templateDef.include(exploded) => pe
         }
         (templateDef, projectsForTemplate)
       }.toMap
 
     val maybeTemplates: SortedMap[TemplateDef, Lazy[Option[TemplateKeepExploded]]] =
-      rewriteDependentData[TemplateDef, List[model.Project], Option[TemplateKeepExploded]](templateDefsWithProjects) {
+      rewriteDependentData[TemplateDef, List[ProjectKeepExploded], Option[TemplateKeepExploded]](templateDefsWithProjects) {
         case (_, projects, _) if projects.sizeIs < 2 => None
         case (templateDef, projects, eval)           =>
           // check what all the picked projects have in common
-          val maybeInitialTemplate: Option[TemplateKeepExploded] =
-            projects.optReduce(_.intersectDropEmpty(_)).map(p => TemplateKeepExploded(p, p))
+          val maybeInitialTemplate: Option[TemplateKeepExploded] = {
+            val current = projects.map(_.current).optReduce(_.intersectDropEmpty(_))
+            val exploded = projects.map(_.exploded).optReduce(_.intersectDropEmpty(_))
+            exploded.zip(current).map { case (exploded, current) => TemplateKeepExploded(exploded, current) }
+          }
 
           val templateAfterParents: Option[TemplateKeepExploded] =
             maybeInitialTemplate
@@ -385,8 +388,8 @@ object Templates {
 
     if (isShortened && doesntAddNew && doesntHaveIncompatiblePrimitives && sameCrossVersions) {
       project.copy(
-        current = shortened.addTemplate(templateId),
-        exploded = project.exploded.addTemplate(templateId)
+        current = shortened.withTemplate(templateId),
+        exploded = project.exploded.withTemplate(templateId)
       )
     } else project
   }
