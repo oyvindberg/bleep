@@ -3,7 +3,6 @@ package bleep
 import bleep.internal.{generateBloopFiles, Lazy, Os}
 import bleep.logging.Logger
 import bloop.config.{Config => b, ConfigCodecs}
-import cats.data.NonEmptyList
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 
@@ -13,7 +12,6 @@ import java.nio.file.{Files, Path}
 import java.time.Instant
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 /** @param build
@@ -38,13 +36,16 @@ case class Started(
 
   def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
     maybeFromCommandLine match {
-      case Some(fromCommandLine) => fromCommandLine
+      case Some(fromCommandLine) => fromCommandLine.sorted
       case None =>
         activeProjectsFromPath match {
-          case Nil      => bloopFiles.keys.toList
+          case Nil      => bloopFiles.keys.toList.sorted
           case nonEmpty => nonEmpty
         }
     }
+
+  def chosenTestProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
+    chosenProjects(maybeFromCommandLine).filterNot(projectName => build.projects(projectName).testFrameworks.isEmpty)
 }
 
 object bootstrap {
@@ -92,20 +93,12 @@ object bootstrap {
             val currentHash = build.toString.hashCode().toString
             val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
             val explodedBuild = ExplodedBuild.of(build)
-            val activeProjects: List[model.CrossProjectName] = {
-              val withRelativeLength: Map[model.CrossProjectName, Int] =
-                explodedBuild.projects.flatMap { case (crossProjectName, p) =>
-                  val folder = buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.value))
-                  val relative = cwd.relativize(folder)
-                  if (relative.iterator().asScala.contains("..")) None
-                  else Some((crossProjectName, relative.getNameCount))
-                }
-
-              withRelativeLength.values.minOption match {
-                case Some(min) => withRelativeLength.filter(_._2 == min).keys.toList
-                case None      => Nil
-              }
-            }
+            val activeProjects: List[model.CrossProjectName] =
+              explodedBuild.projects.flatMap { case (crossProjectName, p) =>
+                val folder = buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
+                if (folder.startsWith(cwd)) Some(crossProjectName)
+                else None
+              }.toList
 
             val bloopFiles = if (oldHash.contains(currentHash)) {
               logger.debug(s"${buildPaths.bleepBloopDir} up to date")
