@@ -86,7 +86,7 @@ object CoursierResolver {
 
     def files: List[File] =
       fullDetailedArtifacts
-        .collect { case (_, publication, _, Some(file)) if publication.classifier == Classifier.empty => file }
+        .collect { case (_, publication, _, Some(file)) if publication.classifier == Classifier.empty || publication.classifier == Classifier.tests => file }
         .distinct
         .toList
 
@@ -130,11 +130,12 @@ object CoursierResolver {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
-        Fetch[Task](fileCache)
+        val value = Fetch[Task](fileCache)
           .withDependencies(deps.values.toList)
           .addRepositories(repositories.values.toList.map(uri => MavenRepository(uri.toString, resolverConfigs.configs.get(uri))): _*)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
+        value
           .eitherResult() match {
           case Left(x: ResolutionError.CantDownloadModule) if remainingAttempts > 0 && x.perRepositoryErrors.exists(_.contains("concurrent download")) =>
             go(remainingAttempts - 1)
