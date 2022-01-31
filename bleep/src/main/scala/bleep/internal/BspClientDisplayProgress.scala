@@ -32,9 +32,14 @@ class BspClientDisplayProgress(
       case _ => None
     }
 
+  val DisplayN = 4
   def render(): Unit =
     logger.progressMonitor.foreach { pm =>
-      val progress = active.toList
+      val byMostProgress = active.toList.sortBy(_._2.fold(0L)(-_.getProgress))
+      val rest = byMostProgress.drop(DisplayN)
+
+      val progress = byMostProgress
+        .take(DisplayN)
         .map { case (buildTargetId, maybeProgress) =>
           val percentage: String =
             maybeProgress match {
@@ -45,7 +50,7 @@ class BspClientDisplayProgress(
             }
           Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
-        .mkString("Compiling ", ", ", "")
+        .mkString("Compiling ", ", ", (if (rest.isEmpty) "" else s" +${rest.size}"))
       pm.info(progress)
     }
 
@@ -53,10 +58,10 @@ class BspClientDisplayProgress(
     Bold.On(Str(buildTargetId.getUri.split("=").last))
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), s"show message: ${params.getMessage}")
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), s"log message: ${params.getMessage}")
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
 
   def logLevelFor(messageType: MessageType): LogLevel =
     messageType match {
