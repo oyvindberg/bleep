@@ -23,7 +23,7 @@ object Main {
 
     def forceStarted: Started = bootstrapped match {
       case Left(buildException) =>
-        logger.error("couldn't initialize", buildException)
+        logger.error("couldn't initialize build", buildException)
         sys.exit(1)
       case Right(started) => started
     }
@@ -43,14 +43,28 @@ object Main {
     }
     def projectNameMap: Map[String, Iterable[model.CrossProjectName]] =
       bootstrapped match {
-        case Left(_)        => Map.empty
-        case Right(started) => projectCompletions(started.build.projects.keys)
+        case Left(_) => Map.empty
+        case Right(started) =>
+          val projects: Iterable[model.CrossProjectName] =
+            started.activeProjectsFromPath match {
+              case Nil      => started.build.projects.keys
+              case nonEmpty => nonEmpty
+            }
+          projectCompletions(projects)
       }
 
     def testProjectNameMap: Map[String, Iterable[model.CrossProjectName]] =
       bootstrapped match {
-        case Left(_)        => Map.empty
-        case Right(started) => projectCompletions(started.build.projects.filter { case (_, p) => !p.testFrameworks.isEmpty }.keys)
+        case Left(_) => Map.empty
+        case Right(started) =>
+          val projects: Iterable[model.CrossProjectName] =
+            started.activeProjectsFromPath match {
+              case Nil      => started.build.projects.keys
+              case nonEmpty => nonEmpty
+            }
+          val testProjects = projects.filter(projectName => !started.build.projects(projectName).testFrameworks.isEmpty)
+
+          projectCompletions(testProjects)
       }
 
     def projectNames: Opts[Option[List[model.CrossProjectName]]] =
@@ -82,6 +96,26 @@ object Main {
         ),
         Opts.subcommand("clean", "clean")(
           (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Clean(forceStarted, opts, projectNames) }
+        ),
+        Opts.subcommand("projects", "show projects under current directory")(
+          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) =>
+            new BleepCommand {
+              override def run(): Unit = {
+                val started = forceStarted
+                started.logger.info(started.chosenProjects(projectNames).map(_.value).mkString(", "))
+              }
+            }
+          }
+        ),
+        Opts.subcommand("projects-test", "show test projects under current directory")(
+          (CommonOpts.opts, testProjectNames).mapN { case (opts, projectNames) =>
+            new BleepCommand {
+              override def run(): Unit = {
+                val started = forceStarted
+                started.logger.info(started.chosenTestProjects(projectNames).map(_.value).mkString(", "))
+              }
+            }
+          }
         ),
         Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
           bootstrapped match {
