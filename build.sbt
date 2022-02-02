@@ -58,7 +58,7 @@ lazy val bleep = project
   .dependsOn(`bleep-core`, `bloop-rifle`)
   .settings(
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.2.10" % Test,
+      "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.1",
