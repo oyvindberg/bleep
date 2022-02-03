@@ -152,8 +152,15 @@ object model {
 
   case class TemplateId(value: String) extends AnyVal
   object TemplateId {
+    def decoder(legal: Iterable[TemplateId]): Decoder[TemplateId] = {
+      val byString: Map[String, TemplateId] =
+        legal.map(t => t.value -> t).toMap
+      Decoder[String].emap { str =>
+        byString.get(str).toRight(s"referenced template id '$str' not among ${byString.keys.mkString(", ")}")
+      }
+    }
+
     implicit val ordering: Ordering[TemplateId] = Ordering.by(_.value)
-    implicit val decodes: Decoder[TemplateId] = Decoder[String].map(TemplateId.apply)
     implicit val encodes: Encoder[TemplateId] = Encoder[String].contramap(_.value)
     implicit val keyDecodes: KeyDecoder[TemplateId] = KeyDecoder[String].map(TemplateId.apply)
     implicit val keyEncodes: KeyEncoder[TemplateId] = KeyEncoder[String].contramap(_.value)
@@ -364,10 +371,14 @@ object model {
 
   object ProjectName {
     implicit val ordering: Ordering[ProjectName] = Ordering.by(_.value)
-    implicit val decodes: Decoder[ProjectName] = Decoder[String].map(ProjectName.apply)
     implicit val encodes: Encoder[ProjectName] = Encoder[String].contramap(_.value)
     implicit val keyDecodes: KeyDecoder[ProjectName] = KeyDecoder[String].map(ProjectName.apply)
     implicit val keyEncodes: KeyEncoder[ProjectName] = KeyEncoder[String].contramap(_.value)
+
+    def decoder(legal: Iterable[ProjectName]): Decoder[ProjectName] = {
+      val byString: Map[String, ProjectName] = legal.map(t => t.value -> t).toMap
+      Decoder[String].emap(str => byString.get(str).toRight(s"referenced project name '$str' not among ${byString.keys.mkString(", ")}"))
+    }
   }
 
   case class CrossId(value: String)
@@ -499,7 +510,7 @@ object model {
       testFrameworks = JsonSet.empty
     )
 
-    implicit val decodes: Decoder[Project] = deriveDecoder
+    implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = deriveDecoder
     implicit val encodes: Encoder[Project] = deriveEncoder
   }
 
@@ -542,8 +553,16 @@ object model {
       Decoder.instance(c =>
         for {
           version <- c.downField("version").as[String]
-          templates <- c.downField("templates").as[JsonMap[TemplateId, Project]]
-          projects <- c.downField("projects").as[JsonMap[ProjectName, Project]]
+
+          /* construct a custom decoder for `Project` to give better error messages */
+          templateIds <- c.downField("templates").as[Option[JsonObject]].map(_.fold(Iterable.empty[TemplateId])(_.keys.map(TemplateId.apply)))
+          templateIdDecoder = TemplateId.decoder(templateIds)
+          projectNames <- c.downField("projects").as[Option[JsonObject]].map(_.fold(Iterable.empty[ProjectName])(_.keys.map(ProjectName.apply)))
+          projectNameDecoder = ProjectName.decoder(projectNames)
+          projectDecoder = Project.decodes(templateIdDecoder, projectNameDecoder)
+
+          templates <- c.downField("templates").as[JsonMap[TemplateId, Project]](JsonMap.decodes(TemplateId.keyDecodes, projectDecoder))
+          projects <- c.downField("projects").as[JsonMap[ProjectName, Project]](JsonMap.decodes(ProjectName.keyDecodes, projectDecoder))
           scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
           resolvers <- c.downField("resolvers").as[JsonSet[URI]]
         } yield Build(version, templates, scripts, resolvers, projects)

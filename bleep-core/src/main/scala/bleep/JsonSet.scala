@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.internal.SetLike
-import cats.syntax.traverse._
 import io.circe.Decoder.Result
 import io.circe.{Decoder, Encoder, Json}
 
@@ -41,11 +40,11 @@ object JsonSet {
         json <- c.as[Json]
         ts <- json.fold[Result[JsonSet[T]]](
           Right(empty[T]),
-          _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t))),
-          _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t))),
-          _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t))),
-          array => array.toList.traverse(Decoder[T].decodeJson).map(JsonSet.fromIterable(_)),
-          _ => Decoder[T].apply(c).map(t => JsonSet(SortedSet(t)))
+          _ => c.as[T].map(t => JsonSet(SortedSet(t))),
+          _ => c.as[T].map(t => JsonSet(SortedSet(t))),
+          _ => c.as[T].map(t => JsonSet(SortedSet(t))),
+          _ => c.as[List[T]].map(JsonSet.fromIterable(_)),
+          _ => c.as[T].map(t => JsonSet(SortedSet(t)))
         )
       } yield ts
     )

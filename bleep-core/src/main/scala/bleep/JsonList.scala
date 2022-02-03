@@ -26,17 +26,17 @@ case class JsonList[T](values: List[T]) extends SetLike[JsonList[T]] {
 object JsonList {
   def empty[T]: JsonList[T] = JsonList(Nil)
 
-  implicit def decodes[T](implicit T: Decoder[T]): Decoder[JsonList[T]] = {
+  implicit def decodes[T: Decoder]: Decoder[JsonList[T]] = {
     val base = Decoder.instance(c =>
       for {
         json <- c.as[Json]
         ts <- json.fold[Result[JsonList[T]]](
           Right(JsonList(Nil)),
-          _ => T(c).map(t => JsonList(List(t))),
-          _ => T(c).map(t => JsonList(List(t))),
-          _ => T(c).map(t => JsonList(List(t))),
-          array => array.toList.traverse(T.decodeJson).map(JsonList.apply),
-          _ => T(c).map(t => JsonList(List(t)))
+          _ => c.as[T].map(t => JsonList(List(t))),
+          _ => c.as[T].map(t => JsonList(List(t))),
+          _ => c.as[T].map(t => JsonList(List(t))),
+          _ => c.as[List[T]].map(JsonList.apply),
+          _ => c.as[T].map(t => JsonList(List(t)))
         )
       } yield ts
     )
