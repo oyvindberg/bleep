@@ -1,33 +1,30 @@
 package bleep
 
+import bleep.internal.FileUtils
 import bleep.internal.generateBloopFiles.ordering
-import bleep.internal.Os
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
 import java.io.File
 import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
-import java.util
-import java.util.{Locale, Random}
+import java.util.Locale
 import scala.build.blooprifle.{BloopRifleConfig, BspConnectionAddress}
-import scala.util.{Failure, Properties, Success, Try}
+import scala.util.{Failure, Properties, Random, Success, Try}
 
 class BloopSetup(
     javaPath: String,
     started: Started,
     // Protocol to use to open a BSP connection with Bloop: tcp | local | default
-    bloopBspProtocol: Option[String],
-    // Socket file to use to open a BSP connection with Bloop (on Windows, a pipe name like "`\\.\pipe\…`")
-    bloopBspSocket: Option[String]
+    bloopBspProtocol: Option[String]
 ) {
   lazy val bloopRifleConfig = {
-    val baseConfig = BloopRifleConfig.default(bloopClassPath)
+    val tcpOrDomain = bloopBspProtocol match {
+      case Some("tcp") => BloopRifleConfig.Address.Tcp(BloopRifleConfig.defaultHost, BloopRifleConfig.defaultPort)
+      case _           => BloopRifleConfig.Address.DomainSocket(bspSocketFile.toPath)
+    }
 
-    baseConfig.copy(
-      javaPath = javaPath,
-      bspSocketOrPort = None // defaultBspSocketOrPort
-    )
+    BloopRifleConfig.default(tcpOrDomain, bloopClassPath, started.buildPaths.dotBleepDir.toFile).copy(javaPath = javaPath)
   }
 
   def bloopClassPath: String => Either[BuildException, Seq[File]] = {
@@ -55,10 +52,7 @@ class BloopSetup(
 
   def defaultBspSocketOrPort: Option[() => BspConnectionAddress] = {
     def namedSocket =
-      if (Properties.isWin)
-        Some(() => BspConnectionAddress.WindowsNamedPipe(bspPipeName))
-      else
-        Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile()))
+      Some(() => BspConnectionAddress.UnixDomainSocket(bspSocketFile))
 
     // FreeBSD and others throw a java.lang.UnsatisfiedLinkError when trying the
     // UnixDomainSocket, because of the ipcsocket JNI stuff, so stick with TCP for them.
@@ -79,16 +73,6 @@ class BloopSetup(
     }
   }
 
-  private def bspPipeName: String =
-    bloopBspSocket.filter(_.nonEmpty).getOrElse {
-      val bt = "\\"
-      s"$bt$bt.${bt}pipe$bt" + pidOrRandom
-        .map("proc-" + _)
-        .left
-        .map("conn-" + _)
-        .merge
-    }
-
   private lazy val pidOrRandom: Either[Int, Long] =
     Try(ProcessHandle.current.pid) match {
       case Failure(_) =>
@@ -98,27 +82,22 @@ class BloopSetup(
       case Success(pid) => Right(pid)
     }
 
-  private def bspSocketFile(): File = {
-    val (socket, deleteOnExit) = bloopBspSocket match {
-      case Some(path) =>
-        (Os.cwd / path, false)
-      case None =>
-        val dir = socketDirectory()
-        val fileName = pidOrRandom
-          .map("proc-" + _)
-          .left
-          .map("conn-" + _)
-          .merge
-        val path = dir / fileName
-        if (Files.exists(path)) // isFile is false for domain sockets
-          Files.delete(path)
-        (path, true)
+  private def bspSocketFile: File = {
+    val (socket: Path, deleteOnExit: Boolean) = {
+      val dir = socketDirectory() / pidOrRandom
+        .map("proc-" + _)
+        .left
+        .map("conn-" + _)
+        .merge
+      (dir, true)
     }
     if (deleteOnExit)
       Runtime.getRuntime.addShutdownHook(
         new Thread("delete-bloop-bsp-named-socket") {
           override def run() = {
-            Files.deleteIfExists(socket)
+            if (Files.exists(socket)) {
+              FileUtils.deleteDirectory(socket)
+            }
             ()
           }
         }
@@ -134,7 +113,10 @@ class BloopSetup(
       try {
         Files.createDirectories(tmpDir)
         if (!Properties.isWin)
-          Files.setPosixFilePermissions(tmpDir, util.Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE))
+          Files.setPosixFilePermissions(
+            tmpDir,
+            java.util.Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)
+          )
         try Files.move(tmpDir, dir, StandardCopyOption.ATOMIC_MOVE)
         catch {
           case _: AtomicMoveNotSupportedException =>

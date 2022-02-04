@@ -39,7 +39,7 @@ final class BspImpl(
       buildPath,
       classesRootDir(buildPath),
       localClient,
-      threads.buildThreads.bloop,
+      threads.buildThreads,
       bloopRifleLogger
     )
 
@@ -47,7 +47,7 @@ final class BspImpl(
       new BspForwardServer(remoteServer.server, ensureBloopUpToDate)
 
     val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]()
-      .setExecutorService(threads.buildThreads.bloop.jsonrpc) // FIXME No
+      .setExecutorService(threads.buildThreads.jsonrpc) // FIXME No
       .setInput(in)
       .setOutput(out)
       .setRemoteInterface(classOf[bsp4j.BuildClient])
@@ -63,7 +63,7 @@ final class BspImpl(
       else
         "Listening to incoming JSONRPC BSP requests."
     }
-    val es = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
+    val es = ExecutionContext.fromExecutorService(threads.buildThreads.jsonrpc)
     val futures = Seq(
       BspImpl.naiveJavaFutureToScalaFuture(launcher.startListening()).map(_ => ())(es),
       localServer.initiateShutdown
