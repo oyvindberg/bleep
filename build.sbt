@@ -24,7 +24,7 @@ lazy val `bleep-core` = project
   .configure(commonSettings, crossSettings)
   .settings(
     libraryDependencies ++= Seq(
-      "com.lihaoyi" %% "fansi" % "0.3.0",
+      "com.lihaoyi" %% "fansi" % "0.3.1",
       "io.get-coursier" %% "coursier" % "2.0.16" cross For3Use2_13(),
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
