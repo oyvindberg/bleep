@@ -10,7 +10,6 @@ import scala.collection.immutable.SortedMap
 import scala.collection.{immutable, SortedSet}
 
 case class ExplodedBuild(
-    version: String,
     templates: Map[model.TemplateId, model.Project],
     scripts: Map[model.ScriptName, JsonList[model.ScriptDef]],
     resolvers: JsonSet[URI],
@@ -129,7 +128,6 @@ object ExplodedBuild {
       }
 
     val ret = ExplodedBuild(
-      version = build.version,
       templates = explodedTemplates,
       scripts = build.scripts.value,
       resolvers = build.resolvers,

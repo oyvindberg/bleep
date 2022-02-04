@@ -236,7 +236,7 @@ object importBloopFilesFromSbt {
           .filterNot(_ == Defaults.MavenCentral)
       )
 
-    ExplodedBuild("1", Map.empty, Map.empty, resolvers = buildResolvers, projects, Map.empty)
+    ExplodedBuild(Map.empty, Map.empty, resolvers = buildResolvers, projects, Map.empty)
   }
 
   case class ParsedDependency(dep: Dep, directDeps: List[(Configuration, Dependency)])

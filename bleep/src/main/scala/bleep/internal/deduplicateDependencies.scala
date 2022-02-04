@@ -41,7 +41,6 @@ object deduplicateDependencies {
     val forcedProjects = projects.map { case (projectName, lazyProject) => (projectName, lazyProject.forceGet(projectName.value)) }
 
     ExplodedBuild(
-      version = build.version,
       templates = build.templates,
       projects = forcedProjects,
       scripts = build.scripts,

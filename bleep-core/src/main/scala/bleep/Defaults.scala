@@ -6,7 +6,7 @@ import java.net.URI
 
 object Defaults {
   val version = "0.0.1"
-
+  val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/add-json-schema/schema.json"
   val MavenCentral = URI.create("https://repo1.maven.org/maven2")
   val BuildFileName = "bleep.json"
 

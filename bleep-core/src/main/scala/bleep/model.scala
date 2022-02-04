@@ -541,7 +541,7 @@ object model {
   }
 
   case class Build(
-      version: String,
+      $schema: String,
       templates: JsonMap[TemplateId, Project],
       scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
       resolvers: JsonSet[URI],
@@ -552,7 +552,10 @@ object model {
     implicit val decodes: Decoder[Build] =
       Decoder.instance(c =>
         for {
-          version <- c.downField("version").as[String]
+          schema <- c.downField("$schema").as[String].flatMap {
+            case ok @ Defaults.$schema => Right(ok)
+            case notOk                 => Left(DecodingFailure(s"$notOk must be ${Defaults.$schema}", c.history))
+          }
 
           /* construct a custom decoder for `Project` to give better error messages */
           templateIds <- c.downField("templates").as[Option[JsonObject]].map(_.fold(Iterable.empty[TemplateId])(_.keys.map(TemplateId.apply)))
@@ -565,7 +568,7 @@ object model {
           projects <- c.downField("projects").as[JsonMap[ProjectName, Project]](JsonMap.decodes(ProjectName.keyDecodes, projectDecoder))
           scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
           resolvers <- c.downField("resolvers").as[JsonSet[URI]]
-        } yield Build(version, templates, scripts, resolvers, projects)
+        } yield Build(schema, templates, scripts, resolvers, projects)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
   }
