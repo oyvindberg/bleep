@@ -51,7 +51,7 @@ lazy val `bleep-tasks` = project
     )
   )
 
-lazy val `bloop-rifle` =
+/*lazy val `bloop-rifle` =
   project
     .configure(commonSettings, crossSettings)
     .settings(
@@ -63,22 +63,23 @@ lazy val `bloop-rifle` =
         "org.graalvm.nativeimage" % "svm" % "21.3.0" % "provided"
       )
     )
-
+ */
 lazy val bleep = project
   .configure(commonSettings)
-  .dependsOn(`bleep-core`, `bloop-rifle`)
+  .dependsOn(`bleep-core`)
   .settings(
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.1",
-      "org.graalvm.nativeimage" % "svm" % "21.3.0"
+      "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.0",
+      "org.graalvm.nativeimage" % "svm" % "22.0.0.2"
     ),
     Compile / bloopMainClass := Some("bleep.Main"),
-    nativeImageJvmIndex := "https://raw.githubusercontent.com/shyiko/jabba/54af2bdc0d895e23495bbee733673c2a36179a34/index.json",
-    nativeImageJvm := "graalvm-ce-java17",
-    nativeImageVersion := "21.3.0",
+    nativeImageJvmIndex := "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json",
+    nativeImageJvm := "graalvm-java17",
+    nativeImageVersion := "22.0.0.2",
     assemblyMergeStrategy := {
       case PathList(ps @ _*) if ps.last.endsWith("module-info.class") => MergeStrategy.discard
       case x =>

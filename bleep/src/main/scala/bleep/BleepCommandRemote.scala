@@ -5,6 +5,7 @@ import ch.epfl.scala.bsp4j
 
 import java.util
 import scala.build.bloop.{BloopServer, BloopThreads}
+import scala.build.blooprifle.internal.Operations
 import scala.jdk.CollectionConverters._
 
 trait BleepCommandRemote extends BleepCommand {
@@ -26,11 +27,11 @@ trait BleepCommandRemote extends BleepCommand {
     val bloopRifleConfig = new BloopSetup(
       JavaCmd.javacommand,
       started,
-      bloopBspProtocol = None,
-      bloopBspSocket = None
+      Some("local")
     ).bloopRifleConfig
 
     val buildClient: BspClientDisplayProgress = BspClientDisplayProgress(started.logger)
+    val logger = new MyBloopRifleLogger(started.logger, true, true)
 
     BloopServer.withBuildServer(
       config = bloopRifleConfig,
@@ -40,8 +41,10 @@ trait BleepCommandRemote extends BleepCommand {
       classesDir = started.buildPaths.dotBleepDir / "classes",
       buildClient = buildClient,
       threads = BloopThreads.create(),
-      logger = new MyBloopRifleLogger(started.logger, true, true)
+      logger = logger
     )(runWithServer)
+
+    Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.in, System.out, System.err, logger)
 
     buildClient.failed match {
       case empty if empty.isEmpty => ()

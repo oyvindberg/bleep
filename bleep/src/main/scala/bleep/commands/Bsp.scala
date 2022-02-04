@@ -2,7 +2,9 @@ package bleep
 package commands
 
 import bleep.bsp.BspImpl
+import bleep.internal.MyBloopRifleLogger
 
+import scala.build.blooprifle.internal.Operations
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -11,8 +13,7 @@ case class Bsp(opts: CommonOpts, started: Started) extends BleepCommand {
     val bloopRifleConfig = new BloopSetup(
       JavaCmd.javacommand,
       started,
-      bloopBspProtocol = None,
-      bloopBspSocket = None
+      bloopBspProtocol = Some("local")
     ).bloopRifleConfig
 
     bsp.BspThreads.withThreads { threads =>
@@ -33,7 +34,17 @@ case class Bsp(opts: CommonOpts, started: Started) extends BleepCommand {
       try {
         val doneFuture = bsp.run()
         Await.result(doneFuture, Duration.Inf)
-      } finally bsp.shutdown()
+      } finally {
+        bsp.shutdown()
+        Operations.exit(
+          bloopRifleConfig.address,
+          started.buildPaths.dotBleepDir,
+          System.in,
+          System.out,
+          System.err,
+          new MyBloopRifleLogger(started.logger, true, true)
+        )
+      }
     }
   }
 }

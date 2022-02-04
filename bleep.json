@@ -3,14 +3,20 @@
   "projects" : {
     "bleep" : {
       "dependencies" : [
+        "com.google.code.findbugs:jsr305:3.0.2",
+        "com.google.code.gson:gson:2.8.9",
+        "com.google.errorprone:error_prone_annotations:2.2.0",
+        "com.google.guava:guava:27.1-jre",
+        "com.google.j2objc:j2objc-annotations:1.1",
         "com.lihaoyi::pprint:0.7.1",
         "com.monovore::decline:2.2.0",
-        "org.scalameta:svm-subs:101.0.0"
+        "org.checkerframework:checker-qual:2.5.2",
+        "org.codehaus.mojo:animal-sniffer-annotations:1.17",
+        "org.graalvm.nativeimage:svm:22.0.0.2",
+        "org.scalameta:svm-subs:101.0.0",
+        "org.virtuslab.scala-cli::bloop-rifle:0.1.0"
       ],
-      "dependsOn" : [
-        "bleep-core",
-        "bloop-rifle"
-      ],
+      "dependsOn" : "bleep-core",
       "extends" : [
         "template-common-main",
         "template-scala-2.13"
@@ -55,13 +61,10 @@
       ]
     },
     "bleep-test" : {
-      "dependencies" : "org.scalatest::scalatest:3.2.10",
+      "dependencies" : "org.scalatest::scalatest:3.2.11",
       "dependsOn" : "bleep",
       "extends" : "template-scala-2.13",
       "folder" : "./bleep",
-      "platform" : {
-        "jvmMainClass" : "bleep.Main"
-      },
       "sbt-scope" : "test",
       "testFrameworks" : [
         "com.novocode.junit.JUnitFramework",
@@ -73,37 +76,6 @@
         "org.specs2.runner.Specs2Framework",
         "org.specs2.runner.SpecsFramework"
       ]
-    },
-    "bloop-rifle" : {
-      "cross" : {
-        "jvm213" : {
-          "dependencies" : "org.scala-lang:scala-library:2.13.8"
-        },
-        "jvm3" : {
-          "dependencies" : "org.scala-lang::scala3-library:3.1.1"
-        }
-      },
-      "dependencies" : [
-        {
-          "for3Use213" : true,
-          "module" : "ch.epfl.scala::bloop-config:1.4.12"
-        },
-        "ch.epfl.scala:bsp4j:2.0.0",
-        "com.github.alexarchambault.tmp.ipcsocket:ipcsocket:1.4.1-aa-4",
-        "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.code.gson:gson:2.8.9",
-        "com.google.errorprone:error_prone_annotations:2.2.0",
-        "com.google.guava:guava:27.1-jre",
-        "com.google.j2objc:j2objc-annotations:1.1",
-        {
-          "for3Use213" : true,
-          "module" : "me.vican.jorge::snailgun-core:0.4.0"
-        },
-        "org.checkerframework:checker-qual:2.5.2",
-        "org.codehaus.mojo:animal-sniffer-annotations:1.17",
-        "org.graalvm.nativeimage:svm:21.3.0"
-      ],
-      "extends" : "template-cross-all"
     },
     "infrastructure" : {
       "dependsOn" : [
