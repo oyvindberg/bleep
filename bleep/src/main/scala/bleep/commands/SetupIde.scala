@@ -7,7 +7,7 @@ import ch.epfl.scala.bsp4j
 import io.circe.Encoder
 import io.circe.syntax._
 
-import java.nio.file.{Files, StandardOpenOption}
+import java.nio.file.Files
 import java.util
 import scala.jdk.CollectionConverters._
 
@@ -35,10 +35,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger) extends BleepCommand
     Files.createDirectories(buildPaths.bspBleepJsonFile.getParent)
     Files.writeString(
       buildPaths.bspBleepJsonFile,
-      details.asJson.spaces2,
-      StandardOpenOption.WRITE,
-      StandardOpenOption.TRUNCATE_EXISTING,
-      StandardOpenOption.CREATE
+      details.asJson.spaces2
     )
     logger.info(s"Wrote file ${buildPaths.bspBleepJsonFile}")
   }

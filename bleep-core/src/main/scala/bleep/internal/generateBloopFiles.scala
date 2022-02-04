@@ -1,6 +1,6 @@
 package bleep
+package internal
 
-import bleep.internal.{rewriteDependentData, Lazy, ScalaVersions}
 import bloop.config.{Config => b}
 import coursier.core.Configuration
 import coursier.{Classifier, Dependency}
@@ -12,83 +12,69 @@ object generateBloopFiles {
   implicit val ordering: Ordering[Dependency] =
     Ordering.by(_.toString())
 
-  def apply(build: model.Build, buildPaths: BuildPaths, resolver: CoursierResolver): SortedMap[model.ProjectName, Lazy[b.File]] = {
-    verify(build)
-
-    rewriteDependentData(build.projects) { (projectName, project, getDep) =>
+  def apply(build: ExplodedBuild, buildPaths: BuildPaths, resolver: CoursierResolver): SortedMap[model.CrossProjectName, Lazy[b.File]] =
+    rewriteDependentData(build.projects) { (crossName, project, getDep) =>
       translateProject(
         resolver,
         buildPaths,
-        projectName,
+        crossName,
         project,
         build,
-        getBloopProject = dep => getDep(dep).forceGet(s"${projectName.value} => ${dep.value}")
+        getBloopProject = depName => getDep(depName).forceGet(s"${crossName.value} => ${depName.value}")
       )
-    }
-  }
-
-  def verify(build: model.Build): Unit =
-    build.scripts match {
-      case None => ()
-      case Some(scripts) =>
-        scripts.foreach { case (scriptName, scriptDefs) =>
-          scriptDefs.values.foreach { scriptDef =>
-            if (build.projects.contains(scriptDef.project)) ()
-            else sys.error(s"script ${scriptName.value} references non-existing project ${scriptDef.project.value}")
-          }
-        }
     }
 
   def translateProject(
       resolver: CoursierResolver,
       buildPaths: BuildPaths,
-      projName: model.ProjectName,
-      proj2: model.Project,
-      build: model.Build,
-      getBloopProject: model.ProjectName => b.File
+      crossName: model.CrossProjectName,
+      explodedProject: model.Project,
+      build: ExplodedBuild,
+      getBloopProject: model.CrossProjectName => b.File
   ): b.File = {
-    val proj = build.explode(proj2)
 
     val projectPaths: ProjectPaths =
-      buildPaths.from(projName, proj)
+      buildPaths.from(crossName, explodedProject)
 
-    val allTransitiveTranslated: Map[model.ProjectName, b.File] = {
-      val builder = Map.newBuilder[model.ProjectName, b.File]
+    val allTransitiveTranslated: Map[model.CrossProjectName, b.File] = {
+      val builder = Map.newBuilder[model.CrossProjectName, b.File]
 
-      def go(n: model.ProjectName): Unit = {
-        val p = getBloopProject(n)
-        if (n == projName) sys.error(s"project ${projName.value} transitively depends on itself")
-        builder += ((n, p))
-        p.project.dependencies.foreach(projectName => go(model.ProjectName(projectName)))
+      def go(cn: model.CrossProjectName): Unit = {
+        val p = getBloopProject(cn)
+        if (cn == crossName) sys.error(s"project ${crossName.value} transitively depends on itself")
+        builder += ((cn, p))
+        build.resolvedDependsOn(cn).foreach(go)
       }
 
-      proj.dependsOn.values.foreach(go)
+      build.resolvedDependsOn(crossName).foreach(go)
 
       builder.result()
     }
 
-    val templateDirs = Options.TemplateDirs(buildPaths.buildDir, projectPaths.dir)
-
     val maybeScala: Option[model.Scala] =
-      proj.scala
+      explodedProject.scala
 
     val explodedJava: Option[model.Java] =
-      proj.java
+      explodedProject.java
 
     val scalaVersion: Option[Versions.Scala] =
       maybeScala.flatMap(_.version)
 
     val explodedPlatform: Option[model.Platform] =
-      proj.platform.map {
+      explodedProject.platform.map {
         case model.Platform.Jvm(platform) => platform.union(Defaults.Jvm)
         case platform                     => platform
       }
 
     val versions: ScalaVersions =
-      ScalaVersions.fromExplodedProject(proj) match {
-        case Left(err)       => throw new BuildException.Text(projName, err)
+      ScalaVersions.fromExplodedProject(explodedProject) match {
+        case Left(err)       => throw new BuildException.Text(crossName, err)
         case Right(versions) => versions
       }
+
+    val templateDirs =
+      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
+        Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value))
 
     val configuredPlatform: Option[b.Platform] =
       explodedPlatform.map {
@@ -114,10 +100,10 @@ object generateBloopFiles {
           b.Platform.Jvm(
             config = b.JvmConfig(
               home = None,
-              options = templateDirs.toAbsolutePaths.opts(platform.jvmOptions).render
+              options = templateDirs.fill.opts(platform.jvmOptions).render
             ),
             mainClass = platform.jvmMainClass,
-            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.toAbsolutePaths.opts(platform.jvmRuntimeOptions).render)),
+            runtimeConfig = Some(b.JvmConfig(home = None, options = templateDirs.fill.opts(platform.jvmRuntimeOptions).render)),
             classpath = None,
             resources = None
           )
@@ -126,18 +112,18 @@ object generateBloopFiles {
 
     val resolvedDependencies: CoursierResolver.Result = {
       val transitiveDeps: JsonSet[Dep] =
-        proj.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(projName).flatMap { case (_, p) => p.dependencies.values }))
+        explodedProject.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }))
 
       val concreteDeps: JsonSet[Dependency] =
         transitiveDeps.map { dep =>
           dep.dependency(versions) match {
-            case Left(err)    => throw new BuildException.Text(projName, err)
+            case Left(err)    => throw new BuildException.Text(crossName, err)
             case Right(value) => value
           }
         }
 
       resolver(concreteDeps, build.resolvers) match {
-        case Left(coursierError) => throw BuildException.ResolveError(coursierError, projName)
+        case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
         case Right(value)        => value
       }
     }
@@ -179,12 +165,12 @@ object generateBloopFiles {
 
         val resolvedScalaCompiler: List[Path] =
           resolver(JsonSet(scalaCompiler), build.resolvers) match {
-            case Left(coursierError) => throw BuildException.ResolveError(coursierError, projName)
+            case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
             case Right(res)          => res.jars
           }
 
         val setup = {
-          val provided = maybeScala.flatMap(_.setup).map(_.union(Defaults.DefaultCompileSetup)).getOrElse(Defaults.DefaultCompileSetup)
+          val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
           b.CompileSetup(
             order = provided.order.get,
             addLibraryToBootClasspath = provided.addLibraryToBootClasspath.get,
@@ -206,7 +192,7 @@ object generateBloopFiles {
 
           val artifacts: List[Path] =
             resolver(deps, build.resolvers) match {
-              case Left(coursierError) => throw BuildException.ResolveError(coursierError, projName)
+              case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
               case Right(res)          => res.jars
             }
 
@@ -223,30 +209,37 @@ object generateBloopFiles {
           organization = scalaCompiler.module.organization.value,
           name = scalaCompiler.module.name.value,
           version = scalaCompiler.version,
-          options = templateDirs.toAbsolutePaths.opts(scalacOptions).render,
+          options = templateDirs.fill.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
-          analysis = Some(projectPaths.incrementalAnalysis(scalaVersion)),
+          analysis = Some(projectPaths.incrementalAnalysis),
           setup = Some(setup)
         )
       }
 
-    val scope = proj.`sbt-scope`.getOrElse("main")
+    val scope = explodedProject.`sbt-scope`.getOrElse("main")
 
-    def sourceLayout = proj.`source-layout` match {
+    def sourceLayout = explodedProject.`source-layout` match {
       case Some(sourceLayout) => sourceLayout
       case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
     }
+    val replacementsVersions = Replacements.versions(scalaVersion, configuredPlatform.map(_.name))
 
-    val sources: JsonSet[Path] =
-      (sourceLayout.sources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.sources.values)).map(projectPaths.dir / _)
+    val sources: JsonSet[Path] = {
+      val fromSourceLayout = sourceLayout.sources(scalaVersion, explodedProject.`sbt-scope`)
+      val fromJson = JsonSet.fromIterable(explodedProject.sources.values.map(replacementsVersions.fill.relPath))
+      (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
+    }
 
-    val resources: JsonSet[Path] =
-      (sourceLayout.resources(scalaVersion, proj.`sbt-scope`) ++ JsonSet.fromIterable(proj.resources.values)).map(projectPaths.dir / _)
+    val resources: JsonSet[Path] = {
+      val fromJson = JsonSet.fromIterable(explodedProject.resources.values.map(replacementsVersions.fill.relPath))
+      val fromSourceLayout = sourceLayout.resources(scalaVersion, explodedProject.`sbt-scope`)
+      (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
+    }
 
     b.File(
       "1.4.0",
       b.Project(
-        projName.value,
+        crossName.value,
         projectPaths.dir,
         Some(buildPaths.buildDir),
         sources = sources.values.toList,
@@ -255,10 +248,10 @@ object generateBloopFiles {
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = projectPaths.targetDir,
-        classesDir = projectPaths.classes(scalaVersion, isTest = !proj.testFrameworks.isEmpty),
+        classesDir = projectPaths.classes,
         resources = Some(resources.values.toList),
         scala = configuredScala,
-        java = Some(b.Java(options = templateDirs.toAbsolutePaths.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
+        java = Some(b.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,
         test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
         platform = configuredPlatform,

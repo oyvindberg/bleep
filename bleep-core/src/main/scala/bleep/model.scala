@@ -2,6 +2,7 @@ package bleep
 
 import bleep.internal.codecs.codecURI
 import bleep.internal.{EnumCodec, SetLike}
+import bleep.logging.Formatter
 import bloop.config.Config
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
@@ -141,9 +142,11 @@ object model {
     case object Js extends PlatformId("js")
     case object Native extends PlatformId("native")
     val All = List[PlatformId](Jvm, Js, Native)
+    def fromName(str: String): Option[PlatformId] = All.find(_.value == str)
+
     implicit val ordering: Ordering[PlatformId] = Ordering.by(All.indexOf)
     implicit val decodes: Decoder[PlatformId] =
-      Decoder[String].emap(str => All.find(_.value == str).toRight(s"${str} is not among ${All.map(_.value).mkString(", ")}"))
+      Decoder[String].emap(str => fromName(str).toRight(s"${str} is not among ${All.map(_.value).mkString(", ")}"))
     implicit val encodes: Encoder[PlatformId] = Encoder[String].contramap(_.value)
   }
 
@@ -367,8 +370,44 @@ object model {
     implicit val keyEncodes: KeyEncoder[ProjectName] = KeyEncoder[String].contramap(_.value)
   }
 
+  case class CrossId(value: String)
+  object CrossId {
+    implicit val ordering: Ordering[CrossId] = Ordering.by(_.value)
+    implicit val decodes: Decoder[CrossId] = Decoder[String].map(CrossId.apply)
+    implicit val encodes: Encoder[CrossId] = Encoder[String].contramap(_.value)
+    implicit val keyDecodes: KeyDecoder[CrossId] = KeyDecoder[String].map(CrossId.apply)
+    implicit val keyEncodes: KeyEncoder[CrossId] = KeyEncoder[String].contramap(_.value)
+  }
+
+  case class CrossProjectName(name: model.ProjectName, crossId: Option[CrossId]) {
+    val value: String =
+      crossId match {
+        case Some(crossId) => s"${name.value}@${crossId.value}"
+        case None          => name.value
+      }
+  }
+
+  object CrossProjectName {
+    implicit val formats: Formatter[CrossProjectName] = _.value
+    implicit val ordering: Ordering[CrossProjectName] = Ordering.by(x => (x.name, x.crossId))
+    implicit val decodes: Decoder[CrossProjectName] =
+      Decoder.instance(c =>
+        for {
+          str <- c.as[String]
+          crossName <- str.split("@") match {
+            case Array(name)          => Right(CrossProjectName(ProjectName(name), None))
+            case Array(name, crossId) => Right(CrossProjectName(ProjectName(name), Some(CrossId(crossId))))
+            case _                    => Left(DecodingFailure(s"more than one '@' encountered in CrossProjectName $str", c.history))
+          }
+        } yield crossName
+      )
+
+    implicit val encodes: Encoder[CrossProjectName] = Encoder[String].contramap(_.value)
+  }
+
   case class Project(
       `extends`: JsonList[TemplateId],
+      cross: JsonMap[CrossId, Project],
       folder: Option[RelPath],
       dependsOn: JsonSet[ProjectName],
       `source-layout`: Option[SourceLayout],
@@ -384,6 +423,7 @@ object model {
     override def intersect(other: Project): Project =
       Project(
         `extends` = `extends`.intersect(other.`extends`),
+        cross = cross.intersect(other.cross),
         folder = if (folder == other.folder) folder else None,
         dependsOn = dependsOn.intersect(other.dependsOn),
         `source-layout` = if (`source-layout` == other.`source-layout`) `source-layout` else None,
@@ -400,6 +440,7 @@ object model {
     override def removeAll(other: Project): Project =
       Project(
         `extends` = `extends`.removeAll(other.`extends`),
+        cross = cross.removeAll(other.cross),
         folder = if (folder == other.folder) None else folder,
         dependsOn = dependsOn.removeAll(other.dependsOn),
         `source-layout` = if (`source-layout` == other.`source-layout`) None else `source-layout`,
@@ -419,6 +460,7 @@ object model {
     override def union(other: Project): Project =
       Project(
         `extends` = `extends`.union(other.`extends`),
+        cross = cross.union(other.cross),
         folder = folder.orElse(other.folder),
         dependsOn = dependsOn.union(other.dependsOn),
         `source-layout` = `source-layout`.orElse(other.`source-layout`),
@@ -434,13 +476,29 @@ object model {
       )
 
     override def isEmpty: Boolean = this match {
-      case Project(extends_, folder, dependsOn, sourceLayout, sbtScope, sources, resources, dependencies, java, scala, platform, testFrameworks) =>
-        extends_.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
+      case Project(extends_, cross, folder, dependsOn, sourceLayout, sbtScope, sources, resources, dependencies, java, scala, platform, testFrameworks) =>
+        extends_.isEmpty && cross.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
           .fold(true)(_.isEmpty) && scala.fold(true)(_.isEmpty) && platform.fold(true)(_.isEmpty) && testFrameworks.isEmpty
     }
   }
 
   object Project {
+    val empty = model.Project(
+      `extends` = JsonList.empty,
+      cross = JsonMap.empty,
+      folder = None,
+      dependsOn = JsonSet.empty,
+      `source-layout` = None,
+      `sbt-scope` = None,
+      sources = JsonSet.empty,
+      resources = JsonSet.empty,
+      dependencies = JsonSet.empty,
+      java = None,
+      scala = None,
+      platform = None,
+      testFrameworks = JsonSet.empty
+    )
+
     implicit val decodes: Decoder[Project] = deriveDecoder
     implicit val encodes: Encoder[Project] = deriveEncoder
   }
@@ -453,16 +511,17 @@ object model {
     implicit val keyDecodes: KeyDecoder[ScriptName] = KeyDecoder[String].map(ScriptName.apply)
     implicit val keyEncodes: KeyEncoder[ScriptName] = KeyEncoder[String].contramap(_.value)
   }
-  case class ScriptDef(project: ProjectName, main: String)
+  case class ScriptDef(project: CrossProjectName, main: String)
 
   object ScriptDef {
     implicit val decodes: Decoder[ScriptDef] = Decoder.instance(c =>
       c.as[String].flatMap { str =>
         str.split("/") match {
           case Array(projectName, main) =>
-            Right(ScriptDef(ProjectName(projectName), main))
+            CrossProjectName.decodes.decodeJson(Json.fromString(projectName)).map(crossProjectName => ScriptDef(crossProjectName, main))
+
           case _ =>
-            Left(DecodingFailure(s"$str needs to be on the form projectName/fully.qualified.Main", c.history))
+            Left(DecodingFailure(s"$str needs to be on the form `projectName(@crossId)/fully.qualified.Main`", c.history))
         }
       }
     )
@@ -472,43 +531,20 @@ object model {
 
   case class Build(
       version: String,
-      templates: Option[Map[TemplateId, Project]],
-      scripts: Option[Map[ScriptName, JsonList[ScriptDef]]],
+      templates: JsonMap[TemplateId, Project],
+      scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
       resolvers: JsonSet[URI],
-      projects: Map[ProjectName, Project]
-  ) {
-    def explode(project: Project): Project = {
-      def go(project: Project): Project =
-        project.`extends`.values.foldLeft(project) { case (p, parentId) =>
-          p.union(go(templates.get(parentId)))
-        }
-
-      go(project)
-    }
-
-    def transitiveDependenciesFor(projName: model.ProjectName): Map[ProjectName, model.Project] = {
-      val builder = Map.newBuilder[model.ProjectName, model.Project]
-
-      def go(n: model.ProjectName): Unit = {
-        val p = projects.getOrElse(n, sys.error(s"Project ${projName.value} depends on non-existing project ${n.value}"))
-        builder += ((n, p))
-        p.dependsOn.values.foreach(go)
-      }
-
-      projects(projName).dependsOn.values.foreach(go)
-
-      builder.result()
-    }
-  }
+      projects: JsonMap[ProjectName, Project]
+  )
 
   object Build {
     implicit val decodes: Decoder[Build] =
       Decoder.instance(c =>
         for {
           version <- c.downField("version").as[String]
-          templates <- c.downField("templates").as[Option[Map[TemplateId, Project]]]
-          projects <- c.downField("projects").as[Map[ProjectName, Project]]
-          scripts <- c.downField("scripts").as[Option[Map[ScriptName, JsonList[ScriptDef]]]]
+          templates <- c.downField("templates").as[JsonMap[TemplateId, Project]]
+          projects <- c.downField("projects").as[JsonMap[ProjectName, Project]]
+          scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
           resolvers <- c.downField("resolvers").as[JsonSet[URI]]
         } yield Build(version, templates, scripts, resolvers, projects)
       )

@@ -41,8 +41,7 @@ package object bleep {
         System.exit(n)
     }
 
-  def readBloopFile(bloopFilesDir: Path, projectName: model.ProjectName): Config.File = {
-    val file = bloopFilesDir / s"${projectName.value}.json"
+  def readBloopFile(file: Path): Config.File = {
     val contents = Files.readString(file)
     jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
   }

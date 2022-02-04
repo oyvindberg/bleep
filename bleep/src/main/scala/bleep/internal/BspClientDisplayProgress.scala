@@ -10,11 +10,14 @@ import scala.collection.mutable
 // a bsp client which will display compilation diagnostics and progress to a logger
 object BspClientDisplayProgress {
   def apply(logger: Logger): BspClientDisplayProgress =
-    new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)))
+    new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty)
 }
 
-class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]])
-    extends bsp4j.BuildClient {
+class BspClientDisplayProgress(
+    logger: Logger,
+    active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]],
+    var failed: mutable.ListBuffer[bsp4j.BuildTargetIdentifier]
+) extends bsp4j.BuildClient {
   def extract(anyRef: AnyRef): Option[BuildTargetIdentifier] =
     anyRef match {
       case obj: com.google.gson.JsonObject =>
@@ -29,9 +32,14 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
       case _ => None
     }
 
+  val DisplayN = 4
   def render(): Unit =
     logger.progressMonitor.foreach { pm =>
-      val progress = active.toList
+      val byMostProgress = active.toList.sortBy(_._2.fold(0L)(-_.getProgress))
+      val rest = byMostProgress.drop(DisplayN)
+
+      val progress = byMostProgress
+        .take(DisplayN)
         .map { case (buildTargetId, maybeProgress) =>
           val percentage: String =
             maybeProgress match {
@@ -42,7 +50,7 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
             }
           Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
-        .mkString("Compiling ", ", ", "")
+        .mkString("Compiling ", ", ", (if (rest.isEmpty) "" else s" +${rest.size}"))
       pm.info(progress)
     }
 
@@ -50,10 +58,10 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
     Bold.On(Str(buildTargetId.getUri.split("=").last))
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), s"show message: ${params.getMessage}")
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), s"log message: ${params.getMessage}")
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
 
   def logLevelFor(messageType: MessageType): LogLevel =
     messageType match {
@@ -77,6 +85,11 @@ class BspClientDisplayProgress(logger: Logger, active: mutable.SortedMap[bsp4j.B
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
     extract(params.getData).foreach { id =>
       active.remove(id)
+      params.getStatus match {
+        case bsp4j.StatusCode.OK        => ()
+        case bsp4j.StatusCode.ERROR     => failed += id
+        case bsp4j.StatusCode.CANCELLED => ()
+      }
       render()
     }
 

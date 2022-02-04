@@ -21,7 +21,7 @@ case class Patch(started: Started, opts: CommonOpts, file: Option[Path]) extends
     }
     io.circe.parser
       .decode[JsonPatch[Json]](string)
-      .flatMap(patch => ApplyPatch(patch, started.build))
+      .flatMap(patch => ApplyPatch(patch, started.rawBuild))
       .foreach(build => Files.writeString(started.buildPaths.bleepJsonFile, build.asJson.spaces2, StandardCharsets.UTF_8))
   }
 }

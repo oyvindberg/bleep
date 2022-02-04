@@ -9,6 +9,10 @@ object rewriteDependentData {
     def apply(k: K): Lazy[VV]
   }
 
+  // hide `Lazy` and out tparam
+  def eager[K: Ordering, V](in: Map[K, V])(f: (K, V, Get[K, V]) => V): SortedMap[K, V] =
+    apply[K, V, V](in)(f).map { case (k, v) => (k, v.forceGet) }
+
   def apply[K: Ordering, V, VV](in: Map[K, V])(f: (K, V, Get[K, VV]) => VV): SortedMap[K, Lazy[VV]] = {
     // sorted to ensure consistency
     val sortedIn = SortedMap.empty[K, V] ++ in

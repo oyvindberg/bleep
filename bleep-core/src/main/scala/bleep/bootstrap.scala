@@ -1,9 +1,8 @@
 package bleep
 
-import bleep.internal.{Lazy, Os}
+import bleep.internal.{generateBloopFiles, Lazy, Os}
 import bleep.logging.Logger
 import bloop.config.{Config => b, ConfigCodecs}
-import cats.data.NonEmptyList
 import com.github.plokhotnyuk.jsoniter_scala
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
 
@@ -13,7 +12,6 @@ import java.nio.file.{Files, Path}
 import java.time.Instant
 import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
 /** @param build
@@ -23,27 +21,31 @@ import scala.util.{Failure, Success, Try}
   */
 case class Started(
     buildPaths: BuildPaths,
-    build: model.Build,
-    bloopFiles: Map[model.ProjectName, Lazy[b.File]],
-    activeProjectsFromPath: List[model.ProjectName],
+    rawBuild: model.Build,
+    build: ExplodedBuild,
+    bloopFiles: Map[model.CrossProjectName, Lazy[b.File]],
+    activeProjectsFromPath: List[model.CrossProjectName],
     lazyResolver: Lazy[CoursierResolver],
     directories: UserPaths,
     logger: Logger
 ) {
   def resolver = lazyResolver.forceGet
 
-  lazy val projects: List[b.Project] =
+  lazy val bloopProjects: List[b.Project] =
     bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet.project }.toList
 
-  def chosenProjects(maybeFromCommandLine: Option[NonEmptyList[model.ProjectName]]): List[model.ProjectName] =
+  def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
     maybeFromCommandLine match {
-      case Some(fromCommandLine) => fromCommandLine.toList
+      case Some(fromCommandLine) => fromCommandLine.sorted
       case None =>
         activeProjectsFromPath match {
-          case Nil      => bloopFiles.keys.toList
+          case Nil      => bloopFiles.keys.toList.sorted
           case nonEmpty => nonEmpty
         }
     }
+
+  def chosenTestProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
+    chosenProjects(maybeFromCommandLine).filterNot(projectName => build.projects(projectName).testFrameworks.isEmpty)
 }
 
 object bootstrap {
@@ -90,32 +92,24 @@ object bootstrap {
             val buildPaths = BuildPaths(bleepJsonPath)
             val currentHash = build.toString.hashCode().toString
             val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
-
-            val activeProjects: List[model.ProjectName] = {
-              val withRelativeLength: Map[model.ProjectName, Int] =
-                build.projects.flatMap { case (name, p) =>
-                  val folder = buildPaths.buildDir / p.folder.getOrElse(RelPath.force(name.value))
-                  val relative = cwd.relativize(folder)
-                  if (relative.iterator().asScala.contains("..")) None
-                  else Some((name, relative.getNameCount))
-                }
-
-              withRelativeLength.values.minOption match {
-                case Some(min) => withRelativeLength.filter(_._2 == min).keys.toList
-                case None      => Nil
-              }
-            }
+            val explodedBuild = ExplodedBuild.of(build)
+            val activeProjects: List[model.CrossProjectName] =
+              explodedBuild.projects.flatMap { case (crossProjectName, p) =>
+                val folder = buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
+                if (folder.startsWith(cwd)) Some(crossProjectName)
+                else None
+              }.toList
 
             val bloopFiles = if (oldHash.contains(currentHash)) {
               logger.debug(s"${buildPaths.bleepBloopDir} up to date")
 
-              build.projects.map { case (projectName, _) =>
-                val load = Lazy(readBloopFile(buildPaths.bleepBloopDir, projectName))
-                (projectName, load)
+              explodedBuild.projects.map { case (crossProjectName, _) =>
+                val load = Lazy(readBloopFile(buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")))
+                (crossProjectName, load)
               }
             } else {
-              val bloopFiles: SortedMap[model.ProjectName, Lazy[b.File]] =
-                generateBloopFiles(build, buildPaths, lazyResolver.forceGet)
+              val bloopFiles: SortedMap[model.CrossProjectName, Lazy[b.File]] =
+                generateBloopFiles(explodedBuild, buildPaths, lazyResolver.forceGet)
 
               Files.createDirectories(buildPaths.bleepBloopDir)
               bloopFiles.foreach { case (projectName, lazyP) =>
@@ -130,7 +124,7 @@ object bootstrap {
             }
             val td = System.currentTimeMillis() - t0
             logger.info(s"bootstrapped in $td ms")
-            Started(buildPaths, build, bloopFiles, activeProjects, lazyResolver, directories, logger)
+            Started(buildPaths, build, explodedBuild, bloopFiles, activeProjects, lazyResolver, directories, logger)
         }
       case None => throw new BuildException.BuildNotFound(cwd)
     }

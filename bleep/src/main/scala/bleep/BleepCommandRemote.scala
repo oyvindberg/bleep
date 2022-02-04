@@ -1,26 +1,23 @@
 package bleep
 
 import bleep.internal.{BspClientDisplayProgress, MyBloopRifleLogger}
-import bleep.model.ProjectName
-import cats.data.NonEmptyList
 import ch.epfl.scala.bsp4j
 
 import java.util
 import scala.build.bloop.{BloopServer, BloopThreads}
+import scala.jdk.CollectionConverters._
 
 trait BleepCommandRemote extends BleepCommand {
   def started: Started
 
-  def chosenTargets(started: Started, fromCommandLine: Option[NonEmptyList[model.ProjectName]]): util.List[bsp4j.BuildTargetIdentifier] =
+  def chosenTargets(started: Started, fromCommandLine: Option[List[model.CrossProjectName]]): util.List[bsp4j.BuildTargetIdentifier] =
     buildTargets(started.buildPaths, started.chosenProjects(fromCommandLine))
 
-  def buildTargets(buildPaths: BuildPaths, projects: List[model.ProjectName]): util.List[bsp4j.BuildTargetIdentifier] = {
-    def targetId(buildPaths: BuildPaths, name: ProjectName): bsp4j.BuildTargetIdentifier =
+  def buildTargets(buildPaths: BuildPaths, projects: List[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] = {
+    def targetId(name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
       new bsp4j.BuildTargetIdentifier(buildPaths.buildDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
-    import scala.jdk.CollectionConverters._
-
-    projects.map(projectName => targetId(buildPaths, projectName)).asJava
+    projects.map(targetId).asJava
   }
 
   def runWithServer(bloop: BloopServer): Unit
@@ -33,15 +30,22 @@ trait BleepCommandRemote extends BleepCommand {
       bloopBspSocket = None
     ).bloopRifleConfig
 
+    val buildClient: BspClientDisplayProgress = BspClientDisplayProgress(started.logger)
+
     BloopServer.withBuildServer(
-      bloopRifleConfig,
-      "bleep",
-      Defaults.version,
-      started.buildPaths.dotBleepDir,
-      started.buildPaths.dotBleepDir / "classes",
-      BspClientDisplayProgress(started.logger),
-      BloopThreads.create(),
-      new MyBloopRifleLogger(started.logger, true, true)
+      config = bloopRifleConfig,
+      clientName = "bleep",
+      clientVersion = Defaults.version,
+      workspace = started.buildPaths.dotBleepDir,
+      classesDir = started.buildPaths.dotBleepDir / "classes",
+      buildClient = buildClient,
+      threads = BloopThreads.create(),
+      logger = new MyBloopRifleLogger(started.logger, true, true)
     )(runWithServer)
+
+    buildClient.failed match {
+      case empty if empty.isEmpty => ()
+      case failed                 => started.logger.error(s"Failed: ${failed.map(buildClient.renderBuildTarget).mkString(", ")}")
+    }
   }
 }

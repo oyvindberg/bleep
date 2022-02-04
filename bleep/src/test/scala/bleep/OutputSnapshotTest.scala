@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.internal.generateBloopFiles
 import bleep.logging.Logger
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
@@ -49,7 +50,7 @@ class OutputSnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     val workspaceDir = workspaceDirBase / "test1"
     val input = ResourceReader.resourceAsString("/test1.json")
     val Right(build) = model.parseBuild(input)
-    val bloopFiles = generateBloopFiles(build, BuildPaths(workspaceDir / ".bleep.json"), resolver)
+    val bloopFiles = generateBloopFiles(ExplodedBuild.of(build), BuildPaths(workspaceDir / ".bleep.json"), resolver)
     writeAndCompare(
       workspaceDir,
       bloopFiles.map { case (projectName, lazyProject) =>

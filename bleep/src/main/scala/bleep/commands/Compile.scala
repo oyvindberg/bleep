@@ -1,12 +1,11 @@
 package bleep
 package commands
 
-import cats.data.NonEmptyList
 import ch.epfl.scala.bsp4j
 
 import scala.build.bloop.BloopServer
 
-case class Compile(started: Started, opts: CommonOpts, projects: Option[NonEmptyList[model.ProjectName]]) extends BleepCommandRemote {
+case class Compile(started: Started, opts: CommonOpts, projects: Option[List[model.CrossProjectName]]) extends BleepCommandRemote {
   override def runWithServer(bloop: BloopServer): Unit = {
     val targets = chosenTargets(started, projects)
     val result = bloop.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get()

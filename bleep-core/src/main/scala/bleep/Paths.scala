@@ -21,29 +21,23 @@ object UserPaths {
 
 case class BuildPaths(bleepJsonFile: Path) {
   val buildDir = bleepJsonFile.getParent
-  val dotBloopDir = buildDir / ".bloop"
   val dotBleepDir = buildDir / ".bleep"
-  val digestFile = dotBleepDir / ".digest"
+  val bleepImportDir = dotBleepDir / "import"
   val bleepBloopDir = dotBleepDir / ".bloop"
-  val dotBspDir = buildDir / ".bsp"
-  val bspBleepJsonFile = dotBspDir / "bleep.json"
+  val digestFile = bleepBloopDir / ".digest"
+  val bspBleepJsonFile = buildDir / ".bsp" / "bleep.json"
 
-  def from(name: model.ProjectName, p: model.Project): ProjectPaths =
+  def from(crossName: model.CrossProjectName, p: model.Project): ProjectPaths =
     ProjectPaths(
-      dir = buildDir / p.folder.getOrElse(RelPath.force(name.value)),
-      targetDir = bleepBloopDir / name.value
+      dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value)),
+      targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
     )
 }
 
 case class ProjectPaths(dir: Path, targetDir: Path) {
-  def classes(scalaVersion: Option[Versions.Scala], isTest: Boolean): Path = {
-    val classes = if (isTest) "test-classes" else "classes"
-    scalaVersion match {
-      case Some(scalaVersion) => targetDir / s"scala-${scalaVersion.binVersion}" / classes
-      case None               => targetDir / classes
-    }
-  }
+  val classes: Path =
+    targetDir / "classes"
 
-  def incrementalAnalysis(scalaVersion: Versions.Scala): Path =
-    dir / "target" / "streams" / "compile" / "bloopAnalysisOut" / "_global" / "streams" / s"inc_compile_${scalaVersion.binVersion}.zip"
+  val incrementalAnalysis: Path =
+    targetDir / s"inc_compile.zip"
 }

@@ -1,14 +1,14 @@
 package bleep
 package infra
 
-import bleep.model.ProjectName
+import bleep.model.{CrossProjectName, ProjectName}
 import bleep.tasks._
 import net.hamnaberg.blooppackager.PackagePlugin
 
 object GenNativeImage extends App {
   bootstrap.forScript("GenNativeImage") { started =>
-    val projectName = ProjectName("bleep")
-    val project = started.bloopFiles(projectName).forceGet(projectName.value)
+    val projectName = CrossProjectName(ProjectName("bleep"), crossId = None)
+    val project = started.bloopFiles(projectName).forceGet
 
     // https://github.com/shyiko/jabba/pull/821/files
     val index = "https://raw.githubusercontent.com/shyiko/jabba/54af2bdc0d895e23495bbee733673c2a36179a34/index.json"
@@ -28,9 +28,9 @@ object GenNativeImage extends App {
 
 object PackageAll extends App {
   bootstrap.forScript("PackageAll") { started =>
-    val all: List[String] = started.projects.map(_.name)
+    val all: List[String] = started.bloopProjects.map(_.name)
 
-    PackagePlugin.run(started.logger, started.projects, PackageCommand.Jars(all))
+    PackagePlugin.run(started.logger, started.bloopProjects, PackageCommand.Jars(all))
 
     val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, started.logger)()
     started.logger.info(gitVersioningPlugin.version)
