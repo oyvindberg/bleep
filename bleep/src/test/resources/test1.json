@@ -1,5 +1,5 @@
 {
-  "version": "1",
+  "$schema": "https://raw.githubusercontent.com/oyvindberg/bleep/add-json-schema/schema.json",
   "templates": {
     "default": {
       "scala": {
@@ -20,15 +20,15 @@
     },
     "bigquery": {
       "extends": "default",
-      "folder": "clients/bigquery",
+      "folder": "./clients/bigquery",
       "dependsOn": [
         "common"
       ]
     },
     "bigquery-test": {
       "extends": "default",
-      "folder": "clients/bigquery",
-      "sources": "src/test/scala",
+      "folder": "./clients/bigquery",
+      "sources": "./src/test/scala",
       "dependsOn": [
         "common"
       ]

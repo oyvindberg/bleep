@@ -196,7 +196,7 @@ object Templates {
       }
 
     val build = model.Build(
-      build0.version,
+      Defaults.$schema,
       JsonMap((templates ++ crossTemplates).map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty)),
       JsonMap(build0.scripts),
       build0.resolvers,
@@ -238,7 +238,7 @@ object Templates {
       }
 
     val build = model.Build(
-      build0.version,
+      Defaults.$schema,
       unexplodedTemplates,
       JsonMap(build0.scripts),
       build0.resolvers,
