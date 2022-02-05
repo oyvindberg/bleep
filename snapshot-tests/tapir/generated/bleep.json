@@ -195,7 +195,6 @@
       },
       "dependencies" : [
         "ch.qos.logback:logback-classic:1.2.7",
-        "ch.qos.logback:logback-core:1.2.7",
         {
           "forceJvm" : true,
           "module" : "com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18"
@@ -203,8 +202,7 @@
         {
           "forceJvm" : true,
           "module" : "com.typesafe.scala-logging::scala-logging:3.9.4"
-        },
-        "org.slf4j:slf4j-api:1.7.32"
+        }
       ],
       "dependsOn" : [
         "cats",
@@ -377,7 +375,6 @@
       },
       "dependencies" : [
         "ch.qos.logback:logback-classic:1.2.7",
-        "ch.qos.logback:logback-core:1.2.7",
         {
           "forceJvm" : true,
           "module" : "com.typesafe.scala-logging::scala-logging:3.9.4"
@@ -594,18 +591,6 @@
         "com.softwaremill.sttp.client3::async-http-client-backend-cats:3.3.18",
         "com.softwaremill.sttp.client3::async-http-client-backend-fs2:3.3.18",
         "com.softwaremill.sttp.client3::async-http-client-backend-zio:3.3.18",
-        "com.sun.activation:jakarta.activation:1.2.2",
-        "com.typesafe.netty:netty-reactive-streams:2.0.4",
-        "io.netty:netty-buffer:4.1.60.Final",
-        "io.netty:netty-codec-http:4.1.60.Final",
-        "io.netty:netty-codec-socks:4.1.60.Final",
-        "io.netty:netty-codec:4.1.60.Final",
-        "io.netty:netty-common:4.1.60.Final",
-        "io.netty:netty-handler-proxy:4.1.60.Final",
-        "io.netty:netty-handler:4.1.60.Final",
-        "io.netty:netty-resolver:4.1.60.Final",
-        "io.netty:netty-transport:4.1.60.Final",
-        "org.asynchttpclient:async-http-client-netty-utils:2.12.3",
         {
           "forceJvm" : true,
           "module" : "org.http4s::http4s-circe:0.23.7"
@@ -648,20 +633,8 @@
         }
       },
       "dependencies" : [
-        "aopalliance:aopalliance:1.0",
-        "com.google.guava:guava:27.1-jre",
-        "com.google.j2objc:j2objc-annotations:1.1",
         "com.twitter::finatra-http:21.2.0",
-        "commons-codec:commons-codec:1.11",
-        "io.netty:netty-buffer:4.1.51.Final",
-        "io.netty:netty-codec-socks:4.1.51.Final",
-        "io.netty:netty-codec:4.1.51.Final",
-        "io.netty:netty-common:4.1.51.Final",
-        "io.netty:netty-resolver:4.1.51.Final",
-        "org.apache.httpcomponents:httpclient:4.5.13",
-        "org.apache.httpcomponents:httpcore:4.4.13",
-        "org.apache.httpcomponents:httpmime:4.5.13",
-        "org.codehaus.mojo:animal-sniffer-annotations:1.17"
+        "org.apache.httpcomponents:httpmime:4.5.13"
       ],
       "dependsOn" : "core",
       "extends" : [
@@ -828,14 +801,12 @@
       },
       "dependencies" : [
         "ch.qos.logback:logback-classic:1.2.7",
-        "ch.qos.logback:logback-core:1.2.7",
         "com.softwaremill.sttp.shared::fs2:1.2.7",
         {
           "forceJvm" : true,
           "module" : "com.typesafe.scala-logging::scala-logging:3.9.4"
         },
-        "io.netty:netty-all:4.1.68.Final",
-        "org.slf4j:slf4j-api:1.7.32"
+        "io.netty:netty-all:4.1.68.Final"
       ],
       "dependsOn" : "core",
       "extends" : [
@@ -958,10 +929,8 @@
     },
     "openapiCodegen" : {
       "dependencies" : [
-        "com.squareup.okio:okio:1.17.2",
         "io.circe::circe-generic:0.14.1",
         "io.circe::circe-yaml:0.14.1",
-        "org.jline:jline-style:3.19.0",
         "org.scala-lang:scala-compiler:2.12.15",
         "org.scala-sbt:sbt:1.5.5"
       ],
@@ -1148,13 +1117,8 @@
     },
     "playServer" : {
       "dependencies" : [
-        "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.errorprone:error_prone_annotations:2.3.4",
-        "com.google.j2objc:j2objc-annotations:1.3",
         "com.softwaremill.sttp.shared::akka:1.2.7",
-        "com.typesafe.play::play-akka-http-server:2.8.7",
-        "jakarta.activation:jakarta.activation-api:1.2.2",
-        "org.checkerframework:checker-qual:2.10.0"
+        "com.typesafe.play::play-akka-http-server:2.8.7"
       ],
       "dependsOn" : "core",
       "extends" : [
@@ -1187,7 +1151,6 @@
       },
       "dependencies" : [
         "io.prometheus:simpleclient_common:0.12.0",
-        "io.prometheus:simpleclient_tracer_common:0.12.0",
         "io.prometheus:simpleclient_tracer_otel:0.12.0",
         "io.prometheus:simpleclient_tracer_otel_agent:0.12.0"
       ],
@@ -1515,14 +1478,12 @@
     "tests" : {
       "dependencies" : [
         "ch.qos.logback:logback-classic:1.2.7",
-        "ch.qos.logback:logback-core:1.2.7",
         "com.softwaremill.common::tagging:2.3.2",
         {
           "forceJvm" : true,
           "module" : "com.typesafe.scala-logging::scala-logging:3.9.4"
         },
-        "org.scalatest::scalatest:3.2.10",
-        "org.slf4j:slf4j-api:1.7.32"
+        "org.scalatest::scalatest:3.2.10"
       ],
       "dependsOn" : [
         "cats",
@@ -1573,25 +1534,8 @@
         }
       },
       "dependencies" : [
-        "com.fasterxml.jackson.core:jackson-core:2.11.4",
         "com.softwaremill.sttp.shared::fs2:1.2.7",
         "com.softwaremill.sttp.shared::zio:1.2.7",
-        "io.netty:netty-buffer:4.1.69.Final",
-        "io.netty:netty-codec-dns:4.1.69.Final",
-        "io.netty:netty-codec-http2:4.1.69.Final",
-        "io.netty:netty-codec-http:4.1.69.Final",
-        "io.netty:netty-codec-socks:4.1.69.Final",
-        "io.netty:netty-codec:4.1.69.Final",
-        "io.netty:netty-common:4.1.69.Final",
-        "io.netty:netty-handler-proxy:4.1.69.Final",
-        "io.netty:netty-handler:4.1.69.Final",
-        "io.netty:netty-resolver-dns:4.1.69.Final",
-        "io.netty:netty-resolver:4.1.69.Final",
-        "io.netty:netty-transport:4.1.69.Final",
-        "io.vertx:vertx-auth-common:4.2.1",
-        "io.vertx:vertx-bridge-common:4.2.1",
-        "io.vertx:vertx-core:4.2.1",
-        "io.vertx:vertx-web-common:4.2.1",
         "io.vertx:vertx-web:4.2.1"
       ],
       "dependsOn" : "core",

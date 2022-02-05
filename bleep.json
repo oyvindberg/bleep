@@ -1,17 +1,10 @@
 {
-  "$schema": "https://raw.githubusercontent.com/oyvindberg/bleep/add-json-schema/schema.json",
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/add-json-schema/schema.json",
   "projects" : {
     "bleep" : {
       "dependencies" : [
-        "com.google.code.findbugs:jsr305:3.0.2",
-        "com.google.code.gson:gson:2.8.9",
-        "com.google.errorprone:error_prone_annotations:2.2.0",
-        "com.google.guava:guava:27.1-jre",
-        "com.google.j2objc:j2objc-annotations:1.1",
         "com.lihaoyi::pprint:0.7.1",
         "com.monovore::decline:2.2.0",
-        "org.checkerframework:checker-qual:2.5.2",
-        "org.codehaus.mojo:animal-sniffer-annotations:1.17",
         "org.graalvm.nativeimage:svm:22.0.0.2",
         "org.scalameta:svm-subs:101.0.0",
         "org.virtuslab.scala-cli::bloop-rifle:0.1.0"
@@ -39,7 +32,7 @@
           "for3Use213" : true,
           "module" : "ch.epfl.scala::bloop-config:1.4.12"
         },
-        "com.lihaoyi::fansi:0.3.0",
+        "com.lihaoyi::fansi:0.3.1",
         "io.circe::circe-generic:0.14.1",
         {
           "for3Use213" : true,
