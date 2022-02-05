@@ -51,19 +51,6 @@ lazy val `bleep-tasks` = project
     )
   )
 
-/*lazy val `bloop-rifle` =
-  project
-    .configure(commonSettings, crossSettings)
-    .settings(
-      libraryDependencies ++= List(
-        "ch.epfl.scala" % "bsp4j" % "2.0.0",
-        "me.vican.jorge" %% "snailgun-core" % "0.4.0" cross For3Use2_13(),
-        "ch.epfl.scala" %% "bloop-config" % "1.4.12" cross For3Use2_13(),
-        "com.github.alexarchambault.tmp.ipcsocket" % "ipcsocket" % "1.4.1-aa-4",
-        "org.graalvm.nativeimage" % "svm" % "21.3.0" % "provided"
-      )
-    )
- */
 lazy val bleep = project
   .configure(commonSettings)
   .dependsOn(`bleep-core`)
@@ -93,8 +80,3 @@ lazy val bleep = project
 lazy val infrastructure = project
   .dependsOn(bleep, `bleep-tasks`)
   .configure(commonSettings)
-  .settings(
-    libraryDependencies ++= Seq(
-      "ch.epfl.scala" %% "bloop-config" % "1.4.9"
-    )
-  )
