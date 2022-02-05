@@ -14,15 +14,14 @@ import java.io.File
 import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
-import scala.concurrent.ExecutionContext
 
 trait CoursierResolver {
   def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result]
 }
 
 object CoursierResolver {
-  def apply(ec: ExecutionContext, logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
-    cacheIn.foldLeft(new Direct(ec, downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(logger, cr, path) }
+  def apply(logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
+    cacheIn.foldLeft(new Direct(downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(logger, cr, path) }
 
   final case class Authentications(configs: Map[URI, Authentication])
   object Authentications {
@@ -123,7 +122,7 @@ object CoursierResolver {
     // format: on
   }
 
-  private class Direct(ec: ExecutionContext, downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
+  private class Direct(downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
     val fileCache = FileCache[Task]()
 
     override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result] = {

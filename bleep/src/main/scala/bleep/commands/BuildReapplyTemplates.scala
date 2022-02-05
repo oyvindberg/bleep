@@ -15,5 +15,6 @@ case class BuildReapplyTemplates(started: Started) extends BleepCommand {
       started.buildPaths.bleepJsonFile,
       build.asJson.foldWith(ShortenAndSortJson).spaces2
     )
+    ()
   }
 }

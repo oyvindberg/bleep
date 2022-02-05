@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.internal.SetLike
-import cats.syntax.traverse._
 import io.circe.Decoder.Result
 import io.circe.{Decoder, Encoder, Json}
 

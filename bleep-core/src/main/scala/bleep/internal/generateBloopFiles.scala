@@ -107,7 +107,8 @@ object generateBloopFiles {
             classpath = None,
             resources = None
           )
-        case model.Platform.Native(platform) => ???
+        case model.Platform.Native(platform @ _) => ???
+        case other                               => sys.error(s"unexpected: $other")
       }
 
     val resolvedDependencies: CoursierResolver.Result = {

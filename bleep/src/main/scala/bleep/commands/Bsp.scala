@@ -44,6 +44,7 @@ case class Bsp(opts: CommonOpts, started: Started) extends BleepCommand {
           System.err,
           new MyBloopRifleLogger(started.logger, true, true)
         )
+        ()
       }
     }
   }

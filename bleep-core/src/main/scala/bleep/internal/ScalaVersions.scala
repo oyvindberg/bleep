@@ -82,7 +82,7 @@ object ScalaVersions {
               case Some(scalaNativeVersion) => Right(Native(scalaVersion, scalaNativeVersion))
               case None                     => Left(s"Must specify scala native version for scala ${scalaVersion.scalaVersion}")
             }
-          case None => Left("Must specify platform")
+          case _ => Left("Must specify platform")
         }
 
       case None =>

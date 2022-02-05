@@ -11,7 +11,6 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
 import java.time.Instant
 import scala.collection.immutable.SortedMap
-import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 /** @param build
@@ -76,7 +75,6 @@ object bootstrap {
 
     val lazyResolver: Lazy[CoursierResolver] = Lazy {
       CoursierResolver(
-        ExecutionContext.global,
         logger,
         downloadSources = true,
         Some(directories.cacheDir),
