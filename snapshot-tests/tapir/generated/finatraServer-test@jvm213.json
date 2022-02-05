@@ -381,24 +381,6 @@
             },
             {
               "name": "util-lint_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-lint_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-lint_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-lint_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-lint_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0-sources.jar"
             }
@@ -1079,15 +1061,6 @@
             },
             {
               "name": "util-app-lifecycle_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.13/21.2.0/util-app-lifecycle_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-app-lifecycle_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.13/21.2.0/util-app-lifecycle_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-app-lifecycle_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.13/21.2.0/util-app-lifecycle_2.13-21.2.0-sources.jar"
             }
@@ -1230,15 +1203,6 @@
             },
             {
               "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2.jar"
-            },
-            {
-              "name": "jackson-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2-sources.jar"
-            },
-            {
-              "name": "jackson-core",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2-sources.jar"
             }
@@ -1358,15 +1322,6 @@
             },
             {
               "name": "util-app_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.13/21.2.0/util-app_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-app_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.13/21.2.0/util-app_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-app_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.13/21.2.0/util-app_2.13-21.2.0-sources.jar"
             }
@@ -1381,15 +1336,6 @@
             {
               "name": "util-stats_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.13/21.2.0/util-stats_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-stats_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.13/21.2.0/util-stats_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-stats_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.13/21.2.0/util-stats_2.13-21.2.0-sources.jar"
             },
             {
               "name": "util-stats_2.13",
@@ -1699,15 +1645,6 @@
             },
             {
               "name": "util-jvm_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.13/21.2.0/util-jvm_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-jvm_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.13/21.2.0/util-jvm_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-jvm_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.13/21.2.0/util-jvm_2.13-21.2.0-sources.jar"
             }
@@ -1895,15 +1832,6 @@
             },
             {
               "name": "util-tunable_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.13/21.2.0/util-tunable_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-tunable_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.13/21.2.0/util-tunable_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-tunable_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.13/21.2.0/util-tunable_2.13-21.2.0-sources.jar"
             }
@@ -1918,15 +1846,6 @@
             {
               "name": "caffeine",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar"
-            },
-            {
-              "name": "caffeine",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar"
-            },
-            {
-              "name": "caffeine",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5-sources.jar"
             },
             {
               "name": "caffeine",
@@ -2182,24 +2101,6 @@
             {
               "name": "util-registry_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-registry_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-registry_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0.jar"
-            },
-            {
-              "name": "util-registry_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0-sources.jar"
-            },
-            {
-              "name": "util-registry_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0-sources.jar"
             },
             {
               "name": "util-registry_2.13",

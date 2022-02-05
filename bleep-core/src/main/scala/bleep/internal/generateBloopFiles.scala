@@ -141,14 +141,17 @@ object generateBloopFiles {
               name = module.name.value,
               version = dep.version,
               configurations = if (dep.configuration == Configuration.empty) None else Some(dep.configuration.value),
-              artifacts = files.collect { case (_, pub, _, file) =>
-                b.Artifact(
-                  dep.module.name.value,
-                  if (pub.classifier == Classifier.empty) None else Some(pub.classifier.value),
-                  checksum = None,
-                  file.toPath
-                )
-              }.toList
+              artifacts = files
+                .collect { case (_, pub, _, file) =>
+                  b.Artifact(
+                    dep.module.name.value,
+                    if (pub.classifier == Classifier.empty) None else Some(pub.classifier.value),
+                    checksum = None,
+                    file.toPath
+                  )
+                }
+                .toList
+                .distinct
             )
           }
           .toList
