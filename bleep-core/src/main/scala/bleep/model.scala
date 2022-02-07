@@ -510,7 +510,10 @@ object model {
       testFrameworks = JsonSet.empty
     )
 
-    implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = deriveDecoder
+    implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = {
+      assertUsed(templateIdDecoder, projectNameDecoder)
+      deriveDecoder
+    }
     implicit val encodes: Encoder[Project] = deriveEncoder
   }
 

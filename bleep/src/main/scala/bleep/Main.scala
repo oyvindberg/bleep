@@ -78,10 +78,10 @@ object Main {
         Opts.subcommand("build", "rewrite build")(
           List(
             Opts.subcommand("templates-reapply", "reapply templates.")(
-              CommonOpts.opts.map(opts => commands.BuildReapplyTemplates(forceStarted))
+              CommonOpts.opts.map(_ => commands.BuildReapplyTemplates(forceStarted))
             ),
             Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
-              CommonOpts.opts.map(opts => commands.BuildReinferTemplates(forceStarted, Set.empty))
+              CommonOpts.opts.map(_ => commands.BuildReinferTemplates(forceStarted, Set.empty))
             )
           ).foldK
         ),
@@ -98,7 +98,7 @@ object Main {
           (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Clean(forceStarted, opts, projectNames) }
         ),
         Opts.subcommand("projects", "show projects under current directory")(
-          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) =>
+          (CommonOpts.opts, projectNames).mapN { case (_, projectNames) =>
             new BleepCommand {
               override def run(): Unit = {
                 val started = forceStarted
@@ -108,7 +108,7 @@ object Main {
           }
         ),
         Opts.subcommand("projects-test", "show test projects under current directory")(
-          (CommonOpts.opts, testProjectNames).mapN { case (opts, projectNames) =>
+          (CommonOpts.opts, testProjectNames).mapN { case (_, projectNames) =>
             new BleepCommand {
               override def run(): Unit = {
                 val started = forceStarted

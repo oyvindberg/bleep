@@ -4,6 +4,8 @@ import com.github.plokhotnyuk.jsoniter_scala
 import java.nio.file.{Files, Path}
 
 package object bleep {
+  private[bleep] def assertUsed(anies: Any*): Unit = ((), anies)._1
+
   implicit class PathOps(path: Path) {
     def /(relPath: RelPath): Path =
       relPath.segments.foldLeft(path)(_.resolve(_))

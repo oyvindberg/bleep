@@ -51,7 +51,7 @@ object JavaOrScalaModule {
         val name = splitName.head
         val attributes = splitName.tail
           .map(_.split("=", 2))
-          .map { case Array(key, value) =>
+          .collect { case Array(key, value) =>
             key -> value
           }
           .toMap

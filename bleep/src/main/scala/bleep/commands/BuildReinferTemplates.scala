@@ -25,5 +25,6 @@ case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates:
       started.buildPaths.bleepJsonFile,
       build.asJson.foldWith(ShortenAndSortJson).spaces2
     )
+    ()
   }
 }

@@ -324,7 +324,7 @@ object importBloopFilesFromSbt {
           jsMainClass = mainClass
         )
         translatedPlatform
-      case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath, resources) =>
+      case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath @ _, resources @ _) =>
         val translatedPlatform = model.Platform.Jvm(
           jvmOptions = Options.parse(config.options, Some(templateDirs)),
           mainClass,
