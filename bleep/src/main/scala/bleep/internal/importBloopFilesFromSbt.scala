@@ -8,7 +8,6 @@ import coursier.{Dependency, Module, ModuleName, Organization}
 
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
-import java.util.stream.Collectors
 import scala.jdk.CollectionConverters._
 
 object importBloopFilesFromSbt {
@@ -41,20 +40,11 @@ object importBloopFilesFromSbt {
     model.ProjectName(if (isTest) s"$ret-test" else ret)
   }
 
-  def apply(logger: Logger, buildPaths: BuildPaths): ExplodedBuild = {
-    val generatedJsonFiles: List[Path] =
-      Files
-        .list(buildPaths.bleepImportDir)
-        .filter(Files.isDirectory(_))
-        .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
-        .collect(Collectors.toList[Path])
-        .asScala
-        .toList
+  def apply(logger: Logger, buildPaths: BuildPaths, bloopFiles: Iterable[Config.File]): ExplodedBuild = {
 
     val crossBloopProjectFiles: Map[model.CrossProjectName, Config.File] =
-      generatedJsonFiles
-        .map { jsonFile =>
-          val file = readBloopFile(jsonFile)
+      bloopFiles
+        .map { file =>
           val maybeBinVersion = file.project.scala.map(s => Versions.Scala(s.version).binVersion.replace(".", ""))
           val maybePlatformId = file.project.platform.map(_.name)
           val maybeCrossId =

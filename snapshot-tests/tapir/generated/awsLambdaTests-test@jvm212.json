@@ -1,0 +1,1553 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "awsLambdaTests-test@jvm212",
+    "directory": "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests",
+    "workspaceDir": "<PROJECT>/snapshot-tests-in/tapir",
+    "sources": [
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/java",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scala-2",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scala-2.12",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scala-2.13-",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scalajvm",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scalajvm-2",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scalajvm-2.12",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/jvm-2.12/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/scala-2.12/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/src_managed/test"
+    ],
+    "dependencies": [
+      "awsLambda@jvm212",
+      "awsLambdaTests@jvm212",
+      "awsSam@jvm212",
+      "cats@jvm212",
+      "circeJson@jvm212",
+      "core@jvm212",
+      "serverTests@jvm212",
+      "sttpClient@jvm212",
+      "sttpStubServer@jvm212",
+      "tests@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.2/fs2-core_2.12-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.2/fs2-io_2.12-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.2.2/fs2-reactive-streams_2.12-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-core/1.2.0/aws-lambda-java-core-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-runtime-interface-client/2.0.0/aws-lambda-java-runtime-interface-client-2.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-serialization/1.0.0/aws-lambda-java-serialization-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.1/ip4s-core_2.12-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.2/tagging_2.12-2.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/cats_2.12/3.3.18/cats_2.12-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.12/3.3.18/core_2.12-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/fs2_2.12/3.3.18/fs2_2.12-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend-fs2_2.12/3.3.18/httpclient-backend-fs2_2.12-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend_2.12/3.3.18/httpclient-backend_2.12-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.12/1.2.7/akka_2.12-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.12/1.2.7/fs2_2.12-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.2.7/zio_2.12-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.12/2.6.17/akka-actor_2.12-2.6.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.12/2.6.17/akka-protobuf-v3_2.12-2.6.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.12/2.6.17/akka-stream_2.12-2.6.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.4.2/ssl-config-core_2.12-0.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/1.1.3/izumi-reflect-thirdparty-boopickle-shaded_2.12-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/1.1.3/izumi-reflect_2.12-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/1.0.12/zio-stacktracer_2.12-1.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/1.0.12/zio-streams_2.12-1.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/1.0.12/zio_2.12-1.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.1/circe-core_2.12-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.1/circe-jawn_2.12-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.1/circe-numbers_2.12-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.1/circe-parser_2.12-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.14.1/circe-yaml_2.12-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams-flow-adapters/1.0.2/reactive-streams-flow-adapters-1.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/0.8.0/scala-java8-compat_2.12-0.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.29/scodec-bits_2.12-1.1.29.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.1.2/jawn-parser_2.12-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28.jar",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/awsLambda/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/awsLambdaTests/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/awsSam/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/cats/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/circeJson/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/core/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/serverTests/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/sttpClient/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/sttpStubServer/jvm212/classes",
+      "<PROJECT>/snapshot-tests/tapir/generated/.bloop/tests/jvm212/classes"
+    ],
+    "out": "<PROJECT>/snapshot-tests/tapir/generated/.bloop/awsLambdaTests-test/jvm212",
+    "classesDir": "<PROJECT>/snapshot-tests/tapir/generated/.bloop/awsLambdaTests-test/jvm212/classes",
+    "resources": [
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/resources",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/jvm-2.12/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/scala-2.12/resource_managed/test"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.15",
+      "options": [
+        "-Xcheckinit",
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Ywarn-dead-code",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-macros:after",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:implicits",
+        "-Ywarn-unused:imports",
+        "-Ywarn-unused:locals",
+        "-Ywarn-unused:params",
+        "-Ywarn-unused:patvars",
+        "-Ywarn-unused:privates",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<PROJECT>/snapshot-tests/tapir/generated/.bloop/awsLambdaTests-test/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<PROJECT>/snapshot-tests-in/tapir"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.typelevel",
+          "name": "simulacrum-scalafix-annotations_2.12",
+          "version": "0.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simulacrum-scalafix-annotations_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar"
+            },
+            {
+              "name": "simulacrum-scalafix-annotations_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.12",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0.jar"
+            },
+            {
+              "name": "cats-kernel_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-diagrams_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.12",
+          "version": "2.3.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shapeless_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7.jar"
+            },
+            {
+              "name": "shapeless_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.12",
+          "version": "3.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0.jar"
+            },
+            {
+              "name": "cats-effect-std_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.1/circe-jawn_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-jawn_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.1/circe-jawn_2.12-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-matchers-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-flatspec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-shouldmatchers_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-funspec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.12",
+          "version": "0.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.4.2/ssl-config-core_2.12-0.4.2.jar"
+            },
+            {
+              "name": "ssl-config-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.4.2/ssl-config-core_2.12-0.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.12",
+          "version": "1.0.12",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/1.0.12/zio-stacktracer_2.12-1.0.12.jar"
+            },
+            {
+              "name": "zio-stacktracer_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/1.0.12/zio-stacktracer_2.12-1.0.12-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-compatible",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.12",
+          "version": "1.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.1.2/jawn-parser_2.12-1.1.2.jar"
+            },
+            {
+              "name": "jawn-parser_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.1.2/jawn-parser_2.12-1.1.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "httpclient-backend_2.12",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpclient-backend_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend_2.12/3.3.18/httpclient-backend_2.12-3.3.18.jar"
+            },
+            {
+              "name": "httpclient-backend_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend_2.12/3.3.18/httpclient-backend_2.12-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.propensive",
+          "name": "mercator_2.12",
+          "version": "0.2.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "mercator_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+            },
+            {
+              "name": "mercator_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar"
+            },
+            {
+              "name": "logback-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.common",
+          "name": "tagging_2.12",
+          "version": "2.3.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "tagging_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.2/tagging_2.12-2.3.2.jar"
+            },
+            {
+              "name": "tagging_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.2/tagging_2.12-2.3.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-yaml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.14.1/circe-yaml_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-yaml_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.14.1/circe-yaml_2.12-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+          "version": "1.1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/1.1.3/izumi-reflect-thirdparty-boopickle-shaded_2.12-1.1.3.jar"
+            },
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/1.1.3/izumi-reflect-thirdparty-boopickle-shaded_2.12-1.1.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "httpclient-backend-fs2_2.12",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpclient-backend-fs2_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend-fs2_2.12/3.3.18/httpclient-backend-fs2_2.12-3.3.18.jar"
+            },
+            {
+              "name": "httpclient-backend-fs2_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend-fs2_2.12/3.3.18/httpclient-backend-fs2_2.12-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+            },
+            {
+              "name": "reactive-streams",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.4.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
+            },
+            {
+              "name": "core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-protobuf-v3_2.12",
+          "version": "2.6.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "akka-protobuf-v3_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.12/2.6.17/akka-protobuf-v3_2.12-2.6.17.jar"
+            },
+            {
+              "name": "akka-protobuf-v3_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.12/2.6.17/akka-protobuf-v3_2.12-2.6.17-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalactic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalactic_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.propensive",
+          "name": "magnolia_2.12",
+          "version": "0.17.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
+            },
+            {
+              "name": "magnolia_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.amazonaws",
+          "name": "aws-lambda-java-core",
+          "version": "1.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "aws-lambda-java-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-core/1.2.0/aws-lambda-java-core-1.2.0.jar"
+            },
+            {
+              "name": "aws-lambda-java-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-core/1.2.0/aws-lambda-java-core-1.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.12",
+          "version": "3.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.1/ip4s-core_2.12-3.1.1.jar"
+            },
+            {
+              "name": "ip4s-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.1/ip4s-core_2.12-3.1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "1.28",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28.jar"
+            },
+            {
+              "name": "snakeyaml",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.1/circe-core_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.1/circe-core_2.12-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.12",
+          "version": "3.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0.jar"
+            },
+            {
+              "name": "cats-effect-kernel_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-wordspec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-mustmatchers_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-reactive-streams_2.12",
+          "version": "3.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-reactive-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.2.2/fs2-reactive-streams_2.12-3.2.2.jar"
+            },
+            {
+              "name": "fs2-reactive-streams_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.12/3.2.2/fs2-reactive-streams_2.12-3.2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-actor_2.12",
+          "version": "2.6.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "akka-actor_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.12/2.6.17/akka-actor_2.12-2.6.17.jar"
+            },
+            {
+              "name": "akka-actor_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.12/2.6.17/akka-actor_2.12-2.6.17-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.32",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
+            },
+            {
+              "name": "slf4j-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "akka_2.12",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "akka_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.12/1.2.7/akka_2.12-1.2.7.jar"
+            },
+            {
+              "name": "akka_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.12/1.2.7/akka_2.12-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.12",
+          "version": "1.0.12",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/1.0.12/zio_2.12-1.0.12.jar"
+            },
+            {
+              "name": "zio_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/1.0.12/zio_2.12-1.0.12-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.scala-logging",
+          "name": "scala-logging_2.12",
+          "version": "3.9.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-logging_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4.jar"
+            },
+            {
+              "name": "scala-logging_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.15",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
+            },
+            {
+              "name": "scala-reflect",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-generic_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.12",
+          "version": "1.1.29",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.29/scodec-bits_2.12-1.1.29.jar"
+            },
+            {
+              "name": "scodec-bits_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.29/scodec-bits_2.12-1.1.29-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.1/circe-parser_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-parser_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.1/circe-parser_2.12-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.12",
+          "version": "1.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar"
+            },
+            {
+              "name": "scala-parser-combinators_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.12",
+          "version": "3.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0.jar"
+            },
+            {
+              "name": "cats-effect_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar"
+            },
+            {
+              "name": "logback-classic",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_2.12",
+          "version": "1.0.12",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-streams_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/1.0.12/zio-streams_2.12-1.0.12.jar"
+            },
+            {
+              "name": "zio-streams_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/1.0.12/zio-streams_2.12-1.0.12-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.12",
+          "version": "1.1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/1.1.3/izumi-reflect_2.12-1.1.3.jar"
+            },
+            {
+              "name": "izumi-reflect_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/1.1.3/izumi-reflect_2.12-1.1.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-freespec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.1/circe-numbers_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-numbers_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.1/circe-numbers_2.12-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "zio_2.12",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.2.7/zio_2.12-1.2.7.jar"
+            },
+            {
+              "name": "zio_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_2.12/1.2.7/zio_2.12-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.15",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_2.12",
+          "version": "3.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-io_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.2/fs2-io_2.12-3.2.2.jar"
+            },
+            {
+              "name": "fs2-io_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.2/fs2-io_2.12-3.2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-stream_2.12",
+          "version": "2.6.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "akka-stream_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.12/2.6.17/akka-stream_2.12-2.6.17.jar"
+            },
+            {
+              "name": "akka-stream_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.12/2.6.17/akka-stream_2.12-2.6.17-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.amazonaws",
+          "name": "aws-lambda-java-serialization",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "aws-lambda-java-serialization",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-serialization/1.0.0/aws-lambda-java-serialization-1.0.0.jar"
+            },
+            {
+              "name": "aws-lambda-java-serialization",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-serialization/1.0.0/aws-lambda-java-serialization-1.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.12",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0.jar"
+            },
+            {
+              "name": "cats-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
+            },
+            {
+              "name": "ws_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.12",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "literally_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar"
+            },
+            {
+              "name": "literally_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-featurespec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "fs2_2.12",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.12/1.2.7/fs2_2.12-1.2.7.jar"
+            },
+            {
+              "name": "fs2_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.12/1.2.7/fs2_2.12-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar"
+            },
+            {
+              "name": "config",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_2.12",
+          "version": "3.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.2/fs2-core_2.12-3.2.2.jar"
+            },
+            {
+              "name": "fs2-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.2/fs2-core_2.12-3.2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "fs2_2.12",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/fs2_2.12/3.3.18/fs2_2.12-3.3.18.jar"
+            },
+            {
+              "name": "fs2_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/fs2_2.12/3.3.18/fs2_2.12-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams-flow-adapters",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams-flow-adapters",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams-flow-adapters/1.0.2/reactive-streams-flow-adapters-1.0.2.jar"
+            },
+            {
+              "name": "reactive-streams-flow-adapters",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams-flow-adapters/1.0.2/reactive-streams-flow-adapters-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "1.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar"
+            },
+            {
+              "name": "scala-xml_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-propspec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "core_2.12",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.12/3.3.18/core_2.12-3.3.18.jar"
+            },
+            {
+              "name": "core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.12/3.3.18/core_2.12-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "cats_2.12",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/cats_2.12/3.3.18/cats_2.12-3.3.18.jar"
+            },
+            {
+              "name": "cats_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/cats_2.12/3.3.18/cats_2.12-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
+            },
+            {
+              "name": "core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-refspec_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.12",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-funsuite_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.amazonaws",
+          "name": "aws-lambda-java-runtime-interface-client",
+          "version": "2.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "aws-lambda-java-runtime-interface-client",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-runtime-interface-client/2.0.0/aws-lambda-java-runtime-interface-client-2.0.0.jar"
+            },
+            {
+              "name": "aws-lambda-java-runtime-interface-client",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/amazonaws/aws-lambda-java-runtime-interface-client/2.0.0/aws-lambda-java-runtime-interface-client-2.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_2.12",
+          "version": "0.8.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java8-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/0.8.0/scala-java8-compat_2.12-0.8.0.jar"
+            },
+            {
+              "name": "scala-java8-compat_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/0.8.0/scala-java8-compat_2.12-0.8.0-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

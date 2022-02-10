@@ -1,0 +1,149 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "apispecModel@jvm213",
+    "directory": "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model",
+    "workspaceDir": "<PROJECT>/snapshot-tests-in/tapir",
+    "sources": [
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/java",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scala-2",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scala-2.13",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scala-2.13+",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scalajvm",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scalajvm-2",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/scalajvm-2.13",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/target/jvm-2.13/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/target/scala-2.13/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/target/src_managed/main"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+    ],
+    "out": "<PROJECT>/snapshot-tests/tapir/generated/.bloop/apispecModel/jvm213",
+    "classesDir": "<PROJECT>/snapshot-tests/tapir/generated/.bloop/apispecModel/jvm213/classes",
+    "resources": [
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/src/main/resources",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/target/jvm-2.13/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/target/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/tapir/apispec/apispec-model/target/scala-2.13/resource_managed/main"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.6",
+      "options": [
+        "-Vimplicits",
+        "-Vtype-diffs",
+        "-Wconf:cat=other-match-analysis:error",
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xcheckinit",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.6/0.13.2/kind-projector_2.13.6-0.13.2.jar",
+        "-Ywarn-macros:after",
+        "-encoding",
+        "utf8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+      ],
+      "analysis": "<PROJECT>/snapshot-tests/tapir/generated/.bloop/apispecModel/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<PROJECT>/snapshot-tests-in/tapir"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,355 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "asyncapiCirceYaml-test",
+        "directory": "<PROJECT>/snapshot-tests-in/tapir/.sbt/matrix/asyncapiCirceYaml",
+        "workspaceDir": "<PROJECT>/snapshot-tests-in/tapir",
+        "sources": [
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scala",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scala-2.13",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scala-2",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/java",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scalajvm",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scalajvm-2.13",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scala-2",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scala-2.13+",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/scalajvm-2",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/jvm-2.13/src_managed/test"
+        ],
+        "dependencies": [
+            "asyncapiCirce",
+            "asyncapiCirceYaml"
+        ],
+        "classpath": [
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiCirceYaml/scala-2.13/classes",
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiCirce/scala-2.13/classes",
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiModel/scala-2.13/classes",
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/apispecModel/scala-2.13/classes",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.1/circe-yaml_2.13-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2.jar"
+        ],
+        "out": "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiCirceYaml",
+        "classesDir": "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiCirceYaml/scala-2.13/test-classes",
+        "resources": [
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/test/resources",
+            "<PROJECT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/jvm-2.13/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.13.6",
+            "options": [
+                "-encoding",
+                "utf8",
+                "-explaintypes",
+                "-feature",
+                "-language:existentials",
+                "-language:experimental.macros",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Xcheckinit",
+                "-Xlint:adapted-args",
+                "-Xlint:constant",
+                "-Xlint:delayedinit-select",
+                "-Xlint:deprecation",
+                "-Xlint:doc-detached",
+                "-Xlint:inaccessible",
+                "-Xlint:infer-any",
+                "-Xlint:missing-interpolator",
+                "-Xlint:nullary-unit",
+                "-Xlint:option-implicit",
+                "-Xlint:package-object-classes",
+                "-Xlint:poly-implicit-overload",
+                "-Xlint:private-shadow",
+                "-Xlint:stars-align",
+                "-Xlint:strict-unsealed-patmat",
+                "-Xlint:type-parameter-shadow",
+                "-Xlint:-byname-implicit",
+                "-Wunused:nowarn",
+                "-Wdead-code",
+                "-Wextra-implicit",
+                "-Wnumeric-widen",
+                "-Wunused:implicits",
+                "-Wunused:explicits",
+                "-Wunused:imports",
+                "-Wunused:locals",
+                "-Wunused:params",
+                "-Wunused:patvars",
+                "-Wunused:privates",
+                "-Wvalue-discard",
+                "-Vimplicits",
+                "-Vtype-diffs",
+                "-Wconf:cat=other-match-analysis:error",
+                "-Ywarn-macros:after",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.6/0.13.2/kind-projector_2.13.6-0.13.2.jar"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    {
+                        "args": [
+                            "-oD"
+                        ]
+                    }
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<HOME>/.cache/coursier/jvm/graalvm-java17@22.0.0.2",
+                "options": [
+                    "-Duser.dir=<PROJECT>/snapshot-tests-in/tapir"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-yaml_2.13",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-yaml_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.1/circe-yaml_2.13-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-core_2.13",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-parser_2.13",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-parser_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-generic_2.13",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-generic_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.yaml",
+                    "name": "snakeyaml",
+                    "version": "1.28",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "snakeyaml",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-numbers_2.13",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-numbers_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-core_2.13",
+                    "version": "2.6.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-jawn_2.13",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-jawn_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.chuusai",
+                    "name": "shapeless_2.13",
+                    "version": "2.3.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "shapeless_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-kernel_2.13",
+                    "version": "2.6.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-kernel_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "simulacrum-scalafix-annotations_2.13",
+                    "version": "0.5.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simulacrum-scalafix-annotations_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "jawn-parser_2.13",
+                    "version": "1.1.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jawn-parser_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.6",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

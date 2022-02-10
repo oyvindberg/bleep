@@ -119,14 +119,18 @@ object Main {
         ),
         Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
           bootstrapped match {
-            case Left(_)        => Opts(commands.SetupIde(BuildPaths(cwd / "bleep.json"), logger))
+            case Left(_)        => Opts(commands.SetupIde(BuildPaths.fromBuildDir(cwd), logger))
             case Right(started) => Opts(commands.SetupIde(started.buildPaths, logger))
           }
         ),
         Opts.subcommand("patch", "Apply patch from standard-in or file")(
           (CommonOpts.opts, Opts.option[Path]("file", "patch file, defaults to std-in").orNone).mapN((opts, file) => commands.Patch(forceStarted, opts, file))
         ),
-        Opts.subcommand("import", "import existing build from files in .bloop")(commands.Import.opts.map(opts => commands.Import(logger, opts))),
+        Opts.subcommand("import", "import existing build from files in .bloop")(
+          commands.Import.opts.map { opts =>
+            commands.Import(BuildPaths.fromBuildDir(cwd), logger, opts)
+          }
+        ),
         Opts.subcommand("_complete", "tab-completions")(
           (Opts.argument[String]("COMP_LINE"), Opts.argument[Int]("COMP_CWORD"), Opts.argument[Int]("COMP_POINT")).mapN {
             case (compLine, compCword, compPoint) =>

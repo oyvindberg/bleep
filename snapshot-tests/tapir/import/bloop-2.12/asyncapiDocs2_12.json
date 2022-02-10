@@ -1,0 +1,261 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "asyncapiDocs2_12",
+        "directory": "<PROJECT>/snapshot-tests-in/tapir/.sbt/matrix/asyncapiDocs2_12",
+        "workspaceDir": "<PROJECT>/snapshot-tests-in/tapir",
+        "sources": [
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scala",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scala-2.12",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scala-2",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/java",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scalajvm",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scalajvm-2.12",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scala-2",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scala-2.13-",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/scalajvm-2",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/jvm-2.12/src_managed/main"
+        ],
+        "dependencies": [
+            "asyncapiModel2_12",
+            "core2_12",
+            "apispecDocs2_12"
+        ],
+        "classpath": [
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiModel2_12/scala-2.12/classes",
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/apispecModel2_12/scala-2.12/classes",
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/core2_12/scala-2.12/classes",
+            "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/apispecDocs2_12/scala-2.12/classes",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+        ],
+        "out": "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiDocs2_12",
+        "classesDir": "<PROJECT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/import/bloop-2.12/asyncapiDocs2_12/scala-2.12/classes",
+        "resources": [
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/main/resources",
+            "<PROJECT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/jvm-2.12/resource_managed/main"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-encoding",
+                "utf8",
+                "-deprecation",
+                "-explaintypes",
+                "-feature",
+                "-language:existentials",
+                "-language:experimental.macros",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Xcheckinit",
+                "-Xlint:adapted-args",
+                "-Xlint:by-name-right-associative",
+                "-Xlint:constant",
+                "-Xlint:delayedinit-select",
+                "-Xlint:doc-detached",
+                "-Xlint:inaccessible",
+                "-Xlint:infer-any",
+                "-Xlint:missing-interpolator",
+                "-Xlint:nullary-override",
+                "-Xlint:nullary-unit",
+                "-Xlint:option-implicit",
+                "-Xlint:package-object-classes",
+                "-Xlint:poly-implicit-overload",
+                "-Xlint:private-shadow",
+                "-Xlint:stars-align",
+                "-Xlint:type-parameter-shadow",
+                "-Xlint:unsound-match",
+                "-Yno-adapted-args",
+                "-Ywarn-dead-code",
+                "-Ywarn-extra-implicit",
+                "-Ywarn-nullary-override",
+                "-Ywarn-nullary-unit",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-unused:implicits",
+                "-Ywarn-unused:imports",
+                "-Ywarn-unused:locals",
+                "-Ywarn-unused:params",
+                "-Ywarn-unused:patvars",
+                "-Ywarn-unused:privates",
+                "-Ywarn-value-discard",
+                "-Ypartial-unification",
+                "-Ywarn-macros:after",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<HOME>/.cache/coursier/jvm/graalvm-java17@22.0.0.2",
+                "options": [
+                    "-Duser.dir=<PROJECT>/snapshot-tests-in/tapir"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.model",
+                    "name": "core_2.12",
+                    "version": "1.4.18",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "core_2.12",
+                    "version": "1.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "ws_2.12",
+                    "version": "1.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ws_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.propensive",
+                    "name": "magnolia_2.12",
+                    "version": "0.17.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "magnolia_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.propensive",
+                    "name": "mercator_2.12",
+                    "version": "0.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mercator_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}

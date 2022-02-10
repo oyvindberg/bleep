@@ -4,7 +4,9 @@ import io.circe.{Decoder, Encoder}
 
 import java.nio.file.Path
 
-case class RelPath(segments: List[String])
+case class RelPath(segments: List[String]) {
+  override def toString: String = segments.mkString("/")
+}
 
 object RelPath {
   val empty = RelPath(Nil)
