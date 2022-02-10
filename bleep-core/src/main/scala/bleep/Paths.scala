@@ -19,19 +19,35 @@ object UserPaths {
   }
 }
 
-case class BuildPaths(bleepJsonFile: Path) {
-  val buildDir = bleepJsonFile.getParent
-  val dotBleepDir = buildDir / ".bleep"
-  val bleepImportDir = dotBleepDir / "import"
-  val bleepBloopDir = dotBleepDir / ".bloop"
-  val digestFile = bleepBloopDir / ".digest"
-  val bspBleepJsonFile = buildDir / ".bsp" / "bleep.json"
+trait BuildPaths {
+  val bleepJsonFile: Path
+  val buildDir: Path
+  val dotBleepDir: Path
+  val bleepImportDir: Path
+  val bleepBloopDir: Path
+  val digestFile: Path
+  val bspBleepJsonFile: Path
 
-  def from(crossName: model.CrossProjectName, p: model.Project): ProjectPaths =
+  final def from(crossName: model.CrossProjectName, p: model.Project): ProjectPaths =
     ProjectPaths(
       dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value)),
       targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
     )
+}
+
+object BuildPaths {
+  def fromBleepJson(bleepJsonFile: Path): BuildPaths =
+    fromBuildDir(bleepJsonFile.getParent)
+
+  def fromBuildDir(_buildDir: Path): BuildPaths = new BuildPaths {
+    override val bleepJsonFile: Path = _buildDir / Defaults.BuildFileName
+    override val buildDir: Path = _buildDir
+    override val dotBleepDir = buildDir / ".bleep"
+    override val bleepImportDir = dotBleepDir / "import"
+    override val bleepBloopDir = dotBleepDir / ".bloop"
+    override val digestFile = bleepBloopDir / ".digest"
+    override val bspBleepJsonFile = buildDir / ".bsp" / "bleep.json"
+  }
 }
 
 case class ProjectPaths(dir: Path, targetDir: Path) {

@@ -3,11 +3,15 @@ package commands
 
 import bleep.internal._
 import bleep.logging.Logger
+import bloop.config.Config
 import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.monovore.decline.Opts
 import io.circe.syntax._
 
-import java.nio.file.Files
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path, StandardOpenOption}
+import java.util.stream.Collectors
+import scala.jdk.CollectionConverters.ListHasAsScala
 
 object Import {
   case class Options(
@@ -31,17 +35,48 @@ object Import {
     (skipSbt, ignoreWhenInferringTemplates).mapN { case (skipSbt, ignoreWhenInferringTemplates) =>
       Options(ignoreWhenInferringTemplates.toSet, skipSbt = skipSbt)
     }
-
 }
-case class Import(logger: Logger, options: Import.Options) extends BleepCommand {
 
+// pardon the very imperative interface of the class with indirect flow through files. let's refactor later
+case class Import(buildPaths: BuildPaths, logger: Logger, options: Import.Options) extends BleepCommand {
   override def run(): Unit = {
-    val buildPaths = BuildPaths(Os.cwd / Defaults.BuildFileName)
+    if (!options.skipSbt) {
+      generateBloopFiles()
+    }
 
-    if (!options.skipSbt)
-      cli("sbt 'set Global / bloopConfigDir := baseDirectory.value / s\".bleep/import/bloop-${scalaBinaryVersion.value}\"' +bloopInstall")(buildPaths.buildDir)
+    val bloopFiles = findGeneratedBloopFiles().map(readAndParseBloopFile)
+    generateBuildAndPersistFrom(bloopFiles)
+  }
 
-    val build0 = importBloopFilesFromSbt(logger, buildPaths)
+  def generateBloopFiles(): Unit = {
+    val tempAddBloopPlugin = buildPaths.buildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
+
+    Files.writeString(
+      tempAddBloopPlugin,
+      s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.12")""",
+      StandardOpenOption.WRITE,
+      StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING
+    )
+
+    try {
+      // only accepts relative paths
+      val importDir = RelPath.relativeTo(buildPaths.buildDir, buildPaths.bleepImportDir)
+      implicit val wd = buildPaths.buildDir
+      cli(s"""sbt 'set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop-$${scalaBinaryVersion.value}"' +bloopInstall""")
+    } finally Files.delete(tempAddBloopPlugin)
+  }
+
+  def findGeneratedBloopFiles(): Iterable[Path] =
+    Files
+      .list(buildPaths.bleepImportDir)
+      .filter(Files.isDirectory(_))
+      .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
+      .collect(Collectors.toList[Path])
+      .asScala
+
+  def generateBuildAndPersistFrom(bloopFiles: Iterable[Config.File]): Unit = {
+    val build0 = importBloopFilesFromSbt(logger, buildPaths, bloopFiles)
     val normalizedBuild = normalizeBuild(build0)
     val build = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
 
@@ -53,9 +88,9 @@ case class Import(logger: Logger, options: Import.Options) extends BleepCommand 
         diffs.foreach { case (projectName, msg) => logger.withContext(projectName).error(msg) }
     }
 
-    Files.writeString(
+    FileUtils.softWriteBytes(
       buildPaths.bleepJsonFile,
-      build.asJson.foldWith(ShortenAndSortJson).spaces2
+      build.asJson.foldWith(ShortenAndSortJson).spaces2.getBytes(StandardCharsets.UTF_8)
     )
 
     logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.value.size} projects")

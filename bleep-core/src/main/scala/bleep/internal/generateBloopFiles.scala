@@ -9,7 +9,7 @@ import java.nio.file.Path
 import scala.collection.immutable.SortedMap
 
 object generateBloopFiles {
-  implicit val ordering: Ordering[Dependency] =
+  implicit val dependencyOrdering: Ordering[Dependency] =
     Ordering.by(_.toString())
 
   def apply(build: ExplodedBuild, buildPaths: BuildPaths, resolver: CoursierResolver): SortedMap[model.CrossProjectName, Lazy[b.File]] =

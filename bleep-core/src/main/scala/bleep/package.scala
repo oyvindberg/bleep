@@ -43,8 +43,11 @@ package object bleep {
         System.exit(n)
     }
 
-  def readBloopFile(file: Path): Config.File = {
+  def readAndParseBloopFile(file: Path): Config.File = {
     val contents = Files.readString(file)
-    jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
+    parseBloopFile(contents)
   }
+
+  def parseBloopFile(contents: String): Config.File =
+    jsoniter_scala.core.readFromString(contents)(ConfigCodecs.codecFile)
 }

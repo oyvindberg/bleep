@@ -20,6 +20,14 @@ trait CoursierResolver {
 }
 
 object CoursierResolver {
+  def apply(logger: Logger, downloadSources: Boolean, directories: UserPaths): CoursierResolver =
+    CoursierResolver(
+      logger,
+      downloadSources,
+      Some(directories.cacheDir),
+      CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, logger)
+    )
+
   def apply(logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
     cacheIn.foldLeft(new Direct(downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(logger, cr, path) }
 

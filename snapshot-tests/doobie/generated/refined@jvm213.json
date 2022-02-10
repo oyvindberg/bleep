@@ -1,0 +1,469 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "refined@jvm213",
+    "directory": "<PROJECT>/snapshot-tests-in/doobie/modules/refined",
+    "workspaceDir": "<PROJECT>/snapshot-tests-in/doobie",
+    "sources": [
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/src/main/java",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/src/main/scala-2",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/src/main/scala-2.13",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/target/scala-2.13/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/target/src_managed/main"
+    ],
+    "dependencies": [
+      "core@jvm213",
+      "free@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.4/fs2-core_2.13-3.2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_2.13/0.9.28/refined_2.13-0.9.28.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.6.0/scala-collection-compat_2.13-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.13/1.0.0/typename_2.13-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.5/cats-effect-kernel_2.13-3.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.5/cats-effect-std_2.13-3.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.7.0/cats-free_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
+      "<PROJECT>/snapshot-tests/doobie/generated/.bloop/core/jvm213/classes",
+      "<PROJECT>/snapshot-tests/doobie/generated/.bloop/free/jvm213/classes"
+    ],
+    "out": "<PROJECT>/snapshot-tests/doobie/generated/.bloop/refined/jvm213",
+    "classesDir": "<PROJECT>/snapshot-tests/doobie/generated/.bloop/refined/jvm213/classes",
+    "resources": [
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/src/main/resources",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/target/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/doobie/modules/refined/target/scala-2.13/resource_managed/main"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.8",
+      "options": [
+        "-Vimplicits",
+        "-Vtype-diffs",
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xcheckinit",
+        "-Xfatal-warnings",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.8/0.13.2/kind-projector_2.13.8-0.13.2.jar",
+        "-encoding",
+        "utf8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+      ],
+      "analysis": "<PROJECT>/snapshot-tests/doobie/generated/.bloop/refined/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<PROJECT>/snapshot-tests-in/doobie"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.typelevel",
+          "name": "cats-free_2.13",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-free_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.7.0/cats-free_2.13-2.7.0.jar"
+            },
+            {
+              "name": "cats-free_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.7.0/cats-free_2.13-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline",
+          "version": "3.21.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar"
+            },
+            {
+              "name": "jline",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar"
+            },
+            {
+              "name": "scala-compiler",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.6.0/scala-collection-compat_2.13-2.6.0.jar"
+            },
+            {
+              "name": "scala-collection-compat_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.6.0/scala-collection-compat_2.13-2.6.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "eu.timepit",
+          "name": "refined_2.13",
+          "version": "0.9.28",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "refined_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_2.13/0.9.28/refined_2.13-0.9.28.jar"
+            },
+            {
+              "name": "refined_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_2.13/0.9.28/refined_2.13-0.9.28-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.13",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar"
+            },
+            {
+              "name": "cats-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.13",
+          "version": "3.3.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.5/cats-effect-std_2.13-3.3.5.jar"
+            },
+            {
+              "name": "cats-effect-std_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.5/cats-effect-std_2.13-3.3.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.3.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.5/cats-effect-kernel_2.13-3.3.5.jar"
+            },
+            {
+              "name": "cats-effect-kernel_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.5/cats-effect-kernel_2.13-3.3.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.9.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+            },
+            {
+              "name": "jna",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.13",
+          "version": "2.3.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shapeless_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
+            },
+            {
+              "name": "shapeless_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "simulacrum-scalafix-annotations_2.13",
+          "version": "0.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simulacrum-scalafix-annotations_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
+            },
+            {
+              "name": "simulacrum-scalafix-annotations_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_2.13",
+          "version": "3.2.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.4/fs2-core_2.13-3.2.4.jar"
+            },
+            {
+              "name": "fs2-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.4/fs2-core_2.13-3.2.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.13",
+          "version": "3.3.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5.jar"
+            },
+            {
+              "name": "cats-effect_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "1.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar"
+            },
+            {
+              "name": "scala-xml_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.tpolecat",
+          "name": "typename_2.13",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "typename_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.13/1.0.0/typename_2.13-1.0.0.jar"
+            },
+            {
+              "name": "typename_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.13/1.0.0/typename_2.13-1.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.13",
+          "version": "1.1.30",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30.jar"
+            },
+            {
+              "name": "scodec-bits_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar"
+            },
+            {
+              "name": "cats-kernel_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
+            },
+            {
+              "name": "scala-reflect",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
