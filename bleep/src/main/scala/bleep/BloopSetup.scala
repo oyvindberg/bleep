@@ -95,9 +95,7 @@ class BloopSetup(
       Runtime.getRuntime.addShutdownHook(
         new Thread("delete-bloop-bsp-named-socket") {
           override def run() = {
-            if (Files.exists(socket)) {
-              FileUtils.deleteDirectory(socket)
-            }
+            FileUtils.deleteDirectory(socket)
             ()
           }
         }
