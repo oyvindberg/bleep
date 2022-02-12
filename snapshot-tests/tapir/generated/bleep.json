@@ -645,6 +645,38 @@
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
     "finatraServer-test" : {
+      "dependencies" : [
+        {
+          "module" : "com.twitter::finatra-http:21.2.0",
+          "publication" : {
+            "classifier" : "tests"
+          }
+        },
+        {
+          "module" : "com.twitter::inject-app:21.2.0",
+          "publication" : {
+            "classifier" : "tests"
+          }
+        },
+        {
+          "module" : "com.twitter::inject-core:21.2.0",
+          "publication" : {
+            "classifier" : "tests"
+          }
+        },
+        {
+          "module" : "com.twitter::inject-modules:21.2.0",
+          "publication" : {
+            "classifier" : "tests"
+          }
+        },
+        {
+          "module" : "com.twitter::inject-server:21.2.0",
+          "publication" : {
+            "classifier" : "tests"
+          }
+        }
+      ],
       "dependsOn" : [
         "finatraServer",
         "serverTests"

@@ -74,16 +74,21 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-toggle_2.12/21.2.0/finagle-toggle_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-tunable_2.12/21.2.0/finagle-tunable_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http-annotations_2.12/21.2.0/finatra-http-annotations_2.12-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.12/21.2.0/finatra-http_2.12-21.2.0-tests.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.12/21.2.0/finatra-http_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-jackson_2.12/21.2.0/finatra-jackson_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-json-annotations_2.12/21.2.0/finatra-json-annotations_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-utils_2.12/21.2.0/finatra-utils_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-validation_2.12/21.2.0/finatra-validation_2.12-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0-tests.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0-tests.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-mdc_2.12/21.2.0/inject-mdc_2.12-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0-tests.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-ports_2.12/21.2.0/inject-ports_2.12-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0-tests.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-slf4j_2.12/21.2.0/inject-slf4j_2.12-21.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-stack_2.12/21.2.0/inject-stack_2.12-21.2.0.jar",
@@ -1701,6 +1706,11 @@
           "artifacts": [
             {
               "name": "inject-server_2.12",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-server_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0.jar"
             },
             {
@@ -1888,6 +1898,11 @@
           "artifacts": [
             {
               "name": "inject-core_2.12",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0.jar"
             },
             {
@@ -1971,6 +1986,11 @@
           "version": "21.2.0",
           "configurations": "default",
           "artifacts": [
+            {
+              "name": "inject-modules_2.12",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0-tests.jar"
+            },
             {
               "name": "inject-modules_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0.jar"
@@ -2427,6 +2447,11 @@
           "artifacts": [
             {
               "name": "inject-app_2.12",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-app_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0.jar"
             },
             {
@@ -2513,6 +2538,11 @@
             {
               "name": "finatra-http_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.12/21.2.0/finatra-http_2.12-21.2.0.jar"
+            },
+            {
+              "name": "finatra-http_2.12",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.12/21.2.0/finatra-http_2.12-21.2.0-tests.jar"
             },
             {
               "name": "finatra-http_2.12",
