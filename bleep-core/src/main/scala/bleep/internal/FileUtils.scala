@@ -92,4 +92,7 @@ object FileUtils {
       )
       ()
     }
+
+  // without touching file system (just for less IO)
+  def isJarFileName(p: Path): Boolean = p.getFileName.toString.endsWith(".jar")
 }

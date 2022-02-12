@@ -2,8 +2,8 @@ package bleep
 package internal
 
 import bloop.config.Config
-import coursier.core.{Configuration, Project}
-import coursier.{Dependency, Module, ModuleName, Organization, Resolve}
+import coursier.core.{Classifier, Configuration, Dependency, ModuleName, Organization, Project, Publication}
+import coursier.{Module, Resolve}
 
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
@@ -155,30 +155,64 @@ object importBloopFilesFromSbt {
         }
 
       val dependencies: List[Dep] = {
-        val parsed: List[ParsedDependency] =
-          resolution.modules.map(mod => ParsedDependency.of(pomReader, versions, mod))
+        val parsed: List[(Config.Module, ParsedDependency)] =
+          resolution.modules.map(bloopMod => (bloopMod, ParsedDependency.of(pomReader, versions, bloopMod)))
 
-        val allDeps: Map[Module, List[String]] =
+        val allDepsWithVersions: Map[Module, List[String]] =
           parsed
-            .flatMap { case ParsedDependency(_, deps) =>
+            .flatMap { case (_, ParsedDependency(_, deps)) =>
               deps.collect { case (conf, d) if DefaultConfigs(conf) => d.moduleVersion }
             }
             .groupMap { case (m, _) => m } { case (_, v) => v }
 
-        // only keep those not referenced by another dependency
-        parsed.flatMap { case ParsedDependency(dep, _) =>
-          val keep: Boolean =
-            dep.dependency(versions) match {
-              case Left(err) => throw new BuildException.Text(crossName, err)
-              case Right(dep) =>
-                allDeps.get(dep.module) match {
+        // the sbt bloop import drops for instance dependencies on other projects test artifacts.
+        // make a token effort to recover them here
+        val lostInTranslation: Map[Path, List[Path]] = {
+          val allPathsFromResolution = resolution.modules.flatMap(_.artifacts).map(_.path).toSet
+          bloopProject.classpath
+            .filter(FileUtils.isJarFileName)
+            .filterNot(allPathsFromResolution)
+            .groupBy(_.getParent)
+        }
+
+        parsed.flatMap { case (bloopMod, ParsedDependency(bleepDep, _)) =>
+          bleepDep.dependency(versions) match {
+            case Left(err)          => throw new BuildException.Text(crossName, err)
+            case Right(coursierDep) =>
+              // only keep those not referenced by another dependency
+              val keepMain: Boolean =
+                allDepsWithVersions.get(coursierDep.module) match {
                   case Some(inheritedVersions) =>
                     // todo: would be better to keep if dep.version > inheritedVersions, but would need to parse semver for that. this is good enough
-                    !inheritedVersions.contains(dep.version)
+                    !inheritedVersions.contains(coursierDep.version)
                   case None => true
                 }
-            }
-          if (keep) Some(dep) else None
+
+              val main: List[Dep] =
+                if (keepMain) List(bleepDep) else Nil
+
+              val extraClassifiers: List[Dep] =
+                bloopMod.artifacts.headOption match {
+                  case Some(a) =>
+                    lostInTranslation.getOrElse(a.path.getParent, Nil).flatMap { lostJar =>
+                      // ~/.cache/coursier/v1/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0-tests.jar
+                      lostJar.toString.lastIndexOf(bloopMod.version) match {
+                        case -1 => None
+                        case n =>
+                          val classifier = Classifier(lostJar.toString.drop(n + bloopMod.version.length + 1).dropRight(".jar".length))
+                          val publication = Publication(bleepDep.publication.name, bleepDep.publication.`type`, bleepDep.publication.ext, classifier)
+                          bleepDep match {
+                            case x: Dep.JavaDependency  => Some(x.copy(publication = publication))
+                            case x: Dep.ScalaDependency => Some(x.copy(publication = publication))
+                          }
+                      }
+                    }
+
+                  case None => Nil
+                }
+
+              main ++ extraClassifiers
+          }
         }
       }
 
