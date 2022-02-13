@@ -147,11 +147,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
       //        crossProjectName.value
       //      )
 
-//      // scalacOptions are the same, module order ordering and duplicates
-//      assert(
-//        output.scala.map(s => s.options.sorted.distinct) == input.scala.map(s => s.options.sorted.distinct),
-//        crossProjectName.value
-//      )
+      // scalacOptions are the same, module order ordering and duplicates
+      assert(
+        output.scala.map(s => s.options.sorted.distinct) == input.scala.map(s => s.options.sorted.distinct),
+        crossProjectName.value
+      )
 
       // assert that all source folders are conserved. currently bleep may add some
       assert(
