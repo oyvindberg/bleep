@@ -2,7 +2,7 @@ package bleep
 package internal
 
 import bloop.config.{Config => b}
-import coursier.core.Configuration
+import coursier.core.{Configuration, Extension}
 import coursier.{Classifier, Dependency}
 
 import java.nio.file.Path
@@ -191,16 +191,19 @@ object generateBloopFiles {
           val deps: JsonSet[Dependency] =
             specified.map(_.forceDependency(ScalaVersions.Jvm(scalaVersion)))
 
-          val artifacts: List[Path] =
+          val jars: Seq[Path] =
             resolver(deps, build.resolvers) match {
               case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
-              case Right(res)          => res.jars
+              case Right(res) =>
+                res.fullDetailedArtifacts.collect {
+                  case (dep, pub, a, Some(file)) if pub.classifier.isEmpty && pub.ext == Extension.jar => file.toPath
+                }
             }
 
-          val relevantArtifacts: List[Path] =
-            artifacts.filterNot(p => p.endsWith(".jar") && !p.toString.contains("-sources") && !p.toString.contains("-javadoc"))
+          val relevantJars: Seq[Path] =
+            jars.filterNot(resolvedScalaCompiler.toSet)
 
-          Options.fromIterable(relevantArtifacts.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
+          Options.fromIterable(relevantJars.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
         }
 
         val scalacOptions: Options =
