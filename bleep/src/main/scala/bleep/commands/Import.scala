@@ -53,7 +53,7 @@ case class Import(buildPaths: BuildPaths, logger: Logger, options: Import.Option
 
     Files.writeString(
       tempAddBloopPlugin,
-      s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.12")""",
+      s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")""",
       StandardOpenOption.WRITE,
       StandardOpenOption.CREATE,
       StandardOpenOption.TRUNCATE_EXISTING
