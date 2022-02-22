@@ -49,7 +49,7 @@ case class Started(
 
 object bootstrap {
   def forScript(scriptName: String)(f: Started => Unit): Unit = {
-    val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName)))
+    val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName))).untyped
 
     from(logger, Os.cwd) match {
       case Left(buildException) => logger.error("Couldn't initialize bleep", buildException)
@@ -105,6 +105,8 @@ object bootstrap {
             (crossProjectName, load)
           }
         } else {
+          logger.warn(s"Refreshing ${buildPaths.bleepBloopDir}...")
+
           val lazyBloopFiles: SortedMap[model.CrossProjectName, Lazy[b.File]] =
             generateBloopFiles(explodedBuild, buildPaths, lazyResolver.forceGet)
 
@@ -119,7 +121,7 @@ object bootstrap {
           )
 
           val syncDetails = synced.groupBy(_._2).collect { case (synced, files) if files.nonEmpty => s"$synced: (${files.size})" }.mkString(", ")
-          logger.info(s"Wrote ${lazyBloopFiles.size} files to ${buildPaths.bleepBloopDir}: $syncDetails")
+          logger.warn(s"Wrote ${lazyBloopFiles.size} files to ${buildPaths.bleepBloopDir}: $syncDetails")
           lazyBloopFiles
         }
         val td = System.currentTimeMillis() - t0
