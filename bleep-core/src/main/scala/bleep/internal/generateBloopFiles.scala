@@ -206,7 +206,7 @@ object generateBloopFiles {
           val relevantJars: Seq[Path] =
             jars.filterNot(resolvedScalaCompiler.toSet)
 
-          Options.fromIterable(relevantJars.map(p => Options.Opt.Flag(s"${Defaults.ScalaPluginPrefix}$p")))
+          Options.fromIterable(relevantJars.map(p => Options.Opt.Flag(s"${constants.ScalaPluginPrefix}$p")))
         }
 
         val scalacOptions: Options =

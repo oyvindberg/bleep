@@ -44,15 +44,10 @@ object importBloopFilesFromSbt {
     val crossBloopProjectFiles: Map[model.CrossProjectName, Config.File] =
       bloopFiles
         .map { file =>
-          val maybeBinVersion = file.project.scala.map(s => Versions.Scala(s.version).binVersion.replace(".", ""))
-          val maybePlatformId = file.project.platform.map(_.name)
-          val maybeCrossId =
-            (maybePlatformId, maybeBinVersion) match {
-              case (Some(platformId), Some(binVersion)) => Some(model.CrossId(s"$platformId$binVersion"))
-              case (Some(platformId), None)             => Some(model.CrossId(platformId))
-              case (None, Some(binVersion))             => Some(model.CrossId(binVersion))
-              case (None, None)                         => None
-            }
+          val maybeCrossId = model.CrossId.defaultFrom(
+            maybeScalaVersion = file.project.scala.map(s => Versions.Scala(s.version)),
+            maybePlatformId = file.project.platform.flatMap(p => model.PlatformId.fromName(p.name))
+          )
           val name = projectName(file.project.name)
 
           (model.CrossProjectName(name, maybeCrossId), file)
@@ -264,7 +259,7 @@ object importBloopFilesFromSbt {
                 else Some(URI.create(uriFragments.map(_.toString).mkString("https://", "/", "")))
               }
           }
-          .filterNot(_ == Defaults.MavenCentral)
+          .filterNot(_ == constants.MavenCentral)
       )
 
     ExplodedBuild(Map.empty, Map.empty, resolvers = buildResolvers, projects, Map.empty)
@@ -394,8 +389,8 @@ object importBloopFilesFromSbt {
     val options = Options.parse(s.options, Some(replacementsDirs))
 
     val (plugins, rest) = options.values.partition {
-      case Options.Opt.Flag(name) if name.startsWith(Defaults.ScalaPluginPrefix) => true
-      case _                                                                     => false
+      case Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => true
+      case _                                                                      => false
     }
 
     val compilerPlugins = plugins.collect { case Options.Opt.Flag(pluginStr) =>

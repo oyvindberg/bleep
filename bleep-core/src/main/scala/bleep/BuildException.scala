@@ -11,7 +11,7 @@ abstract class BuildException(
 ) extends Exception(message, cause)
 
 object BuildException {
-  class BuildNotFound(cwd: Path) extends BuildException(s"Couldn't find ${Defaults.BuildFileName} in directories in or above $cwd")
+  class BuildNotFound(cwd: Path) extends BuildException(s"Couldn't find ${constants.BuildFileName} in directories in or above $cwd")
 
   class InvalidJson(file: Path, e: circe.Error) extends BuildException(s"Couldn't parse json file $file", e)
 

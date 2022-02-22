@@ -20,13 +20,19 @@ object UserPaths {
 }
 
 trait BuildPaths {
-  val bleepJsonFile: Path
+  val cwd: Path
   val buildDir: Path
-  val dotBleepDir: Path
-  val bleepImportDir: Path
-  val bleepBloopDir: Path
-  val digestFile: Path
-  val bspBleepJsonFile: Path
+
+  lazy val bleepJsonFile: Path = buildDir / constants.BuildFileName
+  lazy val bspBleepJsonFile: Path = buildDir / ".bsp" / "bleep.json"
+  lazy val dotBleepDir: Path = buildDir / ".bleep"
+  lazy val bleepImportDir: Path = dotBleepDir / "import"
+  lazy val dotBleepBspModeDir: Path = dotBleepDir / "bsp"
+  def dotBleepModeDir: Path
+  lazy val bleepBloopDir: Path = dotBleepModeDir / ".bloop"
+  lazy val digestFile: Path = bleepBloopDir / ".digest"
+  lazy val logFile: Path = dotBleepModeDir / "last.log"
+  lazy val bspProjectSelectionJsonFile: Path = dotBleepBspModeDir / "project-selection.json"
 
   final def from(crossName: model.CrossProjectName, p: model.Project): ProjectPaths =
     ProjectPaths(
@@ -36,17 +42,24 @@ trait BuildPaths {
 }
 
 object BuildPaths {
-  def fromBleepJson(bleepJsonFile: Path): BuildPaths =
-    fromBuildDir(bleepJsonFile.getParent)
+  sealed trait Mode
+  object Mode {
+    case object Normal extends Mode
+    // put bloop files into a different directory for IDE use, since we add flags and select a subset of projects
+    case object BSP extends Mode
+  }
 
-  def fromBuildDir(_buildDir: Path): BuildPaths = new BuildPaths {
-    override val bleepJsonFile: Path = _buildDir / Defaults.BuildFileName
-    override val buildDir: Path = _buildDir
-    override val dotBleepDir = buildDir / ".bleep"
-    override val bleepImportDir = dotBleepDir / "import"
-    override val bleepBloopDir = dotBleepDir / ".bloop"
-    override val digestFile = bleepBloopDir / ".digest"
-    override val bspBleepJsonFile = buildDir / ".bsp" / "bleep.json"
+  def fromBleepJson(cwd: Path, bleepJsonFile: Path, mode: Mode): BuildPaths =
+    fromBuildDir(cwd, bleepJsonFile.getParent, mode)
+
+  def fromBuildDir(_cwd: Path, _buildDir: Path, mode: Mode): BuildPaths = new BuildPaths {
+    override val cwd = _cwd
+    override val buildDir = _buildDir
+
+    override lazy val dotBleepModeDir: Path = mode match {
+      case Mode.Normal => dotBleepDir
+      case Mode.BSP    => dotBleepBspModeDir
+    }
   }
 }
 

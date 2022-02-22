@@ -145,8 +145,7 @@ object model {
     def fromName(str: String): Option[PlatformId] = All.find(_.value == str)
 
     implicit val ordering: Ordering[PlatformId] = Ordering.by(All.indexOf)
-    implicit val decodes: Decoder[PlatformId] =
-      Decoder[String].emap(str => fromName(str).toRight(s"${str} is not among ${All.map(_.value).mkString(", ")}"))
+    implicit val decodes: Decoder[PlatformId] = Decoder[String].emap(str => fromName(str).toRight(s"$str is not among ${All.map(_.value).mkString(", ")}"))
     implicit val encodes: Encoder[PlatformId] = Encoder[String].contramap(_.value)
   }
 
@@ -383,6 +382,17 @@ object model {
 
   case class CrossId(value: String)
   object CrossId {
+    def defaultFrom(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId]): Option[CrossId] = {
+      val maybeBinVersion = maybeScalaVersion.map(_.binVersion.replace(".", ""))
+      val maybePlatformIdString = maybePlatformId.map(_.value)
+      (maybePlatformIdString, maybeBinVersion) match {
+        case (Some(platformId), Some(binVersion)) => Some(model.CrossId(s"$platformId$binVersion"))
+        case (Some(platformId), None)             => Some(model.CrossId(platformId))
+        case (None, Some(binVersion))             => Some(model.CrossId(binVersion))
+        case (None, None)                         => None
+      }
+    }
+
     implicit val ordering: Ordering[CrossId] = Ordering.by(_.value)
     implicit val decodes: Decoder[CrossId] = Decoder[String].map(CrossId.apply)
     implicit val encodes: Encoder[CrossId] = Encoder[String].contramap(_.value)
@@ -556,8 +566,8 @@ object model {
       Decoder.instance(c =>
         for {
           schema <- c.downField("$schema").as[String].flatMap {
-            case ok @ Defaults.$schema => Right(ok)
-            case notOk                 => Left(DecodingFailure(s"$notOk must be ${Defaults.$schema}", c.history))
+            case ok @ constants.$schema => Right(ok)
+            case notOk                  => Left(DecodingFailure(s"$notOk must be ${constants.$schema}", c.history))
           }
 
           /* construct a custom decoder for `Project` to give better error messages */

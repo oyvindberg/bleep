@@ -1,11 +1,14 @@
 package bleep
 
-import bleep.internal.Os
-import bleep.logging.{LogLevel, Logger, LoggerResource, TypedLoggerResource}
+import bleep.BuildPaths.Mode
+import bleep.bsp.BspImpl
+import bleep.internal.{Os, ProjectGlobs}
+import bleep.logging._
 import cats.syntax.apply._
 import cats.syntax.foldable._
 import com.monovore.decline._
 
+import java.io.{BufferedWriter, PrintStream}
 import java.nio.file.Path
 import java.time.Instant
 import scala.util.{Failure, Success, Try}
@@ -17,118 +20,81 @@ object Main {
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
 
-  def mainOpts(logger: Logger): Opts[BleepCommand] = {
-    lazy val bootstrapped: Either[BuildException, Started] =
-      bootstrap.from(logger, cwd)
-
-    def forceStarted: Started = bootstrapped match {
+  def mainOpts(logger: Logger, buildPaths: BuildPaths): Opts[BleepCommand] = {
+    val maybeStarted = bootstrap.from(logger, buildPaths, rewrites = Nil)
+    def forceStarted() = maybeStarted match {
       case Left(buildException) =>
         logger.error("couldn't initialize build", buildException)
         sys.exit(1)
       case Right(started) => started
     }
 
-    def projectCompletions(projects: Iterable[model.CrossProjectName]): Map[String, Iterable[model.CrossProjectName]] = {
-      val crossNames: Map[String, Iterable[model.CrossProjectName]] =
-        projects.map(projectName => projectName.value -> List(projectName)).toMap
-      val projectNames: Map[String, Iterable[model.CrossProjectName]] =
-        projects.groupBy { case model.CrossProjectName(name, _) => name.value }
-      val crossIds: Map[String, Iterable[model.CrossProjectName]] =
-        projects
-          .groupBy { case model.CrossProjectName(_, crossId) => crossId }
-          .collect { case (Some(crossId), names) => (crossId.value, names) }
+    val maybeGlobs = maybeStarted.map(ProjectGlobs.apply)
+    val nothing = Map.empty[String, Iterable[model.CrossProjectName]]
 
-      crossIds ++ projectNames ++ crossNames
+    val projectNames: Opts[Option[List[model.CrossProjectName]]] =
+      Opts.arguments("project name")(Argument.fromMap("project name", maybeGlobs.fold(_ => nothing, _.projectNameMap))).map(_.toList.flatten).orNone
 
-    }
-    def projectNameMap: Map[String, Iterable[model.CrossProjectName]] =
-      bootstrapped match {
-        case Left(_) => Map.empty
-        case Right(started) =>
-          val projects: Iterable[model.CrossProjectName] =
-            started.activeProjectsFromPath match {
-              case Nil      => started.build.projects.keys
-              case nonEmpty => nonEmpty
-            }
-          projectCompletions(projects)
-      }
+    val projectNamesNoExpand: Opts[Option[List[String]]] =
+      Opts
+        .arguments("project name")(Argument.fromMap("project name", maybeGlobs.fold(_ => nothing, _.projectNameMap).map { case (s, _) => (s, s) }))
+        .map(_.toList)
+        .orNone
 
-    def testProjectNameMap: Map[String, Iterable[model.CrossProjectName]] =
-      bootstrapped match {
-        case Left(_) => Map.empty
-        case Right(started) =>
-          val projects: Iterable[model.CrossProjectName] =
-            started.activeProjectsFromPath match {
-              case Nil      => started.build.projects.keys
-              case nonEmpty => nonEmpty
-            }
-          val testProjects = projects.filter(projectName => !started.build.projects(projectName).testFrameworks.isEmpty)
-
-          projectCompletions(testProjects)
-      }
-
-    def projectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments("project name")(Argument.fromMap("project name", projectNameMap)).map(_.toList.flatten).orNone
-
-    def testProjectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments("test project name")(Argument.fromMap("test project name", testProjectNameMap)).map(_.toList.flatten).orNone
+    val testProjectNames: Opts[Option[List[model.CrossProjectName]]] =
+      Opts
+        .arguments("test project name")(Argument.fromMap("test project name", maybeGlobs.fold(_ => nothing, _.testProjectNameMap)))
+        .map(_.toList.flatten)
+        .orNone
 
     lazy val ret: Opts[BleepCommand] = List(
       List(
         Opts.subcommand("build", "rewrite build")(
           List(
             Opts.subcommand("templates-reapply", "reapply templates.")(
-              CommonOpts.opts.map(_ => commands.BuildReapplyTemplates(forceStarted))
+              CommonOpts.opts.map(_ => commands.BuildReapplyTemplates(forceStarted()))
             ),
             Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
-              CommonOpts.opts.map(_ => commands.BuildReinferTemplates(forceStarted, Set.empty))
+              CommonOpts.opts.map(_ => commands.BuildReinferTemplates(forceStarted(), Set.empty))
             )
           ).foldK
         ),
         Opts.subcommand("compile", "compile projects")(
-          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Compile(forceStarted, opts, projectNames) }
+          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Compile(forceStarted(), opts, projectNames) }
         ),
         Opts.subcommand("test", "test projects")(
-          (CommonOpts.opts, testProjectNames).mapN { case (opts, projectNames) => commands.Test(forceStarted, opts, projectNames) }
+          (CommonOpts.opts, testProjectNames).mapN { case (opts, projectNames) => commands.Test(forceStarted(), opts, projectNames) }
         ),
-        Opts.subcommand("bsp", "bsp integration")(
-          CommonOpts.opts.map(opts => commands.Bsp(opts, forceStarted))
+        Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
+          (CommonOpts.opts, projectNamesNoExpand).mapN { case (_, projectNames) =>
+            commands.SetupIde(buildPaths, logger, projectNames)
+          }
         ),
         Opts.subcommand("clean", "clean")(
-          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Clean(forceStarted, opts, projectNames) }
+          (CommonOpts.opts, projectNames).mapN { case (opts, projectNames) => commands.Clean(forceStarted(), opts, projectNames) }
         ),
         Opts.subcommand("projects", "show projects under current directory")(
           (CommonOpts.opts, projectNames).mapN { case (_, projectNames) =>
             new BleepCommand {
-              override def run(): Unit = {
-                val started = forceStarted
-                started.logger.info(started.chosenProjects(projectNames).map(_.value).mkString(", "))
-              }
+              override def run(): Unit =
+                forceStarted().chosenProjects(projectNames).map(_.value).sorted.foreach(forceStarted().logger.info(_))
             }
           }
         ),
         Opts.subcommand("projects-test", "show test projects under current directory")(
           (CommonOpts.opts, testProjectNames).mapN { case (_, projectNames) =>
             new BleepCommand {
-              override def run(): Unit = {
-                val started = forceStarted
-                started.logger.info(started.chosenTestProjects(projectNames).map(_.value).mkString(", "))
-              }
+              override def run(): Unit =
+                forceStarted().chosenTestProjects(projectNames).map(_.value).sorted.foreach(forceStarted().logger.info(_))
             }
           }
         ),
-        Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
-          bootstrapped match {
-            case Left(_)        => Opts(commands.SetupIde(BuildPaths.fromBuildDir(cwd), logger))
-            case Right(started) => Opts(commands.SetupIde(started.buildPaths, logger))
-          }
-        ),
         Opts.subcommand("patch", "Apply patch from standard-in or file")(
-          (CommonOpts.opts, Opts.option[Path]("file", "patch file, defaults to std-in").orNone).mapN((opts, file) => commands.Patch(forceStarted, opts, file))
+          (CommonOpts.opts, Opts.option[Path]("file", "patch file, defaults to std-in").orNone).mapN((opts, file) => commands.Patch(forceStarted(), opts, file))
         ),
         Opts.subcommand("import", "import existing build from files in .bloop")(
           commands.Import.opts.map { opts =>
-            commands.Import(BuildPaths.fromBuildDir(cwd), logger, opts)
+            commands.Import(BuildPaths.fromBuildDir(cwd, cwd, Mode.Normal), logger, opts)
           }
         ),
         Opts.subcommand("_complete", "tab-completions")(
@@ -136,9 +102,10 @@ object Main {
             case (compLine, compCword, compPoint) =>
               new BleepCommand {
                 override def run(): Unit = {
+                  val msg = List("no completion because build couldn't be bootstrapped")
                   val completer = new Completer({
-                    case "project name"      => projectNameMap.keys.toList
-                    case "test project name" => testProjectNameMap.keys.toList
+                    case "project name"      => maybeGlobs.fold(_ => msg, _.projectNameMap.keys.toList)
+                    case "test project name" => maybeGlobs.fold(_ => msg, _.testProjectNameMap.keys.toList)
                     case _                   => Nil
                   })
                   completer.bash(compLine, compCword, compPoint)(ret).foreach(c => println(c.value))
@@ -147,12 +114,13 @@ object Main {
           }
         )
       ),
-      bootstrapped match {
-        case Left(_) => Nil
+      maybeStarted match {
+        case Left(_) =>
+          Nil
         case Right(started) =>
           started.build.scripts.map { case (scriptName, scriptDefs) =>
             Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
-              stringArgs.map(args => commands.Script(forceStarted, scriptName, scriptDefs, args))
+              stringArgs.map(args => commands.Script(started, scriptName, scriptDefs, args))
             )
           }
       }
@@ -161,35 +129,70 @@ object Main {
     ret
   }
 
-  def main(args: Array[String]): Unit = {
-    // don't produce garbage output when completing
-    // also need to refactor here. there is a circular dependency here where bootstrap needs parsed params, parsing params needs bootstrap
-    val loggerResource: LoggerResource = {
-      val logLevel = if (args.contains("--debug")) LogLevel.debug else LogLevel.info
-      // typically we don't want to write anything for this command. it also has to go to stderr when we do
-      if (args.headOption.contains("_complete"))
-        TypedLoggerResource.pure(logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)).untyped
-      else if (args.contains("--no-color") || System.console() == null)
-        TypedLoggerResource.pure(logging.stdout(LogPatterns.logFile).filter(logLevel)).untyped
-      else {
-        val stdout = TypedLoggerResource.pure(logging.stdout(LogPatterns.interface(Instant.now, None)).filter(logLevel))
-        // don't filter logfile
-        val logFile = logging.path(cwd / ".bleep" / "logs" / s"${System.currentTimeMillis()}.log", LogPatterns.logFile)
-        stdout.zipWith(logFile).untyped
-      }
-    }
+  def main(args: Array[String]): Unit =
+    args.headOption match {
+      case Some("bsp") =>
+        val buildPaths = bootstrap.buildPaths(cwd, Mode.BSP) match {
+          case Left(th)     => throw th
+          case Right(value) => value
+        }
 
-    loggerResource { logger =>
-      Command("bleep", "Bleeping fast build!")(mainOpts(logger)).parse(args.toIndexedSeq, sys.env) match {
-        case Left(help) => System.err.println(help)
-        case Right(cmd) =>
-          Try(cmd.run()) match {
-            case Failure(unexpected) =>
-              logger.error("Error while running command", unexpected)
-            case Success(_) =>
-              ()
+        val logFileResource: TypedLoggerResource[BufferedWriter] =
+          logging.path(buildPaths.logFile, LogPatterns.logFile)
+
+        val logResource: LoggerResource =
+          logFileResource.map { logFile =>
+            val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
+            logFile.flushing.zipWith(stderr)
+          }.untyped
+
+        logResource.use { logger =>
+          try BspImpl.run(buildPaths, logger)
+          catch {
+            case th: Throwable =>
+              logger.error("uncaught error", th)
+              throw th
           }
-      }
+        }
+
+      case _ =>
+        val buildPaths = bootstrap.buildPaths(cwd, Mode.Normal) match {
+          case Left(th)     => throw th
+          case Right(value) => value
+        }
+
+        val loggerResource: LoggerResource =
+          if (args.headOption.contains("_complete"))
+            // we can not log to stderr when completing. should be used sparingly
+            LoggerResource.pure(logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)).untyped
+          else {
+            // setup logging to stdout
+            val stdout: TypedLogger[PrintStream] =
+              logging
+                .stdout {
+                  if (args.contains("--no-color") || System.console() == null) LogPatterns.logFile
+                  else LogPatterns.interface(Instant.now, None)
+                }
+                .filter(if (args.contains("--debug")) LogLevel.debug else LogLevel.info)
+
+            // and to logfile, without any filtering
+            val logFileResource: TypedLoggerResource[BufferedWriter] =
+              logging.path(buildPaths.logFile, LogPatterns.logFile)
+
+            LoggerResource.pure(stdout).zipWith(logFileResource).untyped
+          }
+
+        loggerResource.use { logger =>
+          Command("bleep", "Bleeping fast build!")(mainOpts(logger, buildPaths)).parse(args.toIndexedSeq, sys.env) match {
+            case Left(help) => System.err.println(help)
+            case Right(cmd) =>
+              Try(cmd.run()) match {
+                case Failure(unexpected) =>
+                  logger.error("Error while running command", unexpected)
+                case Success(_) =>
+                  ()
+              }
+          }
+        }
     }
-  }
 }

@@ -5,6 +5,7 @@ import scala.collection.immutable.SortedMap
 // this exists to be able to lazily process things with dependencies
 //  where processing one thing requires having processed its dependencies first
 object rewriteDependentData {
+  @FunctionalInterface
   trait Get[K, VV] {
     def apply(k: K): Lazy[VV]
   }

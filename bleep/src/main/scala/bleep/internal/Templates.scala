@@ -2,6 +2,7 @@ package bleep
 package internal
 
 import bleep.internal.Functions.stripExtends
+import bleep.rewrites.deduplicateDependencies
 
 import scala.annotation.tailrec
 import scala.collection.immutable.{SortedMap, SortedSet}
@@ -196,7 +197,7 @@ object Templates {
       }
 
     val build = model.Build(
-      Defaults.$schema,
+      constants.$schema,
       JsonMap((templates ++ crossTemplates).map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty)),
       JsonMap(build0.scripts),
       build0.resolvers,
@@ -238,7 +239,7 @@ object Templates {
       }
 
     val build = model.Build(
-      Defaults.$schema,
+      constants.$schema,
       unexplodedTemplates,
       JsonMap(build0.scripts),
       build0.resolvers,

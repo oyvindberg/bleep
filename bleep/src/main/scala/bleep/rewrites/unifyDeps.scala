@@ -1,10 +1,12 @@
 package bleep
-package internal
+package rewrites
 
 /** The `Dep.ScalaDependency` structure has three fields we can only correctly determine in context of a given scala version. We need to propagate those three
   * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better
   */
-object unifyDeps {
+object unifyDeps extends Rewrite {
+  override val name = "unify-deps"
+
   def findReplacements(allDeps: Iterable[Dep]): Map[Dep, Dep] = {
     val javaDeps = allDeps.collect { case x: Dep.JavaDependency => x }
     val scalaDeps = allDeps.collect { case x: Dep.ScalaDependency => x }
@@ -22,7 +24,7 @@ object unifyDeps {
     rewrittenScalaDeps ++ javaDeps.map(x => (x, x))
   }
 
-  def apply(build: ExplodedBuild): ExplodedBuild = {
+  override def apply(build: ExplodedBuild): ExplodedBuild = {
     val replacements: Map[Dep, Dep] =
       findReplacements(build.projects.flatMap(_._2.dependencies.values))
 
