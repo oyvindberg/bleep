@@ -1,5 +1,5 @@
 {
-  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/add-json-schema/schema.json",
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
   "projects" : {
     "bleep" : {
       "dependencies" : [
