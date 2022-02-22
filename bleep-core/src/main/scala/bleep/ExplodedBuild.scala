@@ -107,14 +107,14 @@ object ExplodedBuild {
 
     val explodedProjects: Map[model.CrossProjectName, model.Project] =
       build.projects.value.flatMap { case (projectName, p) =>
-        val explodedP = Defaults.add(explode(p))
+        val explodedP = Defaults.add.project(explode(p))
 
         val explodeCross: Map[model.CrossProjectName, model.Project] =
           if (explodedP.cross.isEmpty) Map(model.CrossProjectName(projectName, None) -> explodedP)
           else {
             explodedP.cross.value.map { case (crossId, crossP) =>
               val combinedWithCrossProject = explode(crossP).union(explodedP.copy(cross = JsonMap.empty))
-              val withDefaults = Defaults.add(combinedWithCrossProject)
+              val withDefaults = Defaults.add.project(combinedWithCrossProject)
               (model.CrossProjectName(projectName, Some(crossId)), withDefaults)
             }
           }

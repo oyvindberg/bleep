@@ -3,6 +3,7 @@ package commands
 
 import bleep.internal._
 import bleep.logging.Logger
+import bleep.rewrites.normalizeBuild
 import bloop.config.Config
 import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.monovore.decline.Opts

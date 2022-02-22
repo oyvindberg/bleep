@@ -12,7 +12,7 @@ import org.scalatest.Assertion
 import java.nio.file.{Files, Path, Paths}
 
 class IntegrationSnapshotTests extends SnapshotTest {
-  val logger = logging.stdout(LogPatterns.logFile)
+  val logger = logging.stdout(LogPatterns.logFile).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
   val outFolder = Paths.get("snapshot-tests").toAbsolutePath
   val resolver: CoursierResolver =
@@ -36,17 +36,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
     )
 
   case class TestPaths(project: String) extends BuildPaths {
+    override val cwd = Paths.get("/tmp")
     override val buildDir: Path = inFolder / project
 
     val outTarget: Path = outFolder / project
 
-    override val bleepImportDir: Path = outTarget / "import"
-
-    override val dotBleepDir: Path = outTarget / "generated"
-    override val bleepJsonFile: Path = dotBleepDir / Defaults.BuildFileName
-    override val bleepBloopDir: Path = dotBleepDir / ".bloop"
-    override val digestFile: Path = dotBleepDir / "digest"
-    override val bspBleepJsonFile: Path = dotBleepDir / "bsp-bleep.json"
+    override lazy val bleepImportDir: Path = outTarget / "import"
+    override lazy val dotBleepDir: Path = outTarget / "generated"
+    override lazy val dotBleepModeDir: Path = dotBleepDir
+    override lazy val bleepJsonFile: Path = dotBleepDir / constants.BuildFileName
   }
 
   test("tapir") {
@@ -114,7 +112,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     importer.generateBuildAndPersistFrom(importedBloopFiles)
 
     // read that build file, and produce an (in-memory) exploded build plus new bloop files
-    val started = bootstrap.unsafeFrom(logger, cwd = paths.buildDir, buildPaths = paths)
+    val Right(started) = bootstrap.from(logger, buildPaths = paths, rewrites = Nil)
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[RelPath, String] =

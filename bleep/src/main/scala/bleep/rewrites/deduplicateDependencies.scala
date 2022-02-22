@@ -1,9 +1,13 @@
 package bleep
-package internal
+package rewrites
+
+import bleep.internal.rewriteDependentData
 
 /** Trims dependencies, both on libraries and on projects, which are already provided by a parent project */
-object deduplicateDependencies {
-  def apply(build: ExplodedBuild): ExplodedBuild = {
+object deduplicateDependencies extends Rewrite {
+  override val name = "deduplicate-dependencies"
+
+  override def apply(build: ExplodedBuild): ExplodedBuild = {
     val projects = rewriteDependentData[model.CrossProjectName, model.Project, model.Project](build.projects) { (projectName, p, getDep) =>
       val shortenedDeps: Map[model.CrossProjectName, model.Project] =
         build.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, getDep(pn).forceGet(pn.value)) }

@@ -1,7 +1,8 @@
 package bleep
 package commands
 
-import bleep.internal.{normalizeBuild, ShortenAndSortJson, Templates}
+import bleep.internal.{ShortenAndSortJson, Templates}
+import bleep.rewrites.normalizeBuild
 import io.circe.syntax._
 
 import java.nio.file.Files
