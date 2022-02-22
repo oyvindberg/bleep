@@ -24,11 +24,9 @@ case class Bsp(opts: CommonOpts, started: Started) extends BleepCommand {
         threads,
         System.in,
         System.out,
-        ensureBloopUpToDate = () => {
+        ensureBloopUpToDate = () =>
           // run for side effects
           bootstrap.from(started.logger, started.buildPaths.buildDir)
-          ()
-        }
       )
 
       try {

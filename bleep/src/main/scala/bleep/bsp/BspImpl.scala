@@ -20,7 +20,7 @@ final class BspImpl(
     threads: BspThreads,
     in: InputStream,
     out: OutputStream,
-    ensureBloopUpToDate: () => Unit
+    ensureBloopUpToDate: () => Either[BuildException, Started]
 ) {
 
   val bloopRifleLogger = new MyBloopRifleLogger(logger, true, true)
@@ -43,8 +43,8 @@ final class BspImpl(
       bloopRifleLogger
     )
 
-    val localServer: BspForwardServer =
-      new BspForwardServer(remoteServer.server, ensureBloopUpToDate)
+    val localServer: BspBleepServer =
+      new BspBleepServer(remoteServer.server, ensureBloopUpToDate)
 
     val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]()
       .setExecutorService(threads.buildThreads.jsonrpc) // FIXME No
