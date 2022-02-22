@@ -1,12 +1,15 @@
 package bleep
 
 import com.monovore.decline.Opts
-
-case class CommonOpts(noColor: Boolean)
+import cats.syntax.apply._
+case class CommonOpts(noColor: Boolean, debug: Boolean)
 
 object CommonOpts {
+  val noColor: Opts[Boolean] = Opts.flag("no-color", "enable CI-friendly output").orFalse
+  val debug: Opts[Boolean] = Opts.flag("debug", "enable more output").orFalse
+
   val opts: Opts[CommonOpts] =
-    Opts.flag("no-color", "enable CI-friendly output").orNone.map { maybeNoColor =>
-      CommonOpts(noColor = maybeNoColor.isDefined)
+    (noColor, debug).mapN { case (noColor, debug) =>
+      CommonOpts(noColor = noColor, debug = debug)
     }
 }

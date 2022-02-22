@@ -45,7 +45,7 @@ object LoggerFn {
     @inline def and(other: LoggerFn): LoggerFn =
       new LoggerFn {
         override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
-          log(text, throwable, metadata)
+          fn.log(text, throwable, metadata)
           other.log(text, throwable, metadata)
         }
       }

@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.Os
-import bleep.logging.{LogLevel, Logger}
+import bleep.logging.{LogLevel, Logger, LoggerResource, TypedLoggerResource}
 import cats.syntax.apply._
 import cats.syntax.foldable._
 import com.monovore.decline._
@@ -164,21 +164,32 @@ object Main {
   def main(args: Array[String]): Unit = {
     // don't produce garbage output when completing
     // also need to refactor here. there is a circular dependency here where bootstrap needs parsed params, parsing params needs bootstrap
-    val logger =
-      if (args.headOption.contains("_complete")) Logger.DevNull
+    val loggerResource: LoggerResource = {
+      val logLevel = if (args.contains("--debug")) LogLevel.debug else LogLevel.info
+      // typically we don't want to write anything for this command. it also has to go to stderr when we do
+      if (args.headOption.contains("_complete"))
+        TypedLoggerResource.pure(logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)).untyped
       else if (args.contains("--no-color") || System.console() == null)
-        logging.stdout(LogPatterns.logFile).filter(LogLevel.info)
-      else logging.stdout(LogPatterns.interface(Instant.now, None)).filter(LogLevel.info)
+        TypedLoggerResource.pure(logging.stdout(LogPatterns.logFile).filter(logLevel)).untyped
+      else {
+        val stdout = TypedLoggerResource.pure(logging.stdout(LogPatterns.interface(Instant.now, None)).filter(logLevel))
+        // don't filter logfile
+        val logFile = logging.path(cwd / ".bleep" / "logs" / s"${System.currentTimeMillis()}.log", LogPatterns.logFile)
+        stdout.zipWith(logFile).untyped
+      }
+    }
 
-    Command("bleep", "Bleeping fast build!")(mainOpts(logger)).parse(args.toIndexedSeq, sys.env) match {
-      case Left(help) => System.err.println(help)
-      case Right(cmd) =>
-        Try(cmd.run()) match {
-          case Failure(unexpected) =>
-            logger.error("Error while running command", unexpected)
-          case Success(_) =>
-            ()
-        }
+    loggerResource { logger =>
+      Command("bleep", "Bleeping fast build!")(mainOpts(logger)).parse(args.toIndexedSeq, sys.env) match {
+        case Left(help) => System.err.println(help)
+        case Right(cmd) =>
+          Try(cmd.run()) match {
+            case Failure(unexpected) =>
+              logger.error("Error while running command", unexpected)
+            case Success(_) =>
+              ()
+          }
+      }
     }
   }
 }
