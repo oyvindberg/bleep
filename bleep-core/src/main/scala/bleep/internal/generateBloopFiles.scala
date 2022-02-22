@@ -199,7 +199,7 @@ object generateBloopFiles {
               case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
               case Right(res) =>
                 res.fullDetailedArtifacts.collect {
-                  case (dep, pub, a, Some(file)) if pub.classifier.isEmpty && pub.ext == Extension.jar => file.toPath
+                  case (_, pub, _, Some(file)) if pub.classifier.isEmpty && pub.ext == Extension.jar => file.toPath
                 }
             }
 
