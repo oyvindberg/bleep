@@ -223,8 +223,6 @@ object generateBloopFiles {
         )
       }
 
-    val scope = explodedProject.`sbt-scope`.getOrElse("main")
-
     def sourceLayout = explodedProject.`source-layout` match {
       case Some(sourceLayout) => sourceLayout
       case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
@@ -260,7 +258,10 @@ object generateBloopFiles {
         scala = configuredScala,
         java = Some(b.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,
-        test = if (scope == "test") Some(b.Test.defaultConfiguration) else None,
+        test = explodedProject.testFrameworks.values.toList match {
+          case Nil   => None
+          case names => Some(new b.Test(List(b.TestFramework(names.map(_.value))), b.TestOptions(Nil, Nil)))
+        },
         platform = configuredPlatform,
         resolution = Some(resolution),
         tags = None

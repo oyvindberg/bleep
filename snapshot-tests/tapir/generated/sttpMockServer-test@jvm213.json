@@ -190,35 +190,14 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
+            "com.novocode.junit.JUnitFramework",
+            "munit.Framework",
+            "org.scalacheck.ScalaCheckFramework",
             "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
+            "org.scalatest.tools.ScalaTestFramework",
             "org.specs.runner.SpecsFramework",
             "org.specs2.runner.Specs2Framework",
             "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
           ]
         }
       ],
@@ -227,17 +206,7 @@
           
         ],
         "arguments": [
-          {
-            "args": [
-              "-v",
-              "-a"
-            ],
-            "framework": {
-              "names": [
-                "com.novocode.junit.JUnitFramework"
-              ]
-            }
-          }
+          
         ]
       }
     },
