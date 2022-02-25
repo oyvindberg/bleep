@@ -164,11 +164,11 @@ object Templates {
       build0.projects.map { case (name, exploded) => (name, ProjectKeepExploded(exploded, exploded)) }
 
     val templates: SortedMap[TemplateDef, Templates.TemplateKeepExploded] = {
-      val projects: List[ProjectKeepExploded] =
-        initial.filterNot { case (crossName, _) => ignoreWhenInferringTemplates(crossName.name) }.values.toList
+      val projects: List[(model.ProjectName, ProjectKeepExploded)] =
+        initial.toList.collect { case (crossName, p) if !ignoreWhenInferringTemplates(crossName.name) => (crossName.name, p) }
 
       Templates.inferFromExistingProjects(
-        TemplateDef.applicableForProjects(projects.map(_.exploded)),
+        TemplateDef.applicableForProjects(projects.map(_._2.exploded)),
         projects
       )
     }
@@ -183,9 +183,9 @@ object Templates {
       groupCrossProjects(templated)
 
     val crossTemplates: SortedMap[TemplateDef, Templates.TemplateKeepExploded] = {
-      val projects = groupedCrossProjects.filterNot { case (name, _) => ignoreWhenInferringTemplates(name) }.values
+      val projects = groupedCrossProjects.collect { case (name, p) if !ignoreWhenInferringTemplates(name) => (name, p) }
       Templates.inferFromExistingProjects(
-        TemplateDef.crossTemplates(projects.map(_.exploded)),
+        TemplateDef.crossTemplates(projects.map(_._2.exploded)),
         projects.toList
       )
     }
@@ -305,24 +305,24 @@ object Templates {
 
   def inferFromExistingProjects(
       applicableTemplateDefs: List[TemplateDef],
-      projects: List[ProjectKeepExploded]
+      projects: List[(model.ProjectName, ProjectKeepExploded)]
   ): SortedMap[TemplateDef, TemplateKeepExploded] = {
-    val templateDefsWithProjects: Map[TemplateDef, List[ProjectKeepExploded]] =
+    val templateDefsWithProjects: Map[TemplateDef, List[(model.ProjectName, ProjectKeepExploded)]] =
       applicableTemplateDefs.map { templateDef =>
         val projectsForTemplate = projects.collect {
-          case pe @ ProjectKeepExploded(exploded, _) if templateDef.include(exploded) => pe
+          case (name, pe @ ProjectKeepExploded(exploded, _)) if templateDef.include(exploded) => (name, pe)
         }
         (templateDef, projectsForTemplate)
       }.toMap
 
     val maybeTemplates: SortedMap[TemplateDef, Lazy[Option[TemplateKeepExploded]]] =
-      rewriteDependentData[TemplateDef, List[ProjectKeepExploded], Option[TemplateKeepExploded]](templateDefsWithProjects) {
-        case (_, projects, _) if projects.sizeIs < 2 => None
-        case (templateDef, projects, eval)           =>
+      rewriteDependentData[TemplateDef, List[(model.ProjectName, ProjectKeepExploded)], Option[TemplateKeepExploded]](templateDefsWithProjects) {
+        case (_, projects, _) if projects.map(_._1).distinct.sizeIs < 2 => None
+        case (templateDef, projects, eval)                              =>
           // check what all the picked projects have in common
           val maybeInitialTemplate: Option[TemplateKeepExploded] = {
-            val current = projects.map(_.current).optReduce(_.intersectDropEmpty(_))
-            val exploded = projects.map(_.exploded).optReduce(_.intersectDropEmpty(_))
+            val current = projects.map(_._2.current).optReduce(_.intersectDropEmpty(_))
+            val exploded = projects.map(_._2.exploded).optReduce(_.intersectDropEmpty(_))
             exploded.zip(current).map { case (exploded, current) => TemplateKeepExploded(exploded, current) }
           }
 
