@@ -38,8 +38,8 @@ object Versions {
   }
 
   val Scala212 = Scala("2.12.15")
-  val Scala213 = Scala("2.13.5")
-  val Scala3 = Scala("3.0.2")
+  val Scala213 = Scala("2.13.8")
+  val Scala3 = Scala("3.1.1")
 
   case class ScalaJs(scalaJsVersion: String) {
     require(scalaJsVersion.nonEmpty)
@@ -56,7 +56,7 @@ object Versions {
     val compilerPlugin = Dep.ScalaFullVersion(scalaJsOrganization, "scalajs-compiler", scalaJsVersion)
   }
 
-  val ScalaJs1 = ScalaJs("1.7.0")
+  val ScalaJs1 = ScalaJs("1.9.0")
 
   case class ScalaNative(scalaNativeVersion: String) {
     val scalaNativeBinVersion: String =
