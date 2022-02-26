@@ -1,0 +1,116 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "projects" : {
+    "myapp" : {
+      "cross" : {
+        "js213" : {
+          "platform" : {
+            "jsMainClass" : "com.foo.App"
+          }
+        },
+        "js3" : {
+          "platform" : {
+            "jsMainClass" : "com.foo.App"
+          }
+        },
+        "jvm213" : {
+          "platform" : {
+            "jvmMainClass" : "com.foo.App"
+          }
+        },
+        "jvm3" : {
+          "platform" : {
+            "jvmMainClass" : "com.foo.App"
+          }
+        }
+      },
+      "dependencies" : "com.lihaoyi::fansi:0.3.1",
+      "extends" : "template-cross-all"
+    },
+    "myapp-test" : {
+      "dependencies" : "org.scalatest::scalatest:3.2.11",
+      "dependsOn" : "myapp",
+      "extends" : "template-cross-all",
+      "testFrameworks" : [
+        "com.novocode.junit.JUnitFramework",
+        "munit.Framework",
+        "org.scalacheck.ScalaCheckFramework",
+        "org.scalatest.tools.Framework",
+        "org.scalatest.tools.ScalaTestFramework",
+        "org.specs.runner.SpecsFramework",
+        "org.specs2.runner.Specs2Framework",
+        "org.specs2.runner.SpecsFramework"
+      ]
+    }
+  },
+  "templates" : {
+    "template-common" : {
+      "scala" : {
+        "options" : [
+          "-encoding",
+          "utf8",
+          "-feature",
+          "-unchecked"
+        ]
+      }
+    },
+    "template-cross-all" : {
+      "cross" : {
+        "js213" : {
+          "extends" : "template-scala-2.13-js"
+        },
+        "js3" : {
+          "extends" : [
+            "template-js",
+            "template-scala-3"
+          ]
+        },
+        "jvm213" : {
+          "extends" : [
+            "template-jvm",
+            "template-scala-2.13"
+          ]
+        },
+        "jvm3" : {
+          "extends" : [
+            "template-jvm",
+            "template-scala-3"
+          ]
+        }
+      }
+    },
+    "template-js" : {
+      "extends" : "template-common",
+      "platform" : {
+        "name" : "js"
+      }
+    },
+    "template-jvm" : {
+      "extends" : "template-common",
+      "platform" : {
+        "name" : "jvm"
+      }
+    },
+    "template-scala-2.13" : {
+      "extends" : "template-common",
+      "scala" : {
+        "version" : "2.13.8"
+      }
+    },
+    "template-scala-2.13-js" : {
+      "extends" : [
+        "template-js",
+        "template-scala-2.13"
+      ],
+      "platform" : {
+        "jsVersion" : "1.9.0"
+      }
+    },
+    "template-scala-3" : {
+      "extends" : "template-common",
+      "scala" : {
+        "version" : "3.1.1"
+      }
+    }
+  }
+}

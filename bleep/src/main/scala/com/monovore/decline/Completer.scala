@@ -3,7 +3,6 @@ package com.monovore.decline
 import com.monovore.decline.Completer._
 
 final class Completer(possibleCompletionsForMetavar: String => List[String]) extends App {
-
   def bash[A](compLine: String, compCword: Int, compPoint: Int)(x: Opts[A]): List[Completion] = {
     val args = bashToArgs(compLine, compCword, compPoint)
     completeOpts(args)(x).value
@@ -56,13 +55,13 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) ext
     }
   }
 
-  private def nonEmpty[A](help: String): Option[String] =
+  private def nonEmpty(help: String): Option[String] =
     Some(help).filterNot(_.isEmpty)
 
-  def completeName[A](nameStrings: List[String], arg: String, description: Option[String]): Res =
+  def completeName(nameStrings: List[String], arg: String, description: Option[String]): Res =
     Res.Found(nameStrings.collect { case name if isStartOf(arg, name) => Completion(name, description) })
 
-  def isStartOf[A](arg: String, name: String): Boolean =
+  def isStartOf(arg: String, name: String): Boolean =
     name.startsWith(arg) && arg != name
 
   def completeMetaVar(args: List[String], metavar: String): Res = {
@@ -103,8 +102,6 @@ object Completer {
   }
 
   object Res {
-    def commitNonEmpty(values: List[Completion]): Res = Res.Found(values).commitNonEmpty
-
     case class Commit(value: List[Completion]) extends Res
     case class Found(value: List[Completion]) extends Res
     val Empty: Res = Found(Nil)

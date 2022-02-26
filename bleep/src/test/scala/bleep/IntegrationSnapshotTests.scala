@@ -3,7 +3,7 @@ package bleep
 import bleep.CoursierResolver.Authentications
 import bleep.commands.Import.Options
 import bleep.internal.generateBloopFiles.dependencyOrdering
-import bleep.internal.{importBloopFilesFromSbt, FileUtils, Replacements}
+import bleep.internal.{importBloopFilesFromSbt, FileUtils}
 import bloop.config.Config
 import coursier.core._
 import coursier.paths.CoursierPaths
@@ -25,15 +25,6 @@ class IntegrationSnapshotTests extends SnapshotTest {
       val directories = UserPaths.fromAppDirs
       CoursierResolver(logger, downloadSources = false, cacheIn = Some(directories.cacheDir), Authentications.empty)
     }
-
-  val absolutePaths: Replacements =
-    Replacements.ofReplacements(
-      List(
-        (CoursierPaths.cacheDirectory().toString, "<COURSIER>"),
-        (System.getProperty("user.dir"), "<PROJECT>"),
-        (System.getProperty("user.home"), "<HOME>")
-      )
-    )
 
   case class TestPaths(project: String) extends BuildPaths {
     override val cwd = Paths.get("/tmp")
@@ -116,17 +107,17 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[RelPath, String] =
-      bootstrap
-        .bloopFileMap(started.bloopFiles)
-        .map { case (f, s) => (f, absolutePaths.templatize.string(s)) }
-        .updated(RelPath.relativeTo(paths.dotBleepDir, paths.bleepJsonFile), Files.readString(paths.bleepJsonFile))
+      bootstrap.bloopFileMap(started.bloopFiles).map { case (f, s) => (f, absolutePaths.templatize.string(s)) }
+
+    val generatedFiles: Map[RelPath, String] =
+      generatedBloopFiles.updated(RelPath.relativeTo(paths.dotBleepDir, paths.bleepJsonFile), Files.readString(paths.bleepJsonFile))
 
     // further property checks to see that we haven't made any illegal rewrites
     assertSameIshBloopFiles(importedBloopFiles, started)
 
     // flush templated bloop files to disk if local, compare to checked in if test is running in CI
     // note, keep last. locally it "succeeds" with a `pending`
-    writeAndCompare(paths.dotBleepDir, generatedBloopFiles)
+    writeAndCompare(paths.dotBleepDir, generatedFiles)
   }
 
   def assertSameIshBloopFiles(importedBloopFiles: Iterable[Config.File], started: Started): Assertion = {
@@ -175,14 +166,14 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   object CompilerPlugin {
-    def unapply(str: String): Option[Config.Module] =
+    def unapply(scalacOption: String): Option[Config.Module] =
       // -Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar
-      str.split(":") match {
-        case Array("-Xplugin", path) =>
+      scalacOption.split(":") match {
+        case Array(constants.ScalaPluginPrefix, path) =>
           val pathFragments = path.split("/").toList
 
           pathFragments.indexOf("maven2") match {
-            case -1 => sys.error(s"tests only suppport compiler plugins from a repository which has a maven2/ path fragment. feel free to patch this")
+            case -1 => sys.error(s"tests only support compiler plugins from a repository which has a maven2/ path fragment. feel free to patch this")
             case n =>
               pathFragments.drop(n + 1).reverse match {
                 case (fileName @ _) :: version :: artifactName :: reverseOrgs =>
