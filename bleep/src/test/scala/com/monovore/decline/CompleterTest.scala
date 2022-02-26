@@ -59,7 +59,9 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
     val common = Completion("common", Some(Project.metavar))
     val core = Completion("core", Some(Project.metavar))
     val foobar = Completion("--foobar", Some(foobarHelp))
+    val f = Completion("-f", Some(foobarHelp))
     val bar = Completion("--bar", Some(barHelp))
+    val b = Completion("-b", Some(barHelp))
     val one = Completion("one", Some(Number.metavar))
     val two = Completion("two", Some(Number.metavar))
     val three = Completion("three", Some(Number.metavar))
@@ -71,9 +73,65 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
     assert(completer.completeOpts(List("te"))(opts).value === List(testCmd))
     assert(completer.completeOpts(List("compile", "co"))(opts).value === List(common, core))
     assert(completer.completeOpts(List("compile", "core", "te"))(opts).value === List(testProj))
-    assert(completer.completeOpts(List("compile"))(opts).value === List(foobar, bar, common, core, testProj))
+    assert(completer.completeOpts(List("compile", ""))(opts).value === List(foobar, f, bar, b, common, core, testProj))
     assert(completer.completeOpts(List("compile", "--bar", ""))(opts).value === List(one, two, three))
     assert(completer.completeOpts(List("compile", "--bar", "t"))(opts).value === List(two, three))
+  }
+
+  test("repeated options") {
+    val platformMetavar = "platform name"
+    val platformHelp = "specify wanted platform(s)"
+    val platforms = List("jvm", "js", "native").map(x => (x, x)).toMap
+    val fooMetavar = "foo name"
+    val fooHelp = "specify wanted foo(s)"
+    val foos = Map("one" -> "A", "two" -> "B")
+
+    val opts =
+      Opts.subcommand("cmd1", "")(
+        Opts.subcommand("cmd2", "")(
+          (
+            Opts
+              .options("platform", platformHelp, metavar = platformMetavar, short = "p")(Argument.fromMap(platformMetavar, platforms))
+              .withDefault(NonEmptyList.of("jvm")),
+            Opts
+              .options("foo", fooHelp, metavar = fooMetavar, short = "f")(Argument.fromMap(fooMetavar, foos))
+              .withDefault(NonEmptyList.of("one")),
+            Opts.argument[String]("bar")
+          ).mapN((_, _, _) => ())
+        )
+      )
+
+    val completer = new Completer({
+      case `platformMetavar` => platforms.keys.toList
+      case `fooMetavar`      => foos.keys.toList
+      case _                 => Nil
+    })
+
+    assert(completer.completeOpts(List("cmd1", "cmd2", "--p"))(opts).value === List(Completion("--platform", Some(platformHelp))))
+    assert(completer.completeOpts(List("cmd1", "cmd2", "-p"))(opts).value === Nil)
+    assert(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", ""))(opts).value === List(
+        Completion("jvm", Some(platformMetavar)),
+        Completion("js", Some(platformMetavar)),
+        Completion("native", Some(platformMetavar))
+      )
+    )
+    assert(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", "j"))(opts).value === List(
+        Completion("jvm", Some(platformMetavar)),
+        Completion("js", Some(platformMetavar))
+      )
+    )
+    assert(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-p", "n"))(opts).value === List(
+        Completion("native", Some(platformMetavar))
+      )
+    )
+    assert(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-f", "o"))(opts).value === List(
+        Completion("one", Some(fooMetavar))
+      )
+    )
   }
 
   test("bashToArgs") {

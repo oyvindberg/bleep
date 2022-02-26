@@ -20,6 +20,8 @@ object Main {
 
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
+  val possibleScalaVersions: Map[String, Versions.Scala] =
+    List(Versions.Scala3, Versions.Scala213, Versions.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
 
   object metavars {
     val projectName = "project name"
@@ -55,9 +57,6 @@ object Main {
         .map(_.toList.flatten)
         .orNone
 
-    val possibleScalaVersions: Map[String, Versions.Scala] =
-      List(Versions.Scala3, Versions.Scala213, Versions.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
-
     lazy val ret: Opts[BleepCommand] = List(
       List(
         Opts.subcommand("build", "rewrite build")(
@@ -73,7 +72,7 @@ object Main {
                 Opts
                   .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
                   .withDefault(NonEmptyList.of(Versions.Scala3)),
-                Opts.argument[String](metavars.projectName)
+                Opts.argument[String]("wanted project name")
               ).mapN { case (_, platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name) }
             ),
             Opts.subcommand("templates-reapply", "reapply templates.")(
