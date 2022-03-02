@@ -71,8 +71,8 @@ object TypedLogger {
       pattern: Pattern,
       val context: Ctx,
       lastWasProgress: AtomicBoolean = new AtomicBoolean(false) // need to share this across instances after `withContext`
-  ) extends TypedLogger[U] { self =>
-    type Underlying = U
+  ) extends TypedLogger[U] {
+
     val CleanCurrentLine = "\u001b[K"
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {

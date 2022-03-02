@@ -24,6 +24,7 @@ object Main {
     List(Versions.Scala3, Versions.Scala213, Versions.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
 
   object metavars {
+    val projectNameExact = "project name exact"
     val projectName = "project name"
     val testProjectName = "test project name"
     val platformName = "platform name"
@@ -38,24 +39,26 @@ object Main {
       case Right(started) => started
     }
 
+    def argumentFrom[E, A](defmeta: String, nameToValue: Either[E, Map[String, A]]): Argument[A] =
+      Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
+
     val maybeGlobs = maybeStarted.map(ProjectGlobs.apply)
     val nothing = Map.empty[String, Iterable[model.CrossProjectName]]
 
-    val nothing = Map.empty[String, Iterable[model.CrossProjectName]]
     val projectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments(metavars.projectName)(Argument.fromMap(metavars.projectName, maybeGlobs.fold(_ => nothing, _.projectNameMap))).map(_.toList.flatten).orNone
+      Opts.arguments(metavars.projectName)(argumentFrom(metavars.projectName, maybeGlobs.map(_.projectNameMap))).map(_.toList.flatten).orNone
+
+    val projectName: Opts[model.CrossProjectName] =
+      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, maybeGlobs.map(_.exactProjectMap)))
 
     val projectNamesNoExpand: Opts[Option[List[String]]] =
       Opts
-        .arguments(metavars.projectName)(Argument.fromMap(metavars.projectName, maybeGlobs.fold(_ => nothing, _.projectNameMap).map { case (s, _) => (s, s) }))
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, maybeGlobs.map(_.projectNameMap.map { case (s, _) => (s, s) })))
         .map(_.toList)
         .orNone
 
     val testProjectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts
-        .arguments(metavars.testProjectName)(Argument.fromMap(metavars.testProjectName, maybeGlobs.fold(_ => nothing, _.testProjectNameMap)))
-        .map(_.toList.flatten)
-        .orNone
+      Opts.arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, maybeGlobs.map(_.testProjectNameMap))).map(_.toList.flatten).orNone
 
     lazy val ret: Opts[BleepCommand] = List(
       List(
@@ -88,6 +91,21 @@ object Main {
         ),
         Opts.subcommand("test", "test projects")(
           (CommonOpts.opts, testProjectNames).mapN { case (opts, projectNames) => commands.Test(forceStarted(), opts, projectNames) }
+        ),
+        Opts.subcommand("run", "run project")(
+          (
+            CommonOpts.opts,
+            projectName,
+            Opts
+              .option[String](
+                "class",
+                "explicitly override main class. If not set, bleep will first look in the build file, then fall back to looking into compiled class files"
+              )
+              .orNone,
+            Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty)
+          ).mapN { case (opts, projectName, mainClass, arguments) =>
+            commands.Run(forceStarted(), opts, projectName, mainClass, arguments)
+          }
         ),
         Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
           (CommonOpts.opts, projectNamesNoExpand).mapN { case (_, projectNames) =>
@@ -128,11 +146,12 @@ object Main {
                 override def run(): Unit = {
                   val msg = List("no completion because build couldn't be bootstrapped")
                   val completer = new Completer({
-                    case metavars.platformName    => model.PlatformId.All.map(_.value)
-                    case metavars.scalaVersion    => possibleScalaVersions.keys.toList
-                    case metavars.projectName     => maybeGlobs.fold(_ => msg, _.projectNameMap.keys.toList)
-                    case metavars.testProjectName => maybeGlobs.fold(_ => msg, _.testProjectNameMap.keys.toList)
-                    case _                        => Nil
+                    case metavars.platformName     => model.PlatformId.All.map(_.value)
+                    case metavars.scalaVersion     => possibleScalaVersions.keys.toList
+                    case metavars.projectNameExact => maybeGlobs.fold(_ => msg, _.exactProjectMap.keys.toList)
+                    case metavars.projectName      => maybeGlobs.fold(_ => msg, _.projectNameMap.keys.toList)
+                    case metavars.testProjectName  => maybeGlobs.fold(_ => msg, _.testProjectNameMap.keys.toList)
+                    case _                         => Nil
                   })
                   completer.bash(compLine, compCword, compPoint)(ret).foreach(c => println(c.value))
                 }
