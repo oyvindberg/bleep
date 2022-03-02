@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams, ScalaMainClassesResult}
+import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams}
 
 import java.util
 import scala.build.bloop.BloopServer
@@ -10,7 +10,6 @@ import scala.jdk.CollectionConverters._
 
 case class Run(
     started: Started,
-    opts: CommonOpts,
     project: model.CrossProjectName,
     maybeOverridenMain: Option[String],
     args: List[String]
