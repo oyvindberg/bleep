@@ -1,8 +1,10 @@
-package bleep.bsp
+package bleep
+package bsp
 
 import bleep.logging.Logger
-import bleep.{constants, BuildException}
+import bleep.{constants, BuildException, Started}
 import ch.epfl.scala.bsp4j
+import com.google.gson.{JsonObject, JsonPrimitive}
 
 import java.util
 import java.util.concurrent.CompletableFuture
@@ -11,9 +13,15 @@ import scala.build.blooprifle.internal.Constants
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
 
-class BleepBspServer(val logger: Logger, var bloopServer: BuildServer, var ensureBloopUpToDate: () => Either[BuildException, Unit]) extends BuildServer {
+class BleepBspServer(
+    val logger: Logger,
+    var sendToIdeClient: bsp4j.BuildClient,
+    var bloopServer: BuildServer,
+    var ensureBloopUpToDate: () => Either[BuildException, Started]
+) extends BuildServer {
+  val supportedLanguages: util.List[String] = List("scala", "java").asJava
+
   private def capabilities: bsp4j.BuildServerCapabilities = {
-    val supportedLanguages: util.List[String] = List("scala", "java").asJava
     val ret = new bsp4j.BuildServerCapabilities
     ret.setCompileProvider(new bsp4j.CompileProvider(supportedLanguages))
     ret.setTestProvider(new bsp4j.TestProvider(supportedLanguages))
@@ -32,7 +40,49 @@ class BleepBspServer(val logger: Logger, var bloopServer: BuildServer, var ensur
 
   override def buildInitialize(params: bsp4j.InitializeBuildParams): CompletableFuture[bsp4j.InitializeBuildResult] = {
     logger.debug(("onBuildInitialized", params.toString))
-    CompletableFuture.completedFuture(new bsp4j.InitializeBuildResult("bleep", constants.version, Constants.bspVersion, capabilities))
+
+    ensureBloopUpToDate() match {
+      case Left(th) =>
+        def messages(th: Throwable): List[String] =
+          th.getMessage :: Option(th.getCause).toList.flatMap(messages)
+
+        sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, messages(th).mkString(": ")))
+
+        logger.error("couldn't refresh build", th)
+        CompletableFuture.failedFuture(th)
+      case Right(started) =>
+        val workspaceDir = started.buildPaths.dotBleepModeDir
+
+        val initParams = new bsp4j.InitializeBuildParams(
+          s"bleep / ${params.getDisplayName}",
+          s"${constants.version} / ${params.getVersion}",
+          Constants.bspVersion,
+          workspaceDir.toUri.toASCIIString,
+          new bsp4j.BuildClientCapabilities(supportedLanguages)
+        )
+
+        initParams.setData {
+          val data = new JsonObject
+          data.add("clientClassesRootDir", new JsonPrimitive((workspaceDir / "classes").toUri.toASCIIString))
+          data.add("ownsBuildFiles", new JsonPrimitive(true))
+          params.getData match {
+            // pick up these values to make metals work.
+            case dataFromIDE: JsonObject =>
+              data.add("semanticdbVersion", dataFromIDE.get("semanticdbVersion"))
+              data.add("javaSemanticdbVersion", dataFromIDE.get("javaSemanticdbVersion"))
+              data.add("supportedScalaVersions", dataFromIDE.get("supportedScalaVersions"))
+            case unexpected =>
+              logger.warn(s"got unexpected data element: $unexpected")
+          }
+          data
+        }
+
+        logger.debug("Sending buildInitialize BSP command to Bloop")
+        bloopServer.buildInitialize(initParams).thenApply { _ =>
+          bloopServer.onBuildInitialized()
+          new bsp4j.InitializeBuildResult("bleep", constants.version, Constants.bspVersion, capabilities)
+        }
+    }
   }
 
   override def workspaceBuildTargets(): CompletableFuture[bsp4j.WorkspaceBuildTargetsResult] = {
@@ -42,7 +92,7 @@ class BleepBspServer(val logger: Logger, var bloopServer: BuildServer, var ensur
       case Left(th) =>
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)
-      case Right(()) => bloopServer.workspaceBuildTargets()
+      case Right(_) => bloopServer.workspaceBuildTargets()
     }
   }
 

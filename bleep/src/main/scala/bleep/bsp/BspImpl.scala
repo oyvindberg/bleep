@@ -5,8 +5,11 @@ import bleep.logging._
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
-import scala.build.bloop.BloopServer
+import java.net.Socket
+import java.nio.file.Path
+import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
 import scala.build.blooprifle.internal.Operations
+import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BloopServerRuntimeInfo}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -15,7 +18,7 @@ object BspImpl {
   def run(buildPaths: BuildPaths, logger: Logger): Unit = {
 
     val bspBloopServer: BleepBspServer =
-      new BleepBspServer(logger, null, null)
+      new BleepBspServer(logger, null, null, null)
 
     bsp.BspThreads.withThreads { threads =>
       val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]()
@@ -43,19 +46,9 @@ object BspImpl {
 
       var bloopServer: BloopServer = null
       try {
-        bloopServer = BloopServer.buildServer(
-          config = bloopRifleConfig,
-          clientName = "bleep",
-          clientVersion = constants.version,
-          workspace = workspaceDir,
-          classesDir = workspaceDir / "unused-classes-dir",
-          buildClient = localClient,
-          threads = threads.buildThreads,
-          logger = bloopRifleLogger
-        )
-
+        bloopServer = buildServer(bloopRifleConfig, workspaceDir, localClient, threads.buildThreads, bloopRifleLogger)
+        bspBloopServer.sendToIdeClient = launcher.getRemoteProxy
         bspBloopServer.bloopServer = bloopServer.server
-
         // run on `workspaceBuildTargets` later for the side-effect of updating build
         bspBloopServer.ensureBloopUpToDate = () =>
           ProjectSelection.load(buildPaths).flatMap { maybeSelectedProjectGlobs =>
@@ -67,7 +60,7 @@ object BspImpl {
               }
             ).flatten
 
-            bootstrap.from(logger, buildPaths, bspRewrites).map(_ => ())
+            bootstrap.from(logger, buildPaths, bspRewrites)
           }
 
         logger.info {
@@ -119,4 +112,47 @@ object BspImpl {
     t.start()
     p.future
   }
+
+  def buildServer(config: BloopRifleConfig, workspace: Path, buildClient: bsp4j.BuildClient, threads: BloopThreads, logger: BloopRifleLogger): BloopServer = {
+
+    val (conn, socket, bloopInfo) =
+      BloopServer.bsp(config, workspace, threads, logger, config.period, config.timeout)
+
+    logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
+
+    // FIXME As of now, we don't detect when connection gets closed.
+    // For TCP connections, this should be do-able with heartbeat messages
+    // (to be added to BSP?).
+    // For named sockets, the recv system call is supposed to allow to detect
+    // that case, unlike the read system call. But the ipcsocket library that we use
+    // for named sockets relies on read.
+
+    val launcher = new jsonrpc.Launcher.Builder[BuildServer]()
+      .setExecutorService(threads.jsonrpc)
+      .setInput(socket.getInputStream)
+      .setOutput(socket.getOutputStream)
+      .setRemoteInterface(classOf[BuildServer])
+      .setLocalService(buildClient)
+      .create()
+    val server = launcher.getRemoteProxy
+    buildClient.onConnectWithServer(server)
+
+    val f = launcher.startListening()
+
+    case class BloopServerImpl(
+        server: BuildServer,
+        listeningFuture: java.util.concurrent.Future[Void],
+        socket: Socket,
+        bloopInfo: BloopServerRuntimeInfo
+    ) extends BloopServer {
+      def shutdown(): Unit = {
+        // Close the jsonrpc thread listening to input messages
+        // First line makes jsonrpc discard the closed connection exception.
+        listeningFuture.cancel(true)
+        socket.close()
+      }
+    }
+    BloopServerImpl(server, f, socket, bloopInfo)
+  }
+
 }
