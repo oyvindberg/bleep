@@ -25,6 +25,9 @@ class ProjectGlobs(activeProjectsFromPath: List[model.CrossProjectName], explode
     crossIds ++ projectNames ++ crossNames
   }
 
+  def exactProjectMap: Map[String, model.CrossProjectName] =
+    explodedBuild.projects.map { case (crossName, _) => crossName.value -> crossName }
+
   def projectNameMap: Map[String, Iterable[model.CrossProjectName]] = {
     val projects: Iterable[model.CrossProjectName] =
       activeProjectsFromPath match {

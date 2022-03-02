@@ -16,12 +16,11 @@ trait BleepCommandRemote extends BleepCommand {
   def chosenTargets(started: Started, fromCommandLine: Option[List[model.CrossProjectName]]): util.List[bsp4j.BuildTargetIdentifier] =
     buildTargets(started.buildPaths, started.chosenProjects(fromCommandLine))
 
-  def buildTargets(buildPaths: BuildPaths, projects: List[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] = {
-    def targetId(name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
-      new bsp4j.BuildTargetIdentifier(buildPaths.buildDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
+  def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
+    new bsp4j.BuildTargetIdentifier(buildPaths.dotBleepModeDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
-    projects.map(targetId).asJava
-  }
+  def buildTargets(buildPaths: BuildPaths, projects: Seq[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
+    projects.map(p => buildTarget(buildPaths, p)).asJava
 
   def runWithServer(bloop: BloopServer): Unit
 
