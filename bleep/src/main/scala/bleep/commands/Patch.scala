@@ -11,7 +11,7 @@ import java.nio.file.{Files, Path}
 import scala.io.Source
 import scala.util.Using
 
-case class Patch(started: Started, opts: CommonOpts, file: Option[Path]) extends BleepCommand {
+case class Patch(started: Started, file: Option[Path]) extends BleepCommand {
   override def run(): Unit = {
     val string = file match {
       case Some(path) =>
