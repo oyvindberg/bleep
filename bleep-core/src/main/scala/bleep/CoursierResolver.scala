@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.internal.FileUtils
 import bleep.internal.codecs._
 import bleep.logging.Logger
 import coursier.cache.{ArtifactError, FileCache}
@@ -184,8 +185,7 @@ object CoursierResolver {
             val depNames = deps.map(_.module.name.value).values
             logger.withContext(cachePath).withContext(depNames).debug(s"coursier cache miss")
             underlying(deps, repositories).map { result =>
-              Files.createDirectories(cachePath.getParent)
-              Files.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
+              FileUtils.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
               result
             }
         }

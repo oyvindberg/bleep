@@ -59,10 +59,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
       importer.generateBloopFiles()
 
       // and remove paths inside those files
-      importer.findGeneratedBloopFiles().map { bloopFilePath =>
+      importer.findGeneratedBloopFiles().foreach { bloopFilePath =>
         val contents = Files.readString(bloopFilePath)
         val templatedContents = absolutePaths.templatize.string(contents)
-        Files.writeString(bloopFilePath, templatedContents)
+        FileUtils.writeString(bloopFilePath, templatedContents)
       }
     }
 
@@ -107,7 +107,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     importer.generateBuildAndPersistFrom(importedBloopFiles)
 
     // read that build file, and produce an (in-memory) exploded build plus new bloop files
-    val Right(started) = bootstrap.from(logger, buildPaths = paths, rewrites = Nil)
+    val Right(started) = bootstrap.from(Prebootstrapped(paths, logger), rewrites = Nil)
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[RelPath, String] =

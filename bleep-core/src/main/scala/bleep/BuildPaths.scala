@@ -1,23 +1,8 @@
 package bleep
 
-import coursier.cache.shaded.dirs.dev.dirs.ProjectDirectories
+import bleep.internal.FileUtils
 
-import java.nio.file.{Path, Paths}
-
-case class UserPaths(cacheDir: Path, configDir: Path) {
-  val bspSocketDir = cacheDir / "bsp-socket"
-  val coursierRepositoriesJson = configDir / "coursier-repositories.json"
-}
-
-object UserPaths {
-  def fromAppDirs: UserPaths = {
-    val dirs = ProjectDirectories.from("no", "arktekk", "bleep")
-    val cacheDir = Paths.get(dirs.cacheDir)
-    val configDir = Paths.get(dirs.configDir)
-
-    UserPaths(cacheDir, configDir)
-  }
-}
+import java.nio.file.Path
 
 trait BuildPaths {
   val cwd: Path
@@ -49,24 +34,28 @@ object BuildPaths {
     case object BSP extends Mode
   }
 
-  def fromBleepJson(cwd: Path, bleepJsonFile: Path, mode: Mode): BuildPaths =
-    fromBuildDir(cwd, bleepJsonFile.getParent, mode)
+  def find(cwd: Path, mode: Mode): Either[BuildException.BuildNotFound, BuildPaths] = {
+    // keep looking up until we find build file
+    def in(dir: Path): Option[Path] = {
+      val buildFile = dir / constants.BuildFileName
+      if (FileUtils.exists(buildFile)) Some(buildFile)
+      else Option(dir.getParent).flatMap(in)
+    }
 
-  def fromBuildDir(_cwd: Path, _buildDir: Path, mode: Mode): BuildPaths = new BuildPaths {
-    override val cwd = _cwd
-    override val buildDir = _buildDir
-
-    override lazy val dotBleepModeDir: Path = mode match {
-      case Mode.Normal => dotBleepDir
-      case Mode.BSP    => dotBleepBspModeDir
+    in(cwd) match {
+      case Some(bleepJsonPath) => Right(fromBuildDir(cwd, bleepJsonPath.getParent, mode))
+      case None                => Left(new BuildException.BuildNotFound(cwd))
     }
   }
-}
 
-case class ProjectPaths(dir: Path, targetDir: Path) {
-  val classes: Path =
-    targetDir / "classes"
+  def fromBuildDir(_cwd: Path, _buildDir: Path, mode: Mode): BuildPaths =
+    new BuildPaths {
+      override val cwd = _cwd
+      override val buildDir = _buildDir
 
-  val incrementalAnalysis: Path =
-    targetDir / s"inc_compile.zip"
+      override lazy val dotBleepModeDir: Path = mode match {
+        case Mode.Normal => dotBleepDir
+        case Mode.BSP    => dotBleepBspModeDir
+      }
+    }
 }

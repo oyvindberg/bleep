@@ -34,6 +34,8 @@ package object bleep {
       acc
     }
   }
+  private[bleep] def throwableMessages(th: Throwable): List[String] =
+    th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)
 
   def cli(cmd: String)(implicit cwd: Path): Unit =
     sys.process.Process(cmd, cwd = Some(cwd.toFile)).! match {

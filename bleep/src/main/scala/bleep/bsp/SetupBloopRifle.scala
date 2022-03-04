@@ -1,24 +1,23 @@
 package bleep
 package bsp
 
-import bleep.internal.FileUtils
 import bleep.internal.generateBloopFiles.dependencyOrdering
+import bleep.internal.{FileUtils, Lazy}
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
 import java.io.File
-import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file._
 import scala.build.blooprifle.BloopRifleConfig
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
   def apply(
       javaPath: String,
-      buildPaths: BuildPaths,
       userPaths: UserPaths,
-      resolver: CoursierResolver,
-      // Protocol to use to open a BSP connection with Bloop: tcp | local | default
+      buildPaths: BuildPaths,
+      resolver: Lazy[CoursierResolver], // Protocol to use to open a BSP connection with Bloop: tcp | local | default
       bloopBspProtocol: Option[String]
   ): BloopRifleConfig = {
     val tcpOrDomain = bloopBspProtocol match {
@@ -29,20 +28,19 @@ object SetupBloopRifle {
     BloopRifleConfig.default(tcpOrDomain, bloopClassPath(resolver), buildPaths.dotBleepDir.toFile).copy(javaPath = javaPath)
   }
 
-  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BuildException, Seq[File]] = {
+  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BuildException, Seq[File]] = {
     val modString = BloopRifleConfig.defaultModule
     ModuleParser
       .module(modString, BloopRifleConfig.defaultScalaVersion)
       .left
       .map(msg => new BuildException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
-        resolver(JsonSet(Dependency(mod, bloopVersion)), JsonSet(constants.MavenCentral)) match {
+        resolver.forceGet(JsonSet(Dependency(mod, bloopVersion)), JsonSet(constants.MavenCentral)) match {
           case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
           case Right(res)          => Right(res.files)
         }
       }
   }
-
   private lazy val pidOrRandom: Either[Int, Long] =
     Try(ProcessHandle.current.pid) match {
       case Failure(_) =>

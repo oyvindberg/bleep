@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.logging.Logger
 import coursier.error.CoursierError
 import io.circe
 
@@ -11,6 +12,17 @@ abstract class BuildException(
 ) extends Exception(message, cause)
 
 object BuildException {
+  def fatal(context: String, logger: Logger, throwable: Throwable): Nothing = {
+    throwable match {
+      case buildException: BuildException =>
+        logger.debug(context, buildException)
+        logger.error(throwableMessages(buildException).mkString(": "))
+      case unexpected =>
+        logger.error(context, unexpected)
+    }
+    sys.exit(1)
+  }
+
   class BuildNotFound(cwd: Path) extends BuildException(s"Couldn't find ${constants.BuildFileName} in directories in or above $cwd")
 
   class InvalidJson(file: Path, e: circe.Error) extends BuildException(s"Couldn't parse json file $file", e)

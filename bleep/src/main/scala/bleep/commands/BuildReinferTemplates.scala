@@ -1,14 +1,12 @@
 package bleep
 package commands
 
-import bleep.internal.{ShortenAndSortJson, Templates}
+import bleep.internal.{FileUtils, ShortenAndSortJson, Templates}
 import bleep.rewrites.normalizeBuild
 import io.circe.syntax._
 
-import java.nio.file.Files
-
 case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
-  override def run(): Unit = {
+  override def run(): Either[BuildException, Unit] = {
     val normalizedBuild = normalizeBuild(started.build)
     val droppedTemplates = normalizedBuild.dropTemplates
 
@@ -22,10 +20,10 @@ case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates:
         diffs.foreach { case (projectName, msg) => started.logger.withContext(projectName).error(msg) }
     }
 
-    Files.writeString(
+    FileUtils.writeString(
       started.buildPaths.bleepJsonFile,
       build.asJson.foldWith(ShortenAndSortJson).spaces2
     )
-    ()
+    Right(())
   }
 }

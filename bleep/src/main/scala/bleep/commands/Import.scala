@@ -10,7 +10,7 @@ import com.monovore.decline.Opts
 import io.circe.syntax._
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path, StandardOpenOption}
+import java.nio.file.{Files, Path}
 import java.util.stream.Collectors
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -40,24 +40,21 @@ object Import {
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
 case class Import(buildPaths: BuildPaths, logger: Logger, options: Import.Options) extends BleepCommand {
-  override def run(): Unit = {
+  override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
       generateBloopFiles()
     }
 
     val bloopFiles = findGeneratedBloopFiles().map(readAndParseBloopFile)
-    generateBuildAndPersistFrom(bloopFiles)
+    Right(generateBuildAndPersistFrom(bloopFiles))
   }
 
   def generateBloopFiles(): Unit = {
     val tempAddBloopPlugin = buildPaths.buildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
 
-    Files.writeString(
+    FileUtils.writeString(
       tempAddBloopPlugin,
-      s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")""",
-      StandardOpenOption.WRITE,
-      StandardOpenOption.CREATE,
-      StandardOpenOption.TRUNCATE_EXISTING
+      s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")"""
     )
 
     try {
