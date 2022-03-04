@@ -1,21 +1,19 @@
 package bleep
 package commands
 
-import bleep.internal.{ShortenAndSortJson, Templates}
+import bleep.internal.{FileUtils, ShortenAndSortJson, Templates}
 import bleep.rewrites.normalizeBuild
 import io.circe.syntax._
 
-import java.nio.file.Files
-
 case class BuildReapplyTemplates(started: Started) extends BleepCommand {
-  override def run(): Unit = {
+  override def run(): Either[BuildException, Unit] = {
     val normalizedBuild = normalizeBuild(started.build)
     val build = Templates.reapply(normalizedBuild, started.rawBuild.templates)
 
-    Files.writeString(
+    FileUtils.writeString(
       started.buildPaths.bleepJsonFile,
       build.asJson.foldWith(ShortenAndSortJson).spaces2
     )
-    ()
+    Right(())
   }
 }

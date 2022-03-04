@@ -51,7 +51,12 @@ object FileUtils {
 
     fileMap.foreach { case (file, content) =>
       val bytes = content.getBytes(StandardCharsets.UTF_8)
-      val synced = if (soft) softWriteBytes(file, bytes) else writeBytes(file, bytes)
+      val synced =
+        if (soft) softWriteBytes(file, bytes)
+        else {
+          writeBytes(file, bytes)
+          Synced.New
+        }
       ret(file) = synced
     }
 
@@ -66,13 +71,19 @@ object FileUtils {
         writeBytes(path, newContent)
         Synced.Changed
       }
-    } else writeBytes(path, newContent)
+    } else {
+      writeBytes(path, newContent)
+      Synced.New
+    }
 
-  def writeBytes[T](path: Path, newContent: Array[Byte]): Synced = {
+  def writeBytes(path: Path, newContent: Array[Byte]): Unit = {
     Files.createDirectories(path.getParent)
     Files.write(path, newContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-    Synced.New
+    ()
   }
+
+  def writeString(path: Path, newContent: String): Unit =
+    writeBytes(path, newContent.getBytes(StandardCharsets.UTF_8))
 
   def deleteDirectory(dir: Path): Unit =
     if (FileUtils.exists(dir)) {

@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.logging._
+import bleep.internal.Lazy
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
@@ -15,10 +15,10 @@ import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 object BspImpl {
-  def run(buildPaths: BuildPaths, logger: Logger): Unit = {
+  def run(pre: Prebootstrapped): Unit = {
 
     val bspBloopServer: BleepBspServer =
-      new BleepBspServer(logger, null, null, null)
+      new BleepBspServer(pre.logger, null, null, null)
 
     bsp.BspThreads.withThreads { threads =>
       val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]()
@@ -30,19 +30,18 @@ object BspImpl {
         .create()
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
-      val userPaths = UserPaths.fromAppDirs
 
       val bloopRifleConfig = SetupBloopRifle(
         JavaCmd.javacommand,
-        buildPaths,
-        userPaths,
-        CoursierResolver(logger, downloadSources = false, userPaths),
-        bloopBspProtocol = Some("local")
+        pre.userPaths,
+        pre.buildPaths,
+        Lazy(CoursierResolver(pre.logger, downloadSources = false, pre.userPaths)),
+        Some("local")
       )
 
-      val bloopRifleLogger = new BloopLogger(logger)
+      val bloopRifleLogger = new BloopLogger(pre.logger)
 
-      val workspaceDir = buildPaths.bleepBloopDir.getParent
+      val workspaceDir = pre.buildPaths.bleepBloopDir.getParent
 
       var bloopServer: BloopServer = null
       try {
@@ -51,19 +50,19 @@ object BspImpl {
         bspBloopServer.bloopServer = bloopServer.server
         // run on `workspaceBuildTargets` later for the side-effect of updating build
         bspBloopServer.ensureBloopUpToDate = () =>
-          ProjectSelection.load(buildPaths).flatMap { maybeSelectedProjectGlobs =>
+          ProjectSelection.load(pre.buildPaths).flatMap { maybeSelectedProjectGlobs =>
             val bspRewrites: List[Rewrite] = List(
-              List(rewrites.semanticDb(buildPaths)),
+//              List(rewrites.semanticDb(pre.buildPaths)),
               maybeSelectedProjectGlobs match {
                 case Some(selectedProjectGlobs) => List(rewrites.keepSelectedProjects(selectedProjectGlobs))
                 case None                       => Nil
               }
             ).flatten
 
-            bootstrap.from(logger, buildPaths, bspRewrites)
+            bootstrap.from(pre, bspRewrites)
           }
 
-        logger.info {
+        pre.logger.info {
           val hasConsole = System.console() != null
           if (hasConsole)
             "Listening to incoming JSONRPC BSP requests, press Ctrl+D to exit."

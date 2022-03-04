@@ -16,12 +16,10 @@ case class Started(
     build: ExplodedBuild,
     bloopFiles: Map[model.CrossProjectName, Lazy[Config.File]],
     activeProjectsFromPath: List[model.CrossProjectName],
-    lazyResolver: Lazy[CoursierResolver],
+    resolver: Lazy[CoursierResolver],
     userPaths: UserPaths,
     logger: Logger
 ) {
-  def resolver = lazyResolver.forceGet
-
   lazy val bloopProjects: List[Config.Project] =
     bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet.project }.toList
 

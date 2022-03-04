@@ -43,10 +43,7 @@ class BleepBspServer(
 
     ensureBloopUpToDate() match {
       case Left(th) =>
-        def messages(th: Throwable): List[String] =
-          th.getMessage :: Option(th.getCause).toList.flatMap(messages)
-
-        sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, messages(th).mkString(": ")))
+        sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, throwableMessages(th).mkString(": ")))
 
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)

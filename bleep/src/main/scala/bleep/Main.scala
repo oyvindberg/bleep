@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.BuildException.fatal
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
 import bleep.internal.{Os, ProjectGlobs}
@@ -17,6 +18,7 @@ import scala.util.{Failure, Success, Try}
 object Main {
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
+
   val possibleScalaVersions: Map[String, Versions.Scala] =
     List(Versions.Scala3, Versions.Scala213, Versions.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
 
@@ -28,69 +30,48 @@ object Main {
     val scalaVersion = "scala version"
   }
 
-  def mainOpts(
-      cwd: Path,
-      logger: Logger,
-      buildPaths: BuildPaths,
-      maybeStarted: Either[BuildException, Started],
-      maybeGlobs: Option[ProjectGlobs]
-  ): Opts[BleepCommand] = {
-    def forceStarted() = maybeStarted match {
-      case Left(buildException) =>
-        logger.error("couldn't initialize build", buildException)
-        sys.exit(1)
-      case Right(started) => started
-    }
+  def noBuildOpts(logger: Logger, cwd: Path): Opts[BleepCommand] = {
+    val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, Mode.Normal)
+    List(
+      Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
+      setupIdeCmd(buildPaths, logger, None),
+      importCmd(buildPaths, logger)
+    ).foldK
+  }
 
-    def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
-      Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
+  def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
+    Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
+
+  def hasBuildOpts(started: Started, globs: ProjectGlobs): Opts[BleepCommand] = {
 
     val projectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments(metavars.projectName)(argumentFrom(metavars.projectName, maybeGlobs.map(_.projectNameMap))).map(_.toList.flatten).orNone
+      Opts.arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(globs.projectNameMap))).map(_.toList.flatten).orNone
 
     val projectName: Opts[model.CrossProjectName] =
-      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, maybeGlobs.map(_.exactProjectMap)))
-
-    val projectNamesNoExpand: Opts[Option[List[String]]] =
-      Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, maybeGlobs.map(_.projectNameMap.map { case (s, _) => (s, s) })))
-        .map(_.toList)
-        .orNone
+      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(globs.exactProjectMap)))
 
     val testProjectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, maybeGlobs.map(_.testProjectNameMap))).map(_.toList.flatten).orNone
+      Opts.arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(globs.testProjectNameMap))).map(_.toList.flatten).orNone
 
     lazy val ret: Opts[BleepCommand] = {
       val allCommands = List(
-        List(
+        List[Opts[BleepCommand]](
           Opts.subcommand("build", "rewrite build")(
             List(
-              Opts.subcommand("new", "create new build in current directory")(
-                (
-                  Opts
-                    .options("platform", "specify wanted platform(s)", metavar = metavars.platformName, short = "p")(
-                      Argument.fromMap(metavars.platformName, model.PlatformId.All.map(p => (p.value, p)).toMap)
-                    )
-                    .withDefault(NonEmptyList.of(model.PlatformId.Jvm)),
-                  Opts
-                    .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
-                    .withDefault(NonEmptyList.of(Versions.Scala3)),
-                  Opts.argument[String]("wanted project name")
-                ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name) }
-              ),
+              newCommand(started.logger, started.buildPaths.cwd),
               Opts.subcommand("templates-reapply", "reapply templates.")(
-                Opts(commands.BuildReapplyTemplates(forceStarted()))
+                Opts(commands.BuildReapplyTemplates(started))
               ),
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
-                Opts(commands.BuildReinferTemplates(forceStarted(), Set.empty))
+                Opts(commands.BuildReinferTemplates(started, Set.empty))
               )
             ).foldK
           ),
           Opts.subcommand("compile", "compile projects")(
-            projectNames.map(projectNames => commands.Compile(forceStarted(), projectNames))
+            projectNames.map(projectNames => commands.Compile(started, projectNames))
           ),
           Opts.subcommand("test", "test projects")(
-            testProjectNames.map(projectNames => commands.Test(forceStarted(), projectNames))
+            testProjectNames.map(projectNames => commands.Test(started, projectNames))
           ),
           Opts.subcommand("run", "run project")(
             (
@@ -103,49 +84,30 @@ object Main {
                 .orNone,
               Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty)
             ).mapN { case (projectName, mainClass, arguments) =>
-              commands.Run(forceStarted(), projectName, mainClass, arguments)
+              commands.Run(started, projectName, mainClass, arguments)
             }
           ),
-          Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
-            projectNamesNoExpand.map(projectNames => commands.SetupIde(buildPaths, logger, projectNames))
-          ),
+          setupIdeCmd(started.buildPaths, started.logger, Some(globs.projectNameMap)),
           Opts.subcommand("clean", "clean")(
-            projectNames.map(projectNames => commands.Clean(forceStarted(), projectNames))
+            projectNames.map(projectNames => commands.Clean(started, projectNames))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
-            projectNames.map { projectNames =>
-              new BleepCommand {
-                override def run(): Unit =
-                  forceStarted().chosenProjects(projectNames).map(_.value).sorted.foreach(forceStarted().logger.info(_))
-              }
-            }
+            projectNames.map(projectNames => () => Right(started.chosenProjects(projectNames).map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
-            testProjectNames.map { projectNames =>
-              new BleepCommand {
-                override def run(): Unit =
-                  forceStarted().chosenTestProjects(projectNames).map(_.value).sorted.foreach(forceStarted().logger.info(_))
-              }
+            testProjectNames.map { projectNames => () =>
+              Right(started.chosenTestProjects(projectNames).map(_.value).sorted.foreach(started.logger.info(_)))
             }
           ),
           Opts.subcommand("patch", "Apply patch from standard-in or file")(
-            Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(forceStarted(), file))
+            Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(started, file))
           ),
-          Opts.subcommand("import", "import existing build from files in .bloop")(
-            commands.Import.opts.map { opts =>
-              commands.Import(BuildPaths.fromBuildDir(cwd, cwd, Mode.Normal), logger, opts)
-            }
-          )
+          importCmd(started.buildPaths, started.logger)
         ),
-        maybeStarted match {
-          case Left(_) =>
-            Nil
-          case Right(started) =>
-            started.build.scripts.map { case (scriptName, scriptDefs) =>
-              Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
-                stringArgs.map(args => commands.Script(started, scriptName, scriptDefs, args))
-              )
-            }
+        started.build.scripts.map { case (scriptName, scriptDefs) =>
+          Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
+            stringArgs.map(args => commands.Script(started, scriptName, scriptDefs, args))
+          )
         }
       )
 
@@ -154,6 +116,38 @@ object Main {
 
     ret
   }
+
+  def importCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
+    Opts.subcommand("import", "import existing build from files in .bloop")(
+      commands.Import.opts.map(opts => commands.Import(buildPaths, logger, opts))
+    )
+
+  def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Iterable[model.CrossProjectName]]]): Opts[BleepCommand] = {
+    val projectNamesNoExpand: Opts[Option[List[String]]] =
+      Opts
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, projectNameMap.map(_.map { case (s, _) => (s, s) })))
+        .map(_.toList)
+        .orNone
+
+    Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
+      projectNamesNoExpand.map(projectNames => commands.SetupIde(buildPaths, logger, projectNames))
+    )
+  }
+
+  def newCommand(logger: Logger, cwd: Path): Opts[BleepCommand] =
+    Opts.subcommand("new", "create new build in current directory")(
+      (
+        Opts
+          .options("platform", "specify wanted platform(s)", metavar = metavars.platformName, short = "p")(
+            Argument.fromMap(metavars.platformName, model.PlatformId.All.map(p => (p.value, p)).toMap)
+          )
+          .withDefault(NonEmptyList.of(model.PlatformId.Jvm)),
+        Opts
+          .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
+          .withDefault(NonEmptyList.of(Versions.Scala3)),
+        Opts.argument[String]("wanted project name")
+      ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name) }
+    )
 
   // there is a flag to change build directory. we need to intercept that very early
   def cwdFor(opts: CommonOpts): Path =
@@ -174,37 +168,41 @@ object Main {
         // we can not log to stderr when completing. should be used sparingly
         val logger = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn).untyped
 
-        val buildPaths = bootstrap.buildPaths(cwd, Mode.Normal) match {
-          case Left(th) =>
-            logger.error(th.getMessage)
-            sys.exit(1)
-          case Right(value) => value
+        val completions = Prebootstrapped.find(cwd, Mode.Normal, logger) match {
+          case Left(_) =>
+            val completer = new Completer({
+              case metavars.platformName => model.PlatformId.All.map(_.value)
+              case metavars.scalaVersion => possibleScalaVersions.keys.toList
+              case _                     => Nil
+            })
+            completer.completeOpts(restArgs)(noBuildOpts(logger, cwd))
+          case Right(pre) =>
+            bootstrap.from(pre, rewrites = Nil) match {
+              case Left(th) => fatal("couldn't load build", logger, th)
+
+              case Right(started) =>
+                val globs = ProjectGlobs(started)
+
+                val completer = new Completer({
+                  case metavars.platformName     => model.PlatformId.All.map(_.value)
+                  case metavars.scalaVersion     => possibleScalaVersions.keys.toList
+                  case metavars.projectNameExact => globs.exactProjectMap.keys.toList
+                  case metavars.projectName      => globs.projectNameMap.keys.toList
+                  case metavars.testProjectName  => globs.testProjectNameMap.keys.toList
+                  case _                         => Nil
+                })
+                completer.completeOpts(restArgs)(hasBuildOpts(started, globs))
+            }
         }
 
-        val maybeStarted = bootstrap.from(logger, buildPaths, rewrites = Nil)
-        val maybeGlobs = maybeStarted.toOption.map(ProjectGlobs.apply)
-
-        val msg = List("no completion because build couldn't be bootstrapped")
-        val completer = new Completer({
-          case metavars.platformName     => model.PlatformId.All.map(_.value)
-          case metavars.scalaVersion     => possibleScalaVersions.keys.toList
-          case metavars.projectNameExact => maybeGlobs.fold(msg)(_.exactProjectMap.keys.toList)
-          case metavars.projectName      => maybeGlobs.fold(msg)(_.projectNameMap.keys.toList)
-          case metavars.testProjectName  => maybeGlobs.fold(msg)(_.testProjectNameMap.keys.toList)
-          case _                         => Nil
-        })
-        val opts = mainOpts(cwd, logger, buildPaths, maybeStarted, maybeGlobs)
-
-        completer.completeOpts(restArgs)(opts).value.foreach(c => println(c.value))
+        completions.value.foreach(c => println(c.value))
 
       case "bsp" :: args =>
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
         val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
-        val buildPaths = bootstrap.buildPaths(cwd, Mode.BSP) match {
-          case Left(th) =>
-            stderr.error("Couldn't find build", th)
-            sys.exit(1)
+        val buildPaths = BuildPaths.find(cwd, Mode.BSP) match {
+          case Left(th)     => fatal("Couldn't find build", stderr.untyped, th)
           case Right(value) => value
         }
 
@@ -215,11 +213,9 @@ object Main {
           logFileResource.map(logFile => logFile.flushing.zipWith(stderr)).untyped
 
         logResource.use { logger =>
-          try BspImpl.run(buildPaths, logger)
+          try BspImpl.run(Prebootstrapped(buildPaths, logger))
           catch {
-            case th: Throwable =>
-              logger.error("uncaught error", th)
-              sys.exit(1)
+            case th: Throwable => fatal("uncaught error", logger, th)
           }
         }
 
@@ -234,38 +230,36 @@ object Main {
           logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
         }
 
-        val buildPaths = bootstrap.buildPaths(cwd, Mode.Normal) match {
-          case Left(th) =>
-            stdout.error("Couldn't find build", th)
-            sys.exit(1)
+        BuildPaths.find(cwd, Mode.Normal) match {
+          case Left(_) =>
+            run(stdout.untyped, noBuildOpts(stdout.untyped, cwd), restArgs)
 
-          case Right(value) => value
-        }
+          case Right(buildPaths) =>
+            val loggerResource: LoggerResource = {
+              // and to logfile, without any filtering
+              val logFileResource: TypedLoggerResource[BufferedWriter] =
+                logging.path(buildPaths.logFile, LogPatterns.logFile)
 
-        val loggerResource: LoggerResource = {
-          // and to logfile, without any filtering
-          val logFileResource: TypedLoggerResource[BufferedWriter] =
-            logging.path(buildPaths.logFile, LogPatterns.logFile)
+              LoggerResource.pure(stdout).zipWith(logFileResource).untyped
+            }
 
-          LoggerResource.pure(stdout).zipWith(logFileResource).untyped
-        }
-
-        loggerResource.use { logger =>
-          val maybeStarted = bootstrap.from(logger, buildPaths, rewrites = Nil)
-          val maybeGlobs = maybeStarted.toOption.map(ProjectGlobs.apply)
-          val opts = mainOpts(cwd, logger, buildPaths, maybeStarted, maybeGlobs)
-
-          Command("bleep", "Bleeping fast build!")(opts).parse(restArgs, sys.env) match {
-            case Left(help) => System.err.println(help)
-            case Right(cmd) =>
-              Try(cmd.run()) match {
-                case Failure(unexpected) =>
-                  logger.error("Error while running command", unexpected)
-                  sys.exit(1)
-                case Success(_) =>
-                  ()
+            loggerResource.use { logger =>
+              bootstrap.from(Prebootstrapped(buildPaths, logger), rewrites = Nil) match {
+                case Left(th)       => fatal("Error while loading build", logger, th)
+                case Right(started) => run(logger, hasBuildOpts(started, ProjectGlobs(started)), restArgs)
               }
-          }
+            }
+        }
+    }
+
+  def run(logger: Logger, opts: Opts[BleepCommand], restArgs: List[String]): Unit =
+    Command("bleep", "Bleeping fast build!")(opts).parse(restArgs, sys.env) match {
+      case Left(help) => System.err.println(help)
+      case Right(cmd) =>
+        Try(cmd.run()) match {
+          case Failure(th)       => fatal("command failed", logger, th)
+          case Success(Left(th)) => fatal("command failed", logger, th)
+          case Success(Right(_)) => ()
         }
     }
 }

@@ -13,7 +13,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
   test("create-new-build") {
     val cwd = outFolder / "create-new-build"
-    val (started, generatedFiles) = BuildCreateNew(
+    val Right((started, generatedFiles)) = BuildCreateNew(
       logger,
       cwd = cwd,
       platforms = NonEmptyList.of(PlatformId.Jvm, PlatformId.Js),

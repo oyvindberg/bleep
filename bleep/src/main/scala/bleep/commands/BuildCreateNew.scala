@@ -15,20 +15,19 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
     extends BleepCommand {
 
   def write(path: Path, content: String, what: String): Unit = {
-    Files.createDirectories(path.getParent)
-    Files.writeString(path, content)
+    FileUtils.writeString(path, content)
     logger.withContext(path).info(s"Creating $what")
   }
 
-  override def run(): Unit = {
-    generate()
-    ()
-  }
+  override def run(): Either[BuildException, Unit] =
+    generate().map(_ => ())
 
-  def generate(): (Started, Map[RelPath, String]) = {
+  def generate(): Either[BuildException, (Started, Map[RelPath, String])] = {
+
     val exampleFiles = new BuildCreateNew.ExampleFiles(name)
     val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name)
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, BuildPaths.Mode.Normal)
+    val pre = Prebootstrapped(buildPaths, logger)
 
     val allFiles = Map(
       RelPath.relativeTo(cwd, buildPaths.bleepJsonFile) -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
@@ -40,23 +39,21 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
-    bootstrap.from(logger, buildPaths, rewrites = Nil) match {
-      case Left(th) => throw th
-      case Right(started) =>
-        val projects = started.bloopFiles.map { case (_, f) => f.forceGet.project }.toList
-        logger.info(s"Created ${projects.length} projects for build")
-        val sourceDirs = projects.flatMap(_.sources).distinct
-        val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct
-        sourceDirs.foreach { path =>
-          logger.withContext(path).debug("Creating source directory")
-          Files.createDirectories(path)
-        }
-        resourceDirs.foreach { path =>
-          logger.withContext(path).debug("Creating resource directory")
-          Files.createDirectories(path)
-        }
+    bootstrap.from(pre, rewrites = Nil) map { started =>
+      val projects = started.bloopFiles.map { case (_, f) => f.forceGet.project }.toList
+      logger.info(s"Created ${projects.length} projects for build")
+      val sourceDirs = projects.flatMap(_.sources).distinct
+      val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct
+      sourceDirs.foreach { path =>
+        logger.withContext(path).debug("Creating source directory")
+        Files.createDirectories(path)
+      }
+      resourceDirs.foreach { path =>
+        logger.withContext(path).debug("Creating resource directory")
+        Files.createDirectories(path)
+      }
 
-        (started, allFiles)
+      (started, allFiles)
     }
   }
 }

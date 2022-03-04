@@ -10,9 +10,7 @@ object ProjectSelection {
   def store(buildPaths: BuildPaths, maybeSelectedProjectGlobs: Option[List[String]]): Unit =
     maybeSelectedProjectGlobs match {
       case Some(selectedProjectGlobs) =>
-        Files.createDirectories(buildPaths.bspProjectSelectionJsonFile.getParent)
-        Files.writeString(buildPaths.bspProjectSelectionJsonFile, selectedProjectGlobs.asJson.spaces2)
-        ()
+        FileUtils.writeString(buildPaths.bspProjectSelectionJsonFile, selectedProjectGlobs.asJson.spaces2)
       case None =>
         Files.deleteIfExists(buildPaths.bspProjectSelectionJsonFile)
         ()
