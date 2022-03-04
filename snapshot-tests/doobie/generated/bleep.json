@@ -7,10 +7,7 @@
         "org.openjdk.jmh:jmh-generator-bytecode:1.32"
       ],
       "dependsOn" : "postgres",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/bench",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -32,10 +29,7 @@
       },
       "dependencies" : "org.tpolecat::typename:1.0.0",
       "dependsOn" : "free",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/core",
       "scala" : {
         "options" : [
@@ -52,10 +46,7 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/core",
       "scala" : {
         "options" : "-Yno-predef"
@@ -69,10 +60,7 @@
         "scalatest",
         "specs2"
       ],
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/example",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -85,10 +73,7 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "example",
-      "extends" : [
-        "template-common-test",
-        "template-cross-jvm-212-213"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./modules/example"
     },
     "free" : {
@@ -109,10 +94,7 @@
         "org.typelevel::cats-effect:3.3.5",
         "org.typelevel::cats-free:2.7.0"
       ],
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/free",
       "scala" : {
         "options" : "-Yno-predef"
@@ -121,19 +103,13 @@
     "h2" : {
       "dependencies" : "com.h2database:h2:1.4.200",
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/h2"
     },
     "h2-circe" : {
       "dependencies" : "io.circe::circe-parser:0.14.1",
       "dependsOn" : "h2",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/h2-circe",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -146,10 +122,7 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "h2-circe",
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/h2-circe"
     },
     "h2-test" : {
@@ -157,10 +130,7 @@
         "core-test",
         "h2"
       ],
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/h2"
     },
     "hikari" : {
@@ -169,10 +139,7 @@
         "org.slf4j:slf4j-api:1.7.36"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/hikari",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -190,10 +157,7 @@
         "hikari",
         "postgres"
       ],
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/hikari"
     },
     "munit" : {
@@ -202,10 +166,7 @@
         "org.scalameta::munit:0.7.29"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/munit",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -218,10 +179,7 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "munit",
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/munit"
     },
     "postgres" : {
@@ -233,19 +191,13 @@
         "org.slf4j:slf4j-api:1.7.32"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/postgres"
     },
     "postgres-circe" : {
       "dependencies" : "io.circe::circe-parser:0.14.1",
       "dependsOn" : "postgres",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/postgres-circe",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -258,10 +210,7 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "postgres-circe",
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/postgres-circe"
     },
     "postgres-test" : {
@@ -269,10 +218,7 @@
         "core-test",
         "postgres"
       ],
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/postgres"
     },
     "refined" : {
@@ -283,10 +229,7 @@
       },
       "dependencies" : "eu.timepit::refined:0.9.28",
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/refined",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -300,19 +243,13 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "refined",
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/refined"
     },
     "scalatest" : {
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/scalatest",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -326,10 +263,7 @@
         "org.typelevel::scalacheck-effect-munit:1.0.3"
       ],
       "dependsOn" : "scalatest",
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/scalatest"
     },
     "specs2" : {
@@ -342,10 +276,7 @@
         }
       },
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./modules/specs2",
       "scala" : {
         "options" : "-Xfatal-warnings"
@@ -372,10 +303,7 @@
         "h2",
         "specs2"
       ],
-      "extends" : [
-        "template-common-test",
-        "template-cross-all"
-      ],
+      "extends" : "template-cross-all-test",
       "folder" : "./modules/specs2"
     }
   },
@@ -414,34 +342,54 @@
         "org.specs2.runner.SpecsFramework"
       ]
     },
-    "template-cross-all" : {
+    "template-cross-all-test" : {
       "cross" : {
         "jvm3" : {
-          "extends" : "template-scala-3"
+          "extends" : [
+            "template-common-test",
+            "template-scala-3"
+          ]
         }
       },
-      "extends" : "template-cross-jvm-212-213"
-    },
-    "template-cross-jvm-212-213" : {
-      "cross" : {
-        "jvm212" : {
-          "extends" : "template-scala-2.12"
-        },
-        "jvm213" : {
-          "extends" : "template-scala-2.13"
-        }
-      }
+      "extends" : "template-cross-jvm-212-213-test"
     },
     "template-cross-jvm-212-213-main" : {
       "cross" : {
+        "jvm212" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.12"
+          ]
+        },
+        "jvm213" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.13"
+          ]
+        },
         "jvm3" : {
-          "extends" : "template-scala-3"
+          "extends" : [
+            "template-common-main",
+            "template-scala-3"
+          ]
         }
-      },
-      "extends" : [
-        "template-common-main",
-        "template-cross-jvm-212-213"
-      ]
+      }
+    },
+    "template-cross-jvm-212-213-test" : {
+      "cross" : {
+        "jvm212" : {
+          "extends" : [
+            "template-common-test",
+            "template-scala-2.12"
+          ]
+        },
+        "jvm213" : {
+          "extends" : [
+            "template-common-test",
+            "template-scala-2.13"
+          ]
+        }
+      }
     },
     "template-scala-2.12" : {
       "extends" : "template-common",

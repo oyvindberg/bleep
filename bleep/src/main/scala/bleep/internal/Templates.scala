@@ -1,7 +1,7 @@
 package bleep
 package internal
 
-import bleep.internal.Functions.stripExtends
+import bleep.internal.Functions.sortedExtends
 import bleep.rewrites.deduplicateDependencies
 
 import scala.annotation.tailrec
@@ -204,7 +204,7 @@ object Templates {
       JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
     )
 
-    garbageCollectTemplates(build)
+    garbageCollectTemplates(inlineTrivialTemplates(build))
   }
 
   /** Takes an exploded build, reapplies existing templates
@@ -238,15 +238,13 @@ object Templates {
         (name, pp)
       }
 
-    val build = model.Build(
+    model.Build(
       constants.$schema,
       unexplodedTemplates,
       JsonMap(build0.scripts),
       build0.resolvers,
       JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
     )
-
-    garbageCollectTemplates(build)
   }
 
   def reapplyTemplates(templates: Map[model.TemplateId, TemplateKeepExploded], project: model.Project): model.Project = {
@@ -303,6 +301,28 @@ object Templates {
     b.copy(templates = JsonMap(b.templates.value.filter { case (templateId, _) => seen(templateId) }))
   }
 
+  def inlineTrivialTemplates(b: model.Build): model.Build = {
+    val toInline: Map[model.TemplateId, List[model.TemplateId]] =
+      b.templates.value.collect { case (name, p) if p.copy(`extends` = JsonList.empty).isEmpty => (name, p.`extends`.values) }
+
+    def expand(templateId: model.TemplateId): List[model.TemplateId] =
+      toInline.get(templateId) match {
+        case Some(replacements) => replacements.flatMap(expand)
+        case None               => List(templateId)
+      }
+
+    def go(p: model.Project): model.Project =
+      p.copy(
+        `extends` = JsonList(p.`extends`.values.flatMap(expand).distinct),
+        cross = JsonMap(p.cross.value.map { case (crossId, p) => (crossId, go(p)) })
+      )
+
+    b.copy(
+      templates = JsonMap(b.templates.value.collect { case (templateId, p) if !toInline.contains(templateId) => (templateId, go(p)) }),
+      projects = JsonMap(b.projects.value.map { case (name, p) => (name, go(p)) })
+    )
+  }
+
   def inferFromExistingProjects(
       applicableTemplateDefs: List[TemplateDef],
       projects: List[(model.ProjectName, ProjectKeepExploded)]
@@ -329,7 +349,6 @@ object Templates {
           val templateAfterParents: Option[TemplateKeepExploded] =
             maybeInitialTemplate
               .map(initialTemplate => applyTemplatesToTemplate(templateDef.allParents, eval.apply, initialTemplate))
-              .filterNot(p => p.current.copy(`extends` = JsonList.empty).isEmpty)
 
           templateAfterParents
       }
@@ -377,11 +396,11 @@ object Templates {
     val isShortened = shortened != project.current
 
     def doesntAddNew: Boolean =
-      stripExtends(templateProject.exploded.removeAll(project.exploded)).isEmpty
+      templateProject.exploded.removeAll(project.exploded).isEmpty
 
     // primitive values will be overridden, so including these templates would be sound. however, it is confusing.
     def doesntHaveIncompatiblePrimitives: Boolean =
-      stripExtends(project.exploded.union(templateProject.exploded)) == stripExtends(templateProject.exploded.union(project.exploded))
+      sortedExtends(project.exploded.union(templateProject.exploded)) == sortedExtends(templateProject.exploded.union(project.exploded))
 
     // this is needed since we disregard `extends` within cross projects, and also trim empty projects in `doesntAddNew`
     def sameCrossVersions: Boolean =

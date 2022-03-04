@@ -46,6 +46,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
     testIn(TestPaths("doobie"))
   }
 
+  test("http4s") {
+    testIn(TestPaths("http4s"))
+  }
+
   def testIn(paths: TestPaths): Assertion = {
     val importer = commands.Import(paths, logger, Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false))
 
@@ -142,14 +146,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
         crossProjectName.value
       )
 
+      // todo: remove normalize() after adding better support for cross layouts
       // assert that all source folders are conserved. currently bleep may add some
       assert(
-        input.sources.sorted.forall(output.sources.contains),
+        input.sources.sorted.forall(output.sources.map(_.normalize()).contains),
         crossProjectName.value
       )
       // assert that all resource folders are conserved. currently bleep may add some
       assert(
-        input.resources.getOrElse(Nil).sorted.forall(output.resources.getOrElse(Nil).contains),
+        input.resources.getOrElse(Nil).sorted.forall(output.resources.getOrElse(Nil).map(_.normalize()).contains),
         crossProjectName.value
       )
 

@@ -13,3 +13,6 @@
 [submodule "snapshot-tests-in/doobie"]
 	path = snapshot-tests-in/doobie
 	url = git@github.com:tpolecat/doobie.git
+[submodule "snapshot-tests-in/http4s"]
+	path = snapshot-tests-in/http4s
+	url = git@github.com:http4s/http4s.git
