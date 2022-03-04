@@ -59,7 +59,7 @@ lazy val bleep = project
       "org.scalatest" %% "scalatest" % "3.2.11" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
-      "com.lihaoyi" %% "pprint" % "0.7.1",
+      "com.lihaoyi" %% "pprint" % "0.7.2",
       "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.2",
       "org.graalvm.nativeimage" % "svm" % "22.0.0.2"
     ),
