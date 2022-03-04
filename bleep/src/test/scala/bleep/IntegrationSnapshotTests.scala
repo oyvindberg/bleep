@@ -68,15 +68,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     val importedBloopFiles: Iterable[Config.File] =
       importer.findGeneratedBloopFiles().map { bloopFilePath =>
-        val importedBloopFiles = {
+        val importedBloopFile = {
           val contents = Files.readString(bloopFilePath)
           val templatedContents = absolutePaths.fill.string(contents)
           parseBloopFile(templatedContents)
         }
 
         val preResolvedModules: List[Config.Module] = {
-          val fromResolution = importedBloopFiles.project.resolution.fold(List.empty[Config.Module])(_.modules)
-          val fromCompilerPlugins = importedBloopFiles.project.scala.toList.flatMap(_.options).collect { case CompilerPlugin(dep) => dep }
+          val fromResolution = importedBloopFile.project.resolution.fold(List.empty[Config.Module])(_.modules)
+          val fromCompilerPlugins = importedBloopFile.project.scala.toList.flatMap(_.options).collect { case CompilerPlugin(dep) => dep }
 
           fromResolution ++ fromCompilerPlugins
         }
@@ -92,7 +92,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
               })
           }
 
-          logger.warn(s"resolving dependencies for ${importedBloopFiles.project.name}")
+          logger.warn(s"resolving dependencies for ${importedBloopFile.project.name}")
 
           resolver(JsonSet.fromIterable(modulesAsDeps), JsonSet.empty) match {
             case Left(coursierError) => throw coursierError
@@ -100,7 +100,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
           }
         }
 
-        importedBloopFiles
+        importedBloopFile
       }
 
     // generate a build file and store it
