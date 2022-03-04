@@ -8,10 +8,7 @@
         "com.typesafe.akka::akka-stream:2.6.17"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./server/akka-http-server",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -21,10 +18,7 @@
         "akkaHttpServer",
         "serverTests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./server/akka-http-server",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -41,10 +35,7 @@
         "apispecModel",
         "core"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./docs/apispec-docs"
     },
     "apispecModel" : {
@@ -61,10 +52,7 @@
           "dependencies" : "org.scala-lang::scala3-library:3.1.0"
         }
       },
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/apispec-model"
     },
     "asyncapiCirce" : {
@@ -81,10 +69,7 @@
         "io.circe::circe-parser:0.14.1"
       ],
       "dependsOn" : "asyncapiModel",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/asyncapi-circe"
     },
     "asyncapiCirceYaml" : {
@@ -98,10 +83,7 @@
       },
       "dependencies" : "io.circe::circe-yaml:0.14.1",
       "dependsOn" : "asyncapiCirce",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/asyncapi-circe-yaml"
     },
     "asyncapiDocs" : {
@@ -109,10 +91,7 @@
         "apispecDocs",
         "asyncapiModel"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./docs/asyncapi-docs",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -126,10 +105,7 @@
         "asyncapiDocs",
         "tests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./docs/asyncapi-docs",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -143,10 +119,7 @@
         }
       },
       "dependsOn" : "apispecModel",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/asyncapi-model"
     },
     "awsExamples" : {
@@ -208,11 +181,7 @@
         "cats",
         "circeJson"
       ],
-      "extends" : [
-        "template-cross-jvm-all-js-212-213",
-        "template-cross-jvm-212-213-js-212-213-main",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-js-212-213-main",
       "folder" : "./serverless/aws/lambda"
     },
     "awsLambda-test" : {
@@ -228,10 +197,7 @@
         "awsLambda",
         "tests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./serverless/aws/lambda"
     },
     "awsLambdaTests" : {
@@ -242,19 +208,13 @@
         "serverTests",
         "sttpStubServer"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./serverless/aws/lambda-tests",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
     "awsLambdaTests-test" : {
       "dependsOn" : "awsLambdaTests",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./serverless/aws/lambda-tests",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -272,10 +232,7 @@
         "io.circe::circe-yaml:0.14.1"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./serverless/aws/sam"
     },
     "awsSam-test" : {
@@ -291,10 +248,7 @@
         "awsSam",
         "tests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./serverless/aws/sam"
     },
     "awsTerraform" : {
@@ -305,10 +259,7 @@
         "org.typelevel::jawn-parser:1.3.0"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./serverless/aws/terraform",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -317,10 +268,7 @@
         "awsTerraform",
         "tests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./serverless/aws/terraform",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -338,10 +286,7 @@
         "org.typelevel::discipline-scalatest:2.1.5"
       ],
       "dependsOn" : "cats",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-all-js-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-all-js-212-213-test",
       "folder" : "./integrations/cats"
     },
     "circeJson" : {
@@ -356,10 +301,7 @@
     "circeJson-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "circeJson",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./json/circe"
     },
     "clientTestServer" : {
@@ -392,10 +334,7 @@
           "module" : "org.http4s::http4s-dsl:0.23.7"
         }
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./client/testserver"
     },
     "clientTests" : {
@@ -524,10 +463,7 @@
         "org.scalatestplus::scalacheck-1-15:3.2.10.0"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-all-js-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-all-js-212-213-test",
       "folder" : "./core"
     },
     "derevo" : {
@@ -545,10 +481,7 @@
       },
       "dependencies" : "tf.tofu::derevo-core:0.12.8",
       "dependsOn" : "newtype",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./integrations/derevo"
     },
     "derevo-test" : {
@@ -566,10 +499,7 @@
       },
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "derevo",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./integrations/derevo"
     },
     "enumeratum" : {
@@ -618,6 +548,7 @@
         "zioJson"
       ],
       "extends" : [
+        "template-common-main",
         "template-jvm",
         "template-scala-2.13-main"
       ],
@@ -637,10 +568,7 @@
         "org.apache.httpcomponents:httpmime:4.5.13"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./server/finatra-server",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -681,20 +609,14 @@
         "finatraServer",
         "serverTests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./server/finatra-server",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
     "finatraServerCats" : {
       "dependencies" : "org.typelevel::cats-effect:3.3.0",
       "dependsOn" : "finatraServer",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./server/finatra-server/finatra-server-cats",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -703,10 +625,7 @@
         "finatraServer-test",
         "finatraServerCats"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./server/finatra-server/finatra-server-cats",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -716,10 +635,7 @@
         "org.http4s::http4s-core:0.23.7"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./client/http4s-client"
     },
     "http4sClient-test" : {
@@ -728,10 +644,7 @@
         "clientTests",
         "http4sClient"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./client/http4s-client"
     },
     "http4sServer" : {
@@ -751,10 +664,7 @@
         }
       ],
       "dependsOn" : "cats",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/http4s-server"
     },
     "http4sServer-test" : {
@@ -770,19 +680,13 @@
         "http4sServer",
         "serverTests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./server/http4s-server"
     },
     "json4s" : {
       "dependencies" : "org.json4s::json4s-core:4.0.3",
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./json/json4s"
     },
     "json4s-test" : {
@@ -793,10 +697,7 @@
         "org.scalatest::scalatest:3.2.10"
       ],
       "dependsOn" : "json4s",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./json/json4s"
     },
     "jsoniterScala" : {
@@ -841,10 +742,7 @@
         "io.netty:netty-all:4.1.68.Final"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/netty-server"
     },
     "nettyServer-test" : {
@@ -860,10 +758,7 @@
         "nettyServer",
         "serverTests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./server/netty-server"
     },
     "newtype" : {
@@ -936,10 +831,7 @@
         "io.circe::circe-parser:0.14.1"
       ],
       "dependsOn" : "openapiModel",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/openapi-circe"
     },
     "openapiCirceYaml" : {
@@ -953,10 +845,7 @@
       },
       "dependencies" : "io.circe::circe-yaml:0.14.1",
       "dependsOn" : "openapiCirce",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/openapi-circe-yaml"
     },
     "openapiCodegen" : {
@@ -967,6 +856,7 @@
         "org.scala-sbt:sbt:1.5.5"
       ],
       "extends" : [
+        "template-common-main",
         "template-jvm",
         "template-scala-2.12-main"
       ],
@@ -987,6 +877,7 @@
         "openapiCodegen"
       ],
       "extends" : [
+        "template-common-test",
         "template-jvm",
         "template-scala-2.12-test"
       ],
@@ -1011,10 +902,7 @@
         "apispecDocs",
         "openapiModel"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./docs/openapi-docs"
     },
     "openapiDocs-test" : {
@@ -1031,10 +919,7 @@
         "openapiDocs",
         "tests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./docs/openapi-docs"
     },
     "openapiModel" : {
@@ -1047,10 +932,7 @@
         }
       },
       "dependsOn" : "apispecModel",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./apispec/openapi-model"
     },
     "openapiModel-test" : {
@@ -1064,10 +946,7 @@
       },
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "openapiModel",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./apispec/openapi-model"
     },
     "opentelemetryMetrics" : {
@@ -1085,10 +964,7 @@
         "io.opentelemetry:opentelemetry-semconv:1.9.1-alpha"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./metrics/opentelemetry-metrics"
     },
     "opentelemetryMetrics-test" : {
@@ -1105,10 +981,7 @@
         "core-test",
         "opentelemetryMetrics"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./metrics/opentelemetry-metrics"
     },
     "playClient" : {
@@ -1118,10 +991,7 @@
         "com.typesafe.play::play-ahc-ws-standalone:2.1.6"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./client/play-client"
     },
     "playClient-test" : {
@@ -1129,10 +999,7 @@
         "clientTests",
         "playClient"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./client/play-client"
     },
     "playJson" : {
@@ -1153,10 +1020,7 @@
         "com.typesafe.play::play-akka-http-server:2.8.7"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./server/play-server",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -1165,10 +1029,7 @@
         "playServer",
         "serverTests"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./server/play-server",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -1187,10 +1048,7 @@
         "io.prometheus:simpleclient_tracer_otel_agent:0.12.0"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./metrics/prometheus-metrics"
     },
     "prometheusMetrics-test" : {
@@ -1206,10 +1064,7 @@
         "core-test",
         "prometheusMetrics"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./metrics/prometheus-metrics"
     },
     "redoc" : {
@@ -1222,10 +1077,7 @@
         }
       },
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./docs/redoc"
     },
     "redocBundle" : {
@@ -1242,10 +1094,7 @@
         "openapiDocs",
         "redoc"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./docs/redoc-bundle"
     },
     "refined" : {
@@ -1288,28 +1137,19 @@
         "module" : "com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18"
       },
       "dependsOn" : "tests",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/tests"
     },
     "sprayJson" : {
       "dependencies" : "io.spray::spray-json:1.3.6",
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./json/sprayjson"
     },
     "sprayJson-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "sprayJson",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./json/sprayjson"
     },
     "sttpClient" : {
@@ -1382,10 +1222,7 @@
         "clientTests",
         "sttpClient"
       ],
-      "extends" : [
-        "template-cross-all",
-        "template-cross-jvm-all-js-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-all-js-212-213-test",
       "folder" : "./client/sttp-client"
     },
     "sttpMockServer" : {
@@ -1394,10 +1231,7 @@
         "io.circe::circe-parser:0.14.1"
       ],
       "dependsOn" : "sttpClient",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./server/sttp-mock-server",
       "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -1407,10 +1241,7 @@
         "serverTests",
         "sttpMockServer"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./server/sttp-mock-server",
       "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     },
@@ -1424,10 +1255,7 @@
         }
       },
       "dependsOn" : "sttpClient",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/sttp-stub-server"
     },
     "sttpStubServer-test" : {
@@ -1443,10 +1271,7 @@
         "serverTests",
         "sttpStubServer"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./server/sttp-stub-server"
     },
     "swaggerUi" : {
@@ -1460,10 +1285,7 @@
       },
       "dependencies" : "org.webjars:swagger-ui:4.1.3",
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./docs/swagger-ui"
     },
     "swaggerUiBundle" : {
@@ -1480,10 +1302,7 @@
         "openapiDocs",
         "swaggerUi"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./docs/swagger-ui-bundle"
     },
     "swaggerUiBundle-test" : {
@@ -1501,10 +1320,7 @@
         "sttpClient",
         "swaggerUiBundle"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./docs/swagger-ui-bundle"
     },
     "tests" : {
@@ -1526,10 +1342,7 @@
     "tethysJson" : {
       "dependencies" : "com.tethys-json::tethys-jackson:0.25.0",
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-main"
-      ],
+      "extends" : "template-cross-jvm-212-213-main",
       "folder" : "./json/tethys"
     },
     "tethysJson-test" : {
@@ -1538,10 +1351,7 @@
         "org.scalatest::scalatest:3.2.10"
       ],
       "dependsOn" : "tethysJson",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-212-213-test"
-      ],
+      "extends" : "template-cross-jvm-212-213-test",
       "folder" : "./json/tethys"
     },
     "uPickleJson" : {
@@ -1571,10 +1381,7 @@
         "io.vertx:vertx-web:4.2.1"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/vertx"
     },
     "vertxServer-test" : {
@@ -1591,28 +1398,19 @@
         "serverTests",
         "vertxServer"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./server/vertx"
     },
     "zio" : {
       "dependencies" : "com.softwaremill.sttp.shared::zio:1.2.7",
       "dependsOn" : "core",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./integrations/zio"
     },
     "zio-test" : {
       "dependencies" : "dev.zio::zio-test-sbt:1.0.12",
       "dependsOn" : "zio",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./integrations/zio",
       "testFrameworks" : "zio.test.sbt.ZTestFramework"
     },
@@ -1630,10 +1428,7 @@
         "http4sServer",
         "zio"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/zio-http4s-server"
     },
     "zioHttp4sServer-test" : {
@@ -1649,10 +1444,7 @@
         "serverTests",
         "zioHttp4sServer"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./server/zio-http4s-server"
     },
     "zioHttpServer" : {
@@ -1666,10 +1458,7 @@
       },
       "dependencies" : "io.d11::zhttp:1.0.0.0-RC17",
       "dependsOn" : "zio",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-main",
       "folder" : "./server/zio-http-server"
     },
     "zioHttpServer-test" : {
@@ -1686,10 +1475,7 @@
         "serverTests",
         "zioHttpServer"
       ],
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./server/zio-http-server"
     },
     "zioJson" : {
@@ -1698,20 +1484,13 @@
         "module" : "dev.zio::zio-json:0.2.0-M3"
       },
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-jvm-all-js-212-213",
-        "template-cross-jvm-212-213-js-212-213-main",
-        "template-cross-jvm-all-main"
-      ],
+      "extends" : "template-cross-jvm-all-js-212-213-main",
       "folder" : "./json/zio"
     },
     "zioJson-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "zioJson",
-      "extends" : [
-        "template-jvm",
-        "template-cross-jvm-all-test"
-      ],
+      "extends" : "template-cross-jvm-all-test",
       "folder" : "./json/zio"
     }
   },
@@ -1750,123 +1529,150 @@
         "org.specs2.runner.SpecsFramework"
       ]
     },
-    "template-cross-all" : {
-      "cross" : {
-        "js3" : {
-          "extends" : "template-scala-3-js"
-        }
-      },
-      "extends" : "template-cross-jvm-all-js-212-213"
-    },
     "template-cross-all-main" : {
       "cross" : {
         "js3" : {
-          "extends" : "template-scala-3-main"
+          "extends" : [
+            "template-common-main",
+            "template-js",
+            "template-scala-3-main",
+            "template-scala-3-js"
+          ]
         }
       },
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213-main",
-        "template-cross-jvm-all-main",
-        "template-cross-all"
-      ]
-    },
-    "template-cross-jvm-212-213-js-212-213" : {
-      "cross" : {
-        "js212" : {
-          "extends" : "template-scala-2.12-js"
-        },
-        "js213" : {
-          "extends" : "template-scala-2.13-js"
-        },
-        "jvm212" : {
-          "extends" : "template-jvm"
-        },
-        "jvm213" : {
-          "extends" : "template-jvm"
-        }
-      }
+      "extends" : "template-cross-jvm-all-js-212-213-main"
     },
     "template-cross-jvm-212-213-js-212-213-main" : {
       "cross" : {
         "js212" : {
-          "extends" : "template-scala-2.12-main"
+          "extends" : [
+            "template-common-main",
+            "template-js",
+            "template-scala-2.12-main",
+            "template-scala-2.12-js"
+          ]
         },
         "js213" : {
-          "extends" : "template-scala-2.13-main"
+          "extends" : [
+            "template-common-main",
+            "template-js",
+            "template-scala-2.13-main",
+            "template-scala-2.13-js"
+          ]
         }
       },
-      "extends" : [
-        "template-cross-jvm-212-213-main",
-        "template-cross-jvm-212-213-js-212-213"
-      ]
+      "extends" : "template-cross-jvm-212-213-main"
     },
     "template-cross-jvm-212-213-js-212-213-test" : {
       "cross" : {
         "js212" : {
           "extends" : [
             "template-js-test",
-            "template-scala-2.12-test"
+            "template-scala-2.12-test",
+            "template-scala-2.12-js"
           ]
         },
         "js213" : {
           "extends" : [
             "template-js-test",
-            "template-scala-2.13-test"
+            "template-scala-2.13-test",
+            "template-scala-2.13-js"
           ]
         }
       },
-      "extends" : [
-        "template-cross-jvm-212-213-test",
-        "template-cross-jvm-212-213-js-212-213"
-      ]
+      "extends" : "template-cross-jvm-212-213-test"
     },
     "template-cross-jvm-212-213-main" : {
       "cross" : {
         "jvm212" : {
-          "extends" : "template-scala-2.12-main"
+          "extends" : [
+            "template-common-main",
+            "template-jvm",
+            "template-scala-2.12-main"
+          ]
         },
         "jvm213" : {
-          "extends" : "template-scala-2.13-main"
+          "extends" : [
+            "template-common-main",
+            "template-jvm",
+            "template-scala-2.13-main"
+          ]
         }
       }
     },
     "template-cross-jvm-212-213-test" : {
       "cross" : {
         "jvm212" : {
-          "extends" : "template-scala-2.12-test"
+          "extends" : [
+            "template-common-test",
+            "template-jvm",
+            "template-scala-2.12-test"
+          ]
         },
         "jvm213" : {
-          "extends" : "template-scala-2.13-test"
+          "extends" : [
+            "template-common-test",
+            "template-jvm",
+            "template-scala-2.13-test"
+          ]
         }
       }
     },
-    "template-cross-jvm-all-js-212-213" : {
+    "template-cross-jvm-all-js-212-213-main" : {
       "cross" : {
-        "jvm3" : {
-          "extends" : "template-jvm"
-        }
-      },
-      "extends" : "template-cross-jvm-212-213-js-212-213"
-    },
-    "template-cross-jvm-all-js-212-213-test" : {
-      "cross" : {
-        "js3" : {
+        "js212" : {
           "extends" : [
-            "template-js-test",
-            "template-scala-3-js",
-            "template-scala-3-test"
+            "template-common-main",
+            "template-js",
+            "template-scala-2.12-main",
+            "template-scala-2.12-js"
+          ]
+        },
+        "js213" : {
+          "extends" : [
+            "template-common-main",
+            "template-js",
+            "template-scala-2.13-main",
+            "template-scala-2.13-js"
           ]
         }
       },
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213-test",
-        "template-cross-jvm-all-test"
-      ]
+      "extends" : "template-cross-jvm-all-main"
+    },
+    "template-cross-jvm-all-js-212-213-test" : {
+      "cross" : {
+        "js212" : {
+          "extends" : [
+            "template-js-test",
+            "template-scala-2.12-test",
+            "template-scala-2.12-js"
+          ]
+        },
+        "js213" : {
+          "extends" : [
+            "template-js-test",
+            "template-scala-2.13-test",
+            "template-scala-2.13-js"
+          ]
+        },
+        "js3" : {
+          "extends" : [
+            "template-js-test",
+            "template-scala-3-test",
+            "template-scala-3-js"
+          ]
+        }
+      },
+      "extends" : "template-cross-jvm-all-test"
     },
     "template-cross-jvm-all-main" : {
       "cross" : {
         "jvm3" : {
-          "extends" : "template-scala-3-main"
+          "extends" : [
+            "template-common-main",
+            "template-jvm",
+            "template-scala-3-main"
+          ]
         }
       },
       "extends" : "template-cross-jvm-212-213-main"
@@ -1874,7 +1680,11 @@
     "template-cross-jvm-all-test" : {
       "cross" : {
         "jvm3" : {
-          "extends" : "template-scala-3-test"
+          "extends" : [
+            "template-common-test",
+            "template-jvm",
+            "template-scala-3-test"
+          ]
         }
       },
       "extends" : "template-cross-jvm-212-213-test"
