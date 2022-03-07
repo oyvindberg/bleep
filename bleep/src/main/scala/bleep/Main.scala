@@ -3,7 +3,7 @@ package bleep
 import bleep.BuildException.fatal
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.internal.{Os, ProjectGlobs}
+import bleep.internal.{Lazy, Os, ProjectGlobs}
 import bleep.logging._
 import cats.data.NonEmptyList
 import cats.syntax.apply._
@@ -32,10 +32,12 @@ object Main {
 
   def noBuildOpts(logger: Logger, cwd: Path): Opts[BleepCommand] = {
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, Mode.Normal)
+    val userPaths = UserPaths.fromAppDirs
     List(
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
       setupIdeCmd(buildPaths, logger, None),
-      importCmd(buildPaths, logger)
+      importCmd(buildPaths, logger),
+      compileServerCmd(logger, userPaths, buildPaths, Lazy(CoursierResolver.apply(logger, downloadSources = false, directories = userPaths)))
     ).foldK
   }
 
@@ -102,7 +104,8 @@ object Main {
           Opts.subcommand("patch", "Apply patch from standard-in or file")(
             Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(started, file))
           ),
-          importCmd(started.buildPaths, started.logger)
+          importCmd(started.buildPaths, started.logger),
+          compileServerCmd(started.logger, started.userPaths, started.buildPaths, started.resolver)
         ),
         started.build.scripts.map { case (scriptName, scriptDefs) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
@@ -116,6 +119,23 @@ object Main {
 
     ret
   }
+
+  def compileServerCmd(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, lazyResolver: Lazy[CoursierResolver]): Opts[BleepCommand] =
+    Opts.subcommand(
+      "compile-server",
+      "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
+    )(
+      List(
+        Opts.subcommand("start", "will start a shared bloop compile server and leave it running")(Opts {
+          commands.CompileServerStart(logger, userPaths, buildPaths, lazyResolver)
+        }),
+        Opts.subcommand("stop", "will stop a shared bloop compile server (if any) and will make bleep start temporary servers until you call start again")(
+          Opts {
+            commands.CompileServerStop(logger, userPaths, buildPaths, lazyResolver)
+          }
+        )
+      ).foldK
+    )
 
   def importCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
