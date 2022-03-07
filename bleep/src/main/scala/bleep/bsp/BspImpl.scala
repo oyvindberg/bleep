@@ -31,13 +31,17 @@ object BspImpl {
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
 
-      val bloopRifleConfig = SetupBloopRifle(
-        JavaCmd.javacommand,
-        pre.userPaths,
-        pre.buildPaths,
-        Lazy(CoursierResolver(pre.logger, downloadSources = false, pre.userPaths)),
-        Some("local")
-      )
+      val bloopRifleConfig =
+        CompileServerConfig.load(pre.userPaths) match {
+          case Left(th) => throw th
+          case Right(config) =>
+            SetupBloopRifle(
+              JavaCmd.javacommand,
+              pre.buildPaths,
+              Lazy(CoursierResolver(pre.logger, downloadSources = false, pre.userPaths)),
+              config.asAddress(pre.userPaths)
+            )
+        }
 
       val bloopRifleLogger = new BloopLogger(pre.logger)
 

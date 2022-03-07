@@ -77,19 +77,34 @@ jobs:
           java-version: '17'
           components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build native image on Linux
         run: mkdir dist && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }} && chmod 755 dist/${{ matrix.file_name }}
         if: runner.os == 'Linux'
+
       - name: Build native image on Mac OS X
         run: mkdir dist && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }} && chmod 755 dist/${{ matrix.file_name }}
         if: runner.os == 'macOS'
+
       - name: Build native image on Windows
         run: >-
           mkdir dist && "C:\Program Files (x86)\Microsoft Visual
           Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }}
         if: runner.os == 'Windows'
-      - name: Test binary after build
+
+      - name: Test binary after build on Windows
+        shell: cmd
+        run: .\dist\${{ matrix.file_name }} compile --no-color
+        if: runner.os == 'Windows'
+
+      - name: Test binary after build on Linux
         run: ./dist/${{ matrix.file_name }} compile --no-color
+        if: runner.os == 'Linux'
+
+      - name: Test binary after build on Macos
+        run: ./dist/${{ matrix.file_name }} compile --no-color
+        if: runner.os == 'macOS'
+
       - name: Temporarily save package
         uses: actions/upload-artifact@v2
         with:

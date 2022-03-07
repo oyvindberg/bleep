@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.bsp.{BloopLogger, SetupBloopRifle}
+import bleep.bsp.{BloopLogger, CompileServerConfig, SetupBloopRifle}
 import bleep.commands.BspCommandFailed
 import bleep.internal.BspClientDisplayProgress
 import ch.epfl.scala.bsp4j
@@ -11,9 +11,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.blooprifle.internal.Operations
 import scala.jdk.CollectionConverters._
 
-trait BleepCommandRemote extends BleepCommand {
-  def started: Started
-
+abstract class BleepCommandRemote(started: Started) extends BleepCommand {
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
     new bsp4j.BuildTargetIdentifier(buildPaths.dotBleepModeDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
@@ -28,36 +26,50 @@ trait BleepCommandRemote extends BleepCommand {
   def runWithServer(bloop: BloopServer): Either[BuildException, Unit]
 
   override final def run(): Either[BuildException, Unit] = {
+    val maybeConfig = CompileServerConfig.load(started.userPaths)
 
-    val bloopRifleConfig: BloopRifleConfig =
-      SetupBloopRifle(JavaCmd.javacommand, started.userPaths, started.buildPaths, started.resolver, Some("local"))
-    val buildClient: BspClientDisplayProgress =
-      BspClientDisplayProgress(started.logger)
-    val rifleLogger =
-      new BloopLogger(started.logger)
+    maybeConfig.foreach {
+      case CompileServerConfig.NewEachInvocation =>
+        started.logger.warn("TIP: run `bleep compile-server start` so you'll get a warm/fast compile server")
+      case CompileServerConfig.Shared => ()
+    }
 
-    val server = BloopServer.buildServer(
-      config = bloopRifleConfig,
-      clientName = "bleep",
-      clientVersion = constants.version,
-      workspace = started.buildPaths.dotBleepModeDir,
-      classesDir = started.buildPaths.dotBleepModeDir / "classes",
-      buildClient = buildClient,
-      threads = BloopThreads.create(),
-      logger = rifleLogger
-    )
+    maybeConfig.flatMap { config =>
+      val bloopRifleConfig: BloopRifleConfig =
+        SetupBloopRifle(JavaCmd.javacommand, started.buildPaths, started.resolver, config.asAddress(started.userPaths))
+      val buildClient: BspClientDisplayProgress =
+        BspClientDisplayProgress(started.logger)
+      val rifleLogger =
+        new BloopLogger(started.logger)
 
-    try
-      runWithServer(server).flatMap { case () =>
-        buildClient.failed match {
-          case empty if empty.isEmpty => Right(())
-          case failed =>
-            Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toList, bsp4j.StatusCode.ERROR))
+      val server = BloopServer.buildServer(
+        config = bloopRifleConfig,
+        clientName = "bleep",
+        clientVersion = constants.version,
+        workspace = started.buildPaths.dotBleepModeDir,
+        classesDir = started.buildPaths.dotBleepModeDir / "classes",
+        buildClient = buildClient,
+        threads = BloopThreads.create(),
+        logger = rifleLogger
+      )
+
+      try
+        runWithServer(server).flatMap { case () =>
+          buildClient.failed match {
+            case empty if empty.isEmpty => Right(())
+            case failed =>
+              Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toList, bsp4j.StatusCode.ERROR))
+          }
         }
-      }
-    finally {
-      Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.in, System.out, System.err, rifleLogger)
-      ()
+      finally
+        config match {
+          case CompileServerConfig.NewEachInvocation =>
+            server.shutdown()
+            Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.in, System.out, System.err, rifleLogger)
+            ()
+          case CompileServerConfig.Shared =>
+            ()
+        }
     }
   }
 }

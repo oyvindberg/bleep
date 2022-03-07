@@ -13,7 +13,7 @@ case class Run(
     project: model.CrossProjectName,
     maybeOverridenMain: Option[String],
     args: List[String]
-) extends BleepCommandRemote {
+) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BuildException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverridenMain.orElse(started.build.projects(project).platform.flatMap(_.jvmMainClass))
