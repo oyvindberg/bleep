@@ -33,6 +33,15 @@ package object bleep {
       }
       acc
     }
+
+    def firstDefined[U](f: T => Option[U]): Option[U] = {
+      val it = ts.iterator
+      while (it.hasNext) {
+        val ou = f(it.next())
+        if (ou.isDefined) return ou
+      }
+      None
+    }
   }
   private[bleep] def throwableMessages(th: Throwable): List[String] =
     th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)

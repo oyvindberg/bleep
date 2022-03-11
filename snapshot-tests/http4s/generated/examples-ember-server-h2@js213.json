@@ -71,7 +71,7 @@
       "options": [
         "-P:scalajs:mapSourceURI:file:<PROJECT>/snapshot-tests-in/http4s/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/",
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/examples/ember-server-h2/target/scala-2.13/meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/examples-ember-server-h2/js213/meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

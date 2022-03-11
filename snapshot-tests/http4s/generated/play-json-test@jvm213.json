@@ -93,7 +93,7 @@
       "version": "2.13.8",
       "options": [
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/play-json/target/scala-2.13/test-meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/play-json-test/jvm213/test-meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

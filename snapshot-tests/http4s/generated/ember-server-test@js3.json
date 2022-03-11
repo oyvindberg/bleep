@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "ember-server-test@js3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/ember-server/js",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/ember-server",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/../shared/src/test/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/../shared/src/test/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/src/test/java",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/src/test/scala",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/src/test/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/scala-3.1.1/src_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/src_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/shared/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/shared/src/test/scala-3"
     ],
     "dependencies": [
       "client@js3",
@@ -100,10 +100,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/ember-server-test/js3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/ember-server-test/js3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/../shared/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/resource_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/scala-3.1.1/resource_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/scala-3.1.1/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/shared/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -120,7 +120,7 @@
         "-scalajs",
         "-scalajs-mapSourceURI:file:<PROJECT>/snapshot-tests-in/http4s/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/ember-server/js/target/scala-3.1.1/test-meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/ember-server-test/js3/test-meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

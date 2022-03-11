@@ -2,18 +2,18 @@
   "version": "1.4.0",
   "project": {
     "name": "boopickle-test@jvm213",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/boopickle",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/../src/test/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/../src/test/scala-2",
-      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/../src/test/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/java",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala-2",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/scala-2.13/src_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/src_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/boopickle/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/boopickle/src/test/scala-2",
+      "<PROJECT>/snapshot-tests-in/http4s/boopickle/src/test/scala-2.13"
     ],
     "dependencies": [
       "boopickle@jvm213",
@@ -74,10 +74,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/boopickle-test/jvm213",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/boopickle-test/jvm213/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/../src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/resource_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/scala-2.13/resource_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/scala-2.13/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/boopickle/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -85,7 +85,7 @@
       "version": "2.13.8",
       "options": [
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/boopickle/.jvm/target/scala-2.13/test-meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/boopickle-test/jvm213/test-meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

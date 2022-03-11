@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "core@jvm3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/core/jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/core",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/../shared/src/main/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/../shared/src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/core/jvm/src/main/java",
       "<PROJECT>/snapshot-tests-in/http4s/core/jvm/src/main/scala",
       "<PROJECT>/snapshot-tests-in/http4s/core/jvm/src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/scala-3.1.1/src_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/src_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/core/shared/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/core/shared/src/main/scala-3"
     ],
     "dependencies": [
       
@@ -40,10 +40,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/core/jvm3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/core/jvm3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/../shared/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/core/jvm/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/resource_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/scala-3.1.1/resource_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/scala-3.1.1/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/core/shared/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -58,7 +58,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/core/jvm/target/scala-3.1.1/meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/core/jvm3/meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

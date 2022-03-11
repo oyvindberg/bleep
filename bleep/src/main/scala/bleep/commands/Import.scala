@@ -74,7 +74,7 @@ case class Import(buildPaths: BuildPaths, logger: Logger, options: Import.Option
       .asScala
 
   def generateBuildAndPersistFrom(bloopFiles: Iterable[Config.File]): Unit = {
-    val build0 = importBloopFilesFromSbt(buildPaths, bloopFiles)
+    val build0 = importBloopFilesFromSbt(logger, buildPaths, bloopFiles)
     val normalizedBuild = normalizeBuild(build0)
     val build = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
 

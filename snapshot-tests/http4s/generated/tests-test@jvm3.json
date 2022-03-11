@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "tests-test@jvm3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/tests/jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/tests",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/../shared/src/test/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/../shared/src/test/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/src/test/java",
       "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/src/test/scala",
       "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/src/test/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/scala-3.1.1/src_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/src_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/tests/shared/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/tests/shared/src/test/scala-3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -69,10 +69,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/tests-test/jvm3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/tests-test/jvm3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/../shared/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/resource_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/scala-3.1.1/resource_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/scala-3.1.1/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/tests/shared/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -87,7 +87,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/tests/jvm/target/scala-3.1.1/test-meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/tests-test/jvm3/test-meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "ember-server@jvm3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/ember-server",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/../shared/src/main/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/../shared/src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/src/main/java",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/src/main/scala",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/scala-3.1.1/src_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/src_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/shared/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/shared/src/main/scala-3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -48,10 +48,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/ember-server/jvm3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/ember-server/jvm3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/../shared/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/resource_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/scala-3.1.1/resource_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/scala-3.1.1/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/ember-server/shared/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -66,7 +66,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/ember-server/jvm/target/scala-3.1.1/meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/ember-server/jvm3/meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

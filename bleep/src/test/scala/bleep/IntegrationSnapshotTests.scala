@@ -3,7 +3,7 @@ package bleep
 import bleep.CoursierResolver.Authentications
 import bleep.commands.Import.Options
 import bleep.internal.generateBloopFiles.dependencyOrdering
-import bleep.internal.{importBloopFilesFromSbt, FileUtils}
+import bleep.internal.{importBloopFilesFromSbt, FileUtils, Replacements}
 import bloop.config.Config
 import coursier.core._
 import coursier.paths.CoursierPaths
@@ -134,27 +134,32 @@ class IntegrationSnapshotTests extends SnapshotTest {
     started.bloopFiles.foreach { case (crossProjectName, lazyFile) =>
       val output = lazyFile.forceGet.project
       val input = inputProjects((crossProjectName.name, output.platform.map(_.name), output.scala.map(_.version)))
+
       // todo: this needs further work,
       //      assert(
       //        output.platform == input.platform,
       //        crossProjectName.value
       //      )
 
-      // scalacOptions are the same, module order ordering and duplicates
+      // scalacOptions are the same, modulo ordering, duplicates and target directory
+      def patchedOptions(project: Config.Project, targetDir: Path): List[String] = {
+        val replacements = Replacements.targetDir(targetDir)
+        val original = project.scala.map(_.options).getOrElse(Nil)
+        original.map(replacements.templatize.string).sorted.distinct
+      }
       assert(
-        output.scala.map(s => s.options.sorted.distinct) == input.scala.map(s => s.options.sorted.distinct),
+        patchedOptions(output, output.out) == patchedOptions(input, internal.findOriginalTargetDir(logger, input).get),
         crossProjectName.value
       )
 
-      // todo: remove normalize() after adding better support for cross layouts
       // assert that all source folders are conserved. currently bleep may add some
       assert(
-        input.sources.sorted.forall(output.sources.map(_.normalize()).contains),
+        input.sources.sorted.forall(output.sources.contains),
         crossProjectName.value
       )
       // assert that all resource folders are conserved. currently bleep may add some
       assert(
-        input.resources.getOrElse(Nil).sorted.forall(output.resources.getOrElse(Nil).map(_.normalize()).contains),
+        input.resources.getOrElse(Nil).sorted.forall(output.resources.getOrElse(Nil).contains),
         crossProjectName.value
       )
 

@@ -123,7 +123,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/jetty-server/target/scala-3.1.1/test-meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/jetty-server-test/jvm3/test-meta",
         "-source:3.0-migration",
         "-unchecked"
       ],
