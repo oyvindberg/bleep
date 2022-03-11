@@ -59,7 +59,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/servlet/target/scala-3.1.1/meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/servlet/jvm3/meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "jawn@jvm3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/jawn",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/java",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-3.1.1/src_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/src_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/scala-3"
     ],
     "dependencies": [
       "core@jvm3"
@@ -43,10 +43,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/jawn/jvm3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/jawn/jvm3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/resource_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-3.1.1/resource_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-3.1.1/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -61,7 +61,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-3.1.1/meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/jawn/jvm3/meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

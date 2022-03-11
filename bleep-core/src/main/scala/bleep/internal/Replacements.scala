@@ -28,8 +28,15 @@ class Replacements private (val map: List[(String, String)]) {
 }
 
 object Replacements {
+  val empty: Replacements = ofReplacements(Nil)
+
   def ofReplacements(map: List[(String, String)]): Replacements =
     new Replacements(map.distinct.sortBy(-_._1.length)) // longest first
+
+  def targetDir(target: Path): Replacements =
+    ofReplacements(
+      List(target.toString -> "${TARGET_DIR}")
+    )
 
   def paths(build: Path, project: Path): Replacements =
     ofReplacements(

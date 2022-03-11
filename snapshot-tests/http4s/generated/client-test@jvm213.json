@@ -2,18 +2,18 @@
   "version": "1.4.0",
   "project": {
     "name": "client-test@jvm213",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/client/jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/client",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/../shared/src/test/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/../shared/src/test/scala-2",
-      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/../shared/src/test/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/src/test/java",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/src/test/scala",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/src/test/scala-2",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/src/test/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/scala-2.13/src_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/src_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/client/shared/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/client/shared/src/test/scala-2",
+      "<PROJECT>/snapshot-tests-in/http4s/client/shared/src/test/scala-2.13"
     ],
     "dependencies": [
       "client@jvm213",
@@ -85,10 +85,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/client-test/jvm213",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/client-test/jvm213/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/../shared/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/resource_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/scala-2.13/resource_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/scala-2.13/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/client/shared/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -96,7 +96,7 @@
       "version": "2.13.8",
       "options": [
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/client/jvm/target/scala-2.13/test-meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/client-test/jvm213/test-meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

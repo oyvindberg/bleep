@@ -87,7 +87,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/scala-xml/target/scala-3.1.1/test-meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/scala-xml-test/jvm3/test-meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

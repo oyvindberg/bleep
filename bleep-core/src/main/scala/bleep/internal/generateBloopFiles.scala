@@ -74,6 +74,7 @@ object generateBloopFiles {
 
     val templateDirs =
       Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
+        Replacements.targetDir(projectPaths.targetDir) ++
         Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value))
 
     val configuredPlatform: Option[b.Platform] =
@@ -229,15 +230,17 @@ object generateBloopFiles {
     }
     val replacementsVersions = Replacements.versions(scalaVersion, configuredPlatform.map(_.name))
 
+    val maybePlatform = explodedPlatform.flatMap(_.name)
+
     val sources: JsonSet[Path] = {
-      val fromSourceLayout = sourceLayout.sources(scalaVersion, explodedProject.`sbt-scope`)
+      val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatform, explodedProject.`sbt-scope`)
       val fromJson = JsonSet.fromIterable(explodedProject.sources.values.map(replacementsVersions.fill.relPath))
       (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
     }
 
     val resources: JsonSet[Path] = {
       val fromJson = JsonSet.fromIterable(explodedProject.resources.values.map(replacementsVersions.fill.relPath))
-      val fromSourceLayout = sourceLayout.resources(scalaVersion, explodedProject.`sbt-scope`)
+      val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatform, explodedProject.`sbt-scope`)
       (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
     }
 

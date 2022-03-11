@@ -2,18 +2,18 @@
   "version": "1.4.0",
   "project": {
     "name": "dsl@js213",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/dsl/.js",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/dsl",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/scala-2",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/java",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/scala",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/scala-2",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-2.13/src_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/src_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/scala-2",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/scala-2.13"
     ],
     "dependencies": [
       "core@js213"
@@ -52,10 +52,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl/js213",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl/js213/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/resource_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-2.13/resource_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-2.13/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -64,7 +64,7 @@
       "options": [
         "-P:scalajs:mapSourceURI:file:<PROJECT>/snapshot-tests-in/http4s/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/",
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-2.13/meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl/js213/meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

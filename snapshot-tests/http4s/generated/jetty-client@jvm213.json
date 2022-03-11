@@ -56,7 +56,7 @@
       "version": "2.13.8",
       "options": [
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/jetty-client/target/scala-2.13/meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/jetty-client/jvm213/meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

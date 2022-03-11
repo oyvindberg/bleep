@@ -2,18 +2,18 @@
   "version": "1.4.0",
   "project": {
     "name": "jawn@jvm213",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/jawn",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/scala-2",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/java",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala-2",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-2.13/src_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/src_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/scala-2",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/scala-2.13"
     ],
     "dependencies": [
       "core@jvm213"
@@ -45,10 +45,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/jawn/jvm213",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/jawn/jvm213/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/../src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/resource_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-2.13/resource_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-2.13/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/jawn/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -56,7 +56,7 @@
       "version": "2.13.8",
       "options": [
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-2.13/meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/jawn/jvm213/meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

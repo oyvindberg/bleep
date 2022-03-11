@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "dsl-test@jvm3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/dsl",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/../src/test/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/../src/test/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/src/test/java",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/src/test/scala",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/src/test/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/scala-3.1.1/src_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/src_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/test/scala-3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -71,10 +71,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl-test/jvm3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl-test/jvm3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/../src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/resource_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/scala-3.1.1/resource_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/scala-3.1.1/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -89,7 +89,7 @@
         "-feature",
         "-language:implicitConversions",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/dsl/.jvm/target/scala-3.1.1/test-meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl-test/jvm3/test-meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

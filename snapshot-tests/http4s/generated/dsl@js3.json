@@ -2,16 +2,16 @@
   "version": "1.4.0",
   "project": {
     "name": "dsl@js3",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/dsl/.js",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/dsl",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/java",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/scala",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/scala-3",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-3.1.1/src_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/src_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/src_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/scala-3"
     ],
     "dependencies": [
       "core@js3"
@@ -51,10 +51,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl/js3",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl/js3/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/../src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/src/main/resources",
       "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/resource_managed/main",
-      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-3.1.1/resource_managed/main"
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-3.1.1/resource_managed/main",
+      "<PROJECT>/snapshot-tests-in/http4s/dsl/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -71,7 +71,7 @@
         "-scalajs",
         "-scalajs-mapSourceURI:file:<PROJECT>/snapshot-tests-in/http4s/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/",
         "-semanticdb-target",
-        "<PROJECT>/snapshot-tests-in/http4s/dsl/.js/target/scala-3.1.1/meta",
+        "<PROJECT>/snapshot-tests/http4s/generated/.bloop/dsl/js3/meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

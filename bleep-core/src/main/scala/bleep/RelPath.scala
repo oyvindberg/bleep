@@ -6,6 +6,8 @@ import java.nio.file.Path
 
 case class RelPath(segments: List[String]) {
   override def toString: String = segments.mkString("/")
+  def prepended(str: String): RelPath =
+    RelPath(str :: segments)
 }
 
 object RelPath {

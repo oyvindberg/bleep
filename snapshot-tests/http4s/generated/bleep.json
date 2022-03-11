@@ -76,20 +76,6 @@
       "folder" : "./blaze-server"
     },
     "boopickle" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./boopickle/.js"
-        },
-        "js3" : {
-          "folder" : "./boopickle/.js"
-        },
-        "jvm213" : {
-          "folder" : "./boopickle/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./boopickle/.jvm"
-        }
-      },
       "dependencies" : "io.suzaku::boopickle:1.4.0",
       "dependsOn" : "core",
       "extends" : [
@@ -99,20 +85,6 @@
       "source-layout" : "cross-pure"
     },
     "boopickle-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./boopickle/.js"
-        },
-        "js3" : {
-          "folder" : "./boopickle/.js"
-        },
-        "jvm213" : {
-          "folder" : "./boopickle/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./boopickle/.jvm"
-        }
-      },
       "dependsOn" : [
         "boopickle",
         "testing-test"
@@ -121,23 +93,10 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./boopickle",
       "source-layout" : "cross-pure"
     },
     "circe" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./circe/.js"
-        },
-        "js3" : {
-          "folder" : "./circe/.js"
-        },
-        "jvm213" : {
-          "folder" : "./circe/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./circe/.jvm"
-        }
-      },
       "dependencies" : "io.circe::circe-jawn:0.15.0-M1",
       "dependsOn" : "jawn",
       "extends" : [
@@ -147,20 +106,6 @@
       "source-layout" : "cross-pure"
     },
     "circe-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./circe/.js"
-        },
-        "js3" : {
-          "folder" : "./circe/.js"
-        },
-        "jvm213" : {
-          "folder" : "./circe/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./circe/.jvm"
-        }
-      },
       "dependencies" : "io.circe::circe-testing:0.15.0-M1",
       "dependsOn" : [
         "circe",
@@ -170,23 +115,10 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./circe",
       "source-layout" : "cross-pure"
     },
     "client" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./client/js"
-        },
-        "js3" : {
-          "folder" : "./client/js"
-        },
-        "jvm213" : {
-          "folder" : "./client/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./client/jvm"
-        }
-      },
       "dependsOn" : "core",
       "extends" : [
         "template-cross-jvm-all-main",
@@ -197,20 +129,16 @@
     "client-test" : {
       "cross" : {
         "js213" : {
-          "dependsOn" : "node-serverless",
-          "folder" : "./client/js"
+          "dependsOn" : "node-serverless"
         },
         "js3" : {
-          "dependsOn" : "node-serverless",
-          "folder" : "./client/js"
+          "dependsOn" : "node-serverless"
         },
         "jvm213" : {
-          "dependencies" : "io.netty:netty-codec-http:4.1.74.Final",
-          "folder" : "./client/jvm"
+          "dependencies" : "io.netty:netty-codec-http:4.1.74.Final"
         },
         "jvm3" : {
-          "dependencies" : "io.netty:netty-codec-http:4.1.74.Final",
-          "folder" : "./client/jvm"
+          "dependencies" : "io.netty:netty-codec-http:4.1.74.Final"
         }
       },
       "dependsOn" : [
@@ -223,6 +151,7 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./client",
       "source-layout" : "cross-full"
     },
     "core" : {
@@ -233,25 +162,19 @@
             "io.github.cquiroz::scala-java-time:2.3.0",
             "org.scala-lang:scala-reflect:2.13.8",
             "org.slf4j:slf4j-api:1.7.36"
-          ],
-          "folder" : "./core/js"
+          ]
         },
         "js3" : {
           "dependencies" : [
             "io.github.cquiroz::locales-minimal-en_us-db:1.3.0",
             "io.github.cquiroz::scala-java-time:2.3.0"
-          ],
-          "folder" : "./core/js"
+          ]
         },
         "jvm213" : {
           "dependencies" : [
             "org.scala-lang:scala-reflect:2.13.8",
             "org.slf4j:slf4j-api:1.7.36"
-          ],
-          "folder" : "./core/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./core/jvm"
+          ]
         }
       },
       "dependencies" : [
@@ -278,7 +201,7 @@
       ],
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-all-test",
-      "folder" : "./core/jvm",
+      "folder" : "./core",
       "source-layout" : "cross-full"
     },
     "dropwizard-metrics" : {
@@ -298,20 +221,6 @@
       "folder" : "./dropwizard-metrics"
     },
     "dsl" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./dsl/.js"
-        },
-        "js3" : {
-          "folder" : "./dsl/.js"
-        },
-        "jvm213" : {
-          "folder" : "./dsl/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./dsl/.jvm"
-        }
-      },
       "dependsOn" : "core",
       "extends" : [
         "template-cross-jvm-all-main",
@@ -320,20 +229,6 @@
       "source-layout" : "cross-pure"
     },
     "dsl-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./dsl/.js"
-        },
-        "js3" : {
-          "folder" : "./dsl/.js"
-        },
-        "jvm213" : {
-          "folder" : "./dsl/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./dsl/.jvm"
-        }
-      },
       "dependsOn" : [
         "dsl",
         "testing-test"
@@ -342,25 +237,22 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./dsl",
       "source-layout" : "cross-pure"
     },
     "ember-client" : {
       "cross" : {
         "js213" : {
-          "dependencies" : "org.typelevel::log4cats-noop:2.2.0",
-          "folder" : "./ember-client/js"
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
         },
         "js3" : {
-          "dependencies" : "org.typelevel::log4cats-noop:2.2.0",
-          "folder" : "./ember-client/js"
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
         },
         "jvm213" : {
-          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0",
-          "folder" : "./ember-client/jvm"
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
         },
         "jvm3" : {
-          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0",
-          "folder" : "./ember-client/jvm"
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
         }
       },
       "dependencies" : "org.typelevel::keypool:0.4.7",
@@ -375,20 +267,6 @@
       "source-layout" : "cross-full"
     },
     "ember-client-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./ember-client/js"
-        },
-        "js3" : {
-          "folder" : "./ember-client/js"
-        },
-        "jvm213" : {
-          "folder" : "./ember-client/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./ember-client/jvm"
-        }
-      },
       "dependsOn" : [
         "client-test",
         "ember-client",
@@ -398,25 +276,22 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./ember-client",
       "source-layout" : "cross-full"
     },
     "ember-core" : {
       "cross" : {
         "js213" : {
-          "dependencies" : "org.http4s::hpack:1.0.3",
-          "folder" : "./ember-core/js"
+          "dependencies" : "org.http4s::hpack:1.0.3"
         },
         "js3" : {
-          "dependencies" : "org.http4s::hpack:1.0.3",
-          "folder" : "./ember-core/js"
+          "dependencies" : "org.http4s::hpack:1.0.3"
         },
         "jvm213" : {
-          "dependencies" : "com.twitter:hpack:1.0.2",
-          "folder" : "./ember-core/jvm"
+          "dependencies" : "com.twitter:hpack:1.0.2"
         },
         "jvm3" : {
-          "dependencies" : "com.twitter:hpack:1.0.2",
-          "folder" : "./ember-core/jvm"
+          "dependencies" : "com.twitter:hpack:1.0.2"
         }
       },
       "dependencies" : "org.typelevel::log4cats-core:2.2.0",
@@ -428,20 +303,6 @@
       "source-layout" : "cross-full"
     },
     "ember-core-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./ember-core/js"
-        },
-        "js3" : {
-          "folder" : "./ember-core/js"
-        },
-        "jvm213" : {
-          "folder" : "./ember-core/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./ember-core/jvm"
-        }
-      },
       "dependencies" : "org.typelevel::log4cats-testing:2.2.0",
       "dependsOn" : [
         "ember-core",
@@ -451,25 +312,22 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./ember-core",
       "source-layout" : "cross-full"
     },
     "ember-server" : {
       "cross" : {
         "js213" : {
-          "dependencies" : "org.typelevel::log4cats-noop:2.2.0",
-          "folder" : "./ember-server/js"
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
         },
         "js3" : {
-          "dependencies" : "org.typelevel::log4cats-noop:2.2.0",
-          "folder" : "./ember-server/js"
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
         },
         "jvm213" : {
-          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0",
-          "folder" : "./ember-server/jvm"
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
         },
         "jvm3" : {
-          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0",
-          "folder" : "./ember-server/jvm"
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
         }
       },
       "dependsOn" : [
@@ -484,12 +342,6 @@
     },
     "ember-server-test" : {
       "cross" : {
-        "js213" : {
-          "folder" : "./ember-server/js"
-        },
-        "js3" : {
-          "folder" : "./ember-server/js"
-        },
         "jvm213" : {
           "dependencies" : [
             {
@@ -501,8 +353,7 @@
             "org.java-websocket:Java-WebSocket:1.5.2",
             "org.ow2.asm:asm-commons:9.2",
             "org.ow2.asm:asm-util:9.2"
-          ],
-          "folder" : "./ember-server/jvm"
+          ]
         },
         "jvm3" : {
           "dependencies" : [
@@ -515,8 +366,7 @@
             "org.java-websocket:Java-WebSocket:1.5.2",
             "org.ow2.asm:asm-commons:9.2",
             "org.ow2.asm:asm-util:9.2"
-          ],
-          "folder" : "./ember-server/jvm"
+          ]
         }
       },
       "dependsOn" : [
@@ -529,6 +379,7 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./ember-server",
       "source-layout" : "cross-full"
     },
     "examples" : {
@@ -624,20 +475,6 @@
       }
     },
     "jawn" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./jawn/.js"
-        },
-        "js3" : {
-          "folder" : "./jawn/.js"
-        },
-        "jvm213" : {
-          "folder" : "./jawn/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./jawn/.jvm"
-        }
-      },
       "dependencies" : "org.typelevel::jawn-fs2:2.2.0",
       "dependsOn" : "core",
       "extends" : [
@@ -647,20 +484,6 @@
       "source-layout" : "cross-pure"
     },
     "jawn-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./jawn/.js"
-        },
-        "js3" : {
-          "folder" : "./jawn/.js"
-        },
-        "jvm213" : {
-          "folder" : "./jawn/.jvm"
-        },
-        "jvm3" : {
-          "folder" : "./jawn/.jvm"
-        }
-      },
       "dependsOn" : [
         "jawn",
         "testing-test"
@@ -669,6 +492,7 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./jawn",
       "source-layout" : "cross-pure"
     },
     "jetty-client" : {
@@ -703,19 +527,11 @@
     },
     "laws" : {
       "cross" : {
-        "js213" : {
-          "folder" : "./laws/.js"
-        },
-        "js3" : {
-          "folder" : "./laws/.js"
-        },
         "jvm213" : {
-          "dependencies" : "org.hamcrest:hamcrest-core:1.3",
-          "folder" : "./laws/.jvm"
+          "dependencies" : "org.hamcrest:hamcrest-core:1.3"
         },
         "jvm3" : {
-          "dependencies" : "org.hamcrest:hamcrest-core:1.3",
-          "folder" : "./laws/.jvm"
+          "dependencies" : "org.hamcrest:hamcrest-core:1.3"
         }
       },
       "dependencies" : [
@@ -846,20 +662,6 @@
       "folder" : "./scalatags"
     },
     "server" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./server/js"
-        },
-        "js3" : {
-          "folder" : "./server/js"
-        },
-        "jvm213" : {
-          "folder" : "./server/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./server/jvm"
-        }
-      },
       "dependsOn" : "core",
       "extends" : [
         "template-cross-jvm-all-main",
@@ -868,20 +670,6 @@
       "source-layout" : "cross-full"
     },
     "server-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./server/js"
-        },
-        "js3" : {
-          "folder" : "./server/js"
-        },
-        "jvm213" : {
-          "folder" : "./server/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./server/jvm"
-        }
-      },
       "dependsOn" : [
         "dsl",
         "server",
@@ -891,6 +679,7 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./server",
       "source-layout" : "cross-full"
     },
     "servlet" : {
@@ -920,8 +709,7 @@
               "forceJvm" : true,
               "module" : "org.scala-js::scalajs-test-bridge:1.9.0"
             }
-          ],
-          "folder" : "./testing/js"
+          ]
         },
         "js3" : {
           "dependencies" : [
@@ -931,14 +719,7 @@
               "forceJvm" : true,
               "module" : "org.scala-js::scalajs-test-bridge:1.9.0"
             }
-          ],
-          "folder" : "./testing/js"
-        },
-        "jvm213" : {
-          "folder" : "./testing/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./testing/jvm"
+          ]
         }
       },
       "dependencies" : [
@@ -951,28 +732,16 @@
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./testing",
       "source-layout" : "cross-full"
     },
     "tests-test" : {
-      "cross" : {
-        "js213" : {
-          "folder" : "./tests/js"
-        },
-        "js3" : {
-          "folder" : "./tests/js"
-        },
-        "jvm213" : {
-          "folder" : "./tests/jvm"
-        },
-        "jvm3" : {
-          "folder" : "./tests/jvm"
-        }
-      },
       "dependsOn" : "testing-test",
       "extends" : [
         "template-cross-jvm-all-test",
         "template-cross-js-all-test"
       ],
+      "folder" : "./tests",
       "source-layout" : "cross-full"
     },
     "tomcat-server" : {
@@ -1218,7 +987,7 @@
         "template-scala-2.13"
       ],
       "scala" : {
-        "options" : "-P:semanticdb:targetroot:${PROJECT_DIR}/target/scala-${SCALA_BIN_VERSION}/meta"
+        "options" : "-P:semanticdb:targetroot:${TARGET_DIR}/meta"
       }
     },
     "template-scala-2.13-test" : {
@@ -1227,7 +996,7 @@
         "template-scala-2.13"
       ],
       "scala" : {
-        "options" : "-P:semanticdb:targetroot:${PROJECT_DIR}/target/scala-${SCALA_BIN_VERSION}/test-meta"
+        "options" : "-P:semanticdb:targetroot:${TARGET_DIR}/test-meta"
       }
     },
     "template-scala-3" : {
@@ -1262,7 +1031,7 @@
       "scala" : {
         "options" : [
           "-semanticdb-target",
-          "${PROJECT_DIR}/target/scala-${SCALA_VERSION}/meta"
+          "${TARGET_DIR}/meta"
         ]
       }
     },
@@ -1274,7 +1043,7 @@
       "scala" : {
         "options" : [
           "-semanticdb-target",
-          "${PROJECT_DIR}/target/scala-${SCALA_VERSION}/test-meta"
+          "${TARGET_DIR}/test-meta"
         ]
       }
     }

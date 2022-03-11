@@ -2,18 +2,18 @@
   "version": "1.4.0",
   "project": {
     "name": "circe-test@js213",
-    "directory": "<PROJECT>/snapshot-tests-in/http4s/circe/.js",
+    "directory": "<PROJECT>/snapshot-tests-in/http4s/circe",
     "workspaceDir": "<PROJECT>/snapshot-tests-in/http4s",
     "sources": [
-      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/../src/test/scala",
-      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/../src/test/scala-2",
-      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/../src/test/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/src/test/java",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/src/test/scala",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/src/test/scala-2",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/src/test/scala-2.13",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/scala-2.13/src_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/src_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/src_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/circe/src/test/scala",
+      "<PROJECT>/snapshot-tests-in/http4s/circe/src/test/scala-2",
+      "<PROJECT>/snapshot-tests-in/http4s/circe/src/test/scala-2.13"
     ],
     "dependencies": [
       "circe@js213",
@@ -93,10 +93,10 @@
     "out": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/circe-test/js213",
     "classesDir": "<PROJECT>/snapshot-tests/http4s/generated/.bloop/circe-test/js213/classes",
     "resources": [
-      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/../src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/src/test/resources",
       "<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/resource_managed/test",
-      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/scala-2.13/resource_managed/test"
+      "<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/scala-2.13/resource_managed/test",
+      "<PROJECT>/snapshot-tests-in/http4s/circe/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -105,7 +105,7 @@
       "options": [
         "-P:scalajs:mapSourceURI:file:<PROJECT>/snapshot-tests-in/http4s/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/",
         "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests-in/http4s/circe/.js/target/scala-2.13/test-meta",
+        "-P:semanticdb:targetroot:<PROJECT>/snapshot-tests/http4s/generated/.bloop/circe-test/js213/test-meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",
