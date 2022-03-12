@@ -107,9 +107,9 @@ object Main {
           importCmd(started.buildPaths, started.logger),
           compileServerCmd(started.logger, started.userPaths, started.buildPaths, started.resolver)
         ),
-        started.build.scripts.map { case (scriptName, scriptDefs) =>
+        started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
-            stringArgs.map(args => commands.Script(started, scriptName, scriptDefs, args))
+            stringArgs.map(args => commands.Script(started, scriptName, args))
           )
         }
       )
