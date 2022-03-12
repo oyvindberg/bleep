@@ -46,14 +46,22 @@ object Main {
 
   def hasBuildOpts(started: Started, globs: ProjectGlobs): Opts[BleepCommand] = {
 
-    val projectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(globs.projectNameMap))).map(_.toList.flatten).orNone
+    val projectNames: Opts[List[model.CrossProjectName]] =
+      Opts
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(globs.projectNameMap)))
+        .map(_.toList.flatten)
+        .orNone
+        .map(started.chosenProjects)
 
     val projectName: Opts[model.CrossProjectName] =
       Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(globs.exactProjectMap)))
 
-    val testProjectNames: Opts[Option[List[model.CrossProjectName]]] =
-      Opts.arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(globs.testProjectNameMap))).map(_.toList.flatten).orNone
+    val testProjectNames: Opts[List[model.CrossProjectName]] =
+      Opts
+        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(globs.testProjectNameMap)))
+        .map(_.toList.flatten)
+        .orNone
+        .map(started.chosenTestProjects)
 
     lazy val ret: Opts[BleepCommand] = {
       val allCommands = List(
@@ -94,12 +102,10 @@ object Main {
             projectNames.map(projectNames => commands.Clean(started, projectNames))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
-            projectNames.map(projectNames => () => Right(started.chosenProjects(projectNames).map(_.value).sorted.foreach(started.logger.info(_))))
+            projectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
-            testProjectNames.map { projectNames => () =>
-              Right(started.chosenTestProjects(projectNames).map(_.value).sorted.foreach(started.logger.info(_)))
-            }
+            testProjectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           Opts.subcommand("patch", "Apply patch from standard-in or file")(
             Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(started, file))
