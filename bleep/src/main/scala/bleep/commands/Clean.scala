@@ -6,10 +6,10 @@ import bleep.internal.FileUtils
 import java.nio.file.{Files, Path, Paths}
 import scala.util.Properties
 
-case class Clean(started: Started, projects: Option[List[model.CrossProjectName]]) extends BleepCommand {
+case class Clean(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     val outDirectories: List[Path] =
-      started.chosenProjects(projects).map(projectName => started.bloopFiles(projectName).forceGet.project.out).filter(Files.exists(_))
+      projects.map(projectName => started.bloopFiles(projectName).forceGet.project.out).filter(Files.exists(_))
 
     Right {
       if (Properties.isWin) {
