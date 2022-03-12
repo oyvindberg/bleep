@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/src/main/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/hikari@jvm212"
     ],
     "dependencies": [
       "core@jvm212",
@@ -40,8 +39,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/hikari/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-resources/hikari@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

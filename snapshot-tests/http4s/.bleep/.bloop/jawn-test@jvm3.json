@@ -8,10 +8,9 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/target/src_managed/test",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/test/scala-3"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/jawn-test@jvm3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -74,9 +73,8 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/jawn-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/target/scala-3.1.1/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/test/resources"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/jawn-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

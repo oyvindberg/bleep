@@ -25,6 +25,9 @@ object BuildException {
 
   class BuildNotFound(cwd: Path) extends BuildException(s"Couldn't find ${constants.BuildFileName} in directories in or above $cwd")
 
+  class TargetFolderNotDetermined(projectName: model.CrossProjectName)
+      extends BuildException(s"Couldn't determine original output directory of project ${projectName.name}")
+
   class InvalidJson(file: Path, e: circe.Error) extends BuildException(s"Couldn't parse json file $file", e)
 
   class ModuleFormatError(
@@ -41,7 +44,14 @@ object BuildException {
     def apply(cause: CoursierError, project: model.CrossProjectName): ResolveError = new ResolveError(cause, s"project ${project.value}")
   }
 
-  class Text(project: model.CrossProjectName, str: String) extends BuildException(s"${project.value}: $str")
+  class Text(maybeProject: Option[model.CrossProjectName], str: String)
+      extends BuildException(maybeProject match {
+        case Some(project) => s"${project.value}: $str"
+        case None          => str
+      }) {
+    def this(str: String) = this(None, str)
+    def this(project: model.CrossProjectName, str: String) = this(Some(project), str)
+  }
 
   class Cause(
       val cause: Throwable,

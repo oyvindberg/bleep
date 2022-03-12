@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/src/test/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/src/test/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/target/jvm-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/target/scala-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/enumeratum-test@jvm212"
     ],
     "dependencies": [
       "core@jvm212",
@@ -54,9 +52,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/enumeratum-test/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/target/jvm-2.12/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/target/scala-2.12/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/enumeratum-test@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

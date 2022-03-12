@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/src/test/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/src/test/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/target/jvm-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/target/scala-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/awsSam-test@jvm212"
     ],
     "dependencies": [
       "awsSam@jvm212",
@@ -79,9 +77,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/awsSam-test/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/target/jvm-2.12/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/sam/target/scala-2.12/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/awsSam-test@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

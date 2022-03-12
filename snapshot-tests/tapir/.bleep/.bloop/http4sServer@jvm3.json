@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/src/main/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/target/jvm-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/http4sServer@jvm3"
     ],
     "dependencies": [
       "cats@jvm3",
@@ -57,9 +55,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/http4sServer/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/target/jvm-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/http4s-server/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/http4sServer@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

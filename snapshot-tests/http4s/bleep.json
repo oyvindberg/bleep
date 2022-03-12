@@ -686,6 +686,14 @@
       "extends" : "template-cross-jvm-all-test",
       "folder" : "./../../snapshot-tests-in/http4s/scalatags"
     },
+    "scripts" : {
+      "platform" : {
+        "name" : "jvm"
+      },
+      "scala" : {
+        "version" : "3.1.1"
+      }
+    },
     "server" : {
       "dependsOn" : "core",
       "extends" : [
@@ -786,14 +794,6 @@
       "folder" : "./../../snapshot-tests-in/http4s/tomcat-server"
     },
     "twirl" : {
-      "cross" : {
-        "jvm213" : {
-          "sources" : "./target/scala-${SCALA_BIN_VERSION}/twirl/main"
-        },
-        "jvm3" : {
-          "sources" : "./target/scala-${SCALA_VERSION}/twirl/main"
-        }
-      },
       "dependencies" : {
         "for3Use213" : true,
         "module" : "com.typesafe.play::twirl-api:1.5.1"
@@ -803,14 +803,6 @@
       "folder" : "./../../snapshot-tests-in/http4s/twirl"
     },
     "twirl-test" : {
-      "cross" : {
-        "jvm213" : {
-          "sources" : "./target/scala-${SCALA_BIN_VERSION}/twirl/test"
-        },
-        "jvm3" : {
-          "sources" : "./target/scala-${SCALA_VERSION}/twirl/test"
-        }
-      },
       "dependsOn" : [
         "testing-test",
         "twirl"
@@ -818,6 +810,9 @@
       "extends" : "template-cross-jvm-all-test",
       "folder" : "./../../snapshot-tests-in/http4s/twirl"
     }
+  },
+  "scripts" : {
+    "generate-resources" : "scripts/scripts.GenerateResources"
   },
   "templates" : {
     "template-common" : {

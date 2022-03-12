@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/src/test/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/src/test/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/target/jvm-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/target/scala-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/playClient-test@jvm212"
     ],
     "dependencies": [
       "cats@jvm212",
@@ -114,9 +112,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/playClient-test/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/target/jvm-2.12/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/play-client/target/scala-2.12/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/playClient-test@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

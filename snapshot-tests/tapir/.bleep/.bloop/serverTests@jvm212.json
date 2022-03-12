@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/src/main/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/src/main/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/target/jvm-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/serverTests@jvm212"
     ],
     "dependencies": [
       "cats@jvm212",
@@ -89,9 +87,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/serverTests/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/target/jvm-2.12/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/serverTests@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

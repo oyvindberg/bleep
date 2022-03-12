@@ -22,8 +22,13 @@ trait BuildPaths {
   final def from(crossName: model.CrossProjectName, p: model.Project): ProjectPaths =
     ProjectPaths(
       dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value)),
-      targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
+      targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value),
+      generatedSourcesDir = generatedSourcesDir(crossName),
+      generatedResourcesDir = generatedResourcesDir(crossName)
     )
+
+  def generatedSourcesDir(crossName: model.CrossProjectName): Path = dotBleepDir / "generated-sources" / crossName.value
+  def generatedResourcesDir(crossName: model.CrossProjectName): Path = dotBleepDir / "generated-resources" / crossName.value
 }
 
 object BuildPaths {

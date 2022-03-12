@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/cats-test@jvm213"
     ],
     "dependencies": [
       "cats@jvm213",
@@ -65,9 +63,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/cats-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/cats-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

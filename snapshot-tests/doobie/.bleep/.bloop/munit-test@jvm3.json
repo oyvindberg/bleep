@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/munit-test@jvm3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -49,8 +48,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/munit-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/target/scala-3.1.1/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-resources/munit-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

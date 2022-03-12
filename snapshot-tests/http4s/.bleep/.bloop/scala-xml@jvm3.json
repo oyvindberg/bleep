@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/scala-xml@jvm3"
     ],
     "dependencies": [
       "core@jvm3"
@@ -41,8 +40,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scala-xml/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scala-xml/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/scala-xml@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

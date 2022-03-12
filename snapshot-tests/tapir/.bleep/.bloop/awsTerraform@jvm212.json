@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/src/main/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/src/main/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/target/jvm-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/awsTerraform@jvm212"
     ],
     "dependencies": [
       "core@jvm212"
@@ -45,9 +43,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/awsTerraform/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/target/jvm-2.12/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/terraform/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/awsTerraform@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

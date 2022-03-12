@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/circeJson-test@jvm213"
     ],
     "dependencies": [
       "circeJson@jvm213",
@@ -62,9 +60,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/circeJson-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/circeJson-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

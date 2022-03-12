@@ -1,0 +1,76 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "scripts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/scripts",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/scripts",
+      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/java",
+      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala",
+      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala-2.12"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scripts",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scripts/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-resources/scripts",
+      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.14",
+      "options": [
+        
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.14/scala-compiler-2.12.14.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.14/scala-reflect-2.12.14.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scripts/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/converter"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        
+      ]
+    }
+  }
+}

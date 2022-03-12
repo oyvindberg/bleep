@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/src/test/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/target/jvm-3/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/target/scala-3.1.0/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/vertxServer-test@jvm3"
     ],
     "dependencies": [
       "cats@jvm3",
@@ -114,9 +112,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/vertxServer-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/target/jvm-3/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/vertx/target/scala-3.1.0/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/vertxServer-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

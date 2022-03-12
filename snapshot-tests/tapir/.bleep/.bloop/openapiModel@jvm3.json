@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/main/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/target/jvm-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/openapiModel@jvm3"
     ],
     "dependencies": [
       "apispecModel@jvm3"
@@ -26,9 +24,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/openapiModel/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/target/jvm-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/openapiModel@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

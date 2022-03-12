@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/opentelemetryMetrics-test@jvm213"
     ],
     "dependencies": [
       "core-test@jvm213",
@@ -69,9 +67,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/opentelemetryMetrics-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/opentelemetryMetrics-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

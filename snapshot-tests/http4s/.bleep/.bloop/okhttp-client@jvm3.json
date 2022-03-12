@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/okhttp-client@jvm3"
     ],
     "dependencies": [
       "client@jvm3",
@@ -47,8 +46,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/okhttp-client/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/okhttp-client/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/okhttp-client@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

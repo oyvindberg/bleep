@@ -1,5 +1,7 @@
 package bleep
 
+import coursier.{LocalRepositories, Repositories}
+
 import java.net.URI
 
 object constants {
@@ -7,8 +9,9 @@ object constants {
   val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json"
 
   val DefaultRepos = List(
-    model.Repository.Maven(uri = URI.create("https://repo1.maven.org/maven2")),
-    model.Repository.Ivy(URI.create("https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"))
+    model.Repository.Ivy(URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)),
+    model.Repository.Maven(URI.create(Repositories.central.root))
+//    model.Repository.Ivy(URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
   )
 
   val BuildFileName = "bleep.json"

@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/dropwizard-metrics-test@jvm3"
     ],
     "dependencies": [
       "client@jvm3",
@@ -81,8 +80,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/dropwizard-metrics-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dropwizard-metrics/target/scala-3.1.1/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/dropwizard-metrics-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

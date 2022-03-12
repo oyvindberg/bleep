@@ -8,9 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/target/scala-3.1.1/twirl/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/twirl@jvm3"
     ],
     "dependencies": [
       "core@jvm3"
@@ -43,8 +41,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/twirl/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/twirl@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

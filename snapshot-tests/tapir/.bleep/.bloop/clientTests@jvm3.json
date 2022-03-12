@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/src/main/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/target/jvm-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/clientTests@jvm3"
     ],
     "dependencies": [
       "cats@jvm3",
@@ -91,9 +89,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/clientTests/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/target/jvm-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/tests/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/clientTests@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

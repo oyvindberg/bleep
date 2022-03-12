@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/tomcat-server-test@jvm213"
     ],
     "dependencies": [
       "core@jvm213",
@@ -115,8 +114,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/tomcat-server-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/tomcat-server/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/tomcat-server-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

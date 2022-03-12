@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/converter/logging/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/converter/logging/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/converter/logging/src/main/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/logging/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/logging/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/logging"
     ],
     "dependencies": [
       
@@ -24,8 +23,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/logging/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/logging/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/logging/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-resources/logging"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/examples-docker@jvm3"
     ],
     "dependencies": [
       "blaze-core@jvm3",
@@ -51,8 +50,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/examples-docker/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/examples/docker/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/examples-docker@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

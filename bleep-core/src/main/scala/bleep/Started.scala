@@ -20,6 +20,9 @@ case class Started(
     userPaths: UserPaths,
     logger: Logger
 ) {
+  def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
+    buildPaths.from(crossName, build.projects(crossName))
+
   lazy val bloopProjects: List[Config.Project] =
     bloopFiles.map { case (_, lazyProject) => lazyProject.forceGet.project }.toList
 

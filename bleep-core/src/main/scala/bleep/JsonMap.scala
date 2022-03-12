@@ -4,6 +4,9 @@ import bleep.internal.SetLike
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 
 case class JsonMap[K, V <: SetLike[V]](value: Map[K, V]) extends SetLike[JsonMap[K, V]] {
+  def updated(k: K, v: V): JsonMap[K, V] =
+    JsonMap(value.updated(k, v))
+
   override def intersect(other: JsonMap[K, V]): JsonMap[K, V] =
     JsonMap {
       value.flatMap { case (k, v1) =>

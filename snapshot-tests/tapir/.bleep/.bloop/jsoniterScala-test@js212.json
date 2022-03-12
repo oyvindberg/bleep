@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/scalajs",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/scalajs-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/js-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/scala-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/jsoniterScala-test@js212"
     ],
     "dependencies": [
       "core@js212",
@@ -62,9 +60,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/jsoniterScala-test/js212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/js-2.12/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/scala-2.12/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/jsoniterScala-test@js212"
     ],
     "scala": {
       "organization": "org.scala-lang",

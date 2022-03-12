@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/test/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/test/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/jvm-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/scala-2.12/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/asyncapiDocs-test@jvm212"
     ],
     "dependencies": [
       "apispecDocs@jvm212",
@@ -98,9 +96,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiDocs-test/jvm212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/jvm-2.12/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/asyncapi-docs/target/scala-2.12/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/asyncapiDocs-test@jvm212"
     ],
     "scala": {
       "organization": "org.scala-lang",

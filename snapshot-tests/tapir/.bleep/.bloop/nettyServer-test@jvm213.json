@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/src/test/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/nettyServer-test@jvm213"
     ],
     "dependencies": [
       "cats@jvm213",
@@ -94,9 +92,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/nettyServer-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/nettyServer-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

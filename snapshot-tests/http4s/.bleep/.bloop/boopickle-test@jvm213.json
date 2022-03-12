@@ -9,11 +9,10 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/target/src_managed/test",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-2",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/boopickle-test@jvm213"
     ],
     "dependencies": [
       "boopickle@jvm213",
@@ -75,9 +74,8 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/boopickle-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/target/scala-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/resources"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/boopickle-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

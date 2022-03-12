@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/src/main/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/target/jvm-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/redocBundle@jvm3"
     ],
     "dependencies": [
       "apispecDocs@jvm3",
@@ -55,9 +53,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/redocBundle/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/target/jvm-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/redocBundle@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

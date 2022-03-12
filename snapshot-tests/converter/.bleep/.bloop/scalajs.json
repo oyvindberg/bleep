@@ -9,16 +9,13 @@
       "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/src/main/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/scalajs"
     ],
     "dependencies": [
       "core",
       "logging"
     ],
     "classpath": [
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes",
       "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.9.10/jackson-annotations-2.9.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.9.10/jackson-core-2.9.10.jar",
@@ -38,14 +35,15 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.1.0/cats-core_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.1.0/cats-kernel_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.0/cats-macros_2.12-2.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-resources/scalajs"
     ],
     "scala": {
       "organization": "org.scala-lang",

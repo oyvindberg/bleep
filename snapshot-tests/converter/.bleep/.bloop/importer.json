@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/converter/importer/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/converter/importer/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/converter/importer/src/main/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/importer/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/importer/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/importer"
     ],
     "dependencies": [
       "core",
@@ -21,12 +20,6 @@
       "ts"
     ],
     "classpath": [
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer-portable/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/phases/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/ts/classes",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-backend_2.12/1.4.11/bloop-backend_2.12-1.4.11.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/1.4.11/bloop-config_2.12-1.4.11.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-frontend_2.12/1.4.11/bloop-frontend_2.12-1.4.11.jar",
@@ -162,14 +155,19 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.1.0/cats-kernel_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.0/cats-macros_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.13/zt-zip-1.13.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.13/zt-zip-1.13.jar",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer-portable/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/phases/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/ts/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/importer/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/importer/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/importer/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-resources/importer"
     ],
     "scala": {
       "organization": "org.scala-lang",

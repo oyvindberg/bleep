@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/play-json@jvm3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -52,8 +51,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/play-json/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/play-json@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",
