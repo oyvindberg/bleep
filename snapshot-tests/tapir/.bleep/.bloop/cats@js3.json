@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/main/scalajs",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/main/scalajs-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/js-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/cats@js3"
     ],
     "dependencies": [
       "core@js3"
@@ -44,9 +42,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/cats/js3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/js-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/cats@js3"
     ],
     "scala": {
       "organization": "org.scala-lang",

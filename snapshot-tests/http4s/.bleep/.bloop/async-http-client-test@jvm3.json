@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/async-http-client-test@jvm3"
     ],
     "dependencies": [
       "async-http-client@jvm3",
@@ -94,8 +93,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/async-http-client-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/target/scala-3.1.1/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/async-http-client-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

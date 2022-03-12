@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/jsoniterScala-test@jvm213"
     ],
     "dependencies": [
       "core@jvm213",
@@ -57,9 +55,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/jsoniterScala-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/jsoniterScala-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

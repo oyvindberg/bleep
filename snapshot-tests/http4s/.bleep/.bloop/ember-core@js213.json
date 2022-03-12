@@ -9,11 +9,10 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/target/src_managed/main",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/main/scala-2",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/main/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/ember-core@js213"
     ],
     "dependencies": [
       "core@js213"
@@ -55,9 +54,8 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/ember-core/js213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/js/target/scala-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/ember-core@js213"
     ],
     "scala": {
       "organization": "org.scala-lang",

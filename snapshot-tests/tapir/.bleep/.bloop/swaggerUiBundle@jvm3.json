@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/src/main/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/target/jvm-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/swaggerUiBundle@jvm3"
     ],
     "dependencies": [
       "apispecDocs@jvm3",
@@ -56,9 +54,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/swaggerUiBundle/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/target/jvm-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/swagger-ui-bundle/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/swaggerUiBundle@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

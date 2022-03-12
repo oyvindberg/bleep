@@ -25,21 +25,7 @@ object deduplicateDependencies extends Rewrite {
         newInThisProject
       }
 
-      model.Project(
-        `extends` = p.`extends`,
-        cross = p.cross,
-        folder = p.folder,
-        dependsOn = shortenedDependsOn,
-        `source-layout` = p.`source-layout`,
-        `sbt-scope` = p.`sbt-scope`,
-        sources = p.sources,
-        resources = p.resources,
-        dependencies = shortenedDependencies,
-        java = p.java,
-        scala = p.scala,
-        platform = p.platform,
-        p.testFrameworks
-      )
+      p.copy(dependsOn = shortenedDependsOn, dependencies = shortenedDependencies)
     }
 
     val forcedProjects = projects.map { case (projectName, lazyProject) => (projectName, lazyProject.forceGet(projectName.value)) }

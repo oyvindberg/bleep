@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/prometheus-metrics@jvm3"
     ],
     "dependencies": [
       "core@jvm3"
@@ -46,8 +45,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/prometheus-metrics/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/prometheus-metrics/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/prometheus-metrics@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

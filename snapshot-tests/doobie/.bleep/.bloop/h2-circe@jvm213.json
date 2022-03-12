@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/h2-circe@jvm213"
     ],
     "dependencies": [
       "core@jvm213",
@@ -46,8 +45,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/h2-circe/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-resources/h2-circe@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/src/test/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/finatraServer-test@jvm213"
     ],
     "dependencies": [
       "cats@jvm213",
@@ -203,9 +201,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/finatraServer-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/finatraServer-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

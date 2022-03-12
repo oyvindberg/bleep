@@ -8,10 +8,9 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/target/src_managed/test",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-3"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/boopickle-test@js3"
     ],
     "dependencies": [
       "boopickle@js3",
@@ -83,9 +82,8 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/boopickle-test/js3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.js/target/scala-3.1.1/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/resources"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/boopickle-test@js3"
     ],
     "scala": {
       "organization": "org.scala-lang",

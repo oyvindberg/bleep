@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajs",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajs-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/js-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/zioJson@js212"
     ],
     "dependencies": [
       "core@js212"
@@ -47,9 +45,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/zioJson/js212/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/js-2.12/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/zioJson@js212"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/free@jvm213"
     ],
     "dependencies": [
       
@@ -33,8 +32,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/free/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-resources/free@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

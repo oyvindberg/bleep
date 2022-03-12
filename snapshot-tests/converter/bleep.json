@@ -94,14 +94,10 @@
       "dependsOn" : "importer-portable",
       "extends" : "template-common-main",
       "folder" : "./../../snapshot-tests-in/converter/sbt-converter",
-      "resources" : "./target/scala-${SCALA_BIN_VERSION}/sbt-1.0/resource_managed/main",
       "scala" : {
         "options" : "-Wconf:cat=unused-nowarn:s"
       },
-      "sources" : [
-        "./src/main/scala-sbt-1.0",
-        "./target/scala-${SCALA_BIN_VERSION}/sbt-1.0/src_managed/main"
-      ]
+      "sources" : "./src/main/scala-sbt-1.0"
     },
     "scalajs" : {
       "dependencies" : "org.scala-lang.modules::scala-xml:1.3.0",
@@ -112,6 +108,14 @@
       "extends" : "template-common-main",
       "folder" : "./../../snapshot-tests-in/converter/scalajs"
     },
+    "scripts" : {
+      "platform" : {
+        "name" : "jvm"
+      },
+      "scala" : {
+        "version" : "2.12.14"
+      }
+    },
     "ts" : {
       "dependencies" : "org.scala-lang.modules::scala-parser-combinators:1.1.2",
       "dependsOn" : [
@@ -121,6 +125,13 @@
       "extends" : "template-common-main",
       "folder" : "./../../snapshot-tests-in/converter/ts"
     }
+  },
+  "resolvers" : {
+    "type" : "ivy",
+    "uri" : "https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/"
+  },
+  "scripts" : {
+    "generate-resources" : "scripts/scripts.GenerateResources"
   },
   "templates" : {
     "template-common" : {

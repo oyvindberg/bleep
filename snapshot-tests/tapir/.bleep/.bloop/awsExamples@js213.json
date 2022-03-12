@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/src/main/scalajs",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/src/main/scalajs-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/target/js-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/awsExamples@js213"
     ],
     "dependencies": [
       "awsLambda@js213",
@@ -86,9 +84,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/awsExamples/js213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/target/js-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/examples/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/awsExamples@js213"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/scalatags@jvm213"
     ],
     "dependencies": [
       "core@jvm213"
@@ -44,8 +43,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalatags/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalatags/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/scalatags@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

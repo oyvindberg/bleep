@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/src/main/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/target/scala-3.1.1/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/jetty-client@jvm3"
     ],
     "dependencies": [
       "client@jvm3",
@@ -46,8 +45,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/jetty-client/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/target/scala-3.1.1/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/jetty-client@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

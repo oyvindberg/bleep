@@ -3,6 +3,7 @@
   "projects" : {
     "bleep" : {
       "dependencies" : [
+        "com.google.code.gson:gson:2.8.9",
         "com.lihaoyi::pprint:0.7.2",
         "com.monovore::decline:2.2.0",
         "org.graalvm.nativeimage:svm:22.0.0.2",
@@ -59,7 +60,10 @@
     "bleep-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.11",
       "dependsOn" : "bleep",
-      "extends" : "template-scala-2.13",
+      "extends" : [
+        "template-common",
+        "template-scala-2.13"
+      ],
       "folder" : "./bleep",
       "sbt-scope" : "test",
       "testFrameworks" : [
@@ -118,13 +122,18 @@
           ]
         },
         "jvm213" : {
-          "extends" : "template-scala-2.13"
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.13"
+          ]
         },
         "jvm3" : {
-          "extends" : "template-scala-3"
+          "extends" : [
+            "template-common-main",
+            "template-scala-3"
+          ]
         }
-      },
-      "extends" : "template-common-main"
+      }
     },
     "template-scala-2.12" : {
       "extends" : "template-common",

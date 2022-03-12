@@ -36,14 +36,12 @@ object SourceLayout {
   case object Java extends SourceLayout("java") {
     override def sources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
       JsonSet(
-        RelPath.force(s"src/$scope/java"),
-        srcManaged(scope)
+        RelPath.force(s"src/$scope/java")
       )
 
     override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
       JsonSet(
-        RelPath.force(s"src/$scope/resources"),
-        resourceManaged(scope)
+        RelPath.force(s"src/$scope/resources")
       )
   }
 
@@ -55,23 +53,14 @@ object SourceLayout {
             RelPath.force(s"src/$scope/scala"),
             RelPath.force(s"src/$scope/java"),
             RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
-            srcManaged(scalaVersion, scope),
-            srcManaged(scope)
+            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}")
           )
         case None => JsonSet.empty
       }
     override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
-      maybeScalaVersion match {
-        case Some(scalaVersion) =>
-          JsonSet(
-            resourceManaged(scalaVersion, scope),
-            resourceManaged(scope),
-            RelPath.force(s"src/$scope/resources")
-          )
-
-        case None => JsonSet.empty
-      }
+      JsonSet(
+        RelPath.force(s"src/$scope/resources")
+      )
   }
 
   case object CrossPure extends SourceLayout("cross-pure") {
@@ -86,22 +75,18 @@ object SourceLayout {
             RelPath.force(s"$dotPlatform/src/$scope/java"),
             RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
             RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"src/$scope/scala"),
-            srcManaged(scalaVersion, scope).prepended(dotPlatform),
-            srcManaged(scope).prepended(dotPlatform)
+            RelPath.force(s"src/$scope/scala")
           )
         case _ => JsonSet.empty
       }
 
     override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
-      (maybeScalaVersion, maybePlatformId) match {
-        case (Some(scalaVersion), Some(platformId)) =>
+      maybePlatformId match {
+        case Some(platformId) =>
           val dotPlatform = "." + platformId.value
           JsonSet(
             RelPath.force(s"$dotPlatform/src/$scope/resources"),
-            RelPath.force(s"src/$scope/resources"),
-            resourceManaged(scalaVersion, scope).prepended(dotPlatform),
-            resourceManaged(scope).prepended(dotPlatform)
+            RelPath.force(s"src/$scope/resources")
           )
         case _ => JsonSet.empty
       }
@@ -118,41 +103,19 @@ object SourceLayout {
             RelPath.force(s"${platformId.value}/src/$scope/java"),
             RelPath.force(s"shared/src/$scope/scala-${scalaVersion.binVersion}"),
             RelPath.force(s"shared/src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"shared/src/$scope/scala"),
-            srcManaged(scalaVersion, scope).prepended(platformId.value),
-            srcManaged(scope).prepended(platformId.value)
+            RelPath.force(s"shared/src/$scope/scala")
           )
         case _ => JsonSet.empty
       }
 
     override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
-      (maybeScalaVersion, maybePlatformId) match {
-        case (Some(scalaVersion), Some(platformId)) =>
+      maybePlatformId match {
+        case Some(platformId) =>
           JsonSet(
             RelPath.force(s"${platformId.value}/src/$scope/resources"),
-            RelPath.force(s"shared/src/$scope/resources"),
-            resourceManaged(scalaVersion, scope).prepended(platformId.value),
-            resourceManaged(scope).prepended(platformId.value)
+            RelPath.force(s"shared/src/$scope/resources")
           )
         case _ => JsonSet.empty
       }
   }
-
-  private def resourceManaged(scalaVersion: Versions.Scala, scope: String): RelPath = {
-    // seems like a surprising default in sbt
-    val v = if (scalaVersion.is3) scalaVersion.scalaVersion else scalaVersion.binVersion
-    RelPath.force(s"target/scala-$v/resource_managed/$scope")
-  }
-
-  private def resourceManaged(scope: String): RelPath =
-    RelPath.force(s"target/resource_managed/$scope")
-
-  private def srcManaged(scalaVersion: Versions.Scala, scope: String): RelPath = {
-    // seems like a surprising default in sbt
-    val v = if (scalaVersion.is3) scalaVersion.scalaVersion else scalaVersion.binVersion
-    RelPath.force(s"target/scala-$v/src_managed/$scope")
-  }
-
-  private def srcManaged(scope: String): RelPath =
-    RelPath.force(s"target/src_managed/$scope")
 }

@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/awsLambdaTests-test@jvm213"
     ],
     "dependencies": [
       "awsLambda@jvm213",
@@ -120,9 +118,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/awsLambdaTests-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda-tests/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/awsLambdaTests-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

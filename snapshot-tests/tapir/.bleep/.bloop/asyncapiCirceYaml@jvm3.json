@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/main/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/jvm-3/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/scala-3.1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/asyncapiCirceYaml@jvm3"
     ],
     "dependencies": [
       "apispecModel@jvm3",
@@ -41,9 +39,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiCirceYaml/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/jvm-3/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/target/scala-3.1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/asyncapiCirceYaml@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

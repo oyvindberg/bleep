@@ -9,11 +9,10 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/target/src_managed/main",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/src/main/scala-2",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/src/main/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/dsl@jvm213"
     ],
     "dependencies": [
       "core@jvm213"
@@ -44,9 +43,8 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/dsl/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/.jvm/target/scala-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/dsl/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/dsl@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

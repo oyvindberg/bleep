@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/node-serverless@js213"
     ],
     "dependencies": [
       "core@js213"
@@ -50,8 +49,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/node-serverless/js213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/node-serverless/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/node-serverless@js213"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/postgres-circe-test@jvm3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -63,8 +62,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/postgres-circe-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/target/scala-3.1.1/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-resources/postgres-circe-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

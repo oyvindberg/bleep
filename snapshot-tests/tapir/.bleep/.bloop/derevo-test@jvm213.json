@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/derevo-test@jvm213"
     ],
     "dependencies": [
       "core@jvm213",
@@ -56,9 +54,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/derevo-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/derevo/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/derevo-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

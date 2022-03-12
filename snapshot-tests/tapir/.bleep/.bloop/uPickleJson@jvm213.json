@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/src/main/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/target/jvm-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/uPickleJson@jvm213"
     ],
     "dependencies": [
       "core@jvm213"
@@ -39,9 +37,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/uPickleJson/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/target/jvm-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/upickle/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/uPickleJson@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

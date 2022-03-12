@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/src/main/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/target/jvm-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/tethysJson@jvm213"
     ],
     "dependencies": [
       "core@jvm213"
@@ -36,9 +34,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tethysJson/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/target/jvm-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/tethysJson@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

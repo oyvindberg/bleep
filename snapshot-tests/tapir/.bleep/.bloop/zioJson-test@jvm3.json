@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/test/scalajvm-3",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/jvm-3/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/scala-3.1.0/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/zioJson-test@jvm3"
     ],
     "dependencies": [
       "core@jvm3",
@@ -57,9 +55,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/zioJson-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/jvm-3/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/target/scala-3.1.0/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/zioJson-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",

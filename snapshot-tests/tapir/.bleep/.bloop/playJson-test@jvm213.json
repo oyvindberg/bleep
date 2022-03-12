@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/src/test/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/target/jvm-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/playJson-test@jvm213"
     ],
     "dependencies": [
       "core@jvm213",
@@ -59,9 +57,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/playJson-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/target/jvm-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/playjson/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/playJson-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

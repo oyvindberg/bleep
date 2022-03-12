@@ -9,11 +9,10 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/target/src_managed/test",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/shared/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/shared/src/test/scala-2",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/shared/src/test/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/shared/src/test/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/testing-test@js213"
     ],
     "dependencies": [
       "core@js213",
@@ -79,9 +78,8 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/testing-test/js213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/js/target/scala-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/shared/src/test/resources"
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/testing/shared/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/testing-test@js213"
     ],
     "scala": {
       "organization": "org.scala-lang",

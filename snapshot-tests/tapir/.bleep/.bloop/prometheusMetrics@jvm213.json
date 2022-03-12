@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/src/main/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/src/main/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/target/jvm-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/prometheusMetrics@jvm213"
     ],
     "dependencies": [
       "core@jvm213"
@@ -39,9 +37,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/prometheusMetrics/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/target/jvm-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/prometheusMetrics@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

@@ -54,26 +54,49 @@ object importBloopFilesFromSbt {
     in => cache.getOrElseUpdate(in, f(in))
   }
 
+  def projectsWithSourceFilesByName(bloopFiles: Iterable[Config.File]): Map[model.CrossProjectName, Config.File] = {
+    val hasSources: Path => Boolean =
+      cachedFn { path =>
+        def isSource(path: Path): Boolean =
+          path.toString match {
+            case p if p.endsWith(".scala") => true
+            case p if p.endsWith(".java")  => true
+            case _                         => false
+          }
+
+        Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent
+      }
+
+    bloopFiles
+      .filter(bloopFile => bloopFile.project.sources.exists(hasSources.apply))
+      .groupBy(file => projectName(file.project.name))
+      .flatMap {
+        case (name, Seq(file)) =>
+          List((model.CrossProjectName(name, None), file))
+        case (name, files) =>
+          files.map { file =>
+            val maybeCrossId = model.CrossId.defaultFrom(
+              maybeScalaVersion = file.project.scala.map(s => Versions.Scala(s.version)),
+              maybePlatformId = file.project.platform.flatMap(p => model.PlatformId.fromName(p.name))
+            )
+
+            (model.CrossProjectName(name, maybeCrossId), file)
+          }
+      }
+  }
+
   private case class Sources(
       sourceLayout: SourceLayout,
       sources: JsonSet[RelPath],
-      generatedSources: JsonSet[RelPath],
-      resources: JsonSet[RelPath],
-      generatedResources: JsonSet[RelPath]
+      resources: JsonSet[RelPath]
   )
 
-  def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths, bloopFiles: Iterable[Config.File]): ExplodedBuild = {
-
-    val hasSources: Path => Boolean = cachedFn { path =>
-      def isSource(path: Path): Boolean =
-        path.toString match {
-          case p if p.endsWith(".scala") => true
-          case p if p.endsWith(".java")  => true
-          case _                         => false
-        }
-
-      Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent
-    }
+  def apply(
+      logger: Logger,
+      sbtBuildDir: Path,
+      destinationPaths: BuildPaths,
+      crossBloopProjectFiles: Map[model.CrossProjectName, Config.File]
+  ): ExplodedBuild = {
 
     val pomReader: Path => Either[String, Project] =
       cachedFn { pomPath =>
@@ -86,23 +109,6 @@ object importBloopFilesFromSbt {
       cachedFn { case (scalaVersions, mod) =>
         ParsedDependency.of(logger, pomReader, scalaVersions, mod)
       }
-
-    val crossBloopProjectFiles: Map[model.CrossProjectName, Config.File] =
-      bloopFiles
-        .filter(bloopFile => bloopFile.project.sources.exists(hasSources.apply))
-        .groupBy(file => projectName(file.project.name))
-        .flatMap {
-          case (name, Seq(file)) =>
-            List((model.CrossProjectName(name, None), file))
-          case (name, files) =>
-            files.map { file =>
-              val maybeCrossId = model.CrossId.defaultFrom(
-                maybeScalaVersion = file.project.scala.map(s => Versions.Scala(s.version)),
-                maybePlatformId = file.project.platform.flatMap(p => model.PlatformId.fromName(p.name))
-              )
-              (model.CrossProjectName(name, maybeCrossId), file)
-            }
-        }
 
     val projectNames = crossBloopProjectFiles.keys.map(_.name).toSet
 
@@ -139,9 +145,10 @@ object importBloopFilesFromSbt {
       val scalaVersion: Option[Versions.Scala] =
         bloopProject.scala.map(s => Versions.Scala(s.version))
 
-      val originalTarget = internal.findOriginalTargetDir(logger, bloopProject)
+      val originalTarget = internal.findOriginalTargetDir.force(crossName, bloopProject)
 
-      val replacementsDirs = originalTarget.foldLeft(Replacements.paths(sbtBuildDir, directory))((acc, path) => acc ++ Replacements.targetDir(path))
+      val replacementsTarget = Replacements.targetDir(originalTarget)
+      val replacementsDirs = Replacements.paths(sbtBuildDir, directory) ++ replacementsTarget
       val replacementsVersions = Replacements.versions(scalaVersion, bloopProject.platform.map(_.name))
       val replacements = replacementsDirs ++ replacementsVersions
 
@@ -151,12 +158,16 @@ object importBloopFilesFromSbt {
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements))
 
-      val (sourceLayout, sources, resources) = {
-        val sourcesRelPaths: JsonSet[RelPath] =
-          JsonSet.fromIterable(bloopProject.sources.map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
+      val sources: Sources = {
+        val sourcesRelPaths = {
+          val sources = bloopProject.sources.filterNot(_.startsWith(originalTarget))
+          JsonSet.fromIterable(sources.map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
+        }
 
-        val resourcesRelPaths: JsonSet[RelPath] =
-          JsonSet.fromIterable(bloopProject.resources.getOrElse(Nil).map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
+        val resourcesRelPaths = {
+          val resources = bloopProject.resources.getOrElse(Nil).filterNot(_.startsWith(originalTarget))
+          JsonSet.fromIterable(resources.map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
+        }
 
         val maybePlatformId = configuredPlatform.flatMap(_.name)
 
@@ -169,17 +180,17 @@ object importBloopFilesFromSbt {
             (matching, -notMatching)
           }
 
-        val shortenedSources =
+        val shortenedSourcesRelPaths =
           sourcesRelPaths
             .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, Some(scope)))
             .map(replacementsVersions.templatize.relPath)
 
-        val shortenedResources =
+        val shortenedResourcesRelPaths =
           resourcesRelPaths
             .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, Some(scope)))
             .map(replacementsVersions.templatize.relPath)
 
-        (inferredSourceLayout, shortenedSources, shortenedResources)
+        Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
 
       val resolution = bloopProject.resolution
@@ -275,13 +286,13 @@ object importBloopFilesFromSbt {
         cross = JsonMap.empty,
         folder = folder,
         dependsOn = dependsOn,
-        sources = sources,
-        resources = resources,
+        sources = sources.sources,
+        resources = sources.resources,
         dependencies = JsonSet.fromIterable(dependencies),
         java = configuredJava,
         scala = configuredScala,
         platform = configuredPlatform,
-        `source-layout` = Some(sourceLayout),
+        `source-layout` = Some(sources.sourceLayout),
         `sbt-scope` = Some(scope),
         testFrameworks = testFrameworks
       )
@@ -391,9 +402,9 @@ object importBloopFilesFromSbt {
                 case Some(project) => project.dependencies
                 case None          =>
                   // slow path
+
                   val dep = Dependency(
-                    Module(Organization(mod.organization), ModuleName(mod.name))
-                      .withAttributes(if (isSbtPlugin) Dep.SbtPluginAttrs else Map.empty),
+                    Module(Organization(mod.organization), ModuleName(mod.name), if (isSbtPlugin) Dep.SbtPluginAttrs else Map.empty),
                     mod.version
                   )
 

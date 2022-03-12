@@ -1777,11 +1777,9 @@
         "template-common-main",
         "template-scala-2.12"
       ],
-      "resources" : "./target/${PLATFORM}-${SCALA_BIN_VERSION}/resource_managed/main",
       "sources" : [
         "./src/main/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/main/scala-${SCALA_EPOCH}.13-",
-        "./target/${PLATFORM}-${SCALA_BIN_VERSION}/src_managed/main"
+        "./src/main/scala-${SCALA_EPOCH}.13-"
       ]
     },
     "template-scala-2.12-test" : {
@@ -1789,11 +1787,9 @@
         "template-common-test",
         "template-scala-2.12"
       ],
-      "resources" : "./target/${PLATFORM}-${SCALA_BIN_VERSION}/resource_managed/test",
       "sources" : [
         "./src/test/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/test/scala-${SCALA_EPOCH}.13-",
-        "./target/${PLATFORM}-${SCALA_BIN_VERSION}/src_managed/test"
+        "./src/test/scala-${SCALA_EPOCH}.13-"
       ]
     },
     "template-scala-2.13" : {
@@ -1854,11 +1850,9 @@
         "template-common-main",
         "template-scala-2.13"
       ],
-      "resources" : "./target/${PLATFORM}-${SCALA_BIN_VERSION}/resource_managed/main",
       "sources" : [
         "./src/main/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/main/scala-${SCALA_BIN_VERSION}+",
-        "./target/${PLATFORM}-${SCALA_BIN_VERSION}/src_managed/main"
+        "./src/main/scala-${SCALA_BIN_VERSION}+"
       ]
     },
     "template-scala-2.13-test" : {
@@ -1866,11 +1860,9 @@
         "template-common-test",
         "template-scala-2.13"
       ],
-      "resources" : "./target/${PLATFORM}-${SCALA_BIN_VERSION}/resource_managed/test",
       "sources" : [
         "./src/test/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/test/scala-${SCALA_BIN_VERSION}+",
-        "./target/${PLATFORM}-${SCALA_BIN_VERSION}/src_managed/test"
+        "./src/test/scala-${SCALA_BIN_VERSION}+"
       ]
     },
     "template-scala-3" : {
@@ -1899,22 +1891,14 @@
         "template-common-main",
         "template-scala-3"
       ],
-      "resources" : "./target/${PLATFORM}-${SCALA_EPOCH}/resource_managed/main",
-      "sources" : [
-        "./src/main/scala${PLATFORM}-${SCALA_EPOCH}",
-        "./target/${PLATFORM}-${SCALA_EPOCH}/src_managed/main"
-      ]
+      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
     },
     "template-scala-3-test" : {
       "extends" : [
         "template-common-test",
         "template-scala-3"
       ],
-      "resources" : "./target/${PLATFORM}-${SCALA_EPOCH}/resource_managed/test",
-      "sources" : [
-        "./src/test/scala${PLATFORM}-${SCALA_EPOCH}",
-        "./target/${PLATFORM}-${SCALA_EPOCH}/src_managed/test"
-      ]
+      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     }
   }
 }

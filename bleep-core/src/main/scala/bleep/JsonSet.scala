@@ -20,7 +20,8 @@ case class JsonSet[T](values: SortedSet[T]) extends Function[T, Boolean] with Se
 
   def isEmpty = values.isEmpty
   def size = values.size
-  def ++(other: JsonSet[T]): JsonSet[T] = union(other)
+  def ++(other: JsonSet[T]): JsonSet[T] = JsonSet(values ++ other.values)
+  def +(other: T): JsonSet[T] = JsonSet(values + other)
   def filterNot(pred: T => Boolean): JsonSet[T] = new JsonSet[T](values.filterNot(pred))
   def map[U: Ordering](f: T => U): JsonSet[U] = new JsonSet[U](values.map(t => f(t)))
   def flatMap[U: Ordering](f: T => JsonSet[U]): JsonSet[U] = new JsonSet[U](values.flatMap(t => f(t).values))

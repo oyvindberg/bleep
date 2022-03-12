@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/src/test/scalajs",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/src/test/scalajs-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/target/js-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/newtype-test@js213"
     ],
     "dependencies": [
       "core@js213",
@@ -58,9 +56,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/newtype-test/js213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/target/js-2.13/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/newtype-test@js213"
     ],
     "scala": {
       "organization": "org.scala-lang",

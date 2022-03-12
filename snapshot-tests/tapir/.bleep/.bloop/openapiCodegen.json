@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scala-sbt-1.0",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scalajvm-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/target/jvm-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/openapiCodegen"
     ],
     "dependencies": [
       
@@ -120,9 +118,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/openapiCodegen/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/target/jvm-2.12/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/target/scala-2.12/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/openapiCodegen"
     ],
     "scala": {
       "organization": "org.scala-lang",

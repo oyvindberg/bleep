@@ -12,9 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/src/main/scalajs",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/src/main/scalajs-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/target/js-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/sttpClient@js213"
     ],
     "dependencies": [
       "core@js213"
@@ -40,9 +38,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/sttpClient/js213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/target/js-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/sttpClient@js213"
     ],
     "scala": {
       "organization": "org.scala-lang",

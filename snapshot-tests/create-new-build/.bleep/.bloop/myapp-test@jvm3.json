@@ -5,11 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/create-new-build",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-sources/myapp-test@jvm3",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/java",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala-3",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/target/scala-3.1.1/src_managed",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/target/src_managed"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala-3"
     ],
     "dependencies": [
       "myapp@jvm3"
@@ -41,9 +40,8 @@
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp-test/jvm3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/resources",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/target/resource_managed",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/target/scala-3.1.1/resource_managed"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-resources/myapp-test@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",

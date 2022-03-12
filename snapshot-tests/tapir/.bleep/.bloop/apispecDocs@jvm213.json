@@ -13,9 +13,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/src/main/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/src/main/scalajvm-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/target/jvm-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/target/scala-2.13/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/apispecDocs@jvm213"
     ],
     "dependencies": [
       "apispecModel@jvm213",
@@ -36,9 +34,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/apispecDocs/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/target/jvm-2.13/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/apispec-docs/target/scala-2.13/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/apispecDocs@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",

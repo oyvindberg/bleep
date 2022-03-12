@@ -10,8 +10,7 @@ import com.monovore.decline.Opts
 import io.circe.syntax._
 
 import java.nio.file.{Files, Path}
-import java.util.stream.Collectors
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters._
 
 object Import {
   case class Options(
@@ -45,7 +44,9 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
     }
 
     val bloopFiles = findGeneratedBloopFiles().map(readAndParseBloopFile)
-    val files = generateBuild(bloopFiles).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
+    val files = generateBuild(bloopFiles, hackDropBleepDependency = false).map { case (path, content) =>
+      (RelPath.relativeTo(destinationPaths.buildDir, path), content)
+    }
     FileUtils.sync(destinationPaths.buildDir, files, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = false)
 
     Right(())
@@ -72,15 +73,22 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
       .list(destinationPaths.bleepImportDir)
       .filter(Files.isDirectory(_))
       .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
-      .collect(Collectors.toList[Path])
+      .toList
       .asScala
 
-  def generateBuild(bloopFiles: Iterable[Config.File]): Map[Path, String] = {
-    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFiles)
+  /** @param hackDropBleepDependency
+    *   a bit of technical debt. For tests we cannot resolve the bleep dependency since it's not published anywhere. Let's get back to this
+    * @return
+    */
+  def generateBuild(bloopFiles: Iterable[Config.File], hackDropBleepDependency: Boolean): Map[Path, String] = {
+    val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
+      importBloopFilesFromSbt.projectsWithSourceFilesByName(bloopFiles)
+
+    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName)
     val normalizedBuild = normalizeBuild(build0)
     val build = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
 
-    // fail if we have done illegal rewrites during templating
+    // complain if we have done illegal rewrites during templating
     ExplodedBuild.diffProjects(Defaults.add(normalizedBuild), ExplodedBuild.of(build).dropTemplates) match {
       case empty if empty.isEmpty => ()
       case diffs =>
@@ -90,8 +98,51 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
 
     logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.value.size} projects")
 
-    Map(
-      destinationPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2
-    )
+    val generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]] =
+      findGeneratedFiles(bloopFilesByProjectName)
+
+    GeneratedFilesScript(generatedFiles) match {
+      case Some((className, scriptSource)) =>
+        // todo: find a project and use same scala config
+        val scalaVersion = normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(Versions.Scala3))
+
+        val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
+        val scriptsProject = model.Project(
+          `extends` = JsonList.empty,
+          cross = JsonMap.empty,
+          folder = None,
+          dependsOn = JsonSet.empty,
+          `source-layout` = None,
+          `sbt-scope` = None,
+          sources = JsonSet.empty,
+          resources = JsonSet.empty,
+          dependencies =
+            if (hackDropBleepDependency) JsonSet.empty
+            else JsonSet(Dep.Scala("no.arktekk", "bleep-tasks", constants.version)),
+          java = None,
+          scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty)),
+          platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),
+          testFrameworks = JsonSet.empty
+        )
+
+        val buildWithScript = build.copy(
+          projects = build.projects.updated(scriptProjectName.name, scriptsProject),
+          scripts = build.scripts.updated(model.ScriptName("generate-resources"), JsonList(List(model.ScriptDef(scriptProjectName, className))))
+        )
+
+        val scriptPath = destinationPaths.from(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"
+        logger
+          .withContext(scriptPath)
+          .warn("Created a makeshift script to copy generated resources from sbt directories. You'll need to edit this file and make it generate your files")
+
+        Map(
+          scriptPath -> scriptSource,
+          destinationPaths.bleepJsonFile -> buildWithScript.asJson.foldWith(ShortenAndSortJson).spaces2
+        )
+      case None =>
+        Map(
+          destinationPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2
+        )
+    }
   }
 }

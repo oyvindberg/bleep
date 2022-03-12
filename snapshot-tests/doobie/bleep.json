@@ -266,6 +266,14 @@
       "extends" : "template-cross-all-test",
       "folder" : "./../../snapshot-tests-in/doobie/modules/scalatest"
     },
+    "scripts" : {
+      "platform" : {
+        "name" : "jvm"
+      },
+      "scala" : {
+        "version" : "3.1.1"
+      }
+    },
     "specs2" : {
       "cross" : {
         "jvm212" : {
@@ -306,6 +314,9 @@
       "extends" : "template-cross-all-test",
       "folder" : "./../../snapshot-tests-in/doobie/modules/specs2"
     }
+  },
+  "scripts" : {
+    "generate-resources" : "scripts/scripts.GenerateResources"
   },
   "templates" : {
     "template-common" : {

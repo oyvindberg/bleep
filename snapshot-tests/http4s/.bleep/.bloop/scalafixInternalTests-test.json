@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/target/scala-2.13/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/scalafixInternalTests-test"
     ],
     "dependencies": [
       "scalafixInternalRules"
@@ -64,8 +63,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixInternalTests-test/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/target/scala-2.13/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/scalafixInternalTests-test"
     ],
     "scala": {
       "organization": "org.scala-lang",

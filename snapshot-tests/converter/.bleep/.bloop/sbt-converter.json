@@ -10,9 +10,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/src/main/scala-2.12",
       "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/src/main/scala-sbt-1.0",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/target/scala-2.12/sbt-1.0/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/target/scala-2.12/src_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/target/src_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/sbt-converter"
     ],
     "dependencies": [
       "core",
@@ -23,12 +21,6 @@
       "ts"
     ],
     "classpath": [
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer-portable/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/phases/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/ts/classes",
       "<COURSIER>/https/repo.scala-sbt.org/scalasbt/sbt-plugin-releases/org.portable-scala/sbt-platform-deps/scala_2.12/sbt_1.0/1.0.0/jars/sbt-platform-deps.jar",
       "<COURSIER>/https/repo.scala-sbt.org/scalasbt/sbt-plugin-releases/org.scala-js/sbt-scalajs/scala_2.12/sbt_1.0/1.3.0/jars/sbt-scalajs.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-scalajs-bundler_2.12_1.0/0.20.0/sbt-scalajs-bundler-0.20.0.jar",
@@ -178,15 +170,19 @@
       "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/awssdk/s3/2.15.28/s3-2.15.28.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/awssdk/sdk-core/2.15.28/sdk-core-2.15.28.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/awssdk/utils/2.15.28/utils-2.15.28.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/eventstream/eventstream/1.0.1/eventstream-1.0.1.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/eventstream/eventstream/1.0.1/eventstream-1.0.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer-portable/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/phases/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/ts/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/sbt-converter",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/sbt-converter/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/target/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/target/scala-2.12/resource_managed/main",
-      "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/target/scala-2.12/sbt-1.0/resource_managed/main"
+      "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-resources/sbt-converter"
     ],
     "scala": {
       "organization": "org.scala-lang",

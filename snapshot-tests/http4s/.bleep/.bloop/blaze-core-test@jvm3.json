@@ -8,8 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/scala-3",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/target/scala-3.1.1/src_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/target/src_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/blaze-core-test@jvm3"
     ],
     "dependencies": [
       "blaze-core@jvm3",
@@ -73,8 +72,7 @@
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/blaze-core-test/jvm3/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/target/resource_managed/test",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/target/scala-3.1.1/resource_managed/test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/blaze-core-test@jvm3"
     ],
     "scala": {
       "organization": "org.scala-lang",
