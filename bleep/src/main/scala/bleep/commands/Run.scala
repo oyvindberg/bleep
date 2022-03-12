@@ -11,12 +11,12 @@ import scala.jdk.CollectionConverters._
 case class Run(
     started: Started,
     project: model.CrossProjectName,
-    maybeOverridenMain: Option[String],
+    maybeOverriddenMain: Option[String],
     args: List[String]
 ) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BuildException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
-      maybeOverridenMain.orElse(started.build.projects(project).platform.flatMap(_.jvmMainClass))
+      maybeOverriddenMain.orElse(started.build.projects(project).platform.flatMap(_.jvmMainClass))
 
     val maybeMain: Either[BuildException, String] =
       maybeSpecifiedMain match {
