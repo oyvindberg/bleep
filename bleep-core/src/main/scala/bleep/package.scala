@@ -1,7 +1,9 @@
+import bleep.logging.Logger
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala
 
 import java.nio.file.{Files, Path}
+import scala.sys.process.ProcessLogger
 
 package object bleep {
   private[bleep] def assertUsed(anies: Any*): Unit = ((), anies)._1
@@ -46,11 +48,11 @@ package object bleep {
   private[bleep] def throwableMessages(th: Throwable): List[String] =
     th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)
 
-  def cli(cmd: String)(implicit cwd: Path): Unit =
-    sys.process.Process(cmd, cwd = Some(cwd.toFile)).! match {
+  def cli(cmd: String, logger: Logger)(implicit cwd: Path): Unit =
+    sys.process.Process(cmd, cwd = Some(cwd.toFile)).!<(ProcessLogger(logger.info(_), logger.warn(_))) match {
       case 0 => ()
       case n =>
-        System.err.println(s"FAILED: $cmd")
+        logger.error(s"FAILED: $cmd")
         System.exit(n)
     }
 
