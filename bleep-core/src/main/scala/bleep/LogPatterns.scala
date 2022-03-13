@@ -42,13 +42,13 @@ object LogPatterns {
     sw.toString
   }
 
-  case class interface(t0: Instant, scriptName: Option[String]) extends Pattern {
+  case class interface(t0: Instant, scriptName: Option[String], noColor: Boolean) extends Pattern {
     override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx): Str = {
       val Color = colorFor(m.logLevel)
       val Subtle = subtleColor
 
       val millis = Duration.between(t0, m.instant).toMillis
-      Str.join(
+      val joined = Str.join(
         List(
           emojiFor(m.logLevel),
           " ",
@@ -62,6 +62,7 @@ object LogPatterns {
           }
         )
       )
+      if (noColor) Str(joined.plainText) else joined
     }
   }
 

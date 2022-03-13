@@ -61,7 +61,7 @@ case class Import(buildPaths: BuildPaths, logger: Logger, options: Import.Option
       // only accepts relative paths
       val importDir = RelPath.relativeTo(buildPaths.buildDir, buildPaths.bleepImportDir)
       implicit val wd = buildPaths.buildDir
-      cli(s"""sbt 'set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop-$${scalaBinaryVersion.value}"' +bloopInstall""")
+      cli(s"""sbt 'set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop-$${scalaBinaryVersion.value}"' +bloopInstall""", logger)
     } finally Files.delete(tempAddBloopPlugin)
   }
 

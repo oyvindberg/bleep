@@ -250,9 +250,7 @@ object Main {
         val cwd = cwdFor(commonOpts)
 
         val stdout: TypedLogger[PrintStream] = {
-          val pattern =
-            if (commonOpts.noColor || System.console() == null) LogPatterns.logFile
-            else LogPatterns.interface(Instant.now, None)
+          val pattern = LogPatterns.interface(Instant.now, None, noColor = commonOpts.noColor)
           logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
         }
 

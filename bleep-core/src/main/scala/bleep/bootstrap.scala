@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 
 object bootstrap {
   def forScript(scriptName: String)(f: Started => Unit): Unit = {
-    val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName))).untyped
+    val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName), noColor = false)).untyped
 
     Prebootstrapped.find(Os.cwd, Mode.Normal, logger).flatMap(pre => from(pre, rewrites = Nil)) match {
       case Left(buildException) =>
