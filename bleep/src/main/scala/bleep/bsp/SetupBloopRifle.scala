@@ -20,7 +20,7 @@ object SetupBloopRifle {
       .left
       .map(msg => new BuildException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
-        resolver.forceGet(JsonSet(Dependency(mod, bloopVersion)), JsonSet(constants.MavenCentral)) match {
+        resolver.forceGet(JsonSet(Dependency(mod, bloopVersion))) match {
           case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
           case Right(res)          => Right(res.files)
         }

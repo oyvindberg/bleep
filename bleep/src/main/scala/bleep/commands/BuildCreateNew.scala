@@ -170,7 +170,7 @@ object BuildCreateNew {
     val explodedBuild = ExplodedBuild(
       templates = Map.empty,
       scripts = Map.empty,
-      resolvers = JsonSet.empty,
+      resolvers = JsonList.empty,
       projects = (mainProjects.toList ++ testProjects.toList).toMap,
       retainCrossTemplates = Map.empty
     )

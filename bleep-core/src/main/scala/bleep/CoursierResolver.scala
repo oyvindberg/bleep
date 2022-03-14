@@ -3,11 +3,13 @@ package bleep
 import bleep.internal.FileUtils
 import bleep.internal.codecs._
 import bleep.logging.Logger
+import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core._
 import coursier.error.{CoursierError, FetchError, ResolutionError}
+import coursier.ivy.IvyRepository
+import coursier.maven.MavenRepository
 import coursier.util.{Artifact, Task}
-import coursier.{Fetch, MavenRepository}
 import io.circe._
 import io.circe.syntax._
 
@@ -17,20 +19,26 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
 trait CoursierResolver {
-  def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result]
+  def apply(deps: JsonSet[Dependency]): Either[CoursierError, CoursierResolver.Result]
 }
 
 object CoursierResolver {
-  def apply(logger: Logger, downloadSources: Boolean, directories: UserPaths): CoursierResolver =
-    CoursierResolver(
-      logger,
-      downloadSources,
-      Some(directories.cacheDir),
-      CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, logger)
-    )
+  def apply(repos: List[model.Repository], logger: Logger, downloadSources: Boolean, directories: UserPaths): CoursierResolver = CoursierResolver(
+    repos,
+    logger,
+    downloadSources,
+    Some(directories.cacheDir),
+    CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, logger)
+  )
 
-  def apply(logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver = {
-    val direct = new Direct(downloadSources, authentications)
+  def apply(
+      repos: List[model.Repository],
+      logger: Logger,
+      downloadSources: Boolean,
+      cacheIn: Option[Path],
+      authentications: Authentications
+  ): CoursierResolver = {
+    val direct = new Direct(repos, downloadSources, authentications)
     cacheIn match {
       case Some(cacheIn) => new Cached(logger, direct, cacheIn)
       case None          => direct
@@ -136,16 +144,21 @@ object CoursierResolver {
     // format: on
   }
 
-  private class Direct(downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
+  private class Direct(val repos: List[model.Repository], downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
     val fileCache = FileCache[Task]()
 
-    override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result] = {
+    override def apply(deps: JsonSet[Dependency]): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
         val value = Fetch[Task](fileCache)
           .withDependencies(deps.values.toList)
-          .addRepositories(repositories.values.toList.map(uri => MavenRepository(uri.toString, resolverConfigs.configs.get(uri))): _*)
+          .addRepositories((repos ++ constants.DefaultRepos).map {
+            case bleep.model.Repository.Maven(uri) =>
+              MavenRepository(uri.toString).withAuthentication(resolverConfigs.configs.get(uri))
+            case bleep.model.Repository.Ivy(uri) =>
+              IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(resolverConfigs.configs.get(uri))
+          }: _*)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
         value
@@ -165,10 +178,10 @@ object CoursierResolver {
   }
 
   private class Cached(logger: Logger, underlying: Direct, in: Path) extends CoursierResolver {
-    override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result] =
-      if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps, repositories)
+    override def apply(deps: JsonSet[Dependency]): Either[CoursierError, CoursierResolver.Result] =
+      if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps)
       else {
-        val request = Cached.Request(underlying.fileCache.location, deps, repositories)
+        val request = Cached.Request(underlying.fileCache.location, deps, underlying.repos)
         val digest = request.asJson.noSpaces.hashCode // both `noSpaces` and `String.hashCode` should hopefully be stable
         val cachePath = in / s"$digest.json"
 
@@ -189,7 +202,7 @@ object CoursierResolver {
           case None =>
             val depNames = deps.map(_.module.name.value).values
             logger.withContext(cachePath).withContext(depNames).debug(s"coursier cache miss")
-            underlying(deps, repositories).map { result =>
+            underlying(deps).map { result =>
               FileUtils.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
               result
             }
@@ -198,16 +211,15 @@ object CoursierResolver {
   }
 
   private object Cached {
-    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repositories: JsonSet[URI])
+    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repos: List[model.Repository])
     object Request {
       import Result.codecDependency
-
       implicit val ordering: Ordering[Dependency] =
         Ordering.by(_.toString())
 
       implicit val codec: Codec[Request] =
-        Codec.forProduct3[Request, File, JsonSet[Dependency], JsonSet[URI]]("", "wanted", "repositories")(Request.apply)(x =>
-          (x.cacheLocation, x.wanted, x.repositories)
+        Codec.forProduct3[Request, File, JsonSet[Dependency], List[model.Repository]]("", "wanted", "repos")(Request.apply)(x =>
+          (x.cacheLocation, x.wanted, x.repos)
         )
     }
 

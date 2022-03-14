@@ -56,8 +56,10 @@ object Dep {
     val optional: Boolean = false
     val transitive: Boolean = true
     val fullCrossVersion: Boolean = false
-    val withPlatformSuffix: Boolean = false
+    val isSbtPlugin: Boolean = false
   }
+
+  val SbtPluginAttrs: Map[String, String] = Map("sbtVersion" -> "1.0", "scalaVersion" -> "2.12")
 
   final case class JavaDependency(
       organization: Organization,
@@ -68,7 +70,8 @@ object Dep {
       exclusions: List[JavaOrScalaModule] = defaults.exclusions,
       publication: Publication = defaults.publication,
       optional: Boolean = defaults.optional,
-      transitive: Boolean = defaults.transitive
+      transitive: Boolean = defaults.transitive,
+      isSbtPlugin: Boolean = defaults.isSbtPlugin
   ) extends Dep {
     def isSimple: Boolean =
       attributes == defaults.attributes &&
@@ -76,15 +79,17 @@ object Dep {
         exclusions == defaults.exclusions &&
         publication == defaults.publication &&
         optional == defaults.optional &&
-        transitive == defaults.transitive
+        transitive == defaults.transitive &&
+        isSbtPlugin == defaults.isSbtPlugin
 
     val repr: String =
       organization.value + ":" + moduleName.value + ":" + version
 
     def dependency(versions: ScalaVersions): Either[String, Dependency] =
       Dep.translatedExclusions(exclusions, versions).map { exclusions =>
+        val attrs = if (isSbtPlugin) Dep.SbtPluginAttrs ++ attributes else attributes
         new Dependency(
-          module = new Module(organization, moduleName, attributes),
+          module = new Module(organization, moduleName, attrs),
           version = version,
           configuration = configuration,
           exclusions = exclusions,
@@ -179,6 +184,7 @@ object Dep {
               publicationClassifier <- publicationC.get[Option[Classifier]]("classifier")
               optional <- c.get[Option[Boolean]]("optional")
               transitive <- c.get[Option[Boolean]]("transitive")
+              isSbtPlugin <- c.get[Option[Boolean]]("isSbtPlugin")
             } yield Dep.JavaDependency(
               organization = dependency.organization,
               moduleName = dependency.moduleName,
@@ -193,7 +199,8 @@ object Dep {
                 classifier = publicationClassifier.getOrElse(dependency.publication.classifier)
               ),
               optional = optional.getOrElse(dependency.optional),
-              transitive = transitive.getOrElse(dependency.transitive)
+              transitive = transitive.getOrElse(dependency.transitive),
+              isSbtPlugin = isSbtPlugin.getOrElse(dependency.isSbtPlugin)
             )
 
           case dependency: Dep.ScalaDependency =>
@@ -257,7 +264,8 @@ object Dep {
             "exclusions" := (if (x.exclusions == Dep.defaults.exclusions) Json.Null else x.exclusions.asJson),
             "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
             "optional" := (if (x.optional == Dep.defaults.optional) Json.Null else x.optional.asJson),
-            "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson)
+            "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson),
+            "isSbtPlugin" := (if (x.isSbtPlugin == Dep.defaults.isSbtPlugin) Json.Null else x.isSbtPlugin.asJson)
           )
           .foldWith(ShortenAndSortJson)
       case x: ScalaDependency =>

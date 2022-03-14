@@ -6,7 +6,7 @@ import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
 import java.net.Socket
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
 import scala.build.blooprifle.internal.Operations
 import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BloopServerRuntimeInfo}
@@ -31,16 +31,21 @@ object BspImpl {
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
 
+      val lazyResolver = Lazy {
+        val resolvers = model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile)) match {
+          case Left(th) =>
+            pre.logger.warn("Cannot setup custom resolvers since build is broken", th)
+            Nil
+          case Right(build) => build.resolvers.values
+        }
+        CoursierResolver(resolvers, pre.logger, downloadSources = false, pre.userPaths)
+      }
+
       val bloopRifleConfig =
         CompileServerConfig.load(pre.userPaths) match {
           case Left(th) => throw th
           case Right(config) =>
-            SetupBloopRifle(
-              JavaCmd.javacommand,
-              pre.buildPaths,
-              Lazy(CoursierResolver(pre.logger, downloadSources = false, pre.userPaths)),
-              config.asAddress(pre.userPaths)
-            )
+            SetupBloopRifle(JavaCmd.javacommand, pre.buildPaths, lazyResolver, config.asAddress(pre.userPaths))
         }
 
       val bloopRifleLogger = new BloopLogger(pre.logger)

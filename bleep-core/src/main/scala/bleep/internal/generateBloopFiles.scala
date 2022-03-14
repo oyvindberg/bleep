@@ -124,7 +124,7 @@ object generateBloopFiles {
           }
         }
 
-      resolver(concreteDeps, build.resolvers) match {
+      resolver(concreteDeps) match {
         case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
         case Right(value)        => value
       }
@@ -169,7 +169,7 @@ object generateBloopFiles {
           scalaVersion.compiler.forceDependency(ScalaVersions.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
-          resolver(JsonSet(scalaCompiler), build.resolvers) match {
+          resolver(JsonSet(scalaCompiler)) match {
             case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
             case Right(res)          => res.jars
           }
@@ -196,7 +196,7 @@ object generateBloopFiles {
             specified.map(_.forceDependency(ScalaVersions.Jvm(scalaVersion)))
 
           val jars: Seq[Path] =
-            resolver(deps, build.resolvers) match {
+            resolver(deps) match {
               case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
               case Right(res) =>
                 res.fullDetailedArtifacts.collect {

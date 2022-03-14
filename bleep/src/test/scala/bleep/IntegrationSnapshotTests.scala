@@ -19,11 +19,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
     if (isCi) {
       // the github action we use in CI caches coursier directory. let's piggyback on that for now
       val cachePath = Some(CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache")
-      CoursierResolver(logger, downloadSources = false, cacheIn = cachePath, Authentications.empty)
+      CoursierResolver(Nil, logger, downloadSources = false, cacheIn = cachePath, Authentications.empty)
     } else {
       // if not, might as well use normal cache location
       val directories = UserPaths.fromAppDirs
-      CoursierResolver(logger, downloadSources = false, cacheIn = Some(directories.cacheDir), Authentications.empty)
+      CoursierResolver(Nil, logger, downloadSources = false, cacheIn = Some(directories.cacheDir), Authentications.empty)
     }
 
   case class TestPaths(project: String) extends BuildPaths {
@@ -48,6 +48,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
   test("http4s") {
     testIn(TestPaths("http4s"))
+  }
+
+  test("converter") {
+    testIn(TestPaths("converter"))
   }
 
   def testIn(paths: TestPaths): Assertion = {
@@ -84,8 +88,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
         // if not all artifacts exist locally then resolve everything.
         // This is a common case, since we generate bloop files on one computer and then share them
         if (!preResolvedModules.flatMap(_.artifacts.map(_.path)).forall(FileUtils.exists)) {
-          val modulesAsDeps = preResolvedModules.map { case Config.Module(org, name, version, maybeConfig, _) =>
-            Dependency(Module(Organization(org), ModuleName(name), Map.empty), version)
+          val modulesAsDeps = preResolvedModules.map { case mod @ Config.Module(org, name, version, maybeConfig, _) =>
+            val attrs: Map[String, String] = if (importBloopFilesFromSbt.checkIsSbtPlugin(mod)) Dep.SbtPluginAttrs else Map.empty
+
+            Dependency(Module(Organization(org), ModuleName(name), attrs), version)
               .withConfiguration(maybeConfig match {
                 case Some(value) => Configuration(value)
                 case None        => Configuration.empty
@@ -94,7 +100,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
           logger.warn(s"resolving dependencies for ${importedBloopFile.project.name}")
 
-          resolver(JsonSet.fromIterable(modulesAsDeps), JsonSet.empty) match {
+          resolver(JsonSet.fromIterable(modulesAsDeps)) match {
             case Left(coursierError) => throw coursierError
             case Right(_)            => ()
           }

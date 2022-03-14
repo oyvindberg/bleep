@@ -16,3 +16,6 @@
 [submodule "snapshot-tests-in/http4s"]
 	path = snapshot-tests-in/http4s
 	url = git@github.com:http4s/http4s.git
+[submodule "snapshot-tests-in/converter"]
+	path = snapshot-tests-in/converter
+	url = git@github.com:ScalablyTyped/Converter.git

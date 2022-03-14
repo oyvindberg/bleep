@@ -34,6 +34,7 @@ object bootstrap {
       model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile)) match {
         case Left(th) => Left(new BuildException.InvalidJson(pre.buildPaths.bleepJsonFile, th))
         case Right(build) =>
+          val lazyResolver = Lazy(CoursierResolver(build.resolvers.values, pre.logger, downloadSources = true, pre.userPaths))
           val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 
           val activeProjects: List[model.CrossProjectName] =
@@ -44,11 +45,11 @@ object bootstrap {
             }.toList
 
           val bloopFiles: Map[model.CrossProjectName, Lazy[Config.File]] =
-            syncBloopFiles(pre.logger, pre.buildPaths, pre.lazyResolver, explodedBuild)
+            syncBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild)
 
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
-          Right(Started(pre.buildPaths, rewrites, build, explodedBuild, bloopFiles, activeProjects, pre.lazyResolver, pre.userPaths, pre.logger))
+          Right(Started(pre.buildPaths, rewrites, build, explodedBuild, bloopFiles, activeProjects, lazyResolver, pre.userPaths, pre.logger))
       }
     catch {
       case x: BuildException => Left(x)
