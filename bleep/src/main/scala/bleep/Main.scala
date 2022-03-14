@@ -37,7 +37,7 @@ object Main {
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
       setupIdeCmd(buildPaths, logger, None),
       importCmd(buildPaths, logger),
-      compileServerCmd(logger, userPaths, buildPaths, Lazy(CoursierResolver.apply(logger, downloadSources = false, directories = userPaths)))
+      compileServerCmd(logger, userPaths, buildPaths, Lazy(CoursierResolver(Nil, logger, downloadSources = false, directories = userPaths)))
     ).foldK
   }
 

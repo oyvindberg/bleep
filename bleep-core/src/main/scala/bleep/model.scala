@@ -6,6 +6,7 @@ import bleep.logging.Formatter
 import bloop.config.Config
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.syntax._
 
 import java.net.URI
 
@@ -406,6 +407,8 @@ object model {
         case Some(crossId) => s"${name.value}@${crossId.value}"
         case None          => name.value
       }
+
+    override def toString: String = value
   }
 
   object CrossProjectName {
@@ -553,11 +556,39 @@ object model {
       Encoder.instance(sd => Json.fromString(s"${sd.project.value}/${sd.main}"))
   }
 
+  sealed trait Repository
+  object Repository {
+    case class Maven(uri: URI) extends Repository
+    case class Ivy(uri: URI) extends Repository
+
+    implicit val repoEncoder: Encoder[model.Repository] =
+      Encoder.instance {
+        case Repository.Maven(uri) => uri.asJson
+        case Repository.Ivy(uri)   => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
+      }
+
+    implicit val repoDecoder: Decoder[Repository] = {
+      val simple: Decoder[Repository] =
+        Decoder[URI].map(model.Repository.Maven.apply)
+
+      val full: Decoder[Repository] =
+        Decoder.instance { c =>
+          c.downField("type").as[Option[String]].flatMap {
+            case Some("ivy")   => c.downField("uri").as[URI].map(Ivy.apply)
+            case Some("maven") => c.downField("uri").as[URI].map(Maven.apply)
+            case _             => Left(DecodingFailure("expected 'type'", c.history))
+          }
+        }
+
+      simple.or(full)
+    }
+  }
+
   case class Build(
       $schema: String,
       templates: JsonMap[TemplateId, Project],
       scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
-      resolvers: JsonSet[URI],
+      resolvers: JsonList[Repository],
       projects: JsonMap[ProjectName, Project]
   )
 
@@ -580,7 +611,7 @@ object model {
           templates <- c.downField("templates").as[JsonMap[TemplateId, Project]](JsonMap.decodes(TemplateId.keyDecodes, projectDecoder))
           projects <- c.downField("projects").as[JsonMap[ProjectName, Project]](JsonMap.decodes(ProjectName.keyDecodes, projectDecoder))
           scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
-          resolvers <- c.downField("resolvers").as[JsonSet[URI]]
+          resolvers <- c.downField("resolvers").as[JsonList[Repository]]
         } yield Build(schema, templates, scripts, resolvers, projects)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder

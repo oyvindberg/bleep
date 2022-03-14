@@ -2,17 +2,16 @@ package bleep
 
 import bleep.internal.Functions.stripExtends
 import bleep.internal.{rewriteDependentData, ShortenAndSortJson}
-import bleep.model.CrossProjectName
+import bleep.model.{CrossProjectName, Repository}
 import io.circe.syntax._
 
-import java.net.URI
 import scala.collection.immutable.SortedMap
 import scala.collection.{immutable, SortedSet}
 
 case class ExplodedBuild(
     templates: Map[model.TemplateId, model.Project],
     scripts: Map[model.ScriptName, JsonList[model.ScriptDef]],
-    resolvers: JsonSet[URI],
+    resolvers: JsonList[Repository],
     projects: Map[model.CrossProjectName, model.Project],
     retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]]
 ) {

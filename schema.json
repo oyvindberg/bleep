@@ -149,6 +149,9 @@
         },
         "transitive": {
           "type": "boolean"
+        },
+        "isSbtPlugin": {
+          "type": "boolean"
         }
       },
       "required": [

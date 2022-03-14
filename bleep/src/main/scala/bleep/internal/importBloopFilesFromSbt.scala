@@ -5,8 +5,10 @@ import bleep.logging.Logger
 import bloop.config.Config
 import coursier.core.compatibility.xmlParseSax
 import coursier.core.{Classifier, Configuration, Dependency, ModuleName, Organization, Project, Publication}
+import coursier.error.ResolutionError
+import coursier.ivy.IvyRepository
 import coursier.maven.PomParser
-import coursier.{Module, Resolve}
+import coursier.{MavenRepository, Module, Resolve}
 
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
@@ -82,7 +84,7 @@ object importBloopFilesFromSbt {
 
     val parsedDependency: ((ScalaVersions, Config.Module)) => ParsedDependency =
       cachedFn { case (scalaVersions, mod) =>
-        ParsedDependency.of(pomReader, scalaVersions, mod)
+        ParsedDependency.of(logger, pomReader, scalaVersions, mod)
       }
 
     val crossBloopProjectFiles: Map[model.CrossProjectName, Config.File] =
@@ -257,7 +259,7 @@ object importBloopFilesFromSbt {
             case ScalaVersions.Java =>
               throw new BuildException.Text(crossName, "Need a scala version to import scala project")
             case withScala: ScalaVersions.WithScala =>
-              translateScala(withScala, pomReader, replacementsDirs, replacementsVersions, configuredPlatform)(bloopScala)
+              translateScala(logger, withScala, pomReader, replacementsDirs, replacementsVersions, configuredPlatform)(bloopScala)
           }
         }
 
@@ -282,24 +284,42 @@ object importBloopFilesFromSbt {
       )
     }
 
-    val buildResolvers: JsonSet[URI] =
-      JsonSet.fromIterable(
-        crossBloopProjectFiles
-          .flatMap { case (projectName, bloopFile) =>
-            bloopFile.project.resolution
-              .getOrElse(sys.error(s"Expected bloop file for ${projectName.value} to have resolution"))
-              .modules
-              .flatMap { mod =>
-                val initialOrg = Paths.get(mod.organization.split("\\.").head)
-                val uriFragments = mod.artifacts.head.path.iterator().asScala.dropWhile(_ != Paths.get("https")).drop(1).takeWhile(_ != initialOrg)
-                if (uriFragments.isEmpty) None
-                else Some(URI.create(uriFragments.map(_.toString).mkString("https://", "/", "")))
-              }
-          }
-          .filterNot(_ == constants.MavenCentral)
+    val buildResolvers: JsonList[model.Repository] =
+      JsonList(
+        crossBloopProjectFiles.toArray
+          .flatMap { case (_, bloopFile) => bloopFile.project.resolution }
+          .flatMap(_.modules)
+          .distinct
+          .flatMap(resolverUsedFor)
+          .filterNot(constants.DefaultRepos.contains)
+          .distinct
+          .toList
       )
 
     ExplodedBuild(Map.empty, Map.empty, resolvers = buildResolvers, projects, Map.empty)
+  }
+
+  def resolverUsedFor(mod: Config.Module): Option[model.Repository] = {
+    val https = Path.of("https")
+    val jars = Path.of("jars")
+    val allAfterHttps = mod.artifacts.head.path
+      .iterator()
+      .asScala
+      .toList
+      .dropWhile(_ != https)
+      .drop(1)
+
+    if (allAfterHttps.isEmpty) None
+    // ivy pattern
+    else if (allAfterHttps.contains(jars)) {
+      val fullOrg = Path.of(mod.organization)
+      val uri = URI.create(allAfterHttps.takeWhile(_ != fullOrg).map(_.toString).mkString("https://", "/", "/"))
+      Some(model.Repository.Ivy(uri))
+    } else {
+      val initialOrg = Path.of(mod.organization.split("\\.").head)
+      val uri = URI.create(allAfterHttps.takeWhile(_ != initialOrg).map(_.toString).mkString("https://", "/", ""))
+      Some(model.Repository.Maven(uri))
+    }
   }
 
   case class ParsedDependency(dep: Dep, directDeps: Seq[(Configuration, Dependency)])
@@ -318,7 +338,7 @@ object importBloopFilesFromSbt {
       Variant(needsScala = true, fullCrossVersion = true, forceJvm = true, for3Use213 = false, for213Use3 = false)
     )
 
-    def of(pomReader: Path => Either[String, Project], versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
+    def of(logger: Logger, pomReader: Path => Either[String, Project], versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
       val variantBySuffix: List[(String, Variant)] =
         ScalaVariants
           .flatMap { case v @ Variant(needsScala, needsFullCrossVersion, forceJvm, for3Use213, for213use3) =>
@@ -328,14 +348,21 @@ object importBloopFilesFromSbt {
 
       val chosen = variantBySuffix.collectFirst { case (suffix, variant) if mod.name.endsWith(suffix) => (mod.name.dropRight(suffix.length), variant) }
 
+      val isSbtPlugin: Boolean = checkIsSbtPlugin(mod)
+
       val bleepDep: Dep = chosen match {
         case None =>
-          Dep.Java(mod.organization, mod.name, mod.version)
+          Dep.JavaDependency(
+            organization = Organization(mod.organization),
+            moduleName = ModuleName(mod.name),
+            version = mod.version,
+            isSbtPlugin = isSbtPlugin
+          )
         case Some((modName, scalaVariant)) =>
           Dep.ScalaDependency(
-            Organization(mod.organization),
-            ModuleName(modName),
-            mod.version,
+            organization = Organization(mod.organization),
+            baseModuleName = ModuleName(modName),
+            version = mod.version,
             fullCrossVersion = scalaVariant.fullCrossVersion,
             forceJvm = scalaVariant.forceJvm,
             for3Use213 = scalaVariant.for3Use213,
@@ -361,10 +388,27 @@ object importBloopFilesFromSbt {
                 case Some(project) => project.dependencies
                 case None          =>
                   // slow path
-                  val dep = Dependency(Module(Organization(mod.organization), ModuleName(mod.name)), mod.version)
-                  val resolved = Resolve().addDependencies(dep).run()
-                  resolved.dependencies.toList.collect {
-                    case d if d.moduleVersion != dep.moduleVersion => (d.configuration, d)
+                  val dep = Dependency(
+                    Module(Organization(mod.organization), ModuleName(mod.name))
+                      .withAttributes(if (isSbtPlugin) Dep.SbtPluginAttrs else Map.empty),
+                    mod.version
+                  )
+
+                  // todo: authentication
+                  val repo = resolverUsedFor(mod).toList.map {
+                    case model.Repository.Maven(uri) => MavenRepository(uri.toString)
+                    case model.Repository.Ivy(uri)   => IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default)
+                  }
+
+                  try {
+                    val resolved = Resolve().addRepositories(repo: _*).addDependencies(dep).run()
+                    resolved.dependencies.toList.collect {
+                      case d if d.moduleVersion != dep.moduleVersion => (d.configuration, d)
+                    }
+                  } catch {
+                    case x: ResolutionError =>
+                      logger.warn(s"Couldn't resolve $mod in order to minimize dependencies", x)
+                      Nil
                   }
               }
           }
@@ -372,6 +416,17 @@ object importBloopFilesFromSbt {
 
       ParsedDependency(bleepDep, dependencies)
     }
+  }
+
+  def checkIsSbtPlugin(mod: Config.Module): Boolean = {
+    def isSbtPluginPath(path: Path) =
+      // sbt plugin published via maven
+      if (path.toString.contains("_2.12_1.0")) true
+      // and via ivy
+      else if (path.iterator().asScala.contains(Path.of("sbt_1.0"))) true
+      else false
+
+    mod.artifacts.exists(a => isSbtPluginPath(a.path))
   }
 
   private def findPomPath(jar: Path) = {
@@ -417,6 +472,7 @@ object importBloopFilesFromSbt {
     }
 
   def translateScala(
+      logger: Logger,
       versions: ScalaVersions.WithScala,
       pomReader: Path => Either[String, Project],
       replacementsDirs: Replacements,
@@ -435,7 +491,7 @@ object importBloopFilesFromSbt {
       val pomPath = findPomPath(jarPath)
       val Right(pom) = pomReader(pomPath)
 
-      ParsedDependency.of(pomReader, versions.asJvm, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
+      ParsedDependency.of(logger, pomReader, versions.asJvm, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
     val filteredCompilerPlugins =
