@@ -3,11 +3,14 @@ package internal
 
 import bleep.logging.Logger
 import bloop.config.Config
+import coursier.core.compatibility.xmlParseSax
 import coursier.core.{Classifier, Configuration, Dependency, ModuleName, Organization, Project, Publication}
+import coursier.maven.PomParser
 import coursier.{Module, Resolve}
 
 import java.net.URI
 import java.nio.file.{Files, Path, Paths}
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 object importBloopFilesFromSbt {
@@ -44,25 +47,43 @@ object importBloopFilesFromSbt {
     model.ProjectName(if (isTest) s"$ret-test" else ret)
   }
 
+  def cachedFn[In, Out](f: In => Out): (In => Out) = {
+    val cache = mutable.Map.empty[In, Out]
+    in => cache.getOrElseUpdate(in, f(in))
+  }
+
+  private case class Sources(
+      sourceLayout: SourceLayout,
+      sources: JsonSet[RelPath],
+      generatedSources: JsonSet[RelPath],
+      resources: JsonSet[RelPath],
+      generatedResources: JsonSet[RelPath]
+  )
+
   def apply(logger: Logger, buildPaths: BuildPaths, bloopFiles: Iterable[Config.File]): ExplodedBuild = {
 
-    // try to do minimal amount of IO
-    val hasSources: Map[Path, Lazy[Boolean]] =
-      bloopFiles
-        .flatMap(x => x.project.sources)
-        .toArray
-        .distinct
-        .map { path =>
-          def isSource(path: Path): Boolean =
-            path.toString match {
-              case p if p.endsWith(".scala") => true
-              case p if p.endsWith(".java")  => true
-              case _                         => false
-            }
-          val hasSources = Lazy(Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent)
-          (path, hasSources)
+    val hasSources: Path => Boolean = cachedFn { path =>
+      def isSource(path: Path): Boolean =
+        path.toString match {
+          case p if p.endsWith(".scala") => true
+          case p if p.endsWith(".java")  => true
+          case _                         => false
         }
-        .toMap
+
+      Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent
+    }
+
+    val pomReader: Path => Either[String, Project] =
+      cachedFn { pomPath =>
+        if (pomPath.toFile.exists()) {
+          xmlParseSax(Files.readString(pomPath), new PomParser).project
+        } else Left(s"$pomPath doesn't exist")
+      }
+
+    val parsedDependency: ((ScalaVersions, Config.Module)) => ParsedDependency =
+      cachedFn { case (scalaVersions, mod) =>
+        ParsedDependency.of(pomReader, scalaVersions, mod)
+      }
 
     val crossBloopProjectFiles: Map[model.CrossProjectName, Config.File] =
       bloopFiles
@@ -76,9 +97,7 @@ object importBloopFilesFromSbt {
           (model.CrossProjectName(name, maybeCrossId), file)
         }
         .toMap
-        .filter { case (_, bloopFile) => bloopFile.project.sources.exists(hasSources(_).forceGet) }
-
-    val pomReader = CachingPomReader()
+        .filter { case (_, bloopFile) => bloopFile.project.sources.exists(hasSources.apply) }
 
     val projectNames = crossBloopProjectFiles.keys.map(_.name).toSet
 
@@ -169,7 +188,7 @@ object importBloopFilesFromSbt {
 
       val dependencies: List[Dep] = {
         val parsed: List[(Config.Module, ParsedDependency)] =
-          resolution.modules.map(bloopMod => (bloopMod, ParsedDependency.of(pomReader, versions, bloopMod)))
+          resolution.modules.map(bloopMod => (bloopMod, parsedDependency((versions, bloopMod))))
 
         val allDepsWithVersions: Map[Module, List[String]] =
           parsed
@@ -299,7 +318,7 @@ object importBloopFilesFromSbt {
       Variant(needsScala = true, fullCrossVersion = true, forceJvm = true, for3Use213 = false, for213Use3 = false)
     )
 
-    def of(pomReader: CachingPomReader, versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
+    def of(pomReader: Path => Either[String, Project], versions: ScalaVersions, mod: Config.Module): ParsedDependency = {
       val variantBySuffix: List[(String, Variant)] =
         ScalaVariants
           .flatMap { case v @ Variant(needsScala, needsFullCrossVersion, forceJvm, for3Use213, for213use3) =>
@@ -399,7 +418,7 @@ object importBloopFilesFromSbt {
 
   def translateScala(
       versions: ScalaVersions.WithScala,
-      pomReader: CachingPomReader,
+      pomReader: Path => Either[String, Project],
       replacementsDirs: Replacements,
       replacementsVersions: Replacements,
       platform: Option[model.Platform]
@@ -415,6 +434,7 @@ object importBloopFilesFromSbt {
       val jarPath = Paths.get(pluginStr.dropWhile(_ != '/'))
       val pomPath = findPomPath(jarPath)
       val Right(pom) = pomReader(pomPath)
+
       ParsedDependency.of(pomReader, versions.asJvm, Config.Module(pom.module.organization.value, pom.module.name.value, pom.version, None, Nil)).dep
     }
 
