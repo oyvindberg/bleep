@@ -2,7 +2,6 @@ package bleep
 
 import bleep.internal.Functions.stripExtends
 import bleep.internal.{rewriteDependentData, ShortenAndSortJson}
-import bleep.model.{CrossProjectName, Repository}
 import io.circe.syntax._
 
 import scala.collection.immutable.SortedMap
@@ -11,7 +10,7 @@ import scala.collection.{immutable, SortedSet}
 case class ExplodedBuild(
     templates: Map[model.TemplateId, model.Project],
     scripts: Map[model.ScriptName, JsonList[model.ScriptDef]],
-    resolvers: JsonList[Repository],
+    resolvers: JsonList[model.Repository],
     projects: Map[model.CrossProjectName, model.Project],
     retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]]
 ) {
@@ -23,19 +22,19 @@ case class ExplodedBuild(
     )
 
   // in json we just specify projectName, but in bleep we need to know which cross version to pick
-  val resolvedDependsOn: Map[CrossProjectName, SortedSet[CrossProjectName]] = {
+  val resolvedDependsOn: Map[model.CrossProjectName, SortedSet[model.CrossProjectName]] = {
     val byName: Map[model.ProjectName, immutable.Iterable[model.CrossProjectName]] =
       projects.groupMap(_._1.name)(_._1)
 
     projects.map { case (crossProjectName, p) =>
-      val resolvedDependsOn: SortedSet[CrossProjectName] =
+      val resolvedDependsOn: SortedSet[model.CrossProjectName] =
         p.dependsOn.values.map { depName =>
           byName(depName) match {
-            case Seq(unambiguous: CrossProjectName) => unambiguous
+            case Seq(unambiguous: model.CrossProjectName) => unambiguous
             case depCrossVersions =>
               val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 
-              def sameScalaAndPlatform: Option[CrossProjectName] =
+              def sameScalaAndPlatform: Option[model.CrossProjectName] =
                 depCrossVersions.find { crossName =>
                   val depCross = projects(crossName)
                   depCross.scala.flatMap(_.version) == p.scala.flatMap(_.version) &&
@@ -74,7 +73,7 @@ case class ExplodedBuild(
 }
 
 object ExplodedBuild {
-  def diffProjects(before: ExplodedBuild, after: ExplodedBuild): SortedMap[CrossProjectName, String] = {
+  def diffProjects(before: ExplodedBuild, after: ExplodedBuild): SortedMap[model.CrossProjectName, String] = {
     val allProjects = before.projects.keySet ++ after.projects.keySet
     val diffs = SortedMap.newBuilder[model.CrossProjectName, String]
     allProjects.foreach { projectName =>

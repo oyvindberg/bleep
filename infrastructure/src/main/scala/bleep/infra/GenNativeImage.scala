@@ -1,13 +1,12 @@
 package bleep
 package infra
 
-import bleep.model.{CrossProjectName, ProjectName}
 import bleep.tasks._
 import net.hamnaberg.blooppackager.PackagePlugin
 
 object GenNativeImage extends App {
   bootstrap.forScript("GenNativeImage") { started =>
-    val projectName = CrossProjectName(ProjectName("bleep"), crossId = None)
+    val projectName = model.CrossProjectName(model.ProjectName("bleep"), crossId = None)
     val project = started.bloopFiles(projectName).forceGet
 
     val index = "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json"

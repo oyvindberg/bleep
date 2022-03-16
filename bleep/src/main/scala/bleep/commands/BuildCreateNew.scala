@@ -5,7 +5,6 @@ import bleep.SourceLayout.Normal
 import bleep.internal.FileUtils.DeleteUnknowns
 import bleep.internal.{FileUtils, ShortenAndSortJson, Templates}
 import bleep.logging.Logger
-import bleep.model.{Platform, PlatformId, Scala}
 import cats.data.NonEmptyList
 import io.circe.syntax._
 
@@ -100,7 +99,7 @@ object BuildCreateNew {
   def genBuild(exampleFiles: ExampleFiles, platforms: NonEmptyList[model.PlatformId], scalas: NonEmptyList[Versions.Scala], name: String): model.Build = {
     val defaultOpts = Options(Set(Options.Opt.WithArgs("-encoding", List("utf8")), Options.Opt.Flag("-feature"), Options.Opt.Flag("-unchecked")))
 
-    def variants(name: String): NonEmptyList[(PlatformId, Versions.Scala, model.CrossProjectName)] =
+    def variants(name: String): NonEmptyList[(model.PlatformId, Versions.Scala, model.CrossProjectName)] =
       for {
         p <- platforms
         s <- scalas
@@ -119,12 +118,15 @@ object BuildCreateNew {
           resources = JsonSet.empty,
           dependencies = JsonSet(exampleFiles.fansi),
           java = None,
-          scala = Some(Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty)),
+          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty)),
           platform = Some(
             platformId match {
-              case PlatformId.Jvm    => Platform.Jvm(Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = Options.empty)
-              case PlatformId.Js     => Platform.Js(Some(Versions.ScalaJs1).filterNot(_ => scala.is3), None, None, None, None, Some(exampleFiles.main.cls))
-              case PlatformId.Native => sys.error("native not implemented yet")
+              case model.PlatformId.Jvm =>
+                model.Platform.Jvm(Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = Options.empty)
+              case model.PlatformId.Js =>
+                model.Platform.Js(Some(Versions.ScalaJs1).filterNot(_ => scala.is3), None, None, None, None, Some(exampleFiles.main.cls))
+              case model.PlatformId.Native =>
+                sys.error("native not implemented yet")
             }
           ),
           testFrameworks = JsonSet.empty
@@ -145,12 +147,12 @@ object BuildCreateNew {
           resources = JsonSet.empty,
           dependencies = JsonSet(exampleFiles.scalatest),
           java = None,
-          scala = Some(Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty)),
+          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty)),
           platform = Some(
             platformId match {
-              case PlatformId.Jvm    => Platform.Jvm(Options.empty, jvmMainClass = None, jvmRuntimeOptions = Options.empty)
-              case PlatformId.Js     => Platform.Js(Some(Versions.ScalaJs1).filterNot(_ => scala.is3), None, None, None, None, None)
-              case PlatformId.Native => sys.error("native not implemented yet")
+              case model.PlatformId.Jvm    => model.Platform.Jvm(Options.empty, jvmMainClass = None, jvmRuntimeOptions = Options.empty)
+              case model.PlatformId.Js     => model.Platform.Js(Some(Versions.ScalaJs1).filterNot(_ => scala.is3), None, None, None, None, None)
+              case model.PlatformId.Native => sys.error("native not implemented yet")
             }
           ),
           testFrameworks = JsonSet(
