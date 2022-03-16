@@ -29,8 +29,13 @@ object CoursierResolver {
       CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, logger)
     )
 
-  def apply(logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver =
-    cacheIn.foldLeft(new Direct(downloadSources, authentications): CoursierResolver) { case (cr, path) => new Cached(logger, cr, path) }
+  def apply(logger: Logger, downloadSources: Boolean, cacheIn: Option[Path], authentications: Authentications): CoursierResolver = {
+    val direct = new Direct(downloadSources, authentications)
+    cacheIn match {
+      case Some(cacheIn) => new Cached(logger, direct, cacheIn)
+      case None          => direct
+    }
+  }
 
   final case class Authentications(configs: Map[URI, Authentication])
   object Authentications {
@@ -159,11 +164,11 @@ object CoursierResolver {
     }
   }
 
-  private class Cached(logger: Logger, underlying: CoursierResolver, in: Path) extends CoursierResolver {
+  private class Cached(logger: Logger, underlying: Direct, in: Path) extends CoursierResolver {
     override def apply(deps: JsonSet[Dependency], repositories: JsonSet[URI]): Either[CoursierError, CoursierResolver.Result] =
       if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps, repositories)
       else {
-        val request = Cached.Request(deps, repositories)
+        val request = Cached.Request(underlying.fileCache.location, deps, repositories)
         val digest = request.asJson.noSpaces.hashCode // both `noSpaces` and `String.hashCode` should hopefully be stable
         val cachePath = in / s"$digest.json"
 
@@ -193,7 +198,7 @@ object CoursierResolver {
   }
 
   private object Cached {
-    case class Request(wanted: JsonSet[Dependency], repositories: JsonSet[URI])
+    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repositories: JsonSet[URI])
     object Request {
       import Result.codecDependency
 
@@ -201,7 +206,9 @@ object CoursierResolver {
         Ordering.by(_.toString())
 
       implicit val codec: Codec[Request] =
-        Codec.forProduct2[Request, JsonSet[Dependency], JsonSet[URI]]("wanted", "repositories")(Request.apply)(x => (x.wanted, x.repositories))
+        Codec.forProduct3[Request, File, JsonSet[Dependency], JsonSet[URI]]("", "wanted", "repositories")(Request.apply)(x =>
+          (x.cacheLocation, x.wanted, x.repositories)
+        )
     }
 
     case class Both(request: Request, result: Result)
