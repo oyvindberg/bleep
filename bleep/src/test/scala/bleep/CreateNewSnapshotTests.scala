@@ -2,7 +2,6 @@ package bleep
 
 import bleep.commands.BuildCreateNew
 import bleep.logging.LogLevel
-import bleep.model.PlatformId
 import cats.data.NonEmptyList
 
 import java.nio.file.Paths
@@ -16,7 +15,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
     val Right((started, generatedFiles)) = BuildCreateNew(
       logger,
       cwd = cwd,
-      platforms = NonEmptyList.of(PlatformId.Jvm, PlatformId.Js),
+      platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
       scalas = NonEmptyList.of(Versions.Scala3, Versions.Scala213),
       name = "myapp"
     ).generate()
