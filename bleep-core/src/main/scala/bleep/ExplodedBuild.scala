@@ -4,8 +4,8 @@ import bleep.internal.Functions.stripExtends
 import bleep.internal.{rewriteDependentData, ShortenAndSortJson}
 import io.circe.syntax._
 
+import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
-import scala.collection.{immutable, SortedSet}
 
 case class ExplodedBuild(
     templates: Map[model.TemplateId, model.Project],
@@ -23,8 +23,8 @@ case class ExplodedBuild(
 
   // in json we just specify projectName, but in bleep we need to know which cross version to pick
   val resolvedDependsOn: Map[model.CrossProjectName, SortedSet[model.CrossProjectName]] = {
-    val byName: Map[model.ProjectName, immutable.Iterable[model.CrossProjectName]] =
-      projects.groupMap(_._1.name)(_._1)
+    val byName: Map[model.ProjectName, Iterable[model.CrossProjectName]] =
+      projects.groupBy(_._1.name).map { case (k, v) => (k, v.keys) }
 
     projects.map { case (crossProjectName, p) =>
       val resolvedDependsOn: SortedSet[model.CrossProjectName] =

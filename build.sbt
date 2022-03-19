@@ -1,7 +1,7 @@
 import sbt.librarymanagement.For3Use2_13
 
 name := "bleep-root"
-crossScalaVersions := List("2.13.8", "3.1.1")
+crossScalaVersions := List("2.12.15", "2.13.8", "3.1.1")
 
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
@@ -17,7 +17,7 @@ val commonSettings: Project => Project =
 
 val crossSettings: Project => Project =
   _.settings(
-    crossScalaVersions := List("2.13.8", "3.1.1")
+    crossScalaVersions := List("2.12.15", "2.13.8", "3.1.1")
   )
 
 lazy val `bleep-core` = project

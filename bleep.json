@@ -3,11 +3,11 @@
   "projects" : {
     "bleep" : {
       "dependencies" : [
-        "com.lihaoyi::pprint:0.7.1",
+        "com.lihaoyi::pprint:0.7.2",
         "com.monovore::decline:2.2.0",
         "org.graalvm.nativeimage:svm:22.0.0.2",
         "org.scalameta:svm-subs:101.0.0",
-        "org.virtuslab.scala-cli::bloop-rifle:0.1.0"
+        "org.virtuslab.scala-cli::bloop-rifle:0.1.2"
       ],
       "dependsOn" : "bleep-core",
       "extends" : [
@@ -20,6 +20,9 @@
     },
     "bleep-core" : {
       "cross" : {
+        "jvm212" : {
+          "dependencies" : "org.scala-lang:scala-reflect:2.12.15"
+        },
         "jvm213" : {
           "dependencies" : "org.scala-lang:scala-reflect:2.13.8"
         },
@@ -30,7 +33,7 @@
       "dependencies" : [
         {
           "for3Use213" : true,
-          "module" : "ch.epfl.scala::bloop-config:1.4.12"
+          "module" : "ch.epfl.scala::bloop-config:1.4.13"
         },
         "com.lihaoyi::fansi:0.3.1",
         "io.circe::circe-generic:0.14.1",
@@ -108,6 +111,12 @@
     },
     "template-cross-all" : {
       "cross" : {
+        "jvm212" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.12"
+          ]
+        },
         "jvm213" : {
           "extends" : "template-scala-2.13"
         },
@@ -117,12 +126,53 @@
       },
       "extends" : "template-common-main"
     },
+    "template-scala-2.12" : {
+      "extends" : "template-common",
+      "sbt-scope" : "main",
+      "scala" : {
+        "options" : [
+          "-Xcheckinit",
+          "-Xlint:adapted-args",
+          "-Xlint:by-name-right-associative",
+          "-Xlint:constant",
+          "-Xlint:delayedinit-select",
+          "-Xlint:doc-detached",
+          "-Xlint:inaccessible",
+          "-Xlint:infer-any",
+          "-Xlint:missing-interpolator",
+          "-Xlint:nullary-override",
+          "-Xlint:nullary-unit",
+          "-Xlint:option-implicit",
+          "-Xlint:package-object-classes",
+          "-Xlint:poly-implicit-overload",
+          "-Xlint:private-shadow",
+          "-Xlint:stars-align",
+          "-Xlint:type-parameter-shadow",
+          "-Xlint:unsound-match",
+          "-Yno-adapted-args",
+          "-Ypartial-unification",
+          "-Ywarn-dead-code",
+          "-Ywarn-extra-implicit",
+          "-Ywarn-nullary-override",
+          "-Ywarn-nullary-unit",
+          "-Ywarn-numeric-widen",
+          "-Ywarn-unused:implicits",
+          "-Ywarn-unused:imports",
+          "-Ywarn-unused:locals",
+          "-Ywarn-unused:params",
+          "-Ywarn-unused:patvars",
+          "-Ywarn-unused:privates",
+          "-Ywarn-value-discard",
+          "-deprecation",
+          "-language:existentials"
+        ],
+        "version" : "2.12.15"
+      }
+    },
     "template-scala-2.13" : {
       "extends" : "template-common",
       "scala" : {
         "options" : [
-          "-Vimplicits",
-          "-Vtype-diffs",
           "-Wdead-code",
           "-Wextra-implicit",
           "-Wnumeric-widen",
@@ -142,6 +192,8 @@
           "-Xlint:delayedinit-select",
           "-Xlint:deprecation",
           "-Xlint:doc-detached",
+          "-Xlint:implicit-not-found",
+          "-Xlint:implicit-recursion",
           "-Xlint:inaccessible",
           "-Xlint:infer-any",
           "-Xlint:missing-interpolator",
@@ -153,7 +205,6 @@
           "-Xlint:stars-align",
           "-Xlint:strict-unsealed-patmat",
           "-Xlint:type-parameter-shadow",
-          "-explaintypes",
           "-language:existentials"
         ],
         "version" : "2.13.8"
@@ -165,9 +216,7 @@
       "scala" : {
         "options" : [
           "-Ykind-projector",
-          "-deprecation",
-          "-explain",
-          "-explain-types"
+          "-deprecation"
         ],
         "version" : "3.1.1"
       }
