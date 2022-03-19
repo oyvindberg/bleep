@@ -240,7 +240,10 @@ object Dep {
             )
         }
 
-      fromString.orElse(full)
+      fromString match {
+        case Left(_)          => full
+        case right @ Right(_) => right
+      }
     }
 
   private implicit val publicationEncoder: Encoder[Publication] = Encoder.instance(p =>

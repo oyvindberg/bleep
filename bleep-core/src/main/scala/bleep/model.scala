@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.codecs.codecURI
+import bleep.internal.compat.OptionCompatOps
 import bleep.internal.{EnumCodec, SetLike}
 import bleep.logging.Formatter
 import bloop.config.Config
@@ -102,7 +103,7 @@ object model {
       Scala(
         version = if (`version` == other.`version`) `version` else None,
         options = options.intersect(other.options),
-        setup = setup.zip(other.setup).map { case (_1, _2) => _1.intersect(_2) },
+        setup = setup.zipCompat(other.setup).map { case (_1, _2) => _1.intersect(_2) },
         compilerPlugins = compilerPlugins.intersect(other.compilerPlugins)
       )
 
@@ -455,9 +456,9 @@ object model {
         sources = sources.intersect(other.sources),
         resources = resources.intersect(other.resources),
         dependencies = dependencies.intersect(other.dependencies),
-        java = java.zip(other.java).map { case (_1, _2) => _1.intersect(_2) },
-        scala = scala.zip(other.scala).map { case (_1, _2) => _1.intersect(_2) },
-        platform = platform.zip(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
+        java = java.zipCompat(other.java).map { case (_1, _2) => _1.intersect(_2) },
+        scala = scala.zipCompat(other.scala).map { case (_1, _2) => _1.intersect(_2) },
+        platform = platform.zipCompat(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
         testFrameworks = testFrameworks.intersect(other.testFrameworks)
       )
 
