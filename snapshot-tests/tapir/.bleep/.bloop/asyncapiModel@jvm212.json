@@ -1,0 +1,144 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "asyncapiModel@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scala-2.13-",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scalajvm-2.12",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/jvm-2.12/src_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/scala-2.12/src_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/src_managed/main"
+    ],
+    "dependencies": [
+      "apispecModel@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/apispecModel/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiModel/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiModel/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/jvm-2.12/resource_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/resource_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/scala-2.12/resource_managed/main"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.15",
+      "options": [
+        "-Xcheckinit",
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Ywarn-dead-code",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-macros:after",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:implicits",
+        "-Ywarn-unused:imports",
+        "-Ywarn-unused:locals",
+        "-Ywarn-unused:params",
+        "-Ywarn-unused:patvars",
+        "-Ywarn-unused:privates",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiModel/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.15",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

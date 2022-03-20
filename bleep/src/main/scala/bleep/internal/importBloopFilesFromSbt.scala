@@ -62,7 +62,7 @@ object importBloopFilesFromSbt {
       generatedResources: JsonSet[RelPath]
   )
 
-  def apply(logger: Logger, buildPaths: BuildPaths, bloopFiles: Iterable[Config.File]): ExplodedBuild = {
+  def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths, bloopFiles: Iterable[Config.File]): ExplodedBuild = {
 
     val hasSources: Path => Boolean = cachedFn { path =>
       def isSource(path: Path): Boolean =
@@ -107,7 +107,7 @@ object importBloopFilesFromSbt {
       val bloopProject = bloopFile.project
 
       val directory =
-        if (bloopProject.directory.startsWith(buildPaths.buildDir / ".sbt/matrix")) {
+        if (bloopProject.directory.startsWith(sbtBuildDir / ".sbt/matrix")) {
           def inferDirectory(sources: List[Path]) = {
             val src = Paths.get("src")
             def aboveSrc(p: Path): Option[Path] =
@@ -125,7 +125,7 @@ object importBloopFilesFromSbt {
         else bloopProject.directory
 
       val folder: Option[RelPath] =
-        RelPath.relativeTo(buildPaths.buildDir, directory) match {
+        RelPath.relativeTo(destinationPaths.buildDir, directory) match {
           case RelPath(List(crossName.name.value)) => None
           case relPath                             => Some(relPath)
         }
@@ -138,7 +138,7 @@ object importBloopFilesFromSbt {
 
       val originalTarget = internal.findOriginalTargetDir(logger, bloopProject)
 
-      val replacementsDirs = originalTarget.foldLeft(Replacements.paths(buildPaths.buildDir, directory))((acc, path) => acc ++ Replacements.targetDir(path))
+      val replacementsDirs = originalTarget.foldLeft(Replacements.paths(sbtBuildDir, directory))((acc, path) => acc ++ Replacements.targetDir(path))
       val replacementsVersions = Replacements.versions(scalaVersion, bloopProject.platform.map(_.name))
       val replacements = replacementsDirs ++ replacementsVersions
 

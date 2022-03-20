@@ -1,8 +1,8 @@
 target
 .idea
 .DS_Store
-*.bloop
 *.metals
 .bsp
-.bloop
-.bleep
+/.bleep
+/.bloop
+/project/.bloop

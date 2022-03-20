@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.BuildPaths.Mode.Normal
 import bleep.CoursierResolver.Authentications
 import bleep.commands.Import.Options
 import bleep.internal.generateBloopFiles.dependencyOrdering
@@ -26,39 +27,29 @@ class IntegrationSnapshotTests extends SnapshotTest {
       CoursierResolver(Nil, logger, downloadSources = false, cacheIn = Some(directories.cacheDir), Authentications.empty)
     }
 
-  case class TestPaths(project: String) extends BuildPaths {
-    override val cwd = Paths.get("/tmp")
-    override val buildDir: Path = inFolder / project
-
-    val outTarget: Path = outFolder / project
-
-    override lazy val bleepImportDir: Path = outTarget / "import"
-    override lazy val dotBleepDir: Path = outTarget / "generated"
-    override lazy val dotBleepModeDir: Path = dotBleepDir
-    override lazy val bleepJsonFile: Path = dotBleepDir / constants.BuildFileName
-  }
-
   test("tapir") {
-    testIn(TestPaths("tapir"))
+    testIn("tapir")
   }
 
   test("doobie") {
-    testIn(TestPaths("doobie"))
+    testIn("doobie")
   }
 
   test("http4s") {
-    testIn(TestPaths("http4s"))
+    testIn("http4s")
   }
 
   test("converter") {
-    testIn(TestPaths("converter"))
+    testIn("converter")
   }
 
-  def testIn(paths: TestPaths): Assertion = {
-    val importer = commands.Import(paths, logger, Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false))
+  def testIn(project: String): Assertion = {
+    val sbtBuildDir = inFolder / project
+    val destinationPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / project, Normal)
+    val importer = commands.Import(sbtBuildDir, destinationPaths, logger, Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false))
 
     // if this directory exists, assume it has all files in good condition, but with paths not filled in
-    if (!Files.exists(paths.bleepImportDir)) {
+    if (!Files.exists(destinationPaths.bleepImportDir)) {
       // if not, generate all bloop files
       importer.generateBloopFiles()
 
@@ -70,64 +61,69 @@ class IntegrationSnapshotTests extends SnapshotTest {
       }
     }
 
-    val importedBloopFiles: Iterable[Config.File] =
-      importer.findGeneratedBloopFiles().map { bloopFilePath =>
-        val importedBloopFile = {
-          val contents = Files.readString(bloopFilePath)
-          val templatedContents = absolutePaths.fill.string(contents)
-          parseBloopFile(templatedContents)
-        }
-
-        val preResolvedModules: List[Config.Module] = {
-          val fromResolution = importedBloopFile.project.resolution.fold(List.empty[Config.Module])(_.modules)
-          val fromCompilerPlugins = importedBloopFile.project.scala.toList.flatMap(_.options).collect { case CompilerPlugin(dep) => dep }
-
-          fromResolution ++ fromCompilerPlugins
-        }
-
-        // if not all artifacts exist locally then resolve everything.
-        // This is a common case, since we generate bloop files on one computer and then share them
-        if (!preResolvedModules.flatMap(_.artifacts.map(_.path)).forall(FileUtils.exists)) {
-          val modulesAsDeps = preResolvedModules.map { case mod @ Config.Module(org, name, version, maybeConfig, _) =>
-            val attrs: Map[String, String] = if (importBloopFilesFromSbt.checkIsSbtPlugin(mod)) Dep.SbtPluginAttrs else Map.empty
-
-            Dependency(Module(Organization(org), ModuleName(name), attrs), version)
-              .withConfiguration(maybeConfig match {
-                case Some(value) => Configuration(value)
-                case None        => Configuration.empty
-              })
+    val importedBloopFiles: Map[Path, (String, Config.File)] =
+      importer
+        .findGeneratedBloopFiles()
+        .map { bloopFilePath =>
+          val originalContents = Files.readString(bloopFilePath)
+          val importedBloopFile = {
+            val templatedContents = absolutePaths.fill.string(originalContents)
+            parseBloopFile(templatedContents)
           }
 
-          logger.warn(s"resolving dependencies for ${importedBloopFile.project.name}")
+          val preResolvedModules: List[Config.Module] = {
+            val fromResolution = importedBloopFile.project.resolution.fold(List.empty[Config.Module])(_.modules)
+            val fromCompilerPlugins = importedBloopFile.project.scala.toList.flatMap(_.options).collect { case CompilerPlugin(dep) => dep }
 
-          resolver(JsonSet.fromIterable(modulesAsDeps)) match {
-            case Left(coursierError) => throw coursierError
-            case Right(_)            => ()
+            fromResolution ++ fromCompilerPlugins
           }
-        }
 
-        importedBloopFile
-      }
+          // if not all artifacts exist locally then resolve everything.
+          // This is a common case, since we generate bloop files on one computer and then share them
+          if (!preResolvedModules.flatMap(_.artifacts.map(_.path)).forall(FileUtils.exists)) {
+            val modulesAsDeps = preResolvedModules.map { case mod @ Config.Module(org, name, version, maybeConfig, _) =>
+              val attrs: Map[String, String] = if (importBloopFilesFromSbt.checkIsSbtPlugin(mod)) Dep.SbtPluginAttrs else Map.empty
+
+              Dependency(Module(Organization(org), ModuleName(name), attrs), version)
+                .withConfiguration(maybeConfig match {
+                  case Some(value) => Configuration(value)
+                  case None        => Configuration.empty
+                })
+            }
+
+            logger.warn(s"resolving dependencies for ${importedBloopFile.project.name}")
+
+            resolver(JsonSet.fromIterable(modulesAsDeps)) match {
+              case Left(coursierError) => throw coursierError
+              case Right(_)            => ()
+            }
+          }
+
+          (bloopFilePath, (originalContents, importedBloopFile))
+        }
+        .toMap
 
     // generate a build file and store it
-    importer.generateBuildAndPersistFrom(importedBloopFiles)
+    val buildFiles: Map[Path, String] =
+      importer.generateBuild(importedBloopFiles.map { case (_, (_, file)) => file })
 
-    // read that build file, and produce an (in-memory) exploded build plus new bloop files
-    val Right(started) = bootstrap.from(Prebootstrapped(paths, logger), rewrites = Nil)
+    // writ read that build file, and produce an (in-memory) exploded build plus new bloop files
+    FileUtils.syncPaths(destinationPaths.buildDir, buildFiles, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
+    val Right(started) = bootstrap.from(Prebootstrapped(destinationPaths, logger), rewrites = Nil)
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
-    val generatedBloopFiles: Map[RelPath, String] =
-      bootstrap.bloopFileMap(started.bloopFiles).map { case (f, s) => (f, absolutePaths.templatize.string(s)) }
+    val generatedBloopFiles: Map[Path, String] =
+      bootstrap.bloopFileMap(destinationPaths, started.bloopFiles).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
 
-    val generatedFiles: Map[RelPath, String] =
-      generatedBloopFiles.updated(RelPath.relativeTo(paths.dotBleepDir, paths.bleepJsonFile), Files.readString(paths.bleepJsonFile))
+    val allFiles: Map[Path, String] =
+      importedBloopFiles.map { case (p, (s, _)) => (p, s) } ++ buildFiles ++ generatedBloopFiles
 
     // further property checks to see that we haven't made any illegal rewrites
-    assertSameIshBloopFiles(importedBloopFiles, started)
+    assertSameIshBloopFiles(importedBloopFiles.map { case (_, (_, f)) => f }, started)
 
     // flush templated bloop files to disk if local, compare to checked in if test is running in CI
     // note, keep last. locally it "succeeds" with a `pending`
-    writeAndCompare(paths.dotBleepDir, generatedFiles)
+    writeAndCompare(destinationPaths.buildDir, allFiles)
   }
 
   def assertSameIshBloopFiles(importedBloopFiles: Iterable[Config.File], started: Started): Assertion = {
@@ -149,10 +145,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
       // scalacOptions are the same, modulo ordering, duplicates and target directory
       def patchedOptions(project: Config.Project, targetDir: Path): List[String] = {
-        val replacements = Replacements.targetDir(targetDir)
+        val replacements = Replacements.targetDir(targetDir) ++
+          Replacements.ofReplacements(List(("snapshot-tests-in", "snapshot-tests")))
+
         val original = project.scala.map(_.options).getOrElse(Nil)
         original.map(replacements.templatize.string).sorted.distinct
       }
+
       assert(
         patchedOptions(output, output.out) == patchedOptions(input, internal.findOriginalTargetDir(logger, input).get),
         crossProjectName.value

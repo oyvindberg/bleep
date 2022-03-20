@@ -21,20 +21,20 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
   override def run(): Either[BuildException, Unit] =
     generate().map(_ => ())
 
-  def generate(): Either[BuildException, (Started, Map[RelPath, String])] = {
+  def generate(): Either[BuildException, (Started, Map[Path, String])] = {
 
     val exampleFiles = new BuildCreateNew.ExampleFiles(name)
     val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name)
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, BuildPaths.Mode.Normal)
     val pre = Prebootstrapped(buildPaths, logger)
 
-    val allFiles = Map(
-      RelPath.relativeTo(cwd, buildPaths.bleepJsonFile) -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
-      exampleFiles.main.relPath -> exampleFiles.main.contents,
-      exampleFiles.test.relPath -> exampleFiles.test.contents
+    val allFiles = Map[Path, String](
+      buildPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
+      buildPaths.buildDir / exampleFiles.main.relPath -> exampleFiles.main.contents,
+      buildPaths.buildDir / exampleFiles.test.relPath -> exampleFiles.test.contents
     )
 
-    val syncedFiles = FileUtils.sync(cwd, allFiles, deleteUnknowns = DeleteUnknowns.No, soft = true)
+    val syncedFiles = FileUtils.syncPaths(cwd, allFiles, deleteUnknowns = DeleteUnknowns.No, soft = true)
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 

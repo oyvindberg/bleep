@@ -25,6 +25,14 @@ object FileUtils {
   // Files.exists is too slow because it throws exceptions behind the scenes
   def exists(path: Path): Boolean = path.toFile.exists()
 
+  def syncPaths(folder: Path, fileMap: Map[Path, String], deleteUnknowns: DeleteUnknowns, soft: Boolean): Map[Path, Synced] = {
+    val fileRelMap = fileMap.map { case (path, content) =>
+      require(path.startsWith(folder), s"${path} not within $folder")
+      RelPath.relativeTo(folder, path) -> content
+    }
+    sync(folder, fileRelMap, deleteUnknowns, soft)
+  }
+
   /** @param soft
     *   compare to existing content in order to not change timestamps. tooling may care a lot about this
     */
