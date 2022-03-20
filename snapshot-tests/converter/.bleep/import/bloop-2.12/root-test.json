@@ -1,0 +1,199 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "root-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/converter",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/converter",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/converter/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/converter/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/converter/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/converter/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/converter/target/scala-2.12/src_managed/test"
+        ],
+        "dependencies": [
+            "root",
+            "logging-test",
+            "core-test",
+            "phases-test",
+            "ts-test",
+            "scalajs-test",
+            "importer-portable-test",
+            "sbt-converter-test",
+            "importer-test",
+            "cli-test"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/converter/../../snapshot-tests/converter/.bleep/import/bloop-2.12/root/scala-2.12/classes",
+            "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-library.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/converter/../../snapshot-tests/converter/.bleep/import/bloop-2.12/root",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/converter/../../snapshot-tests/converter/.bleep/import/bloop-2.12/root/scala-2.12/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/converter/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/converter/target/scala-2.12/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.14",
+            "options": [
+                "-encoding",
+                "utf8",
+                "-deprecation",
+                "-feature",
+                "-language:existentials",
+                "-language:experimental.macros",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Xcheckinit",
+                "-Xlint:adapted-args",
+                "-Xlint:by-name-right-associative",
+                "-Xlint:constant",
+                "-Xlint:delayedinit-select",
+                "-Xlint:doc-detached",
+                "-Xlint:inaccessible",
+                "-Xlint:infer-any",
+                "-Xlint:missing-interpolator",
+                "-Xlint:nullary-override",
+                "-Xlint:nullary-unit",
+                "-Xlint:option-implicit",
+                "-Xlint:package-object-classes",
+                "-Xlint:poly-implicit-overload",
+                "-Xlint:private-shadow",
+                "-Xlint:stars-align",
+                "-Xlint:type-parameter-shadow",
+                "-Xlint:unsound-match",
+                "-Yno-adapted-args",
+                "-Ywarn-dead-code",
+                "-Ywarn-extra-implicit",
+                "-Ywarn-nullary-override",
+                "-Ywarn-nullary-unit",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-unused:implicits",
+                "-Ywarn-unused:locals",
+                "-Ywarn-unused:patvars",
+                "-Ywarn-unused:privates",
+                "-Ywarn-value-discard",
+                "-Ypartial-unification"
+            ],
+            "jars": [
+                "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-library.jar",
+                "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-reflect.jar",
+                "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-xml_2.12-1.0.6.jar",
+                "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-compiler.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<HOME>/.cache/coursier/jvm/graalvm-java17@22.0.0.2",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/converter"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.14",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.14",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.14/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

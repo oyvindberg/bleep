@@ -1,0 +1,1080 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "projects" : {
+    "async-http-client" : {
+      "dependencies" : [
+        "co.fs2::fs2-reactive-streams:3.2.5",
+        "io.netty:netty-codec-http:4.1.74.Final",
+        "org.asynchttpclient:async-http-client:2.12.3"
+      ],
+      "dependsOn" : "client",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/async-http-client"
+    },
+    "async-http-client-test" : {
+      "dependsOn" : [
+        "async-http-client",
+        "client-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/async-http-client"
+    },
+    "bench" : {
+      "dependencies" : [
+        "io.circe::circe-parser:0.15.0-M1",
+        "org.openjdk.jmh:jmh-generator-asm:1.32",
+        "org.openjdk.jmh:jmh-generator-bytecode:1.32"
+      ],
+      "dependsOn" : [
+        "circe",
+        "ember-core"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/bench"
+    },
+    "blaze-client" : {
+      "dependsOn" : [
+        "blaze-core",
+        "client"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/blaze-client"
+    },
+    "blaze-client-test" : {
+      "dependsOn" : [
+        "blaze-client",
+        "blaze-core-test",
+        "client-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/blaze-client"
+    },
+    "blaze-core" : {
+      "dependencies" : "org.http4s::blaze-http:0.15.3",
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/blaze-core"
+    },
+    "blaze-core-test" : {
+      "dependsOn" : [
+        "blaze-core",
+        "testing-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/blaze-core"
+    },
+    "blaze-server" : {
+      "dependsOn" : [
+        "blaze-core",
+        "server"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/blaze-server"
+    },
+    "blaze-server-test" : {
+      "dependsOn" : [
+        "blaze-core-test",
+        "blaze-server",
+        "server-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/blaze-server"
+    },
+    "boopickle" : {
+      "dependencies" : "io.suzaku::boopickle:1.4.0",
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/boopickle",
+      "source-layout" : "cross-pure"
+    },
+    "boopickle-test" : {
+      "dependsOn" : [
+        "boopickle",
+        "testing-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/boopickle",
+      "source-layout" : "cross-pure"
+    },
+    "circe" : {
+      "dependencies" : "io.circe::circe-jawn:0.15.0-M1",
+      "dependsOn" : "jawn",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/circe",
+      "source-layout" : "cross-pure"
+    },
+    "circe-test" : {
+      "dependencies" : "io.circe::circe-testing:0.15.0-M1",
+      "dependsOn" : [
+        "circe",
+        "jawn-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/circe",
+      "source-layout" : "cross-pure"
+    },
+    "client" : {
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/client",
+      "source-layout" : "cross-full"
+    },
+    "client-test" : {
+      "cross" : {
+        "js213" : {
+          "dependsOn" : "node-serverless"
+        },
+        "js3" : {
+          "dependsOn" : "node-serverless"
+        },
+        "jvm213" : {
+          "dependencies" : "io.netty:netty-codec-http:4.1.74.Final"
+        },
+        "jvm3" : {
+          "dependencies" : "io.netty:netty-codec-http:4.1.74.Final"
+        }
+      },
+      "dependsOn" : [
+        "client",
+        "dsl",
+        "server",
+        "testing-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/client",
+      "source-layout" : "cross-full"
+    },
+    "core" : {
+      "cross" : {
+        "js213" : {
+          "dependencies" : [
+            "io.github.cquiroz::locales-minimal-en_us-db:1.3.0",
+            "io.github.cquiroz::scala-java-time:2.3.0",
+            "org.scala-lang:scala-reflect:2.13.8",
+            "org.slf4j:slf4j-api:1.7.36"
+          ]
+        },
+        "js3" : {
+          "dependencies" : [
+            "io.github.cquiroz::locales-minimal-en_us-db:1.3.0",
+            "io.github.cquiroz::scala-java-time:2.3.0"
+          ]
+        },
+        "jvm213" : {
+          "dependencies" : [
+            "org.scala-lang:scala-reflect:2.13.8",
+            "org.slf4j:slf4j-api:1.7.36"
+          ]
+        }
+      },
+      "dependencies" : [
+        "co.fs2::fs2-io:3.2.5",
+        "org.http4s::http4s-crypto:0.2.2",
+        "org.log4s::log4s:1.10.0",
+        "org.typelevel::case-insensitive:1.2.0",
+        "org.typelevel::cats-effect-std:3.3.6",
+        "org.typelevel::cats-parse:0.3.6",
+        "org.typelevel::vault:3.1.0"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/core",
+      "source-layout" : "cross-full"
+    },
+    "core-test" : {
+      "dependencies" : [
+        "ch.qos.logback:logback-classic:1.2.6",
+        "org.hamcrest:hamcrest-core:1.3",
+        "org.scalameta::munit:0.7.29",
+        "org.typelevel::cats-laws:2.7.0"
+      ],
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/core",
+      "source-layout" : "cross-full"
+    },
+    "dropwizard-metrics" : {
+      "dependencies" : "io.dropwizard.metrics:metrics-json:4.2.8",
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/dropwizard-metrics"
+    },
+    "dropwizard-metrics-test" : {
+      "dependsOn" : [
+        "client",
+        "dropwizard-metrics",
+        "dsl",
+        "server",
+        "testing-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/dropwizard-metrics"
+    },
+    "dsl" : {
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/dsl",
+      "source-layout" : "cross-pure"
+    },
+    "dsl-test" : {
+      "dependsOn" : [
+        "dsl",
+        "testing-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/dsl",
+      "source-layout" : "cross-pure"
+    },
+    "ember-client" : {
+      "cross" : {
+        "js213" : {
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
+        },
+        "js3" : {
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
+        },
+        "jvm213" : {
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
+        },
+        "jvm3" : {
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
+        }
+      },
+      "dependencies" : "org.typelevel::keypool:0.4.7",
+      "dependsOn" : [
+        "client",
+        "ember-core"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/ember-client",
+      "source-layout" : "cross-full"
+    },
+    "ember-client-test" : {
+      "dependsOn" : [
+        "client-test",
+        "ember-client",
+        "ember-core-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/ember-client",
+      "source-layout" : "cross-full"
+    },
+    "ember-core" : {
+      "cross" : {
+        "js213" : {
+          "dependencies" : "org.http4s::hpack:1.0.3"
+        },
+        "js3" : {
+          "dependencies" : "org.http4s::hpack:1.0.3"
+        },
+        "jvm213" : {
+          "dependencies" : "com.twitter:hpack:1.0.2"
+        },
+        "jvm3" : {
+          "dependencies" : "com.twitter:hpack:1.0.2"
+        }
+      },
+      "dependencies" : "org.typelevel::log4cats-core:2.2.0",
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/ember-core",
+      "source-layout" : "cross-full"
+    },
+    "ember-core-test" : {
+      "dependencies" : "org.typelevel::log4cats-testing:2.2.0",
+      "dependsOn" : [
+        "ember-core",
+        "testing-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/ember-core",
+      "source-layout" : "cross-full"
+    },
+    "ember-server" : {
+      "cross" : {
+        "js213" : {
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
+        },
+        "js3" : {
+          "dependencies" : "org.typelevel::log4cats-noop:2.2.0"
+        },
+        "jvm213" : {
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
+        },
+        "jvm3" : {
+          "dependencies" : "org.typelevel::log4cats-slf4j:2.2.0"
+        }
+      },
+      "dependsOn" : [
+        "ember-core",
+        "server"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/ember-server",
+      "source-layout" : "cross-full"
+    },
+    "ember-server-test" : {
+      "cross" : {
+        "jvm213" : {
+          "dependencies" : [
+            {
+              "module" : "com.github.jnr:jffi:1.3.9",
+              "publication" : {
+                "classifier" : "native"
+              }
+            },
+            "org.java-websocket:Java-WebSocket:1.5.2",
+            "org.ow2.asm:asm-commons:9.2",
+            "org.ow2.asm:asm-util:9.2"
+          ]
+        },
+        "jvm3" : {
+          "dependencies" : [
+            {
+              "module" : "com.github.jnr:jffi:1.3.9",
+              "publication" : {
+                "classifier" : "native"
+              }
+            },
+            "org.java-websocket:Java-WebSocket:1.5.2",
+            "org.ow2.asm:asm-commons:9.2",
+            "org.ow2.asm:asm-util:9.2"
+          ]
+        }
+      },
+      "dependsOn" : [
+        "ember-client",
+        "ember-core-test",
+        "ember-server",
+        "server-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/ember-server",
+      "source-layout" : "cross-full"
+    },
+    "examples" : {
+      "dependsOn" : [
+        "circe",
+        "dropwizard-metrics",
+        "dsl",
+        "scala-xml",
+        "server"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples"
+    },
+    "examples-blaze" : {
+      "dependencies" : "io.circe::circe-generic:0.15.0-M1",
+      "dependsOn" : [
+        "blaze-client",
+        "blaze-server",
+        "examples"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/blaze",
+      "platform" : {
+        "jvmOptions" : "-Duser.dir=${PROJECT_DIR}"
+      }
+    },
+    "examples-docker" : {
+      "dependsOn" : [
+        "blaze-server",
+        "dsl"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/docker"
+    },
+    "examples-ember" : {
+      "dependsOn" : [
+        "ember-client",
+        "ember-server",
+        "examples"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/ember",
+      "platform" : {
+        "jvmOptions" : "-Duser.dir=${PROJECT_DIR}"
+      }
+    },
+    "examples-ember-client-h2" : {
+      "dependsOn" : [
+        "dsl",
+        "ember-client"
+      ],
+      "extends" : "template-cross-js-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/ember-client-h2"
+    },
+    "examples-ember-server-h2" : {
+      "dependsOn" : [
+        "dsl",
+        "ember-server"
+      ],
+      "extends" : "template-cross-js-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/ember-server-h2"
+    },
+    "examples-jetty" : {
+      "dependsOn" : [
+        "examples",
+        "jetty-server"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/jetty",
+      "platform" : {
+        "jvmOptions" : "-Duser.dir=${PROJECT_DIR}"
+      }
+    },
+    "examples-tomcat" : {
+      "dependsOn" : [
+        "examples",
+        "tomcat-server"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/tomcat",
+      "platform" : {
+        "jvmOptions" : "-Duser.dir=${PROJECT_DIR}"
+      }
+    },
+    "examples-war" : {
+      "dependsOn" : [
+        "examples",
+        "servlet"
+      ],
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/examples/war",
+      "platform" : {
+        "jvmOptions" : "-Duser.dir=${PROJECT_DIR}"
+      }
+    },
+    "jawn" : {
+      "dependencies" : "org.typelevel::jawn-fs2:2.2.0",
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/jawn",
+      "source-layout" : "cross-pure"
+    },
+    "jawn-test" : {
+      "dependsOn" : [
+        "jawn",
+        "testing-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/jawn",
+      "source-layout" : "cross-pure"
+    },
+    "jetty-client" : {
+      "dependencies" : "org.eclipse.jetty:jetty-client:9.4.45.v20220203",
+      "dependsOn" : "client",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/jetty-client"
+    },
+    "jetty-client-test" : {
+      "dependsOn" : [
+        "client-test",
+        "jetty-client"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/jetty-client"
+    },
+    "jetty-server" : {
+      "dependencies" : [
+        "org.eclipse.jetty.http2:http2-server:9.4.45.v20220203",
+        "org.eclipse.jetty:jetty-servlet:9.4.45.v20220203"
+      ],
+      "dependsOn" : "servlet",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/jetty-server"
+    },
+    "jetty-server-test" : {
+      "dependsOn" : [
+        "dsl-test",
+        "jetty-server",
+        "servlet-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/jetty-server"
+    },
+    "laws" : {
+      "cross" : {
+        "jvm213" : {
+          "dependencies" : "org.hamcrest:hamcrest-core:1.3"
+        },
+        "jvm3" : {
+          "dependencies" : "org.hamcrest:hamcrest-core:1.3"
+        }
+      },
+      "dependencies" : [
+        "com.comcast::ip4s-test-kit:3.1.2",
+        "org.typelevel::case-insensitive-testing:1.2.0",
+        "org.typelevel::cats-effect-testkit:3.3.6",
+        "org.typelevel::cats-laws:2.7.0",
+        "org.typelevel::discipline-core:1.4.0",
+        "org.typelevel::munit-cats-effect-3:1.0.7",
+        "org.typelevel::scalacheck-effect-munit:1.0.3"
+      ],
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/laws",
+      "source-layout" : "cross-pure"
+    },
+    "node-serverless" : {
+      "dependsOn" : "core",
+      "extends" : "template-cross-js-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/node-serverless"
+    },
+    "okhttp-client" : {
+      "dependencies" : [
+        "com.squareup.okhttp3:okhttp:4.9.3",
+        "com.squareup.okio:okio:2.10.0"
+      ],
+      "dependsOn" : "client",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/okhttp-client"
+    },
+    "okhttp-client-test" : {
+      "dependsOn" : [
+        "client-test",
+        "okhttp-client"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/okhttp-client"
+    },
+    "play-json" : {
+      "dependencies" : {
+        "for3Use213" : true,
+        "module" : "com.typesafe.play::play-json:2.9.2"
+      },
+      "dependsOn" : "jawn",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/play-json"
+    },
+    "play-json-test" : {
+      "dependsOn" : [
+        "jawn-test",
+        "play-json"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/play-json"
+    },
+    "prometheus-metrics" : {
+      "dependencies" : [
+        "io.prometheus:simpleclient_common:0.15.0",
+        "io.prometheus:simpleclient_hotspot:0.15.0",
+        "io.prometheus:simpleclient_tracer_otel:0.15.0",
+        "io.prometheus:simpleclient_tracer_otel_agent:0.15.0"
+      ],
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/prometheus-metrics"
+    },
+    "prometheus-metrics-test" : {
+      "dependsOn" : [
+        "client",
+        "dsl",
+        "prometheus-metrics",
+        "server",
+        "testing-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/prometheus-metrics"
+    },
+    "scala-xml" : {
+      "dependencies" : "org.scala-lang.modules::scala-xml:2.0.1",
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/scala-xml"
+    },
+    "scala-xml-test" : {
+      "dependsOn" : [
+        "scala-xml",
+        "testing-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/scala-xml"
+    },
+    "scalafixInternalInput" : {
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/scalafix-internal/input"
+    },
+    "scalafixInternalOutput" : {
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/scalafix-internal/output"
+    },
+    "scalafixInternalRules" : {
+      "dependencies" : "ch.epfl.scala::scalafix-core:0.9.34",
+      "extends" : [
+        "template-common-main",
+        "template-jvm",
+        "template-scala-2.13-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/scalafix-internal/rules"
+    },
+    "scalafixInternalTests-test" : {
+      "dependencies" : "ch.epfl.scala:::scalafix-testkit:0.9.34",
+      "dependsOn" : "scalafixInternalRules",
+      "extends" : [
+        "template-jvm-test",
+        "template-scala-2.13-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/scalafix-internal/tests"
+    },
+    "scalatags" : {
+      "dependencies" : "com.lihaoyi::scalatags:0.11.1",
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/scalatags"
+    },
+    "scalatags-test" : {
+      "dependsOn" : [
+        "scalatags",
+        "testing-test"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/scalatags"
+    },
+    "server" : {
+      "dependsOn" : "core",
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-js-all-main"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/server",
+      "source-layout" : "cross-full"
+    },
+    "server-test" : {
+      "dependsOn" : [
+        "dsl",
+        "server",
+        "testing-test"
+      ],
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/server",
+      "source-layout" : "cross-full"
+    },
+    "servlet" : {
+      "dependencies" : "javax.servlet:javax.servlet-api:3.1.0",
+      "dependsOn" : "server",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/servlet"
+    },
+    "servlet-test" : {
+      "dependencies" : [
+        "org.asynchttpclient:async-http-client:2.12.3",
+        "org.eclipse.jetty:jetty-servlet:9.4.45.v20220203"
+      ],
+      "dependsOn" : [
+        "server-test",
+        "servlet"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/servlet"
+    },
+    "testing-test" : {
+      "cross" : {
+        "js213" : {
+          "dependencies" : [
+            "io.github.cquiroz::scala-java-time-tzdb:2.3.0",
+            {
+              "for3Use213" : true,
+              "forceJvm" : true,
+              "module" : "org.scala-js::scalajs-test-bridge:1.9.0"
+            }
+          ]
+        },
+        "js3" : {
+          "dependencies" : [
+            "io.github.cquiroz::scala-java-time-tzdb:2.3.0",
+            {
+              "for3Use213" : true,
+              "forceJvm" : true,
+              "module" : "org.scala-js::scalajs-test-bridge:1.9.0"
+            }
+          ]
+        }
+      },
+      "dependencies" : [
+        "ch.qos.logback:logback-classic:1.2.6",
+        "org.typelevel::cats-effect-laws:3.3.6",
+        "org.typelevel::discipline-munit:1.0.9"
+      ],
+      "dependsOn" : "laws",
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/testing",
+      "source-layout" : "cross-full"
+    },
+    "tests-test" : {
+      "dependsOn" : "testing-test",
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-js-all-test"
+      ],
+      "folder" : "./../../snapshot-tests-in/http4s/tests",
+      "source-layout" : "cross-full"
+    },
+    "tomcat-server" : {
+      "dependencies" : "org.apache.tomcat:tomcat-catalina:9.0.58",
+      "dependsOn" : "servlet",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/tomcat-server"
+    },
+    "tomcat-server-test" : {
+      "dependsOn" : [
+        "servlet-test",
+        "tomcat-server"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/tomcat-server"
+    },
+    "twirl" : {
+      "cross" : {
+        "jvm213" : {
+          "sources" : "./target/scala-${SCALA_BIN_VERSION}/twirl/main"
+        },
+        "jvm3" : {
+          "sources" : "./target/scala-${SCALA_VERSION}/twirl/main"
+        }
+      },
+      "dependencies" : {
+        "for3Use213" : true,
+        "module" : "com.typesafe.play::twirl-api:1.5.1"
+      },
+      "dependsOn" : "core",
+      "extends" : "template-cross-jvm-all-main",
+      "folder" : "./../../snapshot-tests-in/http4s/twirl"
+    },
+    "twirl-test" : {
+      "cross" : {
+        "jvm213" : {
+          "sources" : "./target/scala-${SCALA_BIN_VERSION}/twirl/test"
+        },
+        "jvm3" : {
+          "sources" : "./target/scala-${SCALA_VERSION}/twirl/test"
+        }
+      },
+      "dependsOn" : [
+        "testing-test",
+        "twirl"
+      ],
+      "extends" : "template-cross-jvm-all-test",
+      "folder" : "./../../snapshot-tests-in/http4s/twirl"
+    }
+  },
+  "templates" : {
+    "template-common" : {
+      "java" : {
+        "options" : [
+          "-Xlint:all",
+          "-encoding",
+          "utf8"
+        ]
+      },
+      "scala" : {
+        "options" : [
+          "-deprecation",
+          "-encoding",
+          "UTF-8",
+          "-feature",
+          "-unchecked"
+        ]
+      }
+    },
+    "template-common-main" : {
+      "extends" : "template-common",
+      "sbt-scope" : "main"
+    },
+    "template-common-test" : {
+      "extends" : "template-common",
+      "sbt-scope" : "test",
+      "testFrameworks" : [
+        "com.novocode.junit.JUnitFramework",
+        "munit.Framework",
+        "org.scalacheck.ScalaCheckFramework",
+        "org.scalatest.tools.Framework",
+        "org.scalatest.tools.ScalaTestFramework",
+        "org.specs.runner.SpecsFramework",
+        "org.specs2.runner.Specs2Framework",
+        "org.specs2.runner.SpecsFramework"
+      ]
+    },
+    "template-cross-js-all-main" : {
+      "cross" : {
+        "js213" : {
+          "extends" : [
+            "template-common-main",
+            "template-js",
+            "template-scala-2.13-main",
+            "template-scala-2.13-js"
+          ]
+        },
+        "js3" : {
+          "extends" : [
+            "template-common-main",
+            "template-js",
+            "template-scala-3-main",
+            "template-scala-3-js"
+          ]
+        }
+      }
+    },
+    "template-cross-js-all-test" : {
+      "cross" : {
+        "js213" : {
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-2.13-test",
+            "template-scala-2.13-js"
+          ]
+        },
+        "js3" : {
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-3-test",
+            "template-scala-3-js"
+          ]
+        },
+        "jvm213" : {
+          "extends" : [
+            "template-jvm-test",
+            "template-scala-2.13-test"
+          ]
+        },
+        "jvm3" : {
+          "extends" : [
+            "template-jvm-test",
+            "template-scala-3-test"
+          ]
+        }
+      }
+    },
+    "template-cross-jvm-all-main" : {
+      "cross" : {
+        "jvm213" : {
+          "extends" : [
+            "template-common-main",
+            "template-jvm",
+            "template-scala-2.13-main"
+          ]
+        },
+        "jvm3" : {
+          "extends" : [
+            "template-common-main",
+            "template-jvm",
+            "template-scala-3-main"
+          ]
+        }
+      }
+    },
+    "template-cross-jvm-all-test" : {
+      "cross" : {
+        "jvm213" : {
+          "extends" : [
+            "template-jvm-test",
+            "template-scala-2.13-test"
+          ]
+        },
+        "jvm3" : {
+          "extends" : [
+            "template-jvm-test",
+            "template-scala-3-test"
+          ]
+        }
+      }
+    },
+    "template-js" : {
+      "extends" : "template-common",
+      "platform" : {
+        "jsEmitSourceMaps" : false,
+        "jsJsdom" : false,
+        "jsKind" : "none",
+        "jsMode" : "debug",
+        "name" : "js"
+      }
+    },
+    "template-jvm" : {
+      "extends" : "template-common",
+      "platform" : {
+        "name" : "jvm"
+      }
+    },
+    "template-jvm-test" : {
+      "extends" : [
+        "template-common-test",
+        "template-jvm"
+      ],
+      "testFrameworks" : "utest.runner.Framework"
+    },
+    "template-scala-2.13" : {
+      "extends" : "template-common",
+      "scala" : {
+        "compilerPlugins" : [
+          "com.olegpy::better-monadic-for:0.3.1",
+          "org.scalameta:::semanticdb-scalac:4.4.32",
+          "org.typelevel:::kind-projector:0.13.2"
+        ],
+        "options" : [
+          "-P:semanticdb:synthetics:on",
+          "-Wdead-code",
+          "-Wextra-implicit",
+          "-Wnumeric-widen",
+          "-Wunused:explicits",
+          "-Wunused:implicits",
+          "-Wunused:imports",
+          "-Wunused:locals",
+          "-Wunused:nowarn",
+          "-Wunused:params",
+          "-Wunused:patvars",
+          "-Wunused:privates",
+          "-Wvalue-discard",
+          "-Xlint:deprecation",
+          "-Ybackend-parallelism",
+          "8",
+          "-Yrangepos",
+          "-Ywarn-dead-code",
+          "-Ywarn-numeric-widen",
+          "-language:_"
+        ],
+        "version" : "2.13.8"
+      }
+    },
+    "template-scala-2.13-js" : {
+      "extends" : [
+        "template-js",
+        "template-scala-2.13"
+      ],
+      "platform" : {
+        "jsVersion" : "1.9.0"
+      },
+      "scala" : {
+        "options" : "-P:scala${PLATFORM}:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc066${SCALA_EPOCH}79${SCALA_EPOCH}fd0c4d846${SCALA_EPOCH}c${SCALA_EPOCH}47f634c01fee0dd571${SCALA_EPOCH}/"
+      }
+    },
+    "template-scala-2.13-main" : {
+      "extends" : [
+        "template-common-main",
+        "template-scala-2.13"
+      ],
+      "scala" : {
+        "options" : "-P:semanticdb:targetroot:${TARGET_DIR}/meta"
+      }
+    },
+    "template-scala-2.13-test" : {
+      "extends" : [
+        "template-common-test",
+        "template-scala-2.13"
+      ],
+      "scala" : {
+        "options" : "-P:semanticdb:targetroot:${TARGET_DIR}/test-meta"
+      }
+    },
+    "template-scala-3" : {
+      "extends" : "template-common",
+      "scala" : {
+        "options" : [
+          "-Xsemanticdb",
+          "-Ykind-projector",
+          "-language:implicitConversions",
+          "-source:${SCALA_EPOCH}.0-migration"
+        ],
+        "version" : "3.1.1"
+      }
+    },
+    "template-scala-3-js" : {
+      "extends" : [
+        "template-js",
+        "template-scala-3"
+      ],
+      "scala" : {
+        "options" : [
+          "-scala${PLATFORM}",
+          "-scala${PLATFORM}-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f6${SCALA_EPOCH}4c01fee0dd5712/"
+        ]
+      }
+    },
+    "template-scala-3-main" : {
+      "extends" : [
+        "template-common-main",
+        "template-scala-3"
+      ],
+      "scala" : {
+        "options" : [
+          "-semanticdb-target",
+          "${TARGET_DIR}/meta"
+        ]
+      }
+    },
+    "template-scala-3-test" : {
+      "extends" : [
+        "template-common-test",
+        "template-scala-3"
+      ],
+      "scala" : {
+        "options" : [
+          "-semanticdb-target",
+          "${TARGET_DIR}/test-meta"
+        ]
+      }
+    }
+  }
+}

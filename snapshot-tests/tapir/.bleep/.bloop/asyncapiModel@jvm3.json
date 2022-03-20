@@ -1,0 +1,136 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "asyncapiModel@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/scalajvm-3",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/jvm-3/src_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/scala-3.1.0/src_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/src_managed/main"
+    ],
+    "dependencies": [
+      "apispecModel@jvm3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/apispecModel/jvm3/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiModel/jvm3",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiModel/jvm3/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/jvm-3/resource_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/resource_managed/main",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-model/target/scala-3.1.0/resource_managed/main"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.1.0",
+      "options": [
+        "-Ykind-projector",
+        "-Ywarn-macros:after",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-explain",
+        "-explain-types",
+        "-feature",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.1.0/scala3-compiler_3-3.1.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.1.0/scala3-interfaces-3.1.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.1.0/tasty-core_3-3.1.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.1.0-scala-1/scala-asm-9.1.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/asyncapiModel/jvm3/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar"
+            },
+            {
+              "name": "scala3-library_3",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

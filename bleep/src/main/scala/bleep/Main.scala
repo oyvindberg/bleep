@@ -145,7 +145,7 @@ object Main {
 
   def importCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
-      commands.Import.opts.map(opts => commands.Import(buildPaths, logger, opts))
+      commands.Import.opts.map(opts => commands.Import(sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts))
     )
 
   def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Iterable[model.CrossProjectName]]]): Opts[BleepCommand] = {

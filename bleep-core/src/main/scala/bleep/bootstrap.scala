@@ -7,7 +7,7 @@ import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.time.Instant
 import scala.collection.immutable.SortedMap
 import scala.util.{Failure, Success, Try}
@@ -79,11 +79,11 @@ object bootstrap {
       val lazyBloopFiles: SortedMap[model.CrossProjectName, Lazy[Config.File]] =
         generateBloopFiles(explodedBuild, buildPaths, lazyResolver.forceGet)
 
-      val fileMap = bloopFileMap(lazyBloopFiles).updated(RelPath.relativeTo(buildPaths.bleepBloopDir, buildPaths.digestFile), currentHash)
+      val fileMap = bloopFileMap(buildPaths, lazyBloopFiles).updated(buildPaths.digestFile, currentHash)
 
-      val synced = FileUtils.sync(
+      val synced = FileUtils.syncPaths(
         folder = buildPaths.bleepBloopDir,
-        fileRelMap = fileMap,
+        fileMap = fileMap,
         deleteUnknowns = FileUtils.DeleteUnknowns.Yes(maxDepth = Some(1)),
         soft = true
       )
@@ -94,10 +94,10 @@ object bootstrap {
     }
   }
 
-  def bloopFileMap(lazyBloopFiles: Map[model.CrossProjectName, Lazy[Config.File]]): Map[RelPath, String] =
+  def bloopFileMap(buildPaths: BuildPaths, lazyBloopFiles: Map[model.CrossProjectName, Lazy[Config.File]]): Map[Path, String] =
     lazyBloopFiles.map { case (projectName, bloopFile) =>
       val string = writeToString(bloopFile.forceGet, WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
-      val file = RelPath(List(projectName.value + ".json"))
+      val file = buildPaths.bleepBloopDir / (projectName.value + ".json")
       (file, string)
     }
 }

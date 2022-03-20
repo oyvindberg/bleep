@@ -4,30 +4,31 @@ import bleep.commands.BuildCreateNew
 import bleep.logging.LogLevel
 import cats.data.NonEmptyList
 
-import java.nio.file.Paths
+import java.nio.file.{Path, Paths}
 
 class CreateNewSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped.filter(LogLevel.info)
   val outFolder = Paths.get("snapshot-tests").toAbsolutePath
 
   test("create-new-build") {
-    val cwd = outFolder / "create-new-build"
+    val buildDir = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / "create-new-build", BuildPaths.Mode.Normal)
+
     val Right((started, generatedFiles)) = BuildCreateNew(
       logger,
-      cwd = cwd,
+      cwd = buildDir.buildDir,
       platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
       scalas = NonEmptyList.of(Versions.Scala3, Versions.Scala213),
       name = "myapp"
     ).generate()
 
-    val generatedBloopFiles: Map[RelPath, String] =
-      bootstrap.bloopFileMap(started.bloopFiles).map { case (RelPath(f), s) => (RelPath("bloop" :: f), absolutePaths.templatize.string(s)) }
+    val generatedBloopFiles: Map[Path, String] =
+      bootstrap.bloopFileMap(buildDir, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
 
     val allGeneratedFiles = generatedBloopFiles ++ generatedFiles
 
     // flush templated bloop files to disk if local, compare to checked in if test is running in CI
     // note, keep last. locally it "succeeds" with a `pending`
-    writeAndCompare(cwd, allGeneratedFiles)
+    writeAndCompare(buildDir.buildDir, allGeneratedFiles)
 
   }
 }

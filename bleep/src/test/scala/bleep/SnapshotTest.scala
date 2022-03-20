@@ -18,27 +18,26 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     Replacements.ofReplacements(
       List(
         (CoursierPaths.cacheDirectory().toString, "<COURSIER>"),
-        (System.getProperty("user.dir"), "<PROJECT>"),
+        (System.getProperty("user.dir"), "<BLEEP_GIT>"),
         (System.getProperty("user.home"), "<HOME>")
       )
     )
 
-  def writeAndCompare(in: Path, fileMap: Map[RelPath, String]): Assertion =
+  def writeAndCompare(in: Path, fileMap: Map[Path, String]): Assertion =
     if (Properties.isWin) pending // let's deal with this later
     else {
       if (isCi) {
-        fileMap.foreach { case (relPath, contents) =>
-          val existingPath = in / relPath
-          if (Files.exists(existingPath)) {
-            val existingContents = Files.readString(existingPath)
+        fileMap.foreach { case (path, contents) =>
+          if (Files.exists(path)) {
+            val existingContents = Files.readString(path)
             assert(existingContents === contents)
           } else {
-            fail(s"Expected path $existingPath to exist")
+            fail(s"Expected path $path to exist")
           }
         }
         succeed
       } else {
-        FileUtils.sync(in, fileMap, deleteUnknowns = DeleteUnknowns.Yes(maxDepth = None), soft = true)
+        FileUtils.syncPaths(in, fileMap, deleteUnknowns = DeleteUnknowns.Yes(maxDepth = None), soft = true)
         pending
       }
     }
