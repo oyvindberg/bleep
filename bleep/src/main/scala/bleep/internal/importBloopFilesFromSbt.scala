@@ -89,17 +89,20 @@ object importBloopFilesFromSbt {
 
     val crossBloopProjectFiles: Map[model.CrossProjectName, Config.File] =
       bloopFiles
-        .map { file =>
-          val maybeCrossId = model.CrossId.defaultFrom(
-            maybeScalaVersion = file.project.scala.map(s => Versions.Scala(s.version)),
-            maybePlatformId = file.project.platform.flatMap(p => model.PlatformId.fromName(p.name))
-          )
-          val name = projectName(file.project.name)
-
-          (model.CrossProjectName(name, maybeCrossId), file)
+        .filter(bloopFile => bloopFile.project.sources.exists(hasSources.apply))
+        .groupBy(file => projectName(file.project.name))
+        .flatMap {
+          case (name, Seq(file)) =>
+            List((model.CrossProjectName(name, None), file))
+          case (name, files) =>
+            files.map { file =>
+              val maybeCrossId = model.CrossId.defaultFrom(
+                maybeScalaVersion = file.project.scala.map(s => Versions.Scala(s.version)),
+                maybePlatformId = file.project.platform.flatMap(p => model.PlatformId.fromName(p.name))
+              )
+              (model.CrossProjectName(name, maybeCrossId), file)
+            }
         }
-        .toMap
-        .filter { case (_, bloopFile) => bloopFile.project.sources.exists(hasSources.apply) }
 
     val projectNames = crossBloopProjectFiles.keys.map(_.name).toSet
 
