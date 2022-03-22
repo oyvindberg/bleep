@@ -77,6 +77,6 @@ lazy val bleep = project
   )
   .enablePlugins(NativeImagePlugin)
 
-lazy val infrastructure = project
+lazy val scripts = project
   .dependsOn(bleep, `bleep-tasks`)
   .configure(commonSettings)

@@ -1,5 +1,5 @@
 package bleep
-package infra
+package scripts
 
 import bleep.tasks._
 import net.hamnaberg.blooppackager.PackagePlugin

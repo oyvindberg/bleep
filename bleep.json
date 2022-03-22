@@ -73,7 +73,7 @@
         "org.specs2.runner.SpecsFramework"
       ]
     },
-    "infrastructure" : {
+    "scripts" : {
       "dependsOn" : [
         "bleep",
         "bleep-tasks"
@@ -85,8 +85,8 @@
     }
   },
   "scripts" : {
-    "jars" : "infrastructure/bleep.infra.PackageAll",
-    "native-image" : "infrastructure/bleep.infra.GenNativeImage"
+    "jars" : "scripts/bleep.scripts.PackageAll",
+    "native-image" : "scripts/bleep.scripts.GenNativeImage"
   },
   "templates" : {
     "template-common" : {
