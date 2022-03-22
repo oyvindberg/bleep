@@ -11,7 +11,6 @@ object constants {
   val DefaultRepos = List(
     model.Repository.Ivy(URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)),
     model.Repository.Maven(URI.create(Repositories.central.root))
-//    model.Repository.Ivy(URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
   )
 
   val BuildFileName = "bleep.json"

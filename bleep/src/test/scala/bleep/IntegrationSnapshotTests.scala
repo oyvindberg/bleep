@@ -6,10 +6,12 @@ import bleep.commands.Import.Options
 import bleep.internal.generateBloopFiles.dependencyOrdering
 import bleep.internal.{importBloopFilesFromSbt, FileUtils, Replacements}
 import bloop.config.Config
+import coursier.Repositories
 import coursier.core._
 import coursier.paths.CoursierPaths
 import org.scalatest.Assertion
 
+import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
@@ -17,16 +19,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
   val outFolder = Paths.get("snapshot-tests").toAbsolutePath
-  val resolver: CoursierResolver =
-    if (isCi) {
-      // the github action we use in CI caches coursier directory. let's piggyback on that for now
-      val cachePath = Some(CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache")
-      CoursierResolver(Nil, logger, downloadSources = false, cacheIn = cachePath, Authentications.empty)
-    } else {
-      // if not, might as well use normal cache location
-      val directories = UserPaths.fromAppDirs
-      CoursierResolver(Nil, logger, downloadSources = false, cacheIn = Some(directories.cacheDir), Authentications.empty)
-    }
+  val resolver: CoursierResolver = {
+    val sbtReleases = model.Repository.Ivy(URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
+    val cachePath = if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache" else UserPaths.fromAppDirs.cacheDir
+    CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = Some(cachePath), Authentications.empty)
+  }
 
   test("tapir") {
     testIn("tapir")
