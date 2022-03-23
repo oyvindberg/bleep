@@ -203,7 +203,7 @@ object Main {
             })
             completer.completeOpts(restArgs)(noBuildOpts(logger, cwd))
           case Right(pre) =>
-            bootstrap.from(pre, rewrites = Nil) match {
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil) match {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
@@ -268,7 +268,7 @@ object Main {
             }
 
             loggerResource.use { logger =>
-              bootstrap.from(Prebootstrapped(buildPaths, logger), rewrites = Nil) match {
+              bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.SyncToDisk, rewrites = Nil) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)
                 case Right(started) => run(logger, hasBuildOpts(started, ProjectGlobs(started)), restArgs)
               }

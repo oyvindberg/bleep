@@ -68,7 +68,7 @@ object BspImpl {
               }
             ).flatten
 
-            bootstrap.from(pre, bspRewrites)
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites)
           }
 
         pre.logger.info {

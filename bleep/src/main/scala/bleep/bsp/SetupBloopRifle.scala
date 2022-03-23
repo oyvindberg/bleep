@@ -1,8 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.Lazy
-import bleep.internal.generateBloopFiles.dependencyOrdering
+import bleep.internal.{dependencyOrdering, Lazy}
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 

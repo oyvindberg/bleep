@@ -18,28 +18,20 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
     logger.withContext(path).info(s"Creating $what")
   }
 
-  override def run(): Either[BuildException, Unit] =
-    generate().map(_ => ())
-
-  def generate(): Either[BuildException, (Started, Map[Path, String])] = {
-
-    val exampleFiles = new BuildCreateNew.ExampleFiles(name)
-    val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name)
+  override def run(): Either[BuildException, Unit] = {
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, BuildPaths.Mode.Normal)
-    val pre = Prebootstrapped(buildPaths, logger)
+    generate(buildPaths).map(_ => ())
+  }
 
-    val allFiles = Map[Path, String](
-      buildPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
-      buildPaths.buildDir / exampleFiles.main.relPath -> exampleFiles.main.contents,
-      buildPaths.buildDir / exampleFiles.test.relPath -> exampleFiles.test.contents
-    )
+  def generate(buildPaths: BuildPaths): Either[BuildException, (Started, Map[Path, String])] = {
+    val allFiles = genAllFiles(buildPaths)
 
     val syncedFiles = FileUtils.syncPaths(cwd, allFiles, deleteUnknowns = DeleteUnknowns.No, soft = true)
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
-    bootstrap.from(pre, rewrites = Nil) map { started =>
-      val projects = started.bloopFiles.map { case (_, f) => f.forceGet.project }.toList
+    bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.SyncToDisk, rewrites = Nil) map { started =>
+      val projects = started.bloopProjectsList
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct
       val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct
@@ -54,6 +46,18 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
 
       (started, allFiles)
     }
+  }
+
+  def genAllFiles(buildPaths: BuildPaths): Map[Path, String] = {
+    val exampleFiles = new BuildCreateNew.ExampleFiles(name)
+    val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name)
+
+    val value = Map[Path, String](
+      buildPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
+      buildPaths.buildDir / exampleFiles.main.relPath -> exampleFiles.main.contents,
+      buildPaths.buildDir / exampleFiles.test.relPath -> exampleFiles.test.contents
+    )
+    value
   }
 }
 
