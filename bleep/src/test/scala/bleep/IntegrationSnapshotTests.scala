@@ -3,8 +3,7 @@ package bleep
 import bleep.BuildPaths.Mode.Normal
 import bleep.CoursierResolver.Authentications
 import bleep.commands.Import.Options
-import bleep.internal.generateBloopFiles.dependencyOrdering
-import bleep.internal.{importBloopFilesFromSbt, FileUtils, Replacements}
+import bleep.internal.{dependencyOrdering, importBloopFilesFromSbt, FileUtils, Replacements}
 import bloop.config.Config
 import coursier.Repositories
 import coursier.core._
@@ -66,7 +65,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
           val originalContents = Files.readString(bloopFilePath)
           val importedBloopFile = {
             val templatedContents = absolutePaths.fill.string(originalContents)
-            parseBloopFile(templatedContents)
+            GenBloopFiles.parseBloopFile(templatedContents)
           }
 
           val preResolvedModules: List[Config.Module] = {
@@ -107,14 +106,14 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // writ read that build file, and produce an (in-memory) exploded build plus new bloop files
     FileUtils.syncPaths(destinationPaths.buildDir, buildFiles, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
-    val started = bootstrap.from(Prebootstrapped(destinationPaths, logger), rewrites = Nil) match {
+    val started = bootstrap.from(Prebootstrapped(destinationPaths, logger), GenBloopFiles.InMemory, rewrites = Nil) match {
       case Left(th)       => throw th
       case Right(started) => started
     }
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[Path, String] =
-      bootstrap.bloopFileMap(destinationPaths, started.bloopFiles).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
+      GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
 
     val allFiles: Map[Path, String] =
       importedBloopFiles.map { case (p, (s, _)) => (p, s) } ++ buildFiles ++ generatedBloopFiles
@@ -134,10 +133,9 @@ class IntegrationSnapshotTests extends SnapshotTest {
         ((importBloopFilesFromSbt.projectName(p.name), p.platform.map(_.name), p.scala.map(_.version)), p)
       }.toMap
 
-    started.bloopFiles.foreach {
+    started.bloopProjects.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
-      case (crossProjectName, lazyFile) =>
-        val output = lazyFile.forceGet.project
+      case (crossProjectName, output) =>
         val input = inputProjects((crossProjectName.name, output.platform.map(_.name), output.scala.map(_.version)))
 
         // todo: this needs further work,
@@ -210,6 +208,5 @@ class IntegrationSnapshotTests extends SnapshotTest {
           }
         case _ => None
       }
-
   }
 }

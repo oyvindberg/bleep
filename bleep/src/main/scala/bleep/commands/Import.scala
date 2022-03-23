@@ -43,7 +43,7 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
       generateBloopFiles()
     }
 
-    val bloopFiles = findGeneratedBloopFiles().map(readAndParseBloopFile)
+    val bloopFiles = findGeneratedBloopFiles().map(GenBloopFiles.readAndParseBloopFile)
     val files = generateBuild(bloopFiles, hackDropBleepDependency = false).map { case (path, content) =>
       (RelPath.relativeTo(destinationPaths.buildDir, path), content)
     }

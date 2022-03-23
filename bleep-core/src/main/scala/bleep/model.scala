@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.codecs.codecURI
 import bleep.internal.compat.OptionCompatOps
-import bleep.internal.{EnumCodec, SetLike}
+import bleep.internal.{assertUsed, EnumCodec, SetLike}
 import bleep.logging.Formatter
 import bloop.config.Config
 import io.circe._

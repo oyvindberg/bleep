@@ -1,6 +1,7 @@
 package bleep
 package bsp
 
+import bleep.internal.throwableMessages
 import bleep.logging.Logger
 import bleep.{constants, BuildException, Started}
 import ch.epfl.scala.bsp4j

@@ -7,12 +7,12 @@ import net.hamnaberg.blooppackager.PackagePlugin
 object GenNativeImage extends App {
   bootstrap.forScript("GenNativeImage") { started =>
     val projectName = model.CrossProjectName(model.ProjectName("bleep"), crossId = None)
-    val project = started.bloopFiles(projectName).forceGet
+    val project = started.bloopProjects(projectName)
 
     val index = "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json"
 
     val plugin = new NativeImagePlugin(
-      project.project,
+      project,
       started.logger,
       nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"),
       nativeImageJvm = "graalvm-java17",
@@ -26,9 +26,9 @@ object GenNativeImage extends App {
 
 object PackageAll extends App {
   bootstrap.forScript("PackageAll") { started =>
-    val all: List[String] = started.bloopProjects.map(_.name)
+    val all: List[String] = started.bloopProjectsList.map(_.name)
 
-    PackagePlugin.run(started.logger, started.bloopProjects, PackageCommand.Jars(all))
+    PackagePlugin.run(started.logger, started.bloopProjectsList, PackageCommand.Jars(all))
 
     val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, started.logger)()
     started.logger.info(gitVersioningPlugin.version)
