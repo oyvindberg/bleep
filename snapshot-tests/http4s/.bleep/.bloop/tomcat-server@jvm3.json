@@ -19,7 +19,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.2.5/fs2-core_3-3.2.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.2.5/fs2-io_3-3.2.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.1.2/ip4s-core_3-3.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/tomcat-annotations-api/9.0.58/tomcat-annotations-api-9.0.58.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/tomcat-api/9.0.58/tomcat-api-9.0.58.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/tomcat/tomcat-catalina/9.0.58/tomcat-catalina-9.0.58.jar",
@@ -275,23 +274,6 @@
               "name": "log4s_3",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_3/1.10.0/log4s_3-1.10.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "javax.servlet",
-          "name": "javax.servlet-api",
-          "version": "3.1.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "javax.servlet-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar"
-            },
-            {
-              "name": "javax.servlet-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0-sources.jar"
             }
           ]
         },

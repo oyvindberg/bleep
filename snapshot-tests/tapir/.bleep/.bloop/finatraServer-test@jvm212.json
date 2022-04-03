@@ -129,6 +129,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-aarch64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-x86_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar",
@@ -1671,12 +1673,12 @@
           "artifacts": [
             {
               "name": "inject-server_2.12",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0.jar"
             },
             {
               "name": "inject-server_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0-tests.jar"
             },
             {
               "name": "inject-server_2.12",
@@ -1863,12 +1865,12 @@
           "artifacts": [
             {
               "name": "inject-core_2.12",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0.jar"
             },
             {
               "name": "inject-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0-tests.jar"
             },
             {
               "name": "inject-core_2.12",
@@ -1953,12 +1955,12 @@
           "artifacts": [
             {
               "name": "inject-modules_2.12",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0.jar"
             },
             {
               "name": "inject-modules_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0-tests.jar"
             },
             {
               "name": "inject-modules_2.12",
@@ -2412,12 +2414,12 @@
           "artifacts": [
             {
               "name": "inject-app_2.12",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0.jar"
             },
             {
               "name": "inject-app_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0-tests.jar"
             },
             {
               "name": "inject-app_2.12",

@@ -213,23 +213,6 @@
           ]
         },
         {
-          "organization": "net.postgis",
-          "name": "postgis-geometry",
-          "version": "2.5.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "postgis-geometry",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1.jar"
-            },
-            {
-              "name": "postgis-geometry",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.postgresql",
           "name": "postgresql",
           "version": "42.3.2",
@@ -349,23 +332,6 @@
           ]
         },
         {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "1.7.32",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "literally_3",
           "version": "1.0.2",
@@ -386,7 +352,7 @@
           "organization": "net.postgis",
           "name": "postgis-jdbc",
           "version": "2.5.1",
-          "configurations": "default",
+          "configurations": "provided",
           "artifacts": [
             {
               "name": "postgis-jdbc",

@@ -39,13 +39,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.2.7/core_3-1.2.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_3/1.2.7/fs2_3-1.2.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.2.7/ws_3-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_3/1.2.7/zio_3-1.2.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_3/3.9.4/scala-logging_3-3.9.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/1.1.3/izumi-reflect-thirdparty-boopickle-shaded_3-1.1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/1.1.3/izumi-reflect_3-1.1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_3/1.0.12/zio-stacktracer_3-1.0.12.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_3/1.0.12/zio-streams_3-1.0.12.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_3/1.0.12/zio_3-1.0.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.1/circe-core_3-0.14.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.1/circe-generic_3-0.14.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.1/circe-jawn_3-0.14.1.jar",
@@ -336,23 +330,6 @@
               "name": "scalatest-diagrams_3",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_3/3.2.10/scalatest-diagrams_3-3.2.10-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
-          "version": "1.1.3",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/1.1.3/izumi-reflect-thirdparty-boopickle-shaded_3-1.1.3.jar"
-            },
-            {
-              "name": "izumi-reflect-thirdparty-boopickle-shaded_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_3/1.1.3/izumi-reflect-thirdparty-boopickle-shaded_3-1.1.3-sources.jar"
             }
           ]
         },
@@ -901,23 +878,6 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio-streams_3",
-          "version": "1.0.12",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "zio-streams_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_3/1.0.12/zio-streams_3-1.0.12.jar"
-            },
-            {
-              "name": "zio-streams_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_3/1.0.12/zio-streams_3-1.0.12-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.typesafe.scala-logging",
           "name": "scala-logging_3",
           "version": "3.9.4",
@@ -1105,23 +1065,6 @@
           ]
         },
         {
-          "organization": "dev.zio",
-          "name": "zio_3",
-          "version": "1.0.12",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "zio_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_3/1.0.12/zio_3-1.0.12.jar"
-            },
-            {
-              "name": "zio_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_3/1.0.12/zio_3-1.0.12-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "io.circe",
           "name": "circe-numbers_3",
           "version": "0.14.1",
@@ -1152,57 +1095,6 @@
               "name": "tagging_3",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_3/2.3.2/tagging_3-2.3.2-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "izumi-reflect_3",
-          "version": "1.1.3",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "izumi-reflect_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/1.1.3/izumi-reflect_3-1.1.3.jar"
-            },
-            {
-              "name": "izumi-reflect_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_3/1.1.3/izumi-reflect_3-1.1.3-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "dev.zio",
-          "name": "zio-stacktracer_3",
-          "version": "1.0.12",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "zio-stacktracer_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_3/1.0.12/zio-stacktracer_3-1.0.12.jar"
-            },
-            {
-              "name": "zio-stacktracer_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_3/1.0.12/zio-stacktracer_3-1.0.12-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "zio_3",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "zio_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_3/1.2.7/zio_3-1.2.7.jar"
-            },
-            {
-              "name": "zio_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_3/1.2.7/zio_3-1.2.7-sources.jar"
             }
           ]
         }

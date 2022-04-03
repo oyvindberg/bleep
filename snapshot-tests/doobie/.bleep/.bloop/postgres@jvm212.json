@@ -255,6 +255,23 @@
           ]
         },
         {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar"
+            },
+            {
+              "name": "checker-qual",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.30",
@@ -340,6 +357,23 @@
           ]
         },
         {
+          "organization": "org.typelevel",
+          "name": "literally_2.12",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "literally_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar"
+            },
+            {
+              "name": "literally_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.2.4",
@@ -374,44 +408,10 @@
           ]
         },
         {
-          "organization": "org.checkerframework",
-          "name": "checker-qual",
-          "version": "3.5.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "checker-qual",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar"
-            },
-            {
-              "name": "checker-qual",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "1.7.32",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "net.postgis",
           "name": "postgis-jdbc",
           "version": "2.5.1",
-          "configurations": "default",
+          "configurations": "provided",
           "artifacts": [
             {
               "name": "postgis-jdbc",
@@ -472,40 +472,6 @@
               "name": "fs2-io_2.12",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.4/fs2-io_2.12-3.2.4-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.postgis",
-          "name": "postgis-geometry",
-          "version": "2.5.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "postgis-geometry",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1.jar"
-            },
-            {
-              "name": "postgis-geometry",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "literally_2.12",
-          "version": "1.0.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "literally_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar"
-            },
-            {
-              "name": "literally_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2-sources.jar"
             }
           ]
         }

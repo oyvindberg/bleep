@@ -16,9 +16,9 @@
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_3/0.3.1/fansi_sjs1_3-0.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_3/0.2.8/sourcecode_sjs1_3-0.2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.5.1/scalajs-library_2.13-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.7.0/scalajs-library_2.13-1.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.0.2/scala3-library_sjs1_3-3.0.2.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.1/scala3-library_sjs1_3-3.1.1.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp/js3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp/js3/classes",
@@ -103,17 +103,17 @@
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_sjs1_3",
-          "version": "3.0.2",
+          "version": "3.1.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.0.2/scala3-library_sjs1_3-3.0.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.1/scala3-library_sjs1_3-3.1.1.jar"
             },
             {
               "name": "scala3-library_sjs1_3",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.0.2/scala3-library_sjs1_3-3.0.2-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.1/scala3-library_sjs1_3-3.1.1-sources.jar"
             }
           ]
         },
@@ -137,17 +137,17 @@
         {
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
-          "version": "1.5.1",
+          "version": "1.7.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.5.1/scalajs-library_2.13-1.5.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.7.0/scalajs-library_2.13-1.7.0.jar"
             },
             {
               "name": "scalajs-library_2.13",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.5.1/scalajs-library_2.13-1.5.1-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.7.0/scalajs-library_2.13-1.7.0-sources.jar"
             }
           ]
         },

@@ -35,8 +35,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.1/portable-scala-reflect_sjs1_2.13-1.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.13/2.0.0/scalajs-dom_sjs1_2.13-2.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.8.0/scalajs-library_2.13-1.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.13/2.6.1/cats-core_sjs1_2.13-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.6.1/cats-kernel_sjs1_2.13-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
@@ -225,6 +224,23 @@
           ]
         },
         {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_sjs1_2.13",
+          "version": "2.6.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.6.1/cats-kernel_sjs1_2.13-2.6.1.jar"
+            },
+            {
+              "name": "cats-kernel_sjs1_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.6.1/cats-kernel_sjs1_2.13-2.6.1-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "io.circe",
           "name": "circe-generic_sjs1_2.13",
           "version": "0.14.1",
@@ -278,17 +294,17 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.7",
+          "version": "2.13.6",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
             },
             {
               "name": "scala-library",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -391,40 +407,6 @@
               "name": "circe-parser_sjs1_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_sjs1_2.13/0.14.1/circe-parser_sjs1_2.13-0.14.1-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_sjs1_2.13",
-          "version": "2.6.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "cats-kernel_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.6.1/cats-kernel_sjs1_2.13-2.6.1.jar"
-            },
-            {
-              "name": "cats-kernel_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.6.1/cats-kernel_sjs1_2.13-2.6.1-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6-sources.jar"
             }
           ]
         },

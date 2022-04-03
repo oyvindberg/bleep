@@ -2,6 +2,7 @@ package bleep
 package rewrites
 
 import bleep.internal.rewriteDependentData
+import coursier.core.Configuration
 
 /** Trims dependencies, both on libraries and on projects, which are already provided by a parent project */
 object deduplicateDependencies extends Rewrite {
@@ -17,7 +18,11 @@ object deduplicateDependencies extends Rewrite {
 
       val shortenedDependencies: JsonSet[Dep] = {
         val includedInDependees: Set[Dep] =
-          shortenedDeps.flatMap { case (_, p) => p.dependencies.values }.toSet
+          shortenedDeps.flatMap { case (_, p) =>
+            p.dependencies.values.filter { dep =>
+              dep.configuration != Configuration.optional && dep.configuration != Configuration.provided
+            }
+          }.toSet
 
         val newInThisProject: JsonSet[Dep] =
           p.dependencies.filterNot(includedInDependees)

@@ -15,7 +15,7 @@
       
     ],
     "classpath": [
-      
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scripts",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scripts/classes",
@@ -69,7 +69,23 @@
     },
     "resolution": {
       "modules": [
-        
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14-sources.jar"
+            }
+          ]
+        }
       ]
     }
   }

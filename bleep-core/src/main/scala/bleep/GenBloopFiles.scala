@@ -180,22 +180,52 @@ object GenBloopFiles {
         case other                               => sys.error(s"unexpected: $other")
       }
 
-    val resolvedDependencies: CoursierResolver.Result = {
-      val transitiveDeps: JsonSet[Dep] =
-        explodedProject.dependencies.union(JsonSet.fromIterable(build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }))
+    val (resolvedDependencies, resolvedRuntimeDependencies) = {
+      val fromScalaVersion =
+        scalaVersion.map(_.libraries).getOrElse(Nil)
 
-      val concreteDeps: JsonSet[Dependency] =
-        transitiveDeps.map { dep =>
-          dep.dependency(versions) match {
-            case Left(err)    => throw new BuildException.Text(crossName, err)
-            case Right(value) => value
+      val inherited =
+        build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
+
+      def providedOrOptional(dep: Dep): Boolean =
+        dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
+
+      def resolve(all: JsonSet[Dep]) = {
+        val concreteDeps: JsonSet[Dependency] =
+          all.map { dep =>
+            dep.dependency(versions) match {
+              case Left(err)    => throw new BuildException.Text(crossName, err)
+              case Right(value) => value
+            }
           }
-        }
 
-      resolver(concreteDeps) match {
-        case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
-        case Right(value)        => value
+        resolver(concreteDeps, forceScalaVersion = scalaVersion) match {
+          case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
+          case Right(value)        => value
+        }
       }
+
+      // drop provided/optional from inherited deps
+      val filteredInherited = inherited.filterNot(providedOrOptional)
+
+      val normal =
+        resolve(explodedProject.dependencies.union(JsonSet.fromIterable(filteredInherited ++ fromScalaVersion)))
+
+      val runtime =
+        if (explodedProject.dependencies.values.exists(providedOrOptional) || inherited.size != filteredInherited.size) {
+          // include optional and provided for deps for this project
+          val (optionalsFromProject, restFromProject) =
+            explodedProject.dependencies.values.partition(providedOrOptional)
+
+          val noLongerOptionalsFromProject =
+            optionalsFromProject.map(_.withConfiguration(Configuration.empty))
+
+          resolve {
+            JsonSet.fromIterable(filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromScalaVersion)
+          }
+        } else normal
+
+      (normal, runtime)
     }
 
     val resolution: Config.Resolution = {
@@ -229,7 +259,7 @@ object GenBloopFiles {
     }
 
     val classPath: JsonSet[Path] =
-      JsonSet.fromIterable(allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedDependencies.jars)
+      JsonSet.fromIterable(allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedRuntimeDependencies.jars)
 
     val configuredScala: Option[Config.Scala] =
       scalaVersion.map { scalaVersion =>
@@ -237,7 +267,7 @@ object GenBloopFiles {
           scalaVersion.compiler.forceDependency(ScalaVersions.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
-          resolver(JsonSet(scalaCompiler)) match {
+          resolver(JsonSet(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
             case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
             case Right(res)          => res.jars
           }
@@ -264,11 +294,11 @@ object GenBloopFiles {
             specified.map(_.forceDependency(ScalaVersions.Jvm(scalaVersion)))
 
           val jars: Seq[Path] =
-            resolver(deps) match {
+            resolver(deps, forceScalaVersion = Some(scalaVersion)) match {
               case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
               case Right(res) =>
                 res.fullDetailedArtifacts.collect {
-                  case (_, pub, _, Some(file)) if pub.classifier.isEmpty && pub.ext == Extension.jar => file.toPath
+                  case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath
                 }
             }
 

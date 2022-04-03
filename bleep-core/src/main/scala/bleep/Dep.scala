@@ -11,14 +11,14 @@ sealed trait Dep {
   val version: String
   val attributes: Map[String, String]
   val configuration: Configuration
-  val exclusions: List[JavaOrScalaModule]
+  val exclusions: JsonMap[Organization, JsonSet[ModuleName]]
   val publication: Publication
-  val optional: Boolean
   val transitive: Boolean
 
   val repr: String
   def isSimple: Boolean
   def dependency(versions: ScalaVersions): Either[String, Dependency]
+  def withConfiguration(newConfiguration: Configuration): Dep
 
   final def forceDependency(versions: ScalaVersions): Dependency =
     dependency(versions) match {
@@ -51,9 +51,8 @@ object Dep {
     val for213Use3: Boolean = false
     val attributes: Map[String, String] = Map.empty
     val configuration: Configuration = Configuration.empty
-    val exclusions: List[JavaOrScalaModule] = Nil
+    val exclusions: JsonMap[Organization, JsonSet[ModuleName]] = JsonMap.empty
     val publication: Publication = Publication.empty
-    val optional: Boolean = false
     val transitive: Boolean = true
     val fullCrossVersion: Boolean = false
     val isSbtPlugin: Boolean = false
@@ -67,9 +66,8 @@ object Dep {
       version: String,
       attributes: Map[String, String] = defaults.attributes,
       configuration: Configuration = defaults.configuration,
-      exclusions: List[JavaOrScalaModule] = defaults.exclusions,
+      exclusions: JsonMap[Organization, JsonSet[ModuleName]] = defaults.exclusions,
       publication: Publication = defaults.publication,
-      optional: Boolean = defaults.optional,
       transitive: Boolean = defaults.transitive,
       isSbtPlugin: Boolean = defaults.isSbtPlugin
   ) extends Dep {
@@ -78,7 +76,6 @@ object Dep {
         configuration == defaults.configuration &&
         exclusions == defaults.exclusions &&
         publication == defaults.publication &&
-        optional == defaults.optional &&
         transitive == defaults.transitive &&
         isSbtPlugin == defaults.isSbtPlugin
 
@@ -86,18 +83,24 @@ object Dep {
       organization.value + ":" + moduleName.value + ":" + version
 
     def dependency(versions: ScalaVersions): Either[String, Dependency] =
-      Dep.translatedExclusions(exclusions, versions).map { exclusions =>
-        val attrs = if (isSbtPlugin) Dep.SbtPluginAttrs ++ attributes else attributes
+      Right(
         new Dependency(
-          module = new Module(organization, moduleName, attrs),
+          module = new Module(
+            organization,
+            moduleName,
+            if (isSbtPlugin) Dep.SbtPluginAttrs ++ attributes else attributes
+          ),
           version = version,
           configuration = configuration,
-          exclusions = exclusions,
+          exclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
           publication = publication,
-          optional = optional,
+          optional = false, // todo: we now express this in configuration. also here?
           transitive = transitive
         )
-      }
+      )
+
+    override def withConfiguration(newConfiguration: Configuration): Dep.JavaDependency =
+      copy(configuration = newConfiguration)
   }
 
   final case class ScalaDependency(
@@ -110,9 +113,8 @@ object Dep {
       for213Use3: Boolean = defaults.for213Use3,
       attributes: Map[String, String] = defaults.attributes,
       configuration: Configuration = defaults.configuration,
-      exclusions: List[JavaOrScalaModule] = defaults.exclusions,
+      exclusions: JsonMap[Organization, JsonSet[ModuleName]] = defaults.exclusions,
       publication: Publication = defaults.publication,
-      optional: Boolean = defaults.optional,
       transitive: Boolean = defaults.transitive
   ) extends Dep {
     def isSimple: Boolean =
@@ -123,7 +125,6 @@ object Dep {
         configuration == defaults.configuration &&
         exclusions == defaults.exclusions &&
         publication == defaults.publication &&
-        optional == defaults.optional &&
         transitive == defaults.transitive
 
     val repr: String =
@@ -141,17 +142,17 @@ object Dep {
             for213Use3 = for213Use3
           ) match {
             case Some(moduleName) =>
-              Dep.translatedExclusions(exclusions, versions).map { exclusions =>
+              Right(
                 new Dependency(
                   module = new Module(organization, moduleName, attributes),
                   version = version,
                   configuration = configuration,
-                  exclusions = exclusions,
+                  exclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
                   publication = publication,
-                  optional = optional,
+                  optional = false, // todo: we now express this in configuration. also here?
                   transitive = transitive
                 )
-              }
+              )
             case None =>
               Left(s"Cannot include dependency with $withScala")
           }
@@ -160,6 +161,8 @@ object Dep {
           Left(s"You need to configure a scala version to resolve $repr")
       }
 
+    override def withConfiguration(newConfiguration: Configuration): Dep.ScalaDependency =
+      copy(configuration = newConfiguration)
   }
 
   implicit val decodes: Decoder[Dep] =
@@ -176,13 +179,12 @@ object Dep {
             for {
               attributes <- c.get[Option[Map[String, String]]]("attributes")
               configuration <- c.get[Option[Configuration]]("configuration")
-              exclusions <- c.get[Option[List[JavaOrScalaModule]]]("exclusions")
+              exclusions <- c.get[JsonMap[Organization, JsonSet[ModuleName]]]("exclusions")
               publicationC = c.downField("publication")
               publicationName <- publicationC.get[Option[String]]("name")
               publicationType <- publicationC.get[Option[Type]]("type")
               publicationExt <- publicationC.get[Option[Extension]]("ext")
               publicationClassifier <- publicationC.get[Option[Classifier]]("classifier")
-              optional <- c.get[Option[Boolean]]("optional")
               transitive <- c.get[Option[Boolean]]("transitive")
               isSbtPlugin <- c.get[Option[Boolean]]("isSbtPlugin")
             } yield Dep.JavaDependency(
@@ -191,14 +193,13 @@ object Dep {
               version = dependency.version,
               attributes = attributes.getOrElse(dependency.attributes),
               configuration = configuration.getOrElse(dependency.configuration),
-              exclusions = exclusions.getOrElse(dependency.exclusions),
+              exclusions = exclusions,
               publication = Publication(
                 name = publicationName.getOrElse(dependency.publication.name),
                 `type` = publicationType.getOrElse(dependency.publication.`type`),
                 ext = publicationExt.getOrElse(dependency.publication.ext),
                 classifier = publicationClassifier.getOrElse(dependency.publication.classifier)
               ),
-              optional = optional.getOrElse(dependency.optional),
               transitive = transitive.getOrElse(dependency.transitive),
               isSbtPlugin = isSbtPlugin.getOrElse(dependency.isSbtPlugin)
             )
@@ -210,13 +211,12 @@ object Dep {
               for213Use3 <- c.get[Option[Boolean]]("for213Use3")
               attributes <- c.get[Option[Map[String, String]]]("attributes")
               configuration <- c.get[Option[Configuration]]("configuration")
-              exclusions <- c.get[Option[List[JavaOrScalaModule]]]("exclusions")
+              exclusions <- c.get[JsonMap[Organization, JsonSet[ModuleName]]]("exclusions")
               publicationC = c.downField("publication")
               publicationName <- publicationC.get[Option[String]]("name")
               publicationType <- publicationC.get[Option[Type]]("type")
               publicationExt <- publicationC.get[Option[Extension]]("ext")
               publicationClassifier <- publicationC.get[Option[Classifier]]("classifier")
-              optional <- c.get[Option[Boolean]]("optional")
               transitive <- c.get[Option[Boolean]]("transitive")
             } yield Dep.ScalaDependency(
               organization = dependency.organization,
@@ -228,14 +228,13 @@ object Dep {
               for213Use3 = for213Use3.getOrElse(dependency.for213Use3),
               attributes = attributes.getOrElse(dependency.attributes),
               configuration = configuration.getOrElse(dependency.configuration),
-              exclusions = exclusions.getOrElse(dependency.exclusions),
+              exclusions = exclusions,
               publication = Publication(
                 name = publicationName.getOrElse(dependency.publication.name),
                 `type` = publicationType.getOrElse(dependency.publication.`type`),
                 ext = publicationExt.getOrElse(dependency.publication.ext),
                 classifier = publicationClassifier.getOrElse(dependency.publication.classifier)
               ),
-              optional = optional.getOrElse(dependency.optional),
               transitive = transitive.getOrElse(dependency.transitive)
             )
         }
@@ -266,7 +265,6 @@ object Dep {
             "configuration" := (if (x.configuration == Dep.defaults.configuration) Json.Null else x.configuration.asJson),
             "exclusions" := (if (x.exclusions == Dep.defaults.exclusions) Json.Null else x.exclusions.asJson),
             "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
-            "optional" := (if (x.optional == Dep.defaults.optional) Json.Null else x.optional.asJson),
             "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson),
             "isSbtPlugin" := (if (x.isSbtPlugin == Dep.defaults.isSbtPlugin) Json.Null else x.isSbtPlugin.asJson)
           )
@@ -282,7 +280,6 @@ object Dep {
             "configuration" := (if (x.configuration == Dep.defaults.configuration) Json.Null else x.configuration.asJson),
             "exclusions" := (if (x.exclusions == Dep.defaults.exclusions) Json.Null else x.exclusions.asJson),
             "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
-            "optional" := (if (x.optional == Dep.defaults.optional) Json.Null else x.optional.asJson),
             "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson)
           )
           .foldWith(ShortenAndSortJson)
@@ -294,36 +291,4 @@ object Dep {
         case 0 => x.toString.compareTo(y.toString) // this is rather slow
         case n => n
       }
-
-  // traverse is always the answer, unless you need unorderedFlatTraverse without parallelism
-  def translatedExclusions(exclusions: List[JavaOrScalaModule], versions: ScalaVersions): Either[String, Set[(Organization, ModuleName)]] = {
-    var error: Option[String] = None
-    val rights = Set.newBuilder[(Organization, ModuleName)]
-
-    exclusions.foreach {
-      case JavaOrScalaModule.JavaModule(module) =>
-        rights += ((module.organization, module.name))
-
-      case mod @ JavaOrScalaModule.ScalaModule(baseModule, fullCrossVersion) =>
-        versions match {
-          case withScala: ScalaVersions.WithScala =>
-            // there is no place in the format to indicate platform. we exclude both when needed
-            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, forceJvm = false, for3Use213 = false, for213Use3 = false) match {
-              case Some(moduleName) => rights += ((baseModule.organization, moduleName))
-              case None             => error = Some(s"Cannot include dependency with $withScala")
-            }
-
-            withScala.moduleName(baseModule.name, needsScala = true, fullCrossVersion, forceJvm = true, for3Use213 = false, for213Use3 = false) match {
-              case Some(moduleName) =>
-                rights += ((baseModule.organization, moduleName))
-              case None => () // it's ok if this fails
-            }
-
-          case ScalaVersions.Java =>
-            error = Some(s"It doesn't make sense to exclude $mod in a pure java project")
-        }
-    }
-
-    error.toLeft(rights.result())
-  }
 }

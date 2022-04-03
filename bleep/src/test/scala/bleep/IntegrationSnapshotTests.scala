@@ -2,11 +2,11 @@ package bleep
 
 import bleep.BuildPaths.Mode.Normal
 import bleep.CoursierResolver.Authentications
+import bleep.commands.Import
 import bleep.commands.Import.Options
-import bleep.internal.{dependencyOrdering, importBloopFilesFromSbt, FileUtils, Replacements}
+import bleep.internal.{importBloopFilesFromSbt, FileUtils, ReadSbtExportFile, Replacements}
 import bloop.config.Config
 import coursier.Repositories
-import coursier.core._
 import coursier.paths.CoursierPaths
 import org.scalatest.Assertion
 
@@ -47,62 +47,41 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // if this directory exists, assume it has all files in good condition, but with paths not filled in
     if (!Files.exists(destinationPaths.bleepImportDir)) {
-      // if not, generate all bloop files
-      importer.generateBloopFiles()
+      // if not, generate all bloop and dependency files
+      importer.generateBloopAndDependencyFiles()
 
-      // and remove paths inside those files
-      importer.findGeneratedBloopFiles().foreach { bloopFilePath =>
+      // remove machine-specific paths inside bloop files files
+      Import.findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir).foreach { bloopFilePath =>
         val contents = Files.readString(bloopFilePath)
         val templatedContents = absolutePaths.templatize.string(contents)
         FileUtils.writeString(bloopFilePath, templatedContents)
       }
     }
 
-    val importedBloopFiles: Map[Path, (String, Config.File)] =
-      importer
-        .findGeneratedBloopFiles()
+    val sbtExportFiles = Import.findGeneratedJsonFiles(destinationPaths.bleepImportSbtExportDir).map { path =>
+      val contents = Files.readString(path)
+      (path, contents, ReadSbtExportFile.parse(path, contents))
+    }
+
+    val importedBloopFiles: Iterable[(Path, String, Config.File)] =
+      Import
+        .findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir)
         .map { bloopFilePath =>
           val originalContents = Files.readString(bloopFilePath)
           val importedBloopFile = {
             val templatedContents = absolutePaths.fill.string(originalContents)
             GenBloopFiles.parseBloopFile(templatedContents)
           }
-
-          val preResolvedModules: List[Config.Module] = {
-            val fromResolution = importedBloopFile.project.resolution.fold(List.empty[Config.Module])(_.modules)
-            val fromCompilerPlugins = importedBloopFile.project.scala.toList.flatMap(_.options).collect { case CompilerPlugin(dep) => dep }
-
-            fromResolution ++ fromCompilerPlugins
-          }
-
-          // if not all artifacts exist locally then resolve everything.
-          // This is a common case, since we generate bloop files on one computer and then share them
-          if (!preResolvedModules.flatMap(_.artifacts.map(_.path)).forall(FileUtils.exists)) {
-            val modulesAsDeps = preResolvedModules.map { case mod @ Config.Module(org, name, version, maybeConfig, _) =>
-              val attrs: Map[String, String] = if (importBloopFilesFromSbt.checkIsSbtPlugin(mod)) Dep.SbtPluginAttrs else Map.empty
-
-              Dependency(Module(Organization(org), ModuleName(name), attrs), version)
-                .withConfiguration(maybeConfig match {
-                  case Some(value) => Configuration(value)
-                  case None        => Configuration.empty
-                })
-            }
-
-            logger.warn(s"resolving dependencies for ${importedBloopFile.project.name}")
-
-            resolver(JsonSet.fromIterable(modulesAsDeps)) match {
-              case Left(coursierError) => throw coursierError
-              case Right(_)            => ()
-            }
-          }
-
-          (bloopFilePath, (originalContents, importedBloopFile))
+          (bloopFilePath, originalContents, importedBloopFile)
         }
-        .toMap
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
-      importer.generateBuild(importedBloopFiles.map { case (_, (_, file)) => file }, hackDropBleepDependency = true)
+      importer.generateBuild(
+        importedBloopFiles.map { case (_, _, file) => file },
+        sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile },
+        hackDropBleepDependency = true
+      )
 
     // writ read that build file, and produce an (in-memory) exploded build plus new bloop files
     FileUtils.syncPaths(destinationPaths.buildDir, buildFiles, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
@@ -116,10 +95,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
       GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
 
     val allFiles: Map[Path, String] =
-      importedBloopFiles.map { case (p, (s, _)) => (p, s) } ++ buildFiles ++ generatedBloopFiles
+      buildFiles ++
+        generatedBloopFiles ++
+        importedBloopFiles.map { case (p, s, _) => (p, s) } ++
+        sbtExportFiles.map { case (p, s, _) => (p, s) }
 
     // further property checks to see that we haven't made any illegal rewrites
-    assertSameIshBloopFiles(importedBloopFiles.map { case (_, (_, f)) => f }, started)
+    assertSameIshBloopFiles(importedBloopFiles.map { case (_, _, f) => f }, started)
 
     // flush templated bloop files to disk if local, compare to checked in if test is running in CI
     // note, keep last. locally it "succeeds" with a `pending`
@@ -170,43 +152,55 @@ class IntegrationSnapshotTests extends SnapshotTest {
           crossProjectName.value
         )
 
-      // todo: this is hard to write a better test for. for instance:
-      // - paths may be different from being resolved from coursier or ivy
-      // - filename may also be different as sbt may resolve scala jars in ~/.sbt/boot, and there they won't have an embedded version number
-      //      if (output.classpath.length != input.classpath.length)
-      //        assert(
-      //          output.classpath.sorted.mkString("\n") == input.classpath.sorted.mkString("\n"),
-      //          crossProjectName.value
-      //        )
+        /** @param classesDirs
+          *   classes directories are completely different in bleep. we may also drop projects, so no comparisons are done for these, unfortunately.
+          *
+          * For instance:
+          *   - ~/bleep/snapshot-tests/converter/.bleep/.bloop/phases/classes
+          *   - ~/bleep/snapshot-tests/converter/.bleep/import/bloop/2.12/phases/scala-2.12/classes,
+          *
+          * @param scalaJars
+          *   paths expected to be completely different because in sbt they may be resolved by launcher/ivy
+          *
+          * For instance:
+          *   - ~/.sbt/boot/scala-2.12.14/lib/scala-reflect.jar
+          *   - ~/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.2/scala-reflect-2.12.2.jar,
+          *
+          * @param restJars
+          *   the remaining set of differing jars should be empty
+          */
+        case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
+        object AnalyzedClassPathDiff {
+          def from(paths: Set[Path]): AnalyzedClassPathDiff = {
+            val (classes, jars) = paths.partition(p => p.endsWith("classes") || p.endsWith("test-classes"))
+            // note that paths are difficult here, we may receive files from sbt launcher in boot folder
+            val (scalaJars, restJars) = jars.partition(p => p.getFileName.toString.startsWith("scala"))
+            AnalyzedClassPathDiff(classes, scalaJars, restJars)
+          }
+        }
+
+        val added = AnalyzedClassPathDiff.from(output.classpath.toSet -- input.classpath)
+        val removed = AnalyzedClassPathDiff.from(input.classpath.toSet -- output.classpath)
+
+        def render(paths: Iterable[Path]): String =
+          if (paths.isEmpty) "nothing"
+          else paths.mkString("\n", ",\n", "\n")
+
+        if (added.scalaJars.size != removed.scalaJars.size) {
+          System.err.println {
+            List(
+              crossProjectName.value,
+              ": Expected there to be equal number of scala jars. added :",
+              render(added.scalaJars),
+              ", removed: ",
+              render(removed.scalaJars)
+            ).mkString("")
+          }
+        }
+        if (added.restJars.nonEmpty || removed.restJars.nonEmpty) {
+          System.err.println(s"${crossProjectName.value}: Added ${render(added.restJars)} to classPath, Removed ${render(removed.restJars)} from classPath")
+        }
     }
     succeed
-  }
-
-  object CompilerPlugin {
-    def unapply(scalacOption: String): Option[Config.Module] =
-      // -Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar
-      scalacOption.split(":") match {
-        case Array(constants.ScalaPluginPrefix, path) =>
-          val pathFragments = path.split("/").toList
-
-          pathFragments.indexOf("maven2") match {
-            case -1 => sys.error(s"tests only support compiler plugins from a repository which has a maven2/ path fragment. feel free to patch this")
-            case n =>
-              pathFragments.drop(n + 1).reverse match {
-                case (fileName @ _) :: version :: artifactName :: reverseOrgs =>
-                  Some(
-                    Config.Module(
-                      reverseOrgs.reverse.mkString("."),
-                      artifactName,
-                      version,
-                      None,
-                      List(Config.Artifact(artifactName, None, None, Paths.get(path)))
-                    )
-                  )
-                case _ => None
-              }
-          }
-        case _ => None
-      }
   }
 }
