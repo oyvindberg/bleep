@@ -20,7 +20,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.7.1/scalajs-test-interface_2.13-1.7.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_sjs1_3/2.0.1/scala-xml_sjs1_3-2.0.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.0.2/scala3-library_sjs1_3-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.1/scala3-library_sjs1_3-3.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_sjs1_3/3.2.11/scalactic_sjs1_3-3.2.11.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_sjs1_3/3.2.11/scalatest-core_sjs1_3-3.2.11.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_sjs1_3/3.2.11/scalatest-diagrams_sjs1_3-3.2.11.jar",
@@ -417,17 +417,17 @@
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_sjs1_3",
-          "version": "3.0.2",
+          "version": "3.1.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.0.2/scala3-library_sjs1_3-3.0.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.1/scala3-library_sjs1_3-3.1.1.jar"
             },
             {
               "name": "scala3-library_sjs1_3",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.0.2/scala3-library_sjs1_3-3.0.2-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.1/scala3-library_sjs1_3-3.1.1-sources.jar"
             }
           ]
         },

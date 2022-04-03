@@ -91,7 +91,10 @@ object GeneratedFilesScript {
       val byFile: Map[GeneratedFile, Vector[model.CrossProjectName]] =
         generatedFiles.toVector.flatMap { case (crossName, files) => files.map(file => file -> crossName) }.groupMap(_._1)(_._2)
 
-      val copies = byFile.toVector.sortBy(x => (x._2.head.name.value, x._1.toRelPath)).map { case (file, forProjects) =>
+      // important for snapshot tests
+      val sorted = byFile.toVector.sortBy(x => (x._2.head.value, x._1.toRelPath))
+
+      val copies = sorted.map { case (file, forProjects) =>
         s"""
     ${Repr.str(forProjects, 6)}.foreach { crossName =>
       val projectPaths = started.projectPaths(crossName) 

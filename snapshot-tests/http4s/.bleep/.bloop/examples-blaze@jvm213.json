@@ -26,6 +26,8 @@
       "server@jvm213"
     ],
     "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.5/fs2-core_2.13-3.2.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.5/fs2-io_2.13-3.2.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar",
@@ -46,7 +48,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.13/1.10.0/log4s_2.13-1.10.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.0.1/scala-xml_2.13-2.0.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.13/1.2.0/case-insensitive_2.13-1.2.0.jar",
@@ -176,6 +177,23 @@
           ]
         },
         {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.2.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar"
+            },
+            {
+              "name": "logback-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.http4s",
           "name": "blaze-core_2.13",
           "version": "0.15.3",
@@ -244,19 +262,19 @@
           ]
         },
         {
-          "organization": "com.twitter",
-          "name": "hpack",
-          "version": "1.0.2",
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.7.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "hpack",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar"
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar"
             },
             {
-              "name": "hpack",
+              "name": "cats-kernel_2.13",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0-sources.jar"
             }
           ]
         },
@@ -568,40 +586,6 @@
         },
         {
           "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.7.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.7.0",
           "configurations": "default",
@@ -648,6 +632,40 @@
               "name": "jackson-annotations",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.12.6/jackson-annotations-2.12.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "hpack",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "hpack",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar"
+            },
+            {
+              "name": "hpack",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.2.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar"
+            },
+            {
+              "name": "logback-classic",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6-sources.jar"
             }
           ]
         },

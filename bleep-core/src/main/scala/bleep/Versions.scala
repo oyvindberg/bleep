@@ -22,23 +22,22 @@ object Versions {
       if (is3) Scala213.library
       else Dep.Java(scalaOrganization, "scala-library", scalaVersion)
 
-    val dottyLibrary: Option[Dep] =
-      if (is3) Some(Dep.Java(scalaOrganization, "scala3-library", scalaVersion))
+    val scala3Library: Option[Dep] =
+      if (is3) Some(Dep.Scala(scalaOrganization, "scala3-library", scalaVersion))
       else None
+
+    val libraries: List[Dep] =
+      List(Some(library), scala3Library).flatten
 
     val binVersion: String = scalaVersion match {
       case Version("3", _, _)     => s"3"
       case Version("2", minor, _) => s"2.$minor"
       case other                  => other
     }
-
-    val compilerBridge: Option[Dep] =
-      if (is3) Some(Dep.Java(scalaOrganization, "scala3-sbt-bridge", scalaVersion))
-      else None
   }
 
   val Scala212 = Scala("2.12.15")
-  val Scala213 = Scala("2.13.8")
+  val Scala213 = Scala("2.13.6")
   val Scala3 = Scala("3.1.1")
 
   case class ScalaJs(scalaJsVersion: String) {
@@ -54,6 +53,7 @@ object Versions {
     val scalaJsOrganization = "org.scala-js"
     val sbtPlugin = Dep.Scala(scalaJsOrganization, "sbt-scalajs", scalaJsVersion)
     val compilerPlugin = Dep.ScalaFullVersion(scalaJsOrganization, "scalajs-compiler", scalaJsVersion)
+    val testBridge = Dep.Scala("org.scala-js", "scalajs-test-bridge", scalaJsVersion)
   }
 
   val ScalaJs1 = ScalaJs("1.9.0")

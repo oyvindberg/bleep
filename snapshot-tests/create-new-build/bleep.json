@@ -94,7 +94,7 @@
     "template-scala-2.13" : {
       "extends" : "template-common",
       "scala" : {
-        "version" : "2.13.8"
+        "version" : "2.13.6"
       }
     },
     "template-scala-2.13-js" : {
