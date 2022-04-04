@@ -33,11 +33,13 @@ object bootstrap {
           val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 
           val activeProjects: List[model.CrossProjectName] =
-            explodedBuild.projects.flatMap { case (crossProjectName, p) =>
-              val folder = pre.buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
-              if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
-              else None
-            }.toList
+            if (pre.buildPaths.cwd == pre.buildPaths.buildDir) explodedBuild.projects.keys.toList
+            else
+              explodedBuild.projects.flatMap { case (crossProjectName, p) =>
+                val folder = pre.buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
+                if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
+                else None
+              }.toList
 
           val bloopFiles: GenBloopFiles.Files =
             genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild)
