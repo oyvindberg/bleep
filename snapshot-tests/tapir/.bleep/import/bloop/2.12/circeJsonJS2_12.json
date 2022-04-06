@@ -1,0 +1,458 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "circeJsonJS2_12",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/.sbt/matrix/circeJsonJS2_12",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/tapir",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/java",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scalajs",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scalajs-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala-2.13-",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/scala-2.13-",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/js-2.12/src_managed/main"
+        ],
+        "dependencies": [
+            "coreJS2_12"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/.bleep/import/bloop/2.12/coreJS2_12/scala-2.12/classes",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.8.0/scalajs-library_2.12-1.8.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_sjs1_2.12/0.14.1/circe-core_sjs1_2.12-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_sjs1_2.12/0.14.1/circe-parser_sjs1_2.12-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_sjs1_2.12/0.14.1/circe-generic_sjs1_2.12-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.4.18/core_sjs1_2.12-1.4.18.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.2.7/core_sjs1_2.12-1.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.2.7/ws_sjs1_2.12-1.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.12/0.17.0/magnolia_sjs1_2.12-0.17.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.0.0/scalajs-dom_sjs1_2.12-2.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_sjs1_2.12/0.14.1/circe-numbers_sjs1_2.12-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.12/2.6.1/cats-core_sjs1_2.12-2.6.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-scalajs_sjs1_2.12/0.14.1/circe-scalajs_sjs1_2.12-0.14.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_sjs1_2.12/2.3.7/shapeless_sjs1_2.12-2.3.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.3.0/scala-java-time_sjs1_2.12-2.3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.12/2.6.1/cats-kernel_sjs1_2.12-2.6.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.1/portable-scala-reflect_sjs1_2.12-1.1.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.2.0/scala-java-locales_sjs1_2.12-1.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/2.7.0/cldr-api_sjs1_2.12-2.7.0.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/.bleep/import/bloop/2.12/circeJsonJS2_12",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/tapir/../../snapshot-tests/tapir/.bleep/import/bloop/2.12/circeJsonJS2_12/scala-2.12/classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/src/main/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/json/circe/target/js-2.12/resource_managed/main"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-encoding",
+                "utf8",
+                "-deprecation",
+                "-explaintypes",
+                "-feature",
+                "-language:existentials",
+                "-language:experimental.macros",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Xcheckinit",
+                "-Xlint:adapted-args",
+                "-Xlint:by-name-right-associative",
+                "-Xlint:constant",
+                "-Xlint:delayedinit-select",
+                "-Xlint:doc-detached",
+                "-Xlint:inaccessible",
+                "-Xlint:infer-any",
+                "-Xlint:missing-interpolator",
+                "-Xlint:nullary-override",
+                "-Xlint:nullary-unit",
+                "-Xlint:option-implicit",
+                "-Xlint:package-object-classes",
+                "-Xlint:poly-implicit-overload",
+                "-Xlint:private-shadow",
+                "-Xlint:stars-align",
+                "-Xlint:type-parameter-shadow",
+                "-Xlint:unsound-match",
+                "-Yno-adapted-args",
+                "-Ywarn-dead-code",
+                "-Ywarn-extra-implicit",
+                "-Ywarn-nullary-override",
+                "-Ywarn-nullary-unit",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-unused:implicits",
+                "-Ywarn-unused:imports",
+                "-Ywarn-unused:locals",
+                "-Ywarn-unused:params",
+                "-Ywarn-unused:patvars",
+                "-Ywarn-unused:privates",
+                "-Ywarn-value-discard",
+                "-Ypartial-unification",
+                "-Ywarn-macros:after",
+                "-Ywarn-macros:after",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.15/1.8.0/scalajs-compiler_2.12.15-1.8.0.jar",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "js",
+            "config": {
+                "version": "1.8.0",
+                "mode": "debug",
+                "kind": "none",
+                "emitSourceMaps": false,
+                "jsdom": false,
+                "toolchain": [
+                    
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-js",
+                    "name": "scalajs-library_2.12",
+                    "version": "1.8.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalajs-library_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.8.0/scalajs-library_2.12-1.8.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-core_sjs1_2.12",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-core_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_sjs1_2.12/0.14.1/circe-core_sjs1_2.12-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-parser_sjs1_2.12",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-parser_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_sjs1_2.12/0.14.1/circe-parser_sjs1_2.12-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-generic_sjs1_2.12",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-generic_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_sjs1_2.12/0.14.1/circe-generic_sjs1_2.12-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.model",
+                    "name": "core_sjs1_2.12",
+                    "version": "1.4.18",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.4.18/core_sjs1_2.12-1.4.18.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "core_sjs1_2.12",
+                    "version": "1.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.2.7/core_sjs1_2.12-1.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "ws_sjs1_2.12",
+                    "version": "1.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ws_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.2.7/ws_sjs1_2.12-1.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.propensive",
+                    "name": "magnolia_sjs1_2.12",
+                    "version": "0.17.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "magnolia_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.12/0.17.0/magnolia_sjs1_2.12-0.17.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-js",
+                    "name": "scalajs-dom_sjs1_2.12",
+                    "version": "2.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalajs-dom_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.0.0/scalajs-dom_sjs1_2.12-2.0.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-numbers_sjs1_2.12",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-numbers_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_sjs1_2.12/0.14.1/circe-numbers_sjs1_2.12-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-core_sjs1_2.12",
+                    "version": "2.6.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-core_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.12/2.6.1/cats-core_sjs1_2.12-2.6.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-scalajs_sjs1_2.12",
+                    "version": "0.14.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-scalajs_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-scalajs_sjs1_2.12/0.14.1/circe-scalajs_sjs1_2.12-0.14.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.chuusai",
+                    "name": "shapeless_sjs1_2.12",
+                    "version": "2.3.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "shapeless_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_sjs1_2.12/2.3.7/shapeless_sjs1_2.12-2.3.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "scala-java-time_sjs1_2.12",
+                    "version": "2.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-java-time_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.3.0/scala-java-time_sjs1_2.12-2.3.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.propensive",
+                    "name": "mercator_2.12",
+                    "version": "0.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mercator_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-kernel_sjs1_2.12",
+                    "version": "2.6.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-kernel_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.12/2.6.1/cats-kernel_sjs1_2.12-2.6.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "simulacrum-scalafix-annotations_2.12",
+                    "version": "0.5.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simulacrum-scalafix-annotations_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.portable-scala",
+                    "name": "portable-scala-reflect_sjs1_2.12",
+                    "version": "1.1.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "portable-scala-reflect_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.1/portable-scala-reflect_sjs1_2.12-1.1.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "scala-java-locales_sjs1_2.12",
+                    "version": "1.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-java-locales_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.2.0/scala-java-locales_sjs1_2.12-1.2.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "cldr-api_sjs1_2.12",
+                    "version": "2.7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cldr-api_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/2.7.0/cldr-api_sjs1_2.12-2.7.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}

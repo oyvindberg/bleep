@@ -1,0 +1,2014 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "docs",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/http4s/docs",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/http4s",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/src/main/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/src/main/scala-2.13",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/src/main/java",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/target/scala-2.13/src_managed/main"
+        ],
+        "dependencies": [
+            "client",
+            "core",
+            "dsl",
+            "ember-server",
+            "ember-client",
+            "circe",
+            "dropwizard-metrics",
+            "prometheus-metrics"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/client/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/core/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/dsl/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/ember-server/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/ember-core/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/server/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/ember-client/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/circe/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/jawn/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/dropwizard-metrics/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/prometheus-metrics/scala-2.13/classes",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc_2.13/2.2.24/mdoc_2.13-2.2.24.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.15.0-M1/circe-generic_2.13-0.15.0-M1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-literal_2.13/0.15.0-M1/circe-literal_2.13-0.15.0-M1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/reactormonk/cryptobits_2.13/1.3/cryptobits_2.13-1.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.13/1.2.0/case-insensitive_2.13-1.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.6/cats-effect-std_2.13-3.3.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_2.13/0.3.6/cats-parse_2.13-0.3.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.13/0.2.2/http4s-crypto_2.13-0.2.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.5/fs2-core_2.13-3.2.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.5/fs2-io_2.13-3.2.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.2/ip4s-core_2.13-3.1.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.13/1.10.0/log4s_2.13-1.10.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.13/3.1.0/vault_2.13-3.1.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-slf4j_2.13/2.2.0/log4cats-slf4j_2.13-2.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/keypool_2.13/0.4.7/keypool_2.13-0.4.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.15.0-M1/circe-core_2.13-0.15.0-M1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.15.0-M1/circe-jawn_2.13-0.15.0-M1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core/4.2.8/metrics-core-4.2.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-json/4.2.8/metrics-json-4.2.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.15.0/simpleclient-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.15.0/simpleclient_common-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_hotspot/0.15.0/simpleclient_hotspot-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-runtime_2.13/2.2.24/mdoc-runtime_2.13-2.2.24.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-cli_2.13/2.2.24/mdoc-cli_2.13-2.2.24.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.4.28/scalameta_2.13-4.4.28.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/geirsson/metaconfig-typesafe-config_2.13/0.9.10/metaconfig-typesafe-config_2.13-0.9.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.2.9/fansi_2.13-0.2.9.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/methvin/directory-watcher/0.15.0/directory-watcher-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/undertow/undertow-core/2.2.10.Final/undertow-core-2.2.10.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-nio/3.8.4.Final/xnio-nio-3.8.4.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.12/commons-codec-1.12.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.6/cats-effect-kernel_2.13-3.3.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.13/2.2.0/log4cats-core_2.13-2.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.13/2.2.0/jawn-fs2_2.13-2.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.15.0-M1/circe-numbers_2.13-0.15.0-M1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.12.6/jackson-core-2.12.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.12.6/jackson-databind-2.12.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.15.0/simpleclient_tracer_otel-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.15.0/simpleclient_tracer_otel_agent-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-interfaces/2.2.24/mdoc-interfaces-2.2.24.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/pprint_2.13/0.6.0/pprint_2.13-0.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.4/interface-1.0.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/0.62.2/flexmark-all-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/parsers_2.13/4.4.28/parsers_2.13-4.4.28.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.8/scalap-2.13.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/geirsson/metaconfig-core_2.13/0.9.10/metaconfig-core_2.13-0.9.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.2.1/config-1.2.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.2.7/sourcecode_2.13-0.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.4.1.Final/jboss-logging-3.4.1.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-api/3.8.4.Final/xnio-api-3.8.4.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/threads/jboss-threads/3.1.0.Final/jboss-threads-3.1.0.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.12.6/jackson-annotations-2.12.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.15.0/simpleclient_tracer_common-0.15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark/0.62.2/flexmark-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-abbreviation/0.62.2/flexmark-ext-abbreviation-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-admonition/0.62.2/flexmark-ext-admonition-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-anchorlink/0.62.2/flexmark-ext-anchorlink-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-aside/0.62.2/flexmark-ext-aside-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-attributes/0.62.2/flexmark-ext-attributes-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-autolink/0.62.2/flexmark-ext-autolink-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-definition/0.62.2/flexmark-ext-definition-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-emoji/0.62.2/flexmark-ext-emoji-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-enumerated-reference/0.62.2/flexmark-ext-enumerated-reference-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-escaped-character/0.62.2/flexmark-ext-escaped-character-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-footnotes/0.62.2/flexmark-ext-footnotes-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-issues/0.62.2/flexmark-ext-gfm-issues-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-strikethrough/0.62.2/flexmark-ext-gfm-strikethrough-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-tasklist/0.62.2/flexmark-ext-gfm-tasklist-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-users/0.62.2/flexmark-ext-gfm-users-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gitlab/0.62.2/flexmark-ext-gitlab-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-jekyll-front-matter/0.62.2/flexmark-ext-jekyll-front-matter-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-jekyll-tag/0.62.2/flexmark-ext-jekyll-tag-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-media-tags/0.62.2/flexmark-ext-media-tags-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-macros/0.62.2/flexmark-ext-macros-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-ins/0.62.2/flexmark-ext-ins-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-xwiki-macros/0.62.2/flexmark-ext-xwiki-macros-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-superscript/0.62.2/flexmark-ext-superscript-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-tables/0.62.2/flexmark-ext-tables-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-toc/0.62.2/flexmark-ext-toc-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-typographic/0.62.2/flexmark-ext-typographic-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-wikilink/0.62.2/flexmark-ext-wikilink-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-yaml-front-matter/0.62.2/flexmark-ext-yaml-front-matter-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-youtube-embedded/0.62.2/flexmark-ext-youtube-embedded-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-html2md-converter/0.62.2/flexmark-html2md-converter-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-jira-converter/0.62.2/flexmark-jira-converter-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-pdf-converter/0.62.2/flexmark-pdf-converter-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-profile-pegdown/0.62.2/flexmark-profile-pegdown-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-ast/0.62.2/flexmark-util-ast-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-builder/0.62.2/flexmark-util-builder-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-collection/0.62.2/flexmark-util-collection-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-data/0.62.2/flexmark-util-data-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-dependency/0.62.2/flexmark-util-dependency-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-format/0.62.2/flexmark-util-format-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-html/0.62.2/flexmark-util-html-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-misc/0.62.2/flexmark-util-misc-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-options/0.62.2/flexmark-util-options-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-sequence/0.62.2/flexmark-util-sequence-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-visitor/0.62.2/flexmark-util-visitor-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-youtrack-converter/0.62.2/flexmark-youtrack-converter-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/trees_2.13/4.4.28/trees_2.13-4.4.28.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/paiges-core_2.13/0.3.0/paiges-core_2.13-0.3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.4.4/scala-collection-compat_2.13-2.4.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/common/wildfly-common/1.5.2.Final/wildfly-common-1.5.2.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/client/wildfly-client-config/1.0.1.Final/wildfly-client-config-1.0.1.Final.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util/0.62.2/flexmark-util-0.62.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/nibor/autolink/autolink/0.6.0/autolink-0.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.11.3/jsoup-1.11.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-core/1.0.0/openhtmltopdf-core-1.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-pdfbox/1.0.0/openhtmltopdf-pdfbox-1.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-rtl-support/1.0.0/openhtmltopdf-rtl-support-1.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-jsoup-dom-converter/1.0.0/openhtmltopdf-jsoup-dom-converter-1.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/15.0/annotations-15.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/common_2.13/4.4.28/common_2.13-4.4.28.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.13/2.3.1/fastparse-v2_2.13-2.3.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/pdfbox/2.0.16/pdfbox-2.0.16.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/xmpbox/2.0.16/xmpbox-2.0.16.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/de/rototor/pdfbox/graphics2d/0.24/graphics2d-0.24.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/ibm/icu/icu4j/59.1/icu4j-59.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.4/scalapb-runtime_2.13-0.11.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.5/geny_2.13-0.6.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/fontbox/2.0.16/fontbox-2.0.16.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.4/lenses_2.13-0.11.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.15.8/protobuf-java-3.15.8.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/docs",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/http4s/../../snapshot-tests/http4s/.bleep/import/bloop/2.13/docs/scala-2.13/classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/src/main/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/http4s/docs/target/scala-2.13/resource_managed/main"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.13.8",
+            "options": [
+                "-deprecation",
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-unchecked",
+                "-Ywarn-numeric-widen",
+                "-Xlint:deprecation",
+                "-Wunused:nowarn",
+                "-Wdead-code",
+                "-Wextra-implicit",
+                "-Wnumeric-widen",
+                "-Wunused:implicits",
+                "-Wunused:explicits",
+                "-Wunused:imports",
+                "-Wunused:locals",
+                "-Wunused:params",
+                "-Wunused:patvars",
+                "-Wunused:privates",
+                "-Wvalue-discard",
+                "-Ywarn-dead-code",
+                "-Ybackend-parallelism",
+                "8",
+                "-language:_",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/com/olegpy/better-monadic-for_2.13/0.3.1/better-monadic-for_2.13-0.3.1.jar",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.8/0.13.2/kind-projector_2.13.8-0.13.2.jar",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.13.8/4.4.32/semanticdb-scalac_2.13.8-4.4.32.jar",
+                "-P:semanticdb:synthetics:on",
+                "-Yrangepos",
+                "-P:semanticdb:targetroot:<BLEEP_GIT>/snapshot-tests-in/http4s/docs/target/scala-2.13/meta"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                "-encoding",
+                "utf8",
+                "-Xlint:all"
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                },
+                {
+                    "names": [
+                        "utest.runner.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<HOME>/.cache/coursier/jvm/graalvm-java17@22.0.0.2",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/http4s/docs"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "mdoc_2.13",
+                    "version": "2.2.24",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mdoc_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc_2.13/2.2.24/mdoc_2.13-2.2.24.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-generic_2.13",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-generic_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.15.0-M1/circe-generic_2.13-0.15.0-M1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-literal_2.13",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-literal_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-literal_2.13/0.15.0-M1/circe-literal_2.13-0.15.0-M1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.reactormonk",
+                    "name": "cryptobits_2.13",
+                    "version": "1.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cryptobits_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactormonk/cryptobits_2.13/1.3/cryptobits_2.13-1.3.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "case-insensitive_2.13",
+                    "version": "1.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "case-insensitive_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.13/1.2.0/case-insensitive_2.13-1.2.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-core_2.13",
+                    "version": "2.7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-effect-std_2.13",
+                    "version": "3.3.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-effect-std_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.6/cats-effect-std_2.13-3.3.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-parse_2.13",
+                    "version": "0.3.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-parse_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_2.13/0.3.6/cats-parse_2.13-0.3.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.http4s",
+                    "name": "http4s-crypto_2.13",
+                    "version": "0.2.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "http4s-crypto_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.13/0.2.2/http4s-crypto_2.13-0.2.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "co.fs2",
+                    "name": "fs2-core_2.13",
+                    "version": "3.2.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fs2-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.5/fs2-core_2.13-3.2.5.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "co.fs2",
+                    "name": "fs2-io_2.13",
+                    "version": "3.2.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fs2-io_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.5/fs2-io_2.13-3.2.5.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.comcast",
+                    "name": "ip4s-core_2.13",
+                    "version": "3.1.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ip4s-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.2/ip4s-core_2.13-3.1.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "literally_2.13",
+                    "version": "1.0.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "literally_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.log4s",
+                    "name": "log4s_2.13",
+                    "version": "1.10.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "log4s_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.13/1.10.0/log4s_2.13-1.10.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scodec",
+                    "name": "scodec-bits_2.13",
+                    "version": "1.1.30",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scodec-bits_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "vault_2.13",
+                    "version": "3.1.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "vault_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.13/3.1.0/vault_2.13-3.1.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.slf4j",
+                    "name": "slf4j-api",
+                    "version": "1.7.36",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "slf4j-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "log4cats-slf4j_2.13",
+                    "version": "2.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "log4cats-slf4j_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-slf4j_2.13/2.2.0/log4cats-slf4j_2.13-2.2.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "keypool_2.13",
+                    "version": "0.4.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "keypool_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/keypool_2.13/0.4.7/keypool_2.13-0.4.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-core_2.13",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.15.0-M1/circe-core_2.13-0.15.0-M1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-jawn_2.13",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-jawn_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.15.0-M1/circe-jawn_2.13-0.15.0-M1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.dropwizard.metrics",
+                    "name": "metrics-core",
+                    "version": "4.2.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "metrics-core",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-core/4.2.8/metrics-core-4.2.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.dropwizard.metrics",
+                    "name": "metrics-json",
+                    "version": "4.2.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "metrics-json",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/dropwizard/metrics/metrics-json/4.2.8/metrics-json-4.2.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.prometheus",
+                    "name": "simpleclient",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simpleclient",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.15.0/simpleclient-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.prometheus",
+                    "name": "simpleclient_common",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simpleclient_common",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.15.0/simpleclient_common-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.prometheus",
+                    "name": "simpleclient_hotspot",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simpleclient_hotspot",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_hotspot/0.15.0/simpleclient_hotspot-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.13.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "mdoc-runtime_2.13",
+                    "version": "2.2.24",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mdoc-runtime_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-runtime_2.13/2.2.24/mdoc-runtime_2.13-2.2.24.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "mdoc-cli_2.13",
+                    "version": "2.2.24",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mdoc-cli_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-cli_2.13/2.2.24/mdoc-cli_2.13-2.2.24.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "scalameta_2.13",
+                    "version": "4.4.28",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalameta_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.4.28/scalameta_2.13-4.4.28.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.geirsson",
+                    "name": "metaconfig-typesafe-config_2.13",
+                    "version": "0.9.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "metaconfig-typesafe-config_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/geirsson/metaconfig-typesafe-config_2.13/0.9.10/metaconfig-typesafe-config_2.13-0.9.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "fansi_2.13",
+                    "version": "0.2.9",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fansi_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.2.9/fansi_2.13-0.2.9.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.googlecode.java-diff-utils",
+                    "name": "diffutils",
+                    "version": "1.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "diffutils",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.methvin",
+                    "name": "directory-watcher",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "directory-watcher",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/methvin/directory-watcher/0.15.0/directory-watcher-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.undertow",
+                    "name": "undertow-core",
+                    "version": "2.2.10.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "undertow-core",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/undertow/undertow-core/2.2.10.Final/undertow-core-2.2.10.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jboss.xnio",
+                    "name": "xnio-nio",
+                    "version": "3.8.4.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "xnio-nio",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-nio/3.8.4.Final/xnio-nio-3.8.4.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.chuusai",
+                    "name": "shapeless_2.13",
+                    "version": "2.3.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "shapeless_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-codec",
+                    "name": "commons-codec",
+                    "version": "1.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-codec",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.12/commons-codec-1.12.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-kernel_2.13",
+                    "version": "2.7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-kernel_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "simulacrum-scalafix-annotations_2.13",
+                    "version": "0.5.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simulacrum-scalafix-annotations_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-effect-kernel_2.13",
+                    "version": "3.3.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-effect-kernel_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.6/cats-effect-kernel_2.13-3.3.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-effect_2.13",
+                    "version": "3.3.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-effect_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "log4cats-core_2.13",
+                    "version": "2.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "log4cats-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.13/2.2.0/log4cats-core_2.13-2.2.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "hpack",
+                    "version": "1.0.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "hpack",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "jawn-fs2_2.13",
+                    "version": "2.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jawn-fs2_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.13/2.2.0/jawn-fs2_2.13-2.2.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "jawn-parser_2.13",
+                    "version": "1.3.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jawn-parser_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-numbers_2.13",
+                    "version": "0.15.0-M1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-numbers_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.15.0-M1/circe-numbers_2.13-0.15.0-M1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.fasterxml.jackson.core",
+                    "name": "jackson-core",
+                    "version": "2.12.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jackson-core",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.12.6/jackson-core-2.12.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.fasterxml.jackson.core",
+                    "name": "jackson-databind",
+                    "version": "2.12.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jackson-databind",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.12.6/jackson-databind-2.12.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.prometheus",
+                    "name": "simpleclient_tracer_otel",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simpleclient_tracer_otel",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.15.0/simpleclient_tracer_otel-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.prometheus",
+                    "name": "simpleclient_tracer_otel_agent",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simpleclient_tracer_otel_agent",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.15.0/simpleclient_tracer_otel_agent-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.13.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jline",
+                    "name": "jline",
+                    "version": "3.21.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jline",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna",
+                    "version": "5.9.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "mdoc-interfaces",
+                    "version": "2.2.24",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mdoc-interfaces",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/mdoc-interfaces/2.2.24/mdoc-interfaces-2.2.24.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "pprint_2.13",
+                    "version": "0.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "pprint_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/pprint_2.13/0.6.0/pprint_2.13-0.6.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.get-coursier",
+                    "name": "interface",
+                    "version": "1.0.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "interface",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.4/interface-1.0.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-all",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-all",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-all/0.62.2/flexmark-all-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "parsers_2.13",
+                    "version": "4.4.28",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "parsers_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/parsers_2.13/4.4.28/parsers_2.13-4.4.28.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scalap",
+                    "version": "2.13.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalap",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.8/scalap-2.13.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.geirsson",
+                    "name": "metaconfig-core_2.13",
+                    "version": "0.9.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "metaconfig-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/geirsson/metaconfig-core_2.13/0.9.10/metaconfig-core_2.13-0.9.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.typesafe",
+                    "name": "config",
+                    "version": "1.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "config",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.2.1/config-1.2.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "sourcecode_2.13",
+                    "version": "0.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "sourcecode_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.2.7/sourcecode_2.13-0.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jboss.logging",
+                    "name": "jboss-logging",
+                    "version": "3.4.1.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jboss-logging",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/logging/jboss-logging/3.4.1.Final/jboss-logging-3.4.1.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jboss.xnio",
+                    "name": "xnio-api",
+                    "version": "3.8.4.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "xnio-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/xnio/xnio-api/3.8.4.Final/xnio-api-3.8.4.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jboss.threads",
+                    "name": "jboss-threads",
+                    "version": "3.1.0.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jboss-threads",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jboss/threads/jboss-threads/3.1.0.Final/jboss-threads-3.1.0.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.fasterxml.jackson.core",
+                    "name": "jackson-annotations",
+                    "version": "2.12.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jackson-annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.12.6/jackson-annotations-2.12.6.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.prometheus",
+                    "name": "simpleclient_tracer_common",
+                    "version": "0.15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "simpleclient_tracer_common",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.15.0/simpleclient_tracer_common-0.15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark/0.62.2/flexmark-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-abbreviation",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-abbreviation",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-abbreviation/0.62.2/flexmark-ext-abbreviation-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-admonition",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-admonition",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-admonition/0.62.2/flexmark-ext-admonition-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-anchorlink",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-anchorlink",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-anchorlink/0.62.2/flexmark-ext-anchorlink-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-aside",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-aside",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-aside/0.62.2/flexmark-ext-aside-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-attributes",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-attributes",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-attributes/0.62.2/flexmark-ext-attributes-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-autolink",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-autolink",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-autolink/0.62.2/flexmark-ext-autolink-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-definition",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-definition",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-definition/0.62.2/flexmark-ext-definition-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-emoji",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-emoji",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-emoji/0.62.2/flexmark-ext-emoji-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-enumerated-reference",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-enumerated-reference",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-enumerated-reference/0.62.2/flexmark-ext-enumerated-reference-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-escaped-character",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-escaped-character",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-escaped-character/0.62.2/flexmark-ext-escaped-character-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-footnotes",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-footnotes",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-footnotes/0.62.2/flexmark-ext-footnotes-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-gfm-issues",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-gfm-issues",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-issues/0.62.2/flexmark-ext-gfm-issues-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-gfm-strikethrough",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-gfm-strikethrough",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-strikethrough/0.62.2/flexmark-ext-gfm-strikethrough-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-gfm-tasklist",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-gfm-tasklist",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-tasklist/0.62.2/flexmark-ext-gfm-tasklist-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-gfm-users",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-gfm-users",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gfm-users/0.62.2/flexmark-ext-gfm-users-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-gitlab",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-gitlab",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-gitlab/0.62.2/flexmark-ext-gitlab-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-jekyll-front-matter",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-jekyll-front-matter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-jekyll-front-matter/0.62.2/flexmark-ext-jekyll-front-matter-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-jekyll-tag",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-jekyll-tag",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-jekyll-tag/0.62.2/flexmark-ext-jekyll-tag-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-media-tags",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-media-tags",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-media-tags/0.62.2/flexmark-ext-media-tags-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-macros",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-macros",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-macros/0.62.2/flexmark-ext-macros-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-ins",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-ins",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-ins/0.62.2/flexmark-ext-ins-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-xwiki-macros",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-xwiki-macros",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-xwiki-macros/0.62.2/flexmark-ext-xwiki-macros-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-superscript",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-superscript",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-superscript/0.62.2/flexmark-ext-superscript-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-tables",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-tables",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-tables/0.62.2/flexmark-ext-tables-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-toc",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-toc",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-toc/0.62.2/flexmark-ext-toc-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-typographic",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-typographic",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-typographic/0.62.2/flexmark-ext-typographic-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-wikilink",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-wikilink",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-wikilink/0.62.2/flexmark-ext-wikilink-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-yaml-front-matter",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-yaml-front-matter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-yaml-front-matter/0.62.2/flexmark-ext-yaml-front-matter-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-ext-youtube-embedded",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-ext-youtube-embedded",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-ext-youtube-embedded/0.62.2/flexmark-ext-youtube-embedded-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-html2md-converter",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-html2md-converter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-html2md-converter/0.62.2/flexmark-html2md-converter-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-jira-converter",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-jira-converter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-jira-converter/0.62.2/flexmark-jira-converter-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-pdf-converter",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-pdf-converter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-pdf-converter/0.62.2/flexmark-pdf-converter-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-profile-pegdown",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-profile-pegdown",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-profile-pegdown/0.62.2/flexmark-profile-pegdown-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-ast",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-ast",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-ast/0.62.2/flexmark-util-ast-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-builder",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-builder",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-builder/0.62.2/flexmark-util-builder-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-collection",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-collection",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-collection/0.62.2/flexmark-util-collection-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-data",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-data",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-data/0.62.2/flexmark-util-data-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-dependency",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-dependency",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-dependency/0.62.2/flexmark-util-dependency-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-format",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-format",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-format/0.62.2/flexmark-util-format-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-html",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-html",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-html/0.62.2/flexmark-util-html-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-misc",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-misc",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-misc/0.62.2/flexmark-util-misc-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-options",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-options",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-options/0.62.2/flexmark-util-options-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-sequence",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-sequence",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-sequence/0.62.2/flexmark-util-sequence-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util-visitor",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util-visitor",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util-visitor/0.62.2/flexmark-util-visitor-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-youtrack-converter",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-youtrack-converter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-youtrack-converter/0.62.2/flexmark-youtrack-converter-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "trees_2.13",
+                    "version": "4.4.28",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "trees_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/trees_2.13/4.4.28/trees_2.13-4.4.28.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "paiges-core_2.13",
+                    "version": "0.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "paiges-core_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/paiges-core_2.13/0.3.0/paiges-core_2.13-0.3.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-collection-compat_2.13",
+                    "version": "2.4.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-collection-compat_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.4.4/scala-collection-compat_2.13-2.4.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.wildfly.common",
+                    "name": "wildfly-common",
+                    "version": "1.5.2.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "wildfly-common",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/common/wildfly-common/1.5.2.Final/wildfly-common-1.5.2.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.wildfly.client",
+                    "name": "wildfly-client-config",
+                    "version": "1.0.1.Final",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "wildfly-client-config",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/wildfly/client/wildfly-client-config/1.0.1.Final/wildfly-client-config-1.0.1.Final.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.vladsch.flexmark",
+                    "name": "flexmark-util",
+                    "version": "0.62.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flexmark-util",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/vladsch/flexmark/flexmark-util/0.62.2/flexmark-util-0.62.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.nibor.autolink",
+                    "name": "autolink",
+                    "version": "0.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "autolink",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/nibor/autolink/autolink/0.6.0/autolink-0.6.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jsoup",
+                    "name": "jsoup",
+                    "version": "1.11.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsoup",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.11.3/jsoup-1.11.3.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.openhtmltopdf",
+                    "name": "openhtmltopdf-core",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "openhtmltopdf-core",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-core/1.0.0/openhtmltopdf-core-1.0.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.openhtmltopdf",
+                    "name": "openhtmltopdf-pdfbox",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "openhtmltopdf-pdfbox",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-pdfbox/1.0.0/openhtmltopdf-pdfbox-1.0.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.openhtmltopdf",
+                    "name": "openhtmltopdf-rtl-support",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "openhtmltopdf-rtl-support",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-rtl-support/1.0.0/openhtmltopdf-rtl-support-1.0.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.openhtmltopdf",
+                    "name": "openhtmltopdf-jsoup-dom-converter",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "openhtmltopdf-jsoup-dom-converter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/openhtmltopdf/openhtmltopdf-jsoup-dom-converter/1.0.0/openhtmltopdf-jsoup-dom-converter-1.0.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains",
+                    "name": "annotations",
+                    "version": "15.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/15.0/annotations-15.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "common_2.13",
+                    "version": "4.4.28",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "common_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/common_2.13/4.4.28/common_2.13-4.4.28.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "fastparse-v2_2.13",
+                    "version": "2.3.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fastparse-v2_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.13/2.3.1/fastparse-v2_2.13-2.3.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.pdfbox",
+                    "name": "pdfbox",
+                    "version": "2.0.16",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "pdfbox",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/pdfbox/2.0.16/pdfbox-2.0.16.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.pdfbox",
+                    "name": "xmpbox",
+                    "version": "2.0.16",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "xmpbox",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/xmpbox/2.0.16/xmpbox-2.0.16.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "de.rototor.pdfbox",
+                    "name": "graphics2d",
+                    "version": "0.24",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "graphics2d",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/de/rototor/pdfbox/graphics2d/0.24/graphics2d-0.24.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.ibm.icu",
+                    "name": "icu4j",
+                    "version": "59.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "icu4j",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/ibm/icu/icu4j/59.1/icu4j-59.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thesamet.scalapb",
+                    "name": "scalapb-runtime_2.13",
+                    "version": "0.11.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalapb-runtime_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.4/scalapb-runtime_2.13-0.11.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "geny_2.13",
+                    "version": "0.6.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "geny_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.5/geny_2.13-0.6.5.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.pdfbox",
+                    "name": "fontbox",
+                    "version": "2.0.16",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fontbox",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pdfbox/fontbox/2.0.16/fontbox-2.0.16.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-logging",
+                    "name": "commons-logging",
+                    "version": "1.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-logging",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thesamet.scalapb",
+                    "name": "lenses_2.13",
+                    "version": "0.11.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "lenses_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.4/lenses_2.13-0.11.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.protobuf",
+                    "name": "protobuf-java",
+                    "version": "3.15.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protobuf-java",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.15.8/protobuf-java-3.15.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.13.8",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.8",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}
