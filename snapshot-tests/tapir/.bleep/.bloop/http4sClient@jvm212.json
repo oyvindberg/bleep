@@ -31,7 +31,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.12/0.2.0/http4s-crypto_2.12-0.2.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.12/1.10.0/log4s_2.12-1.10.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.30/scodec-bits_2.12-1.1.30.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.12/1.2.0/case-insensitive_2.12-1.2.0.jar",
@@ -278,23 +277,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.3.0",
@@ -536,7 +518,7 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.12",
           "version": "1.2.7",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "fs2_2.12",

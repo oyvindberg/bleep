@@ -30,7 +30,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.1/circe-numbers_2.12-0.14.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.12/0.14.1/circe-yaml_2.12-0.14.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.6.1/cats-core_2.12-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.6.1/cats-kernel_2.12-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
@@ -180,6 +179,23 @@
               "name": "magnolia_2.12",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.12",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1.jar"
+            },
+            {
+              "name": "circe-generic_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1-sources.jar"
             }
           ]
         },
@@ -367,40 +383,6 @@
               "name": "circe-core_2.12",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.1/circe-core_2.12-0.14.1-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-generic_2.12",
-          "version": "0.14.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "circe-generic_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1.jar"
-            },
-            {
-              "name": "circe-generic_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1-sources.jar"
             }
           ]
         }

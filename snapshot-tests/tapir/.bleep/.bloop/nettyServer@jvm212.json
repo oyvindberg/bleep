@@ -501,7 +501,7 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.12",
           "version": "1.2.7",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "fs2_2.12",

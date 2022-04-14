@@ -25,8 +25,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.1.2/ip4s-core_3-3.1.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/1.4.200/h2-1.4.200.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/zaxxer/HikariCP/4.0.3/HikariCP-4.0.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2.5.1/postgis-jdbc-2.5.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.3.2/postgresql-42.3.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.6.0/scala-collection-compat_3-2.6.0.jar",
@@ -50,7 +48,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.10/scalatest-wordspec_3-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.10/scalatest_3-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.30/scodec-bits_3-1.1.30.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.0-alpha1/slf4j-api-2.0.0-alpha1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_3/1.0.0/typename_3-1.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.7.0/cats-core_3-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.3.5/cats-effect-kernel_3-3.3.5.jar",
@@ -227,6 +225,23 @@
         },
         {
           "organization": "org.typelevel",
+          "name": "literally_3",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "literally_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2.jar"
+            },
+            {
+              "name": "literally_3",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
           "name": "cats-free_3",
           "version": "2.7.0",
           "configurations": "default",
@@ -290,23 +305,6 @@
               "name": "scalatest-matchers-core_3",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_3/3.2.10/scalatest-matchers-core_3-3.2.10-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.postgis",
-          "name": "postgis-geometry",
-          "version": "2.5.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "postgis-geometry",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1.jar"
-            },
-            {
-              "name": "postgis-geometry",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1-sources.jar"
             }
           ]
         },
@@ -568,17 +566,17 @@
         {
           "organization": "org.slf4j",
           "name": "slf4j-api",
-          "version": "2.0.0-alpha1",
+          "version": "1.7.36",
           "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.0-alpha1/slf4j-api-2.0.0-alpha1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
             },
             {
               "name": "slf4j-api",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.0-alpha1/slf4j-api-2.0.0-alpha1-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36-sources.jar"
             }
           ]
         },
@@ -630,40 +628,6 @@
               "name": "scalatest-wordspec_3",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.10/scalatest-wordspec_3-3.2.10-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "literally_3",
-          "version": "1.0.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "literally_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2.jar"
-            },
-            {
-              "name": "literally_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.postgis",
-          "name": "postgis-jdbc",
-          "version": "2.5.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "postgis-jdbc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2.5.1/postgis-jdbc-2.5.1.jar"
-            },
-            {
-              "name": "postgis-jdbc",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2.5.1/postgis-jdbc-2.5.1-sources.jar"
             }
           ]
         },

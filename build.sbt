@@ -8,11 +8,7 @@ val commonSettings: Project => Project =
     .settings(
       organization := "no.arktekk",
       scalaVersion := "2.13.8",
-      scalacOptions -= "-Xfatal-warnings",
-      excludeDependencies ++= List(
-        ExclusionRule("org.scala-lang.modules", "scala-collection-compat_2.13"),
-        ExclusionRule("org.scala-lang.modules", "scala-xml_3")
-      ).filter(_ => scalaVersion.value.startsWith("3"))
+      scalacOptions -= "-Xfatal-warnings"
     )
 
 val crossSettings: Project => Project =
@@ -25,11 +21,11 @@ lazy val `bleep-core` = project
   .settings(
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "fansi" % "0.3.1",
-      "io.get-coursier" %% "coursier" % "2.0.16" cross For3Use2_13(),
+      "io.get-coursier" %% "coursier" % "2.0.16" cross For3Use2_13() exclude ("org.scala-lang.modules", "scala-collection-compat_2.13"),
       "io.circe" %% "circe-core" % "0.14.1",
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
-      "org.gnieh" %% "diffson-circe" % "4.1.1",
+      ("org.gnieh" %% "diffson-circe" % "4.1.1"),
       "ch.epfl.scala" %% "bloop-config" % "1.4.13" cross For3Use2_13()
     )
   )
@@ -61,7 +57,8 @@ lazy val bleep = project
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.3",
       "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.3",
-      "org.graalvm.nativeimage" % "svm" % "22.0.0.2"
+      "org.graalvm.nativeimage" % "svm" % "22.0.0.2",
+      ("org.scala-sbt" %% "librarymanagement-core" % "1.6.0").exclude("org.scala-sbt", "util-logging_2.13")
     ),
     Compile / bloopMainClass := Some("bleep.Main"),
     nativeImageJvmIndex := "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json",

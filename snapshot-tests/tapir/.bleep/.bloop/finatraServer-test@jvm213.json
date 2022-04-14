@@ -129,6 +129,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-aarch64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-x86_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar",
@@ -158,7 +160,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.6/scalap-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10.jar",
@@ -529,12 +531,12 @@
           "artifacts": [
             {
               "name": "inject-core_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0.jar"
             },
             {
               "name": "inject-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-core_2.13",
@@ -568,12 +570,12 @@
           "artifacts": [
             {
               "name": "inject-server_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0.jar"
             },
             {
               "name": "inject-server_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-server_2.13",
@@ -952,12 +954,12 @@
           "artifacts": [
             {
               "name": "inject-modules_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0.jar"
             },
             {
               "name": "inject-modules_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-modules_2.13",
@@ -2199,17 +2201,17 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.7",
+          "version": "2.13.6",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
             },
             {
               "name": "scala-library",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -2238,12 +2240,12 @@
           "artifacts": [
             {
               "name": "inject-app_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0.jar"
             },
             {
               "name": "inject-app_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-app_2.13",

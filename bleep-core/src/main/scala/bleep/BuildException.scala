@@ -29,7 +29,7 @@ object BuildException {
   class TargetFolderNotDetermined(projectName: model.CrossProjectName)
       extends BuildException(s"Couldn't determine original output directory of project ${projectName.name}")
 
-  class InvalidJson(file: Path, e: circe.Error) extends BuildException(s"Couldn't parse json file $file", e)
+  class InvalidJson(file: Path, e: Throwable) extends BuildException(s"Couldn't parse json file $file", e)
 
   class ModuleFormatError(
       val moduleString: String,

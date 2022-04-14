@@ -42,7 +42,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.9.0/scalajs-test-bridge_2.13-1.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_sjs1_2.13/1.15.4/scalacheck_sjs1_2.13-1.15.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_sjs1_2.13/0.7.29/munit-scalacheck_sjs1_2.13-0.7.29.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_sjs1_2.13/0.7.29/munit_sjs1_2.13-0.7.29.jar",
@@ -663,6 +662,23 @@
           ]
         },
         {
+          "organization": "org.scala-js",
+          "name": "scalajs-test-interface_2.13",
+          "version": "1.9.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-test-interface_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0.jar"
+            },
+            {
+              "name": "scalajs-test-interface_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "co.fs2",
           "name": "fs2-core_sjs1_2.13",
           "version": "3.2.5",
@@ -693,40 +709,6 @@
               "name": "scalajs-test-bridge_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.9.0/scalajs-test-bridge_2.13-1.9.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-test-interface_2.13",
-          "version": "1.9.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalajs-test-interface_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0.jar"
-            },
-            {
-              "name": "scalajs-test-interface_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8-sources.jar"
             }
           ]
         },

@@ -252,6 +252,23 @@
           ]
         },
         {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+            },
+            {
+              "name": "test-interface",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
           "version": "3.3.5",
@@ -354,23 +371,6 @@
           ]
         },
         {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "1.7.32",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "munit-cats-effect-3_3",
           "version": "1.0.7",
@@ -408,7 +408,7 @@
           "organization": "net.postgis",
           "name": "postgis-jdbc",
           "version": "2.5.1",
-          "configurations": "default",
+          "configurations": "provided",
           "artifacts": [
             {
               "name": "postgis-jdbc",
@@ -554,40 +554,6 @@
               "name": "scalacheck_3",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.15.4/scalacheck_3-1.15.4-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.postgis",
-          "name": "postgis-geometry",
-          "version": "2.5.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "postgis-geometry",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1.jar"
-            },
-            {
-              "name": "postgis-geometry",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-geometry/2.5.1/postgis-geometry-2.5.1-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            },
-            {
-              "name": "test-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar"
             }
           ]
         },

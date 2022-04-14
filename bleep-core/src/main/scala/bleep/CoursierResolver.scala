@@ -9,6 +9,7 @@ import coursier.core._
 import coursier.error.{CoursierError, FetchError, ResolutionError}
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
+import coursier.params.ResolutionParams
 import coursier.util.{Artifact, Task}
 import io.circe._
 import io.circe.syntax._
@@ -19,7 +20,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
 trait CoursierResolver {
-  def apply(deps: JsonSet[Dependency]): Either[CoursierError, CoursierResolver.Result]
+  def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result]
 }
 
 object CoursierResolver {
@@ -105,14 +106,17 @@ object CoursierResolver {
     def detailedArtifacts: Seq[(Dependency, Publication, Artifact, File)] =
       fullDetailedArtifacts.collect { case (dep, pub, art, Some(file)) => (dep, pub, art, file) }
 
-    def files: List[File] =
-      fullDetailedArtifacts
-        .collect { case (_, publication, _, Some(file)) if publication.classifier == Classifier.empty || publication.classifier == Classifier.tests => file }
+    def files: Seq[File] =
+      detailedArtifacts.map(_._4)
+
+    def jarFiles: List[File] =
+      detailedArtifacts
+        .collect { case (_, pub, _, file) if pub.ext == Extension.jar && pub.classifier != Classifier.sources && pub.classifier != Classifier.javadoc => file }
         .distinct
         .toList
 
     def jars: List[Path] =
-      files.map(_.toPath)
+      jarFiles.map(_.toPath)
   }
 
   private object Result {
@@ -147,12 +151,17 @@ object CoursierResolver {
   private class Direct(val repos: List[model.Repository], downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
     val fileCache = FileCache[Task]()
 
-    override def apply(deps: JsonSet[Dependency]): Either[CoursierError, CoursierResolver.Result] = {
+    override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
         val value = Fetch[Task](fileCache)
           .withDependencies(deps.values.toList)
+          .withResolutionParams(
+            ResolutionParams()
+              .withForceScalaVersion(forceScalaVersion.nonEmpty)
+              .withScalaVersionOpt(forceScalaVersion.map(_.scalaVersion))
+          )
           .addRepositories((repos ++ constants.DefaultRepos).map {
             case bleep.model.Repository.Maven(uri) =>
               MavenRepository(uri.toString).withAuthentication(resolverConfigs.configs.get(uri))
@@ -178,10 +187,10 @@ object CoursierResolver {
   }
 
   private class Cached(logger: Logger, underlying: Direct, in: Path) extends CoursierResolver {
-    override def apply(deps: JsonSet[Dependency]): Either[CoursierError, CoursierResolver.Result] =
-      if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps)
+    override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] =
+      if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps, forceScalaVersion)
       else {
-        val request = Cached.Request(underlying.fileCache.location, deps, underlying.repos)
+        val request = Cached.Request(underlying.fileCache.location, deps, underlying.repos, forceScalaVersion.map(_.scalaVersion))
         val digest = request.asJson.noSpaces.hashCode // both `noSpaces` and `String.hashCode` should hopefully be stable
         val cachePath = in / s"$digest.json"
 
@@ -201,26 +210,31 @@ object CoursierResolver {
           case Some(value) => Right(value)
           case None =>
             val depNames = deps.map(_.module.name.value).values
-            logger.withContext(cachePath).withContext(depNames).debug(s"coursier cache miss")
-            underlying(deps).map { result =>
-              FileUtils.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
-              result
+            val ctxLogger = logger.withContext(cachePath).withContext(depNames)
+            ctxLogger.debug(s"coursier cache miss")
+            underlying(deps, forceScalaVersion).map {
+              case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
+                ctxLogger.info("Not caching because result is changing")
+                changingResult
+              case result =>
+                FileUtils.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
+                result
             }
         }
       }
   }
 
   private object Cached {
-    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repos: List[model.Repository])
+    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repos: List[model.Repository], forceScalaVersion: Option[String])
     object Request {
       import Result.codecDependency
       implicit val ordering: Ordering[Dependency] =
         Ordering.by(_.toString())
 
       implicit val codec: Codec[Request] =
-        Codec.forProduct3[Request, File, JsonSet[Dependency], List[model.Repository]]("", "wanted", "repos")(Request.apply)(x =>
-          (x.cacheLocation, x.wanted, x.repos)
-        )
+        Codec.forProduct4[Request, File, JsonSet[Dependency], List[model.Repository], Option[String]]("", "wanted", "repos", "forceScalaVersion")(
+          Request.apply
+        )(x => (x.cacheLocation, x.wanted, x.repos, x.forceScalaVersion))
     }
 
     case class Both(request: Request, result: Result)

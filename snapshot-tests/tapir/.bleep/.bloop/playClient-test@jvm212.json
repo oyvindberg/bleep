@@ -265,7 +265,7 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.12",
           "version": "1.2.7",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka_2.12",
@@ -1251,7 +1251,7 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.12",
           "version": "2.6.17",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka-stream_2.12",

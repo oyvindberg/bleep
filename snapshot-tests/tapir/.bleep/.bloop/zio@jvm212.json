@@ -30,7 +30,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_2.12/1.0.12/zio-streams_2.12-1.0.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/1.0.12/zio_2.12-1.0.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/core/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/zio/jvm212",
@@ -193,23 +192,6 @@
               "name": "zio_2.12",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/1.0.12/zio_2.12-1.0.12-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },
