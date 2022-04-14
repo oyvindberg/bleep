@@ -12,6 +12,8 @@ trait BuildPaths {
   lazy val bspBleepJsonFile: Path = buildDir / ".bsp" / "bleep.json"
   lazy val dotBleepDir: Path = buildDir / ".bleep"
   lazy val bleepImportDir: Path = dotBleepDir / "import"
+  lazy val bleepImportBloopDir: Path = dotBleepDir / "import" / "bloop"
+  lazy val bleepImportSbtExportDir: Path = dotBleepDir / "import" / "sbt-export"
   lazy val dotBleepBspModeDir: Path = dotBleepDir / "bsp"
   def dotBleepModeDir: Path
   lazy val bleepBloopDir: Path = dotBleepModeDir / ".bloop"

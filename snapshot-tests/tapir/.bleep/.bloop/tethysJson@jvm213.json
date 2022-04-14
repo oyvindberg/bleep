@@ -26,8 +26,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.13/0.25.0/tethys-core_2.13-0.25.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson_2.13/0.25.0/tethys-jackson_2.13-0.25.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/core/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tethysJson/jvm213",
@@ -144,23 +143,6 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.2.7",
@@ -231,17 +213,17 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.7",
+          "version": "2.13.6",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
             },
             {
               "name": "scala-library",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },

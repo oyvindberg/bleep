@@ -253,7 +253,7 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_3",
           "version": "1.2.7",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "fs2_3",

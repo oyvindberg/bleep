@@ -1,8 +1,8 @@
 package bleep
 package scripts
 
+import bleep.packaging.PackagePlugin
 import bleep.tasks._
-import net.hamnaberg.blooppackager.PackagePlugin
 
 object GenNativeImage extends App {
   bootstrap.forScript("GenNativeImage") { started =>

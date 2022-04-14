@@ -5,9 +5,8 @@
   "description": "",
   "type": "object",
   "$defs": {
-    "Module": {
-      "type": "string",
-      "pattern": "^[^:]+:{1,3}[^:]+$"
+    "ModuleName": {
+      "type": "string"
     },
     "TemplateId": {
       "type": "string"
@@ -113,18 +112,21 @@
           "type": "string"
         },
         "exclusions": {
-          "description": "on the form 'com.example::foo' or ['com.example::foo', 'com.example::bar']",
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Module"
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/Module"
+          "description": "organization in key and module name(s) in value. example: {\"org.scala-sbt\" : \"util-logging_2.13\"}, or {\"org.scala-sbt\" : [\"util-logging_2.13\", \"util-cache_2.13\"]}",
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/ModuleName"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/ModuleName"
+                }
               }
-            }
-          ]
+            ]
+          }
         },
         "publication": {
           "type": "object",
@@ -143,9 +145,6 @@
               "type": "string"
             }
           }
-        },
-        "optional": {
-          "type": "boolean"
         },
         "transitive": {
           "type": "boolean"

@@ -27,7 +27,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.12/0.25.0/tethys-core_2.12-0.25.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson_2.12/0.25.0/tethys-jackson_2.12-0.25.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/core/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tethysJson/jvm212",
@@ -207,23 +206,6 @@
               "name": "jackson-core",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.4/jackson-core-2.11.4-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },

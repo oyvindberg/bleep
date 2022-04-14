@@ -36,7 +36,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_2.13/1.0.0/scala-js-macrotask-executor_sjs1_2.13-1.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_2.13/1.1.30/scodec-bits_sjs1_2.13-1.1.30.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_sjs1_2.13/1.2.0/case-insensitive_sjs1_2.13-1.2.0.jar",
@@ -410,23 +409,6 @@
               "name": "cats-kernel_sjs1_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.13/2.7.0/cats-kernel_sjs1_2.13-2.7.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8-sources.jar"
             }
           ]
         },

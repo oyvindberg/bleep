@@ -34,8 +34,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/d11/zhttp_2.13/1.0.0.0-RC17/zhttp_2.13-1.0.0.0-RC17.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.65.Final/netty-all-4.1.65.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.4.4/scala-collection-compat_2.13-2.4.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/core/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/zio/jvm213/classes"
     ],
@@ -221,6 +220,23 @@
           ]
         },
         {
+          "organization": "io.netty",
+          "name": "netty-all",
+          "version": "4.1.65.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-all",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.65.Final/netty-all-4.1.65.Final.jar"
+            },
+            {
+              "name": "netty-all",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.65.Final/netty-all-4.1.65.Final-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "dev.zio",
           "name": "zio-streams_2.13",
           "version": "1.0.12",
@@ -257,17 +273,17 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.7",
+          "version": "2.13.6",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
             },
             {
               "name": "scala-library",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -302,40 +318,6 @@
               "name": "zhttp_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/d11/zhttp_2.13/1.0.0.0-RC17/zhttp_2.13-1.0.0.0-RC17-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.netty",
-          "name": "netty-all",
-          "version": "4.1.65.Final",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "netty-all",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.65.Final/netty-all-4.1.65.Final.jar"
-            },
-            {
-              "name": "netty-all",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.65.Final/netty-all-4.1.65.Final-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6-sources.jar"
             }
           ]
         },

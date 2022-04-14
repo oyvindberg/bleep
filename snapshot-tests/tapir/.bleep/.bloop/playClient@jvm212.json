@@ -39,7 +39,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.29/slf4j-api-1.7.29.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/core/jvm212/classes"
     ],
@@ -176,7 +175,7 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.12",
           "version": "1.2.7",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka_2.12",
@@ -186,23 +185,6 @@
               "name": "akka_2.12",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.12/1.2.7/akka_2.12-1.2.7-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },
@@ -244,7 +226,7 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.12",
           "version": "2.6.17",
-          "configurations": "default",
+          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka-stream_2.12",

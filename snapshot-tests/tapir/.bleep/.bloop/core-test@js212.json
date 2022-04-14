@@ -263,7 +263,7 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.15",
-          "configurations": "default",
+          "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-reflect",

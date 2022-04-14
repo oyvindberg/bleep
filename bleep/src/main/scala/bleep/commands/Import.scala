@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
 import bleep.rewrites.normalizeBuild
@@ -34,57 +35,78 @@ object Import {
     (skipSbt, ignoreWhenInferringTemplates).mapN { case (skipSbt, ignoreWhenInferringTemplates) =>
       Options(ignoreWhenInferringTemplates.toSet, skipSbt = skipSbt)
     }
+
+  def findGeneratedJsonFiles(under: Path): Iterable[Path] =
+    Files
+      .list(under)
+      .filter(Files.isDirectory(_))
+      .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
+      .toList
+      .asScala
 }
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
 case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logger, options: Import.Options) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
-      generateBloopFiles()
+      generateBloopAndDependencyFiles()
     }
 
-    val bloopFiles = findGeneratedBloopFiles().map(GenBloopFiles.readAndParseBloopFile)
-    val files = generateBuild(bloopFiles, hackDropBleepDependency = false).map { case (path, content) =>
-      (RelPath.relativeTo(destinationPaths.buildDir, path), content)
+    val bloopFiles = findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir).map(GenBloopFiles.readAndParseBloopFile)
+    val sbtExportFiles = findGeneratedJsonFiles(destinationPaths.bleepImportSbtExportDir).map { path =>
+      val contents = Files.readString(path)
+      ReadSbtExportFile.parse(path, contents)
     }
+
+    val files = generateBuild(bloopFiles, sbtExportFiles, hackDropBleepDependency = false)
+      .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
+
     FileUtils.sync(destinationPaths.buildDir, files, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = false)
 
     Right(())
   }
 
-  def generateBloopFiles(): Unit = {
+  def generateBloopAndDependencyFiles(): Unit = {
     val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
 
     FileUtils.writeString(
       tempAddBloopPlugin,
-      s"""addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")"""
+      s"""
+addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")
+addSbtPlugin("no.arktekk.bleep" % "sbt-export-dependencies" % "0.1.0")
+"""
     )
 
     try {
       // only accepts relative paths
       val importDir = RelPath.relativeTo(sbtBuildDir, destinationPaths.bleepImportDir)
       implicit val wd = sbtBuildDir
-      cli(s"""sbt 'set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop-$${scalaBinaryVersion.value}"' +bloopInstall""", logger)
+      cli(
+        List(
+          "sbt",
+          s"""'set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop/$${scalaBinaryVersion.value}"'""",
+          "+bloopInstall",
+          s"""'set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"'""",
+          "+exportAllProjects"
+        ).mkString(" "),
+        logger
+      )
     } finally Files.delete(tempAddBloopPlugin)
   }
-
-  def findGeneratedBloopFiles(): Iterable[Path] =
-    Files
-      .list(destinationPaths.bleepImportDir)
-      .filter(Files.isDirectory(_))
-      .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
-      .toList
-      .asScala
 
   /** @param hackDropBleepDependency
     *   a bit of technical debt. For tests we cannot resolve the bleep dependency since it's not published anywhere. Let's get back to this
     * @return
     */
-  def generateBuild(bloopFiles: Iterable[Config.File], hackDropBleepDependency: Boolean): Map[Path, String] = {
+  def generateBuild(
+      bloopFiles: Iterable[Config.File],
+      sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject],
+      hackDropBleepDependency: Boolean
+  ): Map[Path, String] = {
     val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
       importBloopFilesFromSbt.projectsWithSourceFilesByName(bloopFiles)
 
-    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName)
+    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName, sbtExportFiles)
     val normalizedBuild = normalizeBuild(build0)
     val build = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
 
