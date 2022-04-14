@@ -1,3 +1,4 @@
+
 package scripts
 
 import java.nio.file.Files
@@ -6,8 +7,10 @@ object GenerateResources extends App {
   bleep.bootstrap.forScript("GenerateResources") { started =>
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
-    Vector(bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName)
+    
+    Vector(
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName) 
       val to = projectPaths.generatedSourcesDir.resolve("scala/doobie/buildinfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package doobie
@@ -23,8 +26,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-    Vector(bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm212")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName)
+
+
+    Vector(
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm212")))).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName) 
       val to = projectPaths.generatedSourcesDir.resolve("scala/doobie/buildinfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package doobie
@@ -40,8 +46,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-    Vector(bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName)
+
+
+    Vector(
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName) 
       val to = projectPaths.generatedSourcesDir.resolve("scala/doobie/buildinfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package doobie
