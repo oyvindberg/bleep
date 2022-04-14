@@ -169,6 +169,7 @@ object model {
 
   case class Platform(
       name: Option[PlatformId],
+      mainClass: Option[String],
       jsVersion: Option[Versions.ScalaJs],
       jsMode: Option[Config.LinkerMode],
       jsKind: Option[Config.ModuleKindJS],
@@ -177,18 +178,16 @@ object model {
       //      output: Option[Path],
       //      nodePath: Option[Path],
       //      toolchain: List[Path]
-      jsMainClass: Option[String],
       //        mapSourceURI: Option[URI]
       //      home: Option[Path],
       jvmOptions: Options,
-      jvmMainClass: Option[String],
       //      runtimeHome: Option[Path],
       jvmRuntimeOptions: Options,
       //        classpath: Option[List[Path]],
       //        resources: Option[List[Path]]
       nativeVersion: Option[Versions.ScalaNative],
       nativeMode: Option[Config.LinkerMode],
-      nativeGc: Option[String],
+      nativeGc: Option[String]
       //      targetTriple: Option[String],
       //      clang: Path,
       //      clangpp: Path,
@@ -199,7 +198,6 @@ object model {
       //      check: Option[Boolean],
       //      dump: Option[Boolean],
       //      output: Option[Path]
-      nativeMainClass: Option[String]
   ) extends SetLike[Platform] {
 
     def compilerPlugin: Option[Dep] =
@@ -212,64 +210,58 @@ object model {
     override def intersect(other: Platform): Platform =
       new Platform(
         name = if (name == other.name) name else None,
+        mainClass = if (mainClass == other.mainClass) mainClass else None,
         jsVersion = if (jsVersion == other.jsVersion) jsVersion else None,
         jsMode = if (jsMode == other.jsMode) jsMode else None,
         jsKind = if (jsKind == other.jsKind) jsKind else None,
         jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) jsEmitSourceMaps else None,
         jsJsdom = if (jsJsdom == other.jsJsdom) jsJsdom else None,
-        jsMainClass = if (jsMainClass == other.jsMainClass) jsMainClass else None,
         //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
         jvmOptions = jvmOptions.intersect(other.jvmOptions),
-        jvmMainClass = if (jvmMainClass == other.jvmMainClass) jvmMainClass else None,
         jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
         nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
         nativeMode = if (nativeMode == other.nativeMode) nativeMode else None,
-        nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
-        nativeMainClass = if (nativeMainClass == other.nativeMainClass) nativeMainClass else None
+        nativeGc = if (nativeGc == other.nativeGc) nativeGc else None
       )
 
     override def removeAll(other: Platform): Platform =
       new Platform(
         name = if (name == other.name) None else name,
+        mainClass = if (mainClass == other.mainClass) None else mainClass,
         jsVersion = if (jsVersion == other.jsVersion) None else jsVersion,
         jsMode = if (jsMode == other.jsMode) None else jsMode,
         jsKind = if (jsKind == other.jsKind) None else jsKind,
         jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) None else jsEmitSourceMaps,
         jsJsdom = if (jsJsdom == other.jsJsdom) None else jsJsdom,
-        jsMainClass = if (jsMainClass == other.jsMainClass) None else jsMainClass,
         //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
         jvmOptions = jvmOptions.removeAll(other.jvmOptions),
-        jvmMainClass = if (jvmMainClass == other.jvmMainClass) None else jvmMainClass,
         jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
         nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
         nativeMode = if (nativeMode == other.nativeMode) None else nativeMode,
-        nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
-        nativeMainClass = if (nativeMainClass == other.nativeMainClass) None else nativeMainClass
+        nativeGc = if (nativeGc == other.nativeGc) None else nativeGc
       )
 
     override def union(other: Platform): Platform =
       new Platform(
         name = name.orElse(other.name),
+        mainClass = mainClass.orElse(other.mainClass),
         jsVersion = jsVersion.orElse(other.jsVersion),
         jsMode = jsMode.orElse(other.jsMode),
         jsKind = jsKind.orElse(other.jsKind),
         jsEmitSourceMaps = jsEmitSourceMaps.orElse(other.jsEmitSourceMaps),
         jsJsdom = jsJsdom.orElse(other.jsJsdom),
-        jsMainClass = jsMainClass.orElse(other.jsMainClass),
         //          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
         jvmOptions = jvmOptions.union(other.jvmOptions),
-        jvmMainClass = jvmMainClass.orElse(other.jvmMainClass),
         jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
         nativeVersion = nativeVersion.orElse(other.nativeVersion),
         nativeMode = nativeMode.orElse(other.nativeMode),
-        nativeGc = nativeGc.orElse(other.nativeGc),
-        nativeMainClass = nativeMainClass.orElse(other.nativeMainClass)
+        nativeGc = nativeGc.orElse(other.nativeGc)
       )
 
     override def isEmpty: Boolean =
-      name.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty & jsEmitSourceMaps.isEmpty & jsJsdom.isEmpty & jsMainClass.isEmpty &&
-        jvmOptions.isEmpty && jvmMainClass.isEmpty && jvmRuntimeOptions.isEmpty &&
-        nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty && nativeMainClass.isEmpty
+      name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty &&
+        jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty &&
+        nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty
   }
 
   object Platform {
@@ -277,19 +269,17 @@ object model {
       def apply(jvmOptions: Options, jvmMainClass: Option[String], jvmRuntimeOptions: Options) =
         new Platform(
           name = Some(PlatformId.Jvm),
+          mainClass = jvmMainClass,
           jsVersion = None,
           jsMode = None,
           jsKind = None,
           jsEmitSourceMaps = None,
           jsJsdom = None,
-          jsMainClass = None,
           jvmOptions = jvmOptions,
-          jvmMainClass = jvmMainClass,
           jvmRuntimeOptions = jvmRuntimeOptions,
           nativeVersion = None,
           nativeMode = None,
-          nativeGc = None,
-          nativeMainClass = None
+          nativeGc = None
         )
       def unapply(x: Platform): Option[Platform] =
         x.name.flatMap {
@@ -309,19 +299,17 @@ object model {
       ) =
         new Platform(
           name = Some(PlatformId.Js),
+          mainClass = jsMainClass,
           jsVersion = jsVersion,
           jsMode = jsMode,
           jsKind = jsKind,
           jsEmitSourceMaps = jsEmitSourceMaps,
           jsJsdom = jsJsdom,
-          jsMainClass = jsMainClass,
           jvmOptions = Options.empty,
-          jvmMainClass = None,
           jvmRuntimeOptions = Options.empty,
           nativeVersion = None,
           nativeMode = None,
-          nativeGc = None,
-          nativeMainClass = None
+          nativeGc = None
         )
       def unapply(x: Platform): Option[Platform] =
         x.name.flatMap {
@@ -333,19 +321,17 @@ object model {
       def apply(nativeVersion: Option[Versions.ScalaNative], nativeMode: Option[Config.LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
         new Platform(
           name = Some(PlatformId.Native),
+          mainClass = nativeMainClass,
           jsVersion = None,
           jsMode = None,
           jsKind = None,
           jsEmitSourceMaps = None,
           jsJsdom = None,
-          jsMainClass = None,
           jvmOptions = Options.empty,
-          jvmMainClass = None,
           jvmRuntimeOptions = Options.empty,
           nativeVersion = nativeVersion,
           nativeMode = nativeMode,
-          nativeGc = nativeGc,
-          nativeMainClass = nativeMainClass
+          nativeGc = nativeGc
         )
       def unapply(x: Platform): Option[Platform] =
         x.name.flatMap {

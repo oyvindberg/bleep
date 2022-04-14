@@ -16,7 +16,7 @@ case class Run(
 ) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BuildException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
-      maybeOverriddenMain.orElse(started.build.projects(project).platform.flatMap(_.jvmMainClass))
+      maybeOverriddenMain.orElse(started.build.projects(project).platform.flatMap(_.mainClass))
 
     val maybeMain: Either[BuildException, String] =
       maybeSpecifiedMain match {
