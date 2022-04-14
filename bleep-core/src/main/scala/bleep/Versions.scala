@@ -38,7 +38,7 @@ object Versions {
 
   val Scala212 = Scala("2.12.15")
   val Scala213 = Scala("2.13.6")
-  val Scala3 = Scala("3.1.1")
+  val Scala3 = Scala("3.1.2")
 
   case class ScalaJs(scalaJsVersion: String) {
     require(scalaJsVersion.nonEmpty)
