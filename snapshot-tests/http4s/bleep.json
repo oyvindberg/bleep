@@ -243,26 +243,6 @@
       "folder" : "./../../snapshot-tests-in/http4s/core",
       "source-layout" : "cross-full"
     },
-    "core-test" : {
-      "cross" : {
-        "jvm213" : {
-          "dependencies" : {
-            "configuration" : "provided",
-            "module" : "org.scala-lang:scala-reflect:2.13.8"
-          }
-        }
-      },
-      "dependencies" : [
-        "ch.qos.logback:logback-classic:1.2.6",
-        "org.scalacheck::scalacheck:1.15.4",
-        "org.scalameta::munit:0.7.29",
-        "org.typelevel::cats-laws:2.7.0"
-      ],
-      "dependsOn" : "core",
-      "extends" : "template-cross-jvm-all-test",
-      "folder" : "./../../snapshot-tests-in/http4s/core",
-      "source-layout" : "cross-full"
-    },
     "dropwizard-metrics" : {
       "dependencies" : [
         "io.dropwizard.metrics:metrics-core:4.2.8",
@@ -737,14 +717,6 @@
       "extends" : "template-cross-jvm-all-test",
       "folder" : "./../../snapshot-tests-in/http4s/scalatags"
     },
-    "scripts" : {
-      "platform" : {
-        "name" : "jvm"
-      },
-      "scala" : {
-        "version" : "3.1.1"
-      }
-    },
     "server" : {
       "dependsOn" : "core",
       "extends" : [
@@ -869,9 +841,6 @@
       "extends" : "template-cross-jvm-all-test",
       "folder" : "./../../snapshot-tests-in/http4s/twirl"
     }
-  },
-  "scripts" : {
-    "generate-resources" : "scripts/scripts.GenerateResources"
   },
   "templates" : {
     "template-common" : {

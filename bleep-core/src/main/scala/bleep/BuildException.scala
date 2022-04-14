@@ -3,7 +3,6 @@ package bleep
 import bleep.internal.throwableMessages
 import bleep.logging.Logger
 import coursier.error.CoursierError
-import io.circe
 
 import java.nio.file.Path
 

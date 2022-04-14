@@ -41,4 +41,25 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
         pending
       }
     }
+
+  // copy/paste above. this won't throw a pending test result exception on success
+  // also won't delete unknown files
+  def writeAndCompareEarly(in: Path, fileMap: Map[Path, String]): Assertion =
+    if (Properties.isWin) succeed // let's deal with this later
+    else {
+      if (isCi) {
+        fileMap.foreach { case (path, contents) =>
+          if (Files.exists(path)) {
+            val existingContents = Files.readString(path)
+            assert(existingContents === contents)
+          } else {
+            fail(s"Expected path $path to exist")
+          }
+        }
+        succeed
+      } else {
+        FileUtils.syncPaths(in, fileMap, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
+        succeed
+      }
+    }
 }

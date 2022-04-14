@@ -1254,14 +1254,6 @@
       "extends" : "template-cross-jvm-212-213-js-212-213-test",
       "folder" : "./../../snapshot-tests-in/tapir/integrations/refined"
     },
-    "scripts" : {
-      "platform" : {
-        "name" : "jvm"
-      },
-      "scala" : {
-        "version" : "3.1.0"
-      }
-    },
     "serverTests" : {
       "cross" : {
         "jvm212" : {
@@ -1739,9 +1731,6 @@
       "extends" : "template-cross-jvm-all-test",
       "folder" : "./../../snapshot-tests-in/tapir/json/zio"
     }
-  },
-  "scripts" : {
-    "generate-resources" : "scripts/scripts.GenerateResources"
   },
   "templates" : {
     "template-common" : {

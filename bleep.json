@@ -10,10 +10,10 @@
           "exclusions" : {
             "org.scala-sbt" : "util-logging_2.13"
           },
-          "module" : "org.scala-sbt::librarymanagement-core:1.6.0"
+          "module" : "org.scala-sbt::librarymanagement-core:1.6.1"
         },
         "org.scalameta:svm-subs:101.0.0",
-        "org.virtuslab.scala-cli::bloop-rifle:0.1.3"
+        "org.virtuslab.scala-cli::bloop-rifle:0.1.4"
       ],
       "dependsOn" : "bleep-core",
       "extends" : [
@@ -39,7 +39,7 @@
       "dependencies" : [
         {
           "for3Use213" : true,
-          "module" : "ch.epfl.scala::bloop-config:1.4.13"
+          "module" : "ch.epfl.scala::bloop-config:1.5.0"
         },
         "com.lihaoyi::fansi:0.3.1",
         "io.circe::circe-core:0.14.1",
@@ -68,7 +68,7 @@
       ]
     },
     "bleep-test" : {
-      "dependencies" : "org.scalatest::scalatest:3.2.11",
+      "dependencies" : "org.scalatest::scalatest:3.2.12",
       "dependsOn" : "bleep",
       "extends" : [
         "template-common",
