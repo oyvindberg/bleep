@@ -17,8 +17,9 @@
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_2.13/0.3.1/fansi_sjs1_2.13-0.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.2.8/sourcecode_sjs1_2.13-0.2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.7.1/scalajs-library_2.13-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.7.1/scalajs-test-interface_2.13-1.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.9.0/scalajs-test-bridge_2.13-1.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_sjs1_2.13/3.2.11/scalactic_sjs1_2.13-3.2.11.jar",
@@ -120,17 +121,17 @@
         {
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
-          "version": "1.7.1",
+          "version": "1.9.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.7.1/scalajs-library_2.13-1.7.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0.jar"
             },
             {
               "name": "scalajs-library_2.13",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.7.1/scalajs-library_2.13-1.7.1-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0-sources.jar"
             }
           ]
         },
@@ -340,18 +341,35 @@
         },
         {
           "organization": "org.scala-js",
+          "name": "scalajs-test-bridge_2.13",
+          "version": "1.9.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-test-bridge_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.9.0/scalajs-test-bridge_2.13-1.9.0.jar"
+            },
+            {
+              "name": "scalajs-test-bridge_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.9.0/scalajs-test-bridge_2.13-1.9.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.13",
-          "version": "1.7.1",
+          "version": "1.9.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.7.1/scalajs-test-interface_2.13-1.7.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0.jar"
             },
             {
               "name": "scalajs-test-interface_2.13",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.7.1/scalajs-test-interface_2.13-1.7.1-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.9.0/scalajs-test-interface_2.13-1.9.0-sources.jar"
             }
           ]
         },

@@ -1,5 +1,7 @@
 package bleep
 
+import coursier.core.{ModuleName, Organization}
+
 object Versions {
   // this accepts any nightly or milestone with the same binversion as a major release. good enough for now
   private val Version = "(\\d+).(\\d+).(\\d+).*".r
@@ -26,6 +28,10 @@ object Versions {
       if (is3) Some(Dep.Scala(scalaOrganization, "scala3-library", scalaVersion))
       else None
 
+    // this does look funky. it does come from sbt with the suffix already baked in, so let's roll with that for now
+    val scala3JsLibrary: Dep.ScalaDependency =
+      Dep.ScalaDependency(Organization(scalaOrganization), ModuleName("scala3-library_sjs1"), scalaVersion, fullCrossVersion = false, forceJvm = true)
+
     val libraries: List[Dep] =
       List(Some(library), scala3Library).flatten
 
@@ -40,6 +46,8 @@ object Versions {
   val Scala213 = Scala("2.13.6")
   val Scala3 = Scala("3.1.1")
 
+  val scalaJsOrganization = Organization("org.scala-js")
+
   case class ScalaJs(scalaJsVersion: String) {
     require(scalaJsVersion.nonEmpty)
 
@@ -50,10 +58,25 @@ object Versions {
         case other                => other
       }
 
-    val scalaJsOrganization = "org.scala-js"
-    val sbtPlugin = Dep.Scala(scalaJsOrganization, "sbt-scalajs", scalaJsVersion)
-    val compilerPlugin = Dep.ScalaFullVersion(scalaJsOrganization, "scalajs-compiler", scalaJsVersion)
-    val testBridge = Dep.Scala("org.scala-js", "scalajs-test-bridge", scalaJsVersion)
+    val compilerPlugin: Dep.ScalaDependency =
+      Dep.ScalaDependency(scalaJsOrganization, ModuleName("scalajs-compiler"), scalaJsVersion, fullCrossVersion = true)
+    val library: Dep.ScalaDependency =
+      Dep.ScalaDependency(scalaJsOrganization, ModuleName("scalajs-library"), scalaJsVersion, fullCrossVersion = false, forceJvm = true)
+
+    // this does look funky. it does come from sbt with the suffix already baked in, so let's roll with that for now
+    val library3: Dep =
+      Dep.JavaDependency(scalaJsOrganization, ModuleName("scalajs-library_2.13"), scalaJsVersion)
+    val testInterface: Dep.ScalaDependency =
+      Dep.ScalaDependency(
+        scalaJsOrganization,
+        ModuleName("scalajs-test-interface"),
+        scalaJsVersion,
+        fullCrossVersion = false,
+        forceJvm = true,
+        for3Use213 = true
+      )
+    val testBridge: Dep.ScalaDependency =
+      Dep.ScalaDependency(scalaJsOrganization, ModuleName("scalajs-test-bridge"), scalaJsVersion, fullCrossVersion = false, forceJvm = true, for3Use213 = true)
   }
 
   val ScalaJs1 = ScalaJs("1.9.0")

@@ -151,9 +151,9 @@ object GenBloopFiles {
           Config.Platform.Js(
             Config.JsConfig(
               version = platform.jsVersion match {
-                case Some(value)                             => value.scalaJsVersion
-                case None if scalaVersion.fold(false)(_.is3) => ""
-                case None                                    => sys.error("missing `version`")
+                case _ if scalaVersion.fold(false)(_.is3) => ""
+                case Some(value)                          => value.scalaJsVersion
+                case None                                 => sys.error("missing `version`")
               },
               mode = platform.jsMode.getOrElse(Config.JsConfig.empty.mode),
               kind = platform.jsKind.getOrElse(Config.JsConfig.empty.kind),
@@ -182,7 +182,7 @@ object GenBloopFiles {
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
       val fromScalaVersion =
-        scalaVersion.map(_.libraries).getOrElse(Nil)
+        versions.libraries(isTest = explodedProject.testFrameworks.values.nonEmpty)
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -285,7 +285,7 @@ object GenBloopFiles {
         }
 
         val compilerPlugins: Options = {
-          val fromPlatform = explodedPlatform.flatMap(_.compilerPlugin)
+          val fromPlatform = versions.compilerPlugin
           val fromScala = maybeScala.fold(JsonSet.empty[Dep])(_.compilerPlugins)
           val specified: JsonSet[Dep] =
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
