@@ -25,8 +25,11 @@ case class Started(
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
     buildPaths.from(crossName, build.projects(crossName))
 
+  lazy val projectsAndBloopProjects: SortedMap[model.CrossProjectName, (Config.Project, model.Project)] =
+    bloopFiles.map { case (name, lazyProject) => (name, (lazyProject.forceGet.project, build.projects(name))) }
+
   lazy val bloopProjects: SortedMap[model.CrossProjectName, Config.Project] =
-    bloopFiles.map { case (path, lazyProject) => (path, lazyProject.forceGet.project) }
+    bloopFiles.map { case (name, lazyProject) => (name, lazyProject.forceGet.project) }
 
   lazy val bloopProjectsList: List[Config.Project] =
     bloopProjects.values.toList

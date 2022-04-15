@@ -18,6 +18,12 @@ sealed trait Dep {
   val repr: String
   def isSimple: Boolean
   def dependency(versions: ScalaVersions): Either[String, Dependency]
+  def dependencyForce(projectName: model.CrossProjectName, versions: ScalaVersions): Dependency =
+    dependency(versions) match {
+      case Left(err)    => throw new BuildException.Text(projectName, err)
+      case Right(value) => value
+    }
+
   def withConfiguration(newConfiguration: Configuration): Dep
 
   final def forceDependency(versions: ScalaVersions): Dependency =
@@ -82,21 +88,22 @@ object Dep {
     val repr: String =
       organization.value + ":" + moduleName.value + ":" + version
 
-    def dependency(versions: ScalaVersions): Either[String, Dependency] =
-      Right(
-        new Dependency(
-          module = new Module(
-            organization,
-            moduleName,
-            if (isSbtPlugin) Dep.SbtPluginAttrs ++ attributes else attributes
-          ),
-          version = version,
-          configuration = configuration,
-          exclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
-          publication = publication,
-          optional = false, // todo: we now express this in configuration. also here?
-          transitive = transitive
-        )
+    override def dependency(versions: ScalaVersions): Either[String, Dependency] =
+      Right(this.dependency)
+
+    def dependency: Dependency =
+      new Dependency(
+        module = new Module(
+          organization,
+          moduleName,
+          if (isSbtPlugin) Dep.SbtPluginAttrs ++ attributes else attributes
+        ),
+        version = version,
+        configuration = configuration,
+        exclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
+        publication = publication,
+        optional = false, // todo: we now express this in configuration. also here?
+        transitive = transitive
       )
 
     override def withConfiguration(newConfiguration: Configuration): Dep.JavaDependency =

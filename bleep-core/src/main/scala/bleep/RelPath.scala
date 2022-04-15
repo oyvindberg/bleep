@@ -6,12 +6,11 @@ import java.nio.file.Path
 
 case class RelPath(segments: List[String]) {
   override def toString: String = segments.mkString("/")
-  def prepended(str: String): RelPath =
-    RelPath(str :: segments)
+  def /(str: String): RelPath = new RelPath(segments :+ str)
 }
 
 object RelPath {
-  val empty = RelPath(Nil)
+  val empty = new RelPath(Nil)
 
   def force(str: String): RelPath = apply(str) match {
     case Left(errMsg) => sys.error(errMsg)

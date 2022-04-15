@@ -9,7 +9,7 @@ object deduplicateDependencies extends Rewrite {
   override val name = "deduplicate-dependencies"
 
   override def apply(build: ExplodedBuild): ExplodedBuild = {
-    val projects = rewriteDependentData[model.CrossProjectName, model.Project, model.Project](build.projects) { (projectName, p, getDep) =>
+    val projects = rewriteDependentData(build.projects).apply[model.Project] { (projectName, p, getDep) =>
       val shortenedDeps: Map[model.CrossProjectName, model.Project] =
         build.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, getDep(pn).forceGet(pn.value)) }
 

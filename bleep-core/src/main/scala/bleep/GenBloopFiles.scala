@@ -26,7 +26,7 @@ object GenBloopFiles {
         lazyResolver: Lazy[CoursierResolver],
         explodedBuild: ExplodedBuild
     ): GenBloopFiles.Files =
-      rewriteDependentData(explodedBuild.projects) { (crossName, project, getDep) =>
+      rewriteDependentData(explodedBuild.projects).apply { (crossName, project, getDep) =>
         translateProject(
           lazyResolver.forceGet,
           buildPaths,
@@ -322,40 +322,20 @@ object GenBloopFiles {
         )
       }
 
-    def sourceLayout = explodedProject.`source-layout` match {
-      case Some(sourceLayout) => sourceLayout
-      case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
-    }
-    val replacementsVersions = Replacements.versions(scalaVersion, configuredPlatform.map(_.name))
-
-    val maybePlatform = explodedPlatform.flatMap(_.name)
-
-    val sources: JsonSet[Path] = {
-      val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatform, explodedProject.`sbt-scope`)
-      val fromJson = JsonSet.fromIterable(explodedProject.sources.values.map(replacementsVersions.fill.relPath))
-      (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
-    }
-
-    val resources: JsonSet[Path] = {
-      val fromJson = JsonSet.fromIterable(explodedProject.resources.values.map(replacementsVersions.fill.relPath))
-      val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatform, explodedProject.`sbt-scope`)
-      (fromSourceLayout ++ fromJson).map(projectPaths.dir / _)
-    }
-
     Config.File(
       "1.4.0",
       Config.Project(
         crossName.value,
         projectPaths.dir,
         Some(buildPaths.buildDir),
-        sources = (sources + projectPaths.generatedSourcesDir).values.toList,
+        sources = projectPaths.sourcesDirs.values.toList,
         sourcesGlobs = None,
         sourceRoots = None,
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = projectPaths.targetDir,
         classesDir = projectPaths.classes,
-        resources = Some((resources + projectPaths.generatedResourcesDir).values.toList),
+        resources = Some(projectPaths.resourcesDirs.values.toList),
         scala = configuredScala,
         java = Some(Config.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,

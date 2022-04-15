@@ -1,7 +1,6 @@
 package bleep
 package scripts
 
-import bleep.packaging.PackagePlugin
 import bleep.tasks._
 
 object GenNativeImage extends App {
@@ -21,16 +20,5 @@ object GenNativeImage extends App {
     )
     val path = plugin.nativeImage()
     started.logger.info(s"Created native-image at $path")
-  }
-}
-
-object PackageAll extends App {
-  bootstrap.forScript("PackageAll") { started =>
-    val all: List[String] = started.bloopProjectsList.map(_.name)
-
-    PackagePlugin.run(started.logger, started.bloopProjectsList, PackageCommand.Jars(all))
-
-    val gitVersioningPlugin = new GitVersioningPlugin(started.buildPaths.buildDir, started.logger)()
-    started.logger.info(gitVersioningPlugin.version)
   }
 }

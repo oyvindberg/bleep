@@ -105,7 +105,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
       importer.generateBuild(
         importedBloopFiles.map { case (_, _, file) => file },
         sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile },
-        hackDropBleepDependency = true
+        hackDropBleepDependency = true,
+        maybeExistingBleepJson = None
       )
 
     // write build files, and produce an (in-memory) exploded build plus new bloop files

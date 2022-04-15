@@ -10,19 +10,32 @@ object rewriteDependentData {
     def apply(k: K): Lazy[VV]
   }
 
-  // hide `Lazy` and out tparam
-  def eager[K: Ordering, V](in: Map[K, V])(f: (K, V, Get[K, V]) => V): SortedMap[K, V] =
-    apply[K, V, V](in)(f).map { case (k, v) => (k, v.forceGet) }
+  def apply[K: Ordering, V](in: Map[K, V]) = new Api(in)
 
-  def apply[K: Ordering, V, VV](in: Map[K, V])(f: (K, V, Get[K, VV]) => VV): SortedMap[K, Lazy[VV]] = {
-    // sorted to ensure consistency
-    val sortedIn = SortedMap.empty[K, V] ++ in
+  final class Api[K: Ordering, V](in: Map[K, V]) {
+    def eager[VV](f: (K, V, Get[K, VV]) => VV): SortedMap[K, VV] =
+      apply(f).map { case (k, v) => (k, v.forceGet) }
 
-    lazy val get: Get[K, VV] = rewritten.apply
+    def startFrom[VV](include: K => Boolean)(f: (K, V, Get[K, VV]) => VV): SortedMap[K, VV] = {
+      val lazyMap = apply(f)
+      lazyMap.foreach {
+        case (k, lazyV) if include(k) => lazyV.forceGet
+        case _                        => ()
+      }
+      // this will include dependencies of what was chosen in `pred`
+      lazyMap.flatMap { case (k, v) => v.getIfEvaluated.map(vv => (k, vv)) }
+    }
 
-    lazy val rewritten: SortedMap[K, Lazy[VV]] =
-      sortedIn.map { case (k, v) => k -> Lazy(f(k, v, get)) }
+    def apply[VV](f: (K, V, Get[K, VV]) => VV): SortedMap[K, Lazy[VV]] = {
+      // sorted to ensure consistency
+      val sortedIn = SortedMap.empty[K, V] ++ in
 
-    rewritten
+      lazy val get: Get[K, VV] = rewritten.apply
+
+      lazy val rewritten: SortedMap[K, Lazy[VV]] =
+        sortedIn.map { case (k, v) => k -> Lazy(f(k, v, get)) }
+
+      rewritten
+    }
   }
 }
