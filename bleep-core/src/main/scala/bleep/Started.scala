@@ -42,5 +42,5 @@ case class Started(
     }
 
   def chosenTestProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
-    chosenProjects(maybeFromCommandLine).filterNot(projectName => build.projects(projectName).testFrameworks.isEmpty)
+    chosenProjects(maybeFromCommandLine).filter(projectName => build.projects(projectName).isTestProject.getOrElse(false))
 }

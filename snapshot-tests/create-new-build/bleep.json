@@ -12,16 +12,7 @@
       "dependencies" : "org.scalatest::scalatest:3.2.11",
       "dependsOn" : "myapp",
       "extends" : "template-cross-all",
-      "testFrameworks" : [
-        "com.novocode.junit.JUnitFramework",
-        "munit.Framework",
-        "org.scalacheck.ScalaCheckFramework",
-        "org.scalatest.tools.Framework",
-        "org.scalatest.tools.ScalaTestFramework",
-        "org.specs.runner.SpecsFramework",
-        "org.specs2.runner.Specs2Framework",
-        "org.specs2.runner.SpecsFramework"
-      ]
+      "isTestProject" : true
     }
   },
   "templates" : {

@@ -103,14 +103,14 @@ object Templates {
       override def parents = List(parent)
       override def name = s"${parent.name}-test"
       override def include(p: model.Project): Boolean =
-        parent.include(p) && !p.testFrameworks.isEmpty
+        parent.include(p) && p.isTestProject.getOrElse(false)
     }
 
     case class Main(parent: TemplateDef) extends TemplateDef {
       override def parents = List(parent)
       override def name = s"${parent.name}-main"
       override def include(p: model.Project): Boolean =
-        parent.include(p) && p.testFrameworks.isEmpty
+        parent.include(p) && !p.isTestProject.contains(true)
     }
 
     case class Platform(platformName: model.PlatformId) extends TemplateDef {

@@ -44,7 +44,7 @@ class ProjectGlobs(activeProjectsFromPath: List[model.CrossProjectName], explode
         case nonEmpty => nonEmpty
       }
 
-    val testProjects = projects.filter(projectName => !explodedBuild.projects(projectName).testFrameworks.isEmpty)
+    val testProjects = projects.filter(projectName => explodedBuild.projects(projectName).isTestProject.getOrElse(false))
 
     projectCompletions(testProjects)
   }

@@ -371,6 +371,9 @@
         "platform": {
           "$ref": "#/$defs/Platform"
         },
+        "isTestProject": {
+          "type": "boolean"
+        },
         "testFrameworks": {
           "oneOf": [
             {

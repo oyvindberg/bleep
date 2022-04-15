@@ -144,6 +144,7 @@ addSbtPlugin("no.arktekk.bleep" % "sbt-export-dependencies" % "0.1.0")
           java = None,
           scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty)),
           platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),
+          isTestProject = None,
           testFrameworks = JsonSet.empty
         )
 
