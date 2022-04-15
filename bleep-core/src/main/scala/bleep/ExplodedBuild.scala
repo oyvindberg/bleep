@@ -96,7 +96,7 @@ object ExplodedBuild {
 
   def of(build: model.Build): ExplodedBuild = {
     val explodedTemplates: SortedMap[model.TemplateId, model.Project] =
-      rewriteDependentData.eager(build.templates.value) { (_, p, eval) =>
+      rewriteDependentData(build.templates.value).eager[model.Project] { (_, p, eval) =>
         p.`extends`.values.foldLeft(p)((acc, templateId) => acc.union(eval(templateId).forceGet))
       }
 

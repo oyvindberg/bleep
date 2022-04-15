@@ -46,14 +46,30 @@
       "extends" : "template-cross-all"
     },
     "bleep-tasks" : {
-      "dependencies" : "se.sawano.java:alphanumeric-comparator:1.4.1",
       "dependsOn" : "bleep-core",
       "extends" : "template-cross-all",
-      "resources" : "./liberated/sbt-native-image/plugin/src/main/resources",
+      "resources" : "./../liberated/sbt-native-image/plugin/src/main/resources",
+      "sources" : "./../liberated/sbt-native-image/plugin/src/main/scala"
+    },
+    "bleep-tasks-publishing" : {
+      "dependencies" : [
+        "com.eed3si9n::gigahorse-okhttp:0.6.0",
+        "org.bouncycastle:bcpg-jdk15on:1.69",
+        "org.scala-lang.modules::scala-parser-combinators:2.1.1",
+        "org.sonatype.spice.zapper:spice-zapper:1.3",
+        "org.wvlet.airframe::airframe-http:22.4.2",
+        "se.sawano.java:alphanumeric-comparator:1.4.1"
+      ],
+      "dependsOn" : "bleep-tasks",
+      "extends" : "template-cross-jvm-212-213",
       "sources" : [
-        "./liberated/bloop-packager/src/main/scala",
-        "./liberated/sbt-git-versioning/src/main/scala",
-        "./liberated/sbt-native-image/plugin/src/main/scala"
+        "./../liberated/sbt-ci-release/plugin/src/main/scala",
+        "./../liberated/sbt-dynver/dynver/src/main/scala",
+        "./../liberated/sbt-dynver/sbtdynver/src/main/scala",
+        "./../liberated/sbt-git-versioning/src/main/scala",
+        "./../liberated/sbt-pgp/gpg-library/src/main/scala",
+        "./../liberated/sbt-pgp/sbt-pgp/src/main/scala",
+        "./../liberated/sbt-sonatype/src/main/scala"
       ]
     },
     "bleep-test" : {
@@ -70,7 +86,7 @@
     "scripts" : {
       "dependsOn" : [
         "bleep",
-        "bleep-tasks"
+        "bleep-tasks-publishing"
       ],
       "extends" : [
         "template-common-main",
@@ -79,8 +95,9 @@
     }
   },
   "scripts" : {
-    "jars" : "scripts/bleep.scripts.PackageAll",
-    "native-image" : "scripts/bleep.scripts.GenNativeImage"
+    "native-image" : "scripts/bleep.scripts.GenNativeImage",
+    "publish" : "scripts/bleep.scripts.Publish",
+    "publish-local" : "scripts/bleep.scripts.PublishLocal"
   },
   "templates" : {
     "template-common" : {
@@ -105,6 +122,17 @@
     },
     "template-cross-all" : {
       "cross" : {
+        "jvm3" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-3"
+          ]
+        }
+      },
+      "extends" : "template-cross-jvm-212-213"
+    },
+    "template-cross-jvm-212-213" : {
+      "cross" : {
         "jvm212" : {
           "extends" : [
             "template-common-main",
@@ -115,12 +143,6 @@
           "extends" : [
             "template-common-main",
             "template-scala-2.13"
-          ]
-        },
-        "jvm3" : {
-          "extends" : [
-            "template-common-main",
-            "template-scala-3"
           ]
         }
       }

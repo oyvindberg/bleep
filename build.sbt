@@ -6,7 +6,7 @@ crossScalaVersions := List("2.12.15", "2.13.8", "3.1.1")
 val commonSettings: Project => Project =
   _.enablePlugins(GitVersioning, TpolecatPlugin)
     .settings(
-      organization := "no.arktekk",
+      organization := "build.bleep",
       scalaVersion := "2.13.8",
       scalacOptions -= "-Xfatal-warnings"
     )
@@ -14,6 +14,11 @@ val commonSettings: Project => Project =
 val crossSettings: Project => Project =
   _.settings(
     crossScalaVersions := List("2.12.15", "2.13.8", "3.1.1")
+  )
+
+val crossScala212_213: Project => Project =
+  _.settings(
+    crossScalaVersions := List("2.12.15", "2.13.8")
   )
 
 lazy val `bleep-core` = project
@@ -34,16 +39,34 @@ lazy val `bleep-tasks` = project
   .configure(commonSettings, crossSettings)
   .dependsOn(`bleep-core`)
   .settings(
-    libraryDependencies ++= List(
-      "se.sawano.java" % "alphanumeric-comparator" % "1.4.1"
-    ),
     Compile / unmanagedSourceDirectories ++= List(
-      baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/scala",
-      baseDirectory.value / "liberated/sbt-git-versioning/src/main/scala",
-      baseDirectory.value / "liberated/bloop-packager/src/main/scala"
+      (ThisBuild / baseDirectory).value / "liberated/sbt-native-image/plugin/src/main/scala"
     ),
     Compile / unmanagedResourceDirectories ++= List(
-      baseDirectory.value / "liberated/sbt-native-image/plugin/src/main/resources"
+      (ThisBuild / baseDirectory).value / "liberated/sbt-native-image/plugin/src/main/resources"
+    )
+  )
+
+lazy val `bleep-tasks-publishing` = project
+  .configure(commonSettings, crossScala212_213)
+  .dependsOn(`bleep-tasks`)
+  .settings(
+    libraryDependencies ++= List(
+      "se.sawano.java" % "alphanumeric-comparator" % "1.4.1",
+      "org.sonatype.spice.zapper" % "spice-zapper" % "1.3",
+      "org.wvlet.airframe" %% "airframe-http" % "22.4.2",
+      "com.eed3si9n" %% "gigahorse-okhttp" % "0.6.0",
+      "org.bouncycastle" % "bcpg-jdk15on" % "1.69",
+      "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1"
+    ),
+    Compile / unmanagedSourceDirectories ++= List(
+      (ThisBuild / baseDirectory).value / "liberated/sbt-git-versioning/src/main/scala",
+      (ThisBuild / baseDirectory).value / "liberated/sbt-sonatype/src/main/scala",
+      (ThisBuild / baseDirectory).value / "liberated/sbt-pgp/gpg-library/src/main/scala",
+      (ThisBuild / baseDirectory).value / "liberated/sbt-pgp/sbt-pgp/src/main/scala",
+      (ThisBuild / baseDirectory).value / "liberated/sbt-ci-release/plugin/src/main/scala",
+      (ThisBuild / baseDirectory).value / "liberated/sbt-dynver/dynver/src/main/scala",
+      (ThisBuild / baseDirectory).value / "liberated/sbt-dynver/sbtdynver/src/main/scala"
     )
   )
 
@@ -75,5 +98,5 @@ lazy val bleep = project
   .enablePlugins(NativeImagePlugin)
 
 lazy val scripts = project
-  .dependsOn(bleep, `bleep-tasks`)
+  .dependsOn(bleep, `bleep-tasks-publishing`)
   .configure(commonSettings)

@@ -58,10 +58,14 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
       ReadSbtExportFile.parse(path, contents)
     }
 
-    val files = generateBuild(bloopFiles, sbtExportFiles, hackDropBleepDependency = false)
-      .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
+    val files = generateBuild(
+      bloopFiles,
+      sbtExportFiles,
+      hackDropBleepDependency = false,
+      Some(destinationPaths.bleepJsonFile).filter(Files.exists(_))
+    ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 
-    FileUtils.sync(destinationPaths.buildDir, files, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = false)
+    FileUtils.syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = false)
 
     Right(())
   }
@@ -73,7 +77,7 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
       tempAddBloopPlugin,
       s"""
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.0")
-addSbtPlugin("no.arktekk.bleep" % "sbt-export-dependencies" % "0.1.0")
+addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
 """
     )
 
@@ -101,14 +105,22 @@ addSbtPlugin("no.arktekk.bleep" % "sbt-export-dependencies" % "0.1.0")
   def generateBuild(
       bloopFiles: Iterable[Config.File],
       sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject],
-      hackDropBleepDependency: Boolean
+      hackDropBleepDependency: Boolean,
+      maybeExistingBleepJson: Option[Path]
   ): Map[Path, String] = {
     val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
       importBloopFilesFromSbt.projectsWithSourceFilesByName(bloopFiles)
 
     val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName, sbtExportFiles)
     val normalizedBuild = normalizeBuild(build0)
-    val build = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
+    val build1 = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
+
+    val build =
+      maybeExistingBleepJson.flatMap(x => model.parseBuild(Files.readString(x)).toOption) match {
+        case Some(existingBuild) =>
+          build1.copy(scripts = existingBuild.scripts)
+        case None => build1
+      }
 
     // complain if we have done illegal rewrites during templating
     ExplodedBuild.diffProjects(Defaults.add(normalizedBuild), ExplodedBuild.of(build).dropTemplates) match {
@@ -140,7 +152,7 @@ addSbtPlugin("no.arktekk.bleep" % "sbt-export-dependencies" % "0.1.0")
           resources = JsonSet.empty,
           dependencies =
             if (hackDropBleepDependency) JsonSet.empty
-            else JsonSet(Dep.Scala("no.arktekk", "bleep-tasks", constants.version)),
+            else JsonSet(Dep.Scala("build.bleep", "bleep-tasks", constants.version)),
           java = None,
           scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty)),
           platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),

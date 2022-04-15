@@ -1,7 +1,6 @@
 package bleep
 package internal
 
-import bleep.internal
 import bloop.config.Config
 
 import java.nio.file.{Files, Path}
@@ -17,7 +16,7 @@ object findGeneratedFiles {
           dir <- dirs
           if dir.startsWith(originalTargetDir) && FileUtils.exists(dir)
           file <- Files.walk(dir).iterator().asScala.filter(Files.isRegularFile(_))
-        } yield internal.GeneratedFile(isResource = isResource, Files.readString(file), RelPath.relativeTo(dir, file))
+        } yield GeneratedFile(isResource = isResource, Files.readString(file), RelPath.relativeTo(dir, file))
 
       val sources = findFiles(p.project.sources, isResource = false)
       val resources = findFiles(p.project.resources.getOrElse(Nil), isResource = true)

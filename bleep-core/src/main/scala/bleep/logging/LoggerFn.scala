@@ -3,6 +3,7 @@ package bleep.logging
 import sourcecode.{Enclosing, File, Line, Text}
 
 import java.time.Instant
+import scala.sys.process.ProcessLogger
 
 @FunctionalInterface
 trait LoggerFn { self =>
@@ -49,5 +50,13 @@ object LoggerFn {
           other.log(text, throwable, metadata)
         }
       }
+
+    def processLogger(prefix: String)(implicit l: Line, f: File, e: Enclosing): ProcessLogger = {
+      val separatedPrefix = if (prefix.isEmpty) prefix else s"$prefix: "
+      ProcessLogger(
+        out => info(separatedPrefix + out)(implicitly, l, f, e),
+        err => error(separatedPrefix + err)(implicitly, l, f, e)
+      )
+    }
   }
 }

@@ -1,12 +1,21 @@
-[submodule "bleep-tasks/liberated/sbt-git-versioning"]
-	path = bleep-tasks/liberated/sbt-git-versioning
-	url = git@github.com:oyvindberg/sbt-git-versioning.git
-[submodule "bleep-tasks/liberated/sbt-native-image"]
-	path = bleep-tasks/liberated/sbt-native-image
-	url = git@github.com:oyvindberg/sbt-native-image.git
-[submodule "bleep-tasks/liberated/bloop-packager"]
-	path = bleep-tasks/liberated/bloop-packager
-	url = git@github.com:oyvindberg/bloop-packager.git
+[submodule "liberated/sbt-git-versioning"]
+	path = liberated/sbt-git-versioning
+	url = git@github.com:bleep-build/sbt-git-versioning.git
+[submodule "liberated/sbt-native-image"]
+	path = liberated/sbt-native-image
+	url = git@github.com:bleep-build/sbt-native-image.git
+[submodule "liberated/sbt-sonatype"]
+	path = liberated/sbt-sonatype
+	url = git@github.com:bleep-build/sbt-sonatype.git
+[submodule "liberated/sbt-pgp"]
+	path = liberated/sbt-pgp
+	url = git@github.com:bleep-build/sbt-pgp.git
+[submodule "liberated/sbt-ci-release"]
+	path = liberated/sbt-ci-release
+	url = git@github.com:bleep-build/sbt-ci-release.git
+[submodule "liberated/sbt-dynver"]
+	path = liberated/sbt-dynver
+	url = git@github.com:bleep-build/sbt-dynver.git
 [submodule "snapshot-tests-in/tapir"]
 	path = snapshot-tests-in/tapir
 	url = git@github.com:softwaremill/tapir.git

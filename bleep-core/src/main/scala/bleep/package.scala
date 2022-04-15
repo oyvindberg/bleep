@@ -1,7 +1,6 @@
 import bleep.logging.Logger
 
 import java.nio.file.Path
-import scala.sys.process.ProcessLogger
 
 package object bleep {
 
@@ -20,7 +19,7 @@ package object bleep {
   }
 
   def cli(cmd: String, logger: Logger)(implicit cwd: Path): Unit =
-    sys.process.Process(cmd, cwd = Some(cwd.toFile)).!<(ProcessLogger(logger.info(_), logger.warn(_))) match {
+    sys.process.Process(cmd, cwd = Some(cwd.toFile)).!<(logger.processLogger("cli")) match {
       case 0 => ()
       case n =>
         logger.error(s"FAILED: $cmd")

@@ -336,7 +336,7 @@ object Templates {
       }.toMap
 
     val maybeTemplates: SortedMap[TemplateDef, Lazy[Option[TemplateKeepExploded]]] =
-      rewriteDependentData[TemplateDef, List[(model.ProjectName, ProjectKeepExploded)], Option[TemplateKeepExploded]](templateDefsWithProjects) {
+      rewriteDependentData(templateDefsWithProjects).apply[Option[TemplateKeepExploded]] {
         case (_, projects, _) if projects.map(_._1).distinct.sizeIs < 2 => None
         case (templateDef, projects, eval)                              =>
           // check what all the picked projects have in common
