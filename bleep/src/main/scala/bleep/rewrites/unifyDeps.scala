@@ -28,8 +28,26 @@ object unifyDeps extends Rewrite {
     val replacements: Map[Dep, Dep] =
       findReplacements(build.projects.flatMap(_._2.dependencies.values))
 
+    val projectPlatforms: Map[model.ProjectName, Set[model.PlatformId]] =
+      build.projects
+        .groupBy(_._1.name)
+        .map { case (name, crossProjects) => (name, crossProjects.flatMap(_._2.platform.flatMap(_.name)).toSet) }
+
+    val OnlyJvm = Set(model.PlatformId.Jvm)
+
     build.copy(projects = build.projects.map { case (crossName, p) =>
-      val newP = p.copy(dependencies = p.dependencies.map(replacements.apply))
+      val newP = p.copy(dependencies = p.dependencies.map { dep0 =>
+        val dep0ForceJvm = dep0 match {
+          case x: Dep.JavaDependency  => x
+          case x: Dep.ScalaDependency => x.copy(forceJvm = true)
+        }
+
+        val dep1 = replacements(dep0)
+
+        // don't litter forceJvm = true needlessly
+        if (dep1 == dep0ForceJvm && projectPlatforms(crossName.name) == OnlyJvm) dep0
+        else dep1
+      })
       (crossName, newP)
     })
   }
