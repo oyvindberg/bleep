@@ -78,19 +78,10 @@
     "free" : {
       "cross" : {
         "jvm212" : {
-          "dependencies" : [
-            "org.scala-lang:scala-library:2.12.15",
-            "org.scala-lang:scala-reflect:2.12.15"
-          ]
+          "dependencies" : "org.scala-lang:scala-reflect:2.12.15"
         },
         "jvm213" : {
-          "dependencies" : [
-            "org.scala-lang:scala-library:2.13.8",
-            "org.scala-lang:scala-reflect:2.13.8"
-          ]
-        },
-        "jvm3" : {
-          "dependencies" : "org.scala-lang::scala3-library:3.1.1"
+          "dependencies" : "org.scala-lang:scala-reflect:2.13.8"
         }
       },
       "dependencies" : [

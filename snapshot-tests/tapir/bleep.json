@@ -41,15 +41,10 @@
     "apispecModel" : {
       "cross" : {
         "jvm212" : {
-          "dependencies" : "org.scala-lang:scala-library:2.12.15",
           "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
         },
         "jvm213" : {
-          "dependencies" : "org.scala-lang:scala-library:2.13.6",
           "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm3" : {
-          "dependencies" : "org.scala-lang::scala3-library:3.1.0"
         }
       },
       "extends" : "template-cross-jvm-all-main",
@@ -275,7 +270,10 @@
         "org.typelevel::cats-effect:3.3.0"
       ],
       "dependsOn" : "core",
-      "extends" : "template-cross-all-main",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all-main"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/integrations/cats"
     },
     "cats-test" : {
@@ -287,7 +285,10 @@
         "org.typelevel::discipline-scalatest:2.1.5"
       ],
       "dependsOn" : "cats",
-      "extends" : "template-cross-jvm-all-js-212-213-test",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-jvm-all-js-212-213-test"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/integrations/cats"
     },
     "circeJson" : {
@@ -297,7 +298,10 @@
         "io.circe::circe-parser:0.14.1"
       ],
       "dependsOn" : "core",
-      "extends" : "template-cross-all-main",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all-main"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/json/circe"
     },
     "circeJson-test" : {
@@ -309,15 +313,10 @@
     "clientTestServer" : {
       "cross" : {
         "jvm212" : {
-          "dependencies" : "org.scala-lang:scala-library:2.12.15",
           "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
         },
         "jvm213" : {
-          "dependencies" : "org.scala-lang:scala-library:2.13.6",
           "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm3" : {
-          "dependencies" : "org.scala-lang::scala3-library:3.1.0"
         }
       },
       "dependencies" : [
@@ -364,7 +363,10 @@
         }
       ],
       "dependsOn" : "tests",
-      "extends" : "template-cross-all-main",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all-main"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/client/tests"
     },
     "core" : {
@@ -373,11 +375,6 @@
           "dependencies" : [
             "com.propensive::magnolia:0.17.0",
             "org.scala-js::scalajs-dom:2.0.0",
-            {
-              "forceJvm" : true,
-              "module" : "org.scala-js::scalajs-library:1.8.0"
-            },
-            "org.scala-lang:scala-library:2.12.15",
             {
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.12.15"
@@ -389,11 +386,6 @@
             "com.propensive::magnolia:0.17.0",
             "org.scala-js::scalajs-dom:2.0.0",
             {
-              "forceJvm" : true,
-              "module" : "org.scala-js::scalajs-library:1.8.0"
-            },
-            "org.scala-lang:scala-library:2.13.6",
-            {
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.13.6"
             }
@@ -402,18 +394,12 @@
         "js3" : {
           "dependencies" : [
             "com.softwaremill.magnolia1_3::magnolia:1.0.0-M7",
-            "org.scala-js::scalajs-dom:2.0.0",
-            "org.scala-js:scalajs-library_2.13:1.8.0",
-            {
-              "forceJvm" : true,
-              "module" : "org.scala-lang::scala3-library_sjs1:3.1.0"
-            }
+            "org.scala-js::scalajs-dom:2.0.0"
           ]
         },
         "jvm212" : {
           "dependencies" : [
             "com.propensive::magnolia:0.17.0",
-            "org.scala-lang:scala-library:2.12.15",
             {
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.12.15"
@@ -424,7 +410,6 @@
         "jvm213" : {
           "dependencies" : [
             "com.propensive::magnolia:0.17.0",
-            "org.scala-lang:scala-library:2.13.6",
             {
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.13.6"
@@ -433,10 +418,7 @@
           "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
         },
         "jvm3" : {
-          "dependencies" : [
-            "com.softwaremill.magnolia1_3::magnolia:1.0.0-M7",
-            "org.scala-lang::scala3-library:3.1.0"
-          ]
+          "dependencies" : "com.softwaremill.magnolia1_3::magnolia:1.0.0-M7"
         }
       },
       "dependencies" : [
@@ -444,7 +426,10 @@
         "com.softwaremill.sttp.shared::core:1.2.7",
         "com.softwaremill.sttp.shared::ws:1.2.7"
       ],
-      "extends" : "template-cross-all-main",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all-main"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/core",
       "sources" : "./src/main/boilerplate-gen"
     },
@@ -500,7 +485,10 @@
         "org.scalatestplus::scalacheck-1-15:3.2.10.0"
       ],
       "dependsOn" : "core",
-      "extends" : "template-cross-jvm-all-js-212-213-test",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-jvm-all-js-212-213-test"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/core"
     },
     "derevo" : {
@@ -924,10 +912,6 @@
         "io.circe::circe-yaml:0.14.1",
         {
           "configuration" : "provided",
-          "module" : "org.scala-lang:scala-library:2.12.15"
-        },
-        {
-          "configuration" : "provided",
           "module" : "org.scala-sbt:sbt:1.5.5"
         }
       ],
@@ -946,10 +930,6 @@
       "dependencies" : [
         "com.47deg::scalacheck-toolbox-datetime:0.6.0",
         "org.scala-lang:scala-compiler:2.12.15",
-        {
-          "configuration" : "provided",
-          "module" : "org.scala-lang:scala-library:2.12.15"
-        },
         {
           "configuration" : "provided",
           "module" : "org.scala-sbt:sbt:1.5.5"
@@ -1315,7 +1295,10 @@
       },
       "dependencies" : "com.softwaremill.sttp.client3::core:3.3.18",
       "dependsOn" : "core",
-      "extends" : "template-cross-all-main",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all-main"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/client/sttp-client"
     },
     "sttpClient-test" : {
@@ -1396,7 +1379,10 @@
         "clientTests",
         "sttpClient"
       ],
-      "extends" : "template-cross-jvm-all-js-212-213-test",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-jvm-all-js-212-213-test"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/client/sttp-client"
     },
     "sttpMockServer" : {
@@ -1513,7 +1499,10 @@
         "cats",
         "circeJson"
       ],
-      "extends" : "template-cross-all-main",
+      "extends" : [
+        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all-main"
+      ],
       "folder" : "./../../snapshot-tests-in/tapir/tests"
     },
     "tethysJson" : {
@@ -1753,37 +1742,65 @@
       },
       "extends" : "template-cross-jvm-all-js-212-213-main"
     },
+    "template-cross-jvm-212-213-js-212-213" : {
+      "cross" : {
+        "js212" : {
+          "extends" : [
+            "template-js",
+            "template-scala-2.12"
+          ]
+        },
+        "js213" : {
+          "extends" : [
+            "template-js",
+            "template-scala-2.13"
+          ]
+        }
+      }
+    },
     "template-cross-jvm-212-213-js-212-213-main" : {
       "cross" : {
         "js212" : {
           "extends" : [
             "template-common-main",
             "template-js",
-            "template-scala-2.12-main",
-            "template-scala-2.12-js"
+            "template-scala-2.12-main"
           ]
         },
         "js213" : {
           "extends" : [
             "template-common-main",
             "template-js",
-            "template-scala-2.13-main",
-            "template-scala-2.13-js"
+            "template-scala-2.13-main"
           ]
         }
       },
-      "extends" : "template-cross-jvm-212-213-main"
+      "extends" : [
+        "template-cross-jvm-212-213-main",
+        "template-cross-jvm-212-213-js-212-213"
+      ]
     },
     "template-cross-jvm-212-213-js-212-213-test" : {
       "cross" : {
         "js212" : {
-          "extends" : "template-scala-2.12-js-test"
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-2.12-test"
+          ]
         },
         "js213" : {
-          "extends" : "template-scala-2.13-js-test"
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-2.13-test"
+          ]
         }
       },
-      "extends" : "template-cross-jvm-212-213-test"
+      "extends" : [
+        "template-cross-jvm-212-213-test",
+        "template-cross-jvm-212-213-js-212-213"
+      ]
     },
     "template-cross-jvm-212-213-main" : {
       "cross" : {
@@ -1827,36 +1844,48 @@
           "extends" : [
             "template-common-main",
             "template-js",
-            "template-scala-2.12-main",
-            "template-scala-2.12-js"
+            "template-scala-2.12-main"
           ]
         },
         "js213" : {
           "extends" : [
             "template-common-main",
             "template-js",
-            "template-scala-2.13-main",
-            "template-scala-2.13-js"
+            "template-scala-2.13-main"
           ]
         }
       },
-      "extends" : "template-cross-jvm-all-main"
+      "extends" : [
+        "template-cross-jvm-all-main",
+        "template-cross-jvm-212-213-js-212-213"
+      ]
     },
     "template-cross-jvm-all-js-212-213-test" : {
       "cross" : {
         "js212" : {
           "dependencies" : "io.github.cquiroz::scala-java-time:2.3.0",
-          "extends" : "template-scala-2.12-js-test"
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-2.12-test"
+          ]
         },
         "js213" : {
           "dependencies" : "io.github.cquiroz::scala-java-time:2.3.0",
-          "extends" : "template-scala-2.13-js-test"
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-2.13-test"
+          ]
         },
         "js3" : {
           "extends" : "template-scala-3-js-test"
         }
       },
-      "extends" : "template-cross-jvm-all-test"
+      "extends" : [
+        "template-cross-jvm-all-test",
+        "template-cross-jvm-212-213-js-212-213"
+      ]
     },
     "template-cross-jvm-all-main" : {
       "cross" : {
@@ -1889,6 +1918,7 @@
         "jsJsdom" : false,
         "jsKind" : "none",
         "jsMode" : "debug",
+        "jsVersion" : "1.8.0",
         "name" : "js"
       }
     },
@@ -1941,27 +1971,6 @@
         ],
         "version" : "2.12.15"
       }
-    },
-    "template-scala-2.12-js" : {
-      "extends" : [
-        "template-js",
-        "template-scala-2.12"
-      ],
-      "platform" : {
-        "jsVersion" : "1.8.0"
-      }
-    },
-    "template-scala-2.12-js-test" : {
-      "dependencies" : {
-        "forceJvm" : true,
-        "module" : "org.scala-js::scalajs-test-bridge:1.8.0"
-      },
-      "extends" : [
-        "template-common-test",
-        "template-js",
-        "template-scala-2.12-test",
-        "template-scala-2.12-js"
-      ]
     },
     "template-scala-2.12-main" : {
       "extends" : [
@@ -2026,27 +2035,6 @@
         ],
         "version" : "2.13.6"
       }
-    },
-    "template-scala-2.13-js" : {
-      "extends" : [
-        "template-js",
-        "template-scala-2.13"
-      ],
-      "platform" : {
-        "jsVersion" : "1.8.0"
-      }
-    },
-    "template-scala-2.13-js-test" : {
-      "dependencies" : {
-        "forceJvm" : true,
-        "module" : "org.scala-js::scalajs-test-bridge:1.8.0"
-      },
-      "extends" : [
-        "template-common-test",
-        "template-js",
-        "template-scala-2.13-test",
-        "template-scala-2.13-js"
-      ]
     },
     "template-scala-2.13-main" : {
       "extends" : [

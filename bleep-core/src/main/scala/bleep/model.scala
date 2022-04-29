@@ -200,13 +200,6 @@ object model {
       //      output: Option[Path]
   ) extends SetLike[Platform] {
 
-    def compilerPlugin: Option[Dep] =
-      this match {
-        case model.Platform.Js(platform)     => platform.jsVersion.map(_.compilerPlugin)
-        case model.Platform.Native(platform) => platform.nativeVersion.map(_.compilerPlugin)
-        case _                               => None
-      }
-
     override def intersect(other: Platform): Platform =
       new Platform(
         name = if (name == other.name) name else None,
@@ -290,7 +283,7 @@ object model {
     }
     object Js {
       def apply(
-          jsVersion: Option[Versions.ScalaJs],
+          jsVersion: Versions.ScalaJs,
           jsMode: Option[Config.LinkerMode],
           jsKind: Option[Config.ModuleKindJS],
           jsEmitSourceMaps: Option[Boolean],
@@ -300,7 +293,7 @@ object model {
         new Platform(
           name = Some(PlatformId.Js),
           mainClass = jsMainClass,
-          jsVersion = jsVersion,
+          jsVersion = Some(jsVersion),
           jsMode = jsMode,
           jsKind = jsKind,
           jsEmitSourceMaps = jsEmitSourceMaps,

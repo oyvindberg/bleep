@@ -12,7 +12,6 @@
         "com.lihaoyi::ammonite-ops:2.4.0",
         "com.lihaoyi::os-lib:0.7.7",
         "com.lihaoyi::sourcecode:0.2.7",
-        "org.scala-lang:scala-library:2.12.14",
         "org.scalablytyped.circe013::circe-generic:0.13.0-shaded-2",
         "org.scalablytyped.circe013::circe-jackson29:0.13.0-shaded-2"
       ],
@@ -63,8 +62,7 @@
     "logging" : {
       "dependencies" : [
         "com.lihaoyi::fansi:0.2.14",
-        "com.lihaoyi::sourcecode:0.2.7",
-        "org.scala-lang:scala-library:2.12.14"
+        "com.lihaoyi::sourcecode:0.2.7"
       ],
       "extends" : "template-common-main",
       "folder" : "./../../snapshot-tests-in/converter/logging"
@@ -82,10 +80,6 @@
         {
           "isSbtPlugin" : true,
           "module" : "ch.epfl.scala:sbt-scalajs-bundler:0.20.0"
-        },
-        {
-          "configuration" : "provided",
-          "module" : "org.scala-lang:scala-library:2.12.14"
         },
         {
           "configuration" : "provided",

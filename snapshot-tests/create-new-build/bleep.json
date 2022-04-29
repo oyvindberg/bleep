@@ -38,7 +38,10 @@
     "template-cross-all" : {
       "cross" : {
         "js213" : {
-          "extends" : "template-scala-2.13-js"
+          "extends" : [
+            "template-js",
+            "template-scala-2.13"
+          ]
         },
         "js3" : {
           "extends" : [
@@ -63,6 +66,7 @@
     "template-js" : {
       "extends" : "template-common",
       "platform" : {
+        "jsVersion" : "1.9.0",
         "name" : "js"
       }
     },
@@ -76,15 +80,6 @@
       "extends" : "template-common",
       "scala" : {
         "version" : "2.13.6"
-      }
-    },
-    "template-scala-2.13-js" : {
-      "extends" : [
-        "template-js",
-        "template-scala-2.13"
-      ],
-      "platform" : {
-        "jsVersion" : "1.9.0"
       }
     },
     "template-scala-3" : {

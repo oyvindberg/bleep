@@ -159,7 +159,12 @@ object importBloopFilesFromSbt {
       val replacements = replacementsDirs ++ replacementsVersions
 
       val configuredPlatform: Option[model.Platform] =
-        bloopProject.platform.map(translatePlatform(_, replacements))
+        bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
+
+      val scalaVersions = ScalaVersions.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
+        case Left(value)  => throw new BuildException.Text(crossName, value)
+        case Right(value) => value
+      }
 
       val sources: Sources = {
         val sourcesRelPaths = {
@@ -196,14 +201,16 @@ object importBloopFilesFromSbt {
         Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
 
-      val (compilerPlugins, dependencies) =
-        importDeps(logger, projectType, sbtExportFile, crossName, configuredPlatform.flatMap(_.name))
+      val (compilerPlugins, dependencies) = {
+        val providedDeps = scalaVersions.libraries(isTest = projectType.testLike)
+        importDeps(logger, projectType, sbtExportFile, crossName, configuredPlatform.flatMap(_.name), providedDeps)
+      }
 
       val configuredJava: Option[model.Java] =
         bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(compilerPlugins, replacementsDirs, replacementsVersions, configuredPlatform))
+        bloopProject.scala.map(translateScala(compilerPlugins, replacementsDirs, replacementsVersions, scalaVersions))
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (projectType.testLike)
@@ -247,18 +254,24 @@ object importBloopFilesFromSbt {
       projectType: ProjectType,
       sbtExportFile: ReadSbtExportFile.ExportedProject,
       crossName: model.CrossProjectName,
-      platformName: Option[model.PlatformId]
+      platformName: Option[model.PlatformId],
+      providedDeps: Seq[Dep]
   ): (Seq[Dep], Seq[Dep]) = {
+    // compare by string to ignore things like configuration
+    val providedDepReprs: Set[String] =
+      providedDeps.map(_.repr).toSet
 
     val ctxLogger = logger.withContext(crossName)
 
     val all = sbtExportFile.dependencies.flatMap { moduleId =>
       importModuleId(ctxLogger, moduleId, platformName) match {
         case Left(err) =>
-          ctxLogger.warn(s"Couldn't import dependency ${moduleId}. Dropping. Reason: ${err}")
-          Nil
-        case Right(value) =>
-          List(value)
+          ctxLogger.warn(s"Couldn't import dependency $moduleId. Dropping. Reason: $err")
+          None
+        case Right(dep) if providedDepReprs(dep.repr) =>
+          None
+        case Right(dep) =>
+          Some(dep)
       }
     }
 
@@ -266,8 +279,9 @@ object importBloopFilesFromSbt {
     val plugins = all.collect {
       case dep if dep.configuration == CompilerPluginConfig =>
         dep.withConfiguration(Configuration.empty) match {
-          case x: Dep.JavaDependency  => x
-          case x: Dep.ScalaDependency => x.copy(forceJvm = false) // always true for compiler plugins
+          case x: Dep.JavaDependency => x
+          // always true for compiler plugins. this is really just aesthetic in the generated json file
+          case x: Dep.ScalaDependency => x.copy(forceJvm = false)
         }
     }
 
@@ -338,11 +352,17 @@ object importBloopFilesFromSbt {
   def translateJava(templateDirs: Replacements)(java: Config.Java): model.Java =
     model.Java(options = Options.parse(java.options, Some(templateDirs)))
 
-  def translatePlatform(platform: Config.Platform, templateDirs: Replacements): model.Platform =
+  def translatePlatform(platform: Config.Platform, templateDirs: Replacements, resolution: Option[Config.Resolution]): model.Platform =
     platform match {
       case Config.Platform.Js(config, mainClass) =>
+        // note, this lives in config.version, but it's blank for scala 3.
+        val jsVersion = resolution
+          .flatMap(_.modules.find(mod => mod.organization == Versions.scalaJsOrganization.value && mod.name.startsWith("scalajs-library")))
+          .map(mod => Versions.ScalaJs(mod.version))
+          .getOrElse(throw new BuildException.Text("Couldn't find scalajs-library jar to determine version"))
+
         val translatedPlatform = model.Platform.Js(
-          jsVersion = Some(config.version).filterNot(_.isEmpty).map(Versions.ScalaJs),
+          jsVersion = jsVersion,
           jsMode = Some(config.mode),
           jsKind = Some(config.kind),
           jsEmitSourceMaps = Some(config.emitSourceMaps),
@@ -372,7 +392,7 @@ object importBloopFilesFromSbt {
       compilerPlugins: Seq[Dep],
       replacementsDirs: Replacements,
       replacementsVersions: Replacements,
-      platform: Option[model.Platform]
+      scalaVersions: ScalaVersions
   )(s: Config.Scala): model.Scala = {
     val options = Options.parse(s.options, Some(replacementsDirs))
 
@@ -382,7 +402,7 @@ object importBloopFilesFromSbt {
     }
 
     val filteredCompilerPlugins =
-      platform.flatMap(_.compilerPlugin).foldLeft(compilerPlugins) { case (all, fromPlatform) =>
+      scalaVersions.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) =>
         all.filterNot(_ == fromPlatform)
       }
 
