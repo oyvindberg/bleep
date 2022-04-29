@@ -141,7 +141,7 @@ jobs:
       - name: Prepare files
         run: |
           export VERSION=${{ steps.get_version.outputs.version-without-v }}
-          bash .github/workflows/prepare-release.sh
+          bash .github/prepare-release.sh
       - name: Upload-to-release
         uses: softprops/action-gh-release@v1
         with:
