@@ -348,11 +348,11 @@ object importBloopFilesFromSbt {
     else if (allAfterHttps.contains(jars)) {
       val fullOrg = Path.of(mod.organization)
       val uri = URI.create(allAfterHttps.takeWhile(_ != fullOrg).map(_.toString).mkString("https://", "/", "/"))
-      Some(model.Repository.Ivy(uri))
+      Some(model.Repository.Ivy(None, uri))
     } else {
       val initialOrg = Path.of(mod.organization.split("\\.").head)
       val uri = URI.create(allAfterHttps.takeWhile(_ != initialOrg).map(_.toString).mkString("https://", "/", ""))
-      Some(model.Repository.Maven(uri))
+      Some(model.Repository.Maven(None, uri))
     }
   }
 

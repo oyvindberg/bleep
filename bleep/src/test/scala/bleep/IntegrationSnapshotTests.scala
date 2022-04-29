@@ -19,7 +19,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
   val outFolder = Paths.get("snapshot-tests").toAbsolutePath
   val resolver: CoursierResolver = {
-    val sbtReleases = model.Repository.Ivy(URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
+    val sbtReleases = model.Repository.Ivy(None, URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
     val cachePath = if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache" else UserPaths.fromAppDirs.cacheDir
     CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = Some(cachePath), Authentications.empty)
   }

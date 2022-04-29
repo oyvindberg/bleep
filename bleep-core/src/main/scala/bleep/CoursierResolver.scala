@@ -163,9 +163,12 @@ object CoursierResolver {
               .withScalaVersionOpt(forceScalaVersion.map(_.scalaVersion))
           )
           .addRepositories((repos ++ constants.DefaultRepos).map {
-            case bleep.model.Repository.Maven(uri) =>
+            case bleep.model.Repository.Folder(_, path) =>
+              // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
+              MavenRepository(path.toString)
+            case bleep.model.Repository.Maven(_, uri) =>
               MavenRepository(uri.toString).withAuthentication(resolverConfigs.configs.get(uri))
-            case bleep.model.Repository.Ivy(uri) =>
+            case bleep.model.Repository.Ivy(_, uri) =>
               IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(resolverConfigs.configs.get(uri))
           }: _*)
           .withMainArtifacts(true)
