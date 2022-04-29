@@ -1,4 +1,3 @@
-
 package scripts
 
 import java.nio.file.Files
@@ -7,11 +6,11 @@ object GenerateResources extends App {
   bleep.bootstrap.forScript("GenerateResources") { started =>
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
-    
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm3"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("org/http4s/FormDataDecoderDoctest.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package org.http4s
@@ -83,12 +82,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm3"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("org/http4s/HttpVersionDoctest.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package org.http4s
@@ -138,12 +136,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm3"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("org/http4s/MessageDoctest.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package org.http4s
@@ -201,12 +198,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm3"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core-test"), Some(bleep.model.CrossId("jvm213")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("org/http4s/QueryOpsDoctest.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package org.http4s
@@ -236,12 +232,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("js213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm213")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
@@ -266,12 +261,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("js3"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("core"), Some(bleep.model.CrossId("jvm3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
@@ -296,12 +290,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("dsl-test"), Some(bleep.model.CrossId("jvm3"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("dsl-test"), Some(bleep.model.CrossId("jvm213")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("dsl-test"), Some(bleep.model.CrossId("jvm213")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("org/http4s/dsl/andDoctest.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|package org.http4s.dsl
@@ -354,11 +347,8 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
-    Vector(
-      bleep.model.CrossProjectName(bleep.model.ProjectName("scalafixInternalTests-test"), None)).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+    Vector(bleep.model.CrossProjectName(bleep.model.ProjectName("scalafixInternalTests-test"), None)).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedResourcesDir.resolve("scalafix-testkit.properties")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|#Input data for scalafix testkit
@@ -373,12 +363,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("server-test"), Some(bleep.model.CrossId("js213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("server-test"), Some(bleep.model.CrossId("js3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("server-test"), Some(bleep.model.CrossId("js3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
@@ -399,12 +388,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("server-test"), Some(bleep.model.CrossId("jvm213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("server-test"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("server-test"), Some(bleep.model.CrossId("jvm3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
@@ -425,12 +413,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("html/test.template.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|
@@ -472,12 +459,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("js/test.template.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|
@@ -519,12 +505,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("txt/test.template.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|
@@ -566,12 +551,11 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
-
-
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm213"))),
-        bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+      bleep.model.CrossProjectName(bleep.model.ProjectName("twirl-test"), Some(bleep.model.CrossId("jvm3")))
+    ).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("xml/test.template.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|

@@ -1,4 +1,3 @@
-
 package scripts
 
 import java.nio.file.Files
@@ -7,10 +6,8 @@ object GenerateResources extends App {
   bleep.bootstrap.forScript("GenerateResources") { started =>
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
-    
-    Vector(
-      bleep.model.CrossProjectName(bleep.model.ProjectName("importer-portable"), None)).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
+    Vector(bleep.model.CrossProjectName(bleep.model.ProjectName("importer-portable"), None)).foreach { crossName =>
+      val projectPaths = started.projectPaths(crossName)
       val to = projectPaths.generatedSourcesDir.resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
