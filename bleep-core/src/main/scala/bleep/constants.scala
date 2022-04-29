@@ -9,8 +9,8 @@ object constants {
   val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json"
 
   val DefaultRepos = List(
-    model.Repository.Ivy(URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)),
-    model.Repository.Maven(URI.create(Repositories.central.root))
+    model.Repository.Ivy(None, URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)),
+    model.Repository.Maven(None, URI.create(Repositories.central.root))
   )
 
   val BuildFileName = "bleep.json"

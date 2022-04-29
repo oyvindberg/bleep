@@ -10,6 +10,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax._
 
 import java.net.URI
+import java.nio.file.Path
 
 object model {
   case class Java(options: Options) extends SetLike[Java] {
@@ -558,26 +559,36 @@ object model {
 
   sealed trait Repository
   object Repository {
-    case class Maven(uri: URI) extends Repository
-    case class Ivy(uri: URI) extends Repository
+    case class Maven(name: Option[String], uri: URI) extends Repository
+    case class Folder(name: Option[String], path: Path) extends Repository
+    case class Ivy(name: Option[String], uri: URI) extends Repository
 
     implicit val repoEncoder: Encoder[model.Repository] =
       Encoder.instance {
-        case Repository.Maven(uri) => uri.asJson
-        case Repository.Ivy(uri)   => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
+        case Repository.Maven(None, uri)         => uri.asJson
+        case Repository.Maven(Some(name), uri)   => Json.obj("type" -> "maven".asJson, "uri" -> uri.asJson, "name" -> name.asJson)
+        case Repository.Ivy(None, uri)           => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
+        case Repository.Ivy(Some(name), uri)     => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson, "name" -> name.asJson)
+        case Repository.Folder(None, path)       => Json.obj("type" -> "path".asJson, "path" -> Json.fromString(path.toString))
+        case Repository.Folder(Some(name), path) => Json.obj("type" -> "path".asJson, "path" -> Json.fromString(path.toString), "name" -> name.asJson)
       }
 
     implicit val repoDecoder: Decoder[Repository] = {
       val simple: Decoder[Repository] =
-        Decoder[URI].map(model.Repository.Maven.apply)
+        Decoder[URI].map(uri => model.Repository.Maven(None, uri))
 
       val full: Decoder[Repository] =
         Decoder.instance { c =>
-          c.downField("type").as[Option[String]].flatMap {
-            case Some("ivy")   => c.downField("uri").as[URI].map(Ivy.apply)
-            case Some("maven") => c.downField("uri").as[URI].map(Maven.apply)
-            case _             => Left(DecodingFailure("expected 'type'", c.history))
-          }
+          for {
+            name <- c.downField("name").as[Option[String]]
+            tpe <- c.downField("type").as[Option[String]]
+            res <- tpe match {
+              case Some("ivy")   => c.downField("uri").as[URI].map(uri => Ivy(name, uri))
+              case Some("maven") => c.downField("uri").as[URI].map(uri => Maven(name, uri))
+              case Some("path")  => c.downField("path").as[URI].map(pathStr => Folder(name, Path.of(pathStr)))
+              case _             => Left(DecodingFailure("expected 'type'", c.history))
+            }
+          } yield res
         }
 
       simple.or(full)
