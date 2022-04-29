@@ -328,17 +328,8 @@
     },
     "template-common-test" : {
       "extends" : "template-common",
-      "sbt-scope" : "test",
-      "testFrameworks" : [
-        "com.novocode.junit.JUnitFramework",
-        "munit.Framework",
-        "org.scalacheck.ScalaCheckFramework",
-        "org.scalatest.tools.Framework",
-        "org.scalatest.tools.ScalaTestFramework",
-        "org.specs.runner.SpecsFramework",
-        "org.specs2.runner.Specs2Framework",
-        "org.specs2.runner.SpecsFramework"
-      ]
+      "isTestProject" : true,
+      "sbt-scope" : "test"
     },
     "template-cross-all-test" : {
       "cross" : {

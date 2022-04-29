@@ -182,7 +182,7 @@ object GenBloopFiles {
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
       val fromScalaVersion =
-        versions.libraries(isTest = explodedProject.testFrameworks.values.nonEmpty)
+        versions.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -359,10 +359,14 @@ object GenBloopFiles {
         scala = configuredScala,
         java = Some(Config.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,
-        test = explodedProject.testFrameworks.values.toList match {
-          case Nil   => None
-          case names => Some(new Config.Test(List(Config.TestFramework(names.map(_.value))), Config.TestOptions(Nil, Nil)))
-        },
+        test = if (explodedProject.isTestProject.getOrElse(false)) {
+          val default = Config.Test.defaultConfiguration
+          val extended = explodedProject.testFrameworks.values.toList match {
+            case Nil   => default
+            case names => new Config.Test(default.frameworks ++ List(Config.TestFramework(names.map(_.value))), default.options)
+          }
+          Some(extended)
+        } else None,
         platform = configuredPlatform,
         resolution = Some(resolution),
         tags = None

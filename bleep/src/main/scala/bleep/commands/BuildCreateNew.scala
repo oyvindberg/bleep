@@ -133,6 +133,7 @@ object BuildCreateNew {
                 sys.error("native not implemented yet")
             }
           ),
+          isTestProject = None,
           testFrameworks = JsonSet.empty
         )
         (crossName, p)
@@ -159,16 +160,8 @@ object BuildCreateNew {
               case model.PlatformId.Native => sys.error("native not implemented yet")
             }
           ),
-          testFrameworks = JsonSet(
-            model.TestFrameworkName("com.novocode.junit.JUnitFramework"),
-            model.TestFrameworkName("munit.Framework"),
-            model.TestFrameworkName("org.scalacheck.ScalaCheckFramework"),
-            model.TestFrameworkName("org.scalatest.tools.Framework"),
-            model.TestFrameworkName("org.scalatest.tools.ScalaTestFramework"),
-            model.TestFrameworkName("org.specs.runner.SpecsFramework"),
-            model.TestFrameworkName("org.specs2.runner.Specs2Framework"),
-            model.TestFrameworkName("org.specs2.runner.SpecsFramework")
-          )
+          isTestProject = Some(true),
+          testFrameworks = JsonSet.empty
         )
         (crossName, p)
       }

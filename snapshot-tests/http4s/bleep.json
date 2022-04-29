@@ -681,7 +681,8 @@
       "dependencies" : "ch.epfl.scala:::scalafix-testkit:0.9.34",
       "dependsOn" : "scalafixInternalRules",
       "extends" : [
-        "template-jvm-test",
+        "template-common-test",
+        "template-jvm",
         "template-scala-2.13-test"
       ],
       "folder" : "./../../snapshot-tests-in/http4s/scalafix-internal/tests"
@@ -844,17 +845,8 @@
     },
     "template-common-test" : {
       "extends" : "template-common",
-      "sbt-scope" : "test",
-      "testFrameworks" : [
-        "com.novocode.junit.JUnitFramework",
-        "munit.Framework",
-        "org.scalacheck.ScalaCheckFramework",
-        "org.scalatest.tools.Framework",
-        "org.scalatest.tools.ScalaTestFramework",
-        "org.specs.runner.SpecsFramework",
-        "org.specs2.runner.Specs2Framework",
-        "org.specs2.runner.SpecsFramework"
-      ]
+      "isTestProject" : true,
+      "sbt-scope" : "test"
     },
     "template-cross-js-all-main" : {
       "cross" : {
@@ -896,13 +888,15 @@
         },
         "jvm213" : {
           "extends" : [
-            "template-jvm-test",
+            "template-common-test",
+            "template-jvm",
             "template-scala-2.13-test"
           ]
         },
         "jvm3" : {
           "extends" : [
-            "template-jvm-test",
+            "template-common-test",
+            "template-jvm",
             "template-scala-3-test"
           ]
         }
@@ -930,13 +924,15 @@
       "cross" : {
         "jvm213" : {
           "extends" : [
-            "template-jvm-test",
+            "template-common-test",
+            "template-jvm",
             "template-scala-2.13-test"
           ]
         },
         "jvm3" : {
           "extends" : [
-            "template-jvm-test",
+            "template-common-test",
+            "template-jvm",
             "template-scala-3-test"
           ]
         }
@@ -958,13 +954,6 @@
       "platform" : {
         "name" : "jvm"
       }
-    },
-    "template-jvm-test" : {
-      "extends" : [
-        "template-common-test",
-        "template-jvm"
-      ],
-      "testFrameworks" : "utest.runner.Framework"
     },
     "template-scala-2.13" : {
       "extends" : "template-common",

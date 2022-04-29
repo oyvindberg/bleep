@@ -1716,18 +1716,9 @@
     },
     "template-common-test" : {
       "extends" : "template-common",
+      "isTestProject" : true,
       "sbt-scope" : "test",
-      "sources" : "./src/test/scala${PLATFORM}",
-      "testFrameworks" : [
-        "com.novocode.junit.JUnitFramework",
-        "munit.Framework",
-        "org.scalacheck.ScalaCheckFramework",
-        "org.scalatest.tools.Framework",
-        "org.scalatest.tools.ScalaTestFramework",
-        "org.specs.runner.SpecsFramework",
-        "org.specs2.runner.Specs2Framework",
-        "org.specs2.runner.SpecsFramework"
-      ]
+      "sources" : "./src/test/scala${PLATFORM}"
     },
     "template-cross-all-main" : {
       "cross" : {

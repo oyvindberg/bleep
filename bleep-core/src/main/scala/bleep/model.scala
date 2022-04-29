@@ -422,6 +422,7 @@ object model {
       java: Option[Java],
       scala: Option[Scala],
       platform: Option[Platform],
+      isTestProject: Option[Boolean],
       testFrameworks: JsonSet[TestFrameworkName]
   ) extends SetLike[Project] {
     override def intersect(other: Project): Project =
@@ -438,6 +439,7 @@ object model {
         java = java.zipCompat(other.java).map { case (_1, _2) => _1.intersect(_2) },
         scala = scala.zipCompat(other.scala).map { case (_1, _2) => _1.intersect(_2) },
         platform = platform.zipCompat(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
+        isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
         testFrameworks = testFrameworks.intersect(other.testFrameworks)
       )
 
@@ -458,6 +460,7 @@ object model {
           case (Some(one), Some(two)) => one.removeAllDropEmpty(two)
           case _                      => platform
         },
+        isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
         testFrameworks = testFrameworks.removeAll(other.testFrameworks)
       )
 
@@ -476,13 +479,29 @@ object model {
         scala = List(scala, other.scala).flatten.reduceOption(_ union _),
         // may throw
         platform = List(platform, other.platform).flatten.reduceOption(_ union _),
+        isTestProject = isTestProject.orElse(other.isTestProject),
         testFrameworks = testFrameworks.union(other.testFrameworks)
       )
 
     override def isEmpty: Boolean = this match {
-      case Project(extends_, cross, folder, dependsOn, sourceLayout, sbtScope, sources, resources, dependencies, java, scala, platform, testFrameworks) =>
+      case Project(
+            extends_,
+            cross,
+            folder,
+            dependsOn,
+            sourceLayout,
+            sbtScope,
+            sources,
+            resources,
+            dependencies,
+            java,
+            scala,
+            platform,
+            isTestProject,
+            testFrameworks
+          ) =>
         extends_.isEmpty && cross.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
-          .fold(true)(_.isEmpty) && scala.fold(true)(_.isEmpty) && platform.fold(true)(_.isEmpty) && testFrameworks.isEmpty
+          .fold(true)(_.isEmpty) && scala.fold(true)(_.isEmpty) && platform.fold(true)(_.isEmpty) && isTestProject.isEmpty && testFrameworks.isEmpty
     }
   }
 
@@ -500,6 +519,7 @@ object model {
       java = None,
       scala = None,
       platform = None,
+      isTestProject = None,
       testFrameworks = JsonSet.empty
     )
 
