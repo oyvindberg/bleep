@@ -1,7 +1,8 @@
 name: Build
 on:
   push:
-    branches: [ '*' ]
+    tags: [ 'v*' ]
+    branches: [ '**' ]
   pull_request:
     types: [ synchronize ]
 
@@ -65,7 +66,7 @@ jobs:
             file_name: bleep-macos
             artifact_name: macos-binary
           - os: windows-latest
-            file_name: bleep-windows.exe
+            file_name: bleep-windows
             artifact_name: windows-binary
     steps:
       - uses: actions/checkout@v2
@@ -98,15 +99,19 @@ jobs:
 
       - name: Test binary after build on Windows
         shell: cmd
-        run: .\dist\${{ matrix.file_name }} compile --no-color
+        run: .\dist\${{ matrix.file_name }}.exe compile --no-color
         if: runner.os == 'Windows'
 
       - name: Test binary after build on Linux
-        run: ./dist/${{ matrix.file_name }} compile --no-color
+        run: |
+          chmod 755 dist/${{ matrix.file_name }} 
+          ./dist/${{ matrix.file_name }} compile --no-color
         if: runner.os == 'Linux'
 
       - name: Test binary after build on Macos
-        run: ./dist/${{ matrix.file_name }} compile --no-color
+        run: |
+          chmod 755 dist/${{ matrix.file_name }}
+          ./dist/${{ matrix.file_name }} compile --no-color
         if: runner.os == 'macOS'
 
       - name: Temporarily save package
@@ -116,3 +121,31 @@ jobs:
           path: |
             dist/bleep-*
           retention-days: 1
+
+  release:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    if: "startsWith(github.ref, 'refs/tags/v')"
+    steps:
+      - uses: actions/checkout@v2
+      - id: get_version
+        uses: battila7/get-version-action@v2
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Display structure of downloaded files
+        run: ls -R
+        working-directory: artifacts
+      - name: Prepare files
+        run: |
+          export VERSION=${{ steps.get_version.outputs.version-without-v }}
+          bash .github/workflows/prepare-release.sh
+      - name: Upload-to-release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "${{ steps.get_version.outputs.version-without-v }}"
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            work/release/*
