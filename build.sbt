@@ -58,7 +58,7 @@ lazy val bleep = project
       "com.lihaoyi" %% "pprint" % "0.7.3",
       "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.4",
       "org.graalvm.nativeimage" % "svm" % "22.0.0.2",
-      ("org.scala-sbt" %% "librarymanagement-core" % "1.6.0").exclude("org.scala-sbt", "util-logging_2.13")
+      ("org.scala-sbt" %% "librarymanagement-core" % "1.6.1").exclude("org.scala-sbt", "util-logging_2.13")
     ),
     Compile / bloopMainClass := Some("bleep.Main"),
     nativeImageJvmIndex := "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json",
