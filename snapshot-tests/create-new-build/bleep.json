@@ -2,30 +2,11 @@
   "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
   "projects" : {
     "myapp" : {
-      "cross" : {
-        "js213" : {
-          "platform" : {
-            "jsMainClass" : "com.foo.App"
-          }
-        },
-        "js3" : {
-          "platform" : {
-            "jsMainClass" : "com.foo.App"
-          }
-        },
-        "jvm213" : {
-          "platform" : {
-            "jvmMainClass" : "com.foo.App"
-          }
-        },
-        "jvm3" : {
-          "platform" : {
-            "jvmMainClass" : "com.foo.App"
-          }
-        }
-      },
       "dependencies" : "com.lihaoyi::fansi:0.3.1",
-      "extends" : "template-cross-all"
+      "extends" : "template-cross-all",
+      "platform" : {
+        "mainClass" : "com.foo.App"
+      }
     },
     "myapp-test" : {
       "dependencies" : "org.scalatest::scalatest:3.2.11",

@@ -198,6 +198,9 @@
         "name": {
           "$ref": "#/$defs/PlatformName"
         },
+        "mainClass": {
+          "type": "string"
+        },
         "jsVersion": {
           "type": "string"
         },
@@ -222,14 +225,8 @@
         "jsJsdom": {
           "type": "boolean"
         },
-        "jsMainClass": {
-          "type": "string"
-        },
         "jvmOptions": {
           "$ref": "#/$defs/Options"
-        },
-        "jvmMainClass": {
-          "type": "string"
         },
         "jvmRuntimeOptions": {
           "$ref": "#/$defs/Options"
@@ -245,9 +242,6 @@
           ]
         },
         "nativeGc": {
-          "type": "string"
-        },
-        "nativeMainClass": {
           "type": "string"
         }
       }

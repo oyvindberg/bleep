@@ -163,7 +163,7 @@ object GenBloopFiles {
               nodePath = None,
               toolchain = Nil
             ),
-            platform.jsMainClass
+            platform.mainClass
           )
         case model.Platform.Jvm(platform) =>
           Config.Platform.Jvm(
@@ -171,7 +171,7 @@ object GenBloopFiles {
               home = None,
               options = templateDirs.fill.opts(platform.jvmOptions).render
             ),
-            mainClass = platform.jvmMainClass,
+            mainClass = platform.mainClass,
             runtimeConfig = Some(Config.JvmConfig(home = None, options = templateDirs.fill.opts(platform.jvmRuntimeOptions).render)),
             classpath = None,
             resources = None

@@ -15,19 +15,17 @@ object Defaults {
   val Jvm: model.Platform =
     model.Platform(
       name = None,
+      mainClass = None,
       jsVersion = None,
       jsMode = None,
       jsKind = None,
       jsEmitSourceMaps = None,
       jsJsdom = None,
-      jsMainClass = None,
       jvmOptions = Options(Set(Options.Opt.Flag("-Duser.dir=${BUILD_DIR}"))),
-      jvmMainClass = None,
       jvmRuntimeOptions = Options.empty,
       nativeVersion = None,
       nativeMode = None,
-      nativeGc = None,
-      nativeMainClass = None
+      nativeGc = None
     )
 
   object remove extends Rewrite {

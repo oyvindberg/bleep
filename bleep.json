@@ -21,7 +21,7 @@
         "template-scala-2.13"
       ],
       "platform" : {
-        "jvmMainClass" : "bleep.Main"
+        "mainClass" : "bleep.Main"
       }
     },
     "bleep-core" : {
