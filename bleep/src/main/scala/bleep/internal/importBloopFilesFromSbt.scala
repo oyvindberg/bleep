@@ -205,8 +205,6 @@ object importBloopFilesFromSbt {
       val configuredScala: Option[model.Scala] =
         bloopProject.scala.map(translateScala(compilerPlugins, replacementsDirs, replacementsVersions, configuredPlatform))
 
-      val foo = configuredScala.flatMap(_.version).toList.flatMap(_.libraries)
-
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (projectType.testLike)
           JsonSet.fromIterable(bloopProject.test.toList.flatMap(_.frameworks).flatMap(_.names).map(model.TestFrameworkName.apply))

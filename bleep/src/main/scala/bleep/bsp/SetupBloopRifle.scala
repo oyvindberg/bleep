@@ -12,7 +12,7 @@ object SetupBloopRifle {
   def apply(javaPath: String, buildPaths: BuildPaths, resolver: Lazy[CoursierResolver], address: BloopRifleConfig.Address): BloopRifleConfig =
     BloopRifleConfig.default(address, bloopClassPath(resolver), buildPaths.dotBleepDir.toFile).copy(javaPath = javaPath)
 
-  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BuildException, Seq[File]] = {
+  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BuildException, (Seq[File], Boolean)] = {
     val modString = BloopRifleConfig.defaultModule
     ModuleParser
       .module(modString, BloopRifleConfig.defaultScalaVersion)
@@ -21,7 +21,7 @@ object SetupBloopRifle {
       .flatMap { mod =>
         resolver.forceGet(JsonSet(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
           case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
-          case Right(res)          => Right(res.jarFiles)
+          case Right(res)          => Right((res.jarFiles, false))
         }
       }
   }

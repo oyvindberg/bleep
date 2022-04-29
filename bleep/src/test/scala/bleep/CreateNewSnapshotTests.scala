@@ -22,6 +22,8 @@ class CreateNewSnapshotTests extends SnapshotTest {
         name = "myapp"
       ).genAllFiles(buildPaths)
 
+    writeAndCompareEarly(buildPaths.buildDir, generatedProjectFiles)
+
     val Right(started) = bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.InMemory, Nil)
 
     val generatedBloopFiles: Map[Path, String] =
