@@ -72,7 +72,7 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
     FileUtils.writeString(
       tempAddBloopPlugin,
       s"""
-addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.4.13")
+addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.0")
 addSbtPlugin("no.arktekk.bleep" % "sbt-export-dependencies" % "0.1.0")
 """
     )
