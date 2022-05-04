@@ -9,7 +9,7 @@ import java.net.Socket
 import java.nio.file.{Files, Path}
 import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
 import scala.build.blooprifle.internal.Operations
-import scala.build.blooprifle.{BloopRifleConfig, BloopRifleLogger, BloopServerRuntimeInfo}
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
@@ -151,7 +151,7 @@ object BspImpl {
         server: BuildServer,
         listeningFuture: java.util.concurrent.Future[Void],
         socket: Socket,
-        bloopInfo: BloopServerRuntimeInfo
+        bloopInfo: BloopRifle.BloopServerRuntimeInfo
     ) extends BloopServer {
       def shutdown(): Unit = {
         // Close the jsonrpc thread listening to input messages
