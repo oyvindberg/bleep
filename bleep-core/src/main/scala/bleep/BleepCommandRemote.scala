@@ -44,7 +44,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
     val server = BloopServer.buildServer(
       config = bloopRifleConfig,
       clientName = "bleep",
-      clientVersion = constants.version,
+      clientVersion = BleepVersion.version,
       workspace = started.buildPaths.dotBleepModeDir,
       classesDir = started.buildPaths.dotBleepModeDir / "classes",
       buildClient = buildClient,

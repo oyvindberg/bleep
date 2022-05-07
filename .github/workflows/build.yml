@@ -99,19 +99,19 @@ jobs:
 
       - name: Test binary after build on Windows
         shell: cmd
-        run: .\dist\${{ matrix.file_name }}.exe compile --no-color jvm213
+        run: .\dist\${{ matrix.file_name }}.exe generate-resources && .\dist\${{ matrix.file_name }}.exe compile --no-color jvm213
         if: runner.os == 'Windows'
 
       - name: Test binary after build on Linux
         run: |
           chmod 755 dist/${{ matrix.file_name }} 
-          ./dist/${{ matrix.file_name }} compile --no-color jvm213
+          ./dist/${{ matrix.file_name }} generate-resources && ./dist/${{ matrix.file_name }} compile --no-color jvm213
         if: runner.os == 'Linux'
 
       - name: Test binary after build on Macos
         run: |
           chmod 755 dist/${{ matrix.file_name }}
-          ./dist/${{ matrix.file_name }} compile --no-color jvm213
+          ./dist/${{ matrix.file_name }} generate-resources && ./dist/${{ matrix.file_name }} compile --no-color jvm213
         if: runner.os == 'macOS'
 
       - name: Temporarily save package
@@ -125,7 +125,7 @@ jobs:
   release:
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    needs: [build-native-image]
+    needs: [ build-native-image ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - uses: actions/checkout@v2
@@ -148,6 +148,7 @@ jobs:
       - name: Release
         run: |
           chmod +x ./artifacts/linux-binary/bleep-linux 
+          ./artifacts/linux-binary/bleep-linux generate-resources
           ./artifacts/linux-binary/bleep-linux publish
         env:
           CI_RELEASE: ${{ secrets.CI_RELEASE }}

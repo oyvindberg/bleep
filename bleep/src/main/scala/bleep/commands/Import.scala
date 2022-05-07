@@ -156,7 +156,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
           resources = JsonSet.empty,
           dependencies =
             if (hackDropBleepDependency) JsonSet.empty
-            else JsonSet(Dep.Scala("build.bleep", "bleep-tasks", constants.version)),
+            else JsonSet(Dep.Scala("build.bleep", "bleep-tasks", BleepVersion.version)),
           java = None,
           scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty)),
           platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),

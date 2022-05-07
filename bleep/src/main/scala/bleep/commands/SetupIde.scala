@@ -27,7 +27,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
     val details = new bsp4j.BspConnectionDetails(
       "bleep",
       List(progName, "bsp").asJava,
-      constants.version,
+      BleepVersion.version,
       scala.build.blooprifle.internal.Constants.bspVersion,
       List("scala", "java").asJava
     )

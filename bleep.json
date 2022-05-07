@@ -111,10 +111,7 @@
       "extends" : "template-cross-jvm-212-213-main"
     },
     "scripts" : {
-      "dependsOn" : [
-        "bleep",
-        "bleep-tasks-publishing"
-      ],
+      "dependencies" : "build.bleep::bleep-tasks-publishing:0.0.1-M3",
       "extends" : [
         "template-common-main",
         "template-scala-2.13"
@@ -122,6 +119,7 @@
     }
   },
   "scripts" : {
+    "generate-resources" : "scripts/bleep.scripts.GenerateResources",
     "native-image" : "scripts/bleep.scripts.GenNativeImage",
     "publish" : "scripts/bleep.scripts.Publish",
     "publish-local" : "scripts/bleep.scripts.PublishLocal"
