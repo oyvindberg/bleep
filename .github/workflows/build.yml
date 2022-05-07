@@ -40,7 +40,7 @@ jobs:
         with:
           name: java-binary
           path: |
-            ${{ github.workspace }}/bleep/target/scala-2.13/bleep-assembly.jar
+            ${{ github.workspace }}/bleep/target/jvm-2.13/bleep-assembly.jar
           retention-days: 1
       - name: Cleanup before cache
         shell: bash
