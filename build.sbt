@@ -1,28 +1,37 @@
 import sbt.librarymanagement.For3Use2_13
 
+val scala212 = "2.12.15"
+val scala213 = "2.13.8"
+val scala3 = "3.1.1"
+val scalaNot3 = List(scala212, scala213)
+val scalaAll = scalaNot3 ++ List(scala3)
+
+// root project ocnfig
 name := "bleep-root"
-crossScalaVersions := List("2.12.15", "2.13.8", "3.1.1")
+publish / skip := true
 
 val commonSettings: Project => Project =
-  _.enablePlugins(GitVersioning, TpolecatPlugin)
+  _.enablePlugins(TpolecatPlugin)
     .settings(
       organization := "build.bleep",
-      scalaVersion := "2.13.8",
-      scalacOptions -= "-Xfatal-warnings"
+      scalacOptions -= "-Xfatal-warnings",
+      dynverSonatypeSnapshots := true,
+      homepage := Some(url("https://github.com/oyvindberg/bleep/")),
+      licenses := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+      developers := List(
+        Developer(
+          "oyvindberg",
+          "Øyvind Raddum Berg",
+          "elacin@gmail.com",
+          url("https://github.com/oyvindberg")
+        )
+      ),
+      sonatypeCredentialHost := "s01.oss.sonatype.org",
+      Compile / doc / sources := Nil
     )
 
-val crossSettings: Project => Project =
-  _.settings(
-    crossScalaVersions := List("2.12.15", "2.13.8", "3.1.1")
-  )
-
-val crossScala212_213: Project => Project =
-  _.settings(
-    crossScalaVersions := List("2.12.15", "2.13.8")
-  )
-
-lazy val `bleep-core` = project
-  .configure(commonSettings, crossSettings)
+lazy val `bleep-core` = projectMatrix
+  .configure(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "fansi" % "0.3.1",
@@ -34,9 +43,10 @@ lazy val `bleep-core` = project
       "ch.epfl.scala" %% "bloop-config" % "1.5.0" cross For3Use2_13()
     )
   )
+  .jvmPlatform(scalaAll)
 
-lazy val `bleep-tasks` = project
-  .configure(commonSettings, crossSettings)
+lazy val `bleep-tasks` = projectMatrix
+  .configure(commonSettings)
   .dependsOn(`bleep-core`)
   .settings(
     Compile / unmanagedSourceDirectories ++= List(
@@ -46,9 +56,10 @@ lazy val `bleep-tasks` = project
       (ThisBuild / baseDirectory).value / "liberated/sbt-native-image/plugin/src/main/resources"
     )
   )
+  .jvmPlatform(scalaAll)
 
-lazy val `bleep-tasks-publishing` = project
-  .configure(commonSettings, crossScala212_213)
+lazy val `bleep-tasks-publishing` = projectMatrix
+  .configure(commonSettings)
   .dependsOn(`bleep-tasks`)
   .settings(
     libraryDependencies ++= List(
@@ -69,11 +80,13 @@ lazy val `bleep-tasks-publishing` = project
       (ThisBuild / baseDirectory).value / "liberated/sbt-dynver/sbtdynver/src/main/scala"
     )
   )
+  .jvmPlatform(scalaNot3)
 
-lazy val bleep = project
+lazy val bleep = projectMatrix
   .configure(commonSettings)
   .dependsOn(`bleep-core`)
   .settings(
+    publish / skip := true,
     libraryDependencies ++= Seq(
       "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
@@ -96,7 +109,12 @@ lazy val bleep = project
     assemblyJarName := "bleep-assembly.jar"
   )
   .enablePlugins(NativeImagePlugin)
+  .jvmPlatform(List(scala213))
 
-lazy val scripts = project
+lazy val scripts = projectMatrix
   .dependsOn(bleep, `bleep-tasks-publishing`)
   .configure(commonSettings)
+  .settings(
+    publish / skip := true
+  )
+  .jvmPlatform(List(scala213))
