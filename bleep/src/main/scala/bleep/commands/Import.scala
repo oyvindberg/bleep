@@ -6,7 +6,7 @@ import bleep.internal._
 import bleep.logging.Logger
 import bleep.rewrites.normalizeBuild
 import bloop.config.Config
-import cats.implicits.catsSyntaxTuple2Semigroupal
+import cats.syntax.apply._
 import com.monovore.decline.Opts
 import io.circe.syntax._
 
@@ -16,13 +16,11 @@ import scala.jdk.CollectionConverters._
 object Import {
   case class Options(
       ignoreWhenInferringTemplates: Set[model.ProjectName],
-      skipSbt: Boolean
+      skipSbt: Boolean,
+      skipGeneratedResourcesScript: Boolean
   )
 
-  val skipSbt: Opts[Boolean] =
-    Opts.flag("skip-sbt", "use if you already have generated bloop files and want to reimport from them").orFalse
-
-  val ignoreWhenInferringTemplates: Opts[List[model.ProjectName]] = Opts
+  val ignoreWhenInferringTemplates: Opts[Set[model.ProjectName]] = Opts
     .options[String](
       "ignore-when-templating",
       "some projects may differ much from the rest, for instance documentation and examples. considering these when computing templates may negatively affect the result",
@@ -30,12 +28,16 @@ object Import {
     )
     .orEmpty
     .map(_.map(model.ProjectName.apply))
+    .map(_.toSet)
+
+  val skipSbt: Opts[Boolean] =
+    Opts.flag("skip-sbt", "use if you already have generated bloop files and want to reimport from them").orFalse
+
+  val skipGeneratedResourcesScript: Opts[Boolean] =
+    Opts.flag("skip-generated-resources-script", "disable creating a script to regenerate discovered generated sources/resources ").orFalse
 
   val opts: Opts[Options] =
-    (skipSbt, ignoreWhenInferringTemplates).mapN { case (skipSbt, ignoreWhenInferringTemplates) =>
-      Options(ignoreWhenInferringTemplates.toSet, skipSbt = skipSbt)
-    }
-
+    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript).mapN(Options.apply)
   def findGeneratedJsonFiles(under: Path): Iterable[Path] =
     Files
       .list(under)
@@ -62,6 +64,7 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
       bloopFiles,
       sbtExportFiles,
       hackDropBleepDependency = false,
+      skipGeneratedResourcesScript = options.skipGeneratedResourcesScript,
       Some(destinationPaths.bleepJsonFile).filter(Files.exists(_))
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 
@@ -106,6 +109,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
       bloopFiles: Iterable[Config.File],
       sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject],
       hackDropBleepDependency: Boolean,
+      skipGeneratedResourcesScript: Boolean,
       maybeExistingBleepJson: Option[Path]
   ): Map[Path, String] = {
     val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
@@ -133,7 +137,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
     logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.value.size} projects")
 
     val generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]] =
-      findGeneratedFiles(bloopFilesByProjectName)
+      if (skipGeneratedResourcesScript) Map.empty else findGeneratedFiles(bloopFilesByProjectName)
 
     GeneratedFilesScript(generatedFiles) match {
       case Some((className, scriptSource)) =>

@@ -62,7 +62,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
   def testIn(project: String, generatedResources: List[(RelPath, String)] = Nil): Assertion = {
     val sbtBuildDir = inFolder / project
     val destinationPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / project, Normal)
-    val importer = commands.Import(sbtBuildDir, destinationPaths, logger, Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false))
+    val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = generatedResources.isEmpty)
+    val importer = commands.Import(sbtBuildDir, destinationPaths, logger, importerOptions)
 
     generatedResources.foreach { case (relPath, content) =>
       val path = sbtBuildDir / relPath
@@ -106,6 +107,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         importedBloopFiles.map { case (_, _, file) => file },
         sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile },
         hackDropBleepDependency = true,
+        importerOptions.skipGeneratedResourcesScript,
         maybeExistingBleepJson = None
       )
 
