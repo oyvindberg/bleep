@@ -4,7 +4,6 @@ import bleep.internal.FileUtils
 import bleep._
 import bleep.tasks.publishing._
 
-import java.nio.file.Path
 import java.time.ZonedDateTime
 import scala.collection.immutable.SortedMap
 
