@@ -10,8 +10,7 @@ object GenerateResources extends App {
     
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("importer-portable"), None)).foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
-      val to = projectPaths.generatedSourcesDir.resolve("sbt-buildinfo/BuildInfo.scala")
+      val to = started.generatedSourcesDir(crossName).resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
       |package org.scalablytyped.converter.internal

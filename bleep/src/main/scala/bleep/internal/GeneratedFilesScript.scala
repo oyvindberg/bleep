@@ -97,8 +97,7 @@ object GeneratedFilesScript {
       val copies = sorted.map { case (file, forProjects) =>
         s"""
     ${Repr.str(forProjects, 6)}.foreach { crossName =>
-      val projectPaths = started.projectPaths(crossName) 
-      val to = projectPaths.${if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"}.resolve(${Repr.str(file.toRelPath.toString, 8)})
+      val to = started.${if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"}(crossName).resolve(${Repr.str(file.toRelPath.toString, 8)})
       started.logger.withContext(crossName).warn(s"Writing $$to")
       val content = ${Repr.str(file.contents, 6)}
       Files.createDirectories(to.getParent)
