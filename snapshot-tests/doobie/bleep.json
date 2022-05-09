@@ -18,14 +18,14 @@
       "cross" : {
         "jvm212" : {
           "dependencies" : "com.chuusai::shapeless:2.3.7",
-          "sources" : "./src/main/scala-${SCALA_EPOCH}.13-"
+          "sources" : "./src/main/scala-2.13-"
         },
         "jvm213" : {
           "dependencies" : "com.chuusai::shapeless:2.3.7",
           "sources" : "./src/main/scala-${SCALA_BIN_VERSION}+"
         },
         "jvm3" : {
-          "sources" : "./src/main/scala-2.1${SCALA_EPOCH}+"
+          "sources" : "./src/main/scala-2.1${SCALA_BIN_VERSION}+"
         }
       },
       "dependencies" : "org.tpolecat::typename:1.0.0",

@@ -52,7 +52,7 @@ object Replacements {
         scalaVersion match {
           case Some(scalaVersion) =>
             List(
-              scalaVersion.epoch.toString -> "${SCALA_EPOCH}",
+//              scalaVersion.epoch.toString -> "${SCALA_EPOCH}",
               s"${scalaVersion.binVersion}" -> "${SCALA_BIN_VERSION}",
               scalaVersion.scalaVersion -> "${SCALA_VERSION}"
             )
