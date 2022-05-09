@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.bsp.BspCommandFailed
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams, ScalaMainClassesResult}
 
@@ -42,7 +43,7 @@ case class Run(
   }
 
   def discoverMain(bloop: BloopServer): Either[BuildException, String] = {
-    val req = new ScalaMainClassesParams(util.List.of(buildTarget(started.buildPaths, project)))
+    val req = new ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](buildTarget(started.buildPaths, project)))
     started.logger.debug(req.toString)
 
     val res: ScalaMainClassesResult =

@@ -12,8 +12,7 @@
           },
           "module" : "org.scala-sbt::librarymanagement-core:1.6.1"
         },
-        "org.scalameta:svm-subs:101.0.0",
-        "org.virtuslab.scala-cli::bloop-rifle:0.1.5"
+        "org.scalameta:svm-subs:101.0.0"
       ],
       "dependsOn" : "bleep-core",
       "extends" : [
@@ -41,7 +40,8 @@
           "for3Use213" : true,
           "module" : "io.get-coursier::coursier:2.0.16"
         },
-        "org.gnieh::diffson-circe:4.1.1"
+        "org.gnieh::diffson-circe:4.1.1",
+        "org.virtuslab.scala-cli::bloop-rifle:0.1.5"
       ],
       "extends" : "template-cross-all"
     },

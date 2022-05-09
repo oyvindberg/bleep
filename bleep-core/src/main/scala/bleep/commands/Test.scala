@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.bsp.BspCommandFailed
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.TestParams
 

@@ -1,4 +1,4 @@
-package bleep.commands
+package bleep.bsp
 
 import bleep.{model, BuildException}
 import ch.epfl.scala.bsp4j
