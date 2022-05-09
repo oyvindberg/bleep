@@ -994,7 +994,7 @@
         "template-scala-2.13"
       ],
       "scala" : {
-        "options" : "-P:scala${PLATFORM}:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc066${SCALA_EPOCH}79${SCALA_EPOCH}fd0c4d846${SCALA_EPOCH}c${SCALA_EPOCH}47f634c01fee0dd571${SCALA_EPOCH}/"
+        "options" : "-P:scala${PLATFORM}:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/"
       }
     },
     "template-scala-2.13-main" : {
@@ -1022,7 +1022,7 @@
           "-Xsemanticdb",
           "-Ykind-projector",
           "-language:implicitConversions",
-          "-source:${SCALA_EPOCH}.0-migration"
+          "-source:${SCALA_BIN_VERSION}.0-migration"
         ],
         "version" : "3.1.1"
       }
@@ -1035,7 +1035,7 @@
       "scala" : {
         "options" : [
           "-scala${PLATFORM}",
-          "-scala${PLATFORM}-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f6${SCALA_EPOCH}4c01fee0dd5712/"
+          "-scala${PLATFORM}-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f6${SCALA_BIN_VERSION}4c01fee0dd5712/"
         ]
       }
     },

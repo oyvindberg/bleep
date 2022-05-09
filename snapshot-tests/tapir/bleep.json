@@ -99,10 +99,10 @@
     "awsLambda" : {
       "cross" : {
         "js212" : {
-          "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
+          "sources" : "./src/main/scalajvm-2"
         },
         "js213" : {
-          "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
+          "sources" : "./src/main/scalajvm-2"
         }
       },
       "dependencies" : [
@@ -239,13 +239,13 @@
     "clientTests" : {
       "cross" : {
         "js212" : {
-          "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
+          "sources" : "./src/main/scalajvm-2"
         },
         "js213" : {
-          "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
+          "sources" : "./src/main/scalajvm-2"
         },
         "js3" : {
-          "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
+          "sources" : "./src/main/scalajvm-${SCALA_BIN_VERSION}"
         }
       },
       "dependencies" : [
@@ -1637,14 +1637,14 @@
         "template-common-main",
         "template-scala-2.12"
       ],
-      "sources" : "./src/main/scala-${SCALA_EPOCH}.13-"
+      "sources" : "./src/main/scala-2.13-"
     },
     "template-scala-2.12-test" : {
       "extends" : [
         "template-common-test",
         "template-scala-2.12"
       ],
-      "sources" : "./src/test/scala-${SCALA_EPOCH}.13-"
+      "sources" : "./src/test/scala-2.13-"
     },
     "template-scala-2.13" : {
       "extends" : "template-common",
