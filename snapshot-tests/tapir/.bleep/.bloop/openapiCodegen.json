@@ -12,6 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scala-sbt-1.0",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/scalajvm-2.12",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/openapiCodegen"
     ],

@@ -12,6 +12,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/core/src/main/scala-2.12",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/core/src/main/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/core/src/main/scalajs",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/core/src/main/scalajs-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/core/src/main/scalajs-2.12",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/core@js212"
     ],

@@ -11,6 +11,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scala-2.13",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scalajs",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scalajs-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/cats/src/test/scalajs-2.13",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/cats-test@js213"
     ],

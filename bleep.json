@@ -114,7 +114,8 @@
           "-language:implicitConversions",
           "-unchecked"
         ]
-      }
+      },
+      "source-layout" : "sbt-matrix"
     },
     "template-common-main" : {
       "extends" : "template-common",

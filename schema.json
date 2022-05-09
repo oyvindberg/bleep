@@ -48,7 +48,8 @@
         "java",
         "normal",
         "cross-pure",
-        "cross-full"
+        "cross-full",
+        "sbt-matrix"
       ]
     },
     "CompileOrder": {

@@ -11,6 +11,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda/src/main/scala-2.13",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda/src/main/scalajs",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda/src/main/scalajs-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda/src/main/scalajs-2.13",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/serverless/aws/lambda/src/main/scalajvm-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/awsLambda@js213"
