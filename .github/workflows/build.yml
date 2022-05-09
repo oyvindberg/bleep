@@ -2,6 +2,7 @@ name: Build
 on:
   push:
     tags: [ 'v*' ]
+    branches: [ 'master' ]
   pull_request:
     types: [ synchronize ]
     branches: [ 'master' ]
