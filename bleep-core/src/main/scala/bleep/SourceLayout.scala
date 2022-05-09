@@ -13,7 +13,7 @@ sealed abstract class SourceLayout(val id: String) {
 }
 
 object SourceLayout {
-  val All = List(CrossPure, CrossFull, Normal, Java, None_).map(x => x.id -> x).toMap
+  val All = List(SbtMatrix, CrossPure, CrossFull, Normal, Java, None_).map(x => x.id -> x).toMap
 
   implicit val decoder: Decoder[SourceLayout] =
     Decoder[Option[String]].emap {
@@ -118,4 +118,29 @@ object SourceLayout {
         case _ => JsonSet.empty
       }
   }
+
+  case object SbtMatrix extends SourceLayout("sbt-matrix") {
+    override def sources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
+      maybeScalaVersion match {
+        case Some(scalaVersion) =>
+          val fromNormal = Normal.sources(maybeScalaVersion, maybePlatformId, scope)
+          val fromMatrix = maybePlatformId match {
+            case Some(platformId) =>
+              JsonSet(
+                RelPath.force(s"src/$scope/scala${platformId.value}"),
+                RelPath.force(s"src/$scope/scala${platformId.value}-${scalaVersion.binVersion}"),
+                RelPath.force(s"src/$scope/scala${platformId.value}-${scalaVersion.epoch}")
+              )
+
+            case None => JsonSet.empty[RelPath]
+          }
+          fromNormal ++ fromMatrix
+        case None => JsonSet.empty
+      }
+    override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
+      JsonSet(
+        RelPath.force(s"src/$scope/resources")
+      )
+  }
+
 }

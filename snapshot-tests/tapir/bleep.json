@@ -9,8 +9,7 @@
       ],
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/server/akka-http-server",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/akka-http-server"
     },
     "akkaHttpServer-test" : {
       "dependencies" : "com.softwaremill.sttp.client3::akka-http-backend:3.3.18",
@@ -19,18 +18,9 @@
         "serverTests"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/server/akka-http-server",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/akka-http-server"
     },
     "apispecDocs" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "apispecModel",
         "core"
@@ -39,26 +29,10 @@
       "folder" : "./../../snapshot-tests-in/tapir/docs/apispec-docs"
     },
     "apispecModel" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/apispec/apispec-model"
     },
     "asyncapiCirce" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "io.circe::circe-core:0.14.1",
         "io.circe::circe-generic:0.14.1",
@@ -69,14 +43,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/apispec/asyncapi-circe"
     },
     "asyncapiCirceYaml" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "io.circe::circe-yaml:0.14.1",
       "dependsOn" : "asyncapiCirce",
       "extends" : "template-cross-jvm-all-main",
@@ -88,8 +54,7 @@
         "asyncapiModel"
       ],
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/docs/asyncapi-docs",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/docs/asyncapi-docs"
     },
     "asyncapiDocs-test" : {
       "dependencies" : [
@@ -102,18 +67,9 @@
         "tests"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/docs/asyncapi-docs",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/docs/asyncapi-docs"
     },
     "asyncapiModel" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : "apispecModel",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/apispec/asyncapi-model"
@@ -125,16 +81,14 @@
           "dependsOn" : [
             "awsSam",
             "awsTerraform"
-          ],
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm213" : {
           "dependencies" : "com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0",
           "dependsOn" : [
             "awsSam",
             "awsTerraform"
-          ],
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         }
       },
       "dependencies" : "com.softwaremill.sttp.client3::cats:3.3.18",
@@ -149,12 +103,6 @@
         },
         "js213" : {
           "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
-        },
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
         }
       },
       "dependencies" : [
@@ -177,14 +125,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/lambda"
     },
     "awsLambda-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "awsLambda",
         "tests"
@@ -201,24 +141,14 @@
         "sttpStubServer"
       ],
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/lambda-tests",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/lambda-tests"
     },
     "awsLambdaTests-test" : {
       "dependsOn" : "awsLambdaTests",
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/lambda-tests",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/lambda-tests"
     },
     "awsSam" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "io.circe::circe-generic:0.14.1",
         "io.circe::circe-yaml:0.14.1"
@@ -228,14 +158,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/sam"
     },
     "awsSam-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "awsSam",
         "tests"
@@ -252,8 +174,7 @@
       ],
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/terraform",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/terraform"
     },
     "awsTerraform-test" : {
       "dependsOn" : [
@@ -261,8 +182,7 @@
         "tests"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/terraform",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/serverless/aws/terraform"
     },
     "cats" : {
       "dependencies" : [
@@ -270,10 +190,7 @@
         "org.typelevel::cats-effect:3.3.0"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
-        "template-cross-all-main"
-      ],
+      "extends" : "template-cross-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/integrations/cats"
     },
     "cats-test" : {
@@ -286,7 +203,7 @@
       ],
       "dependsOn" : "cats",
       "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all",
         "template-cross-jvm-all-js-212-213-test"
       ],
       "folder" : "./../../snapshot-tests-in/tapir/integrations/cats"
@@ -298,10 +215,7 @@
         "io.circe::circe-parser:0.14.1"
       ],
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
-        "template-cross-all-main"
-      ],
+      "extends" : "template-cross-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/json/circe"
     },
     "circeJson-test" : {
@@ -311,14 +225,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/json/circe"
     },
     "clientTestServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "ch.qos.logback:logback-classic:1.2.7",
         "ch.qos.logback:logback-core:1.2.7",
@@ -340,12 +246,6 @@
         },
         "js3" : {
           "sources" : "./src/main/scalajvm-${SCALA_EPOCH}"
-        },
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
         }
       },
       "dependencies" : [
@@ -363,10 +263,7 @@
         }
       ],
       "dependsOn" : "tests",
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
-        "template-cross-all-main"
-      ],
+      "extends" : "template-cross-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/client/tests"
     },
     "core" : {
@@ -404,8 +301,7 @@
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.12.15"
             }
-          ],
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm213" : {
           "dependencies" : [
@@ -414,8 +310,7 @@
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.13.6"
             }
-          ],
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm3" : {
           "dependencies" : "com.softwaremill.magnolia1_3::magnolia:1.0.0-M7"
@@ -426,10 +321,7 @@
         "com.softwaremill.sttp.shared::core:1.2.7",
         "com.softwaremill.sttp.shared::ws:1.2.7"
       ],
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
-        "template-cross-all-main"
-      ],
+      "extends" : "template-cross-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/core",
       "sources" : "./src/main/boilerplate-gen"
     },
@@ -465,8 +357,7 @@
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.12.15"
             }
-          ],
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm213" : {
           "dependencies" : [
@@ -475,8 +366,7 @@
               "configuration" : "provided",
               "module" : "org.scala-lang:scala-reflect:2.13.6"
             }
-          ],
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         }
       },
       "dependencies" : [
@@ -486,7 +376,7 @@
       ],
       "dependsOn" : "core",
       "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all",
         "template-cross-jvm-all-js-212-213-test"
       ],
       "folder" : "./../../snapshot-tests-in/tapir/core"
@@ -595,8 +485,7 @@
         "template-jvm",
         "template-scala-2.13-main"
       ],
-      "folder" : "./../../snapshot-tests-in/tapir/examples",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/examples"
     },
     "finatraServer" : {
       "dependencies" : [
@@ -605,8 +494,7 @@
       ],
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server"
     },
     "finatraServer-test" : {
       "dependencies" : [
@@ -665,15 +553,13 @@
         "serverTests"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server"
     },
     "finatraServerCats" : {
       "dependencies" : "org.typelevel::cats-effect:3.3.0",
       "dependsOn" : "finatraServer",
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats"
     },
     "finatraServerCats-test" : {
       "dependsOn" : [
@@ -681,8 +567,7 @@
         "finatraServerCats"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats"
     },
     "http4sClient" : {
       "dependencies" : [
@@ -712,14 +597,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/client/http4s-client"
     },
     "http4sServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "com.softwaremill.sttp.shared::fs2:1.2.7",
         "org.http4s::http4s-blaze-server:0.23.7"
@@ -729,14 +606,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/server/http4s-server"
     },
     "http4sServer-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "http4sServer",
         "serverTests"
@@ -775,14 +644,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/json/jsoniter"
     },
     "nettyServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "ch.qos.logback:logback-classic:1.2.7",
         "ch.qos.logback:logback-core:1.2.7",
@@ -798,14 +659,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/server/netty-server"
     },
     "nettyServer-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : {
         "configuration" : "optional",
         "module" : "com.softwaremill.sttp.shared::fs2:1.2.7"
@@ -874,14 +727,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/integrations/newtype"
     },
     "openapiCirce" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "io.circe::circe-core:0.14.1",
         "io.circe::circe-generic:0.14.1",
@@ -892,14 +737,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/apispec/openapi-circe"
     },
     "openapiCirceYaml" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "io.circe::circe-yaml:0.14.1",
       "dependsOn" : "openapiCirce",
       "extends" : "template-cross-jvm-all-main",
@@ -956,12 +793,10 @@
     "openapiDocs" : {
       "cross" : {
         "jvm212" : {
-          "dependsOn" : "enumeratum",
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          "dependsOn" : "enumeratum"
         },
         "jvm213" : {
-          "dependsOn" : "enumeratum",
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          "dependsOn" : "enumeratum"
         }
       },
       "dependsOn" : [
@@ -972,14 +807,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/docs/openapi-docs"
     },
     "openapiDocs-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "openapiCirceYaml",
         "openapiDocs",
@@ -989,41 +816,17 @@
       "folder" : "./../../snapshot-tests-in/tapir/docs/openapi-docs"
     },
     "openapiModel" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : "apispecModel",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/apispec/openapi-model"
     },
     "openapiModel-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : "openapiModel",
       "extends" : "template-cross-jvm-all-test",
       "folder" : "./../../snapshot-tests-in/tapir/apispec/openapi-model"
     },
     "opentelemetryMetrics" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         "io.opentelemetry:opentelemetry-api:1.9.1",
         "io.opentelemetry:opentelemetry-sdk:1.9.1"
@@ -1033,14 +836,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/metrics/opentelemetry-metrics"
     },
     "opentelemetryMetrics-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "io.opentelemetry:opentelemetry-sdk-metrics:1.5.0-alpha",
       "dependsOn" : [
         "core-test",
@@ -1112,8 +907,7 @@
       ],
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/server/play-server",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/play-server"
     },
     "playServer-test" : {
       "dependsOn" : [
@@ -1121,32 +915,15 @@
         "serverTests"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/server/play-server",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/play-server"
     },
     "prometheusMetrics" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "io.prometheus:simpleclient_common:0.12.0",
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/metrics/prometheus-metrics"
     },
     "prometheusMetrics-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "core-test",
         "prometheusMetrics"
@@ -1155,27 +932,11 @@
       "folder" : "./../../snapshot-tests-in/tapir/metrics/prometheus-metrics"
     },
     "redoc" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/docs/redoc"
     },
     "redocBundle" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "openapiCirceYaml",
         "openapiDocs",
@@ -1211,14 +972,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/integrations/refined"
     },
     "serverTests" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18",
       "dependsOn" : "tests",
       "extends" : "template-cross-jvm-all-main",
@@ -1256,8 +1009,7 @@
               "configuration" : "optional",
               "module" : "com.typesafe.akka::akka-stream:2.6.17"
             }
-          ],
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm213" : {
           "dependencies" : [
@@ -1277,8 +1029,7 @@
               "configuration" : "optional",
               "module" : "com.typesafe.akka::akka-stream:2.6.17"
             }
-          ],
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm3" : {
           "dependencies" : [
@@ -1295,10 +1046,7 @@
       },
       "dependencies" : "com.softwaremill.sttp.client3::core:3.3.18",
       "dependsOn" : "core",
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
-        "template-cross-all-main"
-      ],
+      "extends" : "template-cross-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/client/sttp-client"
     },
     "sttpClient-test" : {
@@ -1327,8 +1075,7 @@
               "configuration" : "optional",
               "module" : "com.typesafe.akka::akka-stream:2.6.17"
             }
-          ],
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm213" : {
           "dependencies" : [
@@ -1354,8 +1101,7 @@
               "configuration" : "optional",
               "module" : "com.typesafe.akka::akka-stream:2.6.17"
             }
-          ],
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+          ]
         },
         "jvm3" : {
           "dependencies" : [
@@ -1380,7 +1126,7 @@
         "sttpClient"
       ],
       "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
+        "template-cross-all",
         "template-cross-jvm-all-js-212-213-test"
       ],
       "folder" : "./../../snapshot-tests-in/tapir/client/sttp-client"
@@ -1393,8 +1139,7 @@
       ],
       "dependsOn" : "sttpClient",
       "extends" : "template-cross-jvm-212-213-main",
-      "folder" : "./../../snapshot-tests-in/tapir/server/sttp-mock-server",
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/sttp-mock-server"
     },
     "sttpMockServer-test" : {
       "dependencies" : "io.circe::circe-literal:0.14.1",
@@ -1403,31 +1148,14 @@
         "sttpMockServer"
       ],
       "extends" : "template-cross-jvm-212-213-test",
-      "folder" : "./../../snapshot-tests-in/tapir/server/sttp-mock-server",
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
+      "folder" : "./../../snapshot-tests-in/tapir/server/sttp-mock-server"
     },
     "sttpStubServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : "sttpClient",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/server/sttp-stub-server"
     },
     "sttpStubServer-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "serverTests",
         "sttpStubServer"
@@ -1436,28 +1164,12 @@
       "folder" : "./../../snapshot-tests-in/tapir/server/sttp-stub-server"
     },
     "swaggerUi" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "org.webjars:swagger-ui:4.1.3",
       "dependsOn" : "core",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/docs/swagger-ui"
     },
     "swaggerUiBundle" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "openapiCirceYaml",
         "openapiDocs",
@@ -1467,14 +1179,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/docs/swagger-ui-bundle"
     },
     "swaggerUiBundle-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "org.scalatest::scalatest:3.2.10",
       "dependsOn" : [
         "http4sServer",
@@ -1499,10 +1203,7 @@
         "cats",
         "circeJson"
       ],
-      "extends" : [
-        "template-cross-jvm-212-213-js-212-213",
-        "template-cross-all-main"
-      ],
+      "extends" : "template-cross-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/tests"
     },
     "tethysJson" : {
@@ -1544,14 +1245,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/json/upickle"
     },
     "vertxServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         {
           "configuration" : "optional",
@@ -1568,14 +1261,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/server/vertx"
     },
     "vertxServer-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : [
         {
           "configuration" : "optional",
@@ -1615,14 +1300,6 @@
       "testFrameworks" : "zio.test.sbt.ZTestFramework"
     },
     "zioHttp4sServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "dev.zio::zio-interop-cats:3.2.9.0",
       "dependsOn" : [
         "http4sServer",
@@ -1632,14 +1309,6 @@
       "folder" : "./../../snapshot-tests-in/tapir/server/zio-http4s-server"
     },
     "zioHttp4sServer-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependsOn" : [
         "serverTests",
         "zioHttp4sServer"
@@ -1648,28 +1317,12 @@
       "folder" : "./../../snapshot-tests-in/tapir/server/zio-http4s-server"
     },
     "zioHttpServer" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "io.d11::zhttp:1.0.0.0-RC17",
       "dependsOn" : "zio",
       "extends" : "template-cross-jvm-all-main",
       "folder" : "./../../snapshot-tests-in/tapir/server/zio-http-server"
     },
     "zioHttpServer-test" : {
-      "cross" : {
-        "jvm212" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        },
-        "jvm213" : {
-          "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
-        }
-      },
       "dependencies" : "dev.zio::zio-interop-cats:3.2.9.0",
       "dependsOn" : [
         "serverTests",
@@ -1707,31 +1360,39 @@
           "-language:implicitConversions",
           "-unchecked"
         ]
-      }
+      },
+      "source-layout" : "sbt-matrix"
     },
     "template-common-main" : {
       "extends" : "template-common",
-      "sbt-scope" : "main",
-      "sources" : "./src/main/scala${PLATFORM}"
+      "sbt-scope" : "main"
     },
     "template-common-test" : {
       "extends" : "template-common",
       "isTestProject" : true,
-      "sbt-scope" : "test",
-      "sources" : "./src/test/scala${PLATFORM}"
+      "sbt-scope" : "test"
+    },
+    "template-cross-all" : {
+      "cross" : {
+        "js3" : {
+          "extends" : "template-scala-3-js"
+        }
+      },
+      "extends" : "template-cross-jvm-212-213-js-212-213"
     },
     "template-cross-all-main" : {
       "cross" : {
         "js3" : {
           "extends" : [
             "template-common-main",
-            "template-js",
-            "template-scala-3-main",
-            "template-scala-3-js"
+            "template-js"
           ]
         }
       },
-      "extends" : "template-cross-jvm-all-js-212-213-main"
+      "extends" : [
+        "template-cross-jvm-all-js-212-213-main",
+        "template-cross-all"
+      ]
     },
     "template-cross-jvm-212-213-js-212-213" : {
       "cross" : {
@@ -1870,7 +1531,15 @@
           ]
         },
         "js3" : {
-          "extends" : "template-scala-3-js-test"
+          "dependencies" : [
+            "io.github.cquiroz::scala-java-time:2.3.0",
+            "org.scala-js:scalajs-test-bridge_2.13:1.8.0"
+          ],
+          "extends" : [
+            "template-common-test",
+            "template-js",
+            "template-scala-3-js"
+          ]
         }
       },
       "extends" : [
@@ -1884,7 +1553,7 @@
           "extends" : [
             "template-common-main",
             "template-jvm",
-            "template-scala-3-main"
+            "template-scala-3"
           ]
         }
       },
@@ -1896,7 +1565,7 @@
           "extends" : [
             "template-common-test",
             "template-jvm",
-            "template-scala-3-test"
+            "template-scala-3"
           ]
         }
       },
@@ -1968,20 +1637,14 @@
         "template-common-main",
         "template-scala-2.12"
       ],
-      "sources" : [
-        "./src/main/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/main/scala-${SCALA_EPOCH}.13-"
-      ]
+      "sources" : "./src/main/scala-${SCALA_EPOCH}.13-"
     },
     "template-scala-2.12-test" : {
       "extends" : [
         "template-common-test",
         "template-scala-2.12"
       ],
-      "sources" : [
-        "./src/test/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/test/scala-${SCALA_EPOCH}.13-"
-      ]
+      "sources" : "./src/test/scala-${SCALA_EPOCH}.13-"
     },
     "template-scala-2.13" : {
       "extends" : "template-common",
@@ -2032,20 +1695,14 @@
         "template-common-main",
         "template-scala-2.13"
       ],
-      "sources" : [
-        "./src/main/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/main/scala-${SCALA_BIN_VERSION}+"
-      ]
+      "sources" : "./src/main/scala-${SCALA_BIN_VERSION}+"
     },
     "template-scala-2.13-test" : {
       "extends" : [
         "template-common-test",
         "template-scala-2.13"
       ],
-      "sources" : [
-        "./src/test/scala${PLATFORM}-${SCALA_BIN_VERSION}",
-        "./src/test/scala-${SCALA_BIN_VERSION}+"
-      ]
+      "sources" : "./src/test/scala-${SCALA_BIN_VERSION}+"
     },
     "template-scala-3" : {
       "extends" : "template-common",
@@ -2067,32 +1724,6 @@
       "scala" : {
         "options" : "-scala${PLATFORM}"
       }
-    },
-    "template-scala-3-js-test" : {
-      "dependencies" : [
-        "io.github.cquiroz::scala-java-time:2.3.0",
-        "org.scala-js:scalajs-test-bridge_2.13:1.8.0"
-      ],
-      "extends" : [
-        "template-common-test",
-        "template-js",
-        "template-scala-3-test",
-        "template-scala-3-js"
-      ]
-    },
-    "template-scala-3-main" : {
-      "extends" : [
-        "template-common-main",
-        "template-scala-3"
-      ],
-      "sources" : "./src/main/scala${PLATFORM}-${SCALA_EPOCH}"
-    },
-    "template-scala-3-test" : {
-      "extends" : [
-        "template-common-test",
-        "template-scala-3"
-      ],
-      "sources" : "./src/test/scala${PLATFORM}-${SCALA_EPOCH}"
     }
   }
 }

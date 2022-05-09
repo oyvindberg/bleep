@@ -11,6 +11,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scala-2.13",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajs",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajs-2",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajs-2.13",
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/zioJson@js213"
     ],
