@@ -8,14 +8,14 @@ import java.time.Instant
 import scala.util.{Failure, Success, Try}
 
 object bootstrap {
-  def forScript(scriptName: String)(f: Started => Unit): Unit = {
+  def forScript(scriptName: String)(f: (Started, Commands) => Unit): Unit = {
     val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName), noColor = false)).untyped
 
     Prebootstrapped.find(Os.cwd, Mode.Normal, logger).flatMap(pre => from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil)) match {
       case Left(buildException) =>
         BuildException.fatal("Couldn't initialize bleep", logger, buildException)
       case Right(started) =>
-        Try(f(started)) match {
+        Try(f(started, new Commands(started))) match {
           case Failure(th) => BuildException.fatal("failed :(", logger, th)
           case Success(_)  => ()
         }
