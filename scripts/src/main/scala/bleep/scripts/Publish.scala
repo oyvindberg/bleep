@@ -16,6 +16,8 @@ object Publish extends App {
   val groupId = "build.bleep"
 
   bootstrap.forScript("Publish") { started =>
+    cli(s"bleep compile", started.logger)(started.buildPaths.buildDir)
+
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     val pgp = new PgpPlugin(
       logger = started.logger,
