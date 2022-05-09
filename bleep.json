@@ -13,7 +13,7 @@
           "module" : "org.scala-sbt::librarymanagement-core:1.6.1"
         },
         "org.scalameta:svm-subs:101.0.0",
-        "org.virtuslab.scala-cli::bloop-rifle:0.1.4"
+        "org.virtuslab.scala-cli::bloop-rifle:0.1.5"
       ],
       "dependsOn" : "bleep-core",
       "extends" : [
