@@ -7,16 +7,10 @@ import nosbt.InteractionService
 import scala.collection.immutable.SortedMap
 
 object Publish extends App {
-  // will publish these with dependencies
-  val Wanted = Set(
-    model.ProjectName("bleep-tasks"),
-    model.ProjectName("bleep-tasks-publishing")
-  )
-
   val groupId = "build.bleep"
 
-  bootstrap.forScript("Publish") { started =>
-    cli(s"bleep compile", started.logger)(started.buildPaths.buildDir)
+  bootstrap.forScript("Publish") { case (started, commands) =>
+    commands.compile(started.build.projects.keys.filter(projectsToPublish.include).toList)
 
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     val pgp = new PgpPlugin(
@@ -40,7 +34,7 @@ object Publish extends App {
       fileBundle(
         started,
         asDep = (crossName, _) => Dep.Scala(groupId, dynVer.version, crossName.name.value),
-        shouldInclude = crossName => Wanted(crossName.name)
+        shouldInclude = projectsToPublish.include
       )
 
     val bundleFiles: Map[RelPath, Array[Byte]] =
