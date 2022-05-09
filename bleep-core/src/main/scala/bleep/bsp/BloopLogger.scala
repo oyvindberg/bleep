@@ -26,7 +26,7 @@ object BloopLogger {
           log(new String(bs.result(), StandardCharsets.UTF_8))
           bs.clear()
         case other =>
-          bs.addOne(other)
+          bs += other
       }
     }
   }
