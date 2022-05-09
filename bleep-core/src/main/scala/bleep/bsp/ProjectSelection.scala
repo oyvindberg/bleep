@@ -1,7 +1,7 @@
 package bleep.bsp
 
-import bleep.{BuildException, BuildPaths}
 import bleep.internal.FileUtils
+import bleep.{BuildException, BuildPaths}
 import io.circe.syntax.EncoderOps
 
 import java.nio.file.Files
