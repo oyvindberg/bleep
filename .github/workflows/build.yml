@@ -2,9 +2,10 @@ name: Build
 on:
   push:
     tags: [ 'v*' ]
-    branches: [ '**' ]
+    branches: [ 'master' ]
   pull_request:
     types: [ synchronize ]
+    branches: [ 'master' ]
 
 jobs:
   build:
