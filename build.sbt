@@ -40,7 +40,8 @@ lazy val `bleep-core` = projectMatrix
       "io.circe" %% "circe-parser" % "0.14.1",
       "io.circe" %% "circe-generic" % "0.14.1",
       ("org.gnieh" %% "diffson-circe" % "4.1.1"),
-      "ch.epfl.scala" %% "bloop-config" % "1.5.0" cross For3Use2_13()
+      "ch.epfl.scala" %% "bloop-config" % "1.5.0" cross For3Use2_13(),
+      "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.5"
     )
   )
   .jvmPlatform(scalaAll)
@@ -92,7 +93,6 @@ lazy val bleep = projectMatrix
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.3",
-      "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.5",
       "org.graalvm.nativeimage" % "svm" % "22.0.0.2",
       ("org.scala-sbt" %% "librarymanagement-core" % "1.6.1").exclude("org.scala-sbt", "util-logging_2.13")
     ),
