@@ -13,7 +13,7 @@ object Publish extends App {
     model.ProjectName("bleep-tasks-publishing")
   )
 
-  val groupId = "build.bleep.test"
+  val groupId = "build.bleep"
 
   bootstrap.forScript("Publish") { started =>
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
