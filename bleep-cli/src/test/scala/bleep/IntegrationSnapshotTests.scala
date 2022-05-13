@@ -22,7 +22,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       uri = URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string)
     )
     val cachePath =
-      if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
+      if (enforceUpToDate) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
       else UserPaths.fromAppDirs.coursierCacheDir
 
     CoursierResolver(

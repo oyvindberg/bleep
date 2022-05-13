@@ -1,0 +1,30 @@
+{
+  "bleep-core@jvm212": {
+    "sbt-scope": "main",
+    "scala": {
+      "version": "2.12.15"
+    },
+    "source-layout": "sbt-matrix"
+  },
+  "bleep-core@jvm213": {
+    "sbt-scope": "main",
+    "scala": {
+      "version": "2.13.8"
+    },
+    "source-layout": "sbt-matrix"
+  },
+  "bleep-tasks@jvm212": {
+    "sbt-scope": "main",
+    "scala": {
+      "version": "2.12.15"
+    },
+    "source-layout": "sbt-matrix"
+  },
+  "bleep-test": {
+    "isTestProject": true,
+    "scala": {
+      "version": "2.13.8"
+    },
+    "source-layout": "sbt-matrix"
+  }
+}

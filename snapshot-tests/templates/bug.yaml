@@ -1,0 +1,49 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "testing",
+  "projects" : {
+    "bleep-core" : {
+      "cross" : {
+        "jvm212" : {
+          "extends" : "template-scala-2.12"
+        },
+        "jvm213" : {
+          "extends" : "template-scala-2.13"
+        }
+      },
+      "extends" : "template-common-main"
+    },
+    "bleep-tasks" : {
+      "extends" : [
+        "template-common-main",
+        "template-scala-2.12"
+      ]
+    },
+    "bleep-test" : {
+      "extends" : [
+        "template-common",
+        "template-scala-2.13"
+      ],
+      "isTestProject" : true
+    }
+  },
+  "templates" : {
+    "template-common" : {
+      "source-layout" : "sbt-matrix"
+    },
+    "template-common-main" : {
+      "extends" : "template-common",
+      "sbt-scope" : "main"
+    },
+    "template-scala-2.12" : {
+      "scala" : {
+        "version" : "2.12.15"
+      }
+    },
+    "template-scala-2.13" : {
+      "scala" : {
+        "version" : "2.13.8"
+      }
+    }
+  }
+}

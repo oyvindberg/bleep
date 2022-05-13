@@ -122,7 +122,8 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
 
     val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName, sbtExportFiles, bleepVersion)
     val normalizedBuild = normalizeBuild(build0)
-    val build1 = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
+
+    val build1 = Templates(logger, normalizedBuild, options.ignoreWhenInferringTemplates)
 
     val build =
       maybeExistingBleepJson match {
@@ -150,7 +151,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
 
         val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
         val scriptsProject = model.Project(
-          `extends` = JsonList.empty,
+          `extends` = JsonSet.empty,
           cross = JsonMap.empty,
           folder = None,
           dependsOn = JsonSet.empty,
