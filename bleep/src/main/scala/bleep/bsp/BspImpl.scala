@@ -21,7 +21,7 @@ object BspImpl {
       new BleepBspServer(pre.logger, null, null, null)
 
     bsp.BspThreads.withThreads { threads =>
-      val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]()
+      val launcher = new jsonrpc.Launcher.Builder[bsp4j.BuildClient]
         .setExecutorService(threads.buildThreads.jsonrpc)
         .setInput(System.in)
         .setOutput(System.out)
@@ -135,7 +135,7 @@ object BspImpl {
     // that case, unlike the read system call. But the ipcsocket library that we use
     // for named sockets relies on read.
 
-    val launcher = new jsonrpc.Launcher.Builder[BuildServer]()
+    val launcher = new jsonrpc.Launcher.Builder[BuildServer]
       .setExecutorService(threads.jsonrpc)
       .setInput(socket.getInputStream)
       .setOutput(socket.getOutputStream)

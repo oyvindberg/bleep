@@ -140,7 +140,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
       if (skipGeneratedResourcesScript) Map.empty else findGeneratedFiles(bloopFilesByProjectName)
 
     GeneratedFilesScript(generatedFiles) match {
-      case Some((className, scriptSource)) =>
+      case Some(className, scriptSource) =>
         // todo: find a project and use same scala config
         val scalaVersion = normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(Versions.Scala3))
 

@@ -266,7 +266,7 @@ object Templates {
 
   def groupCrossProjects(projects: Map[model.CrossProjectName, ProjectKeepExploded]): Map[model.ProjectName, ProjectKeepExploded] =
     projects.toSeq.groupBy(_._1.name).map {
-      case (name, Seq((model.CrossProjectName(_, None), one))) => (name, one)
+      case (name, Seq(model.CrossProjectName(_, None), one)) => (name, one)
       case (name, crossProjects) =>
         val compressingProjectByCrossId: Seq[(model.CrossId, ProjectKeepExploded)] =
           crossProjects.map { case (crossProjectName, p) => (crossProjectName.crossId.get, p) }

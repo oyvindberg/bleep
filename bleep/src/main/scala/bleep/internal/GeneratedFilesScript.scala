@@ -66,12 +66,12 @@ object GeneratedFilesScript {
     }
 
     implicit def map[K: Repr, V: Repr]: Repr[Map[K, V]] = { case (map, indent) =>
-      val space = "\n" + (" " * indent)
+      val space = "\n" + " " * indent
       map.map(str(_, indent + 2)).mkString(s"Map($space", s",$space", s"$space)")
     }
 
     implicit def vector[T: Repr]: Repr[Vector[T]] = { case (vector, indent) =>
-      val space = "\n" + (" " * indent)
+      val space = "\n" + " " * indent
       vector.map(Repr[T].str(_, indent + 2)).mkString(s"Vector($space", s",$space  ", ")")
     }
 

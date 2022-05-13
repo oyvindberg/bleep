@@ -21,7 +21,7 @@ object PackagePlugin {
     }
 
   def buildManifest(projectName: String, mainClass: Option[String]): Manifest = {
-    val manifest = new Manifest()
+    val manifest = new Manifest
     val attrs = manifest.getMainAttributes
     attrs.put(Attributes.Name.IMPLEMENTATION_TITLE, projectName)
     attrs.put(new Attributes.Name("Created-By"), s"Bleep/${constants.version}")

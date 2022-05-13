@@ -10,7 +10,7 @@ final class ScmInfo private (val browseUrl: java.net.URL, val connection: String
   private def this(browseUrl: java.net.URL, connection: String) = this(browseUrl, connection, None)
 
   override def equals(o: Any): Boolean = this.eq(o.asInstanceOf[AnyRef]) || (o match {
-    case x: ScmInfo => (this.browseUrl == x.browseUrl) && (this.connection == x.connection) && (this.devConnection == x.devConnection)
+    case x: ScmInfo => this.browseUrl == x.browseUrl && this.connection == x.connection && this.devConnection == x.devConnection
     case _          => false
   })
   override def hashCode: Int =

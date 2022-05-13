@@ -36,7 +36,7 @@ object LogPatterns {
     Color.Full(102)
 
   def formatThrowable(th: Throwable): String = {
-    val sw = new StringWriter()
+    val sw = new StringWriter
     val pw = new PrintWriter(sw)
     th.printStackTrace(pw)
     sw.toString
