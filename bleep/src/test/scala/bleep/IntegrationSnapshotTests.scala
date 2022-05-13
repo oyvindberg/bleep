@@ -5,6 +5,7 @@ import bleep.CoursierResolver.Authentications
 import bleep.commands.Import
 import bleep.commands.Import.Options
 import bleep.internal.{importBloopFilesFromSbt, FileUtils, ReadSbtExportFile, Replacements}
+import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.Repositories
 import coursier.paths.CoursierPaths
@@ -17,7 +18,6 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 class IntegrationSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
-  val outFolder = Paths.get("snapshot-tests").toAbsolutePath
   val resolver: CoursierResolver = {
     val sbtReleases = model.Repository.Ivy(None, URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
     val cachePath = if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache" else UserPaths.fromAppDirs.cacheDir

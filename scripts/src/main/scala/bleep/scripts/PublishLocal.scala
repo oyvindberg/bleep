@@ -1,10 +1,9 @@
 package bleep.scripts
 
-import bleep.internal.FileUtils
 import bleep._
+import bleep.internal.FileUtils
 import bleep.tasks.publishing._
 
-import java.time.ZonedDateTime
 import scala.collection.immutable.SortedMap
 
 object PublishLocal extends App {
@@ -20,7 +19,7 @@ object PublishLocal extends App {
         started,
         asDep = (crossName, _) => Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
         shouldInclude = projectsToPublish.include,
-        bundleLayout = fileBundle.BundleLayout.Ivy(published = ZonedDateTime.now())
+        bundleLayout = fileBundle.BundleLayout.Ivy
       )
 
     bundledProjects.foreach { case (projectName, Deployable(asDependency, files)) =>
