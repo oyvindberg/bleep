@@ -11,7 +11,7 @@ import java.nio.file.{Files, Path, Paths}
 import scala.util.Properties
 
 trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val isCi: Boolean =
+  val enforceUpToDate: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt
 
   val outFolder: Path =
@@ -29,11 +29,11 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   def writeAndCompare(in: Path, fileMap: Map[Path, String]): Assertion =
     if (Properties.isWin) pending // let's deal with this later
     else {
-      if (isCi) {
+      if (enforceUpToDate) {
         fileMap.foreach { case (path, contents) =>
           if (Files.exists(path)) {
             val existingContents = Files.readString(path)
-            assert(existingContents === contents)
+            assert(existingContents === contents, path)
           } else {
             fail(s"Expected path $path to exist")
           }
@@ -50,7 +50,7 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   def writeAndCompareEarly(in: Path, fileMap: Map[Path, String]): Assertion =
     if (Properties.isWin) succeed // let's deal with this later
     else {
-      if (isCi) {
+      if (enforceUpToDate) {
         fileMap.foreach { case (path, contents) =>
           if (Files.exists(path)) {
             val existingContents = Files.readString(path)

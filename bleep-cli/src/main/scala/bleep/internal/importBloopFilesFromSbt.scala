@@ -225,7 +225,7 @@ object importBloopFilesFromSbt {
         } else JsonSet.empty
 
       crossName -> model.Project(
-        `extends` = JsonList.empty,
+        `extends` = JsonSet.empty,
         cross = JsonMap.empty,
         folder = folder,
         dependsOn = dependsOn,

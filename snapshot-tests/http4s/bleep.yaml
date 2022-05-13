@@ -9,13 +9,17 @@ projects:
     - org.asynchttpclient:async-http-client:2.12.3
     - org.reactivestreams:reactive-streams:1.0.3
     dependsOn: client
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/async-http-client
   async-http-client-test:
     dependsOn:
     - async-http-client
     - client-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/async-http-client
   bench:
     dependencies:
@@ -26,51 +30,65 @@ projects:
     dependsOn:
     - circe
     - ember-core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/bench
   blaze-client:
     dependsOn:
     - blaze-core
     - client
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-client
   blaze-client-test:
     dependsOn:
     - blaze-client
     - blaze-core-test
     - client-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-client
   blaze-core:
     dependencies: org.http4s::blaze-http:0.15.3
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-core
   blaze-core-test:
     dependsOn:
     - blaze-core
     - testing-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-core
   blaze-server:
     dependsOn:
     - blaze-core
     - server
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-server
   blaze-server-test:
     dependsOn:
     - blaze-core-test
     - blaze-server
     - server-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-server
   boopickle:
     dependencies: io.suzaku::boopickle:1.4.0
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/boopickle
     source-layout: cross-pure
   boopickle-test:
@@ -78,9 +96,8 @@ projects:
     - boopickle
     - testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/boopickle
     source-layout: cross-pure
   circe:
@@ -89,8 +106,8 @@ projects:
     - io.circe::circe-jawn:0.15.0-M1
     dependsOn: jawn
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/circe
     source-layout: cross-pure
   circe-test:
@@ -99,16 +116,15 @@ projects:
     - circe
     - jawn-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/circe
     source-layout: cross-pure
   client:
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/client
     source-layout: cross-full
   client-test:
@@ -131,9 +147,8 @@ projects:
     - server
     - testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/client
     source-layout: cross-full
   core:
@@ -170,8 +185,8 @@ projects:
     - org.typelevel::literally:1.0.2
     - org.typelevel::vault:3.1.0
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/core
     source-layout: cross-full
   dropwizard-metrics:
@@ -179,7 +194,9 @@ projects:
     - io.dropwizard.metrics:metrics-core:4.2.8
     - io.dropwizard.metrics:metrics-json:4.2.8
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/dropwizard-metrics
   dropwizard-metrics-test:
     dependsOn:
@@ -188,13 +205,15 @@ projects:
     - dsl
     - server
     - testing-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/dropwizard-metrics
   dsl:
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/dsl
     source-layout: cross-pure
   dsl-test:
@@ -202,9 +221,8 @@ projects:
     - dsl
     - testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/dsl
     source-layout: cross-pure
   ember-client:
@@ -222,8 +240,8 @@ projects:
     - client
     - ember-core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-client
     source-layout: cross-full
   ember-client-test:
@@ -232,9 +250,8 @@ projects:
     - ember-client
     - ember-core-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-client
     source-layout: cross-full
   ember-core:
@@ -250,8 +267,8 @@ projects:
     dependencies: org.typelevel::log4cats-core:2.2.0
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-core
     source-layout: cross-full
   ember-core-test:
@@ -260,9 +277,8 @@ projects:
     - ember-core
     - testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-core
     source-layout: cross-full
   ember-server:
@@ -279,8 +295,8 @@ projects:
     - ember-core
     - server
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-server
     source-layout: cross-full
   ember-server-test:
@@ -299,9 +315,8 @@ projects:
     - ember-server
     - server-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-server
     source-layout: cross-full
   examples:
@@ -314,14 +329,18 @@ projects:
     - dsl
     - scala-xml
     - server
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples
   examples-blaze:
     dependsOn:
     - blaze-client
     - blaze-server
     - examples
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/blaze
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -329,14 +348,18 @@ projects:
     dependsOn:
     - blaze-server
     - dsl
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/docker
   examples-ember:
     dependsOn:
     - ember-client
     - ember-server
     - examples
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/ember
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -346,7 +369,6 @@ projects:
     - ember-client
     extends:
     - template-common-main
-    - template-js
     - template-cross-js-all
     folder: ./../../snapshot-tests-in/http4s/examples/ember-client-h2
   examples-ember-server-h2:
@@ -355,14 +377,15 @@ projects:
     - ember-server
     extends:
     - template-common-main
-    - template-js
     - template-cross-js-all
     folder: ./../../snapshot-tests-in/http4s/examples/ember-server-h2
   examples-jetty:
     dependsOn:
     - examples
     - jetty-server
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/jetty
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -370,7 +393,9 @@ projects:
     dependsOn:
     - examples
     - tomcat-server
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/tomcat
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -381,7 +406,9 @@ projects:
     dependsOn:
     - examples
     - servlet
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/war
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -391,8 +418,8 @@ projects:
     - org.typelevel::jawn-parser:1.3.2
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/jawn
     source-layout: cross-pure
   jawn-test:
@@ -400,9 +427,8 @@ projects:
     - jawn
     - testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/jawn
     source-layout: cross-pure
   jetty-client:
@@ -411,13 +437,17 @@ projects:
     - org.eclipse.jetty:jetty-http:9.4.45.v20220203
     - org.eclipse.jetty:jetty-util:9.4.45.v20220203
     dependsOn: client
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-client
   jetty-client-test:
     dependsOn:
     - client-test
     - jetty-client
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-client
   jetty-server:
     dependencies:
@@ -426,14 +456,18 @@ projects:
     - org.eclipse.jetty:jetty-servlet:9.4.45.v20220203
     - org.eclipse.jetty:jetty-util:9.4.45.v20220203
     dependsOn: servlet
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-server
   jetty-server-test:
     dependsOn:
     - dsl-test
     - jetty-server
     - servlet-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-server
   laws:
     dependencies:
@@ -448,15 +482,14 @@ projects:
     - org.typelevel::scalacheck-effect-munit:1.0.3
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/laws
     source-layout: cross-pure
   node-serverless:
     dependsOn: core
     extends:
     - template-common-main
-    - template-js
     - template-cross-js-all
     folder: ./../../snapshot-tests-in/http4s/node-serverless
   okhttp-client:
@@ -464,26 +497,34 @@ projects:
     - com.squareup.okhttp3:okhttp:4.9.3
     - com.squareup.okio:okio:2.10.0
     dependsOn: client
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/okhttp-client
   okhttp-client-test:
     dependsOn:
     - client-test
     - okhttp-client
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/okhttp-client
   play-json:
     dependencies:
       for3Use213: true
       module: com.typesafe.play::play-json:2.9.2
     dependsOn: jawn
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/play-json
   play-json-test:
     dependsOn:
     - jawn-test
     - play-json
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/play-json
   prometheus-metrics:
     dependencies:
@@ -491,7 +532,9 @@ projects:
     - io.prometheus:simpleclient_common:0.15.0
     - io.prometheus:simpleclient_hotspot:0.15.0
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/prometheus-metrics
   prometheus-metrics-test:
     dependsOn:
@@ -500,58 +543,70 @@ projects:
     - prometheus-metrics
     - server
     - testing-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/prometheus-metrics
   scala-xml:
     dependencies: org.scala-lang.modules::scala-xml:2.0.1
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scala-xml
   scala-xml-test:
     dependsOn:
     - scala-xml
     - testing-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scala-xml
   scalafixInternalInput:
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/input
   scalafixInternalOutput:
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/output
   scalafixInternalRules:
     dependencies: ch.epfl.scala::scalafix-core:0.9.34
     extends:
     - template-common-main
-    - template-jvm
-    - template-scala-2.13
+    - template-scala-2.13-jvm
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/rules
   scalafixInternalTests-test:
     dependencies: ch.epfl.scala:::scalafix-testkit:0.9.34
     dependsOn: scalafixInternalRules
     extends:
     - template-common-test
-    - template-jvm
-    - template-scala-2.13
+    - template-scala-2.13-jvm
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
   scalatags:
     dependencies: com.lihaoyi::scalatags:0.11.1
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalatags
   scalatags-test:
     dependsOn:
     - scalatags
     - testing-test
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalatags
   server:
     dependsOn: core
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-main
+    - template-common-main
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/server
     source-layout: cross-full
   server-test:
@@ -560,9 +615,8 @@ projects:
     - server
     - testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/server
     source-layout: cross-full
   servlet:
@@ -570,7 +624,9 @@ projects:
       configuration: provided
       module: javax.servlet:javax.servlet-api:3.1.0
     dependsOn: server
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/servlet
   servlet-test:
     dependencies:
@@ -582,7 +638,9 @@ projects:
     dependsOn:
     - server-test
     - servlet
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/servlet
   testing-test:
     cross:
@@ -599,17 +657,15 @@ projects:
     - org.typelevel::scalacheck-effect:1.0.3
     dependsOn: laws
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/testing
     source-layout: cross-full
   tests-test:
     dependsOn: testing-test
     extends:
-    - template-cross-js-all
-    - template-cross-jvm-all-test
-    - template-cross-js-all-test
+    - template-common-test
+    - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/tests
     source-layout: cross-full
   tomcat-server:
@@ -618,26 +674,34 @@ projects:
     - org.apache.tomcat:tomcat-coyote:9.0.58
     - org.apache.tomcat:tomcat-util-scan:9.0.58
     dependsOn: servlet
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/tomcat-server
   tomcat-server-test:
     dependsOn:
     - servlet-test
     - tomcat-server
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/tomcat-server
   twirl:
     dependencies:
       for3Use213: true
       module: com.typesafe.play::twirl-api:1.5.1
     dependsOn: core
-    extends: template-cross-jvm-all-main
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/twirl
   twirl-test:
     dependsOn:
     - testing-test
     - twirl
-    extends: template-cross-jvm-all-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/twirl
 templates:
   template-common:
@@ -660,59 +724,23 @@ templates:
     extends: template-common
     isTestProject: true
     sbt-scope: test
+  template-cross-all:
+    extends:
+    - template-cross-js-all
+    - template-cross-jvm-all
   template-cross-js-all:
     cross:
       js213:
         extends: template-scala-2.13-js
       js3:
         extends: template-scala-3-js
-  template-cross-js-all-test:
-    cross:
-      js213:
-        extends:
-        - template-common-test
-        - template-js
-      js3:
-        extends:
-        - template-common-test
-        - template-js
-      jvm213:
-        extends:
-        - template-common-test
-        - template-jvm
-        - template-scala-2.13
-      jvm3:
-        extends:
-        - template-common-test
-        - template-jvm
-        - template-scala-3
-    extends: template-cross-js-all
-  template-cross-jvm-all-main:
+  template-cross-jvm-all:
     cross:
       jvm213:
-        extends:
-        - template-common-main
-        - template-jvm
-        - template-scala-2.13
+        extends: template-scala-2.13-jvm
       jvm3:
-        extends:
-        - template-common-main
-        - template-jvm
-        - template-scala-3
-  template-cross-jvm-all-test:
-    cross:
-      jvm213:
-        extends:
-        - template-common-test
-        - template-jvm
-        - template-scala-2.13
-      jvm3:
-        extends:
-        - template-common-test
-        - template-jvm
-        - template-scala-3
+        extends: template-scala-3-jvm
   template-js:
-    extends: template-common
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false
@@ -721,11 +749,9 @@ templates:
       jsVersion: 1.9.0
       name: js
   template-jvm:
-    extends: template-common
     platform:
       name: jvm
-  template-scala-2.13:
-    extends: template-common
+  template-scala-2:
     scala:
       compilerPlugins:
       - com.olegpy::better-monadic-for:0.3.1
@@ -752,14 +778,19 @@ templates:
       - -Ywarn-numeric-widen
       - -language:_
       version: 2.13.8
-  template-scala-2.13-js:
-    extends:
-    - template-js
-    - template-scala-2.13
+  template-scala-2-js:
+    extends: template-js
     scala:
       options: -P:scala${PLATFORM}:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/
+  template-scala-2.13-js:
+    extends:
+    - template-scala-2
+    - template-scala-2-js
+  template-scala-2.13-jvm:
+    extends:
+    - template-jvm
+    - template-scala-2
   template-scala-3:
-    extends: template-common
     scala:
       options:
       - -Ykind-projector
@@ -774,3 +805,7 @@ templates:
       options:
       - -scala${PLATFORM}
       - -scala${PLATFORM}-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f6${SCALA_BIN_VERSION}4c01fee0dd5712/
+  template-scala-3-jvm:
+    extends:
+    - template-jvm
+    - template-scala-3

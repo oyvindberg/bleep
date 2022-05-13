@@ -20,7 +20,7 @@ case class ExplodedBuild(
       projects = projects.map { case (crossName, p) => (crossName, stripExtends(p)) }
     )
 
-  val retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]] =
+  val retainCrossTemplates: Map[model.ProjectName, JsonSet[model.TemplateId]] =
     build.projects.value.flatMap { case (projectName, p) =>
       Some((projectName, p.`extends`))
     }

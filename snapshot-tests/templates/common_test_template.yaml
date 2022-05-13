@@ -1,0 +1,30 @@
+{
+  "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "testing",
+  "projects" : {
+    "a" : {
+      "extends" : "template-common"
+    },
+    "aTest" : {
+      "extends" : "template-common-test"
+    },
+    "bTest" : {
+      "extends" : "template-common-test"
+    }
+  },
+  "templates" : {
+    "template-common" : {
+      "scala" : {
+        "version" : "2.13.6"
+      }
+    },
+    "template-common-test" : {
+      "dependsOn" : "a",
+      "extends" : "template-common",
+      "isTestProject" : true,
+      "scala" : {
+        "options" : "foo"
+      }
+    }
+  }
+}

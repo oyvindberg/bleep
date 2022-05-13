@@ -54,7 +54,7 @@ case class BuildCreateNew(
 
   def genAllFiles(buildPaths: BuildPaths): Map[Path, String] = {
     val exampleFiles = new BuildCreateNew.ExampleFiles(name)
-    val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name, bleepVersion)
+    val build = BuildCreateNew.genBuild(logger, exampleFiles, platforms, scalas, name, bleepVersion)
 
     val value = Map[Path, String](
       buildPaths.bleepYamlFile -> asYamlString(build),
@@ -105,6 +105,7 @@ object BuildCreateNew {
   }
 
   def genBuild(
+      logger: Logger,
       exampleFiles: ExampleFiles,
       platforms: NonEmptyList[model.PlatformId],
       scalas: NonEmptyList[Versions.Scala],
@@ -122,7 +123,7 @@ object BuildCreateNew {
     val mainProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
       variants(name).map { case (platformId, scala, crossName) =>
         val p = model.Project(
-          `extends` = JsonList.empty,
+          `extends` = JsonSet.empty,
           cross = JsonMap.empty,
           folder = None,
           dependsOn = JsonSet.empty,
@@ -152,7 +153,7 @@ object BuildCreateNew {
     val testProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
       variants(s"$name-test").map { case (platformId, scala, crossName) =>
         val p = model.Project(
-          `extends` = JsonList.empty,
+          `extends` = JsonSet.empty,
           cross = JsonMap.empty,
           folder = None,
           dependsOn = JsonSet(model.ProjectName(name)),
@@ -182,6 +183,6 @@ object BuildCreateNew {
       projects = (mainProjects.toList ++ testProjects.toList).toMap
     )
 
-    Templates.apply(explodedBuild, ignoreWhenInferringTemplates = _ => false)
+    Templates.apply(logger, explodedBuild, ignoreWhenInferringTemplates = _ => false)
   }
 }

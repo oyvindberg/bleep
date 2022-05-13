@@ -9,7 +9,7 @@ case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates:
     val normalizedBuild = normalizeBuild(started.build)
     val droppedTemplates = normalizedBuild.dropTemplates
 
-    val build = Templates(droppedTemplates, ignoreWhenInferringTemplates)
+    val build = Templates(started.logger, droppedTemplates, ignoreWhenInferringTemplates)
 
     // fail if we have done illegal rewrites during templating
     ExplodedBuild.diffProjects(Defaults.add(normalizedBuild).dropTemplates, ExplodedBuild.of(build).dropTemplates) match {

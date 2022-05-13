@@ -137,7 +137,7 @@ object model {
     implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
 
     implicit val decodes: Decoder[Scala] = deriveDecoder
-    implicit val Encodes: Encoder[Scala] = deriveEncoder
+    implicit val encodes: Encoder[Scala] = deriveEncoder
   }
 
   sealed abstract class PlatformId(val value: String)
@@ -165,6 +165,7 @@ object model {
 
     implicit val ordering: Ordering[TemplateId] = Ordering.by(_.value)
     implicit val encodes: Encoder[TemplateId] = Encoder[String].contramap(_.value)
+    implicit val formats: Formatter[TemplateId] = _.value
     implicit val keyDecodes: KeyDecoder[TemplateId] = KeyDecoder[String].map(TemplateId.apply)
     implicit val keyEncodes: KeyEncoder[TemplateId] = KeyEncoder[String].contramap(_.value)
   }
@@ -356,6 +357,7 @@ object model {
     implicit val encodes: Encoder[ProjectName] = Encoder[String].contramap(_.value)
     implicit val keyDecodes: KeyDecoder[ProjectName] = KeyDecoder[String].map(ProjectName.apply)
     implicit val keyEncodes: KeyEncoder[ProjectName] = KeyEncoder[String].contramap(_.value)
+    implicit val formatter: Formatter[ProjectName] = pn => fansi.Str(pn.value)
 
     def decoder(legal: Iterable[ProjectName]): Decoder[ProjectName] = {
       val byString: Map[String, ProjectName] = legal.map(t => t.value -> t).toMap
@@ -400,19 +402,22 @@ object model {
       Decoder.instance(c =>
         for {
           str <- c.as[String]
-          crossName <- str.split("@") match {
-            case Array(name)          => Right(CrossProjectName(ProjectName(name), None))
-            case Array(name, crossId) => Right(CrossProjectName(ProjectName(name), Some(CrossId(crossId))))
-            case _                    => Left(DecodingFailure(s"more than one '@' encountered in CrossProjectName $str", c.history))
-          }
+          crossName <- keyDecodes(str).toRight(DecodingFailure(s"more than one '@' encountered in CrossProjectName $str", c.history))
         } yield crossName
       )
-
     implicit val encodes: Encoder[CrossProjectName] = Encoder[String].contramap(_.value)
+    implicit val keyEncodes: KeyEncoder[CrossProjectName] = KeyEncoder[String].contramap(_.value)
+    implicit val keyDecodes: KeyDecoder[CrossProjectName] = KeyDecoder.instance(str =>
+      str.split("@") match {
+        case Array(name)          => Some(CrossProjectName(ProjectName(name), None))
+        case Array(name, crossId) => Some(CrossProjectName(ProjectName(name), Some(CrossId(crossId))))
+        case _                    => None
+      }
+    )
   }
 
   case class Project(
-      `extends`: JsonList[TemplateId],
+      `extends`: JsonSet[TemplateId],
       cross: JsonMap[CrossId, Project],
       folder: Option[RelPath],
       dependsOn: JsonSet[ProjectName],
@@ -509,7 +514,7 @@ object model {
 
   object Project {
     val empty = model.Project(
-      `extends` = JsonList.empty,
+      `extends` = JsonSet.empty,
       cross = JsonMap.empty,
       folder = None,
       dependsOn = JsonSet.empty,
