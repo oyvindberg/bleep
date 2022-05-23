@@ -95,7 +95,6 @@ object BspImpl {
         Operations.exit(
           bloopRifleConfig.address,
           workspaceDir,
-          System.in,
           System.out,
           System.err,
           bloopRifleLogger

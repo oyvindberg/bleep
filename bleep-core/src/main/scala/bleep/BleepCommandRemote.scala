@@ -65,7 +65,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
         config match {
           case CompileServerConfig.NewEachInvocation =>
             server.shutdown()
-            Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.in, System.out, System.err, rifleLogger)
+            Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, rifleLogger)
             ()
           case CompileServerConfig.Shared =>
             ()
