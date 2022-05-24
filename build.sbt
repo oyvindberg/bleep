@@ -93,13 +93,13 @@ lazy val bleep = projectMatrix
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.3",
-      "org.graalvm.nativeimage" % "svm" % "22.0.0.2",
+      "org.graalvm.nativeimage" % "svm" % "22.1.0.1",
       ("org.scala-sbt" %% "librarymanagement-core" % "1.6.1").exclude("org.scala-sbt", "util-logging_2.13")
     ),
     Compile / bloopMainClass := Some("bleep.Main"),
     nativeImageJvmIndex := "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json",
     nativeImageJvm := "graalvm-java17",
-    nativeImageVersion := "22.0.0.2",
+    nativeImageVersion := "22.1.0",
     assemblyMergeStrategy := {
       case PathList(ps @ _*) if ps.last.endsWith("module-info.class") => MergeStrategy.discard
       case x =>
