@@ -66,7 +66,7 @@ lazy val `bleep-tasks-publishing` = projectMatrix
     libraryDependencies ++= List(
       "se.sawano.java" % "alphanumeric-comparator" % "1.4.1",
       "org.sonatype.spice.zapper" % "spice-zapper" % "1.3",
-      "org.wvlet.airframe" %% "airframe-http" % "22.4.2",
+      "org.wvlet.airframe" %% "airframe-http" % "22.5.0",
       "com.eed3si9n" %% "gigahorse-okhttp" % "0.6.0",
       "org.bouncycastle" % "bcpg-jdk15on" % "1.69",
       "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1"
