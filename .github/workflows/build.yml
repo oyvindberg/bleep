@@ -149,6 +149,13 @@ jobs:
         run: |
           chmod +x ./artifacts/linux-binary/bleep-linux 
           ./artifacts/linux-binary/bleep-linux publish
+        env:
+          CI_RELEASE: ${{ secrets.CI_RELEASE }}
+          CI_SNAPSHOT_RELEASE: ${{ secrets.CI_SNAPSHOT_RELEASE }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       - name: Prepare files
         run: |
           export VERSION=${{ steps.get_version.outputs.version-without-v }}
