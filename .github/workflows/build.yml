@@ -138,7 +138,9 @@ jobs:
       - name: Display structure of downloaded files
         run: find artifacts
       - name: Release
-        run: ./artifacts/linux-binary/bleep-linux publish
+        run: |
+          chmod +x ./artifacts/linux-binary/bleep-linux 
+          ./artifacts/linux-binary/bleep-linux publish
       - name: Prepare files
         run: |
           export VERSION=${{ steps.get_version.outputs.version-without-v }}
