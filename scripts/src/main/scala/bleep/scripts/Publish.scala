@@ -61,7 +61,7 @@ object Publish extends App {
     val bundledProjects: SortedMap[model.CrossProjectName, Deployable] =
       fileBundle(
         started,
-        asDep = (crossName, _) => Dep.Scala(groupId, dynVer.version, crossName.name.value),
+        asDep = (crossName, _) => Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
         shouldInclude = projectsToPublish.include,
         bundleLayout = fileBundle.BundleLayout.Maven(info)
       )
