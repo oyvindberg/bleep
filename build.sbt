@@ -68,7 +68,7 @@ lazy val `bleep-tasks-publishing` = projectMatrix
       "org.sonatype.spice.zapper" % "spice-zapper" % "1.3",
       "org.wvlet.airframe" %% "airframe-http" % "22.4.2",
       "com.eed3si9n" %% "gigahorse-okhttp" % "0.6.0",
-      "org.bouncycastle" % "bcpg-jdk15on" % "1.69",
+      "org.bouncycastle" % "bcpg-jdk15on" % "1.70",
       "org.scala-lang.modules" %% "scala-parser-combinators" % "2.1.1"
     ),
     Compile / unmanagedSourceDirectories ++= List(
