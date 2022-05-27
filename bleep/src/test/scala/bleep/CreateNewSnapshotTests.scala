@@ -2,13 +2,13 @@ package bleep
 
 import bleep.commands.BuildCreateNew
 import bleep.logging.LogLevel
+import bleep.testing.SnapshotTest
 import cats.data.NonEmptyList
 
 import java.nio.file.{Path, Paths}
 
 class CreateNewSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped.filter(LogLevel.info)
-  val outFolder = Paths.get("snapshot-tests").toAbsolutePath
 
   test("create-new-build") {
     val buildPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / "create-new-build", BuildPaths.Mode.Normal)

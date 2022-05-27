@@ -6,7 +6,7 @@ val scala3 = "3.1.1"
 val scalaNot3 = List(scala212, scala213)
 val scalaAll = scalaNot3 ++ List(scala3)
 
-// root project ocnfig
+// root project config
 name := "bleep-root"
 publish / skip := true
 
@@ -24,10 +24,17 @@ val commonSettings: Project => Project =
           "Øyvind Raddum Berg",
           "elacin@gmail.com",
           url("https://github.com/oyvindberg")
+        ),
+        Developer(
+          "hamnis",
+          "Erlend Hamnaberg",
+          "erlend@hamnaberg.net",
+          url("https://github.com/hamnis")
         )
       ),
       sonatypeCredentialHost := "s01.oss.sonatype.org",
-      Compile / doc / sources := Nil
+      Compile / doc / sources := Nil,
+      evictionErrorLevel := Level.Warn
     )
 
 lazy val `bleep-core` = projectMatrix
@@ -46,6 +53,14 @@ lazy val `bleep-core` = projectMatrix
   )
   .jvmPlatform(scalaAll)
 
+lazy val `bleep-test-harness` = projectMatrix
+  .configure(commonSettings)
+  .dependsOn(`bleep-core`)
+  .settings(
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.12"
+  )
+  .jvmPlatform(scalaNot3)
+
 lazy val `bleep-tasks` = projectMatrix
   .configure(commonSettings)
   .dependsOn(`bleep-core`)
@@ -61,7 +76,7 @@ lazy val `bleep-tasks` = projectMatrix
 
 lazy val `bleep-tasks-publishing` = projectMatrix
   .configure(commonSettings)
-  .dependsOn(`bleep-tasks`)
+  .dependsOn(`bleep-tasks`, `bleep-test-harness` % Test)
   .settings(
     libraryDependencies ++= List(
       "se.sawano.java" % "alphanumeric-comparator" % "1.4.1",
@@ -85,11 +100,10 @@ lazy val `bleep-tasks-publishing` = projectMatrix
 
 lazy val bleep = projectMatrix
   .configure(commonSettings)
-  .dependsOn(`bleep-core`)
+  .dependsOn(`bleep-core`, `bleep-test-harness` % Test)
   .settings(
     publish / skip := true,
     libraryDependencies ++= Seq(
-      "org.scalatest" %% "scalatest" % "3.2.12" % Test,
       "org.scalameta" % "svm-subs" % "101.0.0",
       "com.monovore" %% "decline" % "2.2.0",
       "com.lihaoyi" %% "pprint" % "0.7.3",

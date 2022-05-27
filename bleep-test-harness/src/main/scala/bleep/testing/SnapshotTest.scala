@@ -1,18 +1,21 @@
-package bleep
+package bleep.testing
 
-import bleep.internal.{FileUtils, Replacements}
 import bleep.internal.FileUtils.DeleteUnknowns
+import bleep.internal.{FileUtils, Replacements}
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
-import java.nio.file.{Files, Path}
+import java.nio.file.{Files, Path, Paths}
 import scala.util.Properties
 
 trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   val isCi: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt
+
+  val outFolder: Path =
+    Paths.get("snapshot-tests").toAbsolutePath
 
   val absolutePaths: Replacements =
     Replacements.ofReplacements(

@@ -2,6 +2,7 @@ package bleep
 package scripts
 
 import bleep.tasks.publishing._
+import coursier.Info
 import nosbt.InteractionService
 
 import scala.collection.immutable.SortedMap
@@ -30,11 +31,39 @@ object Publish extends App {
 
     started.logger.info(dynVer.version)
 
+    val info = Info(
+      "A bleeping fast scala build tool!",
+      "https://github.com/oyvindberg/bleep/",
+      List(
+        Info.Developer(
+          "oyvindberg",
+          "Øyvind Raddum Berg",
+          "https://github.com/oyvindberg"
+        ),
+        Info.Developer(
+          "hamnis",
+          "Erlend Hamnaberg",
+          "https://github.com/hamnis"
+        )
+      ),
+      publication = None,
+      scm = CiReleasePlugin.inferScmInfo,
+      licenseInfo = List(
+        Info.License(
+          "MIT",
+          Some("http://opensource.org/licenses/MIT"),
+          distribution = Some("repo"),
+          comments = None
+        )
+      )
+    )
+
     val bundledProjects: SortedMap[model.CrossProjectName, Deployable] =
       fileBundle(
         started,
         asDep = (crossName, _) => Dep.Scala(groupId, dynVer.version, crossName.name.value),
-        shouldInclude = projectsToPublish.include
+        shouldInclude = projectsToPublish.include,
+        bundleLayout = fileBundle.BundleLayout.Maven(info)
       )
 
     val bundleFiles: Map[RelPath, Array[Byte]] =

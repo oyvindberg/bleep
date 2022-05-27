@@ -1,16 +1,14 @@
 package bleep.tasks.publishing
 
 import bleep.{constants, ProjectPaths, RelPath}
-import coursier.core.{Configuration, Dependency}
+import coursier.core.{Configuration, Dependency, Info}
 
 import java.io._
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 import java.util.jar.{JarEntry, JarOutputStream, Manifest}
 import scala.collection.mutable
-import scala.xml.Elem
+import scala.xml.{Elem, NodeSeq}
 
 object GenLayout {
   val p = new scala.xml.PrettyPrinter(120, 2)
@@ -18,31 +16,30 @@ object GenLayout {
   def ivy(
       self: Dependency,
       projectPaths: ProjectPaths,
-      deps: List[Dependency],
-      publication: ZonedDateTime
+      deps: List[Dependency]
   ): IvyLayout[RelPath, Array[Byte]] = {
-    val m = maven(self, projectPaths, deps)
+    val m = maven(self, projectPaths, deps, Info.empty)
     IvyLayout(
       self = self,
       jarFile = m.jarFile._2,
       sourceFile = m.sourceFile._2,
-      ivyFile = fromXml(ivyFile(self, deps, publication)),
+      ivyFile = fromXml(ivyFile(self, deps)),
       pomFile = m.pomFile._2,
       docFile = m.docFile._2
     )
   }
 
-  def maven(self: Dependency, projectPaths: ProjectPaths, deps: List[Dependency]): MavenLayout[RelPath, Array[Byte]] =
+  def maven(self: Dependency, projectPaths: ProjectPaths, deps: List[Dependency], info: Info): MavenLayout[RelPath, Array[Byte]] =
     MavenLayout(
       self = self,
       jarFile = createJar(Array(projectPaths.classes) ++ projectPaths.resourcesDirs.values),
       sourceFile = createJar(projectPaths.sourcesDirs.values),
-      pomFile = fromXml(pomFile(self, deps)),
+      pomFile = fromXml(pomFile(self, deps, info)),
       // javadoc should never have existed.
       docFile = createJar(Nil)
     )
 
-  private def fromXml(xml: Elem): Array[Byte] = {
+  def fromXml(xml: Elem): Array[Byte] = {
     val prelude: String = """<?xml version="1.0" encoding="UTF-8"?>"""
     (prelude + p.format(xml)).getBytes(StandardCharsets.UTF_8)
   }
@@ -82,13 +79,12 @@ object GenLayout {
     baos.toByteArray
   }
 
-  def ivyFile(self: Dependency, deps: List[Dependency], publication: ZonedDateTime): Elem =
+  def ivyFile(self: Dependency, deps: List[Dependency]): Elem =
     <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
       <info organisation={self.module.organization.value}
             module={self.module.name.value}
             revision={self.version}
-            status="release"
-            publication={publication.format(DateTimeFormatter.ofPattern("ddMMyyyyhhmmss"))}>
+            status="release">
         <description>
           {self.module.name.value}
         </description>
@@ -124,18 +120,70 @@ object GenLayout {
       </dependencies>
     </ivy-module>
 
-  def pomFile(self: Dependency, dependencies: List[Dependency]): Elem =
+  implicit class OptionOps[T](ot: Option[T]) {
+    def render(asXml: T => Elem): NodeSeq =
+      ot match {
+        case Some(t) => asXml(t)
+        case None    => NodeSeq.Empty
+      }
+  }
+
+  implicit class SeqOpts[T](ts: Seq[T]) {
+    def render(asXml: Seq[T] => Elem): NodeSeq =
+      if (ts.isEmpty) NodeSeq.Empty else asXml(ts)
+  }
+
+  def pomFile(self: Dependency, dependencies: List[Dependency], info: Info): Elem =
     <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
       <modelVersion>4.0.0</modelVersion>
       <groupId>{self.module.organization.value}</groupId>
       <artifactId>{self.module.name.value}</artifactId>
       <packaging>jar</packaging>
-      <description>{self.module.name.value}</description>
+      <description>{info.description}</description>
+      <url>{info.homePage}</url>
       <version>{self.version}</version>
+      {
+      info.licenseInfo.render { ls =>
+        <licenses>
+        {
+          ls.map(l => <license>
+          <name>{l.name}</name>
+          {l.url.render(x => <url>{x}</url>)}
+          {l.distribution.render(x => <distribution>{x}</distribution>)}
+          {l.comments.render(x => <comments>{x}</comments>)}
+        </license>)
+        }
+      </licenses>
+      }
+    }
       <name>{self.module.name.value}</name>
       <organization>
         <name>{self.module.organization.value}</name>
+        <url>{info.homePage}</url>
       </organization>
+      {
+      info.scm.render { scm =>
+        <scm>
+          {scm.url.render(url => <url>{url}</url>)}
+          {scm.connection.render(c => <connection>{c}</connection>)}
+          {scm.developerConnection.render(c => <developerConnection>{c}</developerConnection>)}
+        </scm>
+      }
+    }
+    {
+      info.developers.render { ds =>
+        <developers>{
+          ds.map { d =>
+            <developer>
+              <id>{d.id}</id>
+              <name>{d.name}</name>
+              <url>{d.url}</url>
+            </developer>
+          }
+        }
+      </developers>
+      }
+    }
       <dependencies>{
       dependencies.map { dep =>
         <dependency>
@@ -145,7 +193,6 @@ object GenLayout {
           dep.configuration match {
             case Configuration.empty => Nil
             case other               => <scope>{other.value}</scope>
-
           }
         }</dependency>
       }

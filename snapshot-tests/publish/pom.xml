@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?><project 
+xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.org</groupId>
+  <artifactId>moduleName_2.13</artifactId>
+  <packaging>jar</packaging>
+  <description>description</description>
+  <url>homepage</url>
+  <version>1.0.0</version>
+  <licenses>
+    <license>
+      <name>license name</name>
+      <url>http://licenseUri</url>
+      <distribution>distribution</distribution>
+      <comments>comments</comments>
+    </license>
+  </licenses>
+  <name>moduleName_2.13</name>
+  <organization>
+    <name>com.org</name>
+    <url>homepage</url>
+  </organization>
+  <scm>
+    <url>http://url</url>
+    <connection>http://connection</connection>
+    <developerConnection>http://devConnection</developerConnection>
+  </scm>
+  <developers>
+    <developer>
+      <id>flaff</id>
+      <name>devName</name>
+      <url>devUrl</url>
+    </developer>
+  </developers>
+  <dependencies>
+    <dependency>
+      <groupId>com.org</groupId>
+      <artifactId>moduleName_2.13</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+  </dependencies>
+</project>

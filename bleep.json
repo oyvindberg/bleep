@@ -61,7 +61,7 @@
         "se.sawano.java:alphanumeric-comparator:1.4.1"
       ],
       "dependsOn" : "bleep-tasks",
-      "extends" : "template-cross-jvm-212-213",
+      "extends" : "template-cross-jvm-212-213-main",
       "sources" : [
         "./../liberated/sbt-ci-release/plugin/src/main/scala",
         "./../liberated/sbt-dynver/dynver/src/main/scala",
@@ -72,16 +72,36 @@
         "./../liberated/sbt-sonatype/src/main/scala"
       ]
     },
+    "bleep-tasks-publishing-test" : {
+      "cross" : {
+        "jvm212" : {
+          "extends" : [
+            "template-common-test",
+            "template-scala-2.12"
+          ]
+        },
+        "jvm213" : {
+          "extends" : [
+            "template-common-test",
+            "template-scala-2.13"
+          ]
+        }
+      },
+      "dependsOn" : "bleep-tasks-publishing",
+      "folder" : "./bleep-tasks-publishing"
+    },
     "bleep-test" : {
-      "dependencies" : "org.scalatest::scalatest:3.2.12",
       "dependsOn" : "bleep",
       "extends" : [
-        "template-common",
+        "template-common-test",
         "template-scala-2.13"
       ],
-      "folder" : "./bleep",
-      "isTestProject" : true,
-      "sbt-scope" : "test"
+      "folder" : "./bleep"
+    },
+    "bleep-test-harness" : {
+      "dependencies" : "org.scalatest::scalatest:3.2.12",
+      "dependsOn" : "bleep-core",
+      "extends" : "template-cross-jvm-212-213-main"
     },
     "scripts" : {
       "dependsOn" : [
@@ -121,18 +141,55 @@
       "extends" : "template-common",
       "sbt-scope" : "main"
     },
+    "template-common-test" : {
+      "dependsOn" : "bleep-test-harness",
+      "extends" : "template-common",
+      "isTestProject" : true,
+      "sbt-scope" : "test",
+      "scala" : {
+        "options" : [
+          "-Xcheckinit",
+          "-Xlint:adapted-args",
+          "-Xlint:constant",
+          "-Xlint:delayedinit-select",
+          "-Xlint:doc-detached",
+          "-Xlint:inaccessible",
+          "-Xlint:infer-any",
+          "-Xlint:missing-interpolator",
+          "-Xlint:nullary-unit",
+          "-Xlint:option-implicit",
+          "-Xlint:package-object-classes",
+          "-Xlint:poly-implicit-overload",
+          "-Xlint:private-shadow",
+          "-Xlint:stars-align",
+          "-Xlint:type-parameter-shadow",
+          "-language:existentials"
+        ]
+      }
+    },
     "template-cross-all" : {
       "cross" : {
+        "jvm212" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.12"
+          ]
+        },
+        "jvm213" : {
+          "extends" : [
+            "template-common-main",
+            "template-scala-2.13"
+          ]
+        },
         "jvm3" : {
           "extends" : [
             "template-common-main",
             "template-scala-3"
           ]
         }
-      },
-      "extends" : "template-cross-jvm-212-213"
+      }
     },
-    "template-cross-jvm-212-213" : {
+    "template-cross-jvm-212-213-main" : {
       "cross" : {
         "jvm212" : {
           "extends" : [
@@ -150,7 +207,6 @@
     },
     "template-scala-2.12" : {
       "extends" : "template-common",
-      "sbt-scope" : "main",
       "scala" : {
         "options" : [
           "-Xcheckinit",
