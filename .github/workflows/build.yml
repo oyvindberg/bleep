@@ -137,6 +137,12 @@ jobs:
           path: artifacts
       - name: Display structure of downloaded files
         run: find artifacts
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.1.0'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Release
         run: |
           chmod +x ./artifacts/linux-binary/bleep-linux 
