@@ -7,6 +7,12 @@ import java.nio.file.Path
 case class RelPath(segments: List[String]) {
   override def toString: String = segments.mkString("/")
   def /(str: String): RelPath = new RelPath(segments :+ str)
+
+  def withLast(f: String => String): RelPath =
+    segments match {
+      case init :+ last => new RelPath(init :+ f(last))
+      case _            => this
+    }
 }
 
 object RelPath {
