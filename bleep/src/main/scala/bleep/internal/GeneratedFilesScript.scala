@@ -95,9 +95,12 @@ object GeneratedFilesScript {
       val sorted = byFile.toVector.sortBy(x => (x._2.head.value, x._1.toRelPath))
 
       val copies = sorted.map { case (file, forProjects) =>
+        def dir =
+          if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"
+
         s"""
     ${Repr.str(forProjects, 6)}.foreach { crossName =>
-      val to = started.${if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"}(crossName).resolve(${Repr.str(file.toRelPath.toString, 8)})
+      val to = started.buildPaths.$dir(crossName).resolve(${Repr.str(file.toRelPath.toString, 8)})
       started.logger.withContext(crossName).warn(s"Writing $$to")
       val content = ${Repr.str(file.contents, 6)}
       Files.createDirectories(to.getParent)
@@ -112,7 +115,7 @@ package scripts
 import java.nio.file.Files
 
 object GenerateResources extends App {
-  bleep.bootstrap.forScript("GenerateResources") { started =>
+  bleep.bootstrap.forScript("GenerateResources") { (started, commands) =>
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     ${copies.mkString("\n\n")}

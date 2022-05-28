@@ -4,13 +4,13 @@ package scripts
 import java.nio.file.Files
 
 object GenerateResources extends App {
-  bleep.bootstrap.forScript("GenerateResources") { started =>
+  bleep.bootstrap.forScript("GenerateResources") { (started, commands) =>
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     
     Vector(
       bleep.model.CrossProjectName(bleep.model.ProjectName("importer-portable"), None)).foreach { crossName =>
-      val to = started.generatedSourcesDir(crossName).resolve("sbt-buildinfo/BuildInfo.scala")
+      val to = started.buildPaths.generatedSourcesDir(crossName).resolve("sbt-buildinfo/BuildInfo.scala")
       started.logger.withContext(crossName).warn(s"Writing $to")
       val content = s"""|// $$COVERAGE-OFF$$
       |package org.scalablytyped.converter.internal

@@ -9,7 +9,7 @@ import scala.collection.immutable.SortedMap
 object PublishLocal extends App {
   val groupId = "build.bleep"
 
-  bootstrap.forScript("PublishLocal") { case (started, commands) =>
+  bootstrap.forScript("PublishLocal") { (started, commands) =>
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     started.logger.withContext(dynVer.version).info("publishing locally")
     commands.compile(started.build.projects.keys.filter(projectsToPublish.include).toList)
