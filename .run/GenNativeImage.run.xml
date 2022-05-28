@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="GenNativeImage" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="bleep.scripts.GenNativeImage" />
+    <module name="scripts" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="BSP.BeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>

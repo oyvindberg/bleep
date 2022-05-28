@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="tapir compile" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="bleep.Main" />
+    <module name="bleep" />
+    <option name="PROGRAM_PARAMETERS" value="-d ../tapir compile jvm213" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+      <option name="BSP.BeforeRunTask" enabled="true" />
+    </method>
+  </configuration>
+</component>
