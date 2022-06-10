@@ -55,7 +55,7 @@ jobs:
     name: Native image build on ${{ matrix.os }}
     needs: [ build ]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       matrix:
         include:
@@ -99,19 +99,19 @@ jobs:
 
       - name: Test binary after build on Windows
         shell: cmd
-        run: .\dist\${{ matrix.file_name }}.exe compile --no-color
+        run: .\dist\${{ matrix.file_name }}.exe compile --no-color jvm213
         if: runner.os == 'Windows'
 
       - name: Test binary after build on Linux
         run: |
           chmod 755 dist/${{ matrix.file_name }} 
-          ./dist/${{ matrix.file_name }} compile --no-color
+          ./dist/${{ matrix.file_name }} compile --no-color jvm213
         if: runner.os == 'Linux'
 
       - name: Test binary after build on Macos
         run: |
           chmod 755 dist/${{ matrix.file_name }}
-          ./dist/${{ matrix.file_name }} compile --no-color
+          ./dist/${{ matrix.file_name }} compile --no-color jvm213
         if: runner.os == 'macOS'
 
       - name: Temporarily save package
