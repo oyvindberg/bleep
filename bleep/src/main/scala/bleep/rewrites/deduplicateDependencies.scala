@@ -35,12 +35,6 @@ object deduplicateDependencies extends Rewrite {
 
     val forcedProjects = projects.map { case (projectName, lazyProject) => (projectName, lazyProject.forceGet(projectName.value)) }
 
-    ExplodedBuild(
-      templates = build.templates,
-      projects = forcedProjects,
-      scripts = build.scripts,
-      resolvers = build.resolvers,
-      retainCrossTemplates = build.retainCrossTemplates
-    )
+    build.copy(projects = forcedProjects)
   }
 }

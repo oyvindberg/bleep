@@ -196,12 +196,9 @@ object Templates {
         (name, pp)
       }
 
-    val build = model.Build(
-      constants.$schema,
-      JsonMap((templates ++ crossTemplates).map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty)),
-      JsonMap(build0.scripts),
-      build0.resolvers,
-      JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
+    val build = build0.build.copy(
+      templates = JsonMap((templates ++ crossTemplates).map { case (templateDef, p) => (templateDef.templateId, p.current) }.filterNot(_._2.isEmpty)),
+      projects = JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
     )
 
     garbageCollectTemplates(inlineTrivialTemplates(build))
@@ -238,12 +235,9 @@ object Templates {
         (name, pp)
       }
 
-    model.Build(
-      constants.$schema,
-      unexplodedTemplates,
-      JsonMap(build0.scripts),
-      build0.resolvers,
-      JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
+    build0.build.copy(
+      templates = unexplodedTemplates,
+      projects = JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
     )
   }
 

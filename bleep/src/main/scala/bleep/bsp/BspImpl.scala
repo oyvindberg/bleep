@@ -31,22 +31,26 @@ object BspImpl {
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
 
-      val lazyResolver = Lazy {
-        val resolvers = model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile)) match {
-          case Left(th) =>
-            pre.logger.warn("Cannot setup custom resolvers since build is broken", th)
-            Nil
-          case Right(build) => build.resolvers.values
-        }
-        CoursierResolver(resolvers, pre.logger, downloadSources = false, pre.userPaths)
+      val bleepConfig = BleepConfig.loadOrDefault(pre.userPaths) match {
+        case Left(th)     => throw th
+        case Right(value) => value
       }
 
-      val bloopRifleConfig =
-        CompileServerConfig.load(pre.userPaths) match {
-          case Left(th) => throw th
-          case Right(config) =>
-            SetupBloopRifle(JavaCmd.javacommand, pre.buildPaths, lazyResolver, config.asAddress(pre.userPaths))
+      val bloopRifleConfig = {
+        val errorOrBuild = model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile))
+
+        val (resolvers, jvm) = errorOrBuild match {
+          case Left(th) =>
+            pre.logger.warn("Started bleep with broken build. Resolvers and JVM will not be picked up. using defaults.", th)
+            (Nil, None)
+          case Right(build) =>
+            (build.resolvers.values, build.jvm)
         }
+
+        val lazyResolver = Lazy(CoursierResolver(resolvers, pre.logger, downloadSources = false, pre.userPaths.cacheDir, bleepConfig.authentications))
+        val jvmCmd = JvmCmd(pre.logger, jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
+        SetupBloopRifle(jvmCmd, pre, lazyResolver, bleepConfig.compileServerMode)
+      }
 
       val bloopRifleLogger = new BloopLogger(pre.logger)
 
@@ -68,7 +72,7 @@ object BspImpl {
               }
             ).flatten
 
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites)
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig))
           }
 
         pre.logger.info {

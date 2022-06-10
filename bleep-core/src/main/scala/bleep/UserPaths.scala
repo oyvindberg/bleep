@@ -1,14 +1,12 @@
 package bleep
 
-import coursier.cache.shaded.dirs.dev.dirs.ProjectDirectories
+import coursier.cache.shaded.dirs.ProjectDirectories
 
 import java.nio.file.{Path, Paths}
 
 case class UserPaths(cacheDir: Path, configDir: Path) {
   val bspSocketDir = cacheDir / "bsp-socket"
-  val bspSocketShared = bspSocketDir / "shared"
-  val coursierRepositoriesJson = configDir / "coursier-repositories.json"
-  val bloopCompileServerJson = configDir / "config.json"
+  val configJson = configDir / "config.json"
 }
 
 object UserPaths {

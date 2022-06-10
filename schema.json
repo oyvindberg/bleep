@@ -275,6 +275,22 @@
         }
       }
     },
+    "Jvm": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "description": "a combination of JVM and version in this format `graalvm-java17:22.1.0`",
+          "type": "string"
+        },
+        "index": {
+          "description": "the default index is the coursier index, located at https://github.com/coursier/jvm-index/raw/master/index.json . If you need to use a JVM which is not there, you can specify another index here",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
     "Project": {
       "type": "object",
       "properties": {
@@ -392,6 +408,12 @@
     }
   },
   "properties": {
+    "jvm": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/Jvm"
+      }
+    },
     "projects": {
       "type": "object",
       "additionalProperties": {

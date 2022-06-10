@@ -33,11 +33,17 @@ object Main {
   def noBuildOpts(logger: Logger, cwd: Path): Opts[BleepCommand] = {
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, Mode.Normal)
     val userPaths = UserPaths.fromAppDirs
+    val pre = Prebootstrapped(logger, userPaths, buildPaths)
+    val resolver =
+      BleepConfig
+        .lazyForceLoad(userPaths)
+        .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.cacheDir, bleepConfig.authentications))
+
     List(
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
       setupIdeCmd(buildPaths, logger, None),
       importCmd(buildPaths, logger),
-      compileServerCmd(logger, userPaths, buildPaths, Lazy(CoursierResolver(Nil, logger, downloadSources = false, directories = userPaths)))
+      compileServerCmd(pre, resolver)
     ).foldK
   }
 
@@ -111,7 +117,7 @@ object Main {
             Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(started, file))
           ),
           importCmd(started.buildPaths, started.logger),
-          compileServerCmd(started.logger, started.userPaths, started.buildPaths, started.resolver)
+          compileServerCmd(started.prebootstrapped, started.resolver)
         ),
         started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
@@ -126,18 +132,18 @@ object Main {
     ret
   }
 
-  def compileServerCmd(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, lazyResolver: Lazy[CoursierResolver]): Opts[BleepCommand] =
+  def compileServerCmd(pre: Prebootstrapped, lazyResolver: Lazy[CoursierResolver]): Opts[BleepCommand] =
     Opts.subcommand(
       "compile-server",
       "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
     )(
       List(
         Opts.subcommand("start", "will start a shared bloop compile server and leave it running")(Opts {
-          commands.CompileServerStart(logger, userPaths, buildPaths, lazyResolver)
+          commands.CompileServerStart(pre, lazyResolver)
         }),
         Opts.subcommand("stop", "will stop a shared bloop compile server (if any) and will make bleep start temporary servers until you call start again")(
           Opts {
-            commands.CompileServerStop(logger, userPaths, buildPaths, lazyResolver)
+            commands.CompileServerStop(pre, lazyResolver)
           }
         )
       ).foldK
@@ -203,7 +209,9 @@ object Main {
             })
             completer.completeOpts(restArgs)(noBuildOpts(logger, cwd))
           case Right(pre) =>
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil) match {
+            val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
+
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
@@ -268,7 +276,9 @@ object Main {
             }
 
             loggerResource.use { logger =>
-              bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.SyncToDisk, rewrites = Nil) match {
+              val pre = Prebootstrapped(buildPaths, logger)
+              val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)
                 case Right(started) => run(logger, hasBuildOpts(started, ProjectGlobs(started)), restArgs)
               }

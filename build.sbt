@@ -42,7 +42,8 @@ lazy val `bleep-core` = projectMatrix
   .settings(
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "fansi" % "0.3.1",
-      "io.get-coursier" %% "coursier" % "2.0.16" cross For3Use2_13() exclude ("org.scala-lang.modules", "scala-collection-compat_2.13"),
+      "io.get-coursier" %% "coursier" % "2.1.0-M6" cross For3Use2_13() exclude ("org.scala-lang.modules", "scala-collection-compat_2.13"),
+      "io.get-coursier" %% "coursier-jvm" % "2.1.0-M6" cross For3Use2_13() exclude ("org.scala-lang.modules", "scala-collection-compat_2.13"),
       "io.circe" %% "circe-core" % "0.14.2",
       "io.circe" %% "circe-parser" % "0.14.2",
       "io.circe" %% "circe-generic" % "0.14.2",

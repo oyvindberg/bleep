@@ -8,18 +8,23 @@ import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
 
 case class ExplodedBuild(
+    build: model.Build,
     templates: Map[model.TemplateId, model.Project],
-    scripts: Map[model.ScriptName, JsonList[model.ScriptDef]],
-    resolvers: JsonList[model.Repository],
-    projects: Map[model.CrossProjectName, model.Project],
-    retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]]
+    projects: Map[model.CrossProjectName, model.Project]
 ) {
+  def scripts: Map[model.ScriptName, JsonList[model.ScriptDef]] =
+    build.scripts.value
 
   def dropTemplates: ExplodedBuild =
     copy(
       templates = Map.empty,
       projects = projects.map { case (crossName, p) => (crossName, stripExtends(p)) }
     )
+
+  val retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]] =
+    build.projects.value.flatMap { case (projectName, p) =>
+      Some((projectName, p.`extends`))
+    }
 
   // in json we just specify projectName, but in bleep we need to know which cross version to pick
   val resolvedDependsOn: Map[model.CrossProjectName, SortedSet[model.CrossProjectName]] = {
@@ -120,18 +125,7 @@ object ExplodedBuild {
         explodeCross
       }
 
-    val retainCrossTemplates: Map[model.ProjectName, JsonList[model.TemplateId]] =
-      build.projects.value.flatMap { case (projectName, p) =>
-        Some((projectName, p.`extends`))
-      }
-
-    val ret = ExplodedBuild(
-      templates = explodedTemplates,
-      scripts = build.scripts.value,
-      resolvers = build.resolvers,
-      projects = explodedProjects,
-      retainCrossTemplates = retainCrossTemplates
-    )
+    val ret = ExplodedBuild(build, explodedTemplates, explodedProjects)
 
     verify(ret)
 

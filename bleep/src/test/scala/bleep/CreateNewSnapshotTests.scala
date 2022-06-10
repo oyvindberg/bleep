@@ -1,11 +1,12 @@
 package bleep
 
 import bleep.commands.BuildCreateNew
+import bleep.internal.Lazy
 import bleep.logging.LogLevel
 import bleep.testing.SnapshotTest
 import cats.data.NonEmptyList
 
-import java.nio.file.{Path, Paths}
+import java.nio.file.Path
 
 class CreateNewSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped.filter(LogLevel.info)
@@ -24,7 +25,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
     writeAndCompareEarly(buildPaths.buildDir, generatedProjectFiles)
 
-    val Right(started) = bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.InMemory, Nil)
+    val Right(started) = bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.InMemory, Nil, Lazy(BleepConfig.default))
 
     val generatedBloopFiles: Map[Path, String] =
       GenBloopFiles.encodedFiles(buildPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
