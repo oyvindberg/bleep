@@ -1,10 +1,8 @@
 package bleep
 
-import bleep.BuildPaths.Mode.Normal
-import bleep.CoursierResolver.Authentications
 import bleep.commands.Import
 import bleep.commands.Import.Options
-import bleep.internal.{importBloopFilesFromSbt, FileUtils, ReadSbtExportFile, Replacements}
+import bleep.internal.{importBloopFilesFromSbt, FileUtils, Lazy, ReadSbtExportFile, Replacements}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.Repositories
@@ -21,7 +19,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   val resolver: CoursierResolver = {
     val sbtReleases = model.Repository.Ivy(None, URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
     val cachePath = if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache" else UserPaths.fromAppDirs.cacheDir
-    CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = Some(cachePath), Authentications.empty)
+    CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = cachePath, CoursierResolver.Authentications.empty)
   }
 
   test("tapir") {
@@ -61,7 +59,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
   def testIn(project: String, generatedResources: List[(RelPath, String)] = Nil): Assertion = {
     val sbtBuildDir = inFolder / project
-    val destinationPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / project, Normal)
+    val destinationPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / project, BuildPaths.Mode.Normal)
     val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = generatedResources.isEmpty)
     val importer = commands.Import(sbtBuildDir, destinationPaths, logger, importerOptions)
 
@@ -114,7 +112,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     // write build files, and produce an (in-memory) exploded build plus new bloop files
     writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
 
-    val started = bootstrap.from(Prebootstrapped(destinationPaths, logger), GenBloopFiles.InMemory, rewrites = Nil) match {
+    val started = bootstrap.from(Prebootstrapped(destinationPaths, logger), GenBloopFiles.InMemory, rewrites = Nil, Lazy(BleepConfig.default)) match {
       case Left(th)       => throw th
       case Right(started) => started
     }

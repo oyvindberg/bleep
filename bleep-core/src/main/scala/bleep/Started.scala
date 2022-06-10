@@ -1,38 +1,38 @@
 package bleep
 
 import bleep.internal.Lazy
-import bleep.logging.Logger
 import bloop.config.Config
 
+import java.nio.file.Path
 import scala.collection.immutable.SortedMap
+import scala.concurrent.ExecutionContext
 
-/** @param rawBuild
-  *   non-exploded variant
-  * @param bloopFiles
-  *   will either all be resolved and written immediately if outdated, or read and parsed on demand
-  */
 case class Started(
-    buildPaths: BuildPaths,
+    prebootstrapped: Prebootstrapped,
     rewrites: List[Rewrite],
-    rawBuild: model.Build,
     build: ExplodedBuild,
     bloopFiles: GenBloopFiles.Files,
     activeProjectsFromPath: List[model.CrossProjectName],
+    lazyConfig: Lazy[BleepConfig],
     resolver: Lazy[CoursierResolver],
-    userPaths: UserPaths,
-    logger: Logger
+    executionContext: ExecutionContext
 ) {
+  def buildPaths: BuildPaths = prebootstrapped.buildPaths
+  def userPaths: UserPaths = prebootstrapped.userPaths
+  def rawBuild = build.build
+  def logger = prebootstrapped.logger
+
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
     buildPaths.from(crossName, build.projects(crossName))
-
-  lazy val projectsAndBloopProjects: SortedMap[model.CrossProjectName, (Config.Project, model.Project)] =
-    bloopFiles.map { case (name, lazyProject) => (name, (lazyProject.forceGet.project, build.projects(name))) }
 
   lazy val bloopProjects: SortedMap[model.CrossProjectName, Config.Project] =
     bloopFiles.map { case (name, lazyProject) => (name, lazyProject.forceGet.project) }
 
   lazy val bloopProjectsList: List[Config.Project] =
     bloopProjects.values.toList
+
+  lazy val jvmCommand: Path =
+    JvmCmd(logger, rawBuild.jvm, executionContext)
 
   def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
     maybeFromCommandLine match {

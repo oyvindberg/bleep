@@ -1,7 +1,7 @@
 package bleep
 
-import bleep.internal.FileUtils
 import bleep.internal.codecs._
+import bleep.internal.FileUtils
 import bleep.logging.Logger
 import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
@@ -16,7 +16,6 @@ import io.circe.syntax._
 
 import java.io.File
 import java.net.URI
-import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
 
 trait CoursierResolver {
@@ -24,26 +23,15 @@ trait CoursierResolver {
 }
 
 object CoursierResolver {
-  def apply(repos: List[model.Repository], logger: Logger, downloadSources: Boolean, directories: UserPaths): CoursierResolver = CoursierResolver(
-    repos,
-    logger,
-    downloadSources,
-    Some(directories.cacheDir),
-    CoursierResolver.Authentications.fromFile(directories.coursierRepositoriesJson, logger)
-  )
-
   def apply(
       repos: List[model.Repository],
       logger: Logger,
       downloadSources: Boolean,
-      cacheIn: Option[Path],
-      authentications: Authentications
+      cacheIn: Path,
+      authentications: CoursierResolver.Authentications
   ): CoursierResolver = {
     val direct = new Direct(repos, downloadSources, authentications)
-    cacheIn match {
-      case Some(cacheIn) => new Cached(logger, direct, cacheIn)
-      case None          => direct
-    }
+    new Cached(logger, direct, cacheIn)
   }
 
   final case class Authentications(configs: Map[URI, Authentication])
@@ -79,23 +67,6 @@ object CoursierResolver {
 
     implicit val resolverConfigCodec: Codec[Authentications] =
       Codec.from(Decoder[Elem], Encoder[Elem]).iemap(m => Right(Authentications(m)))(_.configs)
-
-    def fromFile(path: Path, logger: Logger): Authentications =
-      if (Files.exists(path)) {
-        val json = Files.readString(path, StandardCharsets.UTF_8)
-        io.circe.parser
-          .decode[Authentications](json)
-          .fold(
-            err => {
-              logger.warn(s"Failed to parse resolver authentication from $path, [$err]")
-              empty
-            },
-            identity
-          )
-      } else {
-        logger.info(s"No authentication information found in $path")
-        empty
-      }
   }
 
   // this is a simplified version of the original `Fetch.Result` with a json codec
@@ -148,7 +119,8 @@ object CoursierResolver {
     // format: on
   }
 
-  private class Direct(val repos: List[model.Repository], downloadSources: Boolean, resolverConfigs: Authentications) extends CoursierResolver {
+  private class Direct(val repos: List[model.Repository], downloadSources: Boolean, authentications: CoursierResolver.Authentications)
+      extends CoursierResolver {
     val fileCache = FileCache[Task]()
 
     override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] = {
@@ -167,9 +139,9 @@ object CoursierResolver {
               // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
               MavenRepository(path.toString)
             case bleep.model.Repository.Maven(_, uri) =>
-              MavenRepository(uri.toString).withAuthentication(resolverConfigs.configs.get(uri))
+              MavenRepository(uri.toString).withAuthentication(authentications.configs.get(uri))
             case bleep.model.Repository.Ivy(_, uri) =>
-              IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(resolverConfigs.configs.get(uri))
+              IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.configs.get(uri))
           }: _*)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)

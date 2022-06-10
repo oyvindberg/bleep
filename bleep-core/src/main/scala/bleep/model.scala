@@ -5,6 +5,7 @@ import bleep.internal.compat.OptionCompatOps
 import bleep.internal.{assertUsed, EnumCodec, SetLike}
 import bleep.logging.Formatter
 import bloop.config.Config
+import coursier.jvm.JavaHome
 import io.circe._
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.syntax._
@@ -595,15 +596,26 @@ object model {
     }
   }
 
+  case class Jvm(name: String, index: Option[String])
+
+  object Jvm {
+    val System = Jvm(JavaHome.systemId, None)
+    implicit val encodes: Encoder[Jvm] = deriveEncoder
+    implicit val decodes: Decoder[Jvm] = deriveDecoder
+  }
+
   case class Build(
       $schema: String,
       templates: JsonMap[TemplateId, Project],
       scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
       resolvers: JsonList[Repository],
-      projects: JsonMap[ProjectName, Project]
+      projects: JsonMap[ProjectName, Project],
+      jvm: Option[Jvm]
   )
 
   object Build {
+    val empty = Build(constants.$schema, JsonMap.empty, JsonMap.empty, JsonList.empty, JsonMap.empty, None)
+
     implicit val decodes: Decoder[Build] =
       Decoder.instance(c =>
         for {
@@ -623,7 +635,8 @@ object model {
           projects <- c.downField("projects").as[JsonMap[ProjectName, Project]](JsonMap.decodes(ProjectName.keyDecodes, projectDecoder))
           scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
           resolvers <- c.downField("resolvers").as[JsonList[Repository]]
-        } yield Build(schema, templates, scripts, resolvers, projects)
+          jvm <- c.downField("jvm").as[Option[Jvm]]
+        } yield Build(schema, templates, scripts, resolvers, projects, jvm)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
   }

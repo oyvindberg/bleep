@@ -13,11 +13,6 @@ import java.nio.file.{Files, Path}
 case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[model.PlatformId], scalas: NonEmptyList[Versions.Scala], name: String)
     extends BleepCommand {
 
-  def write(path: Path, content: String, what: String): Unit = {
-    FileUtils.writeString(path, content)
-    logger.withContext(path).info(s"Creating $what")
-  }
-
   override def run(): Either[BuildException, Unit] = {
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, BuildPaths.Mode.Normal)
     generate(buildPaths).map(_ => ())
@@ -30,7 +25,10 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
-    bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.SyncToDisk, rewrites = Nil) map { started =>
+    val pre = Prebootstrapped(buildPaths, logger)
+    val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
+
+    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) map { started =>
       val projects = started.bloopProjectsList
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct
@@ -167,11 +165,9 @@ object BuildCreateNew {
       }
 
     val explodedBuild = ExplodedBuild(
+      build = model.Build.empty.copy(jvm = Some(model.Jvm("graalvm-java17:22.1.0", None))),
       templates = Map.empty,
-      scripts = Map.empty,
-      resolvers = JsonList.empty,
-      projects = (mainProjects.toList ++ testProjects.toList).toMap,
-      retainCrossTemplates = Map.empty
+      projects = (mainProjects.toList ++ testProjects.toList).toMap
     )
 
     Templates.apply(explodedBuild, ignoreWhenInferringTemplates = _ => false)

@@ -253,7 +253,7 @@ object importBloopFilesFromSbt {
           .toList
       )
 
-    ExplodedBuild(Map.empty, Map.empty, resolvers = buildResolvers, projects, Map.empty)
+    ExplodedBuild(model.Build.empty.copy(resolvers = buildResolvers), templates = Map.empty, projects = projects)
   }
 
   def importDeps(

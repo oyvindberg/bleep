@@ -30,15 +30,22 @@
           "module" : "ch.epfl.scala::bloop-config:1.5.0"
         },
         "com.lihaoyi::fansi:0.3.1",
-        "io.circe::circe-core:0.14.1",
-        "io.circe::circe-generic:0.14.1",
-        "io.circe::circe-parser:0.14.1",
+        "io.circe::circe-core:0.14.2",
+        "io.circe::circe-generic:0.14.2",
+        "io.circe::circe-parser:0.14.2",
         {
           "exclusions" : {
             "org.scala-lang.modules" : "scala-collection-compat_2.13"
           },
           "for3Use213" : true,
-          "module" : "io.get-coursier::coursier:2.0.16"
+          "module" : "io.get-coursier::coursier-jvm:2.1.0-M6"
+        },
+        {
+          "exclusions" : {
+            "org.scala-lang.modules" : "scala-collection-compat_2.13"
+          },
+          "for3Use213" : true,
+          "module" : "io.get-coursier::coursier:2.1.0-M6"
         },
         "org.gnieh::diffson-circe:4.1.1",
         "org.virtuslab.scala-cli::bloop-rifle:0.1.6"
@@ -54,7 +61,7 @@
     "bleep-tasks-publishing" : {
       "dependencies" : [
         "com.eed3si9n::gigahorse-okhttp:0.6.0",
-        "org.bouncycastle:bcpg-jdk15on:1.69",
+        "org.bouncycastle:bcpg-jdk15on:1.70",
         "org.scala-lang.modules::scala-parser-combinators:2.1.1",
         "org.sonatype.spice.zapper:spice-zapper:1.3",
         "org.wvlet.airframe::airframe-http:22.4.2",
@@ -299,5 +306,8 @@
         "version" : "3.1.1"
       }
     }
+  },
+  "jvm": {
+    "name": "graalvm-java17:22.1.0"
   }
 }

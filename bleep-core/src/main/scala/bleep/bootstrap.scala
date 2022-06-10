@@ -5,13 +5,16 @@ import bleep.internal.{Lazy, Os}
 
 import java.nio.file.Files
 import java.time.Instant
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object bootstrap {
   def forScript(scriptName: String)(f: (Started, Commands) => Unit): Unit = {
     val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName), noColor = false)).untyped
 
-    Prebootstrapped.find(Os.cwd, Mode.Normal, logger).flatMap(pre => from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil)) match {
+    Prebootstrapped.find(Os.cwd, Mode.Normal, logger).flatMap { pre =>
+      from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfig.lazyForceLoad(pre.userPaths))
+    } match {
       case Left(buildException) =>
         BuildException.fatal("Couldn't initialize bleep", logger, buildException)
       case Right(started) =>
@@ -22,14 +25,16 @@ object bootstrap {
     }
   }
 
-  def from(pre: Prebootstrapped, genBloopFiles: GenBloopFiles, rewrites: List[Rewrite]): Either[BuildException, Started] = {
+  def from(pre: Prebootstrapped, genBloopFiles: GenBloopFiles, rewrites: List[Rewrite], lazyConfig: Lazy[BleepConfig]): Either[BuildException, Started] = {
     val t0 = System.currentTimeMillis()
 
     try
       model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile)) match {
         case Left(th) => Left(new BuildException.InvalidJson(pre.buildPaths.bleepJsonFile, th))
         case Right(build) =>
-          val lazyResolver = Lazy(CoursierResolver(build.resolvers.values, pre.logger, downloadSources = true, pre.userPaths))
+          val lazyResolver = lazyConfig.map(bleepConfig =>
+            CoursierResolver(build.resolvers.values, pre.logger, downloadSources = true, pre.userPaths.cacheDir, bleepConfig.authentications)
+          )
           val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 
           val activeProjects: List[model.CrossProjectName] =
@@ -46,7 +51,19 @@ object bootstrap {
 
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
-          Right(Started(pre.buildPaths, rewrites, build, explodedBuild, bloopFiles, activeProjects, lazyResolver, pre.userPaths, pre.logger))
+
+          Right(
+            Started(
+              prebootstrapped = pre,
+              rewrites = rewrites,
+              build = explodedBuild,
+              bloopFiles = bloopFiles,
+              activeProjectsFromPath = activeProjects,
+              lazyConfig = lazyConfig,
+              resolver = lazyResolver,
+              executionContext = ExecutionContext.global
+            )
+          )
       }
     catch {
       case x: BuildException => Left(x)
