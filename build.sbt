@@ -103,7 +103,7 @@ lazy val `bleep-tasks-publishing` = projectMatrix
   )
   .jvmPlatform(scalaNot3)
 
-lazy val bleep = projectMatrix
+lazy val `bleep-cli` = projectMatrix
   .configure(commonSettings)
   .dependsOn(`bleep-core`, `bleep-test-harness` % Test)
   .settings(
@@ -125,7 +125,7 @@ lazy val bleep = projectMatrix
         val oldStrategy = (ThisBuild / assemblyMergeStrategy).value
         oldStrategy(x)
     },
-    assemblyJarName := "bleep-assembly.jar"
+    assemblyJarName := "bleep-cli-assembly.jar"
   )
   .enablePlugins(NativeImagePlugin)
   .jvmPlatform(List(scala213))

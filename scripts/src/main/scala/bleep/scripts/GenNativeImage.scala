@@ -5,7 +5,7 @@ import bleep.tasks._
 
 object GenNativeImage extends App {
   bootstrap.forScript("GenNativeImage") { (started, commands) =>
-    val projectName = model.CrossProjectName(model.ProjectName("bleep"), crossId = None)
+    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProjects(projectName)
 
     commands.compile(List(projectName))
