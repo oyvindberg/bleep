@@ -34,13 +34,13 @@ jobs:
         run: sbt --client "test"
       - name: "Assembly"
         shell: bash
-        run: sbt --client "bleep/assembly"
+        run: sbt --client "bleep-cli/assembly"
       - name: Temporarily save package
         uses: actions/upload-artifact@v2
         with:
           name: java-binary
           path: |
-            ${{ github.workspace }}/bleep/target/jvm-2.13/bleep-assembly.jar
+            ${{ github.workspace }}/bleep-cli/target/jvm-2.13/bleep-cli-assembly.jar
           retention-days: 1
       - name: Cleanup before cache
         shell: bash

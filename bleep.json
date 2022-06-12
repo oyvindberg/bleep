@@ -1,7 +1,7 @@
 {
   "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
   "projects" : {
-    "bleep" : {
+    "bleep-cli" : {
       "dependencies" : [
         "com.lihaoyi::pprint:0.7.3",
         "com.monovore::decline:2.2.0",
@@ -22,6 +22,14 @@
       "platform" : {
         "mainClass" : "bleep.Main"
       }
+    },
+    "bleep-cli-test" : {
+      "dependsOn" : "bleep-cli",
+      "extends" : [
+        "template-common-test",
+        "template-scala-2.13"
+      ],
+      "folder" : "./bleep-cli"
     },
     "bleep-core" : {
       "dependencies" : [
@@ -96,14 +104,6 @@
       },
       "dependsOn" : "bleep-tasks-publishing",
       "folder" : "./bleep-tasks-publishing"
-    },
-    "bleep-test" : {
-      "dependsOn" : "bleep",
-      "extends" : [
-        "template-common-test",
-        "template-scala-2.13"
-      ],
-      "folder" : "./bleep"
     },
     "bleep-test-harness" : {
       "dependencies" : "org.scalatest::scalatest:3.2.12",
