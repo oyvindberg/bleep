@@ -109,7 +109,8 @@ object importBloopFilesFromSbt {
       sbtBuildDir: Path,
       destinationPaths: BuildPaths,
       crossBloopProjectFiles: Map[model.CrossProjectName, Config.File],
-      sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject]
+      sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject],
+      bleepVersion: model.Version
   ): ExplodedBuild = {
 
     val projectNames = crossBloopProjectFiles.keys.map(_.name).toSet
@@ -253,7 +254,7 @@ object importBloopFilesFromSbt {
           .toList
       )
 
-    ExplodedBuild(model.Build.empty.copy(resolvers = buildResolvers), templates = Map.empty, projects = projects)
+    ExplodedBuild(model.Build.empty(bleepVersion).copy(resolvers = buildResolvers), templates = Map.empty, projects = projects)
   }
 
   def importDeps(

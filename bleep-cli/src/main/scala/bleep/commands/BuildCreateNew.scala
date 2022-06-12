@@ -10,8 +10,14 @@ import io.circe.syntax._
 
 import java.nio.file.{Files, Path}
 
-case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[model.PlatformId], scalas: NonEmptyList[Versions.Scala], name: String)
-    extends BleepCommand {
+case class BuildCreateNew(
+    logger: Logger,
+    cwd: Path,
+    platforms: NonEmptyList[model.PlatformId],
+    scalas: NonEmptyList[Versions.Scala],
+    name: String,
+    bleepVersion: model.Version
+) extends BleepCommand {
 
   override def run(): Either[BuildException, Unit] = {
     val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, BuildPaths.Mode.Normal)
@@ -48,7 +54,7 @@ case class BuildCreateNew(logger: Logger, cwd: Path, platforms: NonEmptyList[mod
 
   def genAllFiles(buildPaths: BuildPaths): Map[Path, String] = {
     val exampleFiles = new BuildCreateNew.ExampleFiles(name)
-    val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name)
+    val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name, bleepVersion)
 
     val value = Map[Path, String](
       buildPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
@@ -98,7 +104,13 @@ object BuildCreateNew {
     }
   }
 
-  def genBuild(exampleFiles: ExampleFiles, platforms: NonEmptyList[model.PlatformId], scalas: NonEmptyList[Versions.Scala], name: String): model.Build = {
+  def genBuild(
+      exampleFiles: ExampleFiles,
+      platforms: NonEmptyList[model.PlatformId],
+      scalas: NonEmptyList[Versions.Scala],
+      name: String,
+      bleepVersion: model.Version
+  ): model.Build = {
     val defaultOpts = Options(Set(Options.Opt.WithArgs("-encoding", List("utf8")), Options.Opt.Flag("-feature"), Options.Opt.Flag("-unchecked")))
 
     def variants(name: String): NonEmptyList[(model.PlatformId, Versions.Scala, model.CrossProjectName)] =
@@ -165,7 +177,7 @@ object BuildCreateNew {
       }
 
     val explodedBuild = ExplodedBuild(
-      build = model.Build.empty.copy(jvm = Some(model.Jvm("graalvm-java17:22.1.0", None))),
+      build = model.Build.empty(bleepVersion).copy(jvm = Some(model.Jvm("graalvm-java17:22.1.0", None))),
       templates = Map.empty,
       projects = (mainProjects.toList ++ testProjects.toList).toMap
     )

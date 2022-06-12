@@ -604,8 +604,16 @@ object model {
     implicit val decodes: Decoder[Jvm] = deriveDecoder
   }
 
+  case class Version(value: String) extends AnyVal
+  object Version {
+    implicit val ordering: Ordering[Version] = Ordering.by(_.value)
+    implicit val encodes: Encoder[Version] = Encoder[String].contramap(_.value)
+    implicit val decodes: Decoder[Version] = Decoder[String].map(Version.apply)
+  }
+
   case class Build(
       $schema: String,
+      $version: Version,
       templates: JsonMap[TemplateId, Project],
       scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
       resolvers: JsonList[Repository],
@@ -614,7 +622,7 @@ object model {
   )
 
   object Build {
-    val empty = Build(constants.$schema, JsonMap.empty, JsonMap.empty, JsonList.empty, JsonMap.empty, None)
+    def empty(version: model.Version) = Build(constants.$schema, version, JsonMap.empty, JsonMap.empty, JsonList.empty, JsonMap.empty, None)
 
     implicit val decodes: Decoder[Build] =
       Decoder.instance(c =>
@@ -623,7 +631,7 @@ object model {
             case ok @ constants.$schema => Right(ok)
             case notOk                  => Left(DecodingFailure(s"$notOk must be ${constants.$schema}", c.history))
           }
-
+          version <- c.downField("$version").as[Version]
           /* construct a custom decoder for `Project` to give better error messages */
           templateIds <- c.downField("templates").as[Option[JsonObject]].map(_.fold(Iterable.empty[TemplateId])(_.keys.map(TemplateId.apply)))
           templateIdDecoder = TemplateId.decoder(templateIds)
@@ -636,7 +644,7 @@ object model {
           scripts <- c.downField("scripts").as[JsonMap[ScriptName, JsonList[ScriptDef]]]
           resolvers <- c.downField("resolvers").as[JsonList[Repository]]
           jvm <- c.downField("jvm").as[Option[Jvm]]
-        } yield Build(schema, templates, scripts, resolvers, projects, jvm)
+        } yield Build(schema, version, templates, scripts, resolvers, projects, jvm)
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
   }

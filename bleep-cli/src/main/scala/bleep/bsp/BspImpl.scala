@@ -39,15 +39,17 @@ object BspImpl {
       val bloopRifleConfig = {
         val errorOrBuild = model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile))
 
-        val (resolvers, jvm) = errorOrBuild match {
+        val (resolvers, jvm, wantedBleepVersion) = errorOrBuild match {
           case Left(th) =>
             pre.logger.warn("Started bleep with broken build. Resolvers and JVM will not be picked up. using defaults.", th)
-            (Nil, None)
+            (Nil, None, None)
           case Right(build) =>
-            (build.resolvers.values, build.jvm)
+            (build.resolvers.values, build.jvm, Some(build.$version))
         }
 
-        val lazyResolver = Lazy(CoursierResolver(resolvers, pre.logger, downloadSources = false, pre.userPaths.cacheDir, bleepConfig.authentications))
+        val lazyResolver = Lazy {
+          CoursierResolver(resolvers, pre.logger, downloadSources = false, pre.userPaths.cacheDir, bleepConfig.authentications, wantedBleepVersion)
+        }
         val jvmCmd = JvmCmd(pre.logger, jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
         SetupBloopRifle(jvmCmd, pre, lazyResolver, bleepConfig.compileServerMode)
       }

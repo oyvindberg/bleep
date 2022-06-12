@@ -37,7 +37,7 @@ object Main {
     val resolver =
       BleepConfig
         .lazyForceLoad(userPaths)
-        .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.cacheDir, bleepConfig.authentications))
+        .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.cacheDir, bleepConfig.authentications, None))
 
     List(
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
@@ -151,7 +151,7 @@ object Main {
 
   def importCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
-      commands.Import.opts.map(opts => commands.Import(sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts))
+      commands.Import.opts.map(opts => commands.Import(sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.Version(BleepVersion.version)))
     )
 
   def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Iterable[model.CrossProjectName]]]): Opts[BleepCommand] = {
@@ -178,7 +178,7 @@ object Main {
           .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
           .withDefault(NonEmptyList.of(Versions.Scala3)),
         Opts.argument[String]("wanted project name")
-      ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name) }
+      ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.Version(BleepVersion.version)) }
     )
 
   // there is a flag to change build directory. we need to intercept that very early
