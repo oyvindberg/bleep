@@ -48,7 +48,7 @@ object Import {
 }
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
-case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logger, options: Import.Options) extends BleepCommand {
+case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logger, options: Import.Options, bleepVersion: model.Version) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
       generateBloopAndDependencyFiles()
@@ -115,7 +115,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
     val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
       importBloopFilesFromSbt.projectsWithSourceFilesByName(bloopFiles)
 
-    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName, sbtExportFiles)
+    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName, sbtExportFiles, bleepVersion)
     val normalizedBuild = normalizeBuild(build0)
     val build1 = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
 
@@ -156,7 +156,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
           resources = JsonSet.empty,
           dependencies =
             if (hackDropBleepDependency) JsonSet.empty
-            else JsonSet(Dep.Scala("build.bleep", "bleep-tasks", BleepVersion.version)),
+            else JsonSet(Dep.Scala("build.bleep", "bleep-tasks", constants.BleepVersionTemplate)),
           java = None,
           scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty)),
           platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),

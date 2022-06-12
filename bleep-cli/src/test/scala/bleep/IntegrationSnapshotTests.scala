@@ -19,7 +19,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   val resolver: CoursierResolver = {
     val sbtReleases = model.Repository.Ivy(None, URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
     val cachePath = if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache" else UserPaths.fromAppDirs.cacheDir
-    CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = cachePath, CoursierResolver.Authentications.empty)
+    CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = cachePath, CoursierResolver.Authentications.empty, None)
   }
 
   test("tapir") {
@@ -61,7 +61,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     val sbtBuildDir = inFolder / project
     val destinationPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / project, BuildPaths.Mode.Normal)
     val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = generatedResources.isEmpty)
-    val importer = commands.Import(sbtBuildDir, destinationPaths, logger, importerOptions)
+    val importer = commands.Import(sbtBuildDir, destinationPaths, logger, importerOptions, model.Version("testing"))
 
     generatedResources.foreach { case (relPath, content) =>
       val path = sbtBuildDir / relPath

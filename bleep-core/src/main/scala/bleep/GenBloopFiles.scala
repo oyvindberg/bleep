@@ -40,7 +40,11 @@ object GenBloopFiles {
 
   case object SyncToDisk extends GenBloopFiles {
     override def apply(logger: Logger, buildPaths: BuildPaths, lazyResolver: Lazy[CoursierResolver], explodedBuild: ExplodedBuild): GenBloopFiles.Files = {
-      val currentHash = explodedBuild.projects.toVector.sortBy(_._1).hashCode().toString
+      val currentHash = List(
+        explodedBuild.build.$version,
+        explodedBuild.projects.toVector.sortBy(_._1),
+      ).hashCode().toString
+
       val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
 
       if (oldHash.contains(currentHash)) {

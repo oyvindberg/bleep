@@ -32,8 +32,19 @@ object bootstrap {
       model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile)) match {
         case Left(th) => Left(new BuildException.InvalidJson(pre.buildPaths.bleepJsonFile, th))
         case Right(build) =>
+          if (build.$version.value != BleepVersion.version) {
+            pre.logger.info(s"Build requested Bleep ${build.$version} and you're running it with ${BleepVersion.version}")
+          }
+
           val lazyResolver = lazyConfig.map(bleepConfig =>
-            CoursierResolver(build.resolvers.values, pre.logger, downloadSources = true, pre.userPaths.cacheDir, bleepConfig.authentications)
+            CoursierResolver(
+              build.resolvers.values,
+              pre.logger,
+              downloadSources = true,
+              pre.userPaths.cacheDir,
+              bleepConfig.authentications,
+              Some(build.$version)
+            )
           )
           val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 

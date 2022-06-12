@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.codecs._
-import bleep.internal.FileUtils
+import bleep.internal.{FileUtils, dependencyOrdering}
 import bleep.logging.Logger
 import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
@@ -28,13 +28,16 @@ object CoursierResolver {
       logger: Logger,
       downloadSources: Boolean,
       cacheIn: Path,
-      authentications: CoursierResolver.Authentications
+      authentications: CoursierResolver.Authentications,
+      wantedBleepVersion: Option[model.Version]
   ): CoursierResolver = {
     val direct = new Direct(repos, downloadSources, authentications)
-    new Cached(logger, direct, cacheIn)
+    val cached = new Cached(logger, direct, cacheIn)
+    new WithBleepVersion(cached, wantedBleepVersion)
   }
 
   final case class Authentications(configs: Map[URI, Authentication])
+
   object Authentications {
     val empty: Authentications = Authentications(Map.empty)
     private type Elem = Map[URI, Authentication]
@@ -201,10 +204,10 @@ object CoursierResolver {
 
   private object Cached {
     case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repos: List[model.Repository], forceScalaVersion: Option[String])
+
     object Request {
+
       import Result.codecDependency
-      implicit val ordering: Ordering[Dependency] =
-        Ordering.by(_.toString())
 
       implicit val codec: Codec[Request] =
         Codec.forProduct4[Request, File, JsonSet[Dependency], List[model.Repository], Option[String]]("", "wanted", "repos", "forceScalaVersion")(
@@ -215,6 +218,21 @@ object CoursierResolver {
     case class Both(request: Request, result: Result)
     object Both {
       implicit val codec: Codec[Both] = Codec.forProduct2[Both, Request, Result]("request", "result")(Both.apply)(x => (x.request, x.result))
+    }
+  }
+
+  class WithBleepVersion(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.Version]) extends CoursierResolver {
+    override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, Result] = {
+      val rewrittenDeps =
+        maybeWantedBleepVersion match {
+          case Some(wantedBleepVersion) =>
+            deps.map {
+              case dep if dep.version == constants.BleepVersionTemplate => dep.withVersion(wantedBleepVersion.value)
+              case dep                                                  => dep
+            }
+          case None => deps
+        }
+      outer(rewrittenDeps, forceScalaVersion)
     }
   }
 }

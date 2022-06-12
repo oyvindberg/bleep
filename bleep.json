@@ -1,5 +1,9 @@
 {
   "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "0.0.1-M4",
+  "jvm" : {
+    "name" : "graalvm-java17:22.1.0"
+  },
   "projects" : {
     "bleep-cli" : {
       "dependencies" : [
@@ -111,7 +115,7 @@
       "extends" : "template-cross-jvm-212-213-main"
     },
     "scripts" : {
-      "dependencies" : "build.bleep::bleep-tasks-publishing:0.0.1-M3",
+      "dependencies" : "build.bleep::bleep-tasks-publishing:0.0.1-M4",
       "extends" : [
         "template-common-main",
         "template-scala-2.13"
@@ -304,8 +308,5 @@
         "version" : "3.1.1"
       }
     }
-  },
-  "jvm": {
-    "name": "graalvm-java17:22.1.0"
   }
 }

@@ -1,5 +1,6 @@
 {
   "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "testing",
   "jvm" : {
     "name" : "graalvm-java17:22.1.0"
   },

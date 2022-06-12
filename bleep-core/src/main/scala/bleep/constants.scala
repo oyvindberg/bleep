@@ -6,6 +6,8 @@ import java.net.URI
 import java.nio.file.Path
 
 object constants {
+  val BleepVersionTemplate = "$BLEEP_VERSION"
+
   val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json"
 
   private val ivyLocalUri =

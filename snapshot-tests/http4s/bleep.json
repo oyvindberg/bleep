@@ -1,5 +1,6 @@
 {
   "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
+  "$version" : "testing",
   "projects" : {
     "async-http-client" : {
       "dependencies" : [
