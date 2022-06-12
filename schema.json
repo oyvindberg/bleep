@@ -410,9 +410,7 @@
   "properties": {
     "jvm": {
       "type": "object",
-      "additionalProperties": {
-        "$ref": "#/$defs/Jvm"
-      }
+      "$ref": "#/$defs/Jvm"
     },
     "projects": {
       "type": "object",
