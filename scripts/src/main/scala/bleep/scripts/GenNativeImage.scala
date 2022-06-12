@@ -8,8 +8,9 @@ object GenNativeImage extends App {
     val projectName = model.CrossProjectName(model.ProjectName("bleep"), crossId = None)
     val project = started.bloopProjects(projectName)
 
-    val index = "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json"
+    commands.compile(List(projectName))
 
+    val index = "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json"
     val plugin = new NativeImagePlugin(
       project,
       started.logger,
