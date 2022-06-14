@@ -12,7 +12,8 @@ class CreateNewSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped.filter(LogLevel.info)
 
   test("create-new-build") {
-    val buildPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / "create-new-build", BuildPaths.Mode.Normal)
+    val buildLoader = BuildLoader.inDirectory(outFolder / "create-new-build")
+    val buildPaths = BuildPaths(cwd = Path.of("/tmp"), buildLoader, BuildPaths.Mode.Normal)
 
     val generatedProjectFiles: Map[Path, String] =
       BuildCreateNew(
@@ -26,7 +27,8 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
     writeAndCompareEarly(buildPaths.buildDir, generatedProjectFiles)
 
-    val Right(started) = bootstrap.from(Prebootstrapped(buildPaths, logger), GenBloopFiles.InMemory, Nil, Lazy(BleepConfig.default))
+    val Right(started) =
+      bootstrap.from(Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildLoader.bleepJson)), GenBloopFiles.InMemory, Nil, Lazy(BleepConfig.default))
 
     val generatedBloopFiles: Map[Path, String] =
       GenBloopFiles.encodedFiles(buildPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }

@@ -20,7 +20,8 @@ case class BuildCreateNew(
 ) extends BleepCommand {
 
   override def run(): Either[BuildException, Unit] = {
-    val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, BuildPaths.Mode.Normal)
+    val buildLoader = BuildLoader.inDirectory(cwd)
+    val buildPaths = BuildPaths(cwd, buildLoader, BuildPaths.Mode.Normal)
     generate(buildPaths).map(_ => ())
   }
 
@@ -31,7 +32,7 @@ case class BuildCreateNew(
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
-    val pre = Prebootstrapped(buildPaths, logger)
+    val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepJsonFile))
     val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
 
     bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) map { started =>

@@ -6,7 +6,7 @@ import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
 import java.net.Socket
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
 import scala.build.blooprifle.internal.Operations
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger}
@@ -35,23 +35,24 @@ object BspImpl {
         case Left(th)     => throw th
         case Right(value) => value
       }
+      val build = pre.build.forceGet match {
+        case Left(th)     => throw th
+        case Right(value) => value
+      }
 
       val bloopRifleConfig = {
-        val errorOrBuild = model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile))
-
-        val (resolvers, jvm, wantedBleepVersion) = errorOrBuild match {
-          case Left(th) =>
-            pre.logger.warn("Started bleep with broken build. Resolvers and JVM will not be picked up. using defaults.", th)
-            (Nil, None, None)
-          case Right(build) =>
-            (build.resolvers.values, build.jvm, Some(build.$version))
-        }
-
         val lazyResolver = Lazy {
-          CoursierResolver(resolvers, pre.logger, downloadSources = false, pre.userPaths.cacheDir, bleepConfig.authentications, wantedBleepVersion)
+          CoursierResolver(
+            build.resolvers.values,
+            pre.logger,
+            downloadSources = false,
+            pre.userPaths.cacheDir,
+            bleepConfig.authentications,
+            Some(build.$version)
+          )
         }
-        val jvmCmd = JvmCmd(pre.logger, jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
-        SetupBloopRifle(jvmCmd, pre, lazyResolver, bleepConfig.compileServerMode)
+        val jvmCmd = JvmCmd(pre.logger, build.jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
+        SetupBloopRifle(jvmCmd, pre.userPaths, lazyResolver, bleepConfig.compileServerMode)
       }
 
       val bloopRifleLogger = new BloopLogger(pre.logger)
@@ -74,7 +75,9 @@ object BspImpl {
               }
             ).flatten
 
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig))
+            pre.fresh.flatMap { pre =>
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig))
+            }
           }
 
         pre.logger.info {

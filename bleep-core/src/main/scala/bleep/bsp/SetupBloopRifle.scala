@@ -13,12 +13,12 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
-  def apply(jvm: Path, pre: Prebootstrapped, resolver: Lazy[CoursierResolver], mode: CompileServerMode): BloopRifleConfig =
+  def apply(jvm: Path, userPaths: UserPaths, resolver: Lazy[CoursierResolver], mode: CompileServerMode): BloopRifleConfig =
     BloopRifleConfig
       .default(
-        BloopRifleConfig.Address.DomainSocket(bspSocketFile(pre.userPaths, mode)),
+        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, mode)),
         bloopClassPath(resolver),
-        pre.buildPaths.dotBleepDir.toFile
+        new File("/tmp")
       )
       .copy(javaPath = jvm.toString)
 

@@ -48,7 +48,14 @@ object Import {
 }
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
-case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logger, options: Import.Options, bleepVersion: model.Version) extends BleepCommand {
+case class Import(
+    existingBuild: Option[model.Build],
+    sbtBuildDir: Path,
+    destinationPaths: BuildPaths,
+    logger: Logger,
+    options: Import.Options,
+    bleepVersion: model.Version
+) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
       generateBloopAndDependencyFiles()
@@ -59,13 +66,12 @@ case class Import(sbtBuildDir: Path, destinationPaths: BuildPaths, logger: Logge
       val contents = Files.readString(path)
       ReadSbtExportFile.parse(path, contents)
     }
-
     val files = generateBuild(
       bloopFiles,
       sbtExportFiles,
       hackDropBleepDependency = false,
       skipGeneratedResourcesScript = options.skipGeneratedResourcesScript,
-      Some(destinationPaths.bleepJsonFile).filter(Files.exists(_))
+      existingBuild
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 
     FileUtils.syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = false)
@@ -110,7 +116,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
       sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject],
       hackDropBleepDependency: Boolean,
       skipGeneratedResourcesScript: Boolean,
-      maybeExistingBleepJson: Option[Path]
+      maybeExistingBleepJson: Option[model.Build]
   ): Map[Path, String] = {
     val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
       importBloopFilesFromSbt.projectsWithSourceFilesByName(bloopFiles)
@@ -120,10 +126,9 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
     val build1 = Templates(normalizedBuild, options.ignoreWhenInferringTemplates)
 
     val build =
-      maybeExistingBleepJson.flatMap(x => model.parseBuild(Files.readString(x)).toOption) match {
-        case Some(existingBuild) =>
-          build1.copy(scripts = existingBuild.scripts)
-        case None => build1
+      maybeExistingBleepJson match {
+        case Some(existingBuild) => build1.copy(scripts = existingBuild.scripts)
+        case None                => build1
       }
 
     // complain if we have done illegal rewrites during templating
