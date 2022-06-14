@@ -59,9 +59,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
   def testIn(project: String, generatedResources: List[(RelPath, String)] = Nil): Assertion = {
     val sbtBuildDir = inFolder / project
-    val destinationPaths = BuildPaths.fromBuildDir(_cwd = Path.of("/tmp"), outFolder / project, BuildPaths.Mode.Normal)
+    val buildLoader = BuildLoader.inDirectory(outFolder / project)
+    val destinationPaths = BuildPaths(cwd = Path.of("/tmp"), buildLoader, BuildPaths.Mode.Normal)
     val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = generatedResources.isEmpty)
-    val importer = commands.Import(sbtBuildDir, destinationPaths, logger, importerOptions, model.Version("testing"))
+    val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.Version("testing"))
 
     generatedResources.foreach { case (relPath, content) =>
       val path = sbtBuildDir / relPath
@@ -112,7 +113,12 @@ class IntegrationSnapshotTests extends SnapshotTest {
     // write build files, and produce an (in-memory) exploded build plus new bloop files
     writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
 
-    val started = bootstrap.from(Prebootstrapped(destinationPaths, logger), GenBloopFiles.InMemory, rewrites = Nil, Lazy(BleepConfig.default)) match {
+    val started = bootstrap.from(
+      Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepJson)),
+      GenBloopFiles.InMemory,
+      rewrites = Nil,
+      Lazy(BleepConfig.default)
+    ) match {
       case Left(th)       => throw th
       case Right(started) => started
     }

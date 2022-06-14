@@ -1,18 +1,24 @@
 package bleep
 
-import bleep.BuildPaths.Mode
+import bleep.internal.Lazy
 import bleep.logging.Logger
 
-import java.nio.file.Path
+/** At this point we assert that we *have* a build. it's not necessarily loaded yet
+  */
+case class Prebootstrapped(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, existingBuild: BuildLoader.Existing) {
+  val build: Lazy[Either[BuildException, model.Build]] =
+    existingBuild.build
 
-case class Prebootstrapped(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths)
+  def fresh: Either[BuildException, Prebootstrapped] =
+    BuildLoader
+      .inDirectory(existingBuild.buildDirectory)
+      .existing
+      .map(newExisting => copy(existingBuild = newExisting))
+}
 
 object Prebootstrapped {
-  def find(cwd: Path, mode: Mode, logger: Logger): Either[BuildException, Prebootstrapped] =
-    BuildPaths.find(cwd, mode).map(buildPaths => apply(buildPaths, logger))
-
-  def apply(buildPaths: BuildPaths, logger: Logger): Prebootstrapped = {
+  def apply(buildPaths: BuildPaths, logger: Logger, existing: BuildLoader.Existing): Prebootstrapped = {
     val userPaths = UserPaths.fromAppDirs
-    Prebootstrapped(logger, userPaths, buildPaths)
+    Prebootstrapped(logger, userPaths, buildPaths, existing)
   }
 }

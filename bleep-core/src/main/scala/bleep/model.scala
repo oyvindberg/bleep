@@ -648,7 +648,4 @@ object model {
       )
     implicit val encodes: Encoder[Build] = deriveEncoder
   }
-
-  def parseBuild(json: String): Either[Error, Build] =
-    parser.decode[model.Build](json.linesIterator.filterNot(_.trim().startsWith("//")).mkString("\n"))
 }

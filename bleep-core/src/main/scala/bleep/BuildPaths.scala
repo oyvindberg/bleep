@@ -1,21 +1,22 @@
 package bleep
 
-import bleep.internal.{FileUtils, Replacements}
+import bleep.internal.Replacements
 
 import java.nio.file.Path
 
-trait BuildPaths {
-  val cwd: Path
-  val buildDir: Path
-
-  lazy val bleepJsonFile: Path = buildDir / constants.BuildFileName
+case class BuildPaths(cwd: Path, bleepJsonFile: Path, mode: BuildPaths.Mode) {
+  lazy val buildDir = bleepJsonFile.getParent
   lazy val bspBleepJsonFile: Path = buildDir / ".bsp" / "bleep.json"
   lazy val dotBleepDir: Path = buildDir / ".bleep"
   lazy val bleepImportDir: Path = dotBleepDir / "import"
   lazy val bleepImportBloopDir: Path = dotBleepDir / "import" / "bloop"
   lazy val bleepImportSbtExportDir: Path = dotBleepDir / "import" / "sbt-export"
   lazy val dotBleepBspModeDir: Path = dotBleepDir / "bsp"
-  def dotBleepModeDir: Path
+  lazy val dotBleepModeDir: Path = mode match {
+    case BuildPaths.Mode.Normal => dotBleepDir
+    case BuildPaths.Mode.BSP    => dotBleepBspModeDir
+  }
+
   lazy val bleepBloopDir: Path = dotBleepModeDir / ".bloop"
   lazy val digestFile: Path = bleepBloopDir / ".digest"
   lazy val logFile: Path = dotBleepModeDir / "last.log"
@@ -66,28 +67,6 @@ object BuildPaths {
     case object BSP extends Mode
   }
 
-  def find(cwd: Path, mode: Mode): Either[BuildException.BuildNotFound, BuildPaths] = {
-    // keep looking up until we find build file
-    def in(dir: Path): Option[Path] = {
-      val buildFile = dir / constants.BuildFileName
-      if (FileUtils.exists(buildFile)) Some(buildFile)
-      else Option(dir.getParent).flatMap(in)
-    }
-
-    in(cwd) match {
-      case Some(bleepJsonPath) => Right(fromBuildDir(cwd, bleepJsonPath.getParent, mode))
-      case None                => Left(new BuildException.BuildNotFound(cwd))
-    }
-  }
-
-  def fromBuildDir(_cwd: Path, _buildDir: Path, mode: Mode): BuildPaths =
-    new BuildPaths {
-      override val cwd = _cwd
-      override val buildDir = _buildDir
-
-      override lazy val dotBleepModeDir: Path = mode match {
-        case Mode.Normal => dotBleepDir
-        case Mode.BSP    => dotBleepBspModeDir
-      }
-    }
+  def apply(cwd: Path, buildLoader: BuildLoader, mode: BuildPaths.Mode): BuildPaths =
+    BuildPaths(cwd, buildLoader.bleepJson, mode)
 }

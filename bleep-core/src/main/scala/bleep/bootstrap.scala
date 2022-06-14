@@ -3,7 +3,6 @@ package bleep
 import bleep.BuildPaths.Mode
 import bleep.internal.{Lazy, Os}
 
-import java.nio.file.Files
 import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
@@ -11,10 +10,15 @@ import scala.util.{Failure, Success, Try}
 object bootstrap {
   def forScript(scriptName: String)(f: (Started, Commands) => Unit): Unit = {
     val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName), noColor = false)).untyped
+    val buildLoader = BuildLoader.find(Os.cwd)
+    val buildPaths = BuildPaths(Os.cwd, buildLoader, Mode.Normal)
+    val maybeStarted = for {
+      existingBuild <- buildLoader.existing
+      pre = Prebootstrapped(buildPaths, logger, existingBuild)
+      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfig.lazyForceLoad(pre.userPaths))
+    } yield started
 
-    Prebootstrapped.find(Os.cwd, Mode.Normal, logger).flatMap { pre =>
-      from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfig.lazyForceLoad(pre.userPaths))
-    } match {
+    maybeStarted match {
       case Left(buildException) =>
         BuildException.fatal("Couldn't initialize bleep", logger, buildException)
       case Right(started) =>
@@ -29,52 +33,48 @@ object bootstrap {
     val t0 = System.currentTimeMillis()
 
     try
-      model.parseBuild(Files.readString(pre.buildPaths.bleepJsonFile)) match {
-        case Left(th) => Left(new BuildException.InvalidJson(pre.buildPaths.bleepJsonFile, th))
-        case Right(build) =>
-          if (build.$version.value != BleepVersion.version) {
-            pre.logger.info(s"Build requested Bleep ${build.$version} and you're running it with ${BleepVersion.version}")
-          }
+      pre.build.forceGet.map { build =>
+        if (build.$version.value != BleepVersion.version) {
+          pre.logger.info(s"Build requested Bleep ${build.$version} and you're running it with ${BleepVersion.version}")
+        }
 
-          val lazyResolver = lazyConfig.map(bleepConfig =>
-            CoursierResolver(
-              build.resolvers.values,
-              pre.logger,
-              downloadSources = true,
-              pre.userPaths.cacheDir,
-              bleepConfig.authentications,
-              Some(build.$version)
-            )
+        val lazyResolver = lazyConfig.map(bleepConfig =>
+          CoursierResolver(
+            build.resolvers.values,
+            pre.logger,
+            downloadSources = true,
+            pre.userPaths.cacheDir,
+            bleepConfig.authentications,
+            Some(build.$version)
           )
-          val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
+        )
+        val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 
-          val activeProjects: List[model.CrossProjectName] =
-            if (pre.buildPaths.cwd == pre.buildPaths.buildDir) explodedBuild.projects.keys.toList
-            else
-              explodedBuild.projects.flatMap { case (crossProjectName, p) =>
-                val folder = pre.buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
-                if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
-                else None
-              }.toList
+        val activeProjects: List[model.CrossProjectName] =
+          if (pre.buildPaths.cwd == pre.buildPaths.buildDir) explodedBuild.projects.keys.toList
+          else
+            explodedBuild.projects.flatMap { case (crossProjectName, p) =>
+              val folder = pre.buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
+              if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
+              else None
+            }.toList
 
-          val bloopFiles: GenBloopFiles.Files =
-            genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild)
+        val bloopFiles: GenBloopFiles.Files =
+          genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild)
 
-          val td = System.currentTimeMillis() - t0
-          pre.logger.info(s"bootstrapped in $td ms")
+        val td = System.currentTimeMillis() - t0
+        pre.logger.info(s"bootstrapped in $td ms")
 
-          Right(
-            Started(
-              prebootstrapped = pre,
-              rewrites = rewrites,
-              build = explodedBuild,
-              bloopFiles = bloopFiles,
-              activeProjectsFromPath = activeProjects,
-              lazyConfig = lazyConfig,
-              resolver = lazyResolver,
-              executionContext = ExecutionContext.global
-            )
-          )
+        Started(
+          prebootstrapped = pre,
+          rewrites = rewrites,
+          build = explodedBuild,
+          bloopFiles = bloopFiles,
+          activeProjectsFromPath = activeProjects,
+          lazyConfig = lazyConfig,
+          resolver = lazyResolver,
+          executionContext = ExecutionContext.global
+        )
       }
     catch {
       case x: BuildException => Left(x)

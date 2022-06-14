@@ -31,9 +31,9 @@ object Main {
   }
 
   def noBuildOpts(logger: Logger, cwd: Path): Opts[BleepCommand] = {
-    val buildPaths = BuildPaths.fromBuildDir(cwd, cwd, Mode.Normal)
+    val buildLoader = BuildLoader.inDirectory(cwd)
+    val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
     val userPaths = UserPaths.fromAppDirs
-    val pre = Prebootstrapped(logger, userPaths, buildPaths)
     val resolver =
       BleepConfig
         .lazyForceLoad(userPaths)
@@ -42,8 +42,8 @@ object Main {
     List(
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
       setupIdeCmd(buildPaths, logger, None),
-      importCmd(buildPaths, logger),
-      compileServerCmd(pre, resolver)
+      importCmd(buildLoader, buildPaths, logger),
+      compileServerCmd(logger, userPaths, resolver)
     ).foldK
   }
 
@@ -116,8 +116,8 @@ object Main {
           Opts.subcommand("patch", "Apply patch from standard-in or file")(
             Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(started, file))
           ),
-          importCmd(started.buildPaths, started.logger),
-          compileServerCmd(started.prebootstrapped, started.resolver)
+          importCmd(started.prebootstrapped.existingBuild, started.buildPaths, started.logger),
+          compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths, started.resolver)
         ),
         started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
@@ -132,26 +132,30 @@ object Main {
     ret
   }
 
-  def compileServerCmd(pre: Prebootstrapped, lazyResolver: Lazy[CoursierResolver]): Opts[BleepCommand] =
+  def compileServerCmd(logger: Logger, userPaths: UserPaths, lazyResolver: Lazy[CoursierResolver]): Opts[BleepCommand] =
     Opts.subcommand(
       "compile-server",
       "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
     )(
       List(
         Opts.subcommand("start", "will start a shared bloop compile server and leave it running")(Opts {
-          commands.CompileServerStart(pre, lazyResolver)
+          commands.CompileServerStart(logger, userPaths, lazyResolver)
         }),
         Opts.subcommand("stop", "will stop a shared bloop compile server (if any) and will make bleep start temporary servers until you call start again")(
           Opts {
-            commands.CompileServerStop(pre, lazyResolver)
+            commands.CompileServerStop(logger, userPaths, lazyResolver)
           }
         )
       ).foldK
     )
 
-  def importCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
+  def importCmd(buildLoader: BuildLoader, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
-      commands.Import.opts.map(opts => commands.Import(sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.Version(BleepVersion.version)))
+      commands.Import.opts.map { opts =>
+        val existingBuild = buildLoader.existing.flatMap(_.build.forceGet).toOption
+
+        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.Version(BleepVersion.version))
+      }
     )
 
   def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Iterable[model.CrossProjectName]]]): Opts[BleepCommand] = {
@@ -197,18 +201,21 @@ object Main {
         // accept -d after completion point
         val (commonOpts, _) = CommonOpts.parse(compLine.split(" ").toList)
         val cwd = cwdFor(commonOpts)
-        // we can not log to stderr when completing. should be used sparingly
+        // we can not log to stdout when completing. logger should be used sparingly
         val logger = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn).untyped
+        val buildLoader = BuildLoader.find(cwd)
 
-        val completions = Prebootstrapped.find(cwd, Mode.Normal, logger) match {
-          case Left(_) =>
+        val completions = buildLoader match {
+          case BuildLoader.NonExisting(_) =>
             val completer = new Completer({
               case metavars.platformName => model.PlatformId.All.map(_.value)
               case metavars.scalaVersion => possibleScalaVersions.keys.toList
               case _                     => Nil
             })
             completer.completeOpts(restArgs)(noBuildOpts(logger, cwd))
-          case Right(pre) =>
+          case existing: BuildLoader.Existing =>
+            val pre = Prebootstrapped(BuildPaths(cwd, buildLoader, Mode.Normal), logger, existing)
+
             val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
 
             bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
@@ -235,10 +242,8 @@ object Main {
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
         val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
-        val buildPaths = BuildPaths.find(cwd, Mode.BSP) match {
-          case Left(th)     => fatal("Couldn't find build", stderr.untyped, th)
-          case Right(value) => value
-        }
+        val buildLoader = BuildLoader.find(cwd)
+        val buildPaths = BuildPaths(cwd, buildLoader, Mode.BSP)
 
         val logFileResource: TypedLoggerResource[BufferedWriter] =
           logging.path(buildPaths.logFile, LogPatterns.logFile)
@@ -247,9 +252,13 @@ object Main {
           logFileResource.map(logFile => logFile.flushing.zipWith(stderr)).untyped
 
         logResource.use { logger =>
-          try BspImpl.run(Prebootstrapped(buildPaths, logger))
-          catch {
-            case th: Throwable => fatal("uncaught error", logger, th)
+          buildLoader.existing.map(existing => Prebootstrapped(buildPaths, logger, existing)) match {
+            case Left(be) => fatal("", logger, be)
+            case Right(pre) =>
+              try BspImpl.run(pre)
+              catch {
+                case th: Throwable => fatal("uncaught error", logger, th)
+              }
           }
         }
 
@@ -261,12 +270,13 @@ object Main {
           val pattern = LogPatterns.interface(Instant.now, None, noColor = commonOpts.noColor)
           logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
         }
-
-        BuildPaths.find(cwd, Mode.Normal) match {
+        val buildLoader = BuildLoader.find(cwd)
+        val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
+        buildLoader.existing match {
           case Left(_) =>
             run(stdout.untyped, noBuildOpts(stdout.untyped, cwd), restArgs)
 
-          case Right(buildPaths) =>
+          case Right(existing) =>
             val loggerResource: LoggerResource = {
               // and to logfile, without any filtering
               val logFileResource: TypedLoggerResource[BufferedWriter] =
@@ -276,7 +286,7 @@ object Main {
             }
 
             loggerResource.use { logger =>
-              val pre = Prebootstrapped(buildPaths, logger)
+              val pre = Prebootstrapped(buildPaths, logger, existing)
               val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
               bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)

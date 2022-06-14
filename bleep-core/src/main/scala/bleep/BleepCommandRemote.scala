@@ -35,7 +35,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
     }
 
     val bloopRifleConfig: BloopRifleConfig =
-      SetupBloopRifle(started.jvmCommand, started.prebootstrapped, started.resolver, bleepConfig.compileServerMode)
+      SetupBloopRifle(started.jvmCommand, started.prebootstrapped.userPaths, started.resolver, bleepConfig.compileServerMode)
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
     val rifleLogger =
