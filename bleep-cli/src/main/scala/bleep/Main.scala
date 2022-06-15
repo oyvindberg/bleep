@@ -3,16 +3,18 @@ package bleep
 import bleep.BuildException.fatal
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.internal.{Lazy, Os, ProjectGlobs}
+import bleep.internal.{FetchBleepRelease, Lazy, Os, ProjectGlobs}
 import bleep.logging._
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._
 import com.monovore.decline._
+import coursier.jvm.{Execve, JvmIndex}
 
 import java.io.{BufferedWriter, PrintStream}
 import java.nio.file.{Path, Paths}
 import java.time.Instant
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object Main {
@@ -37,7 +39,7 @@ object Main {
     val resolver =
       BleepConfig
         .lazyForceLoad(userPaths)
-        .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.cacheDir, bleepConfig.authentications, None))
+        .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.coursierCacheDir, bleepConfig.authentications, None))
 
     List(
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
@@ -193,6 +195,31 @@ object Main {
       case None                             => Os.cwd
     }
 
+  def maybeRunWithDifferentVersion(args: Array[String], buildLoader: BuildLoader, logger: Logger): Unit =
+    buildLoader match {
+      case BuildLoader.NonExisting(_) => ()
+      case existing: BuildLoader.Existing =>
+        val maybeWantedVersion: Either[Exception, model.Version] =
+          existing.json.forceGet.flatMap(json => json.hcursor.downField("$version").as[model.Version])
+
+        maybeWantedVersion match {
+          case Right(wantedVersion) if BleepVersion.version == wantedVersion.value || wantedVersion == model.Version.dev => ()
+          case Right(wantedVersion) =>
+            logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepJson}")
+            FetchBleepRelease(wantedVersion, logger, ExecutionContext.global) match {
+              case Left(buildException) => fatal("", logger, buildException)
+              case Right(path) if JvmIndex.currentOs.contains("windows") =>
+                import scala.sys.process._
+                sys.exit((path.toString :: args.toList).!<)
+              case Right(path) =>
+                Execve.execve(path.toString, path.toString +: args, Array())
+                sys.error("should not be reached")
+            }
+          case Left(throwable) =>
+            fatal("Couldn't load build", logger, throwable)
+        }
+    }
+
   def main(_args: Array[String]): Unit =
     _args.toList match {
       case "_complete" :: compLine :: compCword :: compPoint :: _ =>
@@ -204,6 +231,8 @@ object Main {
         // we can not log to stdout when completing. logger should be used sparingly
         val logger = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn).untyped
         val buildLoader = BuildLoader.find(cwd)
+        val userPaths = UserPaths.fromAppDirs
+        maybeRunWithDifferentVersion(_args, buildLoader, logger)
 
         val completions = buildLoader match {
           case BuildLoader.NonExisting(_) =>
@@ -214,7 +243,7 @@ object Main {
             })
             completer.completeOpts(restArgs)(noBuildOpts(logger, cwd))
           case existing: BuildLoader.Existing =>
-            val pre = Prebootstrapped(BuildPaths(cwd, buildLoader, Mode.Normal), logger, existing)
+            val pre = Prebootstrapped(logger, userPaths, BuildPaths(cwd, buildLoader, Mode.Normal), existing)
 
             val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
 
@@ -243,6 +272,9 @@ object Main {
         val cwd = cwdFor(commonOpts)
         val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
         val buildLoader = BuildLoader.find(cwd)
+        val userPaths = UserPaths.fromAppDirs
+        maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped)
+
         val buildPaths = BuildPaths(cwd, buildLoader, Mode.BSP)
 
         val logFileResource: TypedLoggerResource[BufferedWriter] =
@@ -252,7 +284,7 @@ object Main {
           logFileResource.map(logFile => logFile.flushing.zipWith(stderr)).untyped
 
         logResource.use { logger =>
-          buildLoader.existing.map(existing => Prebootstrapped(buildPaths, logger, existing)) match {
+          buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing)) match {
             case Left(be) => fatal("", logger, be)
             case Right(pre) =>
               try BspImpl.run(pre)
@@ -262,8 +294,8 @@ object Main {
           }
         }
 
-      case _args =>
-        val (commonOpts, restArgs) = CommonOpts.parse(_args)
+      case args =>
+        val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
 
         val stdout: TypedLogger[PrintStream] = {
@@ -271,6 +303,9 @@ object Main {
           logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
         }
         val buildLoader = BuildLoader.find(cwd)
+        val userPaths = UserPaths.fromAppDirs
+        maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped)
+
         val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
         buildLoader.existing match {
           case Left(_) =>
@@ -286,7 +321,7 @@ object Main {
             }
 
             loggerResource.use { logger =>
-              val pre = Prebootstrapped(buildPaths, logger, existing)
+              val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
               val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
               bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)

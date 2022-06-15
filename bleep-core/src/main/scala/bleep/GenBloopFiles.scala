@@ -42,7 +42,7 @@ object GenBloopFiles {
     override def apply(logger: Logger, buildPaths: BuildPaths, lazyResolver: Lazy[CoursierResolver], explodedBuild: ExplodedBuild): GenBloopFiles.Files = {
       val currentHash = List(
         explodedBuild.build.$version,
-        explodedBuild.projects.toVector.sortBy(_._1),
+        explodedBuild.projects.toVector.sortBy(_._1)
       ).hashCode().toString
 
       val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption

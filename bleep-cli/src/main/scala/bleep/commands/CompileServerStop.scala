@@ -18,8 +18,8 @@ case class CompileServerStop(logger: Logger, userPaths: UserPaths, lazyResolver:
             logger.warn("Nothing to stop")
             bleepConfig
 
-          case status @ CompileServerMode.Shared =>
-            val rifleConfig = SetupBloopRifle(JvmCmd(logger, bleepConfig.compileServerJvm, ExecutionContext.global), userPaths, lazyResolver, status)
+          case mode @ CompileServerMode.Shared =>
+            val rifleConfig = SetupBloopRifle(JvmCmd(logger, bleepConfig.compileServerJvm, ExecutionContext.global), userPaths, lazyResolver, mode)
             val rifleLogger = new BloopLogger(logger)
             if (BloopRifle.check(rifleConfig, rifleLogger)) {
               BloopRifle.exit(rifleConfig, Path.of("/tmp"), rifleLogger)

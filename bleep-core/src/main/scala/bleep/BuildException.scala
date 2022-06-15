@@ -2,6 +2,7 @@ package bleep
 
 import bleep.internal.throwableMessages
 import bleep.logging.Logger
+import coursier.cache.ArtifactError
 import coursier.error.CoursierError
 
 import java.nio.file.Path
@@ -39,6 +40,11 @@ object BuildException {
       cause: CoursierError,
       context: String
   ) extends BuildException(s"Error resolving dependencies for $context", cause)
+
+  class ArtifactResolveError(
+      cause: ArtifactError,
+      context: String
+  ) extends BuildException(s"Error resolving artifact for $context", cause)
 
   object ResolveError {
     def apply(cause: CoursierError, project: model.CrossProjectName): ResolveError = new ResolveError(cause, s"project ${project.value}")
