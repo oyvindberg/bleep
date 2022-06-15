@@ -408,6 +408,9 @@
     }
   },
   "properties": {
+    "$version": {
+      "type": "string"
+    },
     "jvm": {
       "type": "object",
       "$ref": "#/$defs/Jvm"
@@ -426,6 +429,7 @@
     }
   },
   "required": [
+    "$version",
     "projects"
   ]
 }

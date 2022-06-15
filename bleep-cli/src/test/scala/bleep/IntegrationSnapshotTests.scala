@@ -17,9 +17,22 @@ class IntegrationSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
   val resolver: CoursierResolver = {
-    val sbtReleases = model.Repository.Ivy(None, URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string))
-    val cachePath = if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache" else UserPaths.fromAppDirs.cacheDir
-    CoursierResolver(List(sbtReleases), logger, downloadSources = false, cacheIn = cachePath, CoursierResolver.Authentications.empty, None)
+    val sbtReleases = model.Repository.Ivy(
+      name = None,
+      uri = URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string)
+    )
+    val cachePath =
+      if (isCi) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
+      else UserPaths.fromAppDirs.coursierCacheDir
+
+    CoursierResolver(
+      repos = List(sbtReleases),
+      logger = logger,
+      downloadSources = false,
+      cacheIn = cachePath,
+      authentications = CoursierResolver.Authentications.empty,
+      wantedBleepVersion = None
+    )
   }
 
   test("tapir") {

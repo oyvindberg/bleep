@@ -34,16 +34,12 @@ object bootstrap {
 
     try
       pre.build.forceGet.map { build =>
-        if (build.$version.value != BleepVersion.version) {
-          pre.logger.info(s"Build requested Bleep ${build.$version} and you're running it with ${BleepVersion.version}")
-        }
-
         val lazyResolver = lazyConfig.map(bleepConfig =>
           CoursierResolver(
             build.resolvers.values,
             pre.logger,
             downloadSources = true,
-            pre.userPaths.cacheDir,
+            pre.userPaths.coursierCacheDir,
             bleepConfig.authentications,
             Some(build.$version)
           )

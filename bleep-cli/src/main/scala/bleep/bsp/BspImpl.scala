@@ -46,7 +46,7 @@ object BspImpl {
             build.resolvers.values,
             pre.logger,
             downloadSources = false,
-            pre.userPaths.cacheDir,
+            pre.userPaths.coursierCacheDir,
             bleepConfig.authentications,
             Some(build.$version)
           )

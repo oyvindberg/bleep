@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.codecs._
-import bleep.internal.{FileUtils, dependencyOrdering}
+import bleep.internal.{dependencyOrdering, CoursierLogger, FileUtils}
 import bleep.logging.Logger
 import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
@@ -31,7 +31,7 @@ object CoursierResolver {
       authentications: CoursierResolver.Authentications,
       wantedBleepVersion: Option[model.Version]
   ): CoursierResolver = {
-    val direct = new Direct(repos, downloadSources, authentications)
+    val direct = new Direct(logger, repos, downloadSources, authentications)
     val cached = new Cached(logger, direct, cacheIn)
     new WithBleepVersion(cached, wantedBleepVersion)
   }
@@ -122,9 +122,9 @@ object CoursierResolver {
     // format: on
   }
 
-  private class Direct(val repos: List[model.Repository], downloadSources: Boolean, authentications: CoursierResolver.Authentications)
+  private class Direct(val logger: Logger, val repos: List[model.Repository], downloadSources: Boolean, authentications: CoursierResolver.Authentications)
       extends CoursierResolver {
-    val fileCache = FileCache[Task]()
+    val fileCache = FileCache[Task]().withLogger(new CoursierLogger(logger))
 
     override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
