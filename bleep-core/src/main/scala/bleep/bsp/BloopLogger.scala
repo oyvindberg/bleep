@@ -10,8 +10,8 @@ class BloopLogger(logger: Logger) extends BloopRifleLogger {
   override def info(msg: => String): Unit = logger.info(s"bloop: $msg")
   override def debug(msg: => String): Unit = logger.debug(s"bloop: $msg")
   override def error(msg: => String, ex: Throwable): Unit = logger.error(s"bloop: $msg")
-  override val bloopCliInheritStdout: Boolean = false
-  override val bloopCliInheritStderr: Boolean = false
+  override val bloopCliInheritStdout: Boolean = true
+  override val bloopCliInheritStderr: Boolean = true
   override def bloopBspStdout: Option[OutputStream] = Some(new BloopLogger.Log(debug(_)))
   override def bloopBspStderr: Option[OutputStream] = Some(new BloopLogger.Log(info(_)))
 }

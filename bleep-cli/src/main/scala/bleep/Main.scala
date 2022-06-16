@@ -211,10 +211,7 @@ object Main {
             FetchBleepRelease(wantedVersion, logger, ExecutionContext.global) match {
               case Left(buildException) =>
                 fatal("", logger, buildException)
-              case Right(path) if JvmIndex.currentOs.contains("windows") =>
-                // for linux/mac the `path` comes back pointing at the binary,
-                // while on windows it points to a directory which corresponds to the unzipped file
-                val binaryPath = path / "bleep.exe"
+              case Right(binaryPath) if JvmIndex.currentOs.contains("windows") =>
                 val status = scala.sys.process.Process(binaryPath.toString :: args.toList, Os.cwd.toFile, sys.env.toSeq: _*).!<
                 sys.exit(status)
               case Right(path) =>

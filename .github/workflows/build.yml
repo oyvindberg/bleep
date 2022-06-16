@@ -15,45 +15,26 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - uses: graalvm/setup-graalvm@v1
+      - uses: coursier/setup-action@v1.2.0-M3
         with:
-          version: '22.1.0'
-          java-version: '17'
-          components: 'native-image'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: coursier/setup-action@v1
-        with:
-          apps: sbt
+          apps: scalafmt
       - uses: coursier/cache-action@v6
-      - name: Scalafmt Check
-        if: ${{ matrix.os != 'windows-latest' }}
-        shell: bash
-        run: sbt --client scalafmtCheckAll
-      - name: "Test"
-        shell: bash
-        run: sbt --client "test"
-      - name: "Assembly"
-        shell: bash
-        run: sbt --client "bleep-cli/assembly"
-      - name: Temporarily save package
-        uses: actions/upload-artifact@v2
         with:
-          name: java-binary
-          path: |
-            ${{ github.workspace }}/bleep-cli/target/jvm-2.13/bleep-cli-assembly.jar
-          retention-days: 1
-      - name: Cleanup before cache
-        shell: bash
+          extraFiles: bleep.yaml
+
+      - name: Scalafmt Check
+        run: scalafmt -c .scalafmt.conf --check
+
+      - name: Install bleep stable
+        run: cs install --channel channel bleep:0.0.1-M7 --verbose
+
+      - name: Run tests
         run: |
-          rm -rf "$HOME/.ivy2/local" || true
-          find $HOME/Library/Caches/Coursier/v1        -name "ivydata-*.properties" -delete || true
-          find $HOME/.ivy2/cache                       -name "ivydata-*.properties" -delete || true
-          find $HOME/.cache/coursier/v1                -name "ivydata-*.properties" -delete || true
-          find $HOME/.sbt                              -name "*.lock"               -delete || true
+          bleep generate-resources
+          bleep test
 
   build-native-image:
     name: Native image build on ${{ matrix.os }}
-    needs: [ build ]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -61,76 +42,80 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            file_name: bleep-linux
-            artifact_name: linux-binary
+            file_name: bleep
+            artifact_name: bleep-x86_64-pc-linux
           - os: macos-latest
-            file_name: bleep-macos
-            artifact_name: macos-binary
+            file_name: bleep
+            artifact_name: bleep-x86_64-apple-darwin
           - os: windows-latest
-            file_name: bleep-windows
-            artifact_name: windows-binary
+            file_name: bleep.exe
+            artifact_name: bleep-x86_64-pc-win32
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - name: Download application package
-        uses: actions/download-artifact@v2
-        with:
-          name: java-binary
       - uses: graalvm/setup-graalvm@v1
         with:
           version: '22.1.0'
           java-version: '17'
           components: 'native-image'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: coursier/setup-action@v1.2.0-M3
+      - uses: coursier/cache-action@v6
+        with:
+          extraFiles: bleep.yaml
 
-      - name: Build native image on Linux
-        run: mkdir dist && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }} && chmod 755 dist/${{ matrix.file_name }}
-        if: runner.os == 'Linux'
+      - name: Install bleep stable
+        run: cs install --channel channel bleep:0.0.1-M7 --verbose
 
-      - name: Build native image on Mac OS X
-        run: mkdir dist && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }} && chmod 755 dist/${{ matrix.file_name }}
-        if: runner.os == 'macOS'
+      - name: Build native image (non-windows)
+        # todo: output should be parameter to native-image after next release
+        run: |
+          bleep generate-resources
+          bleep native-image
+          mv bleep-cli/target/native-image/bleep-cli ./${{ matrix.file_name }}
+        if: runner.os != 'Windows'
 
-      - name: Build native image on Windows
-        run: >-
-          mkdir dist && "C:\Program Files (x86)\Microsoft Visual
-          Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && native-image --native-image-info --verbose --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }}
-        if: runner.os == 'Windows'
+      - name: Test binary after build (non-windows)
+        run: ./${{ matrix.file_name }} --ignore-version-in-build-file test --no-color jvm213
+        if: runner.os != 'Windows'
 
-      - name: Test binary after build on Windows
+      - name: generate resources (windows)
+        # note: yaml multiline syntax doesn't seem to work (cmd only runs first command).
+        # that's why this is split in generate resources and build native image below
+        run: bleep generate-resources
+        # shell is important here. default is powershell and things do not work there
+        # see https://github.com/dirs-dev/directories-jvm/issues/49
         shell: cmd
-        run: |
-          .\dist\${{ matrix.file_name }}.exe --ignore-version-in-build-file generate-resources 
-          .\dist\${{ matrix.file_name }}.exe --ignore-version-in-build-file compile --no-color jvm213
         if: runner.os == 'Windows'
 
-      - name: Test binary after build on Linux
-        run: |
-          chmod 755 dist/${{ matrix.file_name }} 
-          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file generate-resources 
-          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
-        if: runner.os == 'Linux'
+      - name: Build native image (windows)
+        # todo: output should be parameter to native-image after next release
+        run: bleep native-image
+        shell: cmd
+        if: runner.os == 'Windows'
 
-      - name: Test binary after build on Macos
-        run: |
-          chmod 755 dist/${{ matrix.file_name }}
-          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file generate-resources
-          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
-        if: runner.os == 'macOS'
+      - name: Rename native image (windows)
+        run: move bleep-cli\target\native-image\bleep-cli.exe ${{ matrix.file_name }}
+        shell: cmd
+        if: runner.os == 'Windows'
+
+      - name: Test binary after build (windows)
+        shell: cmd
+        # todo: fix tests on windows
+        run: .\${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
+        if: runner.os == 'Windows'
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.artifact_name }}
-          path: |
-            dist/bleep-*
+          path: ${{ matrix.file_name }}
           retention-days: 1
 
   release:
     timeout-minutes: 15
     runs-on: ubuntu-latest
-    needs: [ build-native-image ]
+    needs: [ build, build-native-image ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - uses: actions/checkout@v2
@@ -144,20 +129,12 @@ jobs:
           path: artifacts
       - name: Display structure of downloaded files
         run: find artifacts
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          version: '22.1.0'
-          java-version: '17'
-          components: 'native-image'
-          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Release
         run: |
-          chmod +x ./artifacts/linux-binary/bleep-linux 
-          ./artifacts/linux-binary/bleep-linux generate-resources
-          ./artifacts/linux-binary/bleep-linux publish
+          chmod +x ./artifacts/bleep-x86_64-pc-linux/bleep 
+          ./artifacts/bleep-x86_64-pc-linux/bleep generate-resources
+          ./artifacts/bleep-x86_64-pc-linux/bleep publish
         env:
-          CI_RELEASE: ${{ secrets.CI_RELEASE }}
-          CI_SNAPSHOT_RELEASE: ${{ secrets.CI_SNAPSHOT_RELEASE }}
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
