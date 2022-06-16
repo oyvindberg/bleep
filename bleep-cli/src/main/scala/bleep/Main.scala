@@ -215,10 +215,10 @@ object Main {
                 // for linux/mac the `path` comes back pointing at the binary,
                 // while on windows it points to a directory which corresponds to the unzipped file
                 val binaryPath = path / "bleep.exe"
-                val status = scala.sys.process.Process(binaryPath.toString :: args.toList).!<
+                val status = scala.sys.process.Process(binaryPath.toString :: args.toList, Os.cwd.toFile, sys.env.toSeq: _*).!<
                 sys.exit(status)
               case Right(path) =>
-                Execve.execve(path.toString, path.toString +: args, Array())
+                Execve.execve(path.toString, path.toString +: args, sys.env.map { case (k, v) => s"$k=$v" }.toArray)
                 sys.error("should not be reached")
             }
           case Left(throwable) =>
