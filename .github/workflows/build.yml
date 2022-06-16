@@ -99,19 +99,23 @@ jobs:
 
       - name: Test binary after build on Windows
         shell: cmd
-        run: .\dist\${{ matrix.file_name }}.exe generate-resources && .\dist\${{ matrix.file_name }}.exe compile --no-color jvm213
+        run: |
+          .\dist\${{ matrix.file_name }}.exe --ignore-version-in-build-file generate-resources 
+          .\dist\${{ matrix.file_name }}.exe --ignore-version-in-build-file compile --no-color jvm213
         if: runner.os == 'Windows'
 
       - name: Test binary after build on Linux
         run: |
           chmod 755 dist/${{ matrix.file_name }} 
-          ./dist/${{ matrix.file_name }} generate-resources && ./dist/${{ matrix.file_name }} compile --no-color jvm213
+          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file generate-resources 
+          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
         if: runner.os == 'Linux'
 
       - name: Test binary after build on Macos
         run: |
           chmod 755 dist/${{ matrix.file_name }}
-          ./dist/${{ matrix.file_name }} generate-resources && ./dist/${{ matrix.file_name }} compile --no-color jvm213
+          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file generate-resources
+          ./dist/${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
         if: runner.os == 'macOS'
 
       - name: Temporarily save package

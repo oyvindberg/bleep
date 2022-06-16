@@ -195,7 +195,7 @@ object Main {
       case None                             => Os.cwd
     }
 
-  def maybeRunWithDifferentVersion(args: Array[String], buildLoader: BuildLoader, logger: Logger): Unit =
+  def maybeRunWithDifferentVersion(args: Array[String], buildLoader: BuildLoader, logger: Logger, opts: CommonOpts): Unit =
     buildLoader match {
       case BuildLoader.NonExisting(_) => ()
       case existing: BuildLoader.Existing =>
@@ -204,6 +204,8 @@ object Main {
 
         maybeWantedVersion match {
           case Right(wantedVersion) if BleepVersion.version == wantedVersion.value || wantedVersion == model.Version.dev => ()
+          case Right(wantedVersion) if opts.ignoreWantedVersion =>
+            logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepJson}) because you specified --ignore-version-in-build-file")
           case Right(wantedVersion) =>
             logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepJson}")
             FetchBleepRelease(wantedVersion, logger, ExecutionContext.global) match {
@@ -232,7 +234,7 @@ object Main {
         val logger = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn).untyped
         val buildLoader = BuildLoader.find(cwd)
         val userPaths = UserPaths.fromAppDirs
-        maybeRunWithDifferentVersion(_args, buildLoader, logger)
+        maybeRunWithDifferentVersion(_args, buildLoader, logger, commonOpts)
 
         val completions = buildLoader match {
           case BuildLoader.NonExisting(_) =>
@@ -273,7 +275,7 @@ object Main {
         val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
         val buildLoader = BuildLoader.find(cwd)
         val userPaths = UserPaths.fromAppDirs
-        maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped)
+        maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped, commonOpts)
 
         val buildPaths = BuildPaths(cwd, buildLoader, Mode.BSP)
 
@@ -304,7 +306,7 @@ object Main {
         }
         val buildLoader = BuildLoader.find(cwd)
         val userPaths = UserPaths.fromAppDirs
-        maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped)
+        maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)
 
         val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
         buildLoader.existing match {
