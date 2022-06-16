@@ -6,7 +6,6 @@ import java.net.URI
 import java.nio.file.Path
 
 object constants {
-  val version = "0.0.1-M3"
   val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json"
 
   private val ivyLocalUri =

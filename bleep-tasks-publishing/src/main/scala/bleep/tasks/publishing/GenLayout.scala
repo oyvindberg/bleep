@@ -1,6 +1,6 @@
 package bleep.tasks.publishing
 
-import bleep.{constants, ProjectPaths, RelPath}
+import bleep.{BleepVersion, ProjectPaths, RelPath}
 import coursier.core.{Configuration, Dependency, Info}
 
 import java.io._
@@ -47,7 +47,7 @@ object GenLayout {
   private def createManifest(): Manifest = {
     val m = new java.util.jar.Manifest()
     m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
-    m.getMainAttributes.putValue("Created-By", s"Bleep/${constants.version}")
+    m.getMainAttributes.putValue("Created-By", s"Bleep/${BleepVersion.version}")
     m
   }
 

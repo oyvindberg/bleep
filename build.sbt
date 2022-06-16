@@ -39,6 +39,7 @@ val commonSettings: Project => Project =
 
 lazy val `bleep-core` = projectMatrix
   .configure(commonSettings)
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     libraryDependencies ++= Seq(
       "com.lihaoyi" %% "fansi" % "0.3.1",
@@ -50,7 +51,10 @@ lazy val `bleep-core` = projectMatrix
       ("org.gnieh" %% "diffson-circe" % "4.1.1"),
       "ch.epfl.scala" %% "bloop-config" % "1.5.0" cross For3Use2_13(),
       "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.6"
-    )
+    ),
+    buildInfoObject := "BleepVersion",
+    buildInfoKeys := List(version),
+    buildInfoPackage := "bleep"
   )
   .jvmPlatform(scalaAll)
 
@@ -127,9 +131,9 @@ lazy val bleep = projectMatrix
   .jvmPlatform(List(scala213))
 
 lazy val scripts = projectMatrix
-  .dependsOn(bleep, `bleep-tasks-publishing`)
   .configure(commonSettings)
   .settings(
+    libraryDependencies ++= List("build.bleep" %% "bleep-tasks-publishing" % "0.0.1-M3"),
     publish / skip := true
   )
   .jvmPlatform(List(scala213))
