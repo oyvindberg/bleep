@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M4
+$version: 0.0.1-M6
 jvm:
   name: graalvm-java17:22.1.0
 projects:
@@ -81,7 +81,7 @@ projects:
     dependsOn: bleep-core
     extends: template-cross-jvm-212-213-main
   scripts:
-    dependencies: build.bleep::bleep-tasks-publishing:0.0.1-M4
+    dependencies: build.bleep::bleep-tasks-publishing:$BLEEP_VERSION
     extends:
     - template-common-main
     - template-scala-2.13
