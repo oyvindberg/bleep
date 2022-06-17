@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.commands.BuildCreateNew
-import bleep.internal.Lazy
+import bleep.internal.{FileUtils, Lazy}
 import bleep.logging.LogLevel
 import bleep.testing.SnapshotTest
 import cats.data.NonEmptyList
@@ -13,7 +13,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
   test("create-new-build") {
     val buildLoader = BuildLoader.inDirectory(outFolder / "create-new-build")
-    val buildPaths = BuildPaths(cwd = Path.of("/tmp"), buildLoader, BuildPaths.Mode.Normal)
+    val buildPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)
 
     val generatedProjectFiles: Map[Path, String] =
       BuildCreateNew(

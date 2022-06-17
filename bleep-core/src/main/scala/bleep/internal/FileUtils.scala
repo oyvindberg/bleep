@@ -8,6 +8,8 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
 object FileUtils {
+  lazy val TempDir = Path.of(System.getProperty("java.io.tmpdir"))
+
   sealed trait Synced
   object Synced {
     case object New extends Synced

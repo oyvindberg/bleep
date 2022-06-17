@@ -18,7 +18,7 @@ object SetupBloopRifle {
       .default(
         BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, mode)),
         bloopClassPath(resolver),
-        new File("/tmp")
+        FileUtils.TempDir.toFile
       )
       .copy(javaPath = jvm.toString)
 

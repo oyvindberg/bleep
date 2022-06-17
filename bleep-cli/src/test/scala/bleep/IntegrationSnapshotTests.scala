@@ -73,7 +73,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   def testIn(project: String, generatedResources: List[(RelPath, String)] = Nil): Assertion = {
     val sbtBuildDir = inFolder / project
     val buildLoader = BuildLoader.inDirectory(outFolder / project)
-    val destinationPaths = BuildPaths(cwd = Path.of("/tmp"), buildLoader, BuildPaths.Mode.Normal)
+    val destinationPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)
     val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = generatedResources.isEmpty)
     val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.Version("testing"))
 
