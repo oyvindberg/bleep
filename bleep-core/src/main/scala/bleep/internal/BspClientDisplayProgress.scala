@@ -33,6 +33,7 @@ class BspClientDisplayProgress(
     }
 
   val DisplayN = 4
+  var lastProgress = Option.empty[String]
   def render(): Unit =
     logger.progressMonitor.foreach { pm =>
       val byMostProgress = active.toList.sortBy(_._2.fold(0L)(-_.getProgress))
@@ -51,7 +52,13 @@ class BspClientDisplayProgress(
           Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
         .mkString("Compiling ", ", ", (if (rest.isEmpty) "" else s" +${rest.size}"))
-      pm.info(progress)
+      
+      // avoid duplicate lines. very visible on web-based terminals which don't erase lines
+      if (lastProgress.contains(progress)) ()
+      else {
+        lastProgress = Some(progress)
+        pm.info(progress)
+      }
     }
 
   def renderBuildTarget(buildTargetId: BuildTargetIdentifier): Str =
