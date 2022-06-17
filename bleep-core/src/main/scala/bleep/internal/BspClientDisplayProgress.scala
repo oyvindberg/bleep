@@ -52,7 +52,7 @@ class BspClientDisplayProgress(
           Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
         .mkString("Compiling ", ", ", (if (rest.isEmpty) "" else s" +${rest.size}"))
-      
+
       // avoid duplicate lines. very visible on web-based terminals which don't erase lines
       if (lastProgress.contains(progress)) ()
       else {

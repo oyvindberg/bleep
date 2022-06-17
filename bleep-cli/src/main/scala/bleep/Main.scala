@@ -339,7 +339,9 @@ object Main {
 
   def run(logger: Logger, opts: Opts[BleepCommand], restArgs: List[String]): Unit =
     Command("bleep", "Bleeping fast build!")(opts).parse(restArgs, sys.env) match {
-      case Left(help) => System.err.println(help)
+      case Left(help) =>
+        System.err.println(help)
+        System.exit(1)
       case Right(cmd) =>
         Try(cmd.run()) match {
           case Failure(th)       => fatal("command failed", logger, th)
