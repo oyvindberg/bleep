@@ -49,6 +49,7 @@ lazy val `bleep-core` = projectMatrix
       "io.circe" %% "circe-parser" % "0.14.2",
       "io.circe" %% "circe-generic" % "0.14.2",
       "io.circe" %% "circe-yaml" % "0.14.1",
+      "org.yaml" % "snakeyaml" % "1.30",
       ("org.gnieh" %% "diffson-circe" % "4.1.1"),
       "ch.epfl.scala" %% "bloop-config" % "1.5.0" cross For3Use2_13(),
       "org.virtuslab.scala-cli" %% "bloop-rifle" % "0.1.6"
