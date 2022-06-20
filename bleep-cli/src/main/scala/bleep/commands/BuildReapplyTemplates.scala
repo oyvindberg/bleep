@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{FileUtils, Templates, asYamlString}
+import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.rewrites.normalizeBuild
 
 case class BuildReapplyTemplates(started: Started) extends BleepCommand {
