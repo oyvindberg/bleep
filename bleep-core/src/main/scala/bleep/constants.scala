@@ -20,6 +20,7 @@ object constants {
   )
 
   val BuildFileName = "bleep.json"
+  val BuildFileNameYaml = "bleep.yaml"
 
   val ScalaPluginPrefix = "-Xplugin"
 }

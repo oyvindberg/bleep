@@ -45,6 +45,7 @@
         "io.circe::circe-core:0.14.2",
         "io.circe::circe-generic:0.14.2",
         "io.circe::circe-parser:0.14.2",
+        "io.circe::circe-yaml:0.14.1",
         {
           "exclusions" : {
             "org.scala-lang.modules" : "scala-collection-compat_2.13"
