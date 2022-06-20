@@ -31,9 +31,9 @@ object CommonOpts {
     var idx = 0
     while (idx < args.length) {
       args(idx) match {
-        case "--no-color"                 => noColor = true
-        case "--debug"                    => debug = true
-        case "--ignoreVersionInBuildFile" => ignoreVersionInBuildFile = true
+        case "--no-color"                     => noColor = true
+        case "--debug"                        => debug = true
+        case "--ignore-version-in-build-file" => ignoreVersionInBuildFile = true
         case "-d" | "--directory" if args.isDefinedAt(idx + 1) =>
           directory = Some(args(idx + 1))
           idx += 1
