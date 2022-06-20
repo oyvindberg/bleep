@@ -94,7 +94,7 @@ jobs:
       - name: Build native image on Windows
         run: >-
           mkdir dist && "C:\Program Files (x86)\Microsoft Visual
-          Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && native-image --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }}
+          Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat" && native-image --native-image-info --verbose --enable-url-protocols=https -jar bleep-*.jar dist/${{ matrix.file_name }}
         if: runner.os == 'Windows'
 
       - name: Test binary after build on Windows
