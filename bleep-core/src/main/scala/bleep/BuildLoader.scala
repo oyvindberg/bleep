@@ -49,10 +49,7 @@ object BuildLoader {
 
   def inDirectory(dir: Path): BuildLoader = {
     val file = dir / constants.BuildFileName
-    val fileYaml = dir / constants.BuildFileNameYaml
-    if (FileUtils.exists(fileYaml))
-      BuildLoader.Existing(fileYaml)
-    else if (FileUtils.exists(file))
+    if (FileUtils.exists(file))
       BuildLoader.Existing(file)
     else
       BuildLoader.NonExisting(file)

@@ -7,6 +7,7 @@ import diffson.jsonpatch.JsonPatch
 import io.circe.Json
 import io.circe.parser.decode
 import io.circe.syntax._
+import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.{Files, Path}
 import scala.io.Source
@@ -26,7 +27,7 @@ case class Patch(started: Started, file: Option[Path]) extends BleepCommand {
 
     applied match {
       case Left(th)     => Left(new BuildException.Cause(th, "Couldn't patch build"))
-      case Right(build) => Right(FileUtils.writeString(started.buildPaths.bleepJsonFile, build.asJson.spaces2))
+      case Right(build) => Right(FileUtils.writeString(started.buildPaths.bleepYamlFile, build.asJson.asYaml.spaces2))
     }
   }
 }

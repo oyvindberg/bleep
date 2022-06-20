@@ -12,7 +12,7 @@ object CommonOpts {
   val ignoreVersionInBuildFile: Opts[Boolean] = Opts
     .flag(
       "ignore-version-in-build-file",
-      "use the current bleep binary and don't launch the one specified in bleep.json"
+      "use the current bleep binary and don't launch the one specified in bleep.yaml"
     )
     .orFalse
 

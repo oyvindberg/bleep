@@ -3,6 +3,7 @@ package bleep
 import bleep.internal.Functions.stripExtends
 import bleep.internal.{rewriteDependentData, ShortenAndSortJson}
 import io.circe.syntax._
+import io.circe.yaml.syntax.AsYaml
 
 import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
@@ -85,8 +86,8 @@ object ExplodedBuild {
       (before.projects.get(projectName), after.projects.get(projectName)) match {
         case (Some(before), Some(after)) if after == before => ()
         case (Some(before), Some(after)) =>
-          val onlyInBefore = before.removeAll(after).asJson.foldWith(ShortenAndSortJson).spaces2
-          val onlyInAfter = Option(after.removeAll(before)).asJson.foldWith(ShortenAndSortJson).spaces2
+          val onlyInBefore = before.removeAll(after).asJson.foldWith(ShortenAndSortJson).asYaml.spaces2
+          val onlyInAfter = Option(after.removeAll(before)).asJson.foldWith(ShortenAndSortJson).asYaml.spaces2
           diffs += ((projectName, s"before: $onlyInBefore, after: $onlyInAfter"))
         case (Some(_), None) =>
           diffs += ((projectName, "was dropped"))

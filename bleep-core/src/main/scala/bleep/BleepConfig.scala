@@ -7,6 +7,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.jawn.decode
 import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
+import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.Files
 
@@ -27,14 +28,14 @@ object BleepConfig {
   implicit val encoder: Encoder[BleepConfig] = deriveEncoder
 
   def store(logger: Logger, userPaths: UserPaths, config: BleepConfig): Unit = {
-    FileUtils.writeString(userPaths.configJson, config.asJson.spaces2)
-    logger.withContext(userPaths.configJson).debug(s"wrote")
+    FileUtils.writeString(userPaths.configYaml, config.asJson.asYaml.spaces2)
+    logger.withContext(userPaths.configYaml).debug(s"wrote")
   }
 
   def load(userPaths: UserPaths): Either[BuildException, Option[BleepConfig]] =
-    if (FileUtils.exists(userPaths.configJson)) {
-      decode[BleepConfig](Files.readString(userPaths.configJson)) match {
-        case Left(e)       => Left(new BuildException.InvalidJson(userPaths.configJson, e))
+    if (FileUtils.exists(userPaths.configYaml)) {
+      decode[BleepConfig](Files.readString(userPaths.configYaml)) match {
+        case Left(e)       => Left(new BuildException.InvalidJson(userPaths.configYaml, e))
         case Right(config) => Right(Some(config))
       }
     } else Right(None)
