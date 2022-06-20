@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.FileUtils
+import bleep.internal.{asYamlString, FileUtils}
 import diffson.circe._
 import diffson.jsonpatch.JsonPatch
 import io.circe.Json
@@ -27,7 +27,7 @@ case class Patch(started: Started, file: Option[Path]) extends BleepCommand {
 
     applied match {
       case Left(th)     => Left(new BuildException.Cause(th, "Couldn't patch build"))
-      case Right(build) => Right(FileUtils.writeString(started.buildPaths.bleepYamlFile, build.asJson.asYaml.spaces2))
+      case Right(build) => Right(FileUtils.writeString(started.buildPaths.bleepYamlFile, asYamlString(build)))
     }
   }
 }

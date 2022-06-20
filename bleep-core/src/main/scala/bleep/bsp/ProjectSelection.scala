@@ -1,9 +1,7 @@
 package bleep.bsp
 
-import bleep.internal.FileUtils
+import bleep.internal.{FileUtils, asYamlString}
 import bleep.{BuildException, BuildPaths}
-import io.circe.syntax.EncoderOps
-import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.Files
 
@@ -11,7 +9,7 @@ object ProjectSelection {
   def store(buildPaths: BuildPaths, maybeSelectedProjectGlobs: Option[List[String]]): Unit =
     maybeSelectedProjectGlobs match {
       case Some(selectedProjectGlobs) =>
-        FileUtils.writeString(buildPaths.bspProjectSelectionYamlFile, selectedProjectGlobs.asJson.asYaml.spaces2)
+        FileUtils.writeString(buildPaths.bspProjectSelectionYamlFile, asYamlString(selectedProjectGlobs))
       case None =>
         Files.deleteIfExists(buildPaths.bspProjectSelectionYamlFile)
         ()

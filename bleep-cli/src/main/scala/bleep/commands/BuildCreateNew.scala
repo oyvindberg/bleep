@@ -3,11 +3,9 @@ package commands
 
 import bleep.SourceLayout.Normal
 import bleep.internal.FileUtils.DeleteUnknowns
-import bleep.internal.{FileUtils, ShortenAndSortJson, Templates}
+import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.logging.Logger
 import cats.data.NonEmptyList
-import io.circe.syntax._
-import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.{Files, Path}
 
@@ -59,7 +57,7 @@ case class BuildCreateNew(
     val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name, bleepVersion)
 
     val value = Map[Path, String](
-      buildPaths.bleepYamlFile -> build.asJson.foldWith(ShortenAndSortJson).asYaml.spaces2,
+      buildPaths.bleepYamlFile -> asYamlString(build),
       buildPaths.buildDir / exampleFiles.main.relPath -> exampleFiles.main.contents,
       buildPaths.buildDir / exampleFiles.test.relPath -> exampleFiles.test.contents
     )

@@ -1,6 +1,8 @@
 package bleep
 
 import coursier.Dependency
+import io.circe.Encoder
+import io.circe.syntax.EncoderOps
 
 package object internal {
 
@@ -39,4 +41,12 @@ package object internal {
 
   def throwableMessages(th: Throwable): List[String] =
     th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)
+
+  private val printer = new io.circe.yaml.Printer(
+    preserveOrder = true,
+    dropNullKeys = true
+  )
+
+  def asYamlString[T: Encoder](t: T): String =
+    printer.pretty(t.asJson.foldWith(ShortenAndSortJson))
 }

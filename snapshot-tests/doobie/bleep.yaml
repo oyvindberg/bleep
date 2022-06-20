@@ -1,25 +1,92 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: testing
 projects:
-  hikari:
-    dependsOn: core
+  bench:
     dependencies:
-    - exclusions:
-        org.slf4j: slf4j-api
-      module: com.zaxxer:HikariCP:4.0.3
-    - org.slf4j:slf4j-api:1.7.36
-    folder: ./../../snapshot-tests-in/doobie/modules/hikari
+    - org.openjdk.jmh:jmh-core:1.32
+    - org.openjdk.jmh:jmh-generator-bytecode:1.32
+    - org.openjdk.jmh:jmh-generator-reflection:1.32
+    dependsOn: postgres
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/bench
     scala:
       options: -Xfatal-warnings
+  core:
+    cross:
+      jvm212:
+        dependencies: com.chuusai::shapeless:2.3.7
+        sources: ./src/main/scala-2.13-
+      jvm213:
+        dependencies: com.chuusai::shapeless:2.3.7
+        sources: ./src/main/scala-${SCALA_BIN_VERSION}+
+      jvm3:
+        sources: ./src/main/scala-2.1${SCALA_BIN_VERSION}+
+    dependencies: org.tpolecat::typename:1.0.0
+    dependsOn: free
     extends: template-cross-jvm-212-213-main
-  refined-test:
+    folder: ./../../snapshot-tests-in/doobie/modules/core
+    scala:
+      options:
+      - -Xfatal-warnings
+      - -Yno-predef
+  core-test:
     dependencies:
     - com.h2database:h2:1.4.200
     - org.typelevel::munit-cats-effect-3:1.0.7
     - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: refined
+    dependsOn: core
     extends: template-cross-all-test
-    folder: ./../../snapshot-tests-in/doobie/modules/refined
+    folder: ./../../snapshot-tests-in/doobie/modules/core
+    scala:
+      options: -Yno-predef
+  example:
+    dependsOn:
+    - h2
+    - hikari
+    - postgres
+    - scalatest
+    - specs2
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/example
+    scala:
+      options: -Xfatal-warnings
+  example-test:
+    dependencies:
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: example
+    extends: template-cross-jvm-212-213-test
+    folder: ./../../snapshot-tests-in/doobie/modules/example
+  free:
+    cross:
+      jvm212:
+        dependencies: org.scala-lang:scala-reflect:2.12.15
+      jvm213:
+        dependencies: org.scala-lang:scala-reflect:2.13.8
+    dependencies:
+    - co.fs2::fs2-core:3.2.4
+    - org.scala-lang.modules::scala-collection-compat:2.6.0
+    - org.typelevel::cats-core:2.7.0
+    - org.typelevel::cats-effect:3.3.5
+    - org.typelevel::cats-free:2.7.0
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/free
+    scala:
+      options: -Yno-predef
+  h2:
+    dependencies: com.h2database:h2:1.4.200
+    dependsOn: core
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/h2
+  h2-circe:
+    dependencies:
+    - io.circe::circe-core:0.14.1
+    - io.circe::circe-parser:0.14.1
+    dependsOn: h2
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
+    scala:
+      options: -Xfatal-warnings
   h2-circe-test:
     dependencies:
     - org.typelevel::munit-cats-effect-3:1.0.7
@@ -27,22 +94,23 @@ projects:
     dependsOn: h2-circe
     extends: template-cross-all-test
     folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
-  refined:
+  h2-test:
+    dependsOn:
+    - core-test
+    - h2
+    extends: template-cross-all-test
+    folder: ./../../snapshot-tests-in/doobie/modules/h2
+  hikari:
+    dependencies:
+    - exclusions:
+        org.slf4j: slf4j-api
+      module: com.zaxxer:HikariCP:4.0.3
+    - org.slf4j:slf4j-api:1.7.36
+    dependsOn: core
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/hikari
     scala:
       options: -Xfatal-warnings
-    dependsOn: core
-    extends: template-cross-jvm-212-213-main
-    folder: ./../../snapshot-tests-in/doobie/modules/refined
-    dependencies: eu.timepit::refined:0.9.28
-  postgres:
-    dependencies:
-    - co.fs2::fs2-io:3.2.4
-    - configuration: provided
-      module: net.postgis:postgis-jdbc:2.5.1
-    - org.postgresql:postgresql:42.3.2
-    dependsOn: core
-    extends: template-cross-jvm-212-213-main
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres
   hikari-test:
     dependencies:
     - com.h2database:h2:1.4.200
@@ -54,6 +122,13 @@ projects:
     - postgres
     extends: template-cross-all-test
     folder: ./../../snapshot-tests-in/doobie/modules/hikari
+  munit:
+    dependencies: org.scalameta::munit:0.7.29
+    dependsOn: core
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/munit
+    scala:
+      options: -Xfatal-warnings
   munit-test:
     dependencies:
     - com.h2database:h2:1.4.200
@@ -62,18 +137,31 @@ projects:
     dependsOn: munit
     extends: template-cross-all-test
     folder: ./../../snapshot-tests-in/doobie/modules/munit
-  munit:
-    dependencies: org.scalameta::munit:0.7.29
-    extends: template-cross-jvm-212-213-main
+  postgres:
+    dependencies:
+    - co.fs2::fs2-io:3.2.4
+    - configuration: provided
+      module: net.postgis:postgis-jdbc:2.5.1
+    - org.postgresql:postgresql:42.3.2
     dependsOn: core
-    folder: ./../../snapshot-tests-in/doobie/modules/munit
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres
+  postgres-circe:
+    dependencies:
+    - io.circe::circe-core:0.14.1
+    - io.circe::circe-parser:0.14.1
+    dependsOn: postgres
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
     scala:
       options: -Xfatal-warnings
-  h2:
-    dependencies: com.h2database:h2:1.4.200
-    dependsOn: core
-    extends: template-cross-jvm-212-213-main
-    folder: ./../../snapshot-tests-in/doobie/modules/h2
+  postgres-circe-test:
+    dependencies:
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: postgres-circe
+    extends: template-cross-all-test
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
   postgres-test:
     dependencies:
       configuration: provided
@@ -83,57 +171,47 @@ projects:
     - postgres
     extends: template-cross-all-test
     folder: ./../../snapshot-tests-in/doobie/modules/postgres
-  example-test:
-    dependencies:
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: example
-    extends: template-cross-jvm-212-213-test
-    folder: ./../../snapshot-tests-in/doobie/modules/example
-  core:
+  refined:
+    dependencies: eu.timepit::refined:0.9.28
+    dependsOn: core
     extends: template-cross-jvm-212-213-main
-    cross:
-      jvm212:
-        dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/main/scala-${SCALA_BIN_VERSION}+
-      jvm3:
-        sources: ./src/main/scala-2.1${SCALA_BIN_VERSION}+
-    dependsOn: free
-    folder: ./../../snapshot-tests-in/doobie/modules/core
+    folder: ./../../snapshot-tests-in/doobie/modules/refined
     scala:
-      options:
-      - -Xfatal-warnings
-      - -Yno-predef
-    dependencies: org.tpolecat::typename:1.0.0
-  free:
-    folder: ./../../snapshot-tests-in/doobie/modules/free
-    scala:
-      options: -Yno-predef
-    cross:
-      jvm212:
-        dependencies: org.scala-lang:scala-reflect:2.12.15
-      jvm213:
-        dependencies: org.scala-lang:scala-reflect:2.13.8
-    extends: template-cross-jvm-212-213-main
-    dependencies:
-    - co.fs2::fs2-core:3.2.4
-    - org.scala-lang.modules::scala-collection-compat:2.6.0
-    - org.typelevel::cats-core:2.7.0
-    - org.typelevel::cats-effect:3.3.5
-    - org.typelevel::cats-free:2.7.0
-  core-test:
-    folder: ./../../snapshot-tests-in/doobie/modules/core
-    extends: template-cross-all-test
+      options: -Xfatal-warnings
+  refined-test:
     dependencies:
     - com.h2database:h2:1.4.200
     - org.typelevel::munit-cats-effect-3:1.0.7
     - org.typelevel::scalacheck-effect-munit:1.0.3
-    scala:
-      options: -Yno-predef
+    dependsOn: refined
+    extends: template-cross-all-test
+    folder: ./../../snapshot-tests-in/doobie/modules/refined
+  scalatest:
+    dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: core
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
+    scala:
+      options: -Xfatal-warnings
+  scalatest-test:
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: scalatest
+    extends: template-cross-all-test
+    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
+  specs2:
+    cross:
+      jvm212:
+        dependencies: org.specs2::specs2-core:4.13.2
+      jvm213:
+        dependencies: org.specs2::specs2-core:4.13.2
+    dependsOn: core
+    extends: template-cross-jvm-212-213-main
+    folder: ./../../snapshot-tests-in/doobie/modules/specs2
+    scala:
+      options: -Xfatal-warnings
   specs2-test:
     cross:
       jvm212:
@@ -149,84 +227,6 @@ projects:
     - specs2
     extends: template-cross-all-test
     folder: ./../../snapshot-tests-in/doobie/modules/specs2
-  scalatest-test:
-    dependencies:
-    - com.h2database:h2:1.4.200
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: scalatest
-    extends: template-cross-all-test
-    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
-  postgres-circe:
-    dependsOn: postgres
-    extends: template-cross-jvm-212-213-main
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
-    dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-parser:0.14.1
-    scala:
-      options: -Xfatal-warnings
-  h2-test:
-    dependsOn:
-    - core-test
-    - h2
-    extends: template-cross-all-test
-    folder: ./../../snapshot-tests-in/doobie/modules/h2
-  scalatest:
-    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
-    scala:
-      options: -Xfatal-warnings
-    dependsOn: core
-    extends: template-cross-jvm-212-213-main
-    dependencies: org.scalatest::scalatest:3.2.10
-  specs2:
-    folder: ./../../snapshot-tests-in/doobie/modules/specs2
-    dependsOn: core
-    cross:
-      jvm212:
-        dependencies: org.specs2::specs2-core:4.13.2
-      jvm213:
-        dependencies: org.specs2::specs2-core:4.13.2
-    extends: template-cross-jvm-212-213-main
-    scala:
-      options: -Xfatal-warnings
-  example:
-    dependsOn:
-    - h2
-    - hikari
-    - postgres
-    - scalatest
-    - specs2
-    extends: template-cross-jvm-212-213-main
-    folder: ./../../snapshot-tests-in/doobie/modules/example
-    scala:
-      options: -Xfatal-warnings
-  postgres-circe-test:
-    dependencies:
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: postgres-circe
-    extends: template-cross-all-test
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
-  bench:
-    extends: template-cross-jvm-212-213-main
-    folder: ./../../snapshot-tests-in/doobie/modules/bench
-    dependencies:
-    - org.openjdk.jmh:jmh-core:1.32
-    - org.openjdk.jmh:jmh-generator-bytecode:1.32
-    - org.openjdk.jmh:jmh-generator-reflection:1.32
-    dependsOn: postgres
-    scala:
-      options: -Xfatal-warnings
-  h2-circe:
-    extends: template-cross-jvm-212-213-main
-    dependsOn: h2
-    folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
-    dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-parser:0.14.1
-    scala:
-      options: -Xfatal-warnings
 templates:
   template-common:
     platform:
@@ -240,6 +240,34 @@ templates:
       - -language:higherKinds
       - -language:implicitConversions
       - -unchecked
+  template-common-main:
+    extends: template-common
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test
+  template-cross-all-test:
+    cross:
+      jvm3:
+        extends:
+        - template-common-test
+        - template-scala-3
+    extends: template-cross-jvm-212-213-test
+  template-cross-jvm-212-213-main:
+    cross:
+      jvm212:
+        extends:
+        - template-common-main
+        - template-scala-2.12
+      jvm213:
+        extends:
+        - template-common-main
+        - template-scala-2.13
+      jvm3:
+        extends:
+        - template-common-main
+        - template-scala-3
   template-cross-jvm-212-213-test:
     cross:
       jvm212:
@@ -291,43 +319,6 @@ templates:
       - -explaintypes
       - -language:existentials
       version: 2.12.15
-  template-common-main:
-    extends: template-common
-    sbt-scope: main
-  template-scala-3:
-    extends: template-common
-    scala:
-      options:
-      - -Ykind-projector
-      - -deprecation
-      - -explain
-      - -explain-types
-      version: 3.1.1
-  template-cross-jvm-212-213-main:
-    cross:
-      jvm212:
-        extends:
-        - template-common-main
-        - template-scala-2.12
-      jvm213:
-        extends:
-        - template-common-main
-        - template-scala-2.13
-      jvm3:
-        extends:
-        - template-common-main
-        - template-scala-3
-  template-common-test:
-    extends: template-common
-    isTestProject: true
-    sbt-scope: test
-  template-cross-all-test:
-    cross:
-      jvm3:
-        extends:
-        - template-common-test
-        - template-scala-3
-    extends: template-cross-jvm-212-213-test
   template-scala-2.13:
     extends: template-common
     scala:
@@ -368,3 +359,12 @@ templates:
       - -explaintypes
       - -language:existentials
       version: 2.13.8
+  template-scala-3:
+    extends: template-common
+    scala:
+      options:
+      - -Ykind-projector
+      - -deprecation
+      - -explain
+      - -explain-types
+      version: 3.1.1

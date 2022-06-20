@@ -1,10 +1,8 @@
 package bleep
 package commands
 
-import bleep.internal.{FileUtils, ShortenAndSortJson, Templates}
+import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.rewrites.normalizeBuild
-import io.circe.syntax._
-import io.circe.yaml.syntax.AsYaml
 
 case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
@@ -23,7 +21,7 @@ case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates:
 
     FileUtils.writeString(
       started.buildPaths.bleepYamlFile,
-      build.asJson.foldWith(ShortenAndSortJson).asYaml.spaces2
+      asYamlString(build)
     )
     Right(())
   }

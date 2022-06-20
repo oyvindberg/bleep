@@ -1,13 +1,11 @@
 package bleep
 
 import bleep.bsp.CompileServerMode
-import bleep.internal.{FileUtils, Lazy}
+import bleep.internal.{asYamlString, FileUtils, Lazy}
 import bleep.logging.Logger
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.jawn.decode
-import io.circe.syntax.EncoderOps
 import io.circe.{Decoder, Encoder}
-import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.Files
 
@@ -28,7 +26,7 @@ object BleepConfig {
   implicit val encoder: Encoder[BleepConfig] = deriveEncoder
 
   def store(logger: Logger, userPaths: UserPaths, config: BleepConfig): Unit = {
-    FileUtils.writeString(userPaths.configYaml, config.asJson.asYaml.spaces2)
+    FileUtils.writeString(userPaths.configYaml, asYamlString(config))
     logger.withContext(userPaths.configYaml).debug(s"wrote")
   }
 

@@ -8,8 +8,6 @@ import bleep.rewrites.normalizeBuild
 import bloop.config.Config
 import cats.syntax.apply._
 import com.monovore.decline.Opts
-import io.circe.syntax._
-import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
@@ -182,11 +180,11 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
 
         Map(
           scriptPath -> scriptSource,
-          destinationPaths.bleepYamlFile -> buildWithScript.asJson.foldWith(ShortenAndSortJson).asYaml.spaces2
+          destinationPaths.bleepYamlFile -> asYamlString(buildWithScript)
         )
       case None =>
         Map(
-          destinationPaths.bleepYamlFile -> build.asJson.foldWith(ShortenAndSortJson).asYaml.spaces2
+          destinationPaths.bleepYamlFile -> asYamlString(build)
         )
     }
   }
