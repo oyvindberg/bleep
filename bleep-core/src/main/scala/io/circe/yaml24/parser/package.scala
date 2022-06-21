@@ -2,7 +2,7 @@ package io.circe.yaml24
 
 import cats.syntax.either._
 import io.circe._
-import java.io.{ Reader, StringReader }
+import java.io.{Reader, StringReader}
 import java.util.Optional
 import org.snakeyaml.engine.v2.composer.Composer
 import org.snakeyaml.engine.v2.constructor.StandardConstructor
@@ -16,11 +16,10 @@ package object parser {
 
   val settings: LoadSettings = LoadSettings.builder.build
 
-  /**
-   * Parse YAML from the given [[Reader]], returning either [[ParsingFailure]] or [[Json]]
-   * @param yaml
-   * @return
-   */
+  /** Parse YAML from the given [[Reader]], returning either [[ParsingFailure]] or [[Json]]
+    * @param yaml
+    * @return
+    */
   def parse(yaml: Reader): Either[ParsingFailure, Json] = for {
     parsed <- parseSingle(yaml)
     json <- yamlToJson(parsed)

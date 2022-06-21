@@ -12,19 +12,19 @@ import java.io.StringWriter
 import scala.collection.JavaConverters._
 
 final case class Printer(
-  preserveOrder: Boolean = false,
-  dropNullKeys: Boolean = false,
-  indent: Int = 2,
-  maxScalarWidth: Int = 80,
-  splitLines: Boolean = true,
-  indicatorIndent: Int = 0,
-  tags: Map[String, String] = Map.empty,
-  sequenceStyle: FlowStyle = FlowStyle.Block,
-  mappingStyle: FlowStyle = FlowStyle.Block,
-  stringStyle: StringStyle = StringStyle.Plain,
-  lineBreak: LineBreak = LineBreak.Unix,
-  explicitStart: Boolean = false,
-  explicitEnd: Boolean = false
+    preserveOrder: Boolean = false,
+    dropNullKeys: Boolean = false,
+    indent: Int = 2,
+    maxScalarWidth: Int = 80,
+    splitLines: Boolean = true,
+    indicatorIndent: Int = 0,
+    tags: Map[String, String] = Map.empty,
+    sequenceStyle: FlowStyle = FlowStyle.Block,
+    mappingStyle: FlowStyle = FlowStyle.Block,
+    stringStyle: StringStyle = StringStyle.Plain,
+    lineBreak: LineBreak = LineBreak.Unix,
+    explicitStart: Boolean = false,
+    explicitEnd: Boolean = false
 ) {
 
   def pretty(json: Json): String = {

@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{FileUtils, asYamlString}
+import bleep.internal.{asYamlString, FileUtils}
 import diffson.circe._
 import diffson.jsonpatch.JsonPatch
 import io.circe.Json
