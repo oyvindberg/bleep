@@ -1,13 +1,11 @@
 package bleep
 package commands
 
-import bleep.internal.{asYamlString, FileUtils}
+import bleep.internal.{FileUtils, asYamlString}
 import diffson.circe._
 import diffson.jsonpatch.JsonPatch
 import io.circe.Json
 import io.circe.parser.decode
-import io.circe.syntax._
-import io.circe.yaml.syntax.AsYaml
 
 import java.nio.file.{Files, Path}
 import scala.io.Source

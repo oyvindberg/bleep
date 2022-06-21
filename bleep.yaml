@@ -43,7 +43,7 @@ projects:
       module: io.get-coursier::coursier:2.1.0-M6
     - org.gnieh::diffson-circe:4.1.1
     - org.virtuslab.scala-cli::bloop-rifle:0.1.8
-    - org.yaml:snakeyaml:1.30
+    - org.snakeyaml:snakeyaml-engine:2.3
     extends: template-cross-all
   bleep-tasks:
     dependsOn: bleep-core
