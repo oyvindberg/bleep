@@ -1,7 +1,8 @@
 package bleep
 
 import bleep.internal.{FileUtils, Lazy}
-import io.circe.{parser, Json}
+import io.circe.Json
+import io.circe.yaml12
 
 import java.nio.file.{Files, Path}
 import scala.util.control.NonFatal
@@ -30,10 +31,10 @@ object BuildLoader {
       str.map {
         case Left(be) => Left(be)
         case Right(jsonStr) =>
-          val dropComments = jsonStr.linesIterator.filterNot(_.trim().startsWith("//")).mkString("\n")
-          parser.parse(dropComments) match {
-            case Left(th)    => Left(new BuildException.InvalidJson(bleepJson, th))
-            case Right(json) => Right(json)
+          try
+            yaml12.parser.parse(jsonStr).left.map(th => new BuildException.InvalidJson(bleepJson, th))
+          catch {
+            case NonFatal(th) => Left(new BuildException.InvalidJson(bleepJson, th))
           }
       }
 
@@ -50,7 +51,10 @@ object BuildLoader {
 
   def inDirectory(dir: Path): BuildLoader = {
     val file = dir / constants.BuildFileName
-    if (FileUtils.exists(file)) BuildLoader.Existing(file) else BuildLoader.NonExisting(file)
+    if (FileUtils.exists(file))
+      BuildLoader.Existing(file)
+    else
+      BuildLoader.NonExisting(file)
   }
 
   def find(cwd: Path): BuildLoader = {

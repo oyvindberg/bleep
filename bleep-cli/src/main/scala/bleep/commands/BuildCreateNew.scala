@@ -3,10 +3,9 @@ package commands
 
 import bleep.SourceLayout.Normal
 import bleep.internal.FileUtils.DeleteUnknowns
-import bleep.internal.{FileUtils, ShortenAndSortJson, Templates}
+import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.logging.Logger
 import cats.data.NonEmptyList
-import io.circe.syntax._
 
 import java.nio.file.{Files, Path}
 
@@ -32,7 +31,7 @@ case class BuildCreateNew(
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
-    val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepJsonFile))
+    val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepYamlFile))
     val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
 
     bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) map { started =>
@@ -58,7 +57,7 @@ case class BuildCreateNew(
     val build = BuildCreateNew.genBuild(exampleFiles, platforms, scalas, name, bleepVersion)
 
     val value = Map[Path, String](
-      buildPaths.bleepJsonFile -> build.asJson.foldWith(ShortenAndSortJson).spaces2,
+      buildPaths.bleepYamlFile -> asYamlString(build),
       buildPaths.buildDir / exampleFiles.main.relPath -> exampleFiles.main.contents,
       buildPaths.buildDir / exampleFiles.test.relPath -> exampleFiles.test.contents
     )

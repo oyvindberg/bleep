@@ -19,7 +19,7 @@ object constants {
     model.Repository.Maven(None, URI.create(Repositories.central.root))
   )
 
-  val BuildFileName = "bleep.json"
+  val BuildFileName = "bleep.yaml"
 
   val ScalaPluginPrefix = "-Xplugin"
 }
