@@ -42,7 +42,7 @@ package object internal {
   def throwableMessages(th: Throwable): List[String] =
     th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)
 
-  private val printer = new io.circe.yaml24.Printer(
+  private val printer = new io.circe.yaml12.Printer(
     preserveOrder = true,
     dropNullKeys = true
   )

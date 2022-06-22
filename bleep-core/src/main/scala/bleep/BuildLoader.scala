@@ -2,7 +2,7 @@ package bleep
 
 import bleep.internal.{FileUtils, Lazy}
 import io.circe.Json
-import io.circe.yaml24
+import io.circe.yaml12
 
 import java.nio.file.{Files, Path}
 import scala.util.control.NonFatal
@@ -32,7 +32,7 @@ object BuildLoader {
         case Left(be) => Left(be)
         case Right(jsonStr) =>
           try
-            yaml24.parser.parse(jsonStr).left.map(th => new BuildException.InvalidJson(bleepJson, th))
+            yaml12.parser.parse(jsonStr).left.map(th => new BuildException.InvalidJson(bleepJson, th))
           catch {
             case NonFatal(th) => Left(new BuildException.InvalidJson(bleepJson, th))
           }

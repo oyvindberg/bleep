@@ -1,4 +1,4 @@
-package io.circe.yaml24
+package io.circe.yaml12
 
 import cats.syntax.either._
 import io.circe._

@@ -1,4 +1,4 @@
-package io.circe.yaml24
+package io.circe.yaml12
 
 import io.circe.Json
 
