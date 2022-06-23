@@ -4,7 +4,7 @@ import bleep.bsp.CompileServerMode
 import bleep.internal.{asYamlString, FileUtils, Lazy}
 import bleep.logging.Logger
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.jawn.decode
+import io.circe.yaml12.parser.decode
 import io.circe.{Decoder, Encoder}
 
 import java.nio.file.Files

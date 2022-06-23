@@ -36,7 +36,7 @@ Bleep uses coursier to enable you to write essentially portable Bloop json files
 
 Bleep is compiled with native image to be fast, it starts ~instantly.
 
-For an up to date example of what a bleep build file see [bleep.json in this repo](./bleep.json).
+For an up to date example of what a bleep build file see [bleep.yaml in this repo](./bleep.yaml).
 
 ## But what about X?
 

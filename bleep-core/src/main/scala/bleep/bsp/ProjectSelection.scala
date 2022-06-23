@@ -2,6 +2,7 @@ package bleep.bsp
 
 import bleep.internal.{asYamlString, FileUtils}
 import bleep.{BuildException, BuildPaths}
+import io.circe.yaml12.parser.decode
 
 import java.nio.file.Files
 
@@ -17,7 +18,7 @@ object ProjectSelection {
 
   def load(buildPaths: BuildPaths): Either[BuildException, Option[List[String]]] =
     if (FileUtils.exists(buildPaths.bspProjectSelectionYamlFile)) {
-      io.circe.parser.decode[List[String]](Files.readString(buildPaths.bspProjectSelectionYamlFile)) match {
+      decode[List[String]](Files.readString(buildPaths.bspProjectSelectionYamlFile)) match {
         case Left(err)       => Left(new BuildException.InvalidJson(buildPaths.bspProjectSelectionYamlFile, err))
         case Right(selected) => Right(Some(selected))
       }

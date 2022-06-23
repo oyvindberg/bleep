@@ -16,6 +16,12 @@ package object parser {
 
   val settings: LoadSettings = LoadSettings.builder.build
 
+  def decode[T: Decoder](yaml: String): Either[Error, T] =
+    for {
+      parsed <- parse(yaml)
+      decoded <- Decoder[T].decodeJson(parsed)
+    } yield decoded
+
   /** Parse YAML from the given [[Reader]], returning either [[ParsingFailure]] or [[Json]]
     * @param yaml
     * @return
