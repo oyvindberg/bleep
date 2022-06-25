@@ -109,8 +109,6 @@
       "version": "2.13.8",
       "options": [
         "-P:scalajs:mapSourceURI:file:<BLEEP_GIT>/snapshot-tests/http4s/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/",
-        "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/ember-client-test/js213/test-meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",

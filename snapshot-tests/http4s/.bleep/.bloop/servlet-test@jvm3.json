@@ -104,15 +104,12 @@
       "name": "scala3-compiler_3",
       "version": "3.1.1",
       "options": [
-        "-Xsemanticdb",
         "-Ykind-projector",
         "-deprecation",
         "-encoding",
         "UTF-8",
         "-feature",
         "-language:implicitConversions",
-        "-semanticdb-target",
-        "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/servlet-test/jvm3/test-meta",
         "-source:3.0-migration",
         "-unchecked"
       ],

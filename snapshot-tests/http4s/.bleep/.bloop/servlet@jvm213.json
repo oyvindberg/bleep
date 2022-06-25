@@ -49,8 +49,6 @@
       "name": "scala-compiler",
       "version": "2.13.8",
       "options": [
-        "-P:semanticdb:synthetics:on",
-        "-P:semanticdb:targetroot:<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/servlet/jvm213/meta",
         "-Wdead-code",
         "-Wextra-implicit",
         "-Wnumeric-widen",
