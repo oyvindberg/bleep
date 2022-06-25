@@ -358,7 +358,7 @@ object importBloopFilesFromSbt {
   }
 
   def translateJava(templateDirs: Replacements)(java: Config.Java): model.Java =
-    model.Java(options = Options.parse(java.options, Some(templateDirs)))
+    model.Java(options = parseOptionsDropSemanticDb(java.options, Some(templateDirs)))
 
   def translatePlatform(platform: Config.Platform, templateDirs: Replacements, resolution: Option[Config.Resolution]): model.Platform =
     platform match {
@@ -381,9 +381,11 @@ object importBloopFilesFromSbt {
         translatedPlatform
       case Config.Platform.Jvm(config, mainClass, runtimeConfig, classpath @ _, resources @ _) =>
         val translatedPlatform = model.Platform.Jvm(
-          jvmOptions = Options.parse(config.options, Some(templateDirs)),
+          jvmOptions = parseOptionsDropSemanticDb(config.options, Some(templateDirs)),
           mainClass,
-          jvmRuntimeOptions = runtimeConfig.map(rc => Options.parse(rc.options, Some(templateDirs))).getOrElse(Options.empty)
+          jvmRuntimeOptions = runtimeConfig
+            .map(rc => parseOptionsDropSemanticDb(rc.options, Some(templateDirs)))
+            .getOrElse(Options.empty)
         )
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
@@ -402,7 +404,7 @@ object importBloopFilesFromSbt {
       replacementsVersions: Replacements,
       scalaVersions: ScalaVersions
   )(s: Config.Scala): model.Scala = {
-    val options = Options.parse(s.options, Some(replacementsDirs))
+    val options = parseOptionsDropSemanticDb(s.options, Some(replacementsDirs))
 
     val notCompilerPlugins = options.values.filter {
       case Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => false
@@ -429,5 +431,12 @@ object importBloopFilesFromSbt {
       ),
       compilerPlugins = JsonSet.fromIterable(filteredCompilerPlugins)
     )
+  }
+
+  // semanticdb flags are added back when bleep is in IDE mode
+  def parseOptionsDropSemanticDb(strings: List[String], maybeRelativize: Option[Replacements]) = {
+    val opts = Options.parse(strings, maybeRelativize)
+    val filtered = opts.values.filterNot(_.render.mkString.contains("semanticdb"))
+    Options(filtered)
   }
 }

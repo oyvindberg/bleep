@@ -172,12 +172,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
         //        crossProjectName.value
         //      )
 
-        // scalacOptions are the same, modulo ordering, duplicates and target directory
+        // scalacOptions are the same, modulo ordering, duplicates, target directory and semanticdb
         def patchedOptions(project: Config.Project, targetDir: Path): List[String] = {
           val replacements = Replacements.targetDir(targetDir) ++
             Replacements.ofReplacements(List(("snapshot-tests-in", "snapshot-tests")))
           val original = project.scala.map(_.options).getOrElse(Nil)
-          original.map(replacements.templatize.string).sorted.distinct
+          bleep.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
+            case opt if opt.toString.contains("semanticdb") => Nil
+            case opt                                        => opt.render
+          }
         }
 
         val originalTargetDir = internal.findOriginalTargetDir.force(crossProjectName, input)
