@@ -40,7 +40,6 @@ object CoursierResolver {
 
   object Authentications {
     val empty: Authentications = Authentications(Map.empty)
-    private type Elem = Map[URI, Authentication]
 
     implicit val authenticationCodec: Codec[Authentication] =
       Codec.forProduct7[Authentication, Option[String], Option[String], Option[Map[String, String]], Option[Boolean], Option[String], Option[Boolean], Option[
@@ -69,7 +68,15 @@ object CoursierResolver {
     implicit val keyDecoder: KeyDecoder[URI] = KeyDecoder.decodeKeyString.map(URI.create)
 
     implicit val resolverConfigCodec: Codec[Authentications] =
-      Codec.from(Decoder[Elem], Encoder[Elem]).iemap(m => Right(Authentications(m)))(_.configs)
+      Codec
+        .from(Decoder[Option[Map[URI, Authentication]]], Encoder[Option[Map[URI, Authentication]]])
+        .iemap {
+          case None    => Right(empty)
+          case Some(m) => Right(Authentications(m))
+        } {
+          case auth if auth.configs.isEmpty => None
+          case auth                         => Some(auth.configs)
+        }
   }
 
   // this is a simplified version of the original `Fetch.Result` with a json codec
