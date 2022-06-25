@@ -350,7 +350,7 @@ projects:
     extends:
     - template-common-main
     - template-jvm
-    - template-scala-2.13-main
+    - template-scala-2.13
     folder: ./../../snapshot-tests-in/tapir/examples
   finatraServer:
     dependencies:
@@ -545,7 +545,7 @@ projects:
     extends:
     - template-common-main
     - template-jvm
-    - template-scala-2.12-main
+    - template-scala-2.12
     folder: ./../../snapshot-tests-in/tapir/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
@@ -565,7 +565,7 @@ projects:
     extends:
     - template-common-test
     - template-jvm
-    - template-scala-2.12-test
+    - template-scala-2.12
     folder: ./../../snapshot-tests-in/tapir/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
@@ -1008,12 +1008,10 @@ templates:
         extends:
         - template-common-main
         - template-js
-        - template-scala-2.12-main
       js213:
         extends:
         - template-common-main
         - template-js
-        - template-scala-2.13-main
     extends:
     - template-cross-jvm-212-213-main
     - template-cross-jvm-212-213-js-212-213
@@ -1023,12 +1021,10 @@ templates:
         extends:
         - template-common-test
         - template-js
-        - template-scala-2.12-test
       js213:
         extends:
         - template-common-test
         - template-js
-        - template-scala-2.13-test
     extends:
     - template-cross-jvm-212-213-test
     - template-cross-jvm-212-213-js-212-213
@@ -1038,36 +1034,34 @@ templates:
         extends:
         - template-common-main
         - template-jvm
-        - template-scala-2.12-main
+        - template-scala-2.12
       jvm213:
         extends:
         - template-common-main
         - template-jvm
-        - template-scala-2.13-main
+        - template-scala-2.13
   template-cross-jvm-212-213-test:
     cross:
       jvm212:
         extends:
         - template-common-test
         - template-jvm
-        - template-scala-2.12-test
+        - template-scala-2.12
       jvm213:
         extends:
         - template-common-test
         - template-jvm
-        - template-scala-2.13-test
+        - template-scala-2.13
   template-cross-jvm-all-js-212-213-main:
     cross:
       js212:
         extends:
         - template-common-main
         - template-js
-        - template-scala-2.12-main
       js213:
         extends:
         - template-common-main
         - template-js
-        - template-scala-2.13-main
     extends:
     - template-cross-jvm-all-main
     - template-cross-jvm-212-213-js-212-213
@@ -1078,13 +1072,11 @@ templates:
         extends:
         - template-common-test
         - template-js
-        - template-scala-2.12-test
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
         extends:
         - template-common-test
         - template-js
-        - template-scala-2.13-test
       js3:
         dependencies:
         - io.github.cquiroz::scala-java-time:2.3.0
@@ -1166,16 +1158,6 @@ templates:
       - -explaintypes
       - -language:existentials
       version: 2.12.15
-  template-scala-2.12-main:
-    extends:
-    - template-common-main
-    - template-scala-2.12
-    sources: ./src/main/scala-2.13-
-  template-scala-2.12-test:
-    extends:
-    - template-common-test
-    - template-scala-2.12
-    sources: ./src/test/scala-2.13-
   template-scala-2.13:
     extends: template-common
     scala:
@@ -1217,16 +1199,6 @@ templates:
       - -explaintypes
       - -language:existentials
       version: 2.13.6
-  template-scala-2.13-main:
-    extends:
-    - template-common-main
-    - template-scala-2.13
-    sources: ./src/main/scala-${SCALA_BIN_VERSION}+
-  template-scala-2.13-test:
-    extends:
-    - template-common-test
-    - template-scala-2.13
-    sources: ./src/test/scala-${SCALA_BIN_VERSION}+
   template-scala-3:
     extends: template-common
     scala:

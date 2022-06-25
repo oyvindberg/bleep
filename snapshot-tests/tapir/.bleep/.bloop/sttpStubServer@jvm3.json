@@ -7,6 +7,7 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/sttp-stub-server/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/sttp-stub-server/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/sttp-stub-server/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/sttp-stub-server/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/sttp-stub-server/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/sttp-stub-server/src/main/scalajvm-3",

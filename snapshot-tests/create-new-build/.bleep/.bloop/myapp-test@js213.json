@@ -9,7 +9,8 @@
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/java",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala-2",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/src/scala-2.13+"
     ],
     "dependencies": [
       "myapp@js213"

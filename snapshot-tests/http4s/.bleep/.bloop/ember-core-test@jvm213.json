@@ -9,9 +9,12 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/jvm/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/jvm/src/test/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/jvm/src/test/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/test/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-core/shared/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/ember-core-test@jvm213"
     ],
     "dependencies": [

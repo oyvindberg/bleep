@@ -8,6 +8,7 @@
       "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-sources/myapp@jvm3",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp/src/java",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp/src/scala",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp/src/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp/src/scala-3"
     ],
     "dependencies": [

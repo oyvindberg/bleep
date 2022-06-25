@@ -53,7 +53,8 @@ object SourceLayout {
             RelPath.force(s"src/$scope/scala"),
             RelPath.force(s"src/$scope/java"),
             RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}")
+            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
+            RelPath.force(s"src/$scope/scala-2.13${if (scalaVersion.binVersion >= "2.13") "+" else "-"}")
           )
         case None => JsonSet.empty
       }
@@ -65,56 +66,36 @@ object SourceLayout {
 
   case object CrossPure extends SourceLayout("cross-pure") {
     override def sources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
-      (maybeScalaVersion, maybePlatformId) match {
-        case (Some(scalaVersion), Some(platformId)) =>
-          val dotPlatform = "." + platformId.value
-          JsonSet(
-            RelPath.force(s"$dotPlatform/src/$scope/scala"),
-            RelPath.force(s"$dotPlatform/src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"$dotPlatform/src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"$dotPlatform/src/$scope/java"),
-            RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"src/$scope/scala")
-          )
+      maybePlatformId match {
+        case Some(platformId) =>
+          val fromNormal = Normal.sources(maybeScalaVersion, maybePlatformId, scope)
+          fromNormal ++ fromNormal.map(path => path.prefixed("." + platformId.value))
         case _ => JsonSet.empty
       }
 
     override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
       maybePlatformId match {
         case Some(platformId) =>
-          val dotPlatform = "." + platformId.value
-          JsonSet(
-            RelPath.force(s"$dotPlatform/src/$scope/resources"),
-            RelPath.force(s"src/$scope/resources")
-          )
+          val fromNormal = Normal.resources(maybeScalaVersion, maybePlatformId, scope)
+          fromNormal ++ fromNormal.map(path => path.prefixed("." + platformId.value))
         case _ => JsonSet.empty
       }
   }
 
   case object CrossFull extends SourceLayout("cross-full") {
     override def sources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
-      (maybeScalaVersion, maybePlatformId) match {
-        case (Some(scalaVersion), Some(platformId)) =>
-          JsonSet(
-            RelPath.force(s"${platformId.value}/src/$scope/scala"),
-            RelPath.force(s"${platformId.value}/src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"${platformId.value}/src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"${platformId.value}/src/$scope/java"),
-            RelPath.force(s"shared/src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"shared/src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"shared/src/$scope/scala")
-          )
+      maybePlatformId match {
+        case Some(platformId) =>
+          val fromNormal = Normal.sources(maybeScalaVersion, maybePlatformId, scope)
+          fromNormal.map(path => path.prefixed("shared")) ++ fromNormal.map(path => path.prefixed(platformId.value))
         case _ => JsonSet.empty
       }
 
     override def resources(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
       maybePlatformId match {
         case Some(platformId) =>
-          JsonSet(
-            RelPath.force(s"${platformId.value}/src/$scope/resources"),
-            RelPath.force(s"shared/src/$scope/resources")
-          )
+          val fromNormal = Normal.resources(maybeScalaVersion, maybePlatformId, scope)
+          fromNormal.map(path => path.prefixed("shared")) ++ fromNormal.map(path => path.prefixed(platformId.value))
         case _ => JsonSet.empty
       }
   }
@@ -142,5 +123,4 @@ object SourceLayout {
         RelPath.force(s"src/$scope/resources")
       )
   }
-
 }
