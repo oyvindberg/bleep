@@ -9,6 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/converter/import-scalajs-definitions/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/converter/import-scalajs-definitions/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/converter/import-scalajs-definitions/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests-in/converter/import-scalajs-definitions/src/main/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/import-scalajs-definitions"
     ],
     "dependencies": [

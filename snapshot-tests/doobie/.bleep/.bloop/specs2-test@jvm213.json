@@ -9,6 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/specs2/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/specs2/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/specs2/src/test/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/specs2/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/specs2-test@jvm213"
     ],
     "dependencies": [

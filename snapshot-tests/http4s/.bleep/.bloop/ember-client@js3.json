@@ -7,8 +7,11 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/js/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/js/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/js/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/js/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/shared/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/shared/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/ember-client/shared/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/ember-client@js3"
     ],

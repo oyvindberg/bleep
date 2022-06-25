@@ -15,12 +15,8 @@ projects:
     cross:
       jvm212:
         dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/main/scala-2.13-
       jvm213:
         dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/main/scala-${SCALA_BIN_VERSION}+
-      jvm3:
-        sources: ./src/main/scala-2.1${SCALA_BIN_VERSION}+
     dependencies: org.tpolecat::typename:1.0.0
     dependsOn: free
     extends: template-cross-jvm-212-213-main

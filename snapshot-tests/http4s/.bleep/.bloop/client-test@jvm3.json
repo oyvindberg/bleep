@@ -7,8 +7,11 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/client/jvm/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/client/jvm/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/client/jvm/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/client/jvm/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/client/shared/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/client/shared/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/client/shared/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/client/shared/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/client-test@jvm3"
     ],

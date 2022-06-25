@@ -9,6 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests-in/http4s/play-json/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/play-json@jvm213"
     ],
     "dependencies": [
