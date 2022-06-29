@@ -68,11 +68,9 @@ jobs:
         run: cs install --channel channel bleep:0.0.1-M7 --verbose
 
       - name: Build native image (non-windows)
-        # todo: output should be parameter to native-image after next release
         run: |
           bleep generate-resources
-          bleep native-image
-          mv bleep-cli/target/native-image/bleep-cli ./${{ matrix.file_name }}
+          bleep native-image ${{ matrix.file_name }}
         if: runner.os != 'Windows'
 
       - name: Test binary after build (non-windows)
@@ -89,13 +87,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Build native image (windows)
-        # todo: output should be parameter to native-image after next release
-        run: bleep native-image
-        shell: cmd
-        if: runner.os == 'Windows'
-
-      - name: Rename native image (windows)
-        run: move bleep-cli\target\native-image\bleep-cli.exe ${{ matrix.file_name }}
+        run: bleep native-image ${{ matrix.file_name }}
         shell: cmd
         if: runner.os == 'Windows'
 
