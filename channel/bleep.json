@@ -5,11 +5,13 @@
   "dependencies": [
     "build.bleep:bleep-cli_2.13:latest.release"
   ],
+  "mainClass": "bleep.Main",
   "launcherType": "graalvm-native-image",
   "prebuiltBinaries": {
     "x86_64-pc-linux": "tgz+https://github.com/oyvindberg/bleep/releases/download/v${version}/bleep-${platform}.tar.gz!bleep",
     "x86_64-pc-win32": "zip+https://github.com/oyvindberg/bleep/releases/download/v${version}/bleep-${platform}.zip!bleep.exe",
-    "x86_64-apple-darwin": "tgz+https://github.com/oyvindberg/bleep/releases/download/v${version}/bleep-${platform}.tar.gz!bleep"
+    "x86_64-apple-darwin": "tgz+https://github.com/oyvindberg/bleep/releases/download/v${version}/bleep-${platform}.tar.gz!bleep",
+    "arm64-apple-darwin": "tgz+https://github.com/oyvindberg/bleep/releases/download/v${version}/bleep-${platform}.tar.gz!bleep"
   },
   "versionOverrides": [
     {

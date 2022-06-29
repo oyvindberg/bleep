@@ -43,6 +43,7 @@ object FetchBleepRelease {
         case (Right("amd64"), Right("darwin")) if isOldLayout  => Right(s"$base/bleep-${wanted.value}-x86-64-apple-darwin.gz")
         case (Right("amd64"), Right("linux")) if isOldLayout   => Right(s"$base/bleep-${wanted.value}-x86-64-pc-linux.gz")
         case (Right("amd64"), Right("windows")) if isOldLayout => Right(s"$base/bleep-${wanted.value}-x86-64-pc-win32.zip")
+        case (Right("arm64"), Right("darwin"))                 => Right(s"$base/bleep-arm64-apple-darwin.tar.gz")
         case (Right("amd64"), Right("darwin"))                 => Right(s"$base/bleep-x86_64-apple-darwin.tar.gz")
         case (Right("amd64"), Right("linux"))                  => Right(s"$base/bleep-x86_64-pc-linux.tar.gz")
         case (Right("amd64"), Right("windows"))                => Right(s"$base/bleep-x86_64-pc-win32.zip")
