@@ -13,7 +13,7 @@ case class Compile(started: Started, projects: List[model.CrossProjectName]) ext
 
     result.getStatusCode match {
       case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
-      case other               => Left(new BspCommandFailed(s"compile", projects, other))
+      case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))
     }
   }
 }

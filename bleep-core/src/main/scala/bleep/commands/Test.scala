@@ -18,8 +18,8 @@ case class Test(started: Started, projects: List[model.CrossProjectName]) extend
       case bsp4j.StatusCode.OK =>
         started.logger.info("Tests succeeded")
         Right(())
-      case other =>
-        Left(new BspCommandFailed("tests", projects, other))
+      case errorCode =>
+        Left(new BspCommandFailed("tests", projects, BspCommandFailed.StatusCode(errorCode)))
     }
   }
 }
