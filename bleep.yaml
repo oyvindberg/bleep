@@ -81,12 +81,18 @@ projects:
     dependsOn: bleep-core
     extends: template-cross-jvm-212-213-main
   scripts:
+    dependsOn: bleep-tasks-publishing
+    extends:
+    - template-common-main
+    - template-scala-2.13
+  # use published tasks to generate version. for the rest we want to pick up breakage as early as possible
+  scripts-init:
     dependencies: build.bleep::bleep-tasks-publishing:$BLEEP_VERSION
     extends:
     - template-common-main
     - template-scala-2.13
 scripts:
-  generate-resources: scripts/bleep.scripts.GenerateResources
+  generate-resources: scripts-init/bleep.scripts.GenerateResources
   native-image: scripts/bleep.scripts.GenNativeImage
   publish: scripts/bleep.scripts.Publish
   publish-local: scripts/bleep.scripts.PublishLocal
