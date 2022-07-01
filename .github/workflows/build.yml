@@ -26,7 +26,7 @@ jobs:
         run: scalafmt -c .scalafmt.conf --check
 
       - name: Install bleep stable
-        run: cs install --channel channel bleep:0.0.1-M7 --verbose
+        run: cs install --channel channel bleep --verbose
 
       - name: Run tests
         run: |
@@ -65,7 +65,7 @@ jobs:
           extraFiles: bleep.yaml
 
       - name: Install bleep stable
-        run: cs install --channel channel bleep:0.0.1-M7 --verbose
+        run: cs install --channel channel bleep --verbose
 
       - name: Build native image (non-windows)
         run: |

@@ -15,8 +15,7 @@ object GenNativeImage {
         project,
         started.logger,
         nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"),
-        nativeImageJvm = "graalvm-java17",
-        nativeImageVersion = "22.1.0",
+        nativeImageJvm = started.rawBuild.jvm.getOrElse(model.Jvm.graalvm),
         nativeImageJvmIndex = index
       ) {
         override val nativeImageOutput = args.headOption match {
