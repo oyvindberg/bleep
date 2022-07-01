@@ -4,10 +4,12 @@ package commands
 import bleep.bsp.BspCommandFailed
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams, ScalaMainClassesResult}
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.util
 import scala.build.bloop.BloopServer
 import scala.jdk.CollectionConverters._
+import scala.util.{Failure, Success, Try}
 
 case class Run(
     started: Started,
@@ -30,13 +32,31 @@ case class Run(
     maybeMain.flatMap { main =>
       val params = new RunParams(buildTarget(started.buildPaths, project))
       val mainClass = new ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
+      mainClass.setEnvironmentVariables(Nil.asJava)
       params.setData(mainClass)
       params.setDataKind("scala-main-class")
       started.logger.debug(params.toString)
 
-      bloop.server.buildTargetRun(params).get().getStatusCode match {
-        case bsp4j.StatusCode.OK => Right(started.logger.info("Run succeeded"))
-        case other               => Left(new BspCommandFailed("Run", List(project), other))
+      def failed(reason: BspCommandFailed.Reason) =
+        Left(new BspCommandFailed("Run", List(project), reason))
+
+      Try(bloop.server.buildTargetRun(params).get().getStatusCode) match {
+        case Success(bsp4j.StatusCode.OK) => Right(started.logger.info("Run succeeded"))
+        case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
+        case Failure(exception) =>
+          def findResponseError(th: Throwable): Option[ResponseError] =
+            th match {
+              case x: java.util.concurrent.ExecutionException =>
+                findResponseError(x.getCause)
+              case x: org.eclipse.lsp4j.jsonrpc.ResponseErrorException =>
+                Option(x.getResponseError)
+              case _ => None
+            }
+
+          findResponseError(exception) match {
+            case Some(responseError) => failed(BspCommandFailed.FoundResponseError(responseError))
+            case None                => failed(BspCommandFailed.FailedWithException(exception))
+          }
       }
     }
   }
