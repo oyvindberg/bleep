@@ -26,7 +26,7 @@ jobs:
         run: scalafmt -c .scalafmt.conf --check
 
       - name: Install bleep stable
-        run: cs install --channel channel bleep --verbose
+        run: cs install --channel channel bleep:0.0.1-M7 --verbose
 
       - name: Run tests
         run: |
@@ -65,7 +65,7 @@ jobs:
           extraFiles: bleep.yaml
 
       - name: Install bleep stable
-        run: cs install --channel channel bleep --verbose
+        run: cs install --channel channel bleep:0.0.1-M7 --verbose
 
       - name: Build native image (non-windows)
         # todo: output should be parameter to native-image after next release
@@ -79,9 +79,9 @@ jobs:
         run: ./${{ matrix.file_name }} --ignore-version-in-build-file test --no-color jvm213
         if: runner.os != 'Windows'
 
+      - name: generate resources (windows)
         # note: yaml multiline syntax doesn't seem to work (cmd only runs first command).
         # that's why this is split in generate resources and build native image below
-      - name: generate resources (windows)
         run: bleep generate-resources
         # shell is important here. default is powershell and things do not work there
         # see https://github.com/dirs-dev/directories-jvm/issues/49
