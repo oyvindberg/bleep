@@ -10,13 +10,11 @@ object GenNativeImage {
       val project = started.bloopProjects(projectName)
       commands.compile(List(projectName))
 
-      val index = "https://raw.githubusercontent.com/coursier/jvm-index/master/index.json"
       val plugin = new NativeImagePlugin(
         project,
         started.logger,
         nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"),
-        nativeImageJvm = started.rawBuild.jvm.getOrElse(model.Jvm.graalvm),
-        nativeImageJvmIndex = index
+        nativeImageJvm = started.rawBuild.jvm.getOrElse(model.Jvm.graalvm)
       ) {
         override val nativeImageOutput = args.headOption match {
           case Some(value) =>
