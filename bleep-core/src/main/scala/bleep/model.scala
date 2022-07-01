@@ -600,6 +600,7 @@ object model {
 
   object Jvm {
     val System = Jvm(JavaHome.systemId, None)
+    val graalvm = Jvm("graalvm-java17:22.1.0", None)
     implicit val encodes: Encoder[Jvm] = deriveEncoder
     implicit val decodes: Decoder[Jvm] = deriveDecoder
   }

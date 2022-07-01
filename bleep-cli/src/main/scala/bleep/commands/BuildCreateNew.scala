@@ -177,7 +177,7 @@ object BuildCreateNew {
       }
 
     val explodedBuild = ExplodedBuild(
-      build = model.Build.empty(bleepVersion).copy(jvm = Some(model.Jvm("graalvm-java17:22.1.0", None))),
+      build = model.Build.empty(bleepVersion).copy(jvm = Some(model.Jvm.graalvm)),
       templates = Map.empty,
       projects = (mainProjects.toList ++ testProjects.toList).toMap
     )
