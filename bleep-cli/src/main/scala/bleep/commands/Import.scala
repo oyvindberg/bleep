@@ -65,9 +65,9 @@ case class Import(
       val contents = Files.readString(path)
       ReadSbtExportFile.parse(path, contents)
     }
+    val inputProjects = ImportInputProjects(bloopFiles, sbtExportFiles)
     val files = generateBuild(
-      bloopFiles,
-      sbtExportFiles,
+      inputProjects,
       hackDropBleepDependency = false,
       skipGeneratedResourcesScript = options.skipGeneratedResourcesScript,
       existingBuild
@@ -111,16 +111,13 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
     * @return
     */
   def generateBuild(
-      bloopFiles: Iterable[Config.File],
-      sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject],
+      inputProjects: ImportInputProjects,
       hackDropBleepDependency: Boolean,
       skipGeneratedResourcesScript: Boolean,
       maybeExistingBleepJson: Option[model.Build]
   ): Map[Path, String] = {
-    val bloopFilesByProjectName: Map[model.CrossProjectName, Config.File] =
-      importBloopFilesFromSbt.projectsWithSourceFilesByName(bloopFiles)
 
-    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, bloopFilesByProjectName, sbtExportFiles, bleepVersion)
+    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, inputProjects, bleepVersion)
     val normalizedBuild = normalizeBuild(build0)
 
     val build1 = Templates(logger, normalizedBuild, options.ignoreWhenInferringTemplates)
@@ -142,7 +139,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
     logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.value.size} projects")
 
     val generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]] =
-      if (skipGeneratedResourcesScript) Map.empty else findGeneratedFiles(bloopFilesByProjectName)
+      if (skipGeneratedResourcesScript) Map.empty else findGeneratedFiles(inputProjects)
 
     GeneratedFilesScript(generatedFiles) match {
       case Some((className, scriptSource)) =>

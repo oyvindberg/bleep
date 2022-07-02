@@ -1,0 +1,3140 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-finatra-server-cats-test@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/scalajvm-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/tapir-finatra-server-cats-test@jvm213"
+    ],
+    "dependencies": [
+      "tapir-cats@jvm213",
+      "tapir-core@jvm213",
+      "tapir-finatra-server-cats@jvm213",
+      "tapir-finatra-server-test@jvm213",
+      "tapir-finatra-server@jvm213",
+      "tapir-json-circe@jvm213",
+      "tapir-server-tests@jvm213",
+      "tapir-tests@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.2/fs2-core_2.13-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.2/fs2-io_2.13-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.13/3.2.2/fs2-reactive-streams_2.13-3.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.1/ip4s-core_2.13-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.11.2/jackson-annotations-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.11.2/jackson-databind-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-joda/2.11.2/jackson-datatype-joda-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.11.2/jackson-module-paranamer-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.11.2/jackson-module-scala_2.13-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.13/2.22.0/nscala-time_2.13-2.22.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/4.2.3/guice-assistedinject-4.2.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-multibindings/4.2.3/guice-multibindings-4.2.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.3/guice-4.2.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.13/2.3.2/tagging_2.13-2.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/cats_2.13/3.3.18/cats_2.13-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.13/3.3.18/core_2.13-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/fs2_2.13/3.3.18/fs2_2.13-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend-fs2_2.13/3.3.18/httpclient-backend-fs2_2.13-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend_2.13/3.3.18/httpclient-backend_2.13-3.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.13/1.2.7/fs2_2.13-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-base-http_2.13/21.2.0/finagle-base-http_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-core_2.13/21.2.0/finagle-core_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http2_2.13/21.2.0/finagle-http2_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http_2.13/21.2.0/finagle-http_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-init_2.13/21.2.0/finagle-init_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4-http_2.13/21.2.0/finagle-netty4-http_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4_2.13/21.2.0/finagle-netty4_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-toggle_2.13/21.2.0/finagle-toggle_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-tunable_2.13/21.2.0/finagle-tunable_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http-annotations_2.13/21.2.0/finatra-http-annotations_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0-tests.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-jackson_2.13/21.2.0/finatra-jackson_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-json-annotations_2.13/21.2.0/finatra-json-annotations_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-utils_2.13/21.2.0/finatra-utils_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-validation_2.13/21.2.0/finatra-validation_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-tests.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-tests.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-mdc_2.13/21.2.0/inject-mdc_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-tests.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-ports_2.13/21.2.0/inject-ports_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-tests.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-slf4j_2.13/21.2.0/inject-slf4j_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-stack_2.13/21.2.0/inject-stack_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-utils_2.13/21.2.0/inject-utils_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/twitter-server_2.13/21.2.0/twitter-server_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.13/21.2.0/util-app-lifecycle_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.13/21.2.0/util-app_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-cache_2.13/21.2.0/util-cache_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.13/21.2.0/util-codec_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.13/21.2.0/util-core_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.13/21.2.0/util-function_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-hashing_2.13/21.2.0/util-hashing_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.13/21.2.0/util-jvm_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-logging_2.13/21.2.0/util-logging_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-routing_2.13/21.2.0/util-routing_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-security_2.13/21.2.0/util-security_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-api_2.13/21.2.0/util-slf4j-api_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-jul-bridge_2.13/21.2.0/util-slf4j-jul-bridge_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.13/21.2.0/util-stats_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.13/21.2.0/util-tunable_2.13-21.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.13/3.9.4/scala-logging_2.13-3.9.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.4/commons-fileupload-1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.2/commons-io-2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.51.Final/netty-buffer-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.51.Final/netty-codec-http-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.51.Final/netty-codec-http2-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.51.Final/netty-codec-socks-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.51.Final/netty-codec-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.51.Final/netty-common-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.51.Final/netty-handler-proxy-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-aarch64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.8/joda-time-2.10.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/codingwell/scala-guice_2.13/4.2.11/scala-guice_2.13-4.2.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/thrift/libthrift/0.10.0/libthrift-0.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.11/HdrHistogram-2.1.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.13/3.6.7/json4s-ast_2.13-3.6.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.13/3.6.7/json4s-core_2.13-3.6.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.13/3.6.7/json4s-scalap_2.13-3.6.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams-flow-adapters/1.0.2/reactive-streams-flow-adapters-1.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.1.2/scala-collection-compat_2.13-2.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.6/scalap-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.10/scalatest-core_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.10/scalatest-diagrams_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.10/scalatest-featurespec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.10/scalatest-flatspec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.10/scalatest-freespec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.10/scalatest-funspec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.10/scalatest-funsuite_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.10/scalatest-matchers-core_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.10/scalatest-mustmatchers_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.10/scalatest-propspec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.10/scalatest-refspec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.10/scalatest-shouldmatchers_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.10/scalatest-wordspec_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.29/scodec-bits_2.13-1.1.29.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/log4j-over-slf4j/1.7.30/log4j-over-slf4j-1.7.30.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.0/cats-effect-kernel_2.13-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.0/cats-effect-std_2.13-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.0/cats-effect_2.13-3.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-cats/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server-cats/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server-test/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-json-circe/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-server-tests/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-tests/jvm213/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server-cats-test/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server-cats-test/jvm213/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-resources/tapir-finatra-server-cats-test@jvm213"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.6",
+      "options": [
+        "-Vimplicits",
+        "-Vtype-diffs",
+        "-Wconf:cat=other-match-analysis:error",
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xcheckinit",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.6/0.13.2/kind-projector_2.13.6-0.13.2.jar",
+        "-Ywarn-macros:after",
+        "-encoding",
+        "utf8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server-cats-test/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.typelevel",
+          "name": "literally_2.13",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "literally_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2.jar"
+            },
+            {
+              "name": "literally_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-lint_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-lint_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-lint_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.13/21.2.0/util-lint_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.13",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1.jar"
+            },
+            {
+              "name": "circe-parser_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_2.13",
+          "version": "3.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.0/cats-effect_2.13-3.3.0.jar"
+            },
+            {
+              "name": "cats-effect_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.0/cats-effect_2.13-3.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-logging",
+          "name": "commons-logging",
+          "version": "1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+            },
+            {
+              "name": "commons-logging",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "1.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar"
+            },
+            {
+              "name": "scala-xml_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.10/scalatest-funspec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-funspec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.13/3.2.10/scalatest-funspec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "twitter-server_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "twitter-server_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/twitter-server_2.13/21.2.0/twitter-server_2.13-21.2.0.jar"
+            },
+            {
+              "name": "twitter-server_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/twitter-server_2.13/21.2.0/twitter-server_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_2.13",
+          "version": "1.1.29",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scodec-bits_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.29/scodec-bits_2.13-1.1.29.jar"
+            },
+            {
+              "name": "scodec-bits_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.29/scodec-bits_2.13-1.1.29-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.10/scalatest-diagrams_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-diagrams_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.13/3.2.10/scalatest-diagrams_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-tunable_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-tunable_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-tunable_2.13/21.2.0/finagle-tunable_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-tunable_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-tunable_2.13/21.2.0/finagle-tunable_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-core_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-core_2.13",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "httpclient-backend_2.13",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpclient-backend_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend_2.13/3.3.18/httpclient-backend_2.13-3.3.18.jar"
+            },
+            {
+              "name": "httpclient-backend_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend_2.13/3.3.18/httpclient-backend_2.13-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-server_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-server_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-server_2.13",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-server_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finatra-utils_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finatra-utils_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-utils_2.13/21.2.0/finatra-utils_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finatra-utils_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-utils_2.13/21.2.0/finatra-utils_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-compatible",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-compatible",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-compatible",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finatra-http_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finatra-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finatra-http_2.13",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0-tests.jar"
+            },
+            {
+              "name": "finatra-http_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            },
+            {
+              "name": "jsr305",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_2.13",
+          "version": "3.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-io_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.2/fs2-io_2.13-3.2.2.jar"
+            },
+            {
+              "name": "fs2-io_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.2/fs2-io_2.13-3.2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-init_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-init_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-init_2.13/21.2.0/finagle-init_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-init_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-init_2.13/21.2.0/finagle-init_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-slf4j_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-slf4j_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-slf4j_2.13/21.2.0/inject-slf4j_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-slf4j_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-slf4j_2.13/21.2.0/inject-slf4j_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-ports_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-ports_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-ports_2.13/21.2.0/inject-ports_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-ports_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-ports_2.13/21.2.0/inject-ports_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.11.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.11.2/jackson-databind-2.11.2.jar"
+            },
+            {
+              "name": "jackson-databind",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.11.2/jackson-databind-2.11.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-logging_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-logging_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-logging_2.13/21.2.0/util-logging_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-logging_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-logging_2.13/21.2.0/util-logging_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-http_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http_2.13/21.2.0/finagle-http_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-http_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http_2.13/21.2.0/finagle-http_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "core_2.13",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.13/3.3.18/core_2.13-3.3.18.jar"
+            },
+            {
+              "name": "core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_2.13/3.3.18/core_2.13-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar"
+            },
+            {
+              "name": "jline",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "cats_2.13",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/cats_2.13/3.3.18/cats_2.13-3.3.18.jar"
+            },
+            {
+              "name": "cats_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/cats_2.13/3.3.18/cats_2.13-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-mdc_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-mdc_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-mdc_2.13/21.2.0/inject-mdc_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-mdc_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-mdc_2.13/21.2.0/inject-mdc_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar"
+            },
+            {
+              "name": "logback-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+            },
+            {
+              "name": "reactive-streams",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-core_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.13/21.2.0/util-core_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.13/21.2.0/util-core_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.51.Final/netty-codec-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-codec",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.51.Final/netty-codec-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar"
+            },
+            {
+              "name": "commons-codec",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.joda",
+          "name": "joda-convert",
+          "version": "2.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "joda-convert",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0.jar"
+            },
+            {
+              "name": "joda-convert",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-modules_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-modules_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-modules_2.13",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-modules_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-transport",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "fs2_2.13",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.13/1.2.7/fs2_2.13-1.2.7.jar"
+            },
+            {
+              "name": "fs2_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.13/1.2.7/fs2_2.13-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "27.1-jre",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar"
+            },
+            {
+              "name": "guava",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "log4j-over-slf4j",
+          "version": "1.7.30",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "log4j-over-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/log4j-over-slf4j/1.7.30/log4j-over-slf4j-1.7.30.jar"
+            },
+            {
+              "name": "log4j-over-slf4j",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/log4j-over-slf4j/1.7.30/log4j-over-slf4j-1.7.30-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-app-lifecycle_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-app-lifecycle_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.13/21.2.0/util-app-lifecycle_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-app-lifecycle_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.13/21.2.0/util-app-lifecycle_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar"
+            },
+            {
+              "name": "scala-compiler",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-resolver",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.1.2/scala-collection-compat_2.13-2.1.2.jar"
+            },
+            {
+              "name": "scala-collection-compat_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.1.2/scala-collection-compat_2.13-2.1.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.10/scalatest-flatspec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-flatspec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.13/3.2.10/scalatest-flatspec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "linux-aarch64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-aarch64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "linux-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.inject",
+          "name": "javax.inject",
+          "version": "1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "javax.inject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+            },
+            {
+              "name": "javax.inject",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject",
+          "name": "guice",
+          "version": "4.2.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guice",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.3/guice-4.2.3.jar"
+            },
+            {
+              "name": "guice",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.3/guice-4.2.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.11.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2.jar"
+            },
+            {
+              "name": "jackson-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-netty4_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-netty4_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4_2.13/21.2.0/finagle-netty4_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-netty4_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4_2.13/21.2.0/finagle-netty4_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-http2_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-http2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http2_2.13/21.2.0/finagle-http2_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-http2_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http2_2.13/21.2.0/finagle-http2_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scalap",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalap",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.6/scalap-2.13.6.jar"
+            },
+            {
+              "name": "scalap",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.6/scalap-2.13.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.51.Final/netty-codec-socks-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-codec-socks",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.51.Final/netty-codec-socks-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.4.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1.jar"
+            },
+            {
+              "name": "checker-qual",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.32",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
+            },
+            {
+              "name": "slf4j-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-app_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-app_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.13/21.2.0/util-app_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-app_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.13/21.2.0/util-app_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-stats_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-stats_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.13/21.2.0/util-stats_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-stats_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.13/21.2.0/util-stats_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalactic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalactic_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.13/3.2.10/scalactic_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.scala-logging",
+          "name": "scala-logging_2.13",
+          "version": "3.9.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-logging_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.13/3.9.4/scala-logging_2.13-3.9.4.jar"
+            },
+            {
+              "name": "scala-logging_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.13/3.9.4/scala-logging_2.13-3.9.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-netty4-http_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-netty4-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4-http_2.13/21.2.0/finagle-netty4-http_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-netty4-http_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4-http_2.13/21.2.0/finagle-netty4-http_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.json4s",
+          "name": "json4s-scalap_2.13",
+          "version": "3.6.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "json4s-scalap_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.13/3.6.7/json4s-scalap_2.13-3.6.7.jar"
+            },
+            {
+              "name": "json4s-scalap_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.13/3.6.7/json4s-scalap_2.13-3.6.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar"
+            },
+            {
+              "name": "cats-kernel_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"
+            },
+            {
+              "name": "scala-reflect",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-routing_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-routing_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-routing_2.13/21.2.0/util-routing_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-routing_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-routing_2.13/21.2.0/util-routing_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-codec_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-codec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.13/21.2.0/util-codec_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-codec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.13/21.2.0/util-codec_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.13",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar"
+            },
+            {
+              "name": "cats-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finatra-validation_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finatra-validation_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-validation_2.13/21.2.0/finatra-validation_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finatra-validation_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-validation_2.13/21.2.0/finatra-validation_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.servlet",
+          "name": "servlet-api",
+          "version": "2.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "servlet-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"
+            },
+            {
+              "name": "servlet-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-transport-native-unix-common",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.11.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.11.2/jackson-annotations-2.11.2.jar"
+            },
+            {
+              "name": "jackson-annotations",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.11.2/jackson-annotations-2.11.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-utils_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-utils_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-utils_2.13/21.2.0/inject-utils_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-utils_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-utils_2.13/21.2.0/inject-utils_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finatra-http-annotations_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finatra-http-annotations_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http-annotations_2.13/21.2.0/finatra-http-annotations_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finatra-http-annotations_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http-annotations_2.13/21.2.0/finatra-http-annotations_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finatra-jackson_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finatra-jackson_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-jackson_2.13/21.2.0/finatra-jackson_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finatra-jackson_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-jackson_2.13/21.2.0/finatra-jackson_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.nscala-time",
+          "name": "nscala-time_2.13",
+          "version": "2.22.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "nscala-time_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.13/2.22.0/nscala-time_2.13-2.22.0.jar"
+            },
+            {
+              "name": "nscala-time_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.13/2.22.0/nscala-time_2.13-2.22.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-jvm_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-jvm_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.13/21.2.0/util-jvm_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-jvm_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.13/21.2.0/util-jvm_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.10/scalatest-refspec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-refspec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.13/3.2.10/scalatest-refspec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-fileupload",
+          "name": "commons-fileupload",
+          "version": "1.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-fileupload",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.4/commons-fileupload-1.4.jar"
+            },
+            {
+              "name": "commons-fileupload",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.4/commons-fileupload-1.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar"
+            },
+            {
+              "name": "logback-classic",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "httpclient-backend-fs2_2.13",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpclient-backend-fs2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend-fs2_2.13/3.3.18/httpclient-backend-fs2_2.13-3.3.18.jar"
+            },
+            {
+              "name": "httpclient-backend-fs2_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/httpclient-backend-fs2_2.13/3.3.18/httpclient-backend-fs2_2.13-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.2/commons-io-2.2.jar"
+            },
+            {
+              "name": "commons-io",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.2/commons-io-2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finatra-json-annotations_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finatra-json-annotations_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-json-annotations_2.13/21.2.0/finatra-json-annotations_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finatra-json-annotations_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-json-annotations_2.13/21.2.0/finatra-json-annotations_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.10/scalatest-featurespec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-featurespec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.13/3.2.10/scalatest-featurespec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.client3",
+          "name": "fs2_2.13",
+          "version": "3.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/fs2_2.13/3.3.18/fs2_2.13-3.3.18.jar"
+            },
+            {
+              "name": "fs2_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/fs2_2.13/3.3.18/fs2_2.13-3.3.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.51.Final/netty-handler-proxy-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-handler-proxy",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.51.Final/netty-handler-proxy-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_2.13",
+          "version": "3.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.0/cats-effect-std_2.13-3.3.0.jar"
+            },
+            {
+              "name": "cats-effect-std_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.0/cats-effect-std_2.13-3.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-tunable_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-tunable_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.13/21.2.0/util-tunable_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-tunable_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.13/21.2.0/util-tunable_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.ben-manes.caffeine",
+          "name": "caffeine",
+          "version": "2.8.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "caffeine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar"
+            },
+            {
+              "name": "caffeine",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-slf4j-jul-bridge_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-slf4j-jul-bridge_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-jul-bridge_2.13/21.2.0/util-slf4j-jul-bridge_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-slf4j-jul-bridge_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-jul-bridge_2.13/21.2.0/util-slf4j-jul-bridge_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar"
+            },
+            {
+              "name": "core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.5.13",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar"
+            },
+            {
+              "name": "httpclient",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.json4s",
+          "name": "json4s-core_2.13",
+          "version": "3.6.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "json4s-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.13/3.6.7/json4s-core_2.13-3.6.7.jar"
+            },
+            {
+              "name": "json4s-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.13/3.6.7/json4s-core_2.13-3.6.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.10/scalatest-propspec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-propspec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.13/3.2.10/scalatest-propspec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-tcnative-boringssl-static",
+          "version": "2.0.34.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final.jar"
+            },
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.10/scalatest-wordspec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-wordspec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.10/scalatest-wordspec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-handler",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.10/scalatest-freespec_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-freespec_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.13/3.2.10/scalatest-freespec_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-stack_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-stack_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-stack_2.13/21.2.0/inject-stack_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-stack_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-stack_2.13/21.2.0/inject-stack_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.13",
+          "version": "1.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar"
+            },
+            {
+              "name": "scala-parser-combinators_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.51.Final/netty-buffer-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-buffer",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.51.Final/netty-buffer-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.10/scalatest-matchers-core_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-matchers-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.13/3.2.10/scalatest-matchers-core_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            },
+            {
+              "name": "hamcrest-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-registry_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-registry_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-registry_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.13/21.2.0/util-registry_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.common",
+          "name": "tagging_2.13",
+          "version": "2.3.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "tagging_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.13/2.3.2/tagging_2.13-2.3.2.jar"
+            },
+            {
+              "name": "tagging_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.13/2.3.2/tagging_2.13-2.3.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-function_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-function_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.13/21.2.0/util-function_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-function_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.13/21.2.0/util-function_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_2.13",
+          "version": "3.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.0/cats-effect-kernel_2.13-3.3.0.jar"
+            },
+            {
+              "name": "cats-effect-kernel_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.0/cats-effect-kernel_2.13-3.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.10/scalatest-funsuite_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-funsuite_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.13/3.2.10/scalatest-funsuite_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.activation",
+          "name": "activation",
+          "version": "1.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "activation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar"
+            },
+            {
+              "name": "activation",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.12",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar"
+            },
+            {
+              "name": "junit",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-paranamer",
+          "version": "2.11.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-module-paranamer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.11.2/jackson-module-paranamer-2.11.2.jar"
+            },
+            {
+              "name": "jackson-module-paranamer",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.11.2/jackson-module-paranamer-2.11.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "inject-app_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "inject-app_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0.jar"
+            },
+            {
+              "name": "inject-app_2.13",
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-tests.jar"
+            },
+            {
+              "name": "inject-app_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.51.Final/netty-common-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-common",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.51.Final/netty-common-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.13",
+          "version": "1.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2.jar"
+            },
+            {
+              "name": "jawn-parser_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jul-to-slf4j",
+          "version": "1.7.30",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jul-to-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30.jar"
+            },
+            {
+              "name": "jul-to-slf4j",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-slf4j-api_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-slf4j-api_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-api_2.13/21.2.0/util-slf4j-api_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-slf4j-api_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-api_2.13/21.2.0/util-slf4j-api_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.13",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1.jar"
+            },
+            {
+              "name": "circe-generic_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject.extensions",
+          "name": "guice-multibindings",
+          "version": "4.2.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guice-multibindings",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-multibindings/4.2.3/guice-multibindings-4.2.3.jar"
+            },
+            {
+              "name": "guice-multibindings",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-multibindings/4.2.3/guice-multibindings-4.2.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.1.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.11/HdrHistogram-2.1.11.jar"
+            },
+            {
+              "name": "HdrHistogram",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.11/HdrHistogram-2.1.11-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.3.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+            },
+            {
+              "name": "jna",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.10/scalatest-core_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.13/3.2.10/scalatest-core_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-cache_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-cache_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-cache_2.13/21.2.0/util-cache_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-cache_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-cache_2.13/21.2.0/util-cache_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.inject.extensions",
+          "name": "guice-assistedinject",
+          "version": "4.2.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guice-assistedinject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/4.2.3/guice-assistedinject-4.2.3.jar"
+            },
+            {
+              "name": "guice-assistedinject",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/4.2.3/guice-assistedinject-4.2.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.json4s",
+          "name": "json4s-ast_2.13",
+          "version": "3.6.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "json4s-ast_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.13/3.6.7/json4s-ast_2.13-3.6.7.jar"
+            },
+            {
+              "name": "json4s-ast_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.13/3.6.7/json4s-ast_2.13-3.6.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.4.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar"
+            },
+            {
+              "name": "core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.10/scalatest-shouldmatchers_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-shouldmatchers_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.10/scalatest-shouldmatchers_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-toggle_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-toggle_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-toggle_2.13/21.2.0/finagle-toggle_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-toggle_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-toggle_2.13/21.2.0/finagle-toggle_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.13",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1.jar"
+            },
+            {
+              "name": "circe-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar"
+            },
+            {
+              "name": "j2objc-annotations",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.mojo",
+          "name": "animal-sniffer-annotations",
+          "version": "1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "animal-sniffer-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar"
+            },
+            {
+              "name": "animal-sniffer-annotations",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
+            },
+            {
+              "name": "failureaccess",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-hashing_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-hashing_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-hashing_2.13/21.2.0/util-hashing_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-hashing_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-hashing_2.13/21.2.0/util-hashing_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_2.13",
+          "version": "3.2.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.10/scalatest-mustmatchers_2.13-3.2.10.jar"
+            },
+            {
+              "name": "scalatest-mustmatchers_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.13/3.2.10/scalatest-mustmatchers_2.13-3.2.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpmime",
+          "version": "4.5.13",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpmime",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar"
+            },
+            {
+              "name": "httpmime",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-joda",
+          "version": "2.11.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-joda",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-joda/2.11.2/jackson-datatype-joda-2.11.2.jar"
+            },
+            {
+              "name": "jackson-datatype-joda",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-joda/2.11.2/jackson-datatype-joda-2.11.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.propensive",
+          "name": "magnolia_2.13",
+          "version": "0.17.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar"
+            },
+            {
+              "name": "magnolia_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-reactive-streams_2.13",
+          "version": "3.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-reactive-streams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.13/3.2.2/fs2-reactive-streams_2.13-3.2.2.jar"
+            },
+            {
+              "name": "fs2-reactive-streams_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-reactive-streams_2.13/3.2.2/fs2-reactive-streams_2.13-3.2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "aopalliance",
+          "name": "aopalliance",
+          "version": "1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "aopalliance",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"
+            },
+            {
+              "name": "aopalliance",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "joda-time",
+          "name": "joda-time",
+          "version": "2.10.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "joda-time",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.8/joda-time-2.10.8.jar"
+            },
+            {
+              "name": "joda-time",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.8/joda-time-2.10.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.13",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1.jar"
+            },
+            {
+              "name": "circe-jawn_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.13",
+          "version": "2.3.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shapeless_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
+            },
+            {
+              "name": "shapeless_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.propensive",
+          "name": "mercator_2.13",
+          "version": "0.2.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "mercator_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
+            },
+            {
+              "name": "mercator_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-core_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-core_2.13/21.2.0/finagle-core_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-core_2.13/21.2.0/finagle-core_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.codingwell",
+          "name": "scala-guice_2.13",
+          "version": "4.2.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-guice_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/codingwell/scala-guice_2.13/4.2.11/scala-guice_2.13-4.2.11.jar"
+            },
+            {
+              "name": "scala-guice_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/codingwell/scala-guice_2.13/4.2.11/scala-guice_2.13-4.2.11-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "simulacrum-scalafix-annotations_2.13",
+          "version": "0.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simulacrum-scalafix-annotations_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
+            },
+            {
+              "name": "simulacrum-scalafix-annotations_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar"
+            },
+            {
+              "name": "ws_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jcl-over-slf4j",
+          "version": "1.7.30",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jcl-over-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar"
+            },
+            {
+              "name": "jcl-over-slf4j",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams-flow-adapters",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams-flow-adapters",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams-flow-adapters/1.0.2/reactive-streams-flow-adapters-1.0.2.jar"
+            },
+            {
+              "name": "reactive-streams-flow-adapters",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams-flow-adapters/1.0.2/reactive-streams-flow-adapters-1.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "util-security_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-security_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-security_2.13/21.2.0/util-security_2.13-21.2.0.jar"
+            },
+            {
+              "name": "util-security_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-security_2.13/21.2.0/util-security_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.4.13",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar"
+            },
+            {
+              "name": "httpcore",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_2.13",
+          "version": "3.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.2/fs2-core_2.13-3.2.2.jar"
+            },
+            {
+              "name": "fs2-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.2/fs2-core_2.13-3.2.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0.jar"
+            },
+            {
+              "name": "error_prone_annotations",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.13",
+          "version": "0.14.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1.jar"
+            },
+            {
+              "name": "circe-numbers_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.xml.bind",
+          "name": "jaxb-api",
+          "version": "2.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jaxb-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"
+            },
+            {
+              "name": "jaxb-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-scala_2.13",
+          "version": "2.11.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-module-scala_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.11.2/jackson-module-scala_2.13-2.11.2.jar"
+            },
+            {
+              "name": "jackson-module-scala_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.11.2/jackson-module-scala_2.13-2.11.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http2",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-http2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.51.Final/netty-codec-http2-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-codec-http2",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.51.Final/netty-codec-http2-4.1.51.Final-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.twitter",
+          "name": "finagle-base-http_2.13",
+          "version": "21.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "finagle-base-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-base-http_2.13/21.2.0/finagle-base-http_2.13-21.2.0.jar"
+            },
+            {
+              "name": "finagle-base-http_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-base-http_2.13/21.2.0/finagle-base-http_2.13-21.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thoughtworks.paranamer",
+          "name": "paranamer",
+          "version": "2.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "paranamer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar"
+            },
+            {
+              "name": "paranamer",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.thrift",
+          "name": "libthrift",
+          "version": "0.10.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "libthrift",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/thrift/libthrift/0.10.0/libthrift-0.10.0.jar"
+            },
+            {
+              "name": "libthrift",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/thrift/libthrift/0.10.0/libthrift-0.10.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_2.13",
+          "version": "3.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ip4s-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.1/ip4s-core_2.13-3.1.1.jar"
+            },
+            {
+              "name": "ip4s-core_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.1/ip4s-core_2.13-3.1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.1.51.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.51.Final/netty-codec-http-4.1.51.Final.jar"
+            },
+            {
+              "name": "netty-codec-http",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.51.Final/netty-codec-http-4.1.51.Final-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

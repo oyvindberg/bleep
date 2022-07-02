@@ -2,7 +2,7 @@ package bleep
 
 import bleep.commands.Import
 import bleep.commands.Import.Options
-import bleep.internal.{importBloopFilesFromSbt, FileUtils, Lazy, ReadSbtExportFile, Replacements}
+import bleep.internal.{FileUtils, ImportInputProjects, Lazy, ReadSbtExportFile, Replacements}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.Repositories
@@ -113,11 +113,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
           (bloopFilePath, originalContents, importedBloopFile)
         }
 
+    val inputProjects = ImportInputProjects(
+      importedBloopFiles.map { case (_, _, file) => file },
+      sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile }
+    )
+
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
       importer.generateBuild(
-        importedBloopFiles.map { case (_, _, file) => file },
-        sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile },
+        inputProjects,
         hackDropBleepDependency = true,
         importerOptions.skipGeneratedResourcesScript,
         maybeExistingBleepJson = None
@@ -147,24 +151,19 @@ class IntegrationSnapshotTests extends SnapshotTest {
         sbtExportFiles.map { case (p, s, _) => (p, s) }
 
     // further property checks to see that we haven't made any illegal rewrites
-    assertSameIshBloopFiles(importedBloopFiles.map { case (_, _, f) => f }, started)
+    assertSameIshBloopFiles(inputProjects, started)
 
     // flush templated bloop files to disk if local, compare to checked in if test is running in CI
     // note, keep last. locally it "succeeds" with a `pending`
     writeAndCompare(destinationPaths.buildDir, allFiles)
   }
 
-  def assertSameIshBloopFiles(importedBloopFiles: Iterable[Config.File], started: Started): Assertion = {
-    // compare some key properties before and after import
-    val inputProjects: Map[(model.ProjectName, Option[String], Option[String]), Config.Project] =
-      importedBloopFiles.map { case Config.File(_, p) =>
-        ((importBloopFilesFromSbt.projectName(p.name), p.platform.map(_.name), p.scala.map(_.version)), p)
-      }.toMap
-
+  // compare some key properties before and after import
+  def assertSameIshBloopFiles(inputProjects: ImportInputProjects, started: Started): Assertion = {
     started.bloopProjects.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
       case (crossProjectName, output) =>
-        val input = inputProjects((crossProjectName.name, output.platform.map(_.name), output.scala.map(_.version)))
+        val input = inputProjects.values(crossProjectName).bloopFile.project
 
         // todo: this needs further work,
         //      assert(

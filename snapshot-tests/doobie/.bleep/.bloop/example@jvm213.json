@@ -12,13 +12,13 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/example@jvm213"
     ],
     "dependencies": [
-      "core@jvm213",
-      "free@jvm213",
-      "h2@jvm213",
-      "hikari@jvm213",
-      "postgres@jvm213",
-      "scalatest@jvm213",
-      "specs2@jvm213"
+      "doobie-core@jvm213",
+      "doobie-free@jvm213",
+      "doobie-h2@jvm213",
+      "doobie-hikari@jvm213",
+      "doobie-postgres@jvm213",
+      "doobie-scalatest@jvm213",
+      "doobie-specs2@jvm213"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.4/fs2-core_2.13-3.2.4.jar",
@@ -67,13 +67,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/free/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/h2/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/hikari/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/postgres/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/scalatest/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/specs2/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-free/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-h2/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-hikari/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-postgres/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-scalatest/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-specs2/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/example/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/example/jvm213/classes",
