@@ -7,7 +7,6 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/twirl/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/twirl-test@jvm3"
     ],

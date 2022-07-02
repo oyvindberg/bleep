@@ -7,7 +7,6 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/example/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/example/src/main/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/example/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/example/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/example@jvm3"
     ],

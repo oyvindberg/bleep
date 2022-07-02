@@ -9,7 +9,6 @@
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/main/scala-2.13-",
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/h2-circe@jvm212"
     ],
     "dependencies": [

@@ -7,7 +7,6 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/test/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/test/scalajvm-3",

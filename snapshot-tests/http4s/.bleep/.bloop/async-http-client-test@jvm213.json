@@ -9,7 +9,6 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/async-http-client/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/async-http-client-test@jvm213"
     ],
     "dependencies": [

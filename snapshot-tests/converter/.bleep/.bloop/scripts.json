@@ -9,8 +9,7 @@
       "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/java",
       "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala",
       "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala-2",
-      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala-2.13-"
+      "<BLEEP_GIT>/snapshot-tests/converter/scripts/src/scala-2.12"
     ],
     "dependencies": [
       

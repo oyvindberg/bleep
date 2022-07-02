@@ -9,12 +9,10 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/.jvm/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/main/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/jawn/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/jawn@jvm213"
     ],
     "dependencies": [

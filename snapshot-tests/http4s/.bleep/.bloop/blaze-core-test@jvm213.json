@@ -9,7 +9,6 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/blaze-core/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/blaze-core-test@jvm213"
     ],
     "dependencies": [

@@ -7,11 +7,9 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/.jvm/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/boopickle/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/boopickle-test@jvm3"
     ],

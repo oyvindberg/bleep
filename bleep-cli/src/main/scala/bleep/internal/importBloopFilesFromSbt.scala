@@ -159,8 +159,7 @@ object importBloopFilesFromSbt {
 
       val replacementsTarget = Replacements.targetDir(originalTarget)
       val replacementsDirs = Replacements.paths(sbtBuildDir, directory) ++ replacementsTarget
-      val replacementsVersions = Replacements.versions(scalaVersion, bloopProject.platform.map(_.name))
-      val replacements = replacementsDirs ++ replacementsVersions
+      val replacements = replacementsDirs
 
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
@@ -195,12 +194,10 @@ object importBloopFilesFromSbt {
         val shortenedSourcesRelPaths =
           sourcesRelPaths
             .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
-            .map(replacementsVersions.templatize.relPath)
 
         val shortenedResourcesRelPaths =
           resourcesRelPaths
             .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
-            .map(replacementsVersions.templatize.relPath)
 
         Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
@@ -214,7 +211,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(compilerPlugins, replacementsDirs, replacementsVersions, scalaVersions))
+        bloopProject.scala.map(translateScala(compilerPlugins, replacementsDirs, scalaVersions))
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {
@@ -401,7 +398,6 @@ object importBloopFilesFromSbt {
   def translateScala(
       compilerPlugins: Seq[Dep],
       replacementsDirs: Replacements,
-      replacementsVersions: Replacements,
       scalaVersions: ScalaVersions
   )(s: Config.Scala): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacementsDirs))
@@ -418,7 +414,7 @@ object importBloopFilesFromSbt {
 
     model.Scala(
       version = Some(Versions.Scala(s.version)),
-      options = replacementsVersions.templatize.opts(new Options(notCompilerPlugins)),
+      options = new Options(notCompilerPlugins),
       setup = s.setup.map(setup =>
         model.CompileSetup(
           order = Some(setup.order),
