@@ -45,23 +45,4 @@ object Replacements {
         build.toString -> "${BUILD_DIR}"
       )
     )
-
-  def versions(scalaVersion: Option[Versions.Scala], platform: Option[String]): Replacements =
-    ofReplacements(
-      List(
-        scalaVersion match {
-          case Some(scalaVersion) =>
-            List(
-//              scalaVersion.epoch.toString -> "${SCALA_EPOCH}",
-              s"${scalaVersion.binVersion}" -> "${SCALA_BIN_VERSION}",
-              scalaVersion.scalaVersion -> "${SCALA_VERSION}"
-            )
-          case None => Nil
-        },
-        platform match {
-          case Some(platform) => List(s"$platform" -> "${PLATFORM}")
-          case None           => Nil
-        }
-      ).flatten
-    )
 }

@@ -145,9 +145,7 @@ object GenBloopFiles {
       }
 
     val templateDirs =
-      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
-        Replacements.targetDir(projectPaths.targetDir) ++
-        Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value))
+      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++ Replacements.targetDir(projectPaths.targetDir)
 
     val configuredPlatform: Option[Config.Platform] =
       explodedPlatform.map {

@@ -26,7 +26,6 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[Versions.Scala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
-    val replacementsVersions = Replacements.versions(scalaVersion, maybePlatformId.map(_.value))
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout
@@ -35,14 +34,14 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
 
     val sources: JsonSet[Path] = {
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.sources.values.map(relPath => dir / replacementsVersions.fill.relPath(relPath))
+      val fromJson = p.sources.values.map(relPath => dir / relPath)
       val generated = generatedSourcesDir(crossName)
       JsonSet.fromIterable(fromSourceLayout ++ fromJson ++ List(generated))
     }
 
     val resources: JsonSet[Path] = {
       val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.resources.values.map(relPath => dir / replacementsVersions.fill.relPath(relPath))
+      val fromJson = p.resources.values.map(relPath => dir / relPath)
       val generated = generatedResourcesDir(crossName)
       JsonSet.fromIterable(fromSourceLayout ++ fromJson + generated)
     }

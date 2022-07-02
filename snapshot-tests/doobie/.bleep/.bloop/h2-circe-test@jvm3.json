@@ -7,7 +7,6 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/test/java",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/test/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/test/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2-circe/src/test/scala-3",
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/h2-circe-test@jvm3"
     ],

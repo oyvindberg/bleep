@@ -7,7 +7,6 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/java",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scala",
-      "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scala-2.13+",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scala-3",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/zio/src/main/scalajvm-3",

@@ -53,8 +53,7 @@ object SourceLayout {
             RelPath.force(s"src/$scope/scala"),
             RelPath.force(s"src/$scope/java"),
             RelPath.force(s"src/$scope/scala-${scalaVersion.binVersion}"),
-            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}"),
-            RelPath.force(s"src/$scope/scala-2.13${if (scalaVersion.binVersion >= "2.13") "+" else "-"}")
+            RelPath.force(s"src/$scope/scala-${scalaVersion.epoch}")
           )
         case None => JsonSet.empty
       }
