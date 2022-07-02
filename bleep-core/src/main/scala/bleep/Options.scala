@@ -1,8 +1,7 @@
 package bleep
 
-import bleep.Options.Opt
 import bleep.internal.{Replacements, SetLike}
-import io.circe.{Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 
 /** A description of javac/scalac options.
   *
@@ -15,12 +14,6 @@ case class Options(values: Set[Options.Opt]) extends SetLike[Options] {
   override def union(other: Options) = new Options((values ++ other.values))
   override def intersect(other: Options) = new Options(values.intersect(other.values))
   override def removeAll(other: Options) = new Options(values.diff(other.values))
-
-  def nameFilter(pred: String => Boolean): Options =
-    new Options(values.filter {
-      case Opt.Flag(name)        => pred(name)
-      case Opt.WithArgs(name, _) => pred(name)
-    })
 }
 
 object Options {
@@ -29,12 +22,17 @@ object Options {
 
   val empty = new Options(Set.empty)
   implicit val decodes: Decoder[Options] = Decoder[JsonList[String]].map(list => Options.parse(list.values, maybeRelativize = None))
-  implicit val encodes: Encoder[Options] = Encoder[JsonList[String]].contramap(opts => JsonList(opts.render))
+  implicit val encodes: Encoder[Options] = Encoder.instance {
+    case opts if opts.isEmpty => Json.Null
+    case opts                 => Json.fromString(opts.render.mkString(" "))
+  }
 
   def parse(strings: List[String], maybeRelativize: Option[Replacements]): Options = {
+    val splitStrings = strings.flatMap(_.split("\\s+")).filter(_.trim.nonEmpty)
+
     val relativeStrings = maybeRelativize match {
-      case Some(relativize) => strings.map(relativize.templatize.string)
-      case None             => strings
+      case Some(relativize) => splitStrings.map(relativize.templatize.string)
+      case None             => splitStrings
     }
 
     val opts = relativeStrings.foldLeft(List.empty[Options.Opt]) {

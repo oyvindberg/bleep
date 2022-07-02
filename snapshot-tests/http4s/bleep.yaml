@@ -706,17 +706,9 @@ projects:
 templates:
   template-common:
     java:
-      options:
-      - -Xlint:all
-      - -encoding
-      - utf8
+      options: -Xlint:all -encoding utf8
     scala:
-      options:
-      - -deprecation
-      - -encoding
-      - UTF-8
-      - -feature
-      - -unchecked
+      options: -deprecation -encoding UTF-8 -feature -unchecked
   template-common-main:
     extends: template-common
     sbt-scope: main
@@ -757,26 +749,10 @@ templates:
       - com.olegpy::better-monadic-for:0.3.1
       - org.scalameta:::semanticdb-scalac:4.4.32
       - org.typelevel:::kind-projector:0.13.2
-      options:
-      - -Wdead-code
-      - -Wextra-implicit
-      - -Wnumeric-widen
-      - -Wunused:explicits
-      - -Wunused:implicits
-      - -Wunused:imports
-      - -Wunused:locals
-      - -Wunused:nowarn
-      - -Wunused:params
-      - -Wunused:patvars
-      - -Wunused:privates
-      - -Wvalue-discard
-      - -Xlint:deprecation
-      - -Ybackend-parallelism
-      - '8'
-      - -Yrangepos
-      - -Ywarn-dead-code
-      - -Ywarn-numeric-widen
-      - -language:_
+      options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
+        -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars
+        -Wunused:privates -Wvalue-discard -Xlint:deprecation -Ybackend-parallelism
+        8 -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -language:_
       version: 2.13.8
   template-scala-2-js:
     extends: template-js
@@ -792,19 +768,14 @@ templates:
     - template-scala-2
   template-scala-3:
     scala:
-      options:
-      - -Ykind-projector
-      - -language:implicitConversions
-      - -source:${SCALA_BIN_VERSION}.0-migration
+      options: -Ykind-projector -language:implicitConversions -source:${SCALA_BIN_VERSION}.0-migration
       version: 3.1.1
   template-scala-3-js:
     extends:
     - template-js
     - template-scala-3
     scala:
-      options:
-      - -scala${PLATFORM}
-      - -scala${PLATFORM}-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f6${SCALA_BIN_VERSION}4c01fee0dd5712/
+      options: -scala${PLATFORM} -scala${PLATFORM}-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f6${SCALA_BIN_VERSION}4c01fee0dd5712/
   template-scala-3-jvm:
     extends:
     - template-jvm

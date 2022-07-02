@@ -16,11 +16,7 @@ projects:
 templates:
   template-common:
     scala:
-      options:
-      - -encoding
-      - utf8
-      - -feature
-      - -unchecked
+      options: -encoding utf8 -feature -unchecked
   template-cross-all:
     cross:
       js213:

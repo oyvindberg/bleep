@@ -1203,15 +1203,8 @@ projects:
 templates:
   template-common:
     scala:
-      options:
-      - -Ywarn-macros:after
-      - -encoding
-      - utf8
-      - -feature
-      - -language:experimental.macros
-      - -language:higherKinds
-      - -language:implicitConversions
-      - -unchecked
+      options: -Ywarn-macros:after -encoding utf8 -feature -language:experimental.macros
+        -language:higherKinds -language:implicitConversions -unchecked
     source-layout: sbt-matrix
   template-common-main:
     extends: template-common
@@ -1260,46 +1253,19 @@ templates:
   template-scala-2:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
-      options:
-      - -Xcheckinit
-      - -Xlint:adapted-args
-      - -Xlint:constant
-      - -Xlint:delayedinit-select
-      - -Xlint:doc-detached
-      - -Xlint:inaccessible
-      - -Xlint:infer-any
-      - -Xlint:missing-interpolator
-      - -Xlint:nullary-unit
-      - -Xlint:option-implicit
-      - -Xlint:package-object-classes
-      - -Xlint:poly-implicit-overload
-      - -Xlint:private-shadow
-      - -Xlint:stars-align
-      - -Xlint:type-parameter-shadow
-      - -explaintypes
-      - -language:existentials
+      options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
+        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
+        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -explaintypes
+        -language:existentials
   template-scala-2.12:
     extends: template-scala-2
     scala:
-      options:
-      - -Xlint:by-name-right-associative
-      - -Xlint:nullary-override
-      - -Xlint:unsound-match
-      - -Yno-adapted-args
-      - -Ypartial-unification
-      - -Ywarn-dead-code
-      - -Ywarn-extra-implicit
-      - -Ywarn-nullary-override
-      - -Ywarn-nullary-unit
-      - -Ywarn-numeric-widen
-      - -Ywarn-unused:implicits
-      - -Ywarn-unused:imports
-      - -Ywarn-unused:locals
-      - -Ywarn-unused:params
-      - -Ywarn-unused:patvars
-      - -Ywarn-unused:privates
-      - -Ywarn-value-discard
-      - -deprecation
+      options: -Xlint:by-name-right-associative -Xlint:nullary-override -Xlint:unsound-match
+        -Yno-adapted-args -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit
+        -Ywarn-nullary-override -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits
+        -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
+        -Ywarn-unused:privates -Ywarn-value-discard -deprecation
       version: 2.12.15
   template-scala-2.12-js:
     extends:
@@ -1312,25 +1278,10 @@ templates:
   template-scala-2.13:
     extends: template-scala-2
     scala:
-      options:
-      - -Vimplicits
-      - -Vtype-diffs
-      - -Wconf:cat=other-match-analysis:error
-      - -Wdead-code
-      - -Wextra-implicit
-      - -Wnumeric-widen
-      - -Wunused:explicits
-      - -Wunused:implicits
-      - -Wunused:imports
-      - -Wunused:locals
-      - -Wunused:nowarn
-      - -Wunused:params
-      - -Wunused:patvars
-      - -Wunused:privates
-      - -Wvalue-discard
-      - -Xlint:-byname-implicit
-      - -Xlint:deprecation
-      - -Xlint:strict-unsealed-patmat
+      options: -Vimplicits -Vtype-diffs -Wconf:cat=other-match-analysis:error -Wdead-code
+        -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits -Wunused:imports
+        -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars -Wunused:privates
+        -Wvalue-discard -Xlint:-byname-implicit -Xlint:deprecation -Xlint:strict-unsealed-patmat
       version: 2.13.6
   template-scala-2.13-js:
     extends:
@@ -1342,11 +1293,7 @@ templates:
     - template-scala-2.13
   template-scala-3:
     scala:
-      options:
-      - -Ykind-projector
-      - -deprecation
-      - -explain
-      - -explain-types
+      options: -Ykind-projector -deprecation -explain -explain-types
       version: 3.1.0
   template-scala-3-js:
     extends:
