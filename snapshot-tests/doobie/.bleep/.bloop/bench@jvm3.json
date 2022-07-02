@@ -11,9 +11,9 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/bench@jvm3"
     ],
     "dependencies": [
-      "core@jvm3",
-      "free@jvm3",
-      "postgres@jvm3"
+      "doobie-core@jvm3",
+      "doobie-free@jvm3",
+      "doobie-postgres@jvm3"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.2.4/fs2-core_3-3.2.4.jar",
@@ -41,9 +41,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.7.0/cats-kernel_3-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/core/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/free/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/postgres/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-core/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-free/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-postgres/jvm3/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/bench/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/bench/jvm3/classes",
