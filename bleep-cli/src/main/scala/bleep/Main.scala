@@ -82,6 +82,9 @@ object Main {
               ),
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
                 Opts(commands.BuildReinferTemplates(started, Set.empty))
+              ),
+              Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
+                Opts(commands.BuildUpdateDeps(started))
               )
             ).foldK
           ),
