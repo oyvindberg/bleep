@@ -32,9 +32,11 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
       foundByDep.flatMap { case (bleepDep, versions) =>
         // one particular scala/platform combination may be dropped. let's say it'll hold the rest back for now, it's the easiest.
         val latest = versions.map(_.latest).min
-        println(bleepDep.repr + "=> " + latest)
         if (latest == bleepDep.version) None
-        else Some(bleepDep -> bleepDep.withVersion(latest))
+        else {
+          started.logger.withContext("dep", bleepDep.repr).info(s"Upgraded to $latest")
+          Some(bleepDep -> bleepDep.withVersion(latest))
+        }
       }
 
     val newBuild = BuildUpdateDeps.upgradedBuild(upgrades, started.rawBuild)
