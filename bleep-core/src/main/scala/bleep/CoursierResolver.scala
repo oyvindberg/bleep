@@ -31,7 +31,7 @@ object CoursierResolver {
       authentications: CoursierResolver.Authentications,
       wantedBleepVersion: Option[model.Version]
   ): CoursierResolver = {
-    val direct = new Direct(logger, repos, downloadSources, authentications)
+    val direct = new Direct(new CoursierLogger(logger), repos, downloadSources, authentications)
     val cached = new Cached(logger, direct, cacheIn)
     new WithBleepVersion(cached, wantedBleepVersion)
   }
@@ -129,33 +129,40 @@ object CoursierResolver {
     // format: on
   }
 
-  private class Direct(val logger: Logger, val repos: List[model.Repository], downloadSources: Boolean, authentications: CoursierResolver.Authentications)
-      extends CoursierResolver {
-    val fileCache = FileCache[Task]().withLogger(new CoursierLogger(logger))
+  def coursierRepos(repos: List[model.Repository], authentications: CoursierResolver.Authentications): List[Repository] =
+    (repos ++ constants.DefaultRepos).map {
+      case bleep.model.Repository.Folder(_, path) =>
+        // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
+        MavenRepository(path.toString)
+      case bleep.model.Repository.Maven(_, uri) =>
+        MavenRepository(uri.toString).withAuthentication(authentications.configs.get(uri))
+      case bleep.model.Repository.Ivy(_, uri) =>
+        IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.configs.get(uri))
+    }
+
+  private class Direct(
+      val logger: CoursierLogger,
+      val repos: List[model.Repository],
+      downloadSources: Boolean,
+      authentications: CoursierResolver.Authentications
+  ) extends CoursierResolver {
+
+    val fileCache = FileCache[Task]().withLogger(logger)
 
     override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
 
-        val value = Fetch[Task](fileCache)
+        Fetch[Task](fileCache)
+          .withRepositories(coursierRepos(repos, authentications))
           .withDependencies(deps.values.toList)
           .withResolutionParams(
             ResolutionParams()
               .withForceScalaVersion(forceScalaVersion.nonEmpty)
               .withScalaVersionOpt(forceScalaVersion.map(_.scalaVersion))
           )
-          .addRepositories((repos ++ constants.DefaultRepos).map {
-            case bleep.model.Repository.Folder(_, path) =>
-              // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
-              MavenRepository(path.toString)
-            case bleep.model.Repository.Maven(_, uri) =>
-              MavenRepository(uri.toString).withAuthentication(authentications.configs.get(uri))
-            case bleep.model.Repository.Ivy(_, uri) =>
-              IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.configs.get(uri))
-          }: _*)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
-        value
           .eitherResult() match {
           case Left(x: ResolutionError.CantDownloadModule) if remainingAttempts > 0 && x.perRepositoryErrors.exists(_.contains("concurrent download")) =>
             go(remainingAttempts - 1)
