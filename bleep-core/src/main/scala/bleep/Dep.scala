@@ -101,7 +101,7 @@ object Dep {
         ),
         version = version,
         configuration = configuration,
-        exclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
+        minimizedExclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
         publication = publication,
         optional = false, // todo: we now express this in configuration. also here?
         transitive = transitive
@@ -157,7 +157,7 @@ object Dep {
                   module = new Module(organization, moduleName, attributes),
                   version = version,
                   configuration = configuration,
-                  exclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
+                  minimizedExclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
                   publication = publication,
                   optional = false, // todo: we now express this in configuration. also here?
                   transitive = transitive

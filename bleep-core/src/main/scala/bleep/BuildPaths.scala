@@ -1,7 +1,5 @@
 package bleep
 
-import bleep.internal.Replacements
-
 import java.nio.file.Path
 
 case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {

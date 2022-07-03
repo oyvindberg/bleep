@@ -8,7 +8,12 @@ import scala.build.blooprifle.BloopRifleLogger
 
 class BloopLogger(logger: Logger) extends BloopRifleLogger {
   override def info(msg: => String): Unit = logger.info(s"bloop: $msg")
-  override def debug(msg: => String): Unit = logger.debug(s"bloop: $msg")
+  override def debug(msg: => String, throwable: Throwable): Unit =
+    Option(throwable) match {
+      case Some(th) => logger.debug(s"bloop: $msg", th)
+      case None     => logger.debug(s"bloop: $msg")
+    }
+
   override def error(msg: => String, ex: Throwable): Unit = logger.error(s"bloop: $msg")
   override val bloopCliInheritStdout: Boolean = false
   override val bloopCliInheritStderr: Boolean = false
