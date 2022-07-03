@@ -65,6 +65,7 @@ case class BuildCreateNew(
 }
 
 object BuildCreateNew {
+
   class ExampleFiles(name: String) {
     val fansi = Dep.Scala("com.lihaoyi", "fansi", "0.3.1")
     object main {
@@ -138,7 +139,7 @@ object BuildCreateNew {
               case model.PlatformId.Jvm =>
                 model.Platform.Jvm(Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = Options.empty)
               case model.PlatformId.Js =>
-                model.Platform.Js(Versions.ScalaJs1, None, None, None, None, Some(exampleFiles.main.cls))
+                model.Platform.Js(Versions.ScalaJs1, None, None, None, None, jsNodeVersion = Some(Versions.Node), Some(exampleFiles.main.cls))
               case model.PlatformId.Native =>
                 sys.error("native not implemented yet")
             }
@@ -166,7 +167,7 @@ object BuildCreateNew {
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm    => model.Platform.Jvm(Options.empty, jvmMainClass = None, jvmRuntimeOptions = Options.empty)
-              case model.PlatformId.Js     => model.Platform.Js(Versions.ScalaJs1, None, None, None, None, None)
+              case model.PlatformId.Js     => model.Platform.Js(Versions.ScalaJs1, None, None, None, None, Some(Versions.Node), None)
               case model.PlatformId.Native => sys.error("native not implemented yet")
             }
           ),

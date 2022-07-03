@@ -31,7 +31,7 @@ case class Started(
     bloopProjects.values.toList
 
   lazy val jvmCommand: Path =
-    JvmCmd(logger, rawBuild.jvm, executionContext)
+    FetchJvm(logger, rawBuild.jvm, executionContext)
 
   def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
     maybeFromCommandLine match {

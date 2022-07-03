@@ -21,6 +21,7 @@ object Defaults {
       jsKind = None,
       jsEmitSourceMaps = None,
       jsJsdom = None,
+      jsNodeVersion = None,
       jvmOptions = Options(Set(Options.Opt.Flag("-Duser.dir=${BUILD_DIR}"))),
       jvmRuntimeOptions = Options.empty,
       nativeVersion = None,
