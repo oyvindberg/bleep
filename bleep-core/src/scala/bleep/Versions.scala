@@ -80,6 +80,7 @@ object Versions {
   }
 
   val ScalaJs1 = ScalaJs("1.9.0")
+  val Node = "18.4.0"
 
   case class ScalaNative(scalaNativeVersion: String) {
     val scalaNativeBinVersion: String =

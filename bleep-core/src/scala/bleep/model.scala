@@ -178,6 +178,7 @@ object model {
       jsKind: Option[Config.ModuleKindJS],
       jsEmitSourceMaps: Option[Boolean],
       jsJsdom: Option[Boolean],
+      jsNodeVersion: Option[String],
       //      output: Option[Path],
       //      nodePath: Option[Path],
       //      toolchain: List[Path]
@@ -212,6 +213,7 @@ object model {
         jsKind = if (jsKind == other.jsKind) jsKind else None,
         jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) jsEmitSourceMaps else None,
         jsJsdom = if (jsJsdom == other.jsJsdom) jsJsdom else None,
+        jsNodeVersion = if (jsNodeVersion == other.jsNodeVersion) jsNodeVersion else None,
         //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) mapSourceURI else None
         jvmOptions = jvmOptions.intersect(other.jvmOptions),
         jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
@@ -229,6 +231,7 @@ object model {
         jsKind = if (jsKind == other.jsKind) None else jsKind,
         jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) None else jsEmitSourceMaps,
         jsJsdom = if (jsJsdom == other.jsJsdom) None else jsJsdom,
+        jsNodeVersion = if (jsNodeVersion == other.jsNodeVersion) None else jsNodeVersion,
         //          mapSourceURI = if (mapSourceURI == other.mapSourceURI) None else mapSourceURI
         jvmOptions = jvmOptions.removeAll(other.jvmOptions),
         jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
@@ -246,6 +249,7 @@ object model {
         jsKind = jsKind.orElse(other.jsKind),
         jsEmitSourceMaps = jsEmitSourceMaps.orElse(other.jsEmitSourceMaps),
         jsJsdom = jsJsdom.orElse(other.jsJsdom),
+        jsNodeVersion = jsNodeVersion.orElse(other.jsNodeVersion),
         //          mapSourceURI = mapSourceURI.orElse(other.mapSourceURI)
         jvmOptions = jvmOptions.union(other.jvmOptions),
         jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
@@ -255,7 +259,7 @@ object model {
       )
 
     override def isEmpty: Boolean =
-      name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty &&
+      name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
         jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty &&
         nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty
   }
@@ -271,6 +275,7 @@ object model {
           jsKind = None,
           jsEmitSourceMaps = None,
           jsJsdom = None,
+          jsNodeVersion = None,
           jvmOptions = jvmOptions,
           jvmRuntimeOptions = jvmRuntimeOptions,
           nativeVersion = None,
@@ -291,6 +296,7 @@ object model {
           jsKind: Option[Config.ModuleKindJS],
           jsEmitSourceMaps: Option[Boolean],
           jsJsdom: Option[Boolean],
+          jsNodeVersion: Option[String],
           jsMainClass: Option[String]
       ) =
         new Platform(
@@ -301,6 +307,7 @@ object model {
           jsKind = jsKind,
           jsEmitSourceMaps = jsEmitSourceMaps,
           jsJsdom = jsJsdom,
+          jsNodeVersion = jsNodeVersion,
           jvmOptions = Options.empty,
           jvmRuntimeOptions = Options.empty,
           nativeVersion = None,
@@ -323,6 +330,7 @@ object model {
           jsKind = None,
           jsEmitSourceMaps = None,
           jsJsdom = None,
+          jsNodeVersion = None,
           jvmOptions = Options.empty,
           jvmRuntimeOptions = Options.empty,
           nativeVersion = nativeVersion,

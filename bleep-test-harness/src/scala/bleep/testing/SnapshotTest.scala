@@ -2,6 +2,7 @@ package bleep.testing
 
 import bleep.internal.FileUtils.DeleteUnknowns
 import bleep.internal.{FileUtils, Replacements}
+import coursier.jvm.JvmIndex
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
@@ -21,6 +22,9 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     Replacements.ofReplacements(
       List(
         (CoursierPaths.cacheDirectory().toString, "<COURSIER>"),
+        (CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>"),
+        (JvmIndex.defaultOs(), "<OS>"),
+        (JvmIndex.defaultArchitecture(), "<ARCHITECTURE>"),
         (System.getProperty("user.dir"), "<BLEEP_GIT>"),
         (System.getProperty("user.home"), "<HOME>")
       )

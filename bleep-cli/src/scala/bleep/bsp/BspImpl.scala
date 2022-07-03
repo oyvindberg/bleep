@@ -52,7 +52,7 @@ object BspImpl {
             Some(build.$version)
           )
         }
-        val jvmCmd = JvmCmd(pre.logger, build.jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
+        val jvmCmd = FetchJvm(pre.logger, build.jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
         SetupBloopRifle(jvmCmd, pre.userPaths, lazyResolver, bleepConfig.compileServerMode, bleepRifleLogger)
       }
 

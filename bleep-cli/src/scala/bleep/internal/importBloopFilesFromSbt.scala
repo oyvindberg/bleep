@@ -277,6 +277,12 @@ object importBloopFilesFromSbt {
           jsKind = Some(config.kind),
           jsEmitSourceMaps = Some(config.emitSourceMaps),
           jsJsdom = config.jsdom,
+          jsNodeVersion = config.nodePath
+            .map { nodePath =>
+              import scala.sys.process._
+              List(nodePath.toString, "--version").!!.drop(1) // initial v
+            }
+            .orElse(Some(Versions.Node)),
 //          output = config.output.map(output => RelPath.relativeTo(directory, output)),
           jsMainClass = mainClass
         )

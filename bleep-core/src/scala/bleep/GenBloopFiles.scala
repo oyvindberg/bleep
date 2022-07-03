@@ -13,7 +13,13 @@ import scala.collection.immutable.SortedMap
 import scala.util.Try
 
 sealed trait GenBloopFiles {
-  def apply(logger: Logger, buildPaths: BuildPaths, lazyResolver: Lazy[CoursierResolver], explodedBuild: ExplodedBuild): GenBloopFiles.Files
+  def apply(
+      logger: Logger,
+      buildPaths: BuildPaths,
+      lazyResolver: Lazy[CoursierResolver],
+      explodedBuild: ExplodedBuild,
+      fetchNode: FetchNode
+  ): GenBloopFiles.Files
 }
 
 object GenBloopFiles {
@@ -24,7 +30,8 @@ object GenBloopFiles {
         logger: Logger,
         buildPaths: BuildPaths,
         lazyResolver: Lazy[CoursierResolver],
-        explodedBuild: ExplodedBuild
+        explodedBuild: ExplodedBuild,
+        fetchNode: FetchNode
     ): GenBloopFiles.Files =
       rewriteDependentData(explodedBuild.projects).apply { (crossName, project, getDep) =>
         translateProject(
@@ -33,13 +40,20 @@ object GenBloopFiles {
           crossName,
           project,
           explodedBuild,
-          getBloopProject = depName => getDep(depName).forceGet(s"${crossName.value} => ${depName.value}")
+          getBloopProject = depName => getDep(depName).forceGet(s"${crossName.value} => ${depName.value}"),
+          fetchNode
         )
       }
   }
 
   case object SyncToDisk extends GenBloopFiles {
-    override def apply(logger: Logger, buildPaths: BuildPaths, lazyResolver: Lazy[CoursierResolver], explodedBuild: ExplodedBuild): GenBloopFiles.Files = {
+    override def apply(
+        logger: Logger,
+        buildPaths: BuildPaths,
+        lazyResolver: Lazy[CoursierResolver],
+        explodedBuild: ExplodedBuild,
+        fetchNode: FetchNode
+    ): GenBloopFiles.Files = {
       val currentHash = List(
         explodedBuild.build.$version,
         explodedBuild.projects.toVector.sortBy(_._1)
@@ -59,7 +73,7 @@ object GenBloopFiles {
         logger.warn(s"Refreshing ${buildPaths.bleepBloopDir}...")
 
         val bloopFiles =
-          InMemory(logger, buildPaths, lazyResolver, explodedBuild)
+          InMemory(logger, buildPaths, lazyResolver, explodedBuild, fetchNode)
 
         val fileMap = encodedFiles(buildPaths, bloopFiles).updated(buildPaths.digestFile, currentHash)
 
@@ -102,7 +116,8 @@ object GenBloopFiles {
       crossName: model.CrossProjectName,
       explodedProject: model.Project,
       build: ExplodedBuild,
-      getBloopProject: model.CrossProjectName => Config.File
+      getBloopProject: model.CrossProjectName => Config.File,
+      fetchNode: FetchNode
   ): Config.File = {
 
     val projectPaths: ProjectPaths =
@@ -162,7 +177,7 @@ object GenBloopFiles {
               emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(Config.JsConfig.empty.emitSourceMaps),
               jsdom = platform.jsJsdom,
               output = None,
-              nodePath = None,
+              nodePath = platform.jsNodeVersion.map(fetchNode.apply),
               toolchain = Nil
             ),
             platform.mainClass

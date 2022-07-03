@@ -55,8 +55,10 @@ object bootstrap {
               else None
             }.toList
 
+        val ec = ExecutionContext.global
+        val fetchNode = new FetchNode(pre.logger, ec)
         val bloopFiles: GenBloopFiles.Files =
-          genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild)
+          genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild, fetchNode)
 
         val td = System.currentTimeMillis() - t0
         pre.logger.info(s"bootstrapped in $td ms")
@@ -69,7 +71,7 @@ object bootstrap {
           activeProjectsFromPath = activeProjects,
           lazyConfig = lazyConfig,
           resolver = lazyResolver,
-          executionContext = ExecutionContext.global
+          executionContext = ec
         )
       }
     catch {
