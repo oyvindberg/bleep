@@ -168,9 +168,8 @@ object GenBloopFiles {
           Config.Platform.Js(
             Config.JsConfig(
               version = platform.jsVersion match {
-                case _ if scalaVersion.fold(false)(_.is3) => ""
-                case Some(value)                          => value.scalaJsVersion
-                case None                                 => sys.error("missing `version`")
+                case Some(value) => value.scalaJsVersion
+                case None        => sys.error("missing `version`")
               },
               mode = platform.jsMode.getOrElse(Config.JsConfig.empty.mode),
               kind = platform.jsKind.getOrElse(Config.JsConfig.empty.kind),
