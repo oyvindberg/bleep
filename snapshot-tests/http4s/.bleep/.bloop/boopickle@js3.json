@@ -107,7 +107,7 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "",
+        "version": "1.9.0",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,
