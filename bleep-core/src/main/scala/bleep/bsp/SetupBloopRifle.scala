@@ -13,14 +13,18 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
-  def apply(jvm: Path, userPaths: UserPaths, resolver: Lazy[CoursierResolver], mode: CompileServerMode): BloopRifleConfig =
+  def apply(jvm: Path, userPaths: UserPaths, resolver: Lazy[CoursierResolver], mode: CompileServerMode, bleepRifleLogger: BleepRifleLogger): BloopRifleConfig =
     BloopRifleConfig
       .default(
         BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, mode)),
         bloopClassPath(resolver),
         FileUtils.TempDir.toFile
       )
-      .copy(javaPath = jvm.toString)
+      .copy(
+        javaPath = jvm.toString,
+        bspStdout = bleepRifleLogger.bloopBspStdout,
+        bspStderr = bleepRifleLogger.bloopBspStderr
+      )
 
   def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BuildException, (Seq[File], Boolean)] = {
     val modString = BloopRifleConfig.defaultModule
@@ -31,7 +35,7 @@ object SetupBloopRifle {
       .flatMap { mod =>
         resolver.forceGet(JsonSet(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
           case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
-          case Right(res)          => Right((res.jarFiles, false))
+          case Right(res)          => Right((res.jarFiles, true))
         }
       }
   }

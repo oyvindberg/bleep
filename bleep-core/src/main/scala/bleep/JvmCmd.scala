@@ -27,7 +27,7 @@ object JvmCmd {
         .value(ec),
       Duration.Inf
     )
-    logger.withContext(javaBin).debug(s"Resolved JVM ${jvm0.map(_.name)}")
+    logger.withContext(javaBin).debug(s"Resolved JVM ${jvm0.map(_.name).getOrElse("")}")
     javaBin
   }
 }

@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.bsp.{BloopLogger, CompileServerMode, SetupBloopRifle}
+import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
 import bleep.internal.{FileUtils, Lazy}
 import bleep.logging.Logger
 
@@ -18,10 +18,11 @@ case class CompileServerStop(logger: Logger, userPaths: UserPaths, lazyResolver:
             bleepConfig
 
           case mode @ CompileServerMode.Shared =>
-            val rifleConfig = SetupBloopRifle(JvmCmd(logger, bleepConfig.compileServerJvm, ExecutionContext.global), userPaths, lazyResolver, mode)
-            val rifleLogger = new BloopLogger(logger)
-            if (BloopRifle.check(rifleConfig, rifleLogger)) {
-              BloopRifle.exit(rifleConfig, FileUtils.TempDir, rifleLogger)
+            val bleepRifleLogger = new BleepRifleLogger(logger)
+            val rifleConfig =
+              SetupBloopRifle(JvmCmd(logger, bleepConfig.compileServerJvm, ExecutionContext.global), userPaths, lazyResolver, mode, bleepRifleLogger)
+            if (BloopRifle.check(rifleConfig, bleepRifleLogger)) {
+              BloopRifle.exit(rifleConfig, FileUtils.TempDir, bleepRifleLogger)
             } else
               logger.info("bloop server was not running")
 

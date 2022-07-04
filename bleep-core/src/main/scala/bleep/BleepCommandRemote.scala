@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.bsp.{BloopLogger, CompileServerMode, SetupBloopRifle}
+import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
 import bleep.bsp.BspCommandFailed
 import bleep.internal.BspClientDisplayProgress
 import ch.epfl.scala.bsp4j
@@ -34,12 +34,11 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
       case CompileServerMode.Shared => ()
     }
 
+    val bleepRifleLogger = new BleepRifleLogger(started.logger)
     val bloopRifleConfig: BloopRifleConfig =
-      SetupBloopRifle(started.jvmCommand, started.prebootstrapped.userPaths, started.resolver, bleepConfig.compileServerMode)
+      SetupBloopRifle(started.jvmCommand, started.prebootstrapped.userPaths, started.resolver, bleepConfig.compileServerMode, bleepRifleLogger)
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
-    val rifleLogger =
-      new BloopLogger(started.logger)
 
     val server = BloopServer.buildServer(
       config = bloopRifleConfig,
@@ -49,7 +48,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
       classesDir = started.buildPaths.dotBleepModeDir / "classes",
       buildClient = buildClient,
       threads = BloopThreads.create(),
-      logger = rifleLogger
+      logger = bleepRifleLogger
     )
 
     try
@@ -64,7 +63,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
       bleepConfig.compileServerMode match {
         case CompileServerMode.NewEachInvocation =>
           server.shutdown()
-          Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, rifleLogger)
+          Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, bleepRifleLogger)
           ()
         case CompileServerMode.Shared =>
           ()

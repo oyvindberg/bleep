@@ -39,6 +39,7 @@ object BspImpl {
         case Left(th)     => throw th
         case Right(value) => value
       }
+      val bleepRifleLogger = new BleepRifleLogger(pre.logger)
 
       val bloopRifleConfig = {
         val lazyResolver = Lazy {
@@ -52,16 +53,14 @@ object BspImpl {
           )
         }
         val jvmCmd = JvmCmd(pre.logger, build.jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
-        SetupBloopRifle(jvmCmd, pre.userPaths, lazyResolver, bleepConfig.compileServerMode)
+        SetupBloopRifle(jvmCmd, pre.userPaths, lazyResolver, bleepConfig.compileServerMode, bleepRifleLogger)
       }
-
-      val bloopRifleLogger = new BloopLogger(pre.logger)
 
       val workspaceDir = pre.buildPaths.bleepBloopDir.getParent
 
       var bloopServer: BloopServer = null
       try {
-        bloopServer = buildServer(bloopRifleConfig, workspaceDir, localClient, threads.buildThreads, bloopRifleLogger)
+        bloopServer = buildServer(bloopRifleConfig, workspaceDir, localClient, threads.buildThreads, bleepRifleLogger)
         bspBloopServer.sendToIdeClient = launcher.getRemoteProxy
         bspBloopServer.bloopServer = bloopServer.server
         // run on `workspaceBuildTargets` later for the side-effect of updating build
@@ -106,7 +105,7 @@ object BspImpl {
           workspaceDir,
           System.out,
           System.err,
-          bloopRifleLogger
+          bleepRifleLogger
         )
         ()
       }

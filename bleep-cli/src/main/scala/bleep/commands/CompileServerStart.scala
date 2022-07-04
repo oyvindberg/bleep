@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.bsp.{BloopLogger, CompileServerMode, SetupBloopRifle}
+import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
 import bleep.internal.{BspClientDisplayProgress, Lazy}
 import bleep.logging.Logger
 
@@ -17,9 +17,9 @@ case class CompileServerStart(logger: Logger, userPaths: UserPaths, lazyResolver
       .flatMap { bleepConfig =>
         val threads = BloopThreads.create()
         val jvm = JvmCmd(logger, bleepConfig.compileServerJvm, ExecutionContext.fromExecutorService(threads.jsonrpc))
-        val rifleConfig = SetupBloopRifle(jvm, userPaths, lazyResolver, bleepConfig.compileServerMode)
-        val rifleLogger = new BloopLogger(logger)
-        if (BloopRifle.check(rifleConfig, rifleLogger)) {
+        val bleepRifleLogger = new BleepRifleLogger(logger)
+        val rifleConfig = SetupBloopRifle(jvm, userPaths, lazyResolver, bleepConfig.compileServerMode, bleepRifleLogger)
+        if (BloopRifle.check(rifleConfig, bleepRifleLogger)) {
           Right(logger.info("Compile server is already running"))
         } else {
           val tempDir = Files.createTempDirectory("bleep-bloop")
@@ -31,7 +31,7 @@ case class CompileServerStart(logger: Logger, userPaths: UserPaths, lazyResolver
             classesDir = tempDir / "classes",
             buildClient = BspClientDisplayProgress(logger),
             threads = threads,
-            logger = rifleLogger
+            logger = bleepRifleLogger
           )
           Right(())
         }
