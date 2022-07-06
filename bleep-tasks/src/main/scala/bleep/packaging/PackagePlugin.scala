@@ -4,8 +4,8 @@ import bleep.BleepVersion
 import bleep.logging.Logger
 import bloop.config.Config
 
-import java.nio.file._
 import java.nio.file.attribute.FileTime
+import java.nio.file.{Files, LinkOption, Path, StandardOpenOption}
 import java.util.jar.{Attributes, JarOutputStream, Manifest}
 import java.util.zip.ZipEntry
 import scala.util.Using
