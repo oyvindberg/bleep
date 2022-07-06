@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.{Options, RelPath, Versions}
+import bleep.{Options, RelPath}
 
 import java.nio.file.Path
 

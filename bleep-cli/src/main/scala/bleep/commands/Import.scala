@@ -5,7 +5,6 @@ import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
 import bleep.rewrites.normalizeBuild
-import bloop.config.Config
 import cats.syntax.apply._
 import com.monovore.decline.Opts
 

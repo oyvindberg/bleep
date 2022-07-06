@@ -3,7 +3,7 @@ package commands
 
 import bleep.internal.FileUtils
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Path}
 import scala.util.Properties
 
 case class Clean(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
