@@ -12,14 +12,14 @@ import java.nio.file.Files
 case class BleepConfig(
     compileServerMode: CompileServerMode,
     compileServerJvm: Option[model.Jvm],
-    authentications: CoursierResolver.Authentications
+    authentications: Option[CoursierResolver.Authentications]
 )
 
 object BleepConfig {
   val default = BleepConfig(
     compileServerMode = CompileServerMode.Shared,
     compileServerJvm = None,
-    authentications = CoursierResolver.Authentications.empty
+    authentications = None
   )
 
   implicit val decoder: Decoder[BleepConfig] = deriveDecoder

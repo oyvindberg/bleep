@@ -28,7 +28,7 @@ object CoursierResolver {
       logger: Logger,
       downloadSources: Boolean,
       cacheIn: Path,
-      authentications: CoursierResolver.Authentications,
+      authentications: Option[CoursierResolver.Authentications],
       wantedBleepVersion: Option[model.Version]
   ): CoursierResolver = {
     val direct = new Direct(new CoursierLogger(logger), repos, downloadSources, authentications)
@@ -67,7 +67,7 @@ object CoursierResolver {
     implicit val keyEncoder: KeyEncoder[URI] = KeyEncoder.encodeKeyString.contramap(_.toString)
     implicit val keyDecoder: KeyDecoder[URI] = KeyDecoder.decodeKeyString.map(URI.create)
 
-    implicit val resolverConfigCodec: Codec[Authentications] =
+    implicit val codec: Codec[Authentications] =
       Codec
         .from(Decoder[Option[Map[URI, Authentication]]], Encoder[Option[Map[URI, Authentication]]])
         .iemap {
@@ -129,22 +129,22 @@ object CoursierResolver {
     // format: on
   }
 
-  def coursierRepos(repos: List[model.Repository], authentications: CoursierResolver.Authentications): List[Repository] =
+  def coursierRepos(repos: List[model.Repository], authentications: Option[CoursierResolver.Authentications]): List[Repository] =
     (repos ++ constants.DefaultRepos).map {
       case bleep.model.Repository.Folder(_, path) =>
         // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
         MavenRepository(path.toString)
       case bleep.model.Repository.Maven(_, uri) =>
-        MavenRepository(uri.toString).withAuthentication(authentications.configs.get(uri))
+        MavenRepository(uri.toString).withAuthentication(authentications.flatMap(_.configs.get(uri)))
       case bleep.model.Repository.Ivy(_, uri) =>
-        IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.configs.get(uri))
+        IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
     }
 
   private class Direct(
       val logger: CoursierLogger,
       val repos: List[model.Repository],
       downloadSources: Boolean,
-      authentications: CoursierResolver.Authentications
+      authentications: Option[CoursierResolver.Authentications]
   ) extends CoursierResolver {
 
     val fileCache = FileCache[Task]().withLogger(logger)

@@ -30,7 +30,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       logger = logger,
       downloadSources = false,
       cacheIn = cachePath,
-      authentications = CoursierResolver.Authentications.empty,
+      authentications = None,
       wantedBleepVersion = None
     )
   }
