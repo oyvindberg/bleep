@@ -21,7 +21,7 @@ final case class MapLayout[F, V](all: Map[F, V]) extends Layout[F, V] {
   override type Self[f, v] = MapLayout[f, v]
 
   override def map[FF, VV](f: (F, V) => (FF, VV)): MapLayout[FF, VV] =
-    MapLayout[FF, VV](all.map { case (k, v) => (f(k, v)) })
+    MapLayout[FF, VV](all.map { case (k, v) => f(k, v) })
 }
 
 final case class IvyLayout[F, V](jarFile: (F, V), sourceFile: (F, V), ivyFile: (F, V), pomFile: (F, V), docFile: (F, V)) extends Layout[F, V] {

@@ -11,7 +11,7 @@ case class Options(values: Set[Options.Opt]) extends SetLike[Options] {
   def render: List[String] = values.toList.sorted.flatMap(_.render)
   def isEmpty: Boolean = values.isEmpty
 
-  override def union(other: Options) = new Options((values ++ other.values))
+  override def union(other: Options) = new Options(values ++ other.values)
   override def intersect(other: Options) = new Options(values.intersect(other.values))
   override def removeAll(other: Options) = new Options(values.diff(other.values))
 }
