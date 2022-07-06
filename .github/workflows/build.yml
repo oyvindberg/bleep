@@ -32,6 +32,8 @@ jobs:
         run: |
           bleep generate-resources
           bleep test
+        env:
+          CI: true
 
   build-native-image:
     name: Native image build on ${{ matrix.os }}
@@ -75,6 +77,8 @@ jobs:
 
       - name: Test binary after build (non-windows)
         run: ./${{ matrix.file_name }} --ignore-version-in-build-file test --no-color jvm213
+        env:
+          CI: true
         if: runner.os != 'Windows'
 
       - name: generate resources (windows)
@@ -95,6 +99,8 @@ jobs:
         shell: cmd
         # todo: fix tests on windows
         run: .\${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
+        env:
+          CI: true
         if: runner.os == 'Windows'
 
       - name: Temporarily save package
