@@ -118,9 +118,6 @@ object Main {
           Opts.subcommand("projects-test", "show test projects under current directory")(
             testProjectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
-          Opts.subcommand("patch", "Apply patch from standard-in or file")(
-            Opts.option[Path]("file", "patch file, defaults to std-in").orNone.map(file => commands.Patch(started, file))
-          ),
           importCmd(started.prebootstrapped.existingBuild, started.buildPaths, started.logger),
           compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths, started.resolver)
         ),
