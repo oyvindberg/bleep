@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.Lazy
+import bleep.Lazy
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 

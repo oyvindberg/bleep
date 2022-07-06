@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.internal.Lazy
 import bleep.logging.Logger
 
 /** At this point we assert that we *have* a build. it's not necessarily loaded yet

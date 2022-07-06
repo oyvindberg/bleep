@@ -1,8 +1,9 @@
 package bleep
 package commands
 
+import bleep.Lazy
 import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
-import bleep.internal.{BspClientDisplayProgress, Lazy}
+import bleep.internal.BspClientDisplayProgress
 import bleep.logging.Logger
 
 import java.nio.file.Files

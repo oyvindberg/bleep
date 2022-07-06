@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{FileUtils, Lazy}
+import bleep.internal.FileUtils
 import io.circe.Json
 import io.circe.yaml12
 

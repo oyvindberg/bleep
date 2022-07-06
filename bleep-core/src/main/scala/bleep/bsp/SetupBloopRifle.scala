@@ -1,8 +1,9 @@
 package bleep
 package bsp
 
+import bleep.Lazy
 import bleep.bsp.CompileServerMode.{NewEachInvocation, Shared}
-import bleep.internal.{dependencyOrdering, FileUtils, Lazy}
+import bleep.internal.{dependencyOrdering, FileUtils}
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 

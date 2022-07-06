@@ -1,4 +1,4 @@
-package bleep.internal
+package bleep
 
 import scala.util.control.NonFatal
 

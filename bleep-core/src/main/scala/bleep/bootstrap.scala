@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.BuildPaths.Mode
-import bleep.internal.{Lazy, Os}
+import bleep.internal.Os
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext

@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.internal.Lazy
 import bloop.config.Config
 
 import java.nio.file.Path

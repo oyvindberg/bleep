@@ -2,7 +2,7 @@ package bleep
 
 import bleep.commands.Import
 import bleep.commands.Import.Options
-import bleep.internal.{FileUtils, ImportInputProjects, Lazy, ReadSbtExportFile, Replacements}
+import bleep.internal.{FileUtils, ImportInputProjects, ReadSbtExportFile, Replacements}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.Repositories

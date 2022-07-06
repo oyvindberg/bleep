@@ -3,7 +3,7 @@ package bleep
 import bleep.BuildException.fatal
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.internal.{FetchBleepRelease, Lazy, Os, ProjectGlobs}
+import bleep.internal.{FetchBleepRelease, Os, ProjectGlobs}
 import bleep.logging._
 import cats.data.NonEmptyList
 import cats.syntax.apply._

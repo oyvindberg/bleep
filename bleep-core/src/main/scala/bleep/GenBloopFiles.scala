@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{dependencyOrdering, rewriteDependentData, FileUtils, Lazy, Replacements, ScalaVersions}
+import bleep.internal.{dependencyOrdering, rewriteDependentData, FileUtils, Replacements, ScalaVersions}
 import bleep.logging.Logger
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
