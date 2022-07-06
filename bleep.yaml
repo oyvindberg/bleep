@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M10
+$version: 0.0.1-M12
 jvm:
   name: graalvm-java17:22.1.0
 projects:
@@ -85,7 +85,6 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.13
-  # use published tasks to generate version. for the rest we want to pick up breakage as early as possible
   scripts-init:
     dependencies: build.bleep::bleep-tasks-publishing:$BLEEP_VERSION
     extends:
@@ -101,14 +100,8 @@ templates:
     platform:
       name: jvm
     scala:
-      options:
-      - -encoding
-      - utf8
-      - -feature
-      - -language:experimental.macros
-      - -language:higherKinds
-      - -language:implicitConversions
-      - -unchecked
+      options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
+        -language:implicitConversions -unchecked
     source-layout: sbt-matrix
   template-common-main:
     extends: template-common
@@ -119,23 +112,10 @@ templates:
     isTestProject: true
     sbt-scope: test
     scala:
-      options:
-      - -Xcheckinit
-      - -Xlint:adapted-args
-      - -Xlint:constant
-      - -Xlint:delayedinit-select
-      - -Xlint:doc-detached
-      - -Xlint:inaccessible
-      - -Xlint:infer-any
-      - -Xlint:missing-interpolator
-      - -Xlint:nullary-unit
-      - -Xlint:option-implicit
-      - -Xlint:package-object-classes
-      - -Xlint:poly-implicit-overload
-      - -Xlint:private-shadow
-      - -Xlint:stars-align
-      - -Xlint:type-parameter-shadow
-      - -language:existentials
+      options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
+        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
+        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -language:existentials
   template-cross-all:
     cross:
       jvm212:
@@ -163,85 +143,31 @@ templates:
   template-scala-2.12:
     extends: template-common
     scala:
-      options:
-      - -Xcheckinit
-      - -Xlint:adapted-args
-      - -Xlint:by-name-right-associative
-      - -Xlint:constant
-      - -Xlint:delayedinit-select
-      - -Xlint:doc-detached
-      - -Xlint:inaccessible
-      - -Xlint:infer-any
-      - -Xlint:missing-interpolator
-      - -Xlint:nullary-override
-      - -Xlint:nullary-unit
-      - -Xlint:option-implicit
-      - -Xlint:package-object-classes
-      - -Xlint:poly-implicit-overload
-      - -Xlint:private-shadow
-      - -Xlint:stars-align
-      - -Xlint:type-parameter-shadow
-      - -Xlint:unsound-match
-      - -Yno-adapted-args
-      - -Ypartial-unification
-      - -Ywarn-dead-code
-      - -Ywarn-extra-implicit
-      - -Ywarn-nullary-override
-      - -Ywarn-nullary-unit
-      - -Ywarn-numeric-widen
-      - -Ywarn-unused:implicits
-      - -Ywarn-unused:imports
-      - -Ywarn-unused:locals
-      - -Ywarn-unused:params
-      - -Ywarn-unused:patvars
-      - -Ywarn-unused:privates
-      - -Ywarn-value-discard
-      - -deprecation
-      - -language:existentials
+      options: -Xcheckinit -Xlint:adapted-args -Xlint:by-name-right-associative -Xlint:constant
+        -Xlint:delayedinit-select -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any
+        -Xlint:missing-interpolator -Xlint:nullary-override -Xlint:nullary-unit -Xlint:option-implicit
+        -Xlint:package-object-classes -Xlint:poly-implicit-overload -Xlint:private-shadow
+        -Xlint:stars-align -Xlint:type-parameter-shadow -Xlint:unsound-match -Yno-adapted-args
+        -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit -Ywarn-nullary-override
+        -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits -Ywarn-unused:imports
+        -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars -Ywarn-unused:privates
+        -Ywarn-value-discard -deprecation -language:existentials
       version: 2.12.15
   template-scala-2.13:
     extends: template-common
     scala:
-      options:
-      - -Wdead-code
-      - -Wextra-implicit
-      - -Wnumeric-widen
-      - -Wunused:explicits
-      - -Wunused:implicits
-      - -Wunused:imports
-      - -Wunused:locals
-      - -Wunused:nowarn
-      - -Wunused:params
-      - -Wunused:patvars
-      - -Wunused:privates
-      - -Wvalue-discard
-      - -Xcheckinit
-      - -Xlint:-byname-implicit
-      - -Xlint:adapted-args
-      - -Xlint:constant
-      - -Xlint:delayedinit-select
-      - -Xlint:deprecation
-      - -Xlint:doc-detached
-      - -Xlint:implicit-not-found
-      - -Xlint:implicit-recursion
-      - -Xlint:inaccessible
-      - -Xlint:infer-any
-      - -Xlint:missing-interpolator
-      - -Xlint:nullary-unit
-      - -Xlint:option-implicit
-      - -Xlint:package-object-classes
-      - -Xlint:poly-implicit-overload
-      - -Xlint:private-shadow
-      - -Xlint:stars-align
-      - -Xlint:strict-unsealed-patmat
-      - -Xlint:type-parameter-shadow
-      - -language:existentials
+      options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
+        -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars
+        -Wunused:privates -Wvalue-discard -Xcheckinit -Xlint:-byname-implicit -Xlint:adapted-args
+        -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation -Xlint:doc-detached
+        -Xlint:implicit-not-found -Xlint:implicit-recursion -Xlint:inaccessible -Xlint:infer-any
+        -Xlint:missing-interpolator -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes
+        -Xlint:poly-implicit-overload -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat
+        -Xlint:type-parameter-shadow -language:existentials
       version: 2.13.8
   template-scala-3:
     extends: template-common
     sbt-scope: main
     scala:
-      options:
-      - -Ykind-projector
-      - -deprecation
+      options: -Ykind-projector -deprecation
       version: 3.1.1
