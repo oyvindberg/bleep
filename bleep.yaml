@@ -41,7 +41,6 @@ projects:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
       module: io.get-coursier::coursier:2.1.0-M6-28-gbad85693f
-    - org.gnieh::diffson-circe:4.1.1
     - org.snakeyaml:snakeyaml-engine:2.3
     - org.virtuslab.scala-cli::bloop-rifle:0.1.9
     extends: template-cross-all

@@ -65,5 +65,5 @@ object BuildPaths {
   }
 
   def apply(cwd: Path, buildLoader: BuildLoader, mode: BuildPaths.Mode): BuildPaths =
-    BuildPaths(cwd, buildLoader.bleepJson, mode)
+    BuildPaths(cwd, buildLoader.bleepYaml, mode)
 }

@@ -28,7 +28,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
     writeAndCompareEarly(buildPaths.buildDir, generatedProjectFiles)
 
     val Right(started) =
-      bootstrap.from(Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildLoader.bleepJson)), GenBloopFiles.InMemory, Nil, Lazy(BleepConfig.default))
+      bootstrap.from(Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)), GenBloopFiles.InMemory, Nil, Lazy(BleepConfig.default))
 
     val generatedBloopFiles: Map[Path, String] =
       GenBloopFiles.encodedFiles(buildPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }

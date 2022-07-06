@@ -131,7 +131,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
 
     val started = bootstrap.from(
-      Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepJson)),
+      Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
       GenBloopFiles.InMemory,
       rewrites = Nil,
       Lazy(BleepConfig.default)
