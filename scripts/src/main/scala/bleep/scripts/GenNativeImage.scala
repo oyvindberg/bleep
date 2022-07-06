@@ -17,8 +17,9 @@ object GenNativeImage {
         nativeImageJvm = started.rawBuild.jvm.getOrElse(model.Jvm.graalvm)
       ) {
         override val nativeImageOutput = args.headOption match {
-          case Some(value) =>
-            started.prebootstrapped.buildPaths.cwd / value
+          case Some(relPath) =>
+            val relPathNoExe = if (relPath.endsWith(".exe")) relPath.dropRight(".exe".length) else relPath
+            started.prebootstrapped.buildPaths.cwd / relPathNoExe
           case None => super.nativeImageOutput
         }
       }
