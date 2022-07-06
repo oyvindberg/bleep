@@ -85,6 +85,9 @@ object Main {
               ),
               Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
                 Opts(commands.BuildUpdateDeps(started))
+              ),
+              Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
+                commands.BuildDiff.opts.map(opts => commands.BuildDiff(started, opts))
               )
             ).foldK
           ),
@@ -205,9 +208,9 @@ object Main {
         maybeWantedVersion match {
           case Right(wantedVersion) if BleepVersion.version == wantedVersion.value || wantedVersion == model.Version.dev => ()
           case Right(wantedVersion) if opts.ignoreWantedVersion =>
-            logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepJson}) because you specified --ignore-version-in-build-file")
+            logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --ignore-version-in-build-file")
           case Right(wantedVersion) =>
-            logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepJson}")
+            logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepYaml}")
             FetchBleepRelease(wantedVersion, logger, ExecutionContext.global) match {
               case Left(buildException) =>
                 fatal("", logger, buildException)
