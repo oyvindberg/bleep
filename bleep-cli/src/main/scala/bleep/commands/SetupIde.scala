@@ -8,6 +8,7 @@ import ch.epfl.scala.bsp4j
 import io.circe.Encoder
 import io.circe.syntax._
 
+import java.nio.file.Files
 import java.util
 import scala.jdk.CollectionConverters._
 
@@ -33,6 +34,28 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
     )
 
     ProjectSelection.store(buildPaths, maybeSelectedProjects)
+
+    List(
+      // remove other configured BSP tools
+      buildPaths.buildDir / ".bsp",
+      // causes intellij to always pick sbt BSP import
+      buildPaths.buildDir / ".bloop",
+      // cause metals to always pick sbt BSP import
+      buildPaths.buildDir / "build.sbt",
+      buildPaths.buildDir / "project"
+    ).filter(FileUtils.exists) match {
+      case Nil => ()
+      case conflicts =>
+        LazyList
+          .from(0)
+          .map(n => buildPaths.buildDir / s"bleep-moved-files-$n")
+          .find(target => !FileUtils.exists(target))
+          .foreach { target =>
+            Files.createDirectories(target)
+            conflicts.foreach(conflict => Files.move(conflict, target / conflict.getFileName.toString))
+            logger.info(s"Moved ${conflicts.mkString(", ")} into $target to avoid IDE picking wrong build tool when importing")
+          }
+    }
 
     FileUtils.writeString(buildPaths.bspBleepJsonFile, details.asJson.spaces2)
     Right(logger.info(s"Wrote file ${buildPaths.bspBleepJsonFile}"))
