@@ -56,11 +56,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      - uses: graalvm/setup-graalvm@v1
-        with:
-          version: '22.1.0'
-          java-version: '17'
-          components: 'native-image'
       - uses: coursier/setup-action@v1.2.0-M3
       - uses: coursier/cache-action@v6
         with:
