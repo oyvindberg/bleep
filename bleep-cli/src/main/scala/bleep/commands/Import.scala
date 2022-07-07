@@ -170,7 +170,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
           scripts = build.scripts.updated(model.ScriptName("generate-resources"), JsonList(List(model.ScriptDef(scriptProjectName, className))))
         )
 
-        val scriptPath = destinationPaths.from(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"
+        val scriptPath = destinationPaths.project(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"
         logger
           .withContext(scriptPath)
           .warn("Created a makeshift script to copy generated resources from sbt directories. You'll need to edit this file and make it generate your files")

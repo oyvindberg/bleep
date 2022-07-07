@@ -106,7 +106,7 @@ object GenBloopFiles {
   ): Config.File = {
 
     val projectPaths: ProjectPaths =
-      buildPaths.from(crossName, explodedProject)
+      buildPaths.project(crossName, explodedProject)
 
     val allTransitiveTranslated: Map[model.CrossProjectName, Config.File] = {
       val builder = Map.newBuilder[model.CrossProjectName, Config.File]
@@ -330,14 +330,14 @@ object GenBloopFiles {
         crossName.value,
         projectPaths.dir,
         Some(buildPaths.buildDir),
-        sources = projectPaths.sourcesDirs.values.toList,
+        sources = projectPaths.sourcesDirs.all.toList,
         sourcesGlobs = None,
         sourceRoots = None,
         dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = projectPaths.targetDir,
         classesDir = projectPaths.classes,
-        resources = Some(projectPaths.resourcesDirs.values.toList),
+        resources = Some(projectPaths.resourcesDirs.all.toList),
         scala = configuredScala,
         java = Some(Config.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
         sbt = None,

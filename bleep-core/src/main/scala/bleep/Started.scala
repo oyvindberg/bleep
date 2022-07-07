@@ -22,7 +22,7 @@ case class Started(
   def logger = prebootstrapped.logger
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
-    buildPaths.from(crossName, build.projects(crossName))
+    buildPaths.project(crossName, build.projects(crossName))
 
   lazy val bloopProjects: SortedMap[model.CrossProjectName, Config.Project] =
     bloopFiles.map { case (name, lazyProject) => (name, lazyProject.forceGet.project) }
