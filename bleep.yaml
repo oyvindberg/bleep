@@ -14,7 +14,7 @@ projects:
     - org.scalameta:svm-subs:101.0.0
     dependsOn: bleep-core
     extends:
-    - template-common-main
+    - template-common
     - template-scala-2.13
     platform:
       mainClass: bleep.Main
@@ -57,7 +57,9 @@ projects:
     - org.wvlet.airframe::airframe-http:22.4.2
     - se.sawano.java:alphanumeric-comparator:1.4.1
     dependsOn: bleep-tasks
-    extends: template-cross-jvm-212-213-main
+    extends:
+    - template-common
+    - template-cross-jvm-212-213
     sources:
     - ./../liberated/sbt-ci-release/plugin/src/main/scala
     - ./../liberated/sbt-dynver/dynver/src/main/scala
@@ -67,26 +69,25 @@ projects:
     - ./../liberated/sbt-pgp/sbt-pgp/src/main/scala
     - ./../liberated/sbt-sonatype/src/main/scala
   bleep-tasks-publishing-test:
-    cross:
-      jvm212:
-        extends: template-scala-2.12
-      jvm213:
-        extends: template-scala-2.13
     dependsOn: bleep-tasks-publishing
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
   bleep-test-harness:
     dependencies: org.scalatest::scalatest:3.3.0-SNAP3
     dependsOn: bleep-core
-    extends: template-cross-jvm-212-213-main
+    extends:
+    - template-common
+    - template-cross-jvm-212-213
   scripts:
     dependsOn: bleep-tasks-publishing
     extends:
-    - template-common-main
+    - template-common
     - template-scala-2.13
   scripts-init:
     dependencies: build.bleep::bleep-tasks-publishing:$BLEEP_VERSION
     extends:
-    - template-common-main
+    - template-common
     - template-scala-2.13
 scripts:
   generate-resources: scripts-init/bleep.scripts.GenerateResources
@@ -101,68 +102,47 @@ templates:
       options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
     source-layout: sbt-matrix
-  template-common-main:
-    extends: template-common
   template-common-test:
     dependsOn: bleep-test-harness
     extends: template-common
     isTestProject: true
+  template-cross-all:
+    cross:
+      jvm3:
+        extends: template-scala-3
+    extends:
+    - template-common
+    - template-cross-jvm-212-213
+  template-cross-jvm-212-213:
+    cross:
+      jvm212:
+        extends: template-scala-2.12
+      jvm213:
+        extends: template-scala-2.13
+  template-scala-2:
     scala:
       options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
         -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
         -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
         -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -language:existentials
-  template-cross-all:
-    cross:
-      jvm212:
-        extends:
-        - template-common-main
-        - template-scala-2.12
-      jvm213:
-        extends:
-        - template-common-main
-        - template-scala-2.13
-      jvm3:
-        extends:
-        - template-common-main
-        - template-scala-3
-  template-cross-jvm-212-213-main:
-    cross:
-      jvm212:
-        extends:
-        - template-common-main
-        - template-scala-2.12
-      jvm213:
-        extends:
-        - template-common-main
-        - template-scala-2.13
   template-scala-2.12:
-    extends: template-common
+    extends: template-scala-2
     scala:
-      options: -Xcheckinit -Xlint:adapted-args -Xlint:by-name-right-associative -Xlint:constant
-        -Xlint:delayedinit-select -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any
-        -Xlint:missing-interpolator -Xlint:nullary-override -Xlint:nullary-unit -Xlint:option-implicit
-        -Xlint:package-object-classes -Xlint:poly-implicit-overload -Xlint:private-shadow
-        -Xlint:stars-align -Xlint:type-parameter-shadow -Xlint:unsound-match -Yno-adapted-args
-        -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit -Ywarn-nullary-override
-        -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits -Ywarn-unused:imports
-        -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars -Ywarn-unused:privates
-        -Ywarn-value-discard -deprecation -language:existentials
+      options: -Xlint:by-name-right-associative -Xlint:nullary-override -Xlint:unsound-match
+        -Yno-adapted-args -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit
+        -Ywarn-nullary-override -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits
+        -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
+        -Ywarn-unused:privates -Ywarn-value-discard -deprecation
       version: 2.12.15
   template-scala-2.13:
-    extends: template-common
+    extends: template-scala-2
     scala:
       options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
         -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars
-        -Wunused:privates -Wvalue-discard -Xcheckinit -Xlint:-byname-implicit -Xlint:adapted-args
-        -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation -Xlint:doc-detached
-        -Xlint:implicit-not-found -Xlint:implicit-recursion -Xlint:inaccessible -Xlint:infer-any
-        -Xlint:missing-interpolator -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes
-        -Xlint:poly-implicit-overload -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat
-        -Xlint:type-parameter-shadow -language:existentials
+        -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit -Xlint:deprecation
+        -Xlint:implicit-not-found -Xlint:implicit-recursion -Xlint:strict-unsealed-patmat
       version: 2.13.8
   template-scala-3:
-    extends: template-common
     scala:
       options: -Ykind-projector -deprecation
       version: 3.1.1
