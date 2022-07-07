@@ -23,7 +23,6 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.13
-    folder: ./bleep-cli
   bleep-core:
     dependencies:
     - for3Use213: true
@@ -75,7 +74,6 @@ projects:
         extends: template-scala-2.13
     dependsOn: bleep-tasks-publishing
     extends: template-common-test
-    folder: ./bleep-tasks-publishing
   bleep-test-harness:
     dependencies: org.scalatest::scalatest:3.3.0-SNAP3
     dependsOn: bleep-core
@@ -105,12 +103,10 @@ templates:
     source-layout: sbt-matrix
   template-common-main:
     extends: template-common
-    sbt-scope: main
   template-common-test:
     dependsOn: bleep-test-harness
     extends: template-common
     isTestProject: true
-    sbt-scope: test
     scala:
       options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
         -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
@@ -167,7 +163,6 @@ templates:
       version: 2.13.8
   template-scala-3:
     extends: template-common
-    sbt-scope: main
     scala:
       options: -Ykind-projector -deprecation
       version: 3.1.1
