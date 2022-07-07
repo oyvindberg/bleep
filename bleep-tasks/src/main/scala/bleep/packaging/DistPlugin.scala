@@ -40,7 +40,7 @@ object DistPlugin {
     ()
   }
 
-  def dependenciesFor(logger: Logger, project: Config.Project, lookup: Map[Path, (Config.Project)]): List[Path] = {
+  def dependenciesFor(logger: Logger, project: Config.Project, lookup: Map[Path, Config.Project]): List[Path] = {
     val (dirs, jars) = project.classpath.partition(Files.isDirectory(_))
     val jar = PackagePlugin.jar(logger, project)
     jar :: jars ::: dirs
