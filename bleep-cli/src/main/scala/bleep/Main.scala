@@ -77,7 +77,7 @@ object Main {
           Opts.subcommand("build", "rewrite build")(
             List(
               newCommand(started.logger, started.buildPaths.cwd),
-              Opts.subcommand("templates-reapply", "reapply templates.")(
+              Opts.subcommand("templates-reapply", "apply existing templates again")(
                 Opts(commands.BuildReapplyTemplates(started))
               ),
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
@@ -85,6 +85,12 @@ object Main {
               ),
               Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
                 Opts(commands.BuildUpdateDeps(started))
+              ),
+              Opts.subcommand(
+                "move-files-into-bleep-layout",
+                "move source files around from sbt file layout to bleep layout. Your build will no longer have any `sbt-scope` or `folder` set."
+              )(
+                Opts(commands.BuildMoveFilesIntoBleepLayout(started))
               ),
               Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
                 commands.BuildDiff.opts.map(opts => commands.BuildDiff(started, opts))

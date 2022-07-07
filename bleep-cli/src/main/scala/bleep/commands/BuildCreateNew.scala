@@ -2,7 +2,6 @@ package bleep
 package commands
 
 import bleep.SourceLayout.Normal
-import bleep.internal.FileUtils.DeleteUnknowns
 import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.logging.Logger
 import cats.data.NonEmptyList
@@ -27,7 +26,7 @@ case class BuildCreateNew(
   def generate(buildPaths: BuildPaths): Either[BuildException, (Started, Map[Path, String])] = {
     val allFiles = genAllFiles(buildPaths)
 
-    val syncedFiles = FileUtils.syncPaths(cwd, allFiles, deleteUnknowns = DeleteUnknowns.No, soft = true)
+    val syncedFiles = FileUtils.syncPaths(cwd, allFiles, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 

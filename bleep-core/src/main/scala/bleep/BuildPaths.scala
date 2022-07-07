@@ -20,7 +20,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
   lazy val logFile: Path = dotBleepModeDir / "last.log"
   lazy val bspProjectSelectionYamlFile: Path = dotBleepBspModeDir / "project-selection.yaml"
 
-  final def from(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
+  final def project(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[Versions.Scala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
@@ -30,18 +30,18 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
       case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
     }
 
-    val sources: JsonSet[Path] = {
+    val sources = {
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
       val fromJson = p.sources.values.map(relPath => dir / relPath)
       val generated = generatedSourcesDir(crossName)
-      JsonSet.fromIterable(fromSourceLayout ++ fromJson ++ List(generated))
+      ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
-    val resources: JsonSet[Path] = {
+    val resources = {
       val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
       val fromJson = p.resources.values.map(relPath => dir / relPath)
       val generated = generatedResourcesDir(crossName)
-      JsonSet.fromIterable(fromSourceLayout ++ fromJson + generated)
+      ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
     ProjectPaths(

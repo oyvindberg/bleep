@@ -10,7 +10,7 @@ case class semanticDb(buildPaths: BuildPaths) extends Rewrite {
   def apply(name: model.CrossProjectName, explodedProject: model.Project): model.Project =
     explodedProject.scala match {
       case Some(s @ model.Scala(Some(version), _, _, _)) =>
-        val projectPaths = buildPaths.from(name, explodedProject)
+        val projectPaths = buildPaths.project(name, explodedProject)
         val addedScalacOptions = List(Some(compilerOption(version)), targetRootOptions(version, projectPaths), sourceRootOptions(version)).flatten
         val compilerPlugins: JsonSet[Dep] =
           compilerPlugin(version) match {

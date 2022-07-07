@@ -12,6 +12,9 @@ case class RelPath(segments: List[String]) {
   def prefixed(str: String): RelPath =
     RelPath(str :: segments)
 
+  def filter(f: String => Boolean): RelPath =
+    RelPath(segments.filter(f))
+
   def withLast(f: String => String): RelPath =
     segments match {
       case init :+ last => new RelPath(init :+ f(last))

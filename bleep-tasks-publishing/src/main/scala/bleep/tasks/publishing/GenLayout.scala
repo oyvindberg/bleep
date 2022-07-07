@@ -32,8 +32,8 @@ object GenLayout {
   def maven(self: Dependency, projectPaths: ProjectPaths, deps: List[Dependency], info: Info): MavenLayout[RelPath, Array[Byte]] =
     MavenLayout(
       self = self,
-      jarFile = createJar(Array(projectPaths.classes) ++ projectPaths.resourcesDirs.values),
-      sourceFile = createJar(projectPaths.sourcesDirs.values),
+      jarFile = createJar(Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all),
+      sourceFile = createJar(projectPaths.sourcesDirs.all),
       pomFile = fromXml(pomFile(self, deps, info)),
       // javadoc should never have existed.
       docFile = createJar(Nil)
