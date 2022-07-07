@@ -59,7 +59,7 @@ object BuildMoveFilesIntoBleepLayout {
       // a new relative path instead
       def newPath(relPath: RelPath): RelPath =
         // outside of project dir we calculate new relative path and do no moving
-        if (relPath.segments.startsWith("..")) {
+        if (relPath.segments.headOption.contains("..")) {
           val from = fromDirs.dir / relPath
           RelPath.relativeTo(toDirs.dir, from)
         } else {
