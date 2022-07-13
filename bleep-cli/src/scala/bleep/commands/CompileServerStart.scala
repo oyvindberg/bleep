@@ -17,9 +17,8 @@ case class CompileServerStart(logger: Logger, userPaths: UserPaths, lazyResolver
       .rewritePersisted(logger, userPaths)(_.copy(compileServerMode = CompileServerMode.Shared))
       .flatMap { bleepConfig =>
         val threads = BloopThreads.create()
-        val jvm = FetchJvm(logger, bleepConfig.compileServerJvm, ExecutionContext.fromExecutorService(threads.jsonrpc))
         val bleepRifleLogger = new BleepRifleLogger(logger)
-        val rifleConfig = SetupBloopRifle(jvm, userPaths, lazyResolver, bleepConfig.compileServerMode, bleepRifleLogger)
+        val rifleConfig = SetupBloopRifle(bleepConfig, logger, userPaths, lazyResolver, bleepRifleLogger, ExecutionContext.fromExecutorService(threads.jsonrpc))
         if (BloopRifle.check(rifleConfig, bleepRifleLogger)) {
           Right(logger.info("Compile server is already running"))
         } else {

@@ -99,8 +99,9 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
           "+bloopInstall",
           s"""'set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"'""",
           "+exportAllProjects"
-        ).mkString(" "),
-        logger
+        ),
+        logger,
+        "sbt"
       )
     } finally Files.delete(tempAddBloopPlugin)
   }

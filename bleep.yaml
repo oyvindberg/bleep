@@ -48,6 +48,11 @@ projects:
     extends: template-cross-all
     resources: ./../liberated/sbt-native-image/plugin/src/main/resources
     sources: ./../liberated/sbt-native-image/plugin/src/main/scala
+  bleep-tasks-mdoc:
+    dependsOn: bleep-tasks
+    extends: template-cross-all
+    sources: ./../liberated/mdoc/mdoc-sbt/src/main/scala
+    dependencies: "org.jsoup:jsoup:1.12.1"
   bleep-tasks-publishing:
     dependencies:
     - com.eed3si9n::gigahorse-okhttp:0.7.0
@@ -80,7 +85,7 @@ projects:
     - template-common
     - template-cross-jvm-212-213
   scripts:
-    dependsOn: bleep-tasks-publishing
+    dependsOn: [bleep-tasks-publishing, bleep-tasks-mdoc]
     extends:
     - template-common
     - template-scala-2.13
@@ -94,6 +99,7 @@ scripts:
   native-image: scripts/bleep.scripts.GenNativeImage
   publish: scripts/bleep.scripts.Publish
   publish-local: scripts/bleep.scripts.PublishLocal
+  documentation: scripts/bleep.scripts.GenDocumentation
 templates:
   template-common:
     platform:

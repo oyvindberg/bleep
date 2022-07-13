@@ -13,7 +13,18 @@ case class BleepConfig(
     compileServerMode: CompileServerMode,
     compileServerJvm: Option[model.Jvm],
     authentications: Option[CoursierResolver.Authentications]
-)
+) {
+  def jvmOrSetDefault(logger: Logger, userPaths: UserPaths): model.Jvm =
+    compileServerJvm match {
+      case Some(jvm) => jvm
+      case None =>
+        val defaultJvm = model.Jvm.graalvm
+        val newConfig = copy(compileServerJvm = Some(defaultJvm))
+        logger.warn(s"Defaulting bleep config to use $defaultJvm for compile server")
+        BleepConfig.store(logger, userPaths, newConfig)
+        defaultJvm
+    }
+}
 
 object BleepConfig {
   val default = BleepConfig(

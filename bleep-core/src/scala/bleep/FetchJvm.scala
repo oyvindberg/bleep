@@ -11,8 +11,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
 object FetchJvm {
-  def apply(logger: Logger, jvm0: Option[model.Jvm], ec: ExecutionContext): Path = {
-    val jvm = jvm0.getOrElse(model.Jvm.System)
+  def apply(logger: Logger, jvm: model.Jvm, ec: ExecutionContext): Path = {
     val architecture = JvmIndex.defaultOs() match {
       case "darwin" =>
         import scala.sys.process._
@@ -27,7 +26,7 @@ object FetchJvm {
       .withIndex(jvm.index.getOrElse(JvmIndex.coursierIndexUrl))
       .withArchitecture(architecture)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)
-    logger.withContext(javaBin).debug(s"Resolved JVM ${jvm0.map(_.name).getOrElse("")}")
+    logger.withContext(javaBin).debug(s"Resolved JVM ${jvm.name}")
     javaBin
   }
 }

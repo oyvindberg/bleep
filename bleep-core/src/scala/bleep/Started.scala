@@ -30,8 +30,13 @@ case class Started(
   lazy val bloopProjectsList: List[Config.Project] =
     bloopProjects.values.toList
 
-  lazy val jvmCommand: Path =
-    FetchJvm(logger, rawBuild.jvm, executionContext)
+  lazy val jvmCommand: Path = {
+    val jvm = rawBuild.jvm.getOrElse {
+      logger.warn(s"Using system JVM. You should specify your wanted JVM in ${constants.BuildFileName} to get reproducible builds")
+      model.Jvm.System
+    }
+    FetchJvm(logger, jvm, executionContext)
+  }
 
   def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
     maybeFromCommandLine match {

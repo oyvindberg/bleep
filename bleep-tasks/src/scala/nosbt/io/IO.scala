@@ -1,8 +1,8 @@
 package nosbt.io
 
-import nosbt.Using.fileInputStream
+import nosbt.Using.{fileInputStream, OpenFile}
 
-import java.io.{File, IOException}
+import java.io.{BufferedOutputStream, File, FileOutputStream, IOException}
 import java.util.Properties
 import scala.util.control.Exception.catching
 
@@ -65,6 +65,21 @@ object IO {
       relativePath map (_.toString)
     } else None
   }
+  private def closeCloseable[T <: AutoCloseable]: T => Unit = _.close()
+
+  def file[T <: AutoCloseable](openF: File => T): OpenFile[T] = file(openF, closeCloseable)
+
+  def file[T](openF: File => T, closeF: T => Unit): OpenFile[T] =
+    new OpenFile[T] {
+      def openImpl(file: File) = openF(file)
+      def close(t: T) = closeF(t)
+    }
+
+  def fileOutputStream(append: Boolean = false): OpenFile[BufferedOutputStream] =
+    file(f => new BufferedOutputStream(new FileOutputStream(f, append)))
+
+  def write(properties: Properties, label: String, to: File) =
+    fileOutputStream()(to)(output => properties.store(output, label))
 
   /** Reads the properties in `from` into `properties`.  If `from` does not exist, `properties` is left unchanged. */
   def load(properties: Properties, from: File): Unit =
