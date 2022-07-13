@@ -32,7 +32,8 @@ case class Run(
     maybeMain.flatMap { main =>
       val params = new RunParams(buildTarget(started.buildPaths, project))
       val mainClass = new ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
-      mainClass.setEnvironmentVariables(Nil.asJava)
+      val envs = sys.env.map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
+      mainClass.setEnvironmentVariables(envs)
       params.setData(mainClass)
       params.setDataKind("scala-main-class")
       started.logger.debug(params.toString)
