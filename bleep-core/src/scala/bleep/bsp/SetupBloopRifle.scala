@@ -4,6 +4,7 @@ package bsp
 import bleep.Lazy
 import bleep.bsp.CompileServerMode.{NewEachInvocation, Shared}
 import bleep.internal.{dependencyOrdering, FileUtils}
+import bleep.logging.Logger
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
@@ -11,21 +12,33 @@ import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Path, StandardCopyOption}
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
-  def apply(jvm: Path, userPaths: UserPaths, resolver: Lazy[CoursierResolver], mode: CompileServerMode, bleepRifleLogger: BleepRifleLogger): BloopRifleConfig =
+  def apply(
+      bleepConfig: BleepConfig,
+      logger: Logger,
+      userPaths: UserPaths,
+      resolver: Lazy[CoursierResolver],
+      bleepRifleLogger: BleepRifleLogger,
+      executionContext: ExecutionContext
+  ): BloopRifleConfig = {
+    val jvm = bleepConfig.jvmOrSetDefault(logger, userPaths)
+    val resolvedJvm = FetchJvm(logger, jvm, executionContext)
+
     BloopRifleConfig
       .default(
-        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, mode)),
+        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, bleepConfig.compileServerMode)),
         bloopClassPath(resolver),
         FileUtils.TempDir.toFile
       )
       .copy(
-        javaPath = jvm.toString,
+        javaPath = resolvedJvm.toString,
         bspStdout = bleepRifleLogger.bloopBspStdout,
         bspStderr = bleepRifleLogger.bloopBspStderr
       )
+  }
 
   def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BuildException, (Seq[File], Boolean)] = {
     val modString = BloopRifleConfig.defaultModule

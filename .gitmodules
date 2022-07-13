@@ -28,3 +28,6 @@
 [submodule "snapshot-tests-in/converter"]
 	path = snapshot-tests-in/converter
 	url = git@github.com:ScalablyTyped/Converter.git
+[submodule "liberated/mdoc"]
+	path = liberated/mdoc
+	url = git@github.com:bleep-build/mdoc.git

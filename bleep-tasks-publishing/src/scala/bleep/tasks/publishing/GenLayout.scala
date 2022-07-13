@@ -1,13 +1,10 @@
 package bleep.tasks.publishing
 
-import bleep.{BleepVersion, ProjectPaths, RelPath}
+import bleep.createJar
+import bleep.{ProjectPaths, RelPath}
 import coursier.core.{Configuration, Dependency, Info}
 
-import java.io._
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
-import java.util.jar.{JarEntry, JarOutputStream, Manifest}
-import scala.collection.mutable
 import scala.xml.{Elem, NodeSeq}
 
 object GenLayout {
@@ -42,41 +39,6 @@ object GenLayout {
   def fromXml(xml: Elem): Array[Byte] = {
     val prelude: String = """<?xml version="1.0" encoding="UTF-8"?>"""
     (prelude + p.format(xml)).getBytes(StandardCharsets.UTF_8)
-  }
-
-  private def createManifest(): Manifest = {
-    val m = new java.util.jar.Manifest()
-    m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
-    m.getMainAttributes.putValue("Created-By", s"Bleep/${BleepVersion.version}")
-    m
-  }
-
-  // adapted from mill
-  def createJar(fromFolders: Iterable[Path]): Array[Byte] = {
-    val seen = mutable.Set[RelPath](RelPath.force("META-INF") / "MANIFEST.MF")
-    val baos = new ByteArrayOutputStream(1024 * 1024)
-    val jar = new JarOutputStream(baos, createManifest())
-
-    try
-      fromFolders.foreach { fromFolder =>
-        if (Files.exists(fromFolder))
-          Files.walk(fromFolder).forEach { file =>
-            if (Files.isRegularFile(file)) {
-              val mapping = RelPath.relativeTo(fromFolder, file)
-              if (!seen(mapping)) {
-                seen.add(mapping)
-                val entry = new JarEntry(mapping.toString)
-                entry.setTime(0L)
-                jar.putNextEntry(entry)
-                jar.write(Files.readAllBytes(file))
-                jar.closeEntry()
-              }
-            }
-          }
-      }
-    finally jar.close()
-
-    baos.toByteArray
   }
 
   def ivyFile(self: Dependency, deps: List[Dependency]): Elem =

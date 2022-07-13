@@ -52,8 +52,7 @@ object BspImpl {
             Some(build.$version)
           )
         }
-        val jvmCmd = FetchJvm(pre.logger, build.jvm, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
-        SetupBloopRifle(jvmCmd, pre.userPaths, lazyResolver, bleepConfig.compileServerMode, bleepRifleLogger)
+        SetupBloopRifle(bleepConfig, pre.logger, pre.userPaths, lazyResolver, bleepRifleLogger, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
       }
 
       val workspaceDir = pre.buildPaths.bleepBloopDir.getParent

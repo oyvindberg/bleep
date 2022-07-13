@@ -1,6 +1,7 @@
 import bleep.logging.Logger
 
 import java.nio.file.Path
+import scala.sys.process.Process
 
 package object bleep {
 
@@ -18,11 +19,16 @@ package object bleep {
       }
   }
 
-  def cli(cmd: String, logger: Logger)(implicit cwd: Path): Unit =
-    sys.process.Process(cmd, cwd = Some(cwd.toFile)).!<(logger.processLogger("cli")) match {
+  def cli(cmd: List[String], logger: Logger, action: String, attachInput: Boolean = false, env: List[(String, String)] = Nil)(implicit cwd: Path): Unit = {
+    val builder = Process(cmd, cwd = Some(cwd.toFile), env: _*)
+    val processLogger = logger.processLogger(action)
+    val p = if (attachInput) builder.!<(processLogger) else builder.!(processLogger)
+
+    p match {
       case 0 => ()
       case n =>
-        logger.error(s"FAILED: $cmd")
-        System.exit(n)
+        logger.debug(s"Failed command with error code $n: ${cmd.mkString(" ")}")
+        throw new BuildException.Text(s"Failed external command '$action'")
     }
+  }
 }
