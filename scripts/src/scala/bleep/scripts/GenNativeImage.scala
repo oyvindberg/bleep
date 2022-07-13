@@ -11,13 +11,15 @@ object GenNativeImage {
       commands.compile(List(projectName))
 
       val plugin = new NativeImagePlugin(
-        project,
-        started.logger,
+        project = project,
+        logger = started.logger,
         nativeImageOptions = List("--no-fallback", "-H:+ReportExceptionStackTraces"),
         nativeImageJvm = started.rawBuild.jvm.getOrElse(model.Jvm.graalvm)
       ) {
+        // allow user to pass in name of generated binary as parameter
         override val nativeImageOutput = args.headOption match {
           case Some(relPath) =>
+            // smoothen over some irritation from github action scripts
             val relPathNoExe = if (relPath.endsWith(".exe")) relPath.dropRight(".exe".length) else relPath
             started.prebootstrapped.buildPaths.cwd / relPathNoExe
           case None => super.nativeImageOutput
