@@ -1,0 +1,74 @@
+# But my build does much more!
+
+Yes, your build does other things.
+
+It generates code, it distributes artifacts, it builds websites. Probably a lot more
+
+But none of this has to be in the build itself!
+
+### Introducing `scripts`
+
+To take care of all these other tasks, Bleep introduces `scripts`.
+Defined in your build file as the `scripts` in a `package.json`,
+this mechanism allows you to run any class with a `main` method.
+```yaml
+projects:
+  myscripts:
+    dependencies:
+      - build.bleep::bleep-plugin-mdoc:${BLEEP_VERSION}
+    scala:
+      version: 3.2.0
+scripts:
+  generate-docs: myscripts/bleep.scripts.GenDocumentation
+```
+   
+### Running a script
+You can run the script like this, it can be tab-completed to save some keystrokes
+```sh
+$ bleep generate-docs
+```
+
+
+### Complete freedom:
+
+It might already be clear to you, but anyway:
+
+- you can start this program from bleep (`bleep generate-docs`), from your IDE, from anywhere
+- you can debug it like a normal program
+- you have all the structured info from the build, without having to express code in your build
+- you can include any dependencies you want, from any scala version. No class loader issues.
+- you can even write your scripts for any platform
+- Most interesting sbt plugins can be ported to Bleep quite easily! Bleep comes with some plugins already ported.
+
+### An example script
+
+This script uses `mdoc` and `docusaurus` plugins. Look how it composes the plugins, and how it parses command line arguments to determine which method (which used to be sbt task) to call.
+Also note that it refers to `scriptsProject`, compiles it, gives it to `mdoc` in order for it to compile snippets with classpath for that project.
+
+import GenNativeImage from '!!raw-loader!@site/../scripts/src/scala/bleep/scripts/GenDocumentation.scala';
+import CodeBlock from '@theme/CodeBlock';
+
+<CodeBlock language="scala" >{GenNativeImage}</CodeBlock>
+
+#### Composing plugins
+You can pass an instance of a plugin to another plugin. It's super clear and just normal code. This is what it looks like at use-site
+
+```scala
+val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
+val pgp = new PgpPlugin(
+  logger = started.logger,
+  maybeCredentials = None,
+  interactionService = InteractionService.DoesNotMaskYourPasswordExclamationOneOne
+)
+val sonatype = new Sonatype(
+  logger = started.logger,
+  sonatypeBundleDirectory = started.buildPaths.dotBleepDir / "sonatype-bundle",
+  sonatypeProfileName = "build.bleep",
+  bundleName = "bleep",
+  version = dynVer.version,
+  sonatypeCredentialHost = Sonatype.sonatype01
+)
+val ciRelease = new CiReleasePlugin(started.logger, sonatype, dynVer, pgp)
+
+ciRelease.ciRelease(...)
+```

@@ -1,0 +1,16 @@
+import { AsciinemaPlayer } from "@site/src/components/AsciinemaPlayer";
+import cast from "!!file-loader!@site/static/demos/import.cast";
+import bleepYaml from "!!raw-loader!@site/static/demos/import.yaml";
+import CodeBlock from "@theme/CodeBlock";
+
+# Import sbt build
+
+We'll import the build for `zio-http` as an example
+
+## Use `bleep import`
+
+<AsciinemaPlayer src={cast} cols={120} rows={30} fit="width" />
+
+## Generated `bleep.yaml`
+
+<CodeBlock language="yaml">{bleepYaml}</CodeBlock>

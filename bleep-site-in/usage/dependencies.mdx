@@ -1,0 +1,77 @@
+
+# Dependencies
+
+Dependencies in Bleep are specified *almost* like in sbt, mill and so on
+
+## Java dependency
+
+Java dependencies separate coordinate parts by colon (like sbt's `%`)
+
+```yaml
+- org.scalameta:svm-subs:101.0.0
+```
+
+## Scala dependency
+
+Scala dependencies use two colons after organization (similar to sbt's `%%`)
+```yaml
+- com.monovore::decline:2.3.1
+```
+
+## Scala.js / Scala Native dependency
+
+Surprise! These also use two colons, not three like in sbt.
+```yaml
+    - com.lihaoyi::pprint:0.8.0
+```
+
+### But that's not like sbt does it!?
+Bleep flips the default, the easiest syntax should be used for the most common thing.
+
+If you want to add such a Scala JVM dependency to a JS/Native project, you can use the long form and a boolean flag
+
+```yaml
+- forceJvm: true
+  module: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
+```
+
+## Long form
+As seen above, if you manually change this short form
+
+```yaml
+- org.scala-sbt::librarymanagement-core:1.7.1
+```
+
+to this long form:
+
+```yaml
+- module: org.scala-sbt::librarymanagement-core:1.7.1
+```
+
+you can now tweak the dependency further.
+```yaml
+ - exclusions:
+     org.scala-sbt: util-logging_2.13
+   for3Use213: true
+   module: org.scala-sbt::librarymanagement-core:1.7.1
+```
+
+You'll also get IDE support for navigating this:
+<video
+    controls="true"
+    src="https://user-images.githubusercontent.com/247937/199452270-50f5452a-8e18-41c1-80e9-9234b6883d5d.mp4"
+></video>
+
+## Dependency upon sbt plugins
+This lets you build sbt plugins with bleep (note that publishing is not implemented yet)
+```yaml
+    dependencies:
+    - isSbtPlugin: true
+      module: ch.epfl.scala:sbt-scalajs-bundler:0.20.0
+    - configuration: provided
+      module: org.scala-sbt:sbt:1.5.5
+```
+
+## Limitations
+
+Note that Bleep has shed support for the most intricate ivyisms. What is left makes the structure much more cacheable, and should be enough for 99% of projects.

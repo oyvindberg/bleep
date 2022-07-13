@@ -1,0 +1,37 @@
+import bleepYaml from "!!raw-loader!@site/../bleep.yaml";
+import CodeBlock from "@theme/CodeBlock";
+
+# About Bleep
+
+Yes, yes, yes. Yet another build tool.
+
+Bleep emphasizes
+
+- **fast**
+- **simple**
+- **automatic import from sbt**
+- **one-second project import into your IDE through BSP**
+- **top-notch CLI experience**
+
+Intrigued? Keep reading!
+
+## Status
+
+Bleep automatically imports and builds huge projects, like tapir or http4s.
+
+It's early days, but most major things are already working. This is a great time to test it and get involved!
+
+## What, exactly?
+
+If you have an interest in build tools you'll probably know Bloop, the Scala build server.
+
+Bloop has already defined an almost perfect json format for describing how to build, run, test, debug, link and so on.
+This json format has two drawbacks:
+
+- bound to one machine
+- verbose
+
+Bleep uses coursier to enable you to write essentially portable Bloop json files without the boilerplate.
+
+Bleep is compiled with native image to be fast, it starts ~instantly.
+

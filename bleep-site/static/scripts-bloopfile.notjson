@@ -1,0 +1,2180 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "scripts",
+    "directory": "/Users/oyvind/bleep/.bleep/.bloop/scripts",
+    "workspaceDir": "/Users/oyvind/bleep",
+    "sources": [
+      "/Users/oyvind/bleep/.bleep/generated-sources/scripts",
+      "/Users/oyvind/bleep/scripts/src/java",
+      "/Users/oyvind/bleep/scripts/src/scala",
+      "/Users/oyvind/bleep/scripts/src/scala-2",
+      "/Users/oyvind/bleep/scripts/src/scala-2.13"
+    ],
+    "dependencies": [
+      "bleep-core@jvm213",
+      "bleep-model@jvm213",
+      "bleep-plugin-ci-release@jvm213",
+      "bleep-plugin-dynver@jvm213",
+      "bleep-plugin-mdoc@jvm213",
+      "bleep-plugin-native-image@jvm213",
+      "bleep-plugin-nosbt@jvm213",
+      "bleep-plugin-pgp@jvm213",
+      "bleep-plugin-sonatype@jvm213"
+    ],
+    "classpath": [
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.13/1.5.4/bloop-config_2.13-1.5.4.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.11/logback-core-1.2.11.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_2.13/0.7.0/gigahorse-apache-http_2.13-0.7.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.13/0.7.0/gigahorse-core_2.13-0.7.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.13/0.7.0/gigahorse-okhttp_2.13-0.7.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpasyncclient/0.7.0/shaded-apache-httpasyncclient-0.7.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/0.9.1/shaded-jawn-parser_2.13-0.9.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.13/1.0.0-M4/shaded-scalajson_2.13-1.0.0-M4.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.9.1/sjson-new-core_2.13-0.9.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.13/0.9.1/sjson-new-murmurhash_2.13-0.9.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.9.1/sjson-new-scalajson_2.13-0.9.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.3_2.13/1.3.1/argonaut-shapeless_6.3_2.13-1.3.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.2-4/zstd-jni-1.5.2-4.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5/jsoniter-scala-core_2.13-2.13.5.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.4.0/fansi_2.13-0.4.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.14.2/okhttp-3.14.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.13/6.3.8/argonaut_2.13-6.3.8.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.3/circe-core_2.13-0.14.3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.2/circe-generic_2.13-0.14.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.2/circe-jawn_2.13-0.14.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.3/circe-numbers_2.13-0.14.3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.2/circe-parser_2.13-0.14.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.2/circe-yaml_2.13-0.14.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.0-M7-39-gb8f3d7532/coursier-cache_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.0-M7-39-gb8f3d7532/coursier-core_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.0-M7-39-gb8f3d7532/coursier-env_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.0-M7-39-gb8f3d7532/coursier-jvm_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.0-M7-39-gb8f3d7532/coursier-proxy-setup-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.0-M7-39-gb8f3d7532/coursier-util_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.0-M7-39-gb8f3d7532/coursier_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/libdaemon/libdaemon_2.13/0.0.10/libdaemon_2.13-0.0.10.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc2/snailgun-core_2.13-0.4.1-sc2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.4/windows-ansi-0.0.4.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.3.5/httpclient-4.3.5.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.5.0/plexus-archiver-4.5.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.1/plexus-container-default-2.1.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.0/plexus-io-3.4.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.4.2/plexus-utils-3.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/hawtbuf/hawtbuf-proto/1.9/hawtbuf-proto-1.9.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/hawtbuf/hawtbuf/1.9/hawtbuf-1.9.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.18/jansi-1.18.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.15.3/jsoup-1.15.3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/msgpack/msgpack-core/0.9.1/msgpack-core-0.9.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.8.1/scala-collection-compat_2.13-2.8.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/1.0.4/scala-parallel-collections_2.13-1.0.4.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/2.1.1/scala-parser-combinators_2.13-2.1.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.7.0/io_2.13-1.7.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.0/launcher-interface-1.0.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.13/1.7.1/librarymanagement-core_2.13-1.7.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.13/1.7.1/util-cache_2.13-1.7.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.13/1.7.1/util-position_2.13-1.7.1.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.7/jcl-over-slf4j-1.7.7.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.5/snakeyaml-engine-2.5.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/sonatype/spice/zapper/spice-zapper/1.3/spice-zapper-1.3.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.8.0/cats-core_2.13-2.8.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.8.0/cats-kernel_2.13-2.8.0.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/bloop-rifle_2.13/0.1.16/bloop-rifle_2.13-0.1.16.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/0.1.16/config_2.13-0.1.16.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-codec_2.13/22.4.2/airframe-codec_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-control_2.13/22.4.2/airframe-control_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-http_2.13/22.4.2/airframe-http_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-json_2.13/22.4.2/airframe-json_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-log_2.13/22.4.2/airframe-log_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-metrics_2.13/22.4.2/airframe-metrics_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-msgpack_2.13/22.4.2/airframe-msgpack_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-rx_2.13/22.4.2/airframe-rx_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-surface_2.13/22.4.2/airframe-surface_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-ulid_2.13/22.4.2/airframe-ulid_2.13-22.4.2.jar",
+      "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-core/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-model/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-ci-release/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-dynver/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-mdoc/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-native-image/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-nosbt/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-pgp/jvm213/classes",
+      "/Users/oyvind/bleep/.bleep/.bloop/bleep-plugin-sonatype/jvm213/classes"
+    ],
+    "out": "/Users/oyvind/bleep/.bleep/.bloop/scripts",
+    "classesDir": "/Users/oyvind/bleep/.bleep/.bloop/scripts/classes",
+    "resources": [
+      "/Users/oyvind/bleep/.bleep/generated-resources/scripts",
+      "/Users/oyvind/bleep/scripts/src/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.8",
+      "options": [
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:implicit-not-found",
+        "-Xlint:implicit-recursion",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+        "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+        "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+        "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+        "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+      ],
+      "analysis": "/Users/oyvind/bleep/.bleep/.bloop/scripts/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=/Users/oyvind/bleep"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier-jvm_2.13",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-jvm_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.0-M7-39-gb8f3d7532/coursier-jvm_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier-jvm_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.0-M7-39-gb8f3d7532/coursier-jvm_2.13-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "librarymanagement-core_2.13",
+          "version": "1.7.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "librarymanagement-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.13/1.7.1/librarymanagement-core_2.13-1.7.1.jar"
+            },
+            {
+              "name": "librarymanagement-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.13/1.7.1/librarymanagement-core_2.13-1.7.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.alexarchambault",
+          "name": "argonaut-shapeless_6.3_2.13",
+          "version": "1.3.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "argonaut-shapeless_6.3_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.3_2.13/1.3.1/argonaut-shapeless_6.3_2.13-1.3.1.jar"
+            },
+            {
+              "name": "argonaut-shapeless_6.3_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.3_2.13/1.3.1/argonaut-shapeless_6.3_2.13-1.3.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.jcraft",
+          "name": "jsch",
+          "version": "0.1.54",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsch",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar"
+            },
+            {
+              "name": "jsch",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.54/jsch-0.1.54-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-control_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-control_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-control_2.13/22.4.2/airframe-control_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-control_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-control_2.13/22.4.2/airframe-control_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fansi_2.13",
+          "version": "0.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fansi_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.4.0/fansi_2.13-0.4.0.jar"
+            },
+            {
+              "name": "fansi_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.4.0/fansi_2.13-0.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-parser_2.13",
+          "version": "0.14.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-parser_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.2/circe-parser_2.13-0.14.2.jar"
+            },
+            {
+              "name": "circe-parser_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.2/circe-parser_2.13-0.14.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "2.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
+            },
+            {
+              "name": "scala-xml_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcprov-jdk15on",
+          "version": "1.70",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bcprov-jdk15on",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70.jar"
+            },
+            {
+              "name": "bcprov-jdk15on",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.epfl.scala",
+          "name": "bloop-config_2.13",
+          "version": "1.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bloop-config_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.13/1.5.4/bloop-config_2.13-1.5.4.jar"
+            },
+            {
+              "name": "bloop-config_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.13/1.5.4/bloop-config_2.13-1.5.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-http_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-http_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-http_2.13/22.4.2/airframe-http_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-http_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-http_2.13/22.4.2/airframe-http_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.iq80.snappy",
+          "name": "snappy",
+          "version": "0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snappy",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar"
+            },
+            {
+              "name": "snappy",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier-cache_2.13",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-cache_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.0-M7-39-gb8f3d7532/coursier-cache_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier-cache_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.0-M7-39-gb8f3d7532/coursier-cache_2.13-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.hawtbuf",
+          "name": "hawtbuf-proto",
+          "version": "1.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "hawtbuf-proto",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/hawtbuf/hawtbuf-proto/1.9/hawtbuf-proto-1.9.jar"
+            },
+            {
+              "name": "hawtbuf-proto",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/hawtbuf/hawtbuf-proto/1.9/hawtbuf-proto-1.9-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-classworlds",
+          "version": "2.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "plexus-classworlds",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.jar"
+            },
+            {
+              "name": "plexus-classworlds",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.epfl.scala",
+          "name": "bsp4j",
+          "version": "2.1.0-M3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bsp4j",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3.jar"
+            },
+            {
+              "name": "bsp4j",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            },
+            {
+              "name": "jsr305",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.okio",
+          "name": "okio",
+          "version": "1.17.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "okio",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar"
+            },
+            {
+              "name": "okio",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.snakeyaml",
+          "name": "snakeyaml-engine",
+          "version": "2.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snakeyaml-engine",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.5/snakeyaml-engine-2.5.jar"
+            },
+            {
+              "name": "snakeyaml-engine",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.5/snakeyaml-engine-2.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.lsp4j",
+          "name": "org.eclipse.lsp4j.jsonrpc",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "org.eclipse.lsp4j.jsonrpc",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0.jar"
+            },
+            {
+              "name": "org.eclipse.lsp4j.jsonrpc",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline",
+          "version": "3.21.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar"
+            },
+            {
+              "name": "jline",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.2.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.11/logback-core-1.2.11.jar"
+            },
+            {
+              "name": "logback-core",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.11/logback-core-1.2.11-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+            },
+            {
+              "name": "reactive-streams",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-murmurhash_2.13",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sjson-new-murmurhash_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.13/0.9.1/sjson-new-murmurhash_2.13-0.9.1.jar"
+            },
+            {
+              "name": "sjson-new-murmurhash_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.13/0.9.1/sjson-new-murmurhash_2.13-0.9.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.xtend",
+          "name": "org.eclipse.xtend.lib",
+          "version": "2.24.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "org.eclipse.xtend.lib",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0.jar"
+            },
+            {
+              "name": "org.eclipse.xtend.lib",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6.jar"
+            },
+            {
+              "name": "commons-codec",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.6/commons-codec-1.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier_2.13",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.0-M7-39-gb8f3d7532/coursier_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.0-M7-39-gb8f3d7532/coursier_2.13-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "27.1-jre",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar"
+            },
+            {
+              "name": "guava",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-surface_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-surface_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-surface_2.13/22.4.2/airframe-surface_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-surface_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-surface_2.13/22.4.2/airframe-surface_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier-core_2.13",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.0-M7-39-gb8f3d7532/coursier-core_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.0-M7-39-gb8f3d7532/coursier-core_2.13-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.xbean",
+          "name": "xbean-reflect",
+          "version": "3.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "xbean-reflect",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7.jar"
+            },
+            {
+              "name": "xbean-reflect",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.jansi",
+          "name": "jansi",
+          "version": "1.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jansi",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.18/jansi-1.18.jar"
+            },
+            {
+              "name": "jansi",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.18/jansi-1.18-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.alexarchambault.windows-ansi",
+          "name": "windows-ansi",
+          "version": "0.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "windows-ansi",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.4/windows-ansi-0.0.4.jar"
+            },
+            {
+              "name": "windows-ansi",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.4/windows-ansi-0.0.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.argonaut",
+          "name": "argonaut_2.13",
+          "version": "6.3.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "argonaut_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.13/6.3.8/argonaut_2.13-6.3.8.jar"
+            },
+            {
+              "name": "argonaut_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.13/6.3.8/argonaut_2.13-6.3.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar"
+            },
+            {
+              "name": "scala-compiler",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "[2.8.6,2.9)",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar"
+            },
+            {
+              "name": "gson",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "launcher-interface",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "launcher-interface",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.0/launcher-interface-1.0.0.jar"
+            },
+            {
+              "name": "launcher-interface",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.0/launcher-interface-1.0.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.tukaani",
+          "name": "xz",
+          "version": "1.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "xz",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9.jar"
+            },
+            {
+              "name": "xz",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-codec_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-codec_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-codec_2.13/22.4.2/airframe-codec_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-codec_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-codec_2.13/22.4.2/airframe-codec_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.swoval",
+          "name": "file-tree-views",
+          "version": "2.1.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "file-tree-views",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar"
+            },
+            {
+              "name": "file-tree-views",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.xtend",
+          "name": "org.eclipse.xtend.lib.macro",
+          "version": "2.24.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "org.eclipse.xtend.lib.macro",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0.jar"
+            },
+            {
+              "name": "org.eclipse.xtend.lib.macro",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.8.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.8.1/scala-collection-compat_2.13-2.8.1.jar"
+            },
+            {
+              "name": "scala-collection-compat_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.8.1/scala-collection-compat_2.13-2.8.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier-env_2.13",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-env_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.0-M7-39-gb8f3d7532/coursier-env_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier-env_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.0-M7-39-gb8f3d7532/coursier-env_2.13-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.yaml",
+          "name": "snakeyaml",
+          "version": "1.33",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snakeyaml",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar"
+            },
+            {
+              "name": "snakeyaml",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "io_2.13",
+          "version": "1.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "io_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.7.0/io_2.13-1.7.0.jar"
+            },
+            {
+              "name": "io_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.7.0/io_2.13-1.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.inject",
+          "name": "javax.inject",
+          "version": "1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "javax.inject",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+            },
+            {
+              "name": "javax.inject",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.hawtbuf",
+          "name": "hawtbuf",
+          "version": "1.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "hawtbuf",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/hawtbuf/hawtbuf/1.9/hawtbuf-1.9.jar"
+            },
+            {
+              "name": "hawtbuf",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/fusesource/hawtbuf/hawtbuf/1.9/hawtbuf-1.9-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.lsp4j",
+          "name": "org.eclipse.lsp4j.generator",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "org.eclipse.lsp4j.generator",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0.jar"
+            },
+            {
+              "name": "org.eclipse.lsp4j.generator",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-rx_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-rx_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-rx_2.13/22.4.2/airframe-rx_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-rx_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-rx_2.13/22.4.2/airframe-rx_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.virtuslab.scala-cli",
+          "name": "bloop-rifle_2.13",
+          "version": "0.1.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bloop-rifle_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/bloop-rifle_2.13/0.1.16/bloop-rifle_2.13-0.1.16.jar"
+            },
+            {
+              "name": "bloop-rifle_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/bloop-rifle_2.13/0.1.16/bloop-rifle_2.13-0.1.16-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "2.5.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2.jar"
+            },
+            {
+              "name": "checker-qual",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.36",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+            },
+            {
+              "name": "slf4j-api",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.alexarchambault.libdaemon",
+          "name": "libdaemon_2.13",
+          "version": "0.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "libdaemon_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/libdaemon/libdaemon_2.13/0.0.10/libdaemon_2.13-0.0.10.jar"
+            },
+            {
+              "name": "libdaemon_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/libdaemon/libdaemon_2.13/0.0.10/libdaemon_2.13-0.0.10-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-scalajson_2.13",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sjson-new-scalajson_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.9.1/sjson-new-scalajson_2.13-0.9.1.jar"
+            },
+            {
+              "name": "sjson-new-scalajson_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.9.1/sjson-new-scalajson_2.13-0.9.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parallel-collections_2.13",
+          "version": "1.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-parallel-collections_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/1.0.4/scala-parallel-collections_2.13-1.0.4.jar"
+            },
+            {
+              "name": "scala-parallel-collections_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/1.0.4/scala-parallel-collections_2.13-1.0.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier-util_2.13",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-util_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.0-M7-39-gb8f3d7532/coursier-util_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier-util_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.0-M7-39-gb8f3d7532/coursier-util_2.13-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_2.13",
+          "version": "2.8.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.8.0/cats-kernel_2.13-2.8.0.jar"
+            },
+            {
+              "name": "cats-kernel_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.8.0/cats-kernel_2.13-2.8.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "gigahorse-okhttp_2.13",
+          "version": "0.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "gigahorse-okhttp_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.13/0.7.0/gigahorse-okhttp_2.13-0.7.0.jar"
+            },
+            {
+              "name": "gigahorse-okhttp_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.13/0.7.0/gigahorse-okhttp_2.13-0.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
+            },
+            {
+              "name": "scala-reflect",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.13",
+          "version": "0.6.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar"
+            },
+            {
+              "name": "ssl-config-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_2.13",
+          "version": "2.8.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.8.0/cats-core_2.13-2.8.0.jar"
+            },
+            {
+              "name": "cats-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.8.0/cats-core_2.13-2.8.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.alexarchambault.scala-cli.snailgun",
+          "name": "snailgun-core_2.13",
+          "version": "0.4.1-sc2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snailgun-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc2/snailgun-core_2.13-0.4.1-sc2.jar"
+            },
+            {
+              "name": "snailgun-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc2/snailgun-core_2.13-0.4.1-sc2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-ulid_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-ulid_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-ulid_2.13/22.4.2/airframe-ulid_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-ulid_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-ulid_2.13/22.4.2/airframe-ulid_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.13",
+          "version": "2.13.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5/jsoniter-scala-core_2.13-2.13.5.jar"
+            },
+            {
+              "name": "jsoniter-scala-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5/jsoniter-scala-core_2.13-2.13.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jsoup",
+          "name": "jsoup",
+          "version": "1.15.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsoup",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.15.3/jsoup-1.15.3.jar"
+            },
+            {
+              "name": "jsoup",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/jsoup/jsoup/1.15.3/jsoup-1.15.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.virtuslab.scala-cli",
+          "name": "config_2.13",
+          "version": "0.1.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "config_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/0.1.16/config_2.13-0.1.16.jar"
+            },
+            {
+              "name": "config_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/0.1.16/config_2.13-0.1.16-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-compress",
+          "version": "1.21",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-compress",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
+            },
+            {
+              "name": "commons-compress",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-io",
+          "name": "commons-io",
+          "version": "2.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-io",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar"
+            },
+            {
+              "name": "commons-io",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.squareup.okhttp3",
+          "name": "okhttp",
+          "version": "3.14.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "okhttp",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.14.2/okhttp-3.14.2.jar"
+            },
+            {
+              "name": "okhttp",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.14.2/okhttp-3.14.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpclient",
+          "version": "4.3.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpclient",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.3.5/httpclient-4.3.5.jar"
+            },
+            {
+              "name": "httpclient",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.3.5/httpclient-4.3.5-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.msgpack",
+          "name": "msgpack-core",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "msgpack-core",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/msgpack/msgpack-core/0.9.1/msgpack-core-0.9.1.jar"
+            },
+            {
+              "name": "msgpack-core",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/msgpack/msgpack-core/0.9.1/msgpack-core-0.9.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml_2.13",
+          "version": "0.14.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-yaml_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.2/circe-yaml_2.13-0.14.2.jar"
+            },
+            {
+              "name": "circe-yaml_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.2/circe-yaml_2.13-0.14.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-container-default",
+          "version": "2.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "plexus-container-default",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.1/plexus-container-default-2.1.1.jar"
+            },
+            {
+              "name": "plexus-container-default",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.1/plexus-container-default-2.1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-log_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-log_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-log_2.13/22.4.2/airframe-log_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-log_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-log_2.13/22.4.2/airframe-log_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "gigahorse-core_2.13",
+          "version": "0.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "gigahorse-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.13/0.7.0/gigahorse-core_2.13-0.7.0.jar"
+            },
+            {
+              "name": "gigahorse-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.13/0.7.0/gigahorse-core_2.13-0.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-core_2.13",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sjson-new-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.9.1/sjson-new-core_2.13-0.9.1.jar"
+            },
+            {
+              "name": "sjson-new-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.9.1/sjson-new-core_2.13-0.9.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.13",
+          "version": "2.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/2.1.1/scala-parser-combinators_2.13-2.1.1.jar"
+            },
+            {
+              "name": "scala-parser-combinators_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/2.1.1/scala-parser-combinators_2.13-2.1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.13",
+          "version": "0.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar"
+            },
+            {
+              "name": "sourcecode_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_2.13",
+          "version": "1.3.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jawn-parser_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2.jar"
+            },
+            {
+              "name": "jawn-parser_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "shaded-jawn-parser_2.13",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shaded-jawn-parser_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/0.9.1/shaded-jawn-parser_2.13-0.9.1.jar"
+            },
+            {
+              "name": "shaded-jawn-parser_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/0.9.1/shaded-jawn-parser_2.13-0.9.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "coursier-proxy-setup",
+          "version": "2.1.0-M7-39-gb8f3d7532",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-proxy-setup",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.0-M7-39-gb8f3d7532/coursier-proxy-setup-2.1.0-M7-39-gb8f3d7532.jar"
+            },
+            {
+              "name": "coursier-proxy-setup",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.0-M7-39-gb8f3d7532/coursier-proxy-setup-2.1.0-M7-39-gb8f3d7532-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_2.13",
+          "version": "0.14.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-generic_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.2/circe-generic_2.13-0.14.2.jar"
+            },
+            {
+              "name": "circe-generic_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.2/circe-generic_2.13-0.14.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar"
+            },
+            {
+              "name": "jna",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-metrics_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-metrics_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-metrics_2.13/22.4.2/airframe-metrics_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-metrics_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-metrics_2.13/22.4.2/airframe-metrics_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "gigahorse-apache-http_2.13",
+          "version": "0.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "gigahorse-apache-http_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_2.13/0.7.0/gigahorse-apache-http_2.13-0.7.0.jar"
+            },
+            {
+              "name": "gigahorse-apache-http_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_2.13/0.7.0/gigahorse-apache-http_2.13-0.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-core_2.13",
+          "version": "0.14.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-core_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.3/circe-core_2.13-0.14.3.jar"
+            },
+            {
+              "name": "circe-core_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.3/circe-core_2.13-0.14.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar"
+            },
+            {
+              "name": "j2objc-annotations",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "shaded-scalajson_2.13",
+          "version": "1.0.0-M4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shaded-scalajson_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.13/1.0.0-M4/shaded-scalajson_2.13-1.0.0-M4.jar"
+            },
+            {
+              "name": "shaded-scalajson_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.13/1.0.0-M4/shaded-scalajson_2.13-1.0.0-M4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
+            },
+            {
+              "name": "failureaccess",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-msgpack_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-msgpack_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-msgpack_2.13/22.4.2/airframe-msgpack_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-msgpack_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-msgpack_2.13/22.4.2/airframe-msgpack_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.mojo",
+          "name": "animal-sniffer-annotations",
+          "version": "1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "animal-sniffer-annotations",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar"
+            },
+            {
+              "name": "animal-sniffer-annotations",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
+            },
+            {
+              "name": "config",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-archiver",
+          "version": "4.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "plexus-archiver",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.5.0/plexus-archiver-4.5.0.jar"
+            },
+            {
+              "name": "plexus-archiver",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.5.0/plexus-archiver-4.5.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_2.13",
+          "version": "0.14.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-jawn_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.2/circe-jawn_2.13-0.14.2.jar"
+            },
+            {
+              "name": "circe-jawn_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.2/circe-jawn_2.13-0.14.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.chuusai",
+          "name": "shapeless_2.13",
+          "version": "2.3.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shapeless_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9.jar"
+            },
+            {
+              "name": "shapeless_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.bouncycastle",
+          "name": "bcpg-jdk15on",
+          "version": "1.70",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bcpg-jdk15on",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70.jar"
+            },
+            {
+              "name": "bcpg-jdk15on",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/bouncycastle/bcpg-jdk15on/1.70/bcpg-jdk15on-1.70-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "shaded-apache-httpasyncclient",
+          "version": "0.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shaded-apache-httpasyncclient",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpasyncclient/0.7.0/shaded-apache-httpasyncclient-0.7.0.jar"
+            },
+            {
+              "name": "shaded-apache-httpasyncclient",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpasyncclient/0.7.0/shaded-apache-httpasyncclient-0.7.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna-platform",
+          "version": "5.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna-platform",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar"
+            },
+            {
+              "name": "jna-platform",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.eclipse.xtext",
+          "name": "org.eclipse.xtext.xbase.lib",
+          "version": "2.24.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "org.eclipse.xtext.xbase.lib",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0.jar"
+            },
+            {
+              "name": "org.eclipse.xtext.xbase.lib",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier.jniutils",
+          "name": "windows-jni-utils",
+          "version": "0.3.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "windows-jni-utils",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3.jar"
+            },
+            {
+              "name": "windows-jni-utils",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "jcl-over-slf4j",
+          "version": "1.7.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jcl-over-slf4j",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.7/jcl-over-slf4j-1.7.7.jar"
+            },
+            {
+              "name": "jcl-over-slf4j",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.7/jcl-over-slf4j-1.7.7-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.wvlet.airframe",
+          "name": "airframe-json_2.13",
+          "version": "22.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "airframe-json_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-json_2.13/22.4.2/airframe-json_2.13-22.4.2.jar"
+            },
+            {
+              "name": "airframe-json_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/wvlet/airframe/airframe-json_2.13/22.4.2/airframe-json_2.13-22.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.httpcomponents",
+          "name": "httpcore",
+          "version": "4.3.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "httpcore",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2.jar"
+            },
+            {
+              "name": "httpcore",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.3.2/httpcore-4.3.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0.jar"
+            },
+            {
+              "name": "error_prone_annotations",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-numbers_2.13",
+          "version": "0.14.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-numbers_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.3/circe-numbers_2.13-0.14.3.jar"
+            },
+            {
+              "name": "circe-numbers_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.3/circe-numbers_2.13-0.14.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "util-cache_2.13",
+          "version": "1.7.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-cache_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.13/1.7.1/util-cache_2.13-1.7.1.jar"
+            },
+            {
+              "name": "util-cache_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.13/1.7.1/util-cache_2.13-1.7.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-utils",
+          "version": "3.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "plexus-utils",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.4.2/plexus-utils-3.4.2.jar"
+            },
+            {
+              "name": "plexus-utils",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.4.2/plexus-utils-3.4.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "util-position_2.13",
+          "version": "1.7.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "util-position_2.13",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.13/1.7.1/util-position_2.13-1.7.1.jar"
+            },
+            {
+              "name": "util-position_2.13",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.13/1.7.1/util-position_2.13-1.7.1-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-io",
+          "version": "3.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "plexus-io",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.0/plexus-io-3.4.0.jar"
+            },
+            {
+              "name": "plexus-io",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.0/plexus-io-3.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.alexarchambault",
+          "name": "concurrent-reference-hash-map",
+          "version": "1.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "concurrent-reference-hash-map",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0.jar"
+            },
+            {
+              "name": "concurrent-reference-hash-map",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.sonatype.spice.zapper",
+          "name": "spice-zapper",
+          "version": "1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "spice-zapper",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/sonatype/spice/zapper/spice-zapper/1.3/spice-zapper-1.3.jar"
+            },
+            {
+              "name": "spice-zapper",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/sonatype/spice/zapper/spice-zapper/1.3/spice-zapper-1.3-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.luben",
+          "name": "zstd-jni",
+          "version": "1.5.2-4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zstd-jni",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.2-4/zstd-jni-1.5.2-4.jar"
+            },
+            {
+              "name": "zstd-jni",
+              "classifier": "sources",
+              "path": "/Users/oyvind/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.2-4/zstd-jni-1.5.2-4-sources.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

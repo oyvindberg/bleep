@@ -16,8 +16,8 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     }
 
     val plugin = new NativeImagePlugin(
-      project,
-      started.logger,
+      project = project,
+      logger = started.logger,
       nativeImageOptions = List(
         "--no-fallback",
         "--enable-http",
@@ -31,8 +31,10 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
       nativeImageJvm = nativeImageJvm,
       env = sys.env.toList ++ List(("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false"))
     ) {
+      // allow user to pass in name of generated binary as parameter
       override val nativeImageOutput = args.headOption match {
         case Some(relPath) =>
+          // smoothen over some irritation from github action scripts
           val relPathNoExe = if (relPath.endsWith(".exe")) relPath.dropRight(".exe".length) else relPath
           started.prebootstrapped.buildPaths.cwd / relPathNoExe
         case None => super.nativeImageOutput

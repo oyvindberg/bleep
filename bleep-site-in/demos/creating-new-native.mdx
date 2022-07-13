@@ -1,0 +1,14 @@
+import {AsciinemaPlayer} from '@site/src/components/AsciinemaPlayer';
+import cast from '!!file-loader!@site/static/demos/run-native.cast';
+import bleepYaml from '!!raw-loader!@site/static/demos/run-native.yaml';
+import CodeBlock from '@theme/CodeBlock';
+
+# Create new native build
+
+## Use `bleep build new`
+<AsciinemaPlayer src={cast} cols={100} rows={30} fit="width"/>
+
+## Generated `bleep.yaml`
+
+<CodeBlock language="yaml">{bleepYaml}</CodeBlock>
+

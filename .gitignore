@@ -7,3 +7,4 @@ target
 /.bloop
 /project/.bloop
 sbt-build
+bleep-site/docs

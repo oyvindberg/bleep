@@ -1,0 +1,112 @@
+import CodeBlock from '@theme/CodeBlock';
+
+# Bleep build model
+
+To end up with the current Bleep file format, you start with a Bloop file.
+This is a very verbose format with everything already resolved.
+Bleep adopts the model, but makes it easier to work with.
+
+## Bloop format
+
+import BloopFile from '!!raw-loader!@site/static/scripts-bloopfile.notjson';
+
+<details>
+    <summary>A typical bloop file. very verbose</summary>
+    <CodeBlock language="yaml" >{BloopFile}</CodeBlock>
+</details>
+
+### YAML
+
+Use YAML, because it's easier to write and more compact.
+
+### More projects
+
+One project is way too little:
+```yaml
+projects:
+  a: {}
+  b:
+    dependsOn: a
+```
+
+### Relative paths
+
+A build file must be independent of a given machine.
+
+All paths in bloop files are resolved absolute paths, so instead Bleep uses relative paths exclusively:
+
+```yaml
+projects:
+  a:
+    # specifies project folder. it's relative to build root, and defaults to ./${PROJECT_NAME}
+    folder: ./project-a
+```
+
+#### Replacements
+
+You'll hate this section.
+
+### Specify dependencies by maven coordinates
+
+Bleep uses coursier extensively, also to resolve imports. See [dependencies](../usage/dependencies) for more details
+```yaml
+projects:
+  myapp:
+    dependencies: com.lihaoyi::fansi:0.3.1
+```
+
+### Deduplicate
+
+Bloop files list all transitive dependencies. Bleep can of course reconstruct these lists.
+Projects inherit dependencies from the projects they depend on.
+
+### Normalize
+
+`bleep.yaml` is very normalized:
+
+- `null` / empty values are dropped
+- short syntax is used for lists of one
+- everything is sorted alphabetically
+- everything is deduplicated, including for instance declaring a dependency you had already inherited
+
+### Templates
+
+So all the changes listed above would leave us with a somewhat manageable build, maybe some ten-ish lines per project.
+To further reduce this, we use "templates" (for a lack of a better name).
+
+```yaml
+projects:
+  a:
+    extends: template-common
+  b:
+    dependsOn: a
+    extends: template-common
+
+templates:
+  template-common:
+    scala:
+      version: 3.2.0
+```
+
+This is actually modelled on best-practice usage of sbt
+```scala
+lazy val a =
+  project
+    .configure(templateCommon)
+
+lazy val b =
+  project
+    .configure(templateCommon)
+    .dependsOn(a)
+
+lazy val templateCommon: Project => Project =
+  _.settings(
+    scalaVersion := "3.2.0"
+)
+```
+
+## Example `bleep.yaml`
+
+import RunNativeYaml from '!!raw-loader!@site/static/demos/run-native.yaml';
+
+<CodeBlock language="yaml" >{RunNativeYaml}</CodeBlock>
