@@ -1,5 +1,7 @@
 package bleep
 
+import bleep.internal.Replacements
+
 import java.nio.file.Path
 
 case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
@@ -24,6 +26,11 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[Versions.Scala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
+    val targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
+
+    val replacements = Replacements.paths(dir, buildDir) ++
+      Replacements.targetDir(targetDir) ++
+      Replacements.scope(p.`sbt-scope`.getOrElse(""))
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout
@@ -32,21 +39,21 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
 
     val sources = {
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.sources.values.map(relPath => dir / relPath)
+      val fromJson = p.sources.values.map(relPath => dir / replacements.fill.relPath(relPath))
       val generated = generatedSourcesDir(crossName)
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
     val resources = {
       val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.resources.values.map(relPath => dir / relPath)
+      val fromJson = p.resources.values.map(relPath => dir / replacements.fill.relPath(relPath))
       val generated = generatedResourcesDir(crossName)
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
     ProjectPaths(
       dir = dir,
-      targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value),
+      targetDir = targetDir,
       sourcesDirs = sources,
       resourcesDirs = resources
     )

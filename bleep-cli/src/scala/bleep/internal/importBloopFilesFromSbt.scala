@@ -63,9 +63,10 @@ object importBloopFilesFromSbt {
 
       val originalTarget = internal.findOriginalTargetDir.force(crossName, bloopProject)
 
-      val replacementsTarget = Replacements.targetDir(originalTarget)
-      val replacementsDirs = Replacements.paths(sbtBuildDir, directory) ++ replacementsTarget
-      val replacements = replacementsDirs
+      val replacements =
+        Replacements.paths(sbtBuildDir, directory) ++
+          Replacements.targetDir(originalTarget) ++
+          Replacements.scope(projectType.sbtScope)
 
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
@@ -100,10 +101,12 @@ object importBloopFilesFromSbt {
         val shortenedSourcesRelPaths =
           sourcesRelPaths
             .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
+            .map(replacements.templatize.relPath)
 
         val shortenedResourcesRelPaths =
           resourcesRelPaths
             .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
+            .map(replacements.templatize.relPath)
 
         Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
@@ -117,7 +120,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(compilerPlugins, replacementsDirs, scalaVersions))
+        bloopProject.scala.map(translateScala(compilerPlugins, replacements, scalaVersions))
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {

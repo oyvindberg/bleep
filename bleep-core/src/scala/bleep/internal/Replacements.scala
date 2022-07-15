@@ -45,4 +45,7 @@ object Replacements {
         build.toString -> "${BUILD_DIR}"
       )
     )
+
+  def scope(scope: String): Replacements =
+    if (scope.isEmpty) empty else ofReplacements(List(s"$scope" -> "${SCOPE}"))
 }
