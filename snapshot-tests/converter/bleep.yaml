@@ -65,7 +65,7 @@ projects:
     folder: ./../../snapshot-tests-in/converter/sbt-converter
     scala:
       options: -Wconf:cat=unused-nowarn:s
-    sources: ./src/main/scala-sbt-1.0
+    sources: ./src/${SCOPE}/scala-sbt-1.0
   scalajs:
     dependencies: org.scala-lang.modules::scala-xml:1.3.0
     dependsOn:

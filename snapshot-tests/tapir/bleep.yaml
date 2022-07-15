@@ -14,9 +14,7 @@ projects:
     folder: ./../../snapshot-tests-in/tapir/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
-    sources:
-    - ./src/main/scala-2.13-
-    - ./src/main/scala-sbt-1.0
+    sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-openapi-codegen-test:
     dependencies:
     - com.47deg::scalacheck-toolbox-datetime:0.6.0
@@ -35,15 +33,8 @@ projects:
     folder: ./../../snapshot-tests-in/tapir/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
-    sources:
-    - ./src/test/scala-2.13-
-    - ./src/test/scala-sbt-1.0
+    sources: ./src/${SCOPE}/scala-sbt-1.0
   sttp-mock-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.circe::circe-core:0.14.1
     - io.circe::circe-generic:0.14.1
@@ -54,11 +45,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/sttp-mock-server
   sttp-mock-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: io.circe::circe-literal:0.14.1
     dependsOn:
     - sttp-mock-server
@@ -68,11 +54,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/sttp-mock-server
   tapir-akka-http-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.2.7
     - com.typesafe.akka::akka-http:10.2.7
@@ -83,11 +64,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/akka-http-server
   tapir-akka-http-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: com.softwaremill.sttp.client3::akka-http-backend:3.3.18
     dependsOn:
     - tapir-akka-http-server
@@ -97,11 +73,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/akka-http-server
   tapir-apispec-docs:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn:
     - tapir-apispec-model
     - tapir-core
@@ -111,22 +82,12 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/apispec-docs
   tapir-apispec-model:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/apispec/apispec-model
   tapir-asyncapi-circe:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.circe::circe-core:0.14.1
     - io.circe::circe-generic:0.14.1
@@ -138,11 +99,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/apispec/asyncapi-circe
   tapir-asyncapi-circe-yaml:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: io.circe::circe-yaml:0.14.1
     dependsOn: tapir-asyncapi-circe
     extends:
@@ -151,11 +107,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml
   tapir-asyncapi-docs:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn:
     - tapir-apispec-docs
     - tapir-asyncapi-model
@@ -164,11 +115,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/docs/asyncapi-docs
   tapir-asyncapi-docs-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.2.7
     - com.typesafe.akka::akka-stream:2.6.17
@@ -181,11 +127,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/docs/asyncapi-docs
   tapir-asyncapi-model:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn: tapir-apispec-model
     extends:
     - template-common-main
@@ -194,22 +135,16 @@ projects:
     folder: ./../../snapshot-tests-in/tapir/apispec/asyncapi-model
   tapir-aws-examples:
     cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
       jvm212:
         dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
         dependsOn:
         - tapir-aws-sam
         - tapir-aws-terraform
-        sources: ./src/main/scala-2.13-
       jvm213:
         dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
         dependsOn:
         - tapir-aws-sam
         - tapir-aws-terraform
-        sources: ./src/main/scala-2.13+
     dependencies: com.softwaremill.sttp.client3::cats:3.3.18
     dependsOn: tapir-aws-lambda
     extends:
@@ -219,17 +154,9 @@ projects:
   tapir-aws-lambda:
     cross:
       js212:
-        sources:
-        - ./src/main/scala-2.13-
-        - ./src/main/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-2
       js213:
-        sources:
-        - ./src/main/scala-2.13+
-        - ./src/main/scalajvm-2
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
+        sources: ./src/${SCOPE}/scalajvm-2
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
     - ch.qos.logback:logback-core:1.2.7
@@ -245,11 +172,6 @@ projects:
     - template-cross-jvm-all-js-212-213
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/lambda
   tapir-aws-lambda-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-aws-lambda
     - tapir-tests
@@ -259,11 +181,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/lambda
   tapir-aws-lambda-tests:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
     dependsOn:
     - tapir-aws-lambda
@@ -275,22 +192,12 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/lambda-tests
   tapir-aws-lambda-tests-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn: tapir-aws-lambda-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/lambda-tests
   tapir-aws-sam:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.circe::circe-generic:0.14.1
     - io.circe::circe-yaml:0.14.1
@@ -301,11 +208,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/sam
   tapir-aws-sam-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-aws-sam
     - tapir-tests
@@ -315,11 +217,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/sam
   tapir-aws-terraform:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.circe::circe-generic:0.14.1
     - io.circe::circe-literal:0.14.1
@@ -331,11 +228,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/terraform
   tapir-aws-terraform-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-aws-terraform
     - tapir-tests
@@ -344,15 +236,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/terraform
   tapir-cats:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - org.typelevel::cats-core:2.7.0
     - org.typelevel::cats-effect:3.3.0
@@ -365,18 +248,12 @@ projects:
     cross:
       js212:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13+
       js3:
         dependencies:
         - io.github.cquiroz::scala-java-time:2.3.0
         - org.scala-js:scalajs-test-bridge_2.13:1.8.0
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - org.scalacheck::scalacheck:1.15.4
     - org.scalatest::scalatest:3.2.10
@@ -391,19 +268,11 @@ projects:
   tapir-client-tests:
     cross:
       js212:
-        sources:
-        - ./src/main/scala-2.13-
-        - ./src/main/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-2
       js213:
-        sources:
-        - ./src/main/scala-2.13+
-        - ./src/main/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-2
       js3:
-        sources: ./src/main/scalajvm-3
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
+        sources: ./src/${SCOPE}/scalajvm-3
     dependencies:
     - forceJvm: true
       module: org.http4s::http4s-blaze-server:0.23.7
@@ -424,14 +293,12 @@ projects:
         - org.scala-js::scalajs-dom:2.0.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.15
-        sources: ./src/main/scala-2.13-
       js213:
         dependencies:
         - com.propensive::magnolia:0.17.0
         - org.scala-js::scalajs-dom:2.0.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.6
-        sources: ./src/main/scala-2.13+
       js3:
         dependencies:
         - com.softwaremill.magnolia1_3::magnolia:1.0.0-M7
@@ -441,13 +308,11 @@ projects:
         - com.propensive::magnolia:0.17.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.15
-        sources: ./src/main/scala-2.13-
       jvm213:
         dependencies:
         - com.propensive::magnolia:0.17.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.6
-        sources: ./src/main/scala-2.13+
       jvm3:
         dependencies: com.softwaremill.magnolia1_3::magnolia:1.0.0-M7
     dependencies:
@@ -458,7 +323,7 @@ projects:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/tapir/core
-    sources: ./src/main/boilerplate-gen
+    sources: ./src/${SCOPE}/boilerplate-gen
   tapir-core-test:
     cross:
       js212:
@@ -468,7 +333,6 @@ projects:
         - io.github.cquiroz::scala-java-time:2.3.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.15
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies:
         - com.47deg::scalacheck-toolbox-datetime:0.6.0
@@ -476,7 +340,6 @@ projects:
         - io.github.cquiroz::scala-java-time:2.3.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.6
-        sources: ./src/test/scala-2.13+
       js3:
         dependencies:
         - io.github.cquiroz::scala-java-time-tzdb:2.3.0
@@ -487,13 +350,11 @@ projects:
         - com.47deg::scalacheck-toolbox-datetime:0.6.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.15
-        sources: ./src/test/scala-2.13-
       jvm213:
         dependencies:
         - com.47deg::scalacheck-toolbox-datetime:0.6.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.6
-        sources: ./src/test/scala-2.13+
     dependencies:
     - org.scalacheck::scalacheck:1.15.4
     - org.scalatest::scalatest:3.2.10
@@ -511,14 +372,12 @@ projects:
           module: org.scala-lang:scala-reflect:2.12.15
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
-        sources: ./src/main/scala-2.13-
       jvm213:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:2.13.6
         scala:
           options: -Ymacro-annotations
-        sources: ./src/main/scala-2.13+
     dependencies: tf.tofu::derevo-core:0.12.8
     dependsOn: tapir-newtype
     extends:
@@ -533,14 +392,12 @@ projects:
           module: org.scala-lang:scala-reflect:2.12.15
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
-        sources: ./src/test/scala-2.13-
       jvm213:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:2.13.6
         scala:
           options: -Ymacro-annotations
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-derevo
     extends:
@@ -548,15 +405,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/integrations/derevo
   tapir-enumeratum:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: com.beachape::enumeratum:1.7.0
     dependsOn: tapir-core
     extends:
@@ -567,14 +415,8 @@ projects:
     cross:
       js212:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13+
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-enumeratum
     extends:
@@ -610,13 +452,7 @@ projects:
     - template-common-main
     - template-scala-2.13-jvm
     folder: ./../../snapshot-tests-in/tapir/examples
-    sources: ./src/main/scala-2.13+
   tapir-finatra-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - com.twitter::finatra-http:21.2.0
     - org.apache.httpcomponents:httpmime:4.5.13
@@ -626,11 +462,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/finatra-server
   tapir-finatra-server-cats:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: org.typelevel::cats-effect:3.3.0
     dependsOn: tapir-finatra-server
     extends:
@@ -638,11 +469,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats
   tapir-finatra-server-cats-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-finatra-server-cats
     - tapir-finatra-server-test
@@ -651,11 +477,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/finatra-server/finatra-server-cats
   tapir-finatra-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - module: com.twitter::finatra-http:21.2.0
       publication:
@@ -699,11 +520,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/finatra-server
   tapir-http4s-client:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::fs2:1.2.7
@@ -715,11 +531,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/client/http4s-client
   tapir-http4s-client-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::fs2:1.2.7
@@ -733,11 +544,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/client/http4s-client
   tapir-http4s-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - com.softwaremill.sttp.shared::fs2:1.2.7
     - org.http4s::http4s-blaze-server:0.23.7
@@ -748,11 +554,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/http4s-server
   tapir-http4s-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-http4s-server
     - tapir-server-tests
@@ -762,15 +563,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/http4s-server
   tapir-json-circe:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.circe::circe-core:0.14.1
     - io.circe::circe-generic:0.14.1
@@ -781,11 +573,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/tapir/json/circe
   tapir-json-circe-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-circe
     extends:
@@ -794,11 +581,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/json/circe
   tapir-json-json4s:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: org.json4s::json4s-core:4.0.3
     dependsOn: tapir-core
     extends:
@@ -806,11 +588,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/json/json4s
   tapir-json-json4s-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - org.json4s::json4s-jackson:4.0.3
     - org.scalatest::scalatest:3.2.10
@@ -820,15 +597,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/json/json4s
   tapir-json-play:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: com.typesafe.play::play-json:2.9.2
     dependsOn: tapir-core
     extends:
@@ -839,14 +607,8 @@ projects:
     cross:
       js212:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13+
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-play
     extends:
@@ -854,11 +616,6 @@ projects:
     - template-cross-jvm-212-213-js-212-213
     folder: ./../../snapshot-tests-in/tapir/json/playjson
   tapir-json-spray:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: io.spray::spray-json:1.3.6
     dependsOn: tapir-core
     extends:
@@ -866,11 +623,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/json/sprayjson
   tapir-json-spray-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-spray
     extends:
@@ -878,11 +630,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/json/sprayjson
   tapir-json-tethys:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - com.tethys-json::tethys-core:0.25.0
     - com.tethys-json::tethys-jackson:0.25.0
@@ -892,11 +639,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/json/tethys
   tapir-json-tethys-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - com.tethys-json::tethys-derivation:0.25.0
     - org.scalatest::scalatest:3.2.10
@@ -906,15 +648,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/json/tethys
   tapir-json-upickle:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: com.lihaoyi::upickle:1.4.3
     dependsOn: tapir-core
     extends:
@@ -925,14 +658,8 @@ projects:
     cross:
       js212:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13+
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-upickle
     extends:
@@ -940,15 +667,6 @@ projects:
     - template-cross-jvm-212-213-js-212-213
     folder: ./../../snapshot-tests-in/tapir/json/upickle
   tapir-json-zio:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
       forceJvm: true
       module: dev.zio::zio-json:0.2.0-M3
@@ -958,11 +676,6 @@ projects:
     - template-cross-jvm-all-js-212-213
     folder: ./../../snapshot-tests-in/tapir/json/zio
   tapir-json-zio-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-zio
     extends:
@@ -971,15 +684,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/json/zio
   tapir-jsoniter-scala:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.12.0
     dependsOn: tapir-core
     extends:
@@ -987,15 +691,6 @@ projects:
     - template-cross-jvm-212-213-js-212-213
     folder: ./../../snapshot-tests-in/tapir/json/jsoniter
   tapir-jsoniter-scala-test:
-    cross:
-      js212:
-        sources: ./src/test/scala-2.13-
-      js213:
-        sources: ./src/test/scala-2.13+
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.12.0
     - org.scalatest::scalatest:3.2.10
@@ -1005,11 +700,6 @@ projects:
     - template-cross-jvm-212-213-js-212-213
     folder: ./../../snapshot-tests-in/tapir/json/jsoniter
   tapir-netty-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
     - ch.qos.logback:logback-core:1.2.7
@@ -1024,11 +714,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/netty-server
   tapir-netty-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
       configuration: optional
       module: com.softwaremill.sttp.shared::fs2:1.2.7
@@ -1045,19 +730,15 @@ projects:
       js212:
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
-        sources: ./src/main/scala-2.13-
       js213:
         scala:
           options: -Ymacro-annotations
-        sources: ./src/main/scala-2.13+
       jvm212:
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
-        sources: ./src/main/scala-2.13-
       jvm213:
         scala:
           options: -Ymacro-annotations
-        sources: ./src/main/scala-2.13+
     dependencies: io.estatico::newtype:0.4.4
     dependsOn: tapir-core
     extends:
@@ -1069,19 +750,15 @@ projects:
       js212:
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
-        sources: ./src/test/scala-2.13-
       js213:
         scala:
           options: -Ymacro-annotations
-        sources: ./src/test/scala-2.13+
       jvm212:
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
-        sources: ./src/test/scala-2.13-
       jvm213:
         scala:
           options: -Ymacro-annotations
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-newtype
     extends:
@@ -1089,11 +766,6 @@ projects:
     - template-cross-jvm-212-213-js-212-213
     folder: ./../../snapshot-tests-in/tapir/integrations/newtype
   tapir-openapi-circe:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.circe::circe-core:0.14.1
     - io.circe::circe-generic:0.14.1
@@ -1105,11 +777,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/apispec/openapi-circe
   tapir-openapi-circe-yaml:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: io.circe::circe-yaml:0.14.1
     dependsOn: tapir-openapi-circe
     extends:
@@ -1121,10 +788,8 @@ projects:
     cross:
       jvm212:
         dependsOn: tapir-enumeratum
-        sources: ./src/main/scala-2.13-
       jvm213:
         dependsOn: tapir-enumeratum
-        sources: ./src/main/scala-2.13+
     dependsOn:
     - tapir-apispec-docs
     - tapir-openapi-model
@@ -1134,11 +799,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/openapi-docs
   tapir-openapi-docs-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-openapi-circe-yaml
     - tapir-openapi-docs
@@ -1149,11 +809,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/openapi-docs
   tapir-openapi-model:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn: tapir-apispec-model
     extends:
     - template-common-main
@@ -1161,11 +816,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/apispec/openapi-model
   tapir-openapi-model-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-openapi-model
     extends:
@@ -1174,11 +824,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/apispec/openapi-model
   tapir-opentelemetry-metrics:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - io.opentelemetry:opentelemetry-api:1.9.1
     - io.opentelemetry:opentelemetry-sdk:1.9.1
@@ -1189,11 +834,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/metrics/opentelemetry-metrics
   tapir-opentelemetry-metrics-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: io.opentelemetry:opentelemetry-sdk-metrics:1.5.0-alpha
     dependsOn:
     - tapir-core-test
@@ -1204,11 +844,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/metrics/opentelemetry-metrics
   tapir-play-client:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::akka:1.2.7
@@ -1221,11 +856,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/client/play-client
   tapir-play-client-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::akka:1.2.7
@@ -1239,11 +869,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/client/play-client
   tapir-play-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.2.7
     - com.typesafe.play::play-akka-http-server:2.8.7
@@ -1255,11 +880,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/play-server
   tapir-play-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-play-server
     - tapir-server-tests
@@ -1268,11 +888,6 @@ projects:
     - template-cross-jvm-212-213
     folder: ./../../snapshot-tests-in/tapir/server/play-server
   tapir-prometheus-metrics:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: io.prometheus:simpleclient_common:0.12.0
     dependsOn: tapir-core
     extends:
@@ -1281,11 +896,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/metrics/prometheus-metrics
   tapir-prometheus-metrics-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-core-test
     - tapir-prometheus-metrics
@@ -1295,11 +905,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/metrics/prometheus-metrics
   tapir-redoc:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn: tapir-core
     extends:
     - template-common-main
@@ -1307,11 +912,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/redoc
   tapir-redoc-bundle:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn:
     - tapir-openapi-circe-yaml
     - tapir-openapi-docs
@@ -1322,15 +922,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/redoc-bundle
   tapir-refined:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: eu.timepit::refined:0.9.28
     dependsOn: tapir-core
     extends:
@@ -1341,14 +932,8 @@ projects:
     cross:
       js212:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13+
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - io.circe::circe-refined:0.14.1
     - org.scalatest::scalatest:3.2.10
@@ -1360,11 +945,6 @@ projects:
     - template-cross-jvm-212-213-js-212-213
     folder: ./../../snapshot-tests-in/tapir/integrations/refined
   tapir-server-tests:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
     dependsOn: tapir-tests
     extends:
@@ -1374,10 +954,6 @@ projects:
     folder: ./../../snapshot-tests-in/tapir/server/tests
   tapir-sttp-client:
     cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
       jvm212:
         dependencies:
         - configuration: optional
@@ -1388,7 +964,6 @@ projects:
           module: com.softwaremill.sttp.shared::zio:1.2.7
         - configuration: optional
           module: com.typesafe.akka::akka-stream:2.6.17
-        sources: ./src/main/scala-2.13-
       jvm213:
         dependencies:
         - configuration: optional
@@ -1399,7 +974,6 @@ projects:
           module: com.softwaremill.sttp.shared::zio:1.2.7
         - configuration: optional
           module: com.typesafe.akka::akka-stream:2.6.17
-        sources: ./src/main/scala-2.13+
       jvm3:
         dependencies:
         - configuration: optional
@@ -1416,10 +990,8 @@ projects:
     cross:
       js212:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13-
       js213:
         dependencies: io.github.cquiroz::scala-java-time:2.3.0
-        sources: ./src/test/scala-2.13+
       js3:
         dependencies:
         - io.github.cquiroz::scala-java-time:2.3.0
@@ -1438,7 +1010,6 @@ projects:
           module: com.softwaremill.sttp.shared::zio:1.2.7
         - configuration: optional
           module: com.typesafe.akka::akka-stream:2.6.17
-        sources: ./src/test/scala-2.13-
       jvm213:
         dependencies:
         - com.softwaremill.sttp.client3::akka-http-backend:3.3.18
@@ -1453,7 +1024,6 @@ projects:
           module: com.softwaremill.sttp.shared::zio:1.2.7
         - configuration: optional
           module: com.typesafe.akka::akka-stream:2.6.17
-        sources: ./src/test/scala-2.13+
       jvm3:
         dependencies:
         - forceJvm: true
@@ -1471,11 +1041,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/tapir/client/sttp-client
   tapir-sttp-stub-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn: tapir-sttp-client
     extends:
     - template-common-main
@@ -1483,11 +1048,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/sttp-stub-server
   tapir-sttp-stub-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-server-tests
     - tapir-sttp-stub-server
@@ -1497,11 +1057,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/sttp-stub-server
   tapir-swagger-ui:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: org.webjars:swagger-ui:4.1.3
     dependsOn: tapir-core
     extends:
@@ -1510,11 +1065,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/swagger-ui
   tapir-swagger-ui-bundle:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependsOn:
     - tapir-openapi-circe-yaml
     - tapir-openapi-docs
@@ -1525,11 +1075,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/swagger-ui-bundle
   tapir-swagger-ui-bundle-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn:
     - tapir-http4s-server
@@ -1541,15 +1086,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/docs/swagger-ui-bundle
   tapir-tests:
-    cross:
-      js212:
-        sources: ./src/main/scala-2.13-
-      js213:
-        sources: ./src/main/scala-2.13+
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
     - ch.qos.logback:logback-core:1.2.7
@@ -1565,11 +1101,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/tapir/tests
   tapir-vertx-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::fs2:1.2.7
@@ -1583,11 +1114,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/vertx
   tapir-vertx-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - configuration: optional
       module: com.softwaremill.sttp.shared::fs2:1.2.7
@@ -1603,11 +1129,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/vertx
   tapir-zio:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - com.softwaremill.sttp.shared::zio:1.2.7
     - dev.zio::zio-streams:1.0.12
@@ -1619,11 +1140,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/integrations/zio
   tapir-zio-http-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: io.d11::zhttp:1.0.0.0-RC17
     dependsOn: tapir-zio
     extends:
@@ -1632,11 +1148,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/zio-http-server
   tapir-zio-http-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies: dev.zio::zio-interop-cats:3.2.9.0
     dependsOn:
     - tapir-server-tests
@@ -1647,11 +1158,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/zio-http-server
   tapir-zio-http4s-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies: dev.zio::zio-interop-cats:3.2.9.0
     dependsOn:
     - tapir-http4s-server
@@ -1662,11 +1168,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/zio-http4s-server
   tapir-zio-http4s-server-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependsOn:
     - tapir-server-tests
     - tapir-zio-http4s-server
@@ -1676,11 +1177,6 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/server/zio-http4s-server
   tapir-zio-test:
-    cross:
-      jvm212:
-        sources: ./src/test/scala-2.13-
-      jvm213:
-        sources: ./src/test/scala-2.13+
     dependencies:
     - dev.zio::zio-test-sbt:1.0.12
     - dev.zio::zio-test:1.0.12
@@ -1692,11 +1188,6 @@ projects:
     folder: ./../../snapshot-tests-in/tapir/integrations/zio
     testFrameworks: zio.test.sbt.ZTestFramework
   testing-server:
-    cross:
-      jvm212:
-        sources: ./src/main/scala-2.13-
-      jvm213:
-        sources: ./src/main/scala-2.13+
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
     - ch.qos.logback:logback-core:1.2.7
@@ -1777,6 +1268,7 @@ templates:
         -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
         -Ywarn-unused:privates -Ywarn-value-discard -deprecation
       version: 2.12.15
+    sources: ./src/${SCOPE}/scala-2.13-
   template-scala-2.12-js:
     extends:
     - template-js
@@ -1793,6 +1285,7 @@ templates:
         -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars -Wunused:privates
         -Wvalue-discard -Xlint:-byname-implicit -Xlint:deprecation -Xlint:strict-unsealed-patmat
       version: 2.13.6
+    sources: ./src/${SCOPE}/scala-2.13+
   template-scala-2.13-js:
     extends:
     - template-js
