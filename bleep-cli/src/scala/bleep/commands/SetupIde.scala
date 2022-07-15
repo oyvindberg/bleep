@@ -37,13 +37,20 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
 
     List(
       // remove other configured BSP tools
-      buildPaths.buildDir / ".bsp",
+      Option(buildPaths.buildDir / ".bsp").filter { p =>
+        if (Files.isDirectory(p)) {
+          Files.list(p).toList.asScala.toList match {
+            case one :: Nil if one.getFileName.toString == "bleep.json" => false
+            case _                                                      => true
+          }
+        } else true
+      },
       // causes intellij to always pick sbt BSP import
-      buildPaths.buildDir / ".bloop",
+      Some(buildPaths.buildDir / ".bloop").filter(FileUtils.exists),
       // cause metals to always pick sbt BSP import
-      buildPaths.buildDir / "build.sbt",
-      buildPaths.buildDir / "project"
-    ).filter(FileUtils.exists) match {
+      Some(buildPaths.buildDir / "build.sbt").filter(FileUtils.exists),
+      Some(buildPaths.buildDir / "project").filter(FileUtils.exists)
+    ).flatten match {
       case Nil => ()
       case conflicts =>
         LazyList
