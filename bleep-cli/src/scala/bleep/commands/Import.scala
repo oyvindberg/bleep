@@ -95,9 +95,9 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
       cli(
         List(
           "sbt",
-          s"""'set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop/$${scalaBinaryVersion.value}"'""",
+          s"""set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop/$${scalaBinaryVersion.value}"""",
           "+bloopInstall",
-          s"""'set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"'""",
+          s"""set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"""",
           "+exportAllProjects"
         ),
         logger,
