@@ -47,6 +47,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
     testIn("http4s")
   }
 
+  test("bloop") {
+    testIn("bloop")
+  }
+
   test("converter") {
     val path = RelPath.force("importer-portable/target/scala-2.12/src_managed/main/sbt-buildinfo/BuildInfo.scala")
     val content = """// $COVERAGE-OFF$
