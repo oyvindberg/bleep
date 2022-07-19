@@ -1,0 +1,170 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "sockets-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets/target/src_managed/test"
+        ],
+        "dependencies": [
+            "sockets"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/sockets/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/sockets",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/sockets/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets/target/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-deprecation",
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-language:existentials",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Yno-adapted-args",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-value-discard",
+                "-Xfuture"
+            ],
+            "jars": [
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-xml_2.12-1.0.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                "-source",
+                "1.8",
+                "-target",
+                "1.8"
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    {
+                        "args": [
+                            "-oD"
+                        ]
+                    }
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna",
+                    "version": "5.8.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar"
+                        },
+                        {
+                            "name": "jna",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna-platform",
+                    "version": "5.8.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna-platform",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0.jar"
+                        },
+                        {
+                            "name": "jna-platform",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

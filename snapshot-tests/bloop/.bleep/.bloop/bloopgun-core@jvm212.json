@@ -1,0 +1,325 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "bloopgun-core@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/generated-sources/bloopgun-core@jvm212"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.12/4.0.0-RC2/scopt_2.12-4.0.0-RC2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-core_2.12/0.4.0/snailgun-core_2.12-0.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloopgun-core/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloopgun-core/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/generated-resources/bloopgun-core@jvm212"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.15",
+      "options": [
+        "-Xfuture",
+        "-Yno-adapted-args",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:existentials",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloopgun-core/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/bloop"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.zeroturnaround",
+          "name": "zt-exec",
+          "version": "1.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zt-exec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar"
+            },
+            {
+              "name": "zt-exec",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.scopt",
+          "name": "scopt_2.12",
+          "version": "4.0.0-RC2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scopt_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.12/4.0.0-RC2/scopt_2.12-4.0.0-RC2.jar"
+            },
+            {
+              "name": "scopt_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.12/4.0.0-RC2/scopt_2.12-4.0.0-RC2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
+            },
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-macros_2.12",
+          "version": "2.4.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0.jar"
+            },
+            {
+              "name": "jsoniter-scala-macros_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "interface-svm-subs",
+          "version": "1.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "interface-svm-subs",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6.jar"
+            },
+            {
+              "name": "interface-svm-subs",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.15",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar"
+            },
+            {
+              "name": "jna",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "me.vican.jorge",
+          "name": "snailgun-cli_2.12",
+          "version": "0.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snailgun-cli_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0.jar"
+            },
+            {
+              "name": "snailgun-cli_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna-platform",
+          "version": "5.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna-platform",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar"
+            },
+            {
+              "name": "jna-platform",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-nop",
+          "version": "1.7.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-nop",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2.jar"
+            },
+            {
+              "name": "slf4j-nop",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "interface",
+          "version": "1.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6.jar"
+            },
+            {
+              "name": "interface",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar"
+            },
+            {
+              "name": "slf4j-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "me.vican.jorge",
+          "name": "snailgun-core_2.12",
+          "version": "0.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "snailgun-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-core_2.12/0.4.0/snailgun-core_2.12-0.4.0.jar"
+            },
+            {
+              "name": "snailgun-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-core_2.12/0.4.0/snailgun-core_2.12-0.4.0-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

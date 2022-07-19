@@ -109,8 +109,8 @@ object ScalaVersions {
 
       case None =>
         maybePlatform match {
-          case Some(platform) => Left(s"Must specify scala version to use platform ${platform.name}")
-          case None           => Right(Java)
+          case Some(model.Platform.Jvm(_)) | None => Right(Java)
+          case Some(platform)                     => Left(s"Must specify scala version to use platform ${platform.name}")
         }
     }
 

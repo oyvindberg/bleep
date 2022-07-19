@@ -68,11 +68,16 @@ object ImportInputProjects {
         .collect {
           case bloopFile if bloopFile.project.sources.exists(hasSources.apply) =>
             val sbtExportFile =
-              sbtExportFiles
-                .find(f => f.bloopName == bloopFile.project.name && bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full))
-                .getOrElse {
-                  sys.error(s"Expected to find a sbt dependency file for ${bloopFile.project.name}")
-                }
+              sbtExportFiles.filter(f => f.bloopName == bloopFile.project.name).toList match {
+                case Nil =>
+                  sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name}")
+                case List(one) =>
+                  one
+                case many =>
+                  many.find(f => bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full)).getOrElse {
+                    sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name} among ${many.map(_.scalaVersion)}")
+                  }
+              }
 
             InputProject(bloopFile, sbtExportFile)
         }

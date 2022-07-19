@@ -1,0 +1,332 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "gradle-bloop@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/generated-sources/gradle-bloop@jvm212"
+    ],
+    "dependencies": [
+      "bloop-config@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-common/4.2.0/databinding-common-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-compiler-common/4.2.0/databinding-compiler-common-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/databinding/baseLibrary/4.2.0/baseLibrary-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/signflinger/4.2.0/signflinger-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/crash/27.2.0/crash-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/protos/27.2.0/protos-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/shared/27.2.0/shared-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/tracker/27.2.0/tracker-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/annotations/27.2.0/annotations-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/aapt2-proto/4.2.0-7147631/aapt2-proto-4.2.0-7147631.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/aaptcompiler/4.2.0/aaptcompiler-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/apksig/4.2.0/apksig-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/apkzlib/4.2.0/apkzlib-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-model/4.2.0/builder-model-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-test-api/4.2.0/builder-test-api-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/builder/4.2.0/builder-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/bundletool/1.1.0/bundletool-1.1.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle-api/4.2.0/gradle-api-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-processor/1.0.0-beta09/jetifier-processor-1.0.0-beta09.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/build/manifest-merger/27.2.0/manifest-merger-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/common/27.2.0/common-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/ddms/ddmlib/27.2.0/ddmlib-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/dvlib/27.2.0/dvlib-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/layoutlib/layoutlib-api/27.2.0/layoutlib-api-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-gradle-api/27.2.0/lint-gradle-api-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-model/27.2.0/lint-model-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/repository/27.2.0/repository-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/sdk-common/27.2.0/sdk-common-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/tools/sdklib/27.2.0/sdklib-27.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/android/zipflinger/4.2.0/zipflinger-4.2.0.jar",
+      "<COURSIER>/https/maven.google.com/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar",
+      "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0.jar",
+      "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/android/tools/build/transform-api/2.0.0-deprecated-use-gradle-api/transform-api-2.0.0-deprecated-use-gradle-api.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.6/gson-2.8.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/crypto/tink/tink/1.3.0-rc2/tink-1.3.0-rc2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/dagger/dagger/2.28.3/dagger-2.28.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.2/error_prone_annotations-2.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/flatbuffers/flatbuffers-java/1.12.0/flatbuffers-java-1.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.1/jimfs-1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/3.10.0/protobuf-java-util-3.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.10.0/protobuf-java-3.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javapoet/1.10.0/javapoet-1.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javawriter/2.5.0/javawriter-2.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/javax.activation/1.2.0/javax.activation-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/3.0.8/istack-commons-runtime-3.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/fastinfoset/FastInfoset/1.2.16/FastInfoset-1.2.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/it/unimi/dsi/fastutil/8.4.0/fastutil-8.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.1/jakarta.activation-api-1.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/2.3.2/jakarta.xml.bind-api-2.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.9/jopt-simple-4.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-base/6.0.3/proguard-base-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-gradle/6.0.3/proguard-gradle-6.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4/4.5.3/antlr4-4.5.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.12/commons-compress-1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.6/httpclient-4.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.10/httpcore-4.4.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.6/httpmime-4.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.56/bcpkix-jdk15on-1.56.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.8.1/checker-qual-2.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.18/animal-sniffer-annotations-1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.3.2/jaxb-runtime-2.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/txw2/2.3.2/txw2-2.3.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jdom/jdom2/2.0.6/jdom2-2.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.31/kotlin-stdlib-jdk7-1.4.31.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.31/kotlin-stdlib-jdk8-1.4.31.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/json/json/20180813/json-20180813.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jvnet/staxex/stax-ex/1.8.1/stax-ex-1.8.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/7.0/asm-analysis-7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/7.0/asm-commons-7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/7.0/asm-tree-7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/7.0/asm-util-7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.0/asm-7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/xerces/xercesImpl/2.12.0/xercesImpl-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/xml-apis/xml-apis/1.4.01/xml-apis-1.4.01.jar",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-config/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/gradle-bloop/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/gradle-bloop/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/generated-resources/gradle-bloop@jvm212"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.15",
+      "options": [
+        "-Xfuture",
+        "-Xlint:unused",
+        "-Yno-adapted-args",
+        "-Yrangepos",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:existentials",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/gradle-bloop/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/bloop"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "dev.gradleplugins",
+          "name": "gradle-test-kit",
+          "version": "5.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "gradle-test-kit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0.jar"
+            },
+            {
+              "name": "gradle-test-kit",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.gradleplugins",
+          "name": "gradle-api",
+          "version": "5.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "gradle-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0.jar"
+            },
+            {
+              "name": "gradle-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.gradle",
+          "name": "gradle-tooling-api",
+          "version": "5.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "gradle-tooling-api",
+              "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0.jar"
+            },
+            {
+              "name": "gradle-tooling-api",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.15",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.android.tools.build",
+          "name": "gradle",
+          "version": "4.2.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "gradle",
+              "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0.jar"
+            },
+            {
+              "name": "gradle",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.groovy",
+          "name": "groovy",
+          "version": "2.5.4",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "groovy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4.jar"
+            },
+            {
+              "name": "groovy",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
+            },
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.gradle",
+          "name": "gradle-core",
+          "version": "5.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "gradle-core",
+              "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0.jar"
+            },
+            {
+              "name": "gradle-core",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

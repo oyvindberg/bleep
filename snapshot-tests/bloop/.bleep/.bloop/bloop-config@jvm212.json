@@ -1,0 +1,149 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "bloop-config@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/config",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.jvm/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.jvm/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.jvm/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/main/scala-2.11-13",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/generated-sources/bloop-config@jvm212"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-config/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-config/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/generated-resources/bloop-config@jvm212"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.15",
+      "options": [
+        "-Xfuture",
+        "-Yno-adapted-args",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-value-discard",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-language:existentials",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-config/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/bloop"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
+            },
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-macros_2.12",
+          "version": "2.4.0",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0.jar"
+            },
+            {
+              "name": "jsoniter-scala-macros_2.12",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.15",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+            },
+            {
+              "name": "scala-library",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

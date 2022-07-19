@@ -1,0 +1,815 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "twitterIntegrationProjects-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/target/scala-2.12/src_managed/test"
+        ],
+        "dependencies": [
+            "twitterIntegrationProjects"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/twitterIntegrationProjects/scala-2.12/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
+            "<COURSIER>/https/maven.twttr.com/com/hadoop/gplcompression/hadoop-lzo/0.4.19/hadoop-lzo-0.4.19.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/util/0.0.118/util-0.0.118.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/quantity/0.0.96/quantity-0.0.96.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/scrooge-serializer_2.11/4.12.0/scrooge-serializer_2.11-4.12.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-executor-service-shutdown/0.0.64/util-executor-service-shutdown-0.0.64.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-system-mocks/0.0.101/util-system-mocks-0.0.101.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/jdk-logging/0.0.76/jdk-logging-0.0.76.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/base/0.0.112/base-0.0.112.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/collections/0.0.106/collections-0.0.106.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/stats/0.0.112/stats-0.0.112.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/3.0/guice-3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/16.0.1/guava-16.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/scrooge-core_2.11/4.12.0/scrooge-core_2.11-4.12.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.11/6.39.0/util-app_2.11-6.39.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.11/6.39.0/util-codec_2.11-6.39.0.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/stat-registry/0.0.53/stat-registry-0.0.53.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/stats-provider/0.0.88/stats-provider-0.0.88.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/application-action/0.0.87/application-action-0.0.87.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-sampler/0.0.75/util-sampler-0.0.75.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.11/6.39.0/util-core_2.11-6.39.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.11/6.39.0/util-registry_2.11-6.39.0.jar",
+            "<COURSIER>/https/maven.twttr.com/com/twitter/common/stat/0.0.68/stat-0.0.68.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.11/6.39.0/util-function_2.11-6.39.0.jar",
+            "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/twitterIntegrationProjects",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/twitterIntegrationProjects/scala-2.12/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/twitter-integration-projects/target/scala-2.12/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-deprecation",
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-language:existentials",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Yno-adapted-args",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-value-discard",
+                "-Xfuture"
+            ],
+            "jars": [
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-xml_2.12-1.0.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    {
+                        "args": [
+                            "-oD"
+                        ]
+                    }
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.hadoop.gplcompression",
+                    "name": "hadoop-lzo",
+                    "version": "0.4.19",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "hadoop-lzo",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "38189ea759f02a72eee0cb8f174d31ce87671519"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/hadoop/gplcompression/hadoop-lzo/0.4.19/hadoop-lzo-0.4.19.jar"
+                        },
+                        {
+                            "name": "hadoop-lzo",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "840d166fd0e20306800ca69417367de03d03083c"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/hadoop/gplcompression/hadoop-lzo/0.4.19/hadoop-lzo-0.4.19-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "util",
+                    "version": "0.0.118",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "7994adfeb5e61c151d47649a86451abe6a5703d1"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util/0.0.118/util-0.0.118.jar"
+                        },
+                        {
+                            "name": "util",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "baa111f064143d317e8614adf8bddc41fab6f2cf"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util/0.0.118/util-0.0.118-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "quantity",
+                    "version": "0.0.96",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "quantity",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "01111659ed9181f3b7045bc6934b33a230400458"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/quantity/0.0.96/quantity-0.0.96.jar"
+                        },
+                        {
+                            "name": "quantity",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "faba358e8063408c16cbde40c90b04b72609ac3c"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/quantity/0.0.96/quantity-0.0.96-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "scrooge-serializer_2.11",
+                    "version": "4.12.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scrooge-serializer_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/scrooge-serializer_2.11/4.12.0/scrooge-serializer_2.11-4.12.0.jar"
+                        },
+                        {
+                            "name": "scrooge-serializer_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/scrooge-serializer_2.11/4.12.0/scrooge-serializer_2.11-4.12.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-logging",
+                    "name": "commons-logging",
+                    "version": "1.1.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-logging",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"
+                        },
+                        {
+                            "name": "commons-logging",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "util-executor-service-shutdown",
+                    "version": "0.0.64",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-executor-service-shutdown",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6f136d247e3db55b31212e4a8fdb611e8d274f0f"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-executor-service-shutdown/0.0.64/util-executor-service-shutdown-0.0.64.jar"
+                        },
+                        {
+                            "name": "util-executor-service-shutdown",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "021b6c35efc242aced4c856539b444aadfdb538d"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-executor-service-shutdown/0.0.64/util-executor-service-shutdown-0.0.64-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "util-system-mocks",
+                    "version": "0.0.101",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-system-mocks",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "8d7a3b2303d1dfb85f020a94b97ed0bd935a555b"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-system-mocks/0.0.101/util-system-mocks-0.0.101.jar"
+                        },
+                        {
+                            "name": "util-system-mocks",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "82865b1d7c29ec3a41c8424b31e000a07c2b0460"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-system-mocks/0.0.101/util-system-mocks-0.0.101-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "jdk-logging",
+                    "version": "0.0.76",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jdk-logging",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "63c6b764b33d9f60381ae466f70f64150fef3d9a"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/jdk-logging/0.0.76/jdk-logging-0.0.76.jar"
+                        },
+                        {
+                            "name": "jdk-logging",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "b687360d991f2a7a4454b2c447890d86dab69c56"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/jdk-logging/0.0.76/jdk-logging-0.0.76-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "base",
+                    "version": "0.0.112",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "base",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "51782b9b474df9a9aba368c5cfa7c8b62c52b115"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/base/0.0.112/base-0.0.112.jar"
+                        },
+                        {
+                            "name": "base",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "b1c0e3d5804659da958f8af7a9a9af4cc310b79a"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/base/0.0.112/base-0.0.112-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "collections",
+                    "version": "0.0.106",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "collections",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6547ae86f9e16b812b0b097430e343bea8418b5b"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/collections/0.0.106/collections-0.0.106.jar"
+                        },
+                        {
+                            "name": "collections",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "25fb3fbf93db361290cfc1afb405d3ea78cc58c4"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/collections/0.0.106/collections-0.0.106-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "stats",
+                    "version": "0.0.112",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "stats",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "61db77fc274f7e41320dff581c699bb402935213"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stats/0.0.112/stats-0.0.112.jar"
+                        },
+                        {
+                            "name": "stats",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "fc6c3103d80c49dcb7417cf183280eee12edce91"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stats/0.0.112/stats-0.0.112-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.inject",
+                    "name": "guice",
+                    "version": "3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "guice",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/3.0/guice-3.0.jar"
+                        },
+                        {
+                            "name": "guice",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/3.0/guice-3.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.guava",
+                    "name": "guava",
+                    "version": "16.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "guava",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/16.0.1/guava-16.0.1.jar"
+                        },
+                        {
+                            "name": "guava",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/16.0.1/guava-16.0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-lang",
+                    "name": "commons-lang",
+                    "version": "2.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-lang",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"
+                        },
+                        {
+                            "name": "commons-lang",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-lang/commons-lang/2.6/commons-lang-2.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.code.findbugs",
+                    "name": "jsr305",
+                    "version": "2.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsr305",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/2.0.1/jsr305-2.0.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "scrooge-core_2.11",
+                    "version": "4.12.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scrooge-core_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/scrooge-core_2.11/4.12.0/scrooge-core_2.11-4.12.0.jar"
+                        },
+                        {
+                            "name": "scrooge-core_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/scrooge-core_2.11/4.12.0/scrooge-core_2.11-4.12.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "util-app_2.11",
+                    "version": "6.39.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-app_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.11/6.39.0/util-app_2.11-6.39.0.jar"
+                        },
+                        {
+                            "name": "util-app_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.11/6.39.0/util-app_2.11-6.39.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "util-codec_2.11",
+                    "version": "6.39.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-codec_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.11/6.39.0/util-codec_2.11-6.39.0.jar"
+                        },
+                        {
+                            "name": "util-codec_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.11/6.39.0/util-codec_2.11-6.39.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "stat-registry",
+                    "version": "0.0.53",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "stat-registry",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "803e43911ebab5fe9917f9eff9ab15d93e81462b"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stat-registry/0.0.53/stat-registry-0.0.53.jar"
+                        },
+                        {
+                            "name": "stat-registry",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "33c97f94e3c8c8f8d4cd88c9543646afe3e34bea"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stat-registry/0.0.53/stat-registry-0.0.53-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "stats-provider",
+                    "version": "0.0.88",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "stats-provider",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "dfbe0cde35fc34da8a2de0470a1c3db1b73510ce"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stats-provider/0.0.88/stats-provider-0.0.88.jar"
+                        },
+                        {
+                            "name": "stats-provider",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "ea92edb2406831a719c132dba249003a44e828bf"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stats-provider/0.0.88/stats-provider-0.0.88-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "application-action",
+                    "version": "0.0.87",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "application-action",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6bc35162894c20869ecc796fbd8ec0119afc1ada"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/application-action/0.0.87/application-action-0.0.87.jar"
+                        },
+                        {
+                            "name": "application-action",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "70a24b3b35b3d5f8ad8170a777d132481e949b27"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/application-action/0.0.87/application-action-0.0.87-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "util-sampler",
+                    "version": "0.0.75",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-sampler",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "feb28eb52cd62075e0d0977849580e030bf56ab6"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-sampler/0.0.75/util-sampler-0.0.75.jar"
+                        },
+                        {
+                            "name": "util-sampler",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "7d5ad5554b88ac0698254a4a1dd61ad7098e66a1"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/util-sampler/0.0.75/util-sampler-0.0.75-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "javax.inject",
+                    "name": "javax.inject",
+                    "version": "1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "javax.inject",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+                        },
+                        {
+                            "name": "javax.inject",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "aopalliance",
+                    "name": "aopalliance",
+                    "version": "1.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "aopalliance",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"
+                        },
+                        {
+                            "name": "aopalliance",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "util-core_2.11",
+                    "version": "6.39.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-core_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.11/6.39.0/util-core_2.11-6.39.0.jar"
+                        },
+                        {
+                            "name": "util-core_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.11/6.39.0/util-core_2.11-6.39.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "util-registry_2.11",
+                    "version": "6.39.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-registry_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.11/6.39.0/util-registry_2.11-6.39.0.jar"
+                        },
+                        {
+                            "name": "util-registry_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.11/6.39.0/util-registry_2.11-6.39.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter.common",
+                    "name": "stat",
+                    "version": "0.0.68",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "stat",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "2e33da9ecbe98a49a06675202ececbec64d57781"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stat/0.0.68/stat-0.0.68.jar"
+                        },
+                        {
+                            "name": "stat",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "cc1b9934f99f9ed37cbd418a118ae73adbb9990f"
+                            },
+                            "path": "<COURSIER>/https/maven.twttr.com/com/twitter/common/stat/0.0.68/stat-0.0.68-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.twitter",
+                    "name": "util-function_2.11",
+                    "version": "6.39.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "util-function_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.11/6.39.0/util-function_2.11-6.39.0.jar"
+                        },
+                        {
+                            "name": "util-function_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.11/6.39.0/util-function_2.11-6.39.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar"
+                        },
+                        {
+                            "name": "scala-reflect",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-parser-combinators_2.11",
+                    "version": "1.0.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-parser-combinators_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
+                        },
+                        {
+                            "name": "scala-parser-combinators_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

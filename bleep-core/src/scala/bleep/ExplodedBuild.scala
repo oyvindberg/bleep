@@ -34,7 +34,7 @@ case class ExplodedBuild(
       val resolvedDependsOn: SortedSet[model.CrossProjectName] =
         p.dependsOn.values.map { depName =>
           byName(depName) match {
-            case Seq(unambiguous: model.CrossProjectName) => unambiguous
+            case unambiguous if unambiguous.size == 1 => unambiguous.head
             case depCrossVersions =>
               val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 

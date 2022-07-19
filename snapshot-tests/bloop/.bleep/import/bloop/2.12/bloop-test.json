@@ -1,0 +1,194 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "bloop-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/scala-2.12/src_managed/test"
+        ],
+        "dependencies": [
+            "bloop",
+            "bloopShared-test",
+            "backend-test",
+            "frontend-test",
+            "benchmarks-test",
+            "jsonConfig210JVM-test",
+            "jsonConfig211JVM-test",
+            "jsonConfig211JS-test",
+            "jsonConfig212JVM-test",
+            "jsonConfig212JS-test",
+            "jsonConfig213JVM-test",
+            "jsonConfig213JS-test",
+            "sbtBloop013-test",
+            "sbtBloop10-test",
+            "mavenBloop-test",
+            "gradleBloop211-test",
+            "gradleBloop212-test",
+            "gradleBloop213-test",
+            "nativeBridge04-test",
+            "jsBridge06-test",
+            "jsBridge1-test",
+            "launcher-test",
+            "launcher213-test",
+            "launcherTest-test",
+            "sockets-test",
+            "bloopgun-test",
+            "bloopgun213-test"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/bloop/scala-2.12/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/bloop",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/bloop/scala-2.12/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/target/scala-2.12/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-deprecation",
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-language:existentials",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Yno-adapted-args",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-value-discard",
+                "-Xfuture"
+            ],
+            "jars": [
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-xml_2.12-1.0.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    {
+                        "args": [
+                            "-oD"
+                        ]
+                    }
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

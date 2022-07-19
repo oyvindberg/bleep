@@ -1,0 +1,451 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "jsonConfig212JS-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.js",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.js/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.js/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.js/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.js/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/target/json-config-2.12/js/scala-2.12/src_managed/test"
+        ],
+        "dependencies": [
+            "jsonConfig212JS"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/jsonConfig212JS/scala-2.12/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.6.0/scalajs-library_2.12-1.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.6.0/scalajs-test-bridge_2.12-1.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.12/1.6.0/scalajs-junit-test-runtime_2.12-1.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_sjs1_2.12/2.4.0/jsoniter-scala-core_sjs1_2.12-2.4.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_sjs1_2.12/2.4.0/jsoniter-scala-macros_sjs1_2.12-2.4.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.6.0/scalajs-test-interface_2.12-1.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.0.0/scala-java-time_sjs1_2.12-2.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_sjs1_2.12/2.0.0/scala-java-time-tzdb_sjs1_2.12-2.0.0.jar",
+            "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar",
+            "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.0.0/portable-scala-reflect_sjs1_2.12-1.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.0.0/scala-java-locales_sjs1_2.12-1.0.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/1.0.0/cldr-api_sjs1_2.12-1.0.0.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/jsonConfig212JS",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests-in/bloop/../../snapshot-tests/bloop/.bleep/import/bloop/2.12/jsonConfig212JS/scala-2.12/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.js/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/config/target/json-config-2.12/js/scala-2.12/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-language:existentials",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Yno-adapted-args",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-value-discard",
+                "-Xfuture",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.15/1.6.0/scalajs-compiler_2.12.15-1.6.0.jar",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-plugin_2.12.15/1.6.0/scalajs-junit-test-plugin_2.12.15-1.6.0.jar"
+            ],
+            "jars": [
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar",
+                "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-xml_2.12-1.0.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    {
+                        "args": [
+                            "-v",
+                            "-a"
+                        ],
+                        "framework": {
+                            "names": [
+                                "com.novocode.junit.JUnitFramework"
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "platform": {
+            "name": "js",
+            "config": {
+                "version": "1.6.0",
+                "mode": "debug",
+                "kind": "none",
+                "emitSourceMaps": false,
+                "jsdom": false,
+                "toolchain": [
+                    
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-js",
+                    "name": "scalajs-library_2.12",
+                    "version": "1.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalajs-library_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.6.0/scalajs-library_2.12-1.6.0.jar"
+                        },
+                        {
+                            "name": "scalajs-library_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.6.0/scalajs-library_2.12-1.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.github.plokhotnyuk.jsoniter-scala",
+                    "name": "jsoniter-scala-core_sjs1_2.12",
+                    "version": "2.4.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsoniter-scala-core_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_sjs1_2.12/2.4.0/jsoniter-scala-core_sjs1_2.12-2.4.0.jar"
+                        },
+                        {
+                            "name": "jsoniter-scala-core_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_sjs1_2.12/2.4.0/jsoniter-scala-core_sjs1_2.12-2.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "scala-java-time_sjs1_2.12",
+                    "version": "2.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-java-time_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.0.0/scala-java-time_sjs1_2.12-2.0.0.jar"
+                        },
+                        {
+                            "name": "scala-java-time_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.0.0/scala-java-time_sjs1_2.12-2.0.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "scala-java-time-tzdb_sjs1_2.12",
+                    "version": "2.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-java-time-tzdb_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_sjs1_2.12/2.0.0/scala-java-time-tzdb_sjs1_2.12-2.0.0.jar"
+                        },
+                        {
+                            "name": "scala-java-time-tzdb_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_sjs1_2.12/2.0.0/scala-java-time-tzdb_sjs1_2.12-2.0.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.portable-scala",
+                    "name": "portable-scala-reflect_sjs1_2.12",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "portable-scala-reflect_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.0.0/portable-scala-reflect_sjs1_2.12-1.0.0.jar"
+                        },
+                        {
+                            "name": "portable-scala-reflect_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.0.0/portable-scala-reflect_sjs1_2.12-1.0.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "scala-java-locales_sjs1_2.12",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-java-locales_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.0.0/scala-java-locales_sjs1_2.12-1.0.0.jar"
+                        },
+                        {
+                            "name": "scala-java-locales_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.0.0/scala-java-locales_sjs1_2.12-1.0.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.github.cquiroz",
+                    "name": "cldr-api_sjs1_2.12",
+                    "version": "1.0.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cldr-api_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/1.0.0/cldr-api_sjs1_2.12-1.0.0.jar"
+                        },
+                        {
+                            "name": "cldr-api_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/1.0.0/cldr-api_sjs1_2.12-1.0.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.github.plokhotnyuk.jsoniter-scala",
+                    "name": "jsoniter-scala-macros_sjs1_2.12",
+                    "version": "2.4.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsoniter-scala-macros_sjs1_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_sjs1_2.12/2.4.0/jsoniter-scala-macros_sjs1_2.12-2.4.0.jar"
+                        },
+                        {
+                            "name": "jsoniter-scala-macros_sjs1_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_sjs1_2.12/2.4.0/jsoniter-scala-macros_sjs1_2.12-2.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar"
+                        },
+                        {
+                            "name": "scala-compiler",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-reflect.jar"
+                        },
+                        {
+                            "name": "scala-reflect",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-xml_2.12",
+                    "version": "1.0.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-xml_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+                        },
+                        {
+                            "name": "scala-xml_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-compiler.jar"
+                        },
+                        {
+                            "name": "scala-compiler",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-js",
+                    "name": "scalajs-test-bridge_2.12",
+                    "version": "1.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalajs-test-bridge_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.6.0/scalajs-test-bridge_2.12-1.6.0.jar"
+                        },
+                        {
+                            "name": "scalajs-test-bridge_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.6.0/scalajs-test-bridge_2.12-1.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-js",
+                    "name": "scalajs-junit-test-runtime_2.12",
+                    "version": "1.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalajs-junit-test-runtime_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.12/1.6.0/scalajs-junit-test-runtime_2.12-1.6.0.jar"
+                        },
+                        {
+                            "name": "scalajs-junit-test-runtime_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.12/1.6.0/scalajs-junit-test-runtime_2.12-1.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-js",
+                    "name": "scalajs-test-interface_2.12",
+                    "version": "1.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalajs-test-interface_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.6.0/scalajs-test-interface_2.12-1.6.0.jar"
+                        },
+                        {
+                            "name": "scalajs-test-interface_2.12",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.6.0/scalajs-test-interface_2.12-1.6.0-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}
