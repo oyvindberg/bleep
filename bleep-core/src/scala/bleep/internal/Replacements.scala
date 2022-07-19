@@ -5,12 +5,11 @@ import bleep.{Options, RelPath}
 import java.nio.file.Path
 
 // unfortunately we'll need to handle absolute paths in scalacOptions
-class Replacements private (val map: List[(String, String)]) {
-  def ++(other: Replacements): Replacements = Replacements.ofReplacements(map ++ other.map)
+class Replacements private (val sortedValues: List[(String, String)]) {
+  def ++(other: Replacements): Replacements = Replacements.ofReplacements(sortedValues ++ other.sortedValues)
 
-  class Replacer(replacements: List[(String, String)]) {
-    def string(str: String): String =
-      replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
+  trait Replacer {
+    def string(str: String): String
 
     def relPath(relPath: RelPath): RelPath =
       new RelPath(relPath.segments.map(string))
@@ -22,9 +21,42 @@ class Replacements private (val map: List[(String, String)]) {
       })
   }
 
-  object templatize extends Replacer(map)
+  object templatize extends Replacer {
+    // only infer templates on word and/or symbol boundary
+    override def string(_str: String): String = {
+      var str = _str
+      var i = 0
+      while (i < sortedValues.length) {
+        val (from, to) = sortedValues(i)
+        str.indexOf(from) match {
+          case -1 => ()
+          case n =>
+            val before = str.substring(0, n)
+            val after = str.substring(n + from.length)
+            val beforeEndsWithSpecial = before.lastOption.exists(!_.isLetterOrDigit)
+            val afterStartsWithSpecial = after.headOption.exists(!_.isLetterOrDigit)
+            val beforeOk = before.isEmpty || beforeEndsWithSpecial
+            val afterOk = after.isEmpty || afterStartsWithSpecial
+            val doReplacement = beforeOk && afterOk
+            if (doReplacement) {
+              str = before + to + after
+              // neutralize increment below - run replacement again
+              i -= 1
+            }
+        }
+        i += 1
+      }
+      str
+    }
+  }
 
-  object fill extends Replacer(map.map { case (ref, absPath) => (absPath, ref) })
+  object fill extends Replacer {
+    val replacements = sortedValues.map { case (ref, absPath) => (absPath, ref) }
+
+    // unconditionally replace template strings with the real values
+    override def string(str: String): String =
+      replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
+  }
 }
 
 object Replacements {
@@ -47,5 +79,5 @@ object Replacements {
     )
 
   def scope(scope: String): Replacements =
-    if (scope.isEmpty) empty else ofReplacements(List(s"$scope" -> "${SCOPE}"))
+    if (scope.isEmpty) empty else ofReplacements(List(scope -> "${SCOPE}"))
 }
