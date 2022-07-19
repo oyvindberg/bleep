@@ -143,10 +143,11 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "",
+        "version": "1.9.0",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,
+        "nodePath": "<COURSIER_ARC>/https/nodejs.org/dist/v18.4.0/node-v18.4.0-<OS>-<ARCHITECTURE>.tar.gz/node-v18.4.0-<OS>-<ARCHITECTURE>/bin/node",
         "toolchain": [
           
         ]
