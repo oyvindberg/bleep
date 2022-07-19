@@ -26,6 +26,7 @@ sealed trait Dep {
 
   def withConfiguration(newConfiguration: Configuration): Dep
   def withVersion(version: String): Dep
+  def withTransitive(value: Boolean): Dep
 
   final def forceDependency(versions: ScalaVersions): Dependency =
     dependency(versions) match {
@@ -111,6 +112,7 @@ object Dep {
       copy(configuration = newConfiguration)
 
     override def withVersion(version: String): Dep.JavaDependency = copy(version = version)
+    override def withTransitive(value: Boolean): Dep.JavaDependency = copy(transitive = value)
   }
 
   final case class ScalaDependency(
@@ -175,6 +177,7 @@ object Dep {
       copy(configuration = newConfiguration)
 
     override def withVersion(version: String): Dep.ScalaDependency = copy(version = version)
+    override def withTransitive(value: Boolean): Dep.ScalaDependency = copy(transitive = value)
   }
 
   implicit val decodes: Decoder[Dep] =
