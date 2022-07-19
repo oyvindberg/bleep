@@ -194,15 +194,20 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
         // assert that all source folders are conserved. currently bleep may add some. also we drop folders for generated stuff
         val target = Path.of("target")
-        assert(
-          input.sources.filterNot(_.startsWith(originalTargetDir)).sorted.forall(output.sources.contains),
-          crossProjectName.value
-        )
+        val lostSources = input.sources
+          .map(_.normalize())
+          .filterNot(_.startsWith(originalTargetDir))
+          .filterNot(output.sources.contains)
+          .sorted
+        assert(lostSources.isEmpty, crossProjectName.value)
+
         // assert that all resource folders are conserved. currently bleep may add some
-        assert(
-          input.resources.getOrElse(Nil).filterNot(_.iterator().asScala.contains(target)).sorted.forall(output.resources.getOrElse(Nil).contains),
-          crossProjectName.value
-        )
+        val lostResources = input.resources
+          .getOrElse(Nil)
+          .filterNot(_.iterator().asScala.contains(target))
+          .sorted
+          .filterNot(output.resources.getOrElse(Nil).contains)
+        assert(lostResources.isEmpty, crossProjectName.value)
 
         /** @param classesDirs
           *   classes directories are completely different in bleep. we may also drop projects, so no comparisons are done for these, unfortunately.
@@ -224,7 +229,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
         case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
         object AnalyzedClassPathDiff {
           def from(paths: Set[Path]): AnalyzedClassPathDiff = {
-            val (classes, jars) = paths.partition(p => p.endsWith("classes") || p.endsWith("test-classes"))
+            val (classes, jars) = paths
+              // the bloop build has this added for all projects. no idea where it comes from and what to do with it
+              .filterNot(_.getFileName.toString == "tools.jar")
+              .partition(p => p.endsWith("classes") || p.endsWith("test-classes") || p.endsWith("it-classes"))
             // note that paths are difficult here, we may receive files from sbt launcher in boot folder
             val (scalaJars, restJars) = jars.partition(p => p.getFileName.toString.startsWith("scala"))
             AnalyzedClassPathDiff(classes, scalaJars, restJars)
