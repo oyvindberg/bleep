@@ -29,6 +29,8 @@ jobs:
         run: cs install --channel channel bleep --verbose
 
       - name: Run tests
+        env:
+          CI: true
         run: |
           bleep generate-resources
           bleep test
@@ -74,6 +76,8 @@ jobs:
         if: runner.os != 'Windows'
 
       - name: Test binary after build (non-windows)
+        env:
+          CI: true
         run: ./${{ matrix.file_name }} --ignore-version-in-build-file test --no-color jvm213
         if: runner.os != 'Windows'
 
@@ -93,6 +97,8 @@ jobs:
 
       - name: Test binary after build (windows)
         shell: cmd
+        env:
+          CI: true
         # todo: fix tests on windows
         run: .\${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
         if: runner.os == 'Windows'
