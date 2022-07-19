@@ -101,7 +101,8 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
           "+exportAllProjects"
         ),
         logger,
-        "sbt"
+        "sbt",
+        env = List("SBT_OPTS" -> "-Xmx3072M")
       )
     } finally Files.delete(tempAddBloopPlugin)
   }
