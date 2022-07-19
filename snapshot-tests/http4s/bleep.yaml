@@ -748,7 +748,6 @@ templates:
     scala:
       compilerPlugins:
       - com.olegpy::better-monadic-for:0.3.1
-      - org.scalameta:::semanticdb-scalac:4.4.32
       - org.typelevel:::kind-projector:0.13.2
       options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
         -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars

@@ -110,7 +110,6 @@
         "-Wvalue-discard",
         "-Xlint:deprecation",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/com/olegpy/better-monadic-for_2.13/0.3.1/better-monadic-for_2.13-0.3.1.jar",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.13.8/4.4.32/semanticdb-scalac_2.13.8-4.4.32.jar",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.8/0.13.2/kind-projector_2.13.8-0.13.2.jar",
         "-Ybackend-parallelism",
         "8",

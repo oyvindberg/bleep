@@ -321,9 +321,9 @@ object importBloopFilesFromSbt {
       case _                                                                      => true
     }
 
-    val filteredCompilerPlugins =
-      scalaVersions.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) =>
-        all.filterNot(_ == fromPlatform)
+    val filteredCompilerPlugins: Seq[Dep] =
+      compilerOptionsDropSemanticDb {
+        scalaVersions.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
       }
 
     model.Scala(
@@ -349,4 +349,7 @@ object importBloopFilesFromSbt {
     val filtered = opts.values.filterNot(_.render.mkString.contains("semanticdb"))
     Options(filtered)
   }
+
+  def compilerOptionsDropSemanticDb(deps: Seq[Dep]): Seq[Dep] =
+    deps.filterNot(_.repr.contains("semanticdb-scalac"))
 }
