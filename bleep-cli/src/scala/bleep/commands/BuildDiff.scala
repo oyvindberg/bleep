@@ -25,22 +25,15 @@ case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCom
       val allProjectNames = SortedSet.empty[model.CrossProjectName] ++ oldProjects.keys ++ newProjects.keys
       allProjectNames.foreach { projectName =>
         val p = s"Project ${fansi.Bold.On(projectName.value)}"
-        (oldProjects.get(projectName), newProjects.get(projectName)) match {
-          case (None, None) => sys.error("unexpected")
-          case (Some(_), None) =>
-            println(s"$p: Removed")
-          case (None, Some(_)) =>
-            println(s"$p: Added")
-
-          case (Some(old), Some(new_)) =>
-            val maybeRemoved = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(asYamlString(_)).map(fansi.Color.Red(_))
-            val maybeAdded = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(asYamlString(_)).map(fansi.Color.Green(_))
-            (maybeRemoved, maybeAdded) match {
-              case (None, None)                 => ()
-              case (Some(removed), None)        => println(s"$p: \n$removed")
-              case (None, Some(added))          => println(s"$p: \n$added")
-              case (Some(removed), Some(added)) => println(s"$p: \n$removed$added")
-            }
+        val old = oldProjects.getOrElse(projectName, model.Project.empty)
+        val new_ = newProjects.getOrElse(projectName, model.Project.empty)
+        val maybeRemoved = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(asYamlString(_)).map(fansi.Color.Red(_))
+        val maybeAdded = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(asYamlString(_)).map(fansi.Color.Green(_))
+        (maybeRemoved, maybeAdded) match {
+          case (None, None)                 => ()
+          case (Some(removed), None)        => println(s"$p: \n$removed")
+          case (None, Some(added))          => println(s"$p: \n$added")
+          case (Some(removed), Some(added)) => println(s"$p: \n$removed$added")
         }
       }
       ()
