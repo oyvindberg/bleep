@@ -27,6 +27,7 @@ object Main {
   object metavars {
     val projectNameExact = "project name exact"
     val projectName = "project name"
+    val projectNameNoCross = "project name (not cross id)"
     val testProjectName = "test project name"
     val platformName = "platform name"
     val scalaVersion = "scala version"
@@ -53,6 +54,9 @@ object Main {
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
 
   def hasBuildOpts(started: Started, globs: ProjectGlobs): Opts[BleepCommand] = {
+    val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
+      Opts
+        .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(globs.projectNamesNoCrossMap)))
 
     val projectNames: Opts[List[model.CrossProjectName]] =
       Opts
@@ -94,6 +98,19 @@ object Main {
               ),
               Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
                 commands.BuildDiff.opts.map(opts => commands.BuildDiff(started, opts))
+              ),
+              Opts.subcommand("show", "show projects in their different versions.")(
+                List(
+                  Opts.subcommand("short", "the projects as you wrote it in YAML")(
+                    projectNamesNoCross.map(names => commands.BuildShow.Short(started, names))
+                  ),
+                  Opts.subcommand("exploded", "the cross projects as you wrote it in YAML after templates have been applied")(
+                    projectNames.map(names => commands.BuildShow.Exploded(started, names))
+                  ),
+                  Opts.subcommand("bloop", "the cross projects as they appear to bloop, that is with all absolute paths and so on")(
+                    projectNames.map(names => commands.BuildShow.Bloop(started, names))
+                  )
+                ).foldK
               )
             ).foldK
           ),
@@ -266,12 +283,13 @@ object Main {
                 val globs = ProjectGlobs(started)
 
                 val completer = new Completer({
-                  case metavars.platformName     => model.PlatformId.All.map(_.value)
-                  case metavars.scalaVersion     => possibleScalaVersions.keys.toList
-                  case metavars.projectNameExact => globs.exactProjectMap.keys.toList
-                  case metavars.projectName      => globs.projectNameMap.keys.toList
-                  case metavars.testProjectName  => globs.testProjectNameMap.keys.toList
-                  case _                         => Nil
+                  case metavars.platformName       => model.PlatformId.All.map(_.value)
+                  case metavars.scalaVersion       => possibleScalaVersions.keys.toList
+                  case metavars.projectNameExact   => globs.exactProjectMap.keys.toList
+                  case metavars.projectNameNoCross => globs.projectNamesNoCrossMap.keys.toList
+                  case metavars.projectName        => globs.projectNameMap.keys.toList
+                  case metavars.testProjectName    => globs.testProjectNameMap.keys.toList
+                  case _                           => Nil
                 })
                 completer.completeOpts(restArgs)(hasBuildOpts(started, globs))
             }

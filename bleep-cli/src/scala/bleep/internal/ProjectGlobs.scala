@@ -48,4 +48,13 @@ class ProjectGlobs(activeProjectsFromPath: List[model.CrossProjectName], explode
 
     projectCompletions(testProjects)
   }
+
+  def projectNamesNoCrossMap: Map[String, model.ProjectName] = {
+    val projects: Iterable[model.CrossProjectName] =
+      activeProjectsFromPath match {
+        case Nil      => explodedBuild.projects.keys
+        case nonEmpty => nonEmpty
+      }
+    projects.map(p => (p.name.value, p.name)).toMap
+  }
 }
