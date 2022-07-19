@@ -189,8 +189,9 @@ object importBloopFilesFromSbt {
     }
 
     val CompilerPluginConfig = Configuration("plugin->default(compile)")
+    val CompilerPluginScalaJsTest = Configuration("scala-js-test-plugin")
     val plugins = all.collect {
-      case dep if dep.configuration == CompilerPluginConfig =>
+      case dep if dep.configuration == CompilerPluginConfig || (dep.configuration == CompilerPluginScalaJsTest && inputProject.projectType.testLike) =>
         dep.withConfiguration(Configuration.empty) match {
           case x: Dep.JavaDependency => x
           // always true for compiler plugins. this is really just aesthetic in the generated json file
@@ -203,6 +204,8 @@ object importBloopFilesFromSbt {
       dep.configuration match {
         // treated specially above
         case CompilerPluginConfig => None
+        // treated specially above
+        case CompilerPluginScalaJsTest => None
 
         // main. keep for non-test projects
         case Configuration.empty =>
