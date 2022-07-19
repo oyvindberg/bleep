@@ -307,7 +307,7 @@ object GenBloopFiles {
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
 
           val deps: JsonSet[Dependency] =
-            specified.map(_.forceDependency(ScalaVersions.Jvm(scalaVersion)))
+            specified.map(_.withTransitive(false).forceDependency(ScalaVersions.Jvm(scalaVersion)))
 
           val jars: Seq[Path] =
             resolver(deps, forceScalaVersion = Some(scalaVersion)) match {
