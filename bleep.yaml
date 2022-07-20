@@ -18,6 +18,7 @@ projects:
     - template-scala-2.13
     platform:
       mainClass: bleep.Main
+    sources: ../liberated/sbt-tpolecat/src/main/scala
   bleep-cli-test:
     dependsOn: bleep-cli
     extends:
