@@ -37,7 +37,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
 
     List(
       // remove other configured BSP tools
-      Option(buildPaths.buildDir / ".bsp").filter { p =>
+      Option(buildPaths.buildDir / ".bsp").filter(FileUtils.exists).filter { p =>
         if (Files.isDirectory(p)) {
           Files.list(p).toList.asScala.toList match {
             case one :: Nil if one.getFileName.toString == "bleep.json" => false
