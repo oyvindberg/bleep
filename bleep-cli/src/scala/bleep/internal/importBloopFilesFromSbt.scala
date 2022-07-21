@@ -79,12 +79,20 @@ object importBloopFilesFromSbt {
       val sources: Sources = {
         val sourcesRelPaths = {
           val sources = bloopProject.sources.filterNot(_.startsWith(originalTarget))
-          JsonSet.fromIterable(sources.map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
+          JsonSet.fromIterable(sources.map {
+            // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
+            case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
+            case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
+          })
         }
 
         val resourcesRelPaths = {
           val resources = bloopProject.resources.getOrElse(Nil).filterNot(_.startsWith(originalTarget))
-          JsonSet.fromIterable(resources.map(absoluteDir => RelPath.relativeTo(directory, absoluteDir)))
+          JsonSet.fromIterable(resources.map {
+            // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
+            case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
+            case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
+          })
         }
 
         val maybePlatformId = configuredPlatform.flatMap(_.name)
