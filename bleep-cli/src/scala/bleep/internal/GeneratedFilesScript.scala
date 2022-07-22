@@ -29,19 +29,25 @@ object GeneratedFilesScript {
       val space = " "
       val tripleQuote = quote * 3
       val triggersTripleQuote = Set('\n', '\\', '"')
+      val MaxStringLiteral = 65534
       (str, indent) =>
         val cleaned = str.replace("\\", "\\\\")
-        if (str.exists(triggersTripleQuote))
-          cleaned
-            .replace("$", "$$")
-            .replace(tripleQuote, s"$${\"\\\"\" * 3}")
-            .split("\n")
-            .mkString(
-              start = s"s$tripleQuote$pipe",
-              sep = s"\n${space * indent}$pipe",
-              end = s"$tripleQuote.stripMargin"
-            )
-        else s"$quote$cleaned$quote"
+        str
+          .grouped(MaxStringLiteral)
+          .map { str =>
+            if (str.exists(triggersTripleQuote))
+              cleaned
+                .replace("$", "$$")
+                .replace(tripleQuote, s"$${\"\\\"\" * 3}")
+                .split("\n")
+                .mkString(
+                  start = s"s$tripleQuote$pipe",
+                  sep = s"\n${space * indent}$pipe",
+                  end = s"$tripleQuote.stripMargin"
+                )
+            else s"$quote$cleaned$quote"
+          }
+          .reduce((str1, str2) => s"$str1 ++ \n$indent$str2")
     }
 
     implicit def opt[T: Repr]: Repr[Option[T]] = {
