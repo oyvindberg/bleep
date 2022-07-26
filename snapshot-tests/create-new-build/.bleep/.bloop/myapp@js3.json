@@ -31,9 +31,14 @@
       "name": "scala3-compiler_3",
       "version": "3.1.1",
       "options": [
+        "-Ykind-projector",
+        "-deprecation",
         "-encoding",
         "utf8",
         "-feature",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
         "-unchecked"
       ],
       "jars": [

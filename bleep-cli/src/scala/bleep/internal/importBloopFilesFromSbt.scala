@@ -5,6 +5,7 @@ import bleep.internal.ImportInputProjects.ProjectType
 import bleep.logging.Logger
 import bloop.config.Config
 import coursier.core.Configuration
+import io.github.davidgregory084.{DevMode, TpolecatPlugin}
 
 import java.net.URI
 import java.nio.file.{Path, Paths}
@@ -320,11 +321,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(
-      compilerPlugins: Seq[Dep],
-      replacementsDirs: Replacements,
-      scalaVersions: ScalaVersions
-  )(s: Config.Scala): model.Scala = {
+  def translateScala(compilerPlugins: Seq[Dep], replacementsDirs: Replacements, scalaVersions: ScalaVersions)(s: Config.Scala): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacementsDirs))
 
     val notCompilerPlugins = options.values.filter {
@@ -337,9 +334,19 @@ object importBloopFilesFromSbt {
         scalaVersions.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
       }
 
+    val (strict, remainingOptions) = {
+      val tpolecat = new TpolecatPlugin(DevMode)
+
+      val tpolecatOptions = Options.parse(tpolecat.scalacOptions(s.version).toList, None)
+      if (tpolecatOptions.values.forall(notCompilerPlugins.contains))
+        (Some(true), new Options(notCompilerPlugins -- tpolecatOptions.values))
+      else
+        (None, new Options(notCompilerPlugins))
+    }
+
     model.Scala(
       version = Some(Versions.Scala(s.version)),
-      options = new Options(notCompilerPlugins),
+      options = remainingOptions,
       setup = s.setup.map(setup =>
         model.CompileSetup(
           order = Some(setup.order),
@@ -350,7 +357,8 @@ object importBloopFilesFromSbt {
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath)
         )
       ),
-      compilerPlugins = JsonSet.fromIterable(filteredCompilerPlugins)
+      compilerPlugins = JsonSet.fromIterable(filteredCompilerPlugins),
+      strict = strict
     )
   }
 

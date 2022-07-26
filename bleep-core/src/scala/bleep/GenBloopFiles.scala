@@ -6,6 +6,7 @@ import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
 import coursier.core.{Configuration, Extension}
 import coursier.{Classifier, Dependency}
+import io.github.davidgregory084.{DevMode, TpolecatPlugin}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
@@ -325,7 +326,15 @@ object GenBloopFiles {
         }
 
         val scalacOptions: Options =
-          maybeScala.fold(Options.empty)(_.options).union(compilerPlugins)
+          maybeScala match {
+            case Some(scala) =>
+              val base = scala.options.union(compilerPlugins)
+              if (scala.strict.getOrElse(false)) {
+                val tpolecat = Options.parse(new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion).toList, None)
+                base.union(tpolecat)
+              } else base
+            case None => Options.empty
+          }
 
         Config.Scala(
           organization = scalaCompiler.module.organization.value,

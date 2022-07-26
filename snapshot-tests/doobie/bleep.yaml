@@ -277,9 +277,6 @@ templates:
   template-common:
     platform:
       name: jvm
-    scala:
-      options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
-        -language:implicitConversions -unchecked
   template-common-main:
     extends: template-common
     sbt-scope: main
@@ -301,19 +298,11 @@ templates:
   template-scala-2:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
-      options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
-        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
-        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
-        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -explaintypes
-        -language:existentials
+      options: -Xcheckinit -explaintypes
   template-scala-2.12:
     extends: template-scala-2
     scala:
-      options: -Xlint:by-name-right-associative -Xlint:nullary-override -Xlint:unsound-match
-        -Yno-adapted-args -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit
-        -Ywarn-nullary-override -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits
-        -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
-        -Ywarn-unused:privates -Ywarn-value-discard -deprecation
+      strict: true
       version: 2.12.15
   template-scala-2.13:
     extends: template-scala-2
@@ -321,9 +310,15 @@ templates:
       options: -Vimplicits -Vtype-diffs -Wdead-code -Wextra-implicit -Wnumeric-widen
         -Wunused:explicits -Wunused:implicits -Wunused:imports -Wunused:locals -Wunused:nowarn
         -Wunused:params -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit
-        -Xlint:deprecation -Xlint:strict-unsealed-patmat
+        -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
+        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
+        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+        -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat -Xlint:type-parameter-shadow
+        -encoding utf8 -feature -language:existentials -language:experimental.macros
+        -language:higherKinds -language:implicitConversions -unchecked
       version: 2.13.8
   template-scala-3:
     scala:
-      options: -Ykind-projector -deprecation -explain -explain-types
+      options: -explain -explain-types
+      strict: true
       version: 3.1.1
