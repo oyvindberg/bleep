@@ -133,7 +133,7 @@ object BuildCreateNew {
           resources = JsonSet.empty,
           dependencies = JsonSet(exampleFiles.fansi),
           java = None,
-          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty)),
+          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty, strict = Some(true))),
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm =>
@@ -163,7 +163,7 @@ object BuildCreateNew {
           resources = JsonSet.empty,
           dependencies = JsonSet(exampleFiles.scalatest),
           java = None,
-          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty)),
+          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty, strict = Some(true))),
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm    => model.Platform.Jvm(Options.empty, jvmMainClass = None, jvmRuntimeOptions = Options.empty)

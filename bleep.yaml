@@ -8,9 +8,6 @@ projects:
     - com.lihaoyi::pprint:0.7.3
     - com.monovore::decline:2.3.0
     - org.graalvm.nativeimage:svm:22.1.0.1
-    - exclusions:
-        org.scala-sbt: util-logging_2.13
-      module: org.scala-sbt::librarymanagement-core:1.6.1
     - org.scalameta:svm-subs:101.0.0
     dependsOn: bleep-core
     extends:
@@ -33,6 +30,10 @@ projects:
     - io.circe::circe-parser:0.14.2
     - io.circe::circe-yaml:0.14.1
     - exclusions:
+        org.scala-sbt: util-logging_2.13
+      module: org.scala-sbt::librarymanagement-core:1.6.1
+      for3Use213: true
+    - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
       module: io.get-coursier::coursier-jvm:2.1.0-M6-28-gbad85693f
@@ -43,6 +44,7 @@ projects:
     - org.snakeyaml:snakeyaml-engine:2.3
     - org.virtuslab.scala-cli::bloop-rifle:0.1.9
     extends: template-cross-all
+    sources: ../liberated/sbt-tpolecat/src/main/scala
   bleep-tasks:
     dependsOn: bleep-core
     extends: template-cross-all

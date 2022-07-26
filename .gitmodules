@@ -34,3 +34,6 @@
 [submodule "snapshot-tests-in/bloop"]
 	path = snapshot-tests-in/bloop
 	url = git@github.com:scalacenter/bloop.git
+[submodule "liberated/sbt-tpolecat"]
+	path = liberated/sbt-tpolecat
+	url = git@github.com:bleep-build/sbt-tpolecat.git

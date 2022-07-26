@@ -71,7 +71,7 @@
     },
     "RelPath": {
       "type": "string",
-      "pattern": "^\\./.+$"
+      "pattern": "^\\.\\.?/.+$"
     },
     "Dependency": {
       "anyOf": [
@@ -177,6 +177,9 @@
         },
         "setup": {
           "$ref": "#/$defs/CompileSetup"
+        },
+        "strict": {
+          "type": "boolean"
         },
         "compilerPlugins": {
           "oneOf": [
