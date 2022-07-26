@@ -29,21 +29,18 @@ object bootstrap {
     }
   }
 
-  def from(pre: Prebootstrapped, genBloopFiles: GenBloopFiles, rewrites: List[Rewrite], lazyConfig: Lazy[BleepConfig]): Either[BuildException, Started] = {
+  def from(
+      pre: Prebootstrapped,
+      genBloopFiles: GenBloopFiles,
+      rewrites: List[Rewrite],
+      lazyConfig: Lazy[BleepConfig],
+      resolver: CoursierResolver.Factory = CoursierResolver.Factory.default
+  ): Either[BuildException, Started] = {
     val t0 = System.currentTimeMillis()
 
     try
       pre.build.forceGet.map { build =>
-        val lazyResolver = lazyConfig.map(bleepConfig =>
-          CoursierResolver(
-            build.resolvers.values,
-            pre.logger,
-            downloadSources = true,
-            pre.userPaths.coursierCacheDir,
-            bleepConfig.authentications,
-            Some(build.$version)
-          )
-        )
+        val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, build))
         val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 
         val activeProjects: List[model.CrossProjectName] =

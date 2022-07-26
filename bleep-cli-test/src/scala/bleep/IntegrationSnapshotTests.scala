@@ -5,34 +5,30 @@ import bleep.commands.Import.Options
 import bleep.internal.{FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile, Replacements}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
-import coursier.Repositories
 import coursier.paths.CoursierPaths
 import org.scalatest.Assertion
 
-import java.net.URI
 import java.nio.file.{Files, Path, Paths}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class IntegrationSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
-  val resolver: CoursierResolver = {
-    val sbtReleases = model.Repository.Ivy(
-      name = None,
-      uri = URI.create(Repositories.sbtPlugin("releases").pattern.chunks.head.string)
-    )
-    val cachePath =
-      if (enforceUpToDate) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
-      else UserPaths.fromAppDirs.coursierCacheDir
+  object testResolver extends CoursierResolver.Factory {
+    override def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver = {
+      val cachePath =
+        if (enforceUpToDate) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
+        else pre.userPaths.coursierCacheDir
 
-    CoursierResolver(
-      repos = List(sbtReleases),
-      logger = logger,
-      downloadSources = false,
-      cacheIn = cachePath,
-      authentications = None,
-      wantedBleepVersion = None
-    )
+      CoursierResolver(
+        repos = build.resolvers.values,
+        logger = logger,
+        downloadSources = false,
+        cacheIn = cachePath,
+        authentications = None,
+        wantedBleepVersion = None
+      )
+    }
   }
 
   test("tapir") {
@@ -134,7 +130,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
       Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
       GenBloopFiles.InMemory,
       rewrites = Nil,
-      Lazy(BleepConfig.default)
+      Lazy(BleepConfig.default),
+      testResolver
     ) match {
       case Left(th)       => throw th
       case Right(started) => started
