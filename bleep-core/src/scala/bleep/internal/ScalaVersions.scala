@@ -58,7 +58,7 @@ sealed trait ScalaVersions {
         if (scalaVersion.is3) List(scalaVersion.libraries, List(scalaJs.library3, scalaVersion.scala3JsLibrary), testLibs).flatten
         else List(scalaVersion.libraries, List(scalaJs.library), testLibs).flatten
 
-      case ScalaVersions.Native(_, _) => sys.error("not implemented")
+      case ScalaVersions.Native(_, _) => Nil
     }
 
   def compilerPlugin: Option[Dep]

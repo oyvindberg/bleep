@@ -83,6 +83,8 @@ object Versions {
   val Node = "18.4.0"
 
   case class ScalaNative(scalaNativeVersion: String) {
+    val scalaNativeOrg = Organization("org.scala-native")
+
     val scalaNativeBinVersion: String =
       scalaNativeVersion match {
         case Version("1", _, _) => "1"
@@ -90,6 +92,7 @@ object Versions {
         case other              => other
       }
 
-    def compilerPlugin: Dep = sys.error("todo: implement")
+    def compilerPlugin: Dep =
+      Dep.ScalaDependency(scalaNativeOrg, ModuleName("nscplugin"), scalaNativeVersion, fullCrossVersion = true)
   }
 }

@@ -163,15 +163,18 @@ object GenBloopFiles {
     val templateDirs =
       Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++ Replacements.targetDir(projectPaths.targetDir)
 
+    def require[T](ot: Option[T], name: String): T =
+      ot match {
+        case Some(value) => value
+        case None        => throw new BuildException.Text(crossName, s"missing platform field `$name`")
+      }
+
     val configuredPlatform: Option[Config.Platform] =
       explodedPlatform.map {
         case model.Platform.Js(platform) =>
           Config.Platform.Js(
             Config.JsConfig(
-              version = platform.jsVersion match {
-                case Some(value) => value.scalaJsVersion
-                case None        => sys.error("missing `version`")
-              },
+              version = require(platform.jsVersion, "version").scalaJsVersion,
               mode = platform.jsMode.getOrElse(Config.JsConfig.empty.mode),
               kind = platform.jsKind.getOrElse(Config.JsConfig.empty.kind),
               emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(Config.JsConfig.empty.emitSourceMaps),
@@ -193,8 +196,27 @@ object GenBloopFiles {
             classpath = None,
             resources = None
           )
-        case model.Platform.Native(platform @ _) => ???
-        case other                               => sys.error(s"unexpected: $other")
+        case model.Platform.Native(platform @ _) =>
+          val empty = Config.NativeConfig.empty
+          Config.Platform.Native(
+            config = Config.NativeConfig(
+              version = require(platform.nativeVersion, "version").scalaNativeVersion,
+              mode = require(platform.nativeMode, "nativeMode"),
+              gc = require(platform.nativeGc, "nativeGc"),
+              targetTriple = empty.targetTriple,
+              clang = empty.clang,
+              clangpp = empty.clangpp,
+              toolchain = empty.toolchain,
+              options = empty.options,
+              linkStubs = empty.linkStubs,
+              check = empty.check,
+              dump = empty.dump,
+              output = empty.output
+            ),
+            platform.mainClass
+          )
+
+        case other => sys.error(s"unexpected: $other")
       }
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
