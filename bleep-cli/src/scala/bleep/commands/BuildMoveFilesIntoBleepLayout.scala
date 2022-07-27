@@ -21,7 +21,7 @@ case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand 
     filesToMove.foreach { case (from, to) =>
       started.logger.info(s"$from => $to")
       Files.createDirectories(to.getParent)
-      scala.sys.process.Process(List("git", "mv", from.toString, to.toString)).!!
+      scala.sys.process.Process(List("git", "mv", from.toString, to.toString), started.buildPaths.buildDir.toFile).!!
     }
 
     FileUtils.writeString(started.buildPaths.bleepYamlFile, asYamlString(build2))
