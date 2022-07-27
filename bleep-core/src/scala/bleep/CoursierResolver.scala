@@ -23,6 +23,23 @@ trait CoursierResolver {
 }
 
 object CoursierResolver {
+  trait Factory {
+    def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver
+  }
+
+  object Factory {
+    object default extends Factory {
+      def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver =
+        CoursierResolver(
+          build.resolvers.values,
+          pre.logger,
+          downloadSources = true,
+          pre.userPaths.coursierCacheDir,
+          config.authentications,
+          Some(build.$version)
+        )
+    }
+  }
   def apply(
       repos: List[model.Repository],
       logger: Logger,
