@@ -120,11 +120,6 @@
             {
               "name": "cats-parse_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/0.3.6/cats-parse_3-0.3.6.jar"
-            },
-            {
-              "name": "cats-parse_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_3/0.3.6/cats-parse_3-0.3.6-sources.jar"
             }
           ]
         },
@@ -137,11 +132,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar"
-            },
-            {
-              "name": "scala3-library_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1-sources.jar"
             }
           ]
         },
@@ -154,11 +144,6 @@
             {
               "name": "jawn-parser_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.3.2/jawn-parser_3-1.3.2.jar"
-            },
-            {
-              "name": "jawn-parser_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.3.2/jawn-parser_3-1.3.2-sources.jar"
             }
           ]
         },
@@ -171,11 +156,6 @@
             {
               "name": "cats-effect-kernel_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.3.6/cats-effect-kernel_3-3.3.6.jar"
-            },
-            {
-              "name": "cats-effect-kernel_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.3.6/cats-effect-kernel_3-3.3.6-sources.jar"
             }
           ]
         },
@@ -188,11 +168,6 @@
             {
               "name": "cats-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.7.0/cats-core_3-2.7.0.jar"
-            },
-            {
-              "name": "cats-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.7.0/cats-core_3-2.7.0-sources.jar"
             }
           ]
         },
@@ -205,11 +180,6 @@
             {
               "name": "fs2-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.2.5/fs2-core_3-3.2.5.jar"
-            },
-            {
-              "name": "fs2-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.2.5/fs2-core_3-3.2.5-sources.jar"
             }
           ]
         },
@@ -222,11 +192,6 @@
             {
               "name": "literally_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2.jar"
-            },
-            {
-              "name": "literally_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_3/1.0.2/literally_3-1.0.2-sources.jar"
             }
           ]
         },
@@ -239,11 +204,6 @@
             {
               "name": "vault_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.1.0/vault_3-3.1.0.jar"
-            },
-            {
-              "name": "vault_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.1.0/vault_3-3.1.0-sources.jar"
             }
           ]
         },
@@ -256,11 +216,6 @@
             {
               "name": "log4s_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_3/1.10.0/log4s_3-1.10.0.jar"
-            },
-            {
-              "name": "log4s_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_3/1.10.0/log4s_3-1.10.0-sources.jar"
             }
           ]
         },
@@ -273,11 +228,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -290,11 +240,6 @@
             {
               "name": "case-insensitive_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.2.0/case-insensitive_3-1.2.0.jar"
-            },
-            {
-              "name": "case-insensitive_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_3/1.2.0/case-insensitive_3-1.2.0-sources.jar"
             }
           ]
         },
@@ -307,11 +252,6 @@
             {
               "name": "fs2-io_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.2.5/fs2-io_3-3.2.5.jar"
-            },
-            {
-              "name": "fs2-io_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_3/3.2.5/fs2-io_3-3.2.5-sources.jar"
             }
           ]
         },
@@ -324,11 +264,6 @@
             {
               "name": "simulacrum-scalafix-annotations_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4-sources.jar"
             }
           ]
         },
@@ -341,11 +276,6 @@
             {
               "name": "jawn-fs2_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_3/2.2.0/jawn-fs2_3-2.2.0.jar"
-            },
-            {
-              "name": "jawn-fs2_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_3/2.2.0/jawn-fs2_3-2.2.0-sources.jar"
             }
           ]
         },
@@ -358,11 +288,6 @@
             {
               "name": "slf4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30-sources.jar"
             }
           ]
         },
@@ -375,11 +300,6 @@
             {
               "name": "scodec-bits_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.30/scodec-bits_3-1.1.30.jar"
-            },
-            {
-              "name": "scodec-bits_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.30/scodec-bits_3-1.1.30-sources.jar"
             }
           ]
         },
@@ -392,11 +312,6 @@
             {
               "name": "http4s-crypto_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_3/0.2.2/http4s-crypto_3-0.2.2.jar"
-            },
-            {
-              "name": "http4s-crypto_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_3/0.2.2/http4s-crypto_3-0.2.2-sources.jar"
             }
           ]
         },
@@ -409,11 +324,6 @@
             {
               "name": "cats-kernel_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.7.0/cats-kernel_3-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.7.0/cats-kernel_3-2.7.0-sources.jar"
             }
           ]
         },
@@ -426,11 +336,6 @@
             {
               "name": "cats-effect-std_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.3.6/cats-effect-std_3-3.3.6.jar"
-            },
-            {
-              "name": "cats-effect-std_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.3.6/cats-effect-std_3-3.3.6-sources.jar"
             }
           ]
         },
@@ -443,11 +348,6 @@
             {
               "name": "cats-effect_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.3.5/cats-effect_3-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.3.5/cats-effect_3-3.3.5-sources.jar"
             }
           ]
         },
@@ -460,11 +360,6 @@
             {
               "name": "ip4s-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.1.2/ip4s-core_3-3.1.2.jar"
-            },
-            {
-              "name": "ip4s-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_3/3.1.2/ip4s-core_3-3.1.2-sources.jar"
             }
           ]
         }

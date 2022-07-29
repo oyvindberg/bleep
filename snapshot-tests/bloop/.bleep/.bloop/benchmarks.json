@@ -239,11 +239,6 @@
             {
               "name": "circe-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.9.3/circe-core_2.12-0.9.3.jar"
-            },
-            {
-              "name": "circe-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.9.3/circe-core_2.12-0.9.3-sources.jar"
             }
           ]
         },
@@ -256,11 +251,6 @@
             {
               "name": "collections_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.12/1.6.0/collections_2.12-1.6.0.jar"
-            },
-            {
-              "name": "collections_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.12/1.6.0/collections_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -273,11 +263,6 @@
             {
               "name": "jna",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar"
-            },
-            {
-              "name": "jna",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0-sources.jar"
             }
           ]
         },
@@ -290,11 +275,6 @@
             {
               "name": "sjson-new-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.9.1/sjson-new-core_2.12-0.9.1.jar"
-            },
-            {
-              "name": "sjson-new-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.9.1/sjson-new-core_2.12-0.9.1-sources.jar"
             }
           ]
         },
@@ -307,11 +287,6 @@
             {
               "name": "shapeless_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar"
-            },
-            {
-              "name": "shapeless_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3-sources.jar"
             }
           ]
         },
@@ -324,11 +299,6 @@
             {
               "name": "librarymanagement-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.12/1.0.0/librarymanagement-core_2.12-1.0.0.jar"
-            },
-            {
-              "name": "librarymanagement-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.12/1.0.0/librarymanagement-core_2.12-1.0.0-sources.jar"
             }
           ]
         },
@@ -341,11 +311,6 @@
             {
               "name": "test-agent",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-agent/1.6.2/test-agent-1.6.2.jar"
-            },
-            {
-              "name": "test-agent",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-agent/1.6.2/test-agent-1.6.2-sources.jar"
             }
           ]
         },
@@ -358,11 +323,6 @@
             {
               "name": "jline-terminal",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar"
-            },
-            {
-              "name": "jline-terminal",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0-sources.jar"
             }
           ]
         },
@@ -375,11 +335,6 @@
             {
               "name": "util-cache_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.12/1.0.0/util-cache_2.12-1.0.0.jar"
-            },
-            {
-              "name": "util-cache_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.12/1.0.0/util-cache_2.12-1.0.0-sources.jar"
             }
           ]
         },
@@ -392,11 +347,6 @@
             {
               "name": "bsp4s_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4s_2.12/2.0.0-M13/bsp4s_2.12-2.0.0-M13.jar"
-            },
-            {
-              "name": "bsp4s_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4s_2.12/2.0.0-M13/bsp4s_2.12-2.0.0-M13-sources.jar"
             }
           ]
         },
@@ -409,11 +359,6 @@
             {
               "name": "circe-jawn_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.9.3/circe-jawn_2.12-0.9.3.jar"
-            },
-            {
-              "name": "circe-jawn_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.9.3/circe-jawn_2.12-0.9.3-sources.jar"
             }
           ]
         },
@@ -426,11 +371,6 @@
             {
               "name": "jline",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493.jar"
-            },
-            {
-              "name": "jline",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493-sources.jar"
             }
           ]
         },
@@ -443,11 +383,6 @@
             {
               "name": "util-relation_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_2.12/1.6.0/util-relation_2.12-1.6.0.jar"
-            },
-            {
-              "name": "util-relation_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_2.12/1.6.0/util-relation_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -460,11 +395,6 @@
             {
               "name": "macro-compat_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar"
-            },
-            {
-              "name": "macro-compat_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1-sources.jar"
             }
           ]
         },
@@ -477,11 +407,6 @@
             {
               "name": "ssl-config-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.2.2/ssl-config-core_2.12-0.2.2.jar"
-            },
-            {
-              "name": "ssl-config-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.2.2/ssl-config-core_2.12-0.2.2-sources.jar"
             }
           ]
         },
@@ -494,11 +419,6 @@
             {
               "name": "compiler-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.6.0/compiler-interface-1.6.0.jar"
-            },
-            {
-              "name": "compiler-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.6.0/compiler-interface-1.6.0-sources.jar"
             }
           ]
         },
@@ -511,11 +431,6 @@
             {
               "name": "commons-math3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2.jar"
-            },
-            {
-              "name": "commons-math3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2-sources.jar"
             }
           ]
         },
@@ -528,11 +443,6 @@
             {
               "name": "gigahorse-okhttp_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.12/0.3.0/gigahorse-okhttp_2.12-0.3.0.jar"
-            },
-            {
-              "name": "gigahorse-okhttp_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.12/0.3.0/gigahorse-okhttp_2.12-0.3.0-sources.jar"
             }
           ]
         },
@@ -545,11 +455,6 @@
             {
               "name": "okhttp-urlconnection",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-urlconnection/3.7.0/okhttp-urlconnection-3.7.0.jar"
-            },
-            {
-              "name": "okhttp-urlconnection",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-urlconnection/3.7.0/okhttp-urlconnection-3.7.0-sources.jar"
             }
           ]
         },
@@ -562,11 +467,6 @@
             {
               "name": "enumeratum-circe_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-circe_2.12/1.5.17/enumeratum-circe_2.12-1.5.17.jar"
-            },
-            {
-              "name": "enumeratum-circe_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-circe_2.12/1.5.17/enumeratum-circe_2.12-1.5.17-sources.jar"
             }
           ]
         },
@@ -579,11 +479,6 @@
             {
               "name": "monix-eval_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-eval_2.12/2.3.3/monix-eval_2.12-2.3.3.jar"
-            },
-            {
-              "name": "monix-eval_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-eval_2.12/2.3.3/monix-eval_2.12-2.3.3-sources.jar"
             }
           ]
         },
@@ -596,11 +491,6 @@
             {
               "name": "core-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_2.12/1.6.0/core-macros_2.12-1.6.0.jar"
-            },
-            {
-              "name": "core-macros_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_2.12/1.6.0/core-macros_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -613,11 +503,6 @@
             {
               "name": "asm",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.3/asm-9.3.jar"
-            },
-            {
-              "name": "asm",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.3/asm-9.3-sources.jar"
             }
           ]
         },
@@ -630,11 +515,6 @@
             {
               "name": "okio",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio/1.12.0/okio-1.12.0.jar"
-            },
-            {
-              "name": "okio",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio/1.12.0/okio-1.12.0-sources.jar"
             }
           ]
         },
@@ -647,11 +527,6 @@
             {
               "name": "machinist_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/machinist_2.12/0.6.2/machinist_2.12-0.6.2.jar"
-            },
-            {
-              "name": "machinist_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/machinist_2.12/0.6.2/machinist_2.12-0.6.2-sources.jar"
             }
           ]
         },
@@ -664,11 +539,6 @@
             {
               "name": "jctools-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jctools/jctools-core/2.0.1/jctools-core-2.0.1.jar"
-            },
-            {
-              "name": "jctools-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jctools/jctools-core/2.0.1/jctools-core-2.0.1-sources.jar"
             }
           ]
         },
@@ -681,11 +551,6 @@
             {
               "name": "zipkin",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/zipkin2/zipkin/2.12.1/zipkin-2.12.1.jar"
-            },
-            {
-              "name": "zipkin",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/zipkin2/zipkin/2.12.1/zipkin-2.12.1-sources.jar"
             }
           ]
         },
@@ -698,11 +563,6 @@
             {
               "name": "jawn-parser_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.12/0.11.1/jawn-parser_2.12-0.11.1.jar"
-            },
-            {
-              "name": "jawn-parser_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.12/0.11.1/jawn-parser_2.12-0.11.1-sources.jar"
             }
           ]
         },
@@ -715,11 +575,6 @@
             {
               "name": "pprint_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/pprint_2.12/0.5.5/pprint_2.12-0.5.5.jar"
-            },
-            {
-              "name": "pprint_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/pprint_2.12/0.5.5/pprint_2.12-0.5.5-sources.jar"
             }
           ]
         },
@@ -732,11 +587,6 @@
             {
               "name": "shaded-scalajson_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar"
-            },
-            {
-              "name": "shaded-scalajson_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4-sources.jar"
             }
           ]
         },
@@ -749,11 +599,6 @@
             {
               "name": "monix_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix_2.12/2.3.3/monix_2.12-2.3.3.jar"
-            },
-            {
-              "name": "monix_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix_2.12/2.3.3/monix_2.12-2.3.3-sources.jar"
             }
           ]
         },
@@ -766,11 +611,6 @@
             {
               "name": "reactive-streams",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.0/reactive-streams-1.0.0.jar"
-            },
-            {
-              "name": "reactive-streams",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.0/reactive-streams-1.0.0-sources.jar"
             }
           ]
         },
@@ -783,11 +623,6 @@
             {
               "name": "utest_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/utest_2.12/0.6.9/utest_2.12-0.6.9.jar"
-            },
-            {
-              "name": "utest_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/utest_2.12/0.6.9/utest_2.12-0.6.9-sources.jar"
             }
           ]
         },
@@ -800,11 +635,6 @@
             {
               "name": "zero-allocation-hashing",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/openhft/zero-allocation-hashing/0.10.1/zero-allocation-hashing-0.10.1.jar"
-            },
-            {
-              "name": "zero-allocation-hashing",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/openhft/zero-allocation-hashing/0.10.1/zero-allocation-hashing-0.10.1-sources.jar"
             }
           ]
         },
@@ -817,11 +647,6 @@
             {
               "name": "case-app-util_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app-util_2.12/2.0.6/case-app-util_2.12-2.0.6.jar"
-            },
-            {
-              "name": "case-app-util_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app-util_2.12/2.0.6/case-app-util_2.12-2.0.6-sources.jar"
             }
           ]
         },
@@ -834,11 +659,6 @@
             {
               "name": "monix-reactive_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-reactive_2.12/2.3.3/monix-reactive_2.12-2.3.3.jar"
-            },
-            {
-              "name": "monix-reactive_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-reactive_2.12/2.3.3/monix-reactive_2.12-2.3.3-sources.jar"
             }
           ]
         },
@@ -851,11 +671,6 @@
             {
               "name": "disruptor",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar"
-            },
-            {
-              "name": "disruptor",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2-sources.jar"
             }
           ]
         },
@@ -868,11 +683,6 @@
             {
               "name": "jansi",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0.jar"
-            },
-            {
-              "name": "jansi",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0-sources.jar"
             }
           ]
         },
@@ -885,11 +695,6 @@
             {
               "name": "scala-compiler",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar"
-            },
-            {
-              "name": "scala-compiler",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15-sources.jar"
             }
           ]
         },
@@ -902,11 +707,6 @@
             {
               "name": "jopt-simple",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6.jar"
-            },
-            {
-              "name": "jopt-simple",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6-sources.jar"
             }
           ]
         },
@@ -919,11 +719,6 @@
             {
               "name": "lz4",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/jpountz/lz4/lz4/1.3.0/lz4-1.3.0.jar"
-            },
-            {
-              "name": "lz4",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/jpountz/lz4/lz4/1.3.0/lz4-1.3.0-sources.jar"
             }
           ]
         },
@@ -936,11 +731,6 @@
             {
               "name": "perfolation-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/perfolation-macros_2.12/1.0.2/perfolation-macros_2.12-1.0.2.jar"
-            },
-            {
-              "name": "perfolation-macros_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/perfolation-macros_2.12/1.0.2/perfolation-macros_2.12-1.0.2-sources.jar"
             }
           ]
         },
@@ -953,11 +743,6 @@
             {
               "name": "gson",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.7/gson-2.7.jar"
-            },
-            {
-              "name": "gson",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.7/gson-2.7-sources.jar"
             }
           ]
         },
@@ -970,11 +755,6 @@
             {
               "name": "launcher-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.1.3/launcher-interface-1.1.3.jar"
-            },
-            {
-              "name": "launcher-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.1.3/launcher-interface-1.1.3-sources.jar"
             }
           ]
         },
@@ -987,11 +767,6 @@
             {
               "name": "zinc-compile-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile-core_2.12/1.6.0/zinc-compile-core_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc-compile-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile-core_2.12/1.6.0/zinc-compile-core_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1004,11 +779,6 @@
             {
               "name": "circe-derivation_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-derivation_2.12/0.9.0-M4/circe-derivation_2.12-0.9.0-M4.jar"
-            },
-            {
-              "name": "circe-derivation_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-derivation_2.12/0.9.0-M4/circe-derivation_2.12-0.9.0-M4-sources.jar"
             }
           ]
         },
@@ -1021,11 +791,6 @@
             {
               "name": "com-microsoft-java-debug-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/com-microsoft-java-debug-core/0.21.0%2B1-7f1080f1/com-microsoft-java-debug-core-0.21.0%2B1-7f1080f1.jar"
-            },
-            {
-              "name": "com-microsoft-java-debug-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/com-microsoft-java-debug-core/0.21.0%2B1-7f1080f1/com-microsoft-java-debug-core-0.21.0%2B1-7f1080f1-sources.jar"
             }
           ]
         },
@@ -1038,11 +803,6 @@
             {
               "name": "file-tree-views",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.7/file-tree-views-2.1.7.jar"
-            },
-            {
-              "name": "file-tree-views",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.7/file-tree-views-2.1.7-sources.jar"
             }
           ]
         },
@@ -1055,11 +815,6 @@
             {
               "name": "monix-execution_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-execution_2.12/2.3.3/monix-execution_2.12-2.3.3.jar"
-            },
-            {
-              "name": "monix-execution_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-execution_2.12/2.3.3/monix-execution_2.12-2.3.3-sources.jar"
             }
           ]
         },
@@ -1072,11 +827,6 @@
             {
               "name": "directory-watcher",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/directory-watcher/0.8.0%2B6-f651bd93/directory-watcher-0.8.0%2B6-f651bd93.jar"
-            },
-            {
-              "name": "directory-watcher",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/directory-watcher/0.8.0%2B6-f651bd93/directory-watcher-0.8.0%2B6-f651bd93-sources.jar"
             }
           ]
         },
@@ -1089,11 +839,6 @@
             {
               "name": "log4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
-            },
-            {
-              "name": "log4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1-sources.jar"
             }
           ]
         },
@@ -1106,11 +851,6 @@
             {
               "name": "sbt-jmh-extras",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/pl/project13/scala/sbt-jmh-extras/0.3.3/sbt-jmh-extras-0.3.3.jar"
-            },
-            {
-              "name": "sbt-jmh-extras",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/pl/project13/scala/sbt-jmh-extras/0.3.3/sbt-jmh-extras-0.3.3-sources.jar"
             }
           ]
         },
@@ -1123,11 +863,6 @@
             {
               "name": "gigahorse-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.12/0.3.0/gigahorse-core_2.12-0.3.0.jar"
-            },
-            {
-              "name": "gigahorse-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.12/0.3.0/gigahorse-core_2.12-0.3.0-sources.jar"
             }
           ]
         },
@@ -1140,11 +875,6 @@
             {
               "name": "nailgun-server",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/nailgun-server/ee3c4343/nailgun-server-ee3c4343.jar"
-            },
-            {
-              "name": "nailgun-server",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/nailgun-server/ee3c4343/nailgun-server-ee3c4343-sources.jar"
             }
           ]
         },
@@ -1157,11 +887,6 @@
             {
               "name": "case-app_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app_2.12/2.0.6/case-app_2.12-2.0.6.jar"
-            },
-            {
-              "name": "case-app_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app_2.12/2.0.6/case-app_2.12-2.0.6-sources.jar"
             }
           ]
         },
@@ -1174,11 +899,6 @@
             {
               "name": "jmh-generator-asm",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.20/jmh-generator-asm-1.20.jar"
-            },
-            {
-              "name": "jmh-generator-asm",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.20/jmh-generator-asm-1.20-sources.jar"
             }
           ]
         },
@@ -1191,11 +911,6 @@
             {
               "name": "slf4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.26/slf4j-api-1.7.26.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.26/slf4j-api-1.7.26-sources.jar"
             }
           ]
         },
@@ -1208,11 +923,6 @@
             {
               "name": "util-control_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-control_2.12/1.6.0/util-control_2.12-1.6.0.jar"
-            },
-            {
-              "name": "util-control_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-control_2.12/1.6.0/util-control_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1225,11 +935,6 @@
             {
               "name": "ivy",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-a3314352b638afbf0dca19f127e8263ed6f898bd/ivy-2.3.0-sbt-a3314352b638afbf0dca19f127e8263ed6f898bd.jar"
-            },
-            {
-              "name": "ivy",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-a3314352b638afbf0dca19f127e8263ed6f898bd/ivy-2.3.0-sbt-a3314352b638afbf0dca19f127e8263ed6f898bd-sources.jar"
             }
           ]
         },
@@ -1242,11 +947,6 @@
             {
               "name": "jsoniter-scala-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
             }
           ]
         },
@@ -1259,11 +959,6 @@
             {
               "name": "util-position_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.12/1.6.0/util-position_2.12-1.6.0.jar"
-            },
-            {
-              "name": "util-position_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.12/1.6.0/util-position_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1276,11 +971,6 @@
             {
               "name": "cats-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/1.1.0/cats-macros_2.12-1.1.0.jar"
-            },
-            {
-              "name": "cats-macros_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/1.1.0/cats-macros_2.12-1.1.0-sources.jar"
             }
           ]
         },
@@ -1293,11 +983,6 @@
             {
               "name": "compiler-bridge_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.12/1.6.0/compiler-bridge_2.12-1.6.0.jar"
-            },
-            {
-              "name": "compiler-bridge_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.12/1.6.0/compiler-bridge_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1310,11 +995,6 @@
             {
               "name": "junit-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.3/junit-interface-0.13.3.jar"
-            },
-            {
-              "name": "junit-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.3/junit-interface-0.13.3-sources.jar"
             }
           ]
         },
@@ -1327,11 +1007,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },
@@ -1344,11 +1019,6 @@
             {
               "name": "scalaz-effect_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-effect_2.12/7.2.20/scalaz-effect_2.12-7.2.20.jar"
-            },
-            {
-              "name": "scalaz-effect_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-effect_2.12/7.2.20/scalaz-effect_2.12-7.2.20-sources.jar"
             }
           ]
         },
@@ -1361,11 +1031,6 @@
             {
               "name": "circe-parser_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.9.3/circe-parser_2.12-0.9.3.jar"
-            },
-            {
-              "name": "circe-parser_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.9.3/circe-parser_2.12-0.9.3-sources.jar"
             }
           ]
         },
@@ -1378,11 +1043,6 @@
             {
               "name": "scala-parser-combinators_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar"
-            },
-            {
-              "name": "scala-parser-combinators_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2-sources.jar"
             }
           ]
         },
@@ -1395,11 +1055,6 @@
             {
               "name": "zt-zip",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.13/zt-zip-1.13.jar"
-            },
-            {
-              "name": "zt-zip",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.13/zt-zip-1.13-sources.jar"
             }
           ]
         },
@@ -1412,11 +1067,6 @@
             {
               "name": "diffutils",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0.jar"
-            },
-            {
-              "name": "diffutils",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/java-diff-utils/diffutils/1.3.0/diffutils-1.3.0-sources.jar"
             }
           ]
         },
@@ -1429,11 +1079,6 @@
             {
               "name": "commons-io",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.5/commons-io-2.5.jar"
-            },
-            {
-              "name": "commons-io",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.5/commons-io-2.5-sources.jar"
             }
           ]
         },
@@ -1446,11 +1091,6 @@
             {
               "name": "okhttp",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.7.0/okhttp-3.7.0.jar"
-            },
-            {
-              "name": "okhttp",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.7.0/okhttp-3.7.0-sources.jar"
             }
           ]
         },
@@ -1463,11 +1103,6 @@
             {
               "name": "lsp4s_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/lsp4s_2.12/0.2.0/lsp4s_2.12-0.2.0.jar"
-            },
-            {
-              "name": "lsp4s_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/lsp4s_2.12/0.2.0/lsp4s_2.12-0.2.0-sources.jar"
             }
           ]
         },
@@ -1480,11 +1115,6 @@
             {
               "name": "scribe_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/scribe_2.12/2.5.0/scribe_2.12-2.5.0.jar"
-            },
-            {
-              "name": "scribe_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/scribe_2.12/2.5.0/scribe_2.12-2.5.0-sources.jar"
             }
           ]
         },
@@ -1497,11 +1127,6 @@
             {
               "name": "commons-lang3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.6/commons-lang3-3.6.jar"
-            },
-            {
-              "name": "commons-lang3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.6/commons-lang3-3.6-sources.jar"
             }
           ]
         },
@@ -1514,11 +1139,6 @@
             {
               "name": "zinc-classfile_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classfile_2.12/1.6.0/zinc-classfile_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc-classfile_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classfile_2.12/1.6.0/zinc-classfile_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1531,11 +1151,6 @@
             {
               "name": "jline-terminal-jansi",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jansi/3.19.0/jline-terminal-jansi-3.19.0.jar"
-            },
-            {
-              "name": "jline-terminal-jansi",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jansi/3.19.0/jline-terminal-jansi-3.19.0-sources.jar"
             }
           ]
         },
@@ -1548,11 +1163,6 @@
             {
               "name": "portable-scala-reflect_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.12/0.1.0/portable-scala-reflect_2.12-0.1.0.jar"
-            },
-            {
-              "name": "portable-scala-reflect_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_2.12/0.1.0/portable-scala-reflect_2.12-0.1.0-sources.jar"
             }
           ]
         },
@@ -1565,11 +1175,6 @@
             {
               "name": "zipkin-sender-urlconnection",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/reporter2/zipkin-sender-urlconnection/2.7.15/zipkin-sender-urlconnection-2.7.15.jar"
-            },
-            {
-              "name": "zipkin-sender-urlconnection",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/reporter2/zipkin-sender-urlconnection/2.7.15/zipkin-sender-urlconnection-2.7.15-sources.jar"
             }
           ]
         },
@@ -1582,11 +1187,6 @@
             {
               "name": "hamcrest-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            },
-            {
-              "name": "hamcrest-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar"
             }
           ]
         },
@@ -1599,11 +1199,6 @@
             {
               "name": "circe-numbers_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.9.3/circe-numbers_2.12-0.9.3.jar"
-            },
-            {
-              "name": "circe-numbers_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.9.3/circe-numbers_2.12-0.9.3-sources.jar"
             }
           ]
         },
@@ -1616,11 +1211,6 @@
             {
               "name": "sbinary_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbinary_2.12/0.5.1/sbinary_2.12-0.5.1.jar"
-            },
-            {
-              "name": "sbinary_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbinary_2.12/0.5.1/sbinary_2.12-0.5.1-sources.jar"
             }
           ]
         },
@@ -1633,11 +1223,6 @@
             {
               "name": "scalaz-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-core_2.12/7.2.20/scalaz-core_2.12-7.2.20.jar"
-            },
-            {
-              "name": "scalaz-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-core_2.12/7.2.20/scalaz-core_2.12-7.2.20-sources.jar"
             }
           ]
         },
@@ -1650,11 +1235,6 @@
             {
               "name": "enumeratum-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.5.9/enumeratum-macros_2.12-1.5.9.jar"
-            },
-            {
-              "name": "enumeratum-macros_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum-macros_2.12/1.5.9/enumeratum-macros_2.12-1.5.9-sources.jar"
             }
           ]
         },
@@ -1667,11 +1247,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         },
@@ -1684,11 +1259,6 @@
             {
               "name": "sjson-new-scalajson_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.9.1/sjson-new-scalajson_2.12-0.9.1.jar"
-            },
-            {
-              "name": "sjson-new-scalajson_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.9.1/sjson-new-scalajson_2.12-0.9.1-sources.jar"
             }
           ]
         },
@@ -1701,11 +1271,6 @@
             {
               "name": "scribe-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/scribe-macros_2.12/2.5.0/scribe-macros_2.12-2.5.0.jar"
-            },
-            {
-              "name": "scribe-macros_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/scribe-macros_2.12/2.5.0/scribe-macros_2.12-2.5.0-sources.jar"
             }
           ]
         },
@@ -1718,11 +1283,6 @@
             {
               "name": "jmh-generator-reflection",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.20/jmh-generator-reflection-1.20.jar"
-            },
-            {
-              "name": "jmh-generator-reflection",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.20/jmh-generator-reflection-1.20-sources.jar"
             }
           ]
         },
@@ -1735,11 +1295,6 @@
             {
               "name": "fansi_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.7/fansi_2.12-0.2.7.jar"
-            },
-            {
-              "name": "fansi_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.7/fansi_2.12-0.2.7-sources.jar"
             }
           ]
         },
@@ -1752,11 +1307,6 @@
             {
               "name": "junit",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
-            },
-            {
-              "name": "junit",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2-sources.jar"
             }
           ]
         },
@@ -1769,11 +1319,6 @@
             {
               "name": "jsonrpc_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/jsonrpc_2.12/0.2.0/jsonrpc_2.12-0.2.0.jar"
-            },
-            {
-              "name": "jsonrpc_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/jsonrpc_2.12/0.2.0/jsonrpc_2.12-0.2.0-sources.jar"
             }
           ]
         },
@@ -1786,11 +1331,6 @@
             {
               "name": "scalaz-concurrent_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-concurrent_2.12/7.2.20/scalaz-concurrent_2.12-7.2.20.jar"
-            },
-            {
-              "name": "scalaz-concurrent_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-concurrent_2.12/7.2.20/scalaz-concurrent_2.12-7.2.20-sources.jar"
             }
           ]
         },
@@ -1803,11 +1343,6 @@
             {
               "name": "jmh-generator-bytecode",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.20/jmh-generator-bytecode-1.20.jar"
-            },
-            {
-              "name": "jmh-generator-bytecode",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.20/jmh-generator-bytecode-1.20-sources.jar"
             }
           ]
         },
@@ -1820,11 +1355,6 @@
             {
               "name": "cats-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/1.1.0/cats-core_2.12-1.1.0.jar"
-            },
-            {
-              "name": "cats-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/1.1.0/cats-core_2.12-1.1.0-sources.jar"
             }
           ]
         },
@@ -1837,11 +1367,6 @@
             {
               "name": "scala-debug-adapter_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/scala-debug-adapter_2.12/2.2.0/scala-debug-adapter_2.12-2.2.0.jar"
-            },
-            {
-              "name": "scala-debug-adapter_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/scala-debug-adapter_2.12/2.2.0/scala-debug-adapter_2.12-2.2.0-sources.jar"
             }
           ]
         },
@@ -1854,11 +1379,6 @@
             {
               "name": "zinc-persist_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_2.12/1.6.0/zinc-persist_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc-persist_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_2.12/1.6.0/zinc-persist_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1871,11 +1391,6 @@
             {
               "name": "cats-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/1.1.0/cats-kernel_2.12-1.1.0.jar"
-            },
-            {
-              "name": "cats-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/1.1.0/cats-kernel_2.12-1.1.0-sources.jar"
             }
           ]
         },
@@ -1888,11 +1403,6 @@
             {
               "name": "util-logging_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_2.12/1.6.0/util-logging_2.12-1.6.0.jar"
-            },
-            {
-              "name": "util-logging_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_2.12/1.6.0/util-logging_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1905,11 +1415,6 @@
             {
               "name": "util-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.6.0/util-interface-1.6.0.jar"
-            },
-            {
-              "name": "util-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.6.0/util-interface-1.6.0-sources.jar"
             }
           ]
         },
@@ -1922,11 +1427,6 @@
             {
               "name": "io_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.6.0/io_2.12-1.6.0.jar"
-            },
-            {
-              "name": "io_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.6.0/io_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -1939,11 +1439,6 @@
             {
               "name": "brave",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/brave/brave/5.6.1/brave-5.6.1.jar"
-            },
-            {
-              "name": "brave",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/brave/brave/5.6.1/brave-5.6.1-sources.jar"
             }
           ]
         },
@@ -1956,11 +1451,6 @@
             {
               "name": "rxjava",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.1.1/rxjava-2.1.1.jar"
-            },
-            {
-              "name": "rxjava",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/reactivex/rxjava2/rxjava/2.1.1/rxjava-2.1.1-sources.jar"
             }
           ]
         },
@@ -1973,11 +1463,6 @@
             {
               "name": "test-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            },
-            {
-              "name": "test-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar"
             }
           ]
         },
@@ -1990,11 +1475,6 @@
             {
               "name": "zinc_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.6.0/zinc_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.6.0/zinc_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -2007,11 +1487,6 @@
             {
               "name": "config",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.2.0/config-1.2.0.jar"
-            },
-            {
-              "name": "config",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.2.0/config-1.2.0-sources.jar"
             }
           ]
         },
@@ -2024,11 +1499,6 @@
             {
               "name": "zipkin-reporter",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/reporter2/zipkin-reporter/2.7.15/zipkin-reporter-2.7.15.jar"
-            },
-            {
-              "name": "zipkin-reporter",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/zipkin/reporter2/zipkin-reporter/2.7.15/zipkin-reporter-2.7.15-sources.jar"
             }
           ]
         },
@@ -2041,11 +1511,6 @@
             {
               "name": "perfolation_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/perfolation_2.12/1.0.2/perfolation_2.12-1.0.2.jar"
-            },
-            {
-              "name": "perfolation_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/outr/perfolation_2.12/1.0.2/perfolation_2.12-1.0.2-sources.jar"
             }
           ]
         },
@@ -2058,11 +1523,6 @@
             {
               "name": "jna-platform",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0.jar"
-            },
-            {
-              "name": "jna-platform",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0-sources.jar"
             }
           ]
         },
@@ -2075,11 +1535,6 @@
             {
               "name": "zinc-classpath_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_2.12/1.6.0/zinc-classpath_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc-classpath_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_2.12/1.6.0/zinc-classpath_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -2092,11 +1547,6 @@
             {
               "name": "log4j-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar"
-            },
-            {
-              "name": "log4j-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1-sources.jar"
             }
           ]
         },
@@ -2109,11 +1559,6 @@
             {
               "name": "shaded-jawn-parser_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/0.9.1/shaded-jawn-parser_2.12-0.9.1.jar"
-            },
-            {
-              "name": "shaded-jawn-parser_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/0.9.1/shaded-jawn-parser_2.12-0.9.1-sources.jar"
             }
           ]
         },
@@ -2126,11 +1571,6 @@
             {
               "name": "case-app-annotations_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app-annotations_2.12/2.0.6/case-app-annotations_2.12-2.0.6.jar"
-            },
-            {
-              "name": "case-app-annotations_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app-annotations_2.12/2.0.6/case-app-annotations_2.12-2.0.6-sources.jar"
             }
           ]
         },
@@ -2143,11 +1583,6 @@
             {
               "name": "librarymanagement-ivy_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-ivy_2.12/1.0.0/librarymanagement-ivy_2.12-1.0.0.jar"
-            },
-            {
-              "name": "librarymanagement-ivy_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-ivy_2.12/1.0.0/librarymanagement-ivy_2.12-1.0.0-sources.jar"
             }
           ]
         },
@@ -2160,11 +1595,6 @@
             {
               "name": "jmh-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.20/jmh-core-1.20.jar"
-            },
-            {
-              "name": "jmh-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.20/jmh-core-1.20-sources.jar"
             }
           ]
         },
@@ -2177,11 +1607,6 @@
             {
               "name": "scala-xml_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
-            },
-            {
-              "name": "scala-xml_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6-sources.jar"
             }
           ]
         },
@@ -2194,11 +1619,6 @@
             {
               "name": "asm-tree",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.3/asm-tree-9.3.jar"
-            },
-            {
-              "name": "asm-tree",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/9.3/asm-tree-9.3-sources.jar"
             }
           ]
         },
@@ -2211,11 +1631,6 @@
             {
               "name": "asm-analysis",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/9.3/asm-analysis-9.3.jar"
-            },
-            {
-              "name": "asm-analysis",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/9.3/asm-analysis-9.3-sources.jar"
             }
           ]
         },
@@ -2228,11 +1643,6 @@
             {
               "name": "jline-terminal-jna",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar"
-            },
-            {
-              "name": "jline-terminal-jna",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0-sources.jar"
             }
           ]
         },
@@ -2245,11 +1655,6 @@
             {
               "name": "sjson-new-murmurhash_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.12/0.8.0/sjson-new-murmurhash_2.12-0.8.0.jar"
-            },
-            {
-              "name": "sjson-new-murmurhash_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.12/0.8.0/sjson-new-murmurhash_2.12-0.8.0-sources.jar"
             }
           ]
         },
@@ -2262,11 +1667,6 @@
             {
               "name": "zinc-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-core_2.12/1.6.0/zinc-core_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-core_2.12/1.6.0/zinc-core_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -2279,11 +1679,6 @@
             {
               "name": "zinc-persist-core-assembly",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist-core-assembly/1.6.0/zinc-persist-core-assembly-1.6.0.jar"
-            },
-            {
-              "name": "zinc-persist-core-assembly",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist-core-assembly/1.6.0/zinc-persist-core-assembly-1.6.0-sources.jar"
             }
           ]
         },
@@ -2296,11 +1691,6 @@
             {
               "name": "directories",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/dirs/directories/26/directories-26.jar"
-            },
-            {
-              "name": "directories",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/dirs/directories/26/directories-26-sources.jar"
             }
           ]
         },
@@ -2313,11 +1703,6 @@
             {
               "name": "jsch",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.46/jsch-0.1.46.jar"
-            },
-            {
-              "name": "jsch",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.46/jsch-0.1.46-sources.jar"
             }
           ]
         },
@@ -2330,11 +1715,6 @@
             {
               "name": "zinc-apiinfo_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-apiinfo_2.12/1.6.0/zinc-apiinfo_2.12-1.6.0.jar"
-            },
-            {
-              "name": "zinc-apiinfo_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-apiinfo_2.12/1.6.0/zinc-apiinfo_2.12-1.6.0-sources.jar"
             }
           ]
         },
@@ -2347,11 +1727,6 @@
             {
               "name": "interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6.jar"
-            },
-            {
-              "name": "interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6-sources.jar"
             }
           ]
         },
@@ -2364,11 +1739,6 @@
             {
               "name": "asm-util",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/9.3/asm-util-9.3.jar"
-            },
-            {
-              "name": "asm-util",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/9.3/asm-util-9.3-sources.jar"
             }
           ]
         },
@@ -2381,11 +1751,6 @@
             {
               "name": "sourcecode_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.1.7/sourcecode_2.12-0.1.7.jar"
-            },
-            {
-              "name": "sourcecode_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.1.7/sourcecode_2.12-0.1.7-sources.jar"
             }
           ]
         },
@@ -2398,11 +1763,6 @@
             {
               "name": "monix-types_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-types_2.12/2.3.3/monix-types_2.12-2.3.3.jar"
-            },
-            {
-              "name": "monix-types_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-types_2.12/2.3.3/monix-types_2.12-2.3.3-sources.jar"
             }
           ]
         },
@@ -2415,11 +1775,6 @@
             {
               "name": "enumeratum_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.5.13/enumeratum_2.12-1.5.13.jar"
-            },
-            {
-              "name": "enumeratum_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/beachape/enumeratum_2.12/1.5.13/enumeratum_2.12-1.5.13-sources.jar"
             }
           ]
         }

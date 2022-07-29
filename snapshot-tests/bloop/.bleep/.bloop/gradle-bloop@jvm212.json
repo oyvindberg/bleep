@@ -199,11 +199,6 @@
             {
               "name": "gradle-test-kit",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0.jar"
-            },
-            {
-              "name": "gradle-test-kit",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0-sources.jar"
             }
           ]
         },
@@ -216,11 +211,6 @@
             {
               "name": "gradle-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0.jar"
-            },
-            {
-              "name": "gradle-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0-sources.jar"
             }
           ]
         },
@@ -233,11 +223,6 @@
             {
               "name": "gradle-tooling-api",
               "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0.jar"
-            },
-            {
-              "name": "gradle-tooling-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0-sources.jar"
             }
           ]
         },
@@ -250,11 +235,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         },
@@ -267,11 +247,6 @@
             {
               "name": "gradle",
               "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0.jar"
-            },
-            {
-              "name": "gradle",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0-sources.jar"
             }
           ]
         },
@@ -284,11 +259,6 @@
             {
               "name": "groovy",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4.jar"
-            },
-            {
-              "name": "groovy",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4-sources.jar"
             }
           ]
         },
@@ -301,11 +271,6 @@
             {
               "name": "jsoniter-scala-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
             }
           ]
         },
@@ -318,11 +283,6 @@
             {
               "name": "gradle-core",
               "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0.jar"
-            },
-            {
-              "name": "gradle-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0-sources.jar"
             }
           ]
         }

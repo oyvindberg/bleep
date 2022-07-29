@@ -135,11 +135,6 @@
             {
               "name": "jackson-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.4/jackson-core-2.11.4.jar"
-            },
-            {
-              "name": "jackson-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.4/jackson-core-2.11.4-sources.jar"
             }
           ]
         },
@@ -152,11 +147,6 @@
             {
               "name": "core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar"
-            },
-            {
-              "name": "core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7-sources.jar"
             }
           ]
         },
@@ -169,11 +159,6 @@
             {
               "name": "tethys-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.13/0.25.0/tethys-core_2.13-0.25.0.jar"
-            },
-            {
-              "name": "tethys-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.13/0.25.0/tethys-core_2.13-0.25.0-sources.jar"
             }
           ]
         },
@@ -186,11 +171,6 @@
             {
               "name": "core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar"
-            },
-            {
-              "name": "core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18-sources.jar"
             }
           ]
         },
@@ -203,11 +183,6 @@
             {
               "name": "magnolia_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar"
-            },
-            {
-              "name": "magnolia_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0-sources.jar"
             }
           ]
         },
@@ -220,11 +195,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -237,11 +207,6 @@
             {
               "name": "tethys-jackson_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson_2.13/0.25.0/tethys-jackson_2.13-0.25.0.jar"
-            },
-            {
-              "name": "tethys-jackson_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson_2.13/0.25.0/tethys-jackson_2.13-0.25.0-sources.jar"
             }
           ]
         },
@@ -254,11 +219,6 @@
             {
               "name": "mercator_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
-            },
-            {
-              "name": "mercator_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1-sources.jar"
             }
           ]
         },
@@ -271,11 +231,6 @@
             {
               "name": "ws_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar"
-            },
-            {
-              "name": "ws_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7-sources.jar"
             }
           ]
         }

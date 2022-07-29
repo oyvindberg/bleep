@@ -167,11 +167,6 @@
             {
               "name": "scalajs-junit-test-runtime_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.13/1.6.0/scalajs-junit-test-runtime_2.13-1.6.0.jar"
-            },
-            {
-              "name": "scalajs-junit-test-runtime_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.13/1.6.0/scalajs-junit-test-runtime_2.13-1.6.0-sources.jar"
             }
           ]
         },
@@ -184,11 +179,6 @@
             {
               "name": "scala-java-time-tzdb_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_sjs1_2.13/2.0.0/scala-java-time-tzdb_sjs1_2.13-2.0.0.jar"
-            },
-            {
-              "name": "scala-java-time-tzdb_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time-tzdb_sjs1_2.13/2.0.0/scala-java-time-tzdb_sjs1_2.13-2.0.0-sources.jar"
             }
           ]
         },
@@ -201,11 +191,6 @@
             {
               "name": "jsoniter-scala-core_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_sjs1_2.13/2.4.0/jsoniter-scala-core_sjs1_2.13-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-core_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_sjs1_2.13/2.4.0/jsoniter-scala-core_sjs1_2.13-2.4.0-sources.jar"
             }
           ]
         },
@@ -218,11 +203,6 @@
             {
               "name": "scalajs-library_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.6.0/scalajs-library_2.13-1.6.0.jar"
-            },
-            {
-              "name": "scalajs-library_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.6.0/scalajs-library_2.13-1.6.0-sources.jar"
             }
           ]
         },
@@ -235,11 +215,6 @@
             {
               "name": "scala-java-locales_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.0.0/scala-java-locales_sjs1_2.13-1.0.0.jar"
-            },
-            {
-              "name": "scala-java-locales_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.0.0/scala-java-locales_sjs1_2.13-1.0.0-sources.jar"
             }
           ]
         },
@@ -252,11 +227,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8-sources.jar"
             }
           ]
         },
@@ -269,11 +239,6 @@
             {
               "name": "scala-java-time_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.0.0/scala-java-time_sjs1_2.13-2.0.0.jar"
-            },
-            {
-              "name": "scala-java-time_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.0.0/scala-java-time_sjs1_2.13-2.0.0-sources.jar"
             }
           ]
         },
@@ -286,11 +251,6 @@
             {
               "name": "portable-scala-reflect_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.0.0/portable-scala-reflect_sjs1_2.13-1.0.0.jar"
-            },
-            {
-              "name": "portable-scala-reflect_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.0.0/portable-scala-reflect_sjs1_2.13-1.0.0-sources.jar"
             }
           ]
         },
@@ -303,11 +263,6 @@
             {
               "name": "jsoniter-scala-macros_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_sjs1_2.13/2.4.0/jsoniter-scala-macros_sjs1_2.13-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-macros_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_sjs1_2.13/2.4.0/jsoniter-scala-macros_sjs1_2.13-2.4.0-sources.jar"
             }
           ]
         },
@@ -320,11 +275,6 @@
             {
               "name": "cldr-api_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/1.0.0/cldr-api_sjs1_2.13-1.0.0.jar"
-            },
-            {
-              "name": "cldr-api_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/1.0.0/cldr-api_sjs1_2.13-1.0.0-sources.jar"
             }
           ]
         },
@@ -337,11 +287,6 @@
             {
               "name": "scalajs-test-interface_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.6.0/scalajs-test-interface_2.13-1.6.0.jar"
-            },
-            {
-              "name": "scalajs-test-interface_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.13/1.6.0/scalajs-test-interface_2.13-1.6.0-sources.jar"
             }
           ]
         },
@@ -354,11 +299,6 @@
             {
               "name": "scalajs-test-bridge_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.6.0/scalajs-test-bridge_2.13-1.6.0.jar"
-            },
-            {
-              "name": "scalajs-test-bridge_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.6.0/scalajs-test-bridge_2.13-1.6.0-sources.jar"
             }
           ]
         }

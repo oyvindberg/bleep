@@ -107,11 +107,6 @@
             {
               "name": "zt-exec",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar"
-            },
-            {
-              "name": "zt-exec",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11-sources.jar"
             }
           ]
         },
@@ -124,11 +119,6 @@
             {
               "name": "scopt_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.12/4.0.0-RC2/scopt_2.12-4.0.0-RC2.jar"
-            },
-            {
-              "name": "scopt_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.12/4.0.0-RC2/scopt_2.12-4.0.0-RC2-sources.jar"
             }
           ]
         },
@@ -141,11 +131,6 @@
             {
               "name": "jsoniter-scala-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
             }
           ]
         },
@@ -158,11 +143,6 @@
             {
               "name": "jsoniter-scala-macros_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-macros_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0-sources.jar"
             }
           ]
         },
@@ -175,11 +155,6 @@
             {
               "name": "interface-svm-subs",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6.jar"
-            },
-            {
-              "name": "interface-svm-subs",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6-sources.jar"
             }
           ]
         },
@@ -192,11 +167,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         },
@@ -209,11 +179,6 @@
             {
               "name": "jna",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar"
-            },
-            {
-              "name": "jna",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0-sources.jar"
             }
           ]
         },
@@ -226,11 +191,6 @@
             {
               "name": "snailgun-cli_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0.jar"
-            },
-            {
-              "name": "snailgun-cli_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0-sources.jar"
             }
           ]
         },
@@ -243,11 +203,6 @@
             {
               "name": "jna-platform",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar"
-            },
-            {
-              "name": "jna-platform",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0-sources.jar"
             }
           ]
         },
@@ -260,11 +215,6 @@
             {
               "name": "slf4j-nop",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2.jar"
-            },
-            {
-              "name": "slf4j-nop",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2-sources.jar"
             }
           ]
         },
@@ -277,11 +227,6 @@
             {
               "name": "interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6.jar"
-            },
-            {
-              "name": "interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6-sources.jar"
             }
           ]
         },
@@ -294,11 +239,6 @@
             {
               "name": "slf4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2-sources.jar"
             }
           ]
         },
@@ -311,11 +251,6 @@
             {
               "name": "snailgun-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-core_2.12/0.4.0/snailgun-core_2.12-0.4.0.jar"
-            },
-            {
-              "name": "snailgun-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-core_2.12/0.4.0/snailgun-core_2.12-0.4.0-sources.jar"
             }
           ]
         }

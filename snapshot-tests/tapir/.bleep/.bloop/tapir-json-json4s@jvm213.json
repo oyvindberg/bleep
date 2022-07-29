@@ -136,11 +136,6 @@
             {
               "name": "json4s-scalap_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.13/4.0.3/json4s-scalap_2.13-4.0.3.jar"
-            },
-            {
-              "name": "json4s-scalap_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.13/4.0.3/json4s-scalap_2.13-4.0.3-sources.jar"
             }
           ]
         },
@@ -153,11 +148,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -170,11 +160,6 @@
             {
               "name": "magnolia_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar"
-            },
-            {
-              "name": "magnolia_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0-sources.jar"
             }
           ]
         },
@@ -187,11 +172,6 @@
             {
               "name": "paranamer",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar"
-            },
-            {
-              "name": "paranamer",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8-sources.jar"
             }
           ]
         },
@@ -204,11 +184,6 @@
             {
               "name": "core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar"
-            },
-            {
-              "name": "core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7-sources.jar"
             }
           ]
         },
@@ -221,11 +196,6 @@
             {
               "name": "json4s-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.13/4.0.3/json4s-core_2.13-4.0.3.jar"
-            },
-            {
-              "name": "json4s-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.13/4.0.3/json4s-core_2.13-4.0.3-sources.jar"
             }
           ]
         },
@@ -238,11 +208,6 @@
             {
               "name": "json4s-ast_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.13/4.0.3/json4s-ast_2.13-4.0.3.jar"
-            },
-            {
-              "name": "json4s-ast_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.13/4.0.3/json4s-ast_2.13-4.0.3-sources.jar"
             }
           ]
         },
@@ -255,11 +220,6 @@
             {
               "name": "core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar"
-            },
-            {
-              "name": "core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18-sources.jar"
             }
           ]
         },
@@ -272,11 +232,6 @@
             {
               "name": "mercator_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
-            },
-            {
-              "name": "mercator_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1-sources.jar"
             }
           ]
         },
@@ -289,11 +244,6 @@
             {
               "name": "ws_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar"
-            },
-            {
-              "name": "ws_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7-sources.jar"
             }
           ]
         }

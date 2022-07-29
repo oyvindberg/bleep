@@ -147,11 +147,6 @@
             {
               "name": "scala-xml_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0.jar"
-            },
-            {
-              "name": "scala-xml_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.3.0/scala-xml_2.13-1.3.0-sources.jar"
             }
           ]
         },
@@ -164,11 +159,6 @@
             {
               "name": "refined_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_sjs1_2.13/0.9.28/refined_sjs1_2.13-0.9.28.jar"
-            },
-            {
-              "name": "refined_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_sjs1_2.13/0.9.28/refined_sjs1_2.13-0.9.28-sources.jar"
             }
           ]
         },
@@ -181,11 +171,6 @@
             {
               "name": "core_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.13/1.2.7/core_sjs1_2.13-1.2.7.jar"
-            },
-            {
-              "name": "core_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.13/1.2.7/core_sjs1_2.13-1.2.7-sources.jar"
             }
           ]
         },
@@ -198,11 +183,6 @@
             {
               "name": "scala-compiler",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar"
-            },
-            {
-              "name": "scala-compiler",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6-sources.jar"
             }
           ]
         },
@@ -215,11 +195,6 @@
             {
               "name": "scala-java-locales_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.2.0/scala-java-locales_sjs1_2.13-1.2.0.jar"
-            },
-            {
-              "name": "scala-java-locales_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.13/1.2.0/scala-java-locales_sjs1_2.13-1.2.0-sources.jar"
             }
           ]
         },
@@ -232,11 +207,6 @@
             {
               "name": "ws_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.13/1.2.7/ws_sjs1_2.13-1.2.7.jar"
-            },
-            {
-              "name": "ws_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.13/1.2.7/ws_sjs1_2.13-1.2.7-sources.jar"
             }
           ]
         },
@@ -249,11 +219,6 @@
             {
               "name": "core_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.13/1.4.18/core_sjs1_2.13-1.4.18.jar"
-            },
-            {
-              "name": "core_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.13/1.4.18/core_sjs1_2.13-1.4.18-sources.jar"
             }
           ]
         },
@@ -266,11 +231,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6-sources.jar"
             }
           ]
         },
@@ -283,11 +243,6 @@
             {
               "name": "shapeless_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_sjs1_2.13/2.3.7/shapeless_sjs1_2.13-2.3.7.jar"
-            },
-            {
-              "name": "shapeless_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_sjs1_2.13/2.3.7/shapeless_sjs1_2.13-2.3.7-sources.jar"
             }
           ]
         },
@@ -300,11 +255,6 @@
             {
               "name": "scalajs-dom_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.13/2.0.0/scalajs-dom_sjs1_2.13-2.0.0.jar"
-            },
-            {
-              "name": "scalajs-dom_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.13/2.0.0/scalajs-dom_sjs1_2.13-2.0.0-sources.jar"
             }
           ]
         },
@@ -317,11 +267,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -334,11 +279,6 @@
             {
               "name": "jna",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
-            },
-            {
-              "name": "jna",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1-sources.jar"
             }
           ]
         },
@@ -351,11 +291,6 @@
             {
               "name": "scala-java-time_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.3.0/scala-java-time_sjs1_2.13-2.3.0.jar"
-            },
-            {
-              "name": "scala-java-time_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.13/2.3.0/scala-java-time_sjs1_2.13-2.3.0-sources.jar"
             }
           ]
         },
@@ -368,11 +303,6 @@
             {
               "name": "portable-scala-reflect_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.1/portable-scala-reflect_sjs1_2.13-1.1.1.jar"
-            },
-            {
-              "name": "portable-scala-reflect_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.13/1.1.1/portable-scala-reflect_sjs1_2.13-1.1.1-sources.jar"
             }
           ]
         },
@@ -385,11 +315,6 @@
             {
               "name": "mercator_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
-            },
-            {
-              "name": "mercator_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1-sources.jar"
             }
           ]
         },
@@ -402,11 +327,6 @@
             {
               "name": "scalajs-library_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.8.0/scalajs-library_2.13-1.8.0.jar"
-            },
-            {
-              "name": "scalajs-library_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.8.0/scalajs-library_2.13-1.8.0-sources.jar"
             }
           ]
         },
@@ -419,11 +339,6 @@
             {
               "name": "jline",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar"
-            },
-            {
-              "name": "jline",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0-sources.jar"
             }
           ]
         },
@@ -436,11 +351,6 @@
             {
               "name": "cldr-api_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/2.7.0/cldr-api_sjs1_2.13-2.7.0.jar"
-            },
-            {
-              "name": "cldr-api_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.13/2.7.0/cldr-api_sjs1_2.13-2.7.0-sources.jar"
             }
           ]
         },
@@ -453,11 +363,6 @@
             {
               "name": "magnolia_sjs1_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.13/0.17.0/magnolia_sjs1_2.13-0.17.0.jar"
-            },
-            {
-              "name": "magnolia_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.13/0.17.0/magnolia_sjs1_2.13-0.17.0-sources.jar"
             }
           ]
         }

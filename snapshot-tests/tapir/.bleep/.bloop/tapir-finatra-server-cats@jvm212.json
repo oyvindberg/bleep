@@ -247,11 +247,6 @@
             {
               "name": "cats-effect-std_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0.jar"
-            },
-            {
-              "name": "cats-effect-std_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0-sources.jar"
             }
           ]
         },
@@ -264,11 +259,6 @@
             {
               "name": "inject-stack_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-stack_2.12/21.2.0/inject-stack_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-stack_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-stack_2.12/21.2.0/inject-stack_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -281,11 +271,6 @@
             {
               "name": "nscala-time_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.12/2.22.0/nscala-time_2.12-2.22.0.jar"
-            },
-            {
-              "name": "nscala-time_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/nscala-time/nscala-time_2.12/2.22.0/nscala-time_2.12-2.22.0-sources.jar"
             }
           ]
         },
@@ -298,11 +283,6 @@
             {
               "name": "finatra-jackson_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-jackson_2.12/21.2.0/finatra-jackson_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finatra-jackson_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-jackson_2.12/21.2.0/finatra-jackson_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -315,11 +295,6 @@
             {
               "name": "commons-logging",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
-            },
-            {
-              "name": "commons-logging",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2-sources.jar"
             }
           ]
         },
@@ -332,11 +307,6 @@
             {
               "name": "scala-collection-compat_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.1.2/scala-collection-compat_2.12-2.1.2.jar"
-            },
-            {
-              "name": "scala-collection-compat_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.1.2/scala-collection-compat_2.12-2.1.2-sources.jar"
             }
           ]
         },
@@ -349,11 +319,6 @@
             {
               "name": "jsr305",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
-            },
-            {
-              "name": "jsr305",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar"
             }
           ]
         },
@@ -366,11 +331,6 @@
             {
               "name": "util-hashing_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-hashing_2.12/21.2.0/util-hashing_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-hashing_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-hashing_2.12/21.2.0/util-hashing_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -383,11 +343,6 @@
             {
               "name": "jackson-databind",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.11.2/jackson-databind-2.11.2.jar"
-            },
-            {
-              "name": "jackson-databind",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.11.2/jackson-databind-2.11.2-sources.jar"
             }
           ]
         },
@@ -400,11 +355,6 @@
             {
               "name": "inject-mdc_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-mdc_2.12/21.2.0/inject-mdc_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-mdc_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-mdc_2.12/21.2.0/inject-mdc_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -417,11 +367,6 @@
             {
               "name": "finagle-toggle_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-toggle_2.12/21.2.0/finagle-toggle_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-toggle_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-toggle_2.12/21.2.0/finagle-toggle_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -434,11 +379,6 @@
             {
               "name": "util-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.12/21.2.0/util-core_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-core_2.12/21.2.0/util-core_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -451,11 +391,6 @@
             {
               "name": "mercator_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
-            },
-            {
-              "name": "mercator_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1-sources.jar"
             }
           ]
         },
@@ -468,11 +403,6 @@
             {
               "name": "netty-codec",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.51.Final/netty-codec-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-codec",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.51.Final/netty-codec-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -485,11 +415,6 @@
             {
               "name": "core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
-            },
-            {
-              "name": "core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18-sources.jar"
             }
           ]
         },
@@ -502,11 +427,6 @@
             {
               "name": "commons-codec",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar"
-            },
-            {
-              "name": "commons-codec",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11-sources.jar"
             }
           ]
         },
@@ -519,11 +439,6 @@
             {
               "name": "joda-convert",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0.jar"
-            },
-            {
-              "name": "joda-convert",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/joda/joda-convert/2.2.0/joda-convert-2.2.0-sources.jar"
             }
           ]
         },
@@ -536,11 +451,6 @@
             {
               "name": "guava",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar"
-            },
-            {
-              "name": "guava",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre-sources.jar"
             }
           ]
         },
@@ -553,11 +463,6 @@
             {
               "name": "netty-transport",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-transport",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.51.Final/netty-transport-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -570,11 +475,6 @@
             {
               "name": "magnolia_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
-            },
-            {
-              "name": "magnolia_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0-sources.jar"
             }
           ]
         },
@@ -587,11 +487,6 @@
             {
               "name": "log4j-over-slf4j",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/log4j-over-slf4j/1.7.30/log4j-over-slf4j-1.7.30.jar"
-            },
-            {
-              "name": "log4j-over-slf4j",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/log4j-over-slf4j/1.7.30/log4j-over-slf4j-1.7.30-sources.jar"
             }
           ]
         },
@@ -604,11 +499,6 @@
             {
               "name": "finagle-tunable_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-tunable_2.12/21.2.0/finagle-tunable_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-tunable_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-tunable_2.12/21.2.0/finagle-tunable_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -621,11 +511,6 @@
             {
               "name": "jackson-module-scala_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.12/2.11.2/jackson-module-scala_2.12-2.11.2.jar"
-            },
-            {
-              "name": "jackson-module-scala_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.12/2.11.2/jackson-module-scala_2.12-2.11.2-sources.jar"
             }
           ]
         },
@@ -638,11 +523,6 @@
             {
               "name": "scala-compiler",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar"
-            },
-            {
-              "name": "scala-compiler",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15-sources.jar"
             }
           ]
         },
@@ -655,11 +535,6 @@
             {
               "name": "netty-resolver",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-resolver",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.51.Final/netty-resolver-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -672,11 +547,6 @@
             {
               "name": "util-function_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.12/21.2.0/util-function_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-function_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-function_2.12/21.2.0/util-function_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -689,11 +559,6 @@
             {
               "name": "finagle-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-core_2.12/21.2.0/finagle-core_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-core_2.12/21.2.0/finagle-core_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -706,11 +571,6 @@
             {
               "name": "finatra-http-annotations_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http-annotations_2.12/21.2.0/finatra-http-annotations_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finatra-http-annotations_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http-annotations_2.12/21.2.0/finatra-http-annotations_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -723,11 +583,6 @@
             {
               "name": "inject-slf4j_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-slf4j_2.12/21.2.0/inject-slf4j_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-slf4j_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-slf4j_2.12/21.2.0/inject-slf4j_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -740,11 +595,6 @@
             {
               "name": "util-jvm_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.12/21.2.0/util-jvm_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-jvm_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-jvm_2.12/21.2.0/util-jvm_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -757,11 +607,6 @@
             {
               "name": "finatra-validation_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-validation_2.12/21.2.0/finatra-validation_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finatra-validation_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-validation_2.12/21.2.0/finatra-validation_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -780,11 +625,6 @@
               "name": "netty-transport-native-epoll",
               "classifier": "linux-x86_64",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-linux-x86_64.jar"
-            },
-            {
-              "name": "netty-transport-native-epoll",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.51.Final/netty-transport-native-epoll-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -797,11 +637,6 @@
             {
               "name": "javax.inject",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
-            },
-            {
-              "name": "javax.inject",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
             }
           ]
         },
@@ -814,11 +649,6 @@
             {
               "name": "inject-ports_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-ports_2.12/21.2.0/inject-ports_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-ports_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-ports_2.12/21.2.0/inject-ports_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -831,11 +661,6 @@
             {
               "name": "cats-effect-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0.jar"
-            },
-            {
-              "name": "cats-effect-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0-sources.jar"
             }
           ]
         },
@@ -848,11 +673,6 @@
             {
               "name": "guice",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.3/guice-4.2.3.jar"
-            },
-            {
-              "name": "guice",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/guice/4.2.3/guice-4.2.3-sources.jar"
             }
           ]
         },
@@ -865,11 +685,6 @@
             {
               "name": "jackson-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2.jar"
-            },
-            {
-              "name": "jackson-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.11.2/jackson-core-2.11.2-sources.jar"
             }
           ]
         },
@@ -882,11 +697,6 @@
             {
               "name": "scalap",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.12.15/scalap-2.12.15.jar"
-            },
-            {
-              "name": "scalap",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.12.15/scalap-2.12.15-sources.jar"
             }
           ]
         },
@@ -899,11 +709,6 @@
             {
               "name": "netty-codec-socks",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.51.Final/netty-codec-socks-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-codec-socks",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.51.Final/netty-codec-socks-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -916,11 +721,6 @@
             {
               "name": "checker-qual",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1.jar"
-            },
-            {
-              "name": "checker-qual",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1-sources.jar"
             }
           ]
         },
@@ -933,11 +733,6 @@
             {
               "name": "slf4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30-sources.jar"
             }
           ]
         },
@@ -950,11 +745,6 @@
             {
               "name": "util-security_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-security_2.12/21.2.0/util-security_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-security_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-security_2.12/21.2.0/util-security_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -967,11 +757,6 @@
             {
               "name": "json4s-ast_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.12/3.6.7/json4s-ast_2.12-3.6.7.jar"
-            },
-            {
-              "name": "json4s-ast_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.12/3.6.7/json4s-ast_2.12-3.6.7-sources.jar"
             }
           ]
         },
@@ -984,11 +769,6 @@
             {
               "name": "util-cache_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-cache_2.12/21.2.0/util-cache_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-cache_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-cache_2.12/21.2.0/util-cache_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1001,11 +781,6 @@
             {
               "name": "util-registry_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.12/21.2.0/util-registry_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-registry_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-registry_2.12/21.2.0/util-registry_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1018,11 +793,6 @@
             {
               "name": "util-slf4j-jul-bridge_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-jul-bridge_2.12/21.2.0/util-slf4j-jul-bridge_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-slf4j-jul-bridge_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-jul-bridge_2.12/21.2.0/util-slf4j-jul-bridge_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1035,11 +805,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },
@@ -1052,11 +817,6 @@
             {
               "name": "twitter-server_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/twitter-server_2.12/21.2.0/twitter-server_2.12-21.2.0.jar"
-            },
-            {
-              "name": "twitter-server_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/twitter-server_2.12/21.2.0/twitter-server_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1069,11 +829,6 @@
             {
               "name": "servlet-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5.jar"
-            },
-            {
-              "name": "servlet-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/servlet/servlet-api/2.5/servlet-api-2.5-sources.jar"
             }
           ]
         },
@@ -1086,11 +841,6 @@
             {
               "name": "netty-transport-native-unix-common",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-transport-native-unix-common",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.51.Final/netty-transport-native-unix-common-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -1103,11 +853,6 @@
             {
               "name": "scala-parser-combinators_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar"
-            },
-            {
-              "name": "scala-parser-combinators_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2-sources.jar"
             }
           ]
         },
@@ -1120,11 +865,6 @@
             {
               "name": "finagle-base-http_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-base-http_2.12/21.2.0/finagle-base-http_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-base-http_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-base-http_2.12/21.2.0/finagle-base-http_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1137,11 +877,6 @@
             {
               "name": "util-codec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.12/21.2.0/util-codec_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-codec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-codec_2.12/21.2.0/util-codec_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1154,11 +889,6 @@
             {
               "name": "jackson-annotations",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.11.2/jackson-annotations-2.11.2.jar"
-            },
-            {
-              "name": "jackson-annotations",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.11.2/jackson-annotations-2.11.2-sources.jar"
             }
           ]
         },
@@ -1171,11 +901,6 @@
             {
               "name": "inject-server_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-server_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.12/21.2.0/inject-server_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1188,11 +913,6 @@
             {
               "name": "commons-fileupload",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.4/commons-fileupload-1.4.jar"
-            },
-            {
-              "name": "commons-fileupload",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-fileupload/commons-fileupload/1.4/commons-fileupload-1.4-sources.jar"
             }
           ]
         },
@@ -1205,11 +925,6 @@
             {
               "name": "cats-effect_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0.jar"
-            },
-            {
-              "name": "cats-effect_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0-sources.jar"
             }
           ]
         },
@@ -1222,11 +937,6 @@
             {
               "name": "commons-io",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.2/commons-io-2.2.jar"
-            },
-            {
-              "name": "commons-io",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.2/commons-io-2.2-sources.jar"
             }
           ]
         },
@@ -1239,11 +949,6 @@
             {
               "name": "httpclient",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar"
-            },
-            {
-              "name": "httpclient",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13-sources.jar"
             }
           ]
         },
@@ -1256,11 +961,6 @@
             {
               "name": "netty-handler-proxy",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.51.Final/netty-handler-proxy-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-handler-proxy",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.51.Final/netty-handler-proxy-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -1273,11 +973,6 @@
             {
               "name": "caffeine",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar"
-            },
-            {
-              "name": "caffeine",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5-sources.jar"
             }
           ]
         },
@@ -1290,11 +985,6 @@
             {
               "name": "netty-tcnative-boringssl-static",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final.jar"
-            },
-            {
-              "name": "netty-tcnative-boringssl-static",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.34.Final/netty-tcnative-boringssl-static-2.0.34.Final-sources.jar"
             }
           ]
         },
@@ -1307,11 +997,6 @@
             {
               "name": "finatra-utils_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-utils_2.12/21.2.0/finatra-utils_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finatra-utils_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-utils_2.12/21.2.0/finatra-utils_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1324,11 +1009,6 @@
             {
               "name": "finagle-init_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-init_2.12/21.2.0/finagle-init_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-init_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-init_2.12/21.2.0/finagle-init_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1341,11 +1021,6 @@
             {
               "name": "inject-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.12/21.2.0/inject-core_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1358,11 +1033,6 @@
             {
               "name": "netty-handler",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-handler",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.51.Final/netty-handler-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -1375,11 +1045,6 @@
             {
               "name": "util-logging_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-logging_2.12/21.2.0/util-logging_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-logging_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-logging_2.12/21.2.0/util-logging_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1392,11 +1057,6 @@
             {
               "name": "inject-modules_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-modules_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.12/21.2.0/inject-modules_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1409,11 +1069,6 @@
             {
               "name": "netty-buffer",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.51.Final/netty-buffer-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-buffer",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.51.Final/netty-buffer-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -1426,11 +1081,6 @@
             {
               "name": "hamcrest-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            },
-            {
-              "name": "hamcrest-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar"
             }
           ]
         },
@@ -1443,11 +1093,6 @@
             {
               "name": "scala-guice_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/codingwell/scala-guice_2.12/4.2.11/scala-guice_2.12-4.2.11.jar"
-            },
-            {
-              "name": "scala-guice_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/codingwell/scala-guice_2.12/4.2.11/scala-guice_2.12-4.2.11-sources.jar"
             }
           ]
         },
@@ -1460,11 +1105,6 @@
             {
               "name": "util-tunable_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.12/21.2.0/util-tunable_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-tunable_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-tunable_2.12/21.2.0/util-tunable_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1477,11 +1117,6 @@
             {
               "name": "finagle-http2_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http2_2.12/21.2.0/finagle-http2_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-http2_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http2_2.12/21.2.0/finagle-http2_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1494,11 +1129,6 @@
             {
               "name": "activation",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1.jar"
-            },
-            {
-              "name": "activation",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/activation/activation/1.1.1/activation-1.1.1-sources.jar"
             }
           ]
         },
@@ -1511,11 +1141,6 @@
             {
               "name": "junit",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12.jar"
-            },
-            {
-              "name": "junit",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.12/junit-4.12-sources.jar"
             }
           ]
         },
@@ -1528,11 +1153,6 @@
             {
               "name": "util-routing_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-routing_2.12/21.2.0/util-routing_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-routing_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-routing_2.12/21.2.0/util-routing_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1545,11 +1165,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         },
@@ -1562,11 +1177,6 @@
             {
               "name": "jackson-module-paranamer",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.11.2/jackson-module-paranamer-2.11.2.jar"
-            },
-            {
-              "name": "jackson-module-paranamer",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.11.2/jackson-module-paranamer-2.11.2-sources.jar"
             }
           ]
         },
@@ -1579,11 +1189,6 @@
             {
               "name": "netty-common",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.51.Final/netty-common-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-common",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.51.Final/netty-common-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -1596,11 +1201,6 @@
             {
               "name": "jul-to-slf4j",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30.jar"
-            },
-            {
-              "name": "jul-to-slf4j",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30-sources.jar"
             }
           ]
         },
@@ -1613,11 +1213,6 @@
             {
               "name": "simulacrum-scalafix-annotations_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4-sources.jar"
             }
           ]
         },
@@ -1630,11 +1225,6 @@
             {
               "name": "guice-multibindings",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-multibindings/4.2.3/guice-multibindings-4.2.3.jar"
-            },
-            {
-              "name": "guice-multibindings",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-multibindings/4.2.3/guice-multibindings-4.2.3-sources.jar"
             }
           ]
         },
@@ -1647,11 +1237,6 @@
             {
               "name": "HdrHistogram",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.11/HdrHistogram-2.1.11.jar"
-            },
-            {
-              "name": "HdrHistogram",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.1.11/HdrHistogram-2.1.11-sources.jar"
             }
           ]
         },
@@ -1676,11 +1261,6 @@
             {
               "name": "guice-assistedinject",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/4.2.3/guice-assistedinject-4.2.3.jar"
-            },
-            {
-              "name": "guice-assistedinject",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/inject/extensions/guice-assistedinject/4.2.3/guice-assistedinject-4.2.3-sources.jar"
             }
           ]
         },
@@ -1693,11 +1273,6 @@
             {
               "name": "inject-utils_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-utils_2.12/21.2.0/inject-utils_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-utils_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-utils_2.12/21.2.0/inject-utils_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1710,11 +1285,6 @@
             {
               "name": "finagle-http_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http_2.12/21.2.0/finagle-http_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-http_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-http_2.12/21.2.0/finagle-http_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1727,11 +1297,6 @@
             {
               "name": "cats-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -1744,11 +1309,6 @@
             {
               "name": "j2objc-annotations",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar"
-            },
-            {
-              "name": "j2objc-annotations",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1-sources.jar"
             }
           ]
         },
@@ -1761,11 +1321,6 @@
             {
               "name": "cats-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -1778,11 +1333,6 @@
             {
               "name": "util-stats_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.12/21.2.0/util-stats_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-stats_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-stats_2.12/21.2.0/util-stats_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1795,11 +1345,6 @@
             {
               "name": "failureaccess",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
-            },
-            {
-              "name": "failureaccess",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1-sources.jar"
             }
           ]
         },
@@ -1812,11 +1357,6 @@
             {
               "name": "inject-app_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0.jar"
-            },
-            {
-              "name": "inject-app_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.12/21.2.0/inject-app_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1829,11 +1369,6 @@
             {
               "name": "finatra-http_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.12/21.2.0/finatra-http_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finatra-http_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.12/21.2.0/finatra-http_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1846,11 +1381,6 @@
             {
               "name": "ws_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
-            },
-            {
-              "name": "ws_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7-sources.jar"
             }
           ]
         },
@@ -1863,11 +1393,6 @@
             {
               "name": "animal-sniffer-annotations",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar"
-            },
-            {
-              "name": "animal-sniffer-annotations",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17-sources.jar"
             }
           ]
         },
@@ -1880,11 +1405,6 @@
             {
               "name": "httpmime",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13.jar"
-            },
-            {
-              "name": "httpmime",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.13/httpmime-4.5.13-sources.jar"
             }
           ]
         },
@@ -1897,11 +1417,6 @@
             {
               "name": "jackson-datatype-joda",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-joda/2.11.2/jackson-datatype-joda-2.11.2.jar"
-            },
-            {
-              "name": "jackson-datatype-joda",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-joda/2.11.2/jackson-datatype-joda-2.11.2-sources.jar"
             }
           ]
         },
@@ -1914,11 +1429,6 @@
             {
               "name": "util-app-lifecycle_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.12/21.2.0/util-app-lifecycle_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-app-lifecycle_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app-lifecycle_2.12/21.2.0/util-app-lifecycle_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1931,11 +1441,6 @@
             {
               "name": "util-slf4j-api_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-api_2.12/21.2.0/util-slf4j-api_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-slf4j-api_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-slf4j-api_2.12/21.2.0/util-slf4j-api_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -1948,11 +1453,6 @@
             {
               "name": "aopalliance",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0.jar"
-            },
-            {
-              "name": "aopalliance",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/aopalliance/aopalliance/1.0/aopalliance-1.0-sources.jar"
             }
           ]
         },
@@ -1965,11 +1465,6 @@
             {
               "name": "joda-time",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.8/joda-time-2.10.8.jar"
-            },
-            {
-              "name": "joda-time",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.8/joda-time-2.10.8-sources.jar"
             }
           ]
         },
@@ -1982,11 +1477,6 @@
             {
               "name": "jcl-over-slf4j",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar"
-            },
-            {
-              "name": "jcl-over-slf4j",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30-sources.jar"
             }
           ]
         },
@@ -1999,11 +1489,6 @@
             {
               "name": "scala-xml_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
-            },
-            {
-              "name": "scala-xml_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6-sources.jar"
             }
           ]
         },
@@ -2016,11 +1501,6 @@
             {
               "name": "httpcore",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar"
-            },
-            {
-              "name": "httpcore",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13-sources.jar"
             }
           ]
         },
@@ -2033,11 +1513,6 @@
             {
               "name": "error_prone_annotations",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0.jar"
-            },
-            {
-              "name": "error_prone_annotations",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0-sources.jar"
             }
           ]
         },
@@ -2050,11 +1525,6 @@
             {
               "name": "jaxb-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0.jar"
-            },
-            {
-              "name": "jaxb-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.0/jaxb-api-2.3.0-sources.jar"
             }
           ]
         },
@@ -2067,11 +1537,6 @@
             {
               "name": "netty-codec-http2",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.51.Final/netty-codec-http2-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-codec-http2",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.51.Final/netty-codec-http2-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -2084,11 +1549,6 @@
             {
               "name": "core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
-            },
-            {
-              "name": "core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7-sources.jar"
             }
           ]
         },
@@ -2101,11 +1561,6 @@
             {
               "name": "json4s-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.12/3.6.7/json4s-core_2.12-3.6.7.jar"
-            },
-            {
-              "name": "json4s-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.12/3.6.7/json4s-core_2.12-3.6.7-sources.jar"
             }
           ]
         },
@@ -2118,11 +1573,6 @@
             {
               "name": "paranamer",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar"
-            },
-            {
-              "name": "paranamer",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8-sources.jar"
             }
           ]
         },
@@ -2135,11 +1585,6 @@
             {
               "name": "libthrift",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/thrift/libthrift/0.10.0/libthrift-0.10.0.jar"
-            },
-            {
-              "name": "libthrift",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/thrift/libthrift/0.10.0/libthrift-0.10.0-sources.jar"
             }
           ]
         },
@@ -2152,11 +1597,6 @@
             {
               "name": "finatra-json-annotations_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-json-annotations_2.12/21.2.0/finatra-json-annotations_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finatra-json-annotations_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-json-annotations_2.12/21.2.0/finatra-json-annotations_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -2169,11 +1609,6 @@
             {
               "name": "util-lint_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.12/21.2.0/util-lint_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-lint_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-lint_2.12/21.2.0/util-lint_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -2186,11 +1621,6 @@
             {
               "name": "finagle-netty4-http_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4-http_2.12/21.2.0/finagle-netty4-http_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-netty4-http_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4-http_2.12/21.2.0/finagle-netty4-http_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -2203,11 +1633,6 @@
             {
               "name": "netty-codec-http",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.51.Final/netty-codec-http-4.1.51.Final.jar"
-            },
-            {
-              "name": "netty-codec-http",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.51.Final/netty-codec-http-4.1.51.Final-sources.jar"
             }
           ]
         },
@@ -2220,11 +1645,6 @@
             {
               "name": "json4s-scalap_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.12/3.6.7/json4s-scalap_2.12-3.6.7.jar"
-            },
-            {
-              "name": "json4s-scalap_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-scalap_2.12/3.6.7/json4s-scalap_2.12-3.6.7-sources.jar"
             }
           ]
         },
@@ -2237,11 +1657,6 @@
             {
               "name": "finagle-netty4_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4_2.12/21.2.0/finagle-netty4_2.12-21.2.0.jar"
-            },
-            {
-              "name": "finagle-netty4_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finagle-netty4_2.12/21.2.0/finagle-netty4_2.12-21.2.0-sources.jar"
             }
           ]
         },
@@ -2254,11 +1669,6 @@
             {
               "name": "util-app_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.12/21.2.0/util-app_2.12-21.2.0.jar"
-            },
-            {
-              "name": "util-app_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/util-app_2.12/21.2.0/util-app_2.12-21.2.0-sources.jar"
             }
           ]
         }

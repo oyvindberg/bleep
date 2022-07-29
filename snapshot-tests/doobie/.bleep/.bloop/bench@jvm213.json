@@ -151,11 +151,6 @@
             {
               "name": "literally_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2.jar"
-            },
-            {
-              "name": "literally_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.13/1.0.2/literally_2.13-1.0.2-sources.jar"
             }
           ]
         },
@@ -168,11 +163,6 @@
             {
               "name": "jopt-simple",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6.jar"
-            },
-            {
-              "name": "jopt-simple",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.6/jopt-simple-4.6-sources.jar"
             }
           ]
         },
@@ -185,11 +175,6 @@
             {
               "name": "scala-collection-compat_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.6.0/scala-collection-compat_2.13-2.6.0.jar"
-            },
-            {
-              "name": "scala-collection-compat_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.6.0/scala-collection-compat_2.13-2.6.0-sources.jar"
             }
           ]
         },
@@ -202,11 +187,6 @@
             {
               "name": "cats-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0.jar"
-            },
-            {
-              "name": "cats-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.7.0/cats-core_2.13-2.7.0-sources.jar"
             }
           ]
         },
@@ -219,11 +199,6 @@
             {
               "name": "cats-effect-std_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.5/cats-effect-std_2.13-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect-std_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.13/3.3.5/cats-effect-std_2.13-3.3.5-sources.jar"
             }
           ]
         },
@@ -236,11 +211,6 @@
             {
               "name": "cats-effect-kernel_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.5/cats-effect-kernel_2.13-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect-kernel_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.13/3.3.5/cats-effect-kernel_2.13-3.3.5-sources.jar"
             }
           ]
         },
@@ -253,11 +223,6 @@
             {
               "name": "jmh-generator-bytecode",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.32/jmh-generator-bytecode-1.32.jar"
-            },
-            {
-              "name": "jmh-generator-bytecode",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-bytecode/1.32/jmh-generator-bytecode-1.32-sources.jar"
             }
           ]
         },
@@ -270,11 +235,6 @@
             {
               "name": "shapeless_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
-            },
-            {
-              "name": "shapeless_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7-sources.jar"
             }
           ]
         },
@@ -287,11 +247,6 @@
             {
               "name": "ip4s-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.2/ip4s-core_2.13-3.1.2.jar"
-            },
-            {
-              "name": "ip4s-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.13/3.1.2/ip4s-core_2.13-3.1.2-sources.jar"
             }
           ]
         },
@@ -304,11 +259,6 @@
             {
               "name": "cats-effect_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.13/3.3.5/cats-effect_2.13-3.3.5-sources.jar"
             }
           ]
         },
@@ -321,11 +271,6 @@
             {
               "name": "typename_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.13/1.0.0/typename_2.13-1.0.0.jar"
-            },
-            {
-              "name": "typename_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.13/1.0.0/typename_2.13-1.0.0-sources.jar"
             }
           ]
         },
@@ -338,11 +283,6 @@
             {
               "name": "scodec-bits_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30.jar"
-            },
-            {
-              "name": "scodec-bits_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.13/1.1.30/scodec-bits_2.13-1.1.30-sources.jar"
             }
           ]
         },
@@ -355,11 +295,6 @@
             {
               "name": "commons-math3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2.jar"
-            },
-            {
-              "name": "commons-math3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-math3/3.2/commons-math3-3.2-sources.jar"
             }
           ]
         },
@@ -372,11 +307,6 @@
             {
               "name": "fs2-io_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.4/fs2-io_2.13-3.2.4.jar"
-            },
-            {
-              "name": "fs2-io_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.13/3.2.4/fs2-io_2.13-3.2.4-sources.jar"
             }
           ]
         },
@@ -389,11 +319,6 @@
             {
               "name": "asm",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.0/asm-9.0.jar"
-            },
-            {
-              "name": "asm",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/9.0/asm-9.0-sources.jar"
             }
           ]
         },
@@ -406,11 +331,6 @@
             {
               "name": "cats-free_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.7.0/cats-free_2.13-2.7.0.jar"
-            },
-            {
-              "name": "cats-free_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.13/2.7.0/cats-free_2.13-2.7.0-sources.jar"
             }
           ]
         },
@@ -423,11 +343,6 @@
             {
               "name": "checker-qual",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar"
-            },
-            {
-              "name": "checker-qual",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0-sources.jar"
             }
           ]
         },
@@ -440,11 +355,6 @@
             {
               "name": "jmh-generator-asm",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.32/jmh-generator-asm-1.32.jar"
-            },
-            {
-              "name": "jmh-generator-asm",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-asm/1.32/jmh-generator-asm-1.32-sources.jar"
             }
           ]
         },
@@ -457,11 +367,6 @@
             {
               "name": "cats-kernel_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.7.0/cats-kernel_2.13-2.7.0-sources.jar"
             }
           ]
         },
@@ -474,11 +379,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8-sources.jar"
             }
           ]
         },
@@ -491,11 +391,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8-sources.jar"
             }
           ]
         },
@@ -508,11 +403,6 @@
             {
               "name": "jmh-generator-reflection",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.32/jmh-generator-reflection-1.32.jar"
-            },
-            {
-              "name": "jmh-generator-reflection",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-generator-reflection/1.32/jmh-generator-reflection-1.32-sources.jar"
             }
           ]
         },
@@ -525,11 +415,6 @@
             {
               "name": "simulacrum-scalafix-annotations_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4-sources.jar"
             }
           ]
         },
@@ -542,11 +427,6 @@
             {
               "name": "postgresql",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.3.2/postgresql-42.3.2.jar"
-            },
-            {
-              "name": "postgresql",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.3.2/postgresql-42.3.2-sources.jar"
             }
           ]
         },
@@ -559,11 +439,6 @@
             {
               "name": "jmh-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.32/jmh-core-1.32.jar"
-            },
-            {
-              "name": "jmh-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.32/jmh-core-1.32-sources.jar"
             }
           ]
         },
@@ -576,11 +451,6 @@
             {
               "name": "fs2-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.4/fs2-core_2.13-3.2.4.jar"
-            },
-            {
-              "name": "fs2-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.13/3.2.4/fs2-core_2.13-3.2.4-sources.jar"
             }
           ]
         }

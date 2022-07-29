@@ -268,11 +268,6 @@
             {
               "name": "ip4s-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.2/ip4s-core_2.12-3.1.2.jar"
-            },
-            {
-              "name": "ip4s-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.2/ip4s-core_2.12-3.1.2-sources.jar"
             }
           ]
         },
@@ -285,11 +280,6 @@
             {
               "name": "case-insensitive_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.12/1.2.0/case-insensitive_2.12-1.2.0.jar"
-            },
-            {
-              "name": "case-insensitive_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_2.12/1.2.0/case-insensitive_2.12-1.2.0-sources.jar"
             }
           ]
         },
@@ -302,11 +292,6 @@
             {
               "name": "akka_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.12/1.2.7/akka_2.12-1.2.7.jar"
-            },
-            {
-              "name": "akka_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.12/1.2.7/akka_2.12-1.2.7-sources.jar"
             }
           ]
         },
@@ -319,11 +304,6 @@
             {
               "name": "circe-numbers_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.1/circe-numbers_2.12-0.14.1.jar"
-            },
-            {
-              "name": "circe-numbers_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.12/0.14.1/circe-numbers_2.12-0.14.1-sources.jar"
             }
           ]
         },
@@ -336,11 +316,6 @@
             {
               "name": "http4s-dsl_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-dsl_2.12/0.23.7/http4s-dsl_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-dsl_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-dsl_2.12/0.23.7/http4s-dsl_2.12-0.23.7-sources.jar"
             }
           ]
         },
@@ -353,11 +328,6 @@
             {
               "name": "core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
-            },
-            {
-              "name": "core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7-sources.jar"
             }
           ]
         },
@@ -370,11 +340,6 @@
             {
               "name": "scala-java8-compat_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2.jar"
-            },
-            {
-              "name": "scala-java8-compat_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2-sources.jar"
             }
           ]
         },
@@ -387,11 +352,6 @@
             {
               "name": "scalatest-diagrams_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-diagrams_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -404,11 +364,6 @@
             {
               "name": "shapeless_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7.jar"
-            },
-            {
-              "name": "shapeless_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7-sources.jar"
             }
           ]
         },
@@ -421,11 +376,6 @@
             {
               "name": "cats-effect-std_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0.jar"
-            },
-            {
-              "name": "cats-effect-std_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.0/cats-effect-std_2.12-3.3.0-sources.jar"
             }
           ]
         },
@@ -438,11 +388,6 @@
             {
               "name": "cats-parse_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_2.12/0.3.6/cats-parse_2.12-0.3.6.jar"
-            },
-            {
-              "name": "cats-parse_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_2.12/0.3.6/cats-parse_2.12-0.3.6-sources.jar"
             }
           ]
         },
@@ -455,11 +400,6 @@
             {
               "name": "circe-jawn_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.1/circe-jawn_2.12-0.14.1.jar"
-            },
-            {
-              "name": "circe-jawn_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.12/0.14.1/circe-jawn_2.12-0.14.1-sources.jar"
             }
           ]
         },
@@ -472,11 +412,6 @@
             {
               "name": "scalatest-matchers-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-matchers-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -489,11 +424,6 @@
             {
               "name": "scalatest-flatspec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-flatspec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -506,11 +436,6 @@
             {
               "name": "scalatest-shouldmatchers_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-shouldmatchers_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -523,11 +448,6 @@
             {
               "name": "scalatest-funspec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-funspec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -540,11 +460,6 @@
             {
               "name": "ssl-config-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.4.2/ssl-config-core_2.12-0.4.2.jar"
-            },
-            {
-              "name": "ssl-config-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.4.2/ssl-config-core_2.12-0.4.2-sources.jar"
             }
           ]
         },
@@ -557,11 +472,6 @@
             {
               "name": "scalatest-compatible",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-compatible",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10-sources.jar"
             }
           ]
         },
@@ -574,11 +484,6 @@
             {
               "name": "scalatest-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -591,11 +496,6 @@
             {
               "name": "jawn-parser_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.3.0/jawn-parser_2.12-1.3.0.jar"
-            },
-            {
-              "name": "jawn-parser_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.12/1.3.0/jawn-parser_2.12-1.3.0-sources.jar"
             }
           ]
         },
@@ -608,11 +508,6 @@
             {
               "name": "log4s_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.12/1.10.0/log4s_2.12-1.10.0.jar"
-            },
-            {
-              "name": "log4s_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/log4s/log4s_2.12/1.10.0/log4s_2.12-1.10.0-sources.jar"
             }
           ]
         },
@@ -625,11 +520,6 @@
             {
               "name": "play-ahc-ws-standalone_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ahc-ws-standalone_2.12/2.1.6/play-ahc-ws-standalone_2.12-2.1.6.jar"
-            },
-            {
-              "name": "play-ahc-ws-standalone_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ahc-ws-standalone_2.12/2.1.6/play-ahc-ws-standalone_2.12-2.1.6-sources.jar"
             }
           ]
         },
@@ -642,11 +532,6 @@
             {
               "name": "mercator_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
-            },
-            {
-              "name": "mercator_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1-sources.jar"
             }
           ]
         },
@@ -659,11 +544,6 @@
             {
               "name": "logback-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar"
-            },
-            {
-              "name": "logback-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7-sources.jar"
             }
           ]
         },
@@ -676,11 +556,6 @@
             {
               "name": "tagging_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.2/tagging_2.12-2.3.2.jar"
-            },
-            {
-              "name": "tagging_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/common/tagging_2.12/2.3.2/tagging_2.12-2.3.2-sources.jar"
             }
           ]
         },
@@ -693,11 +568,6 @@
             {
               "name": "reactive-streams",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
-            },
-            {
-              "name": "reactive-streams",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3-sources.jar"
             }
           ]
         },
@@ -710,11 +580,6 @@
             {
               "name": "core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
-            },
-            {
-              "name": "core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18-sources.jar"
             }
           ]
         },
@@ -727,11 +592,6 @@
             {
               "name": "akka-protobuf-v3_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.12/2.6.17/akka-protobuf-v3_2.12-2.6.17.jar"
-            },
-            {
-              "name": "akka-protobuf-v3_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.12/2.6.17/akka-protobuf-v3_2.12-2.6.17-sources.jar"
             }
           ]
         },
@@ -744,11 +604,6 @@
             {
               "name": "scalactic_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalactic_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -761,11 +616,6 @@
             {
               "name": "play-ws-standalone_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ws-standalone_2.12/2.1.6/play-ws-standalone_2.12-2.1.6.jar"
-            },
-            {
-              "name": "play-ws-standalone_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-ws-standalone_2.12/2.1.6/play-ws-standalone_2.12-2.1.6-sources.jar"
             }
           ]
         },
@@ -778,11 +628,6 @@
             {
               "name": "magnolia_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
-            },
-            {
-              "name": "magnolia_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0-sources.jar"
             }
           ]
         },
@@ -795,11 +640,6 @@
             {
               "name": "javax.inject",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
-            },
-            {
-              "name": "javax.inject",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
             }
           ]
         },
@@ -812,11 +652,6 @@
             {
               "name": "circe-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.1/circe-core_2.12-0.14.1.jar"
-            },
-            {
-              "name": "circe-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.12/0.14.1/circe-core_2.12-0.14.1-sources.jar"
             }
           ]
         },
@@ -829,11 +664,6 @@
             {
               "name": "cats-effect-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0.jar"
-            },
-            {
-              "name": "cats-effect-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.0/cats-effect-kernel_2.12-3.3.0-sources.jar"
             }
           ]
         },
@@ -846,11 +676,6 @@
             {
               "name": "scalatest-mustmatchers_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-mustmatchers_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -863,11 +688,6 @@
             {
               "name": "scalatest-wordspec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-wordspec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -880,11 +700,6 @@
             {
               "name": "akka-actor_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.12/2.6.17/akka-actor_2.12-2.6.17.jar"
-            },
-            {
-              "name": "akka-actor_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.12/2.6.17/akka-actor_2.12-2.6.17-sources.jar"
             }
           ]
         },
@@ -897,11 +712,6 @@
             {
               "name": "slf4j-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
-            },
-            {
-              "name": "slf4j-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32-sources.jar"
             }
           ]
         },
@@ -914,11 +724,6 @@
             {
               "name": "scala-logging_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4.jar"
-            },
-            {
-              "name": "scala-logging_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4-sources.jar"
             }
           ]
         },
@@ -931,11 +736,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },
@@ -948,11 +748,6 @@
             {
               "name": "circe-generic_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1.jar"
-            },
-            {
-              "name": "circe-generic_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.12/0.14.1/circe-generic_2.12-0.14.1-sources.jar"
             }
           ]
         },
@@ -965,11 +760,6 @@
             {
               "name": "scodec-bits_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.30/scodec-bits_2.12-1.1.30.jar"
-            },
-            {
-              "name": "scodec-bits_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.30/scodec-bits_2.12-1.1.30-sources.jar"
             }
           ]
         },
@@ -982,11 +772,6 @@
             {
               "name": "http4s-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-core_2.12/0.23.7/http4s-core_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-core_2.12/0.23.7/http4s-core_2.12-0.23.7-sources.jar"
             }
           ]
         },
@@ -999,11 +784,6 @@
             {
               "name": "circe-parser_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.1/circe-parser_2.12-0.14.1.jar"
-            },
-            {
-              "name": "circe-parser_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.12/0.14.1/circe-parser_2.12-0.14.1-sources.jar"
             }
           ]
         },
@@ -1016,11 +796,6 @@
             {
               "name": "scala-parser-combinators_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar"
-            },
-            {
-              "name": "scala-parser-combinators_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2-sources.jar"
             }
           ]
         },
@@ -1033,11 +808,6 @@
             {
               "name": "hpack",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2.jar"
-            },
-            {
-              "name": "hpack",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/hpack/1.0.2/hpack-1.0.2-sources.jar"
             }
           ]
         },
@@ -1050,11 +820,6 @@
             {
               "name": "cats-effect_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0.jar"
-            },
-            {
-              "name": "cats-effect_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.0/cats-effect_2.12-3.3.0-sources.jar"
             }
           ]
         },
@@ -1067,11 +832,6 @@
             {
               "name": "logback-classic",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar"
-            },
-            {
-              "name": "logback-classic",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7-sources.jar"
             }
           ]
         },
@@ -1084,11 +844,6 @@
             {
               "name": "http4s-jawn_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-jawn_2.12/0.23.7/http4s-jawn_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-jawn_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-jawn_2.12/0.23.7/http4s-jawn_2.12-0.23.7-sources.jar"
             }
           ]
         },
@@ -1101,11 +856,6 @@
             {
               "name": "shaded-asynchttpclient",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-asynchttpclient/2.1.6/shaded-asynchttpclient-2.1.6.jar"
-            },
-            {
-              "name": "shaded-asynchttpclient",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-asynchttpclient/2.1.6/shaded-asynchttpclient-2.1.6-sources.jar"
             }
           ]
         },
@@ -1118,11 +868,6 @@
             {
               "name": "blaze-http_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-http_2.12/0.15.2/blaze-http_2.12-0.15.2.jar"
-            },
-            {
-              "name": "blaze-http_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-http_2.12/0.15.2/blaze-http_2.12-0.15.2-sources.jar"
             }
           ]
         },
@@ -1135,11 +880,6 @@
             {
               "name": "scalatest_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -1152,11 +892,6 @@
             {
               "name": "scalatest-freespec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-freespec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -1169,11 +904,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         },
@@ -1186,11 +916,6 @@
             {
               "name": "cachecontrol_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/cachecontrol_2.12/2.0.0/cachecontrol_2.12-2.0.0.jar"
-            },
-            {
-              "name": "cachecontrol_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/cachecontrol_2.12/2.0.0/cachecontrol_2.12-2.0.0-sources.jar"
             }
           ]
         },
@@ -1203,11 +928,6 @@
             {
               "name": "http4s-server_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-server_2.12/0.23.7/http4s-server_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-server_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-server_2.12/0.23.7/http4s-server_2.12-0.23.7-sources.jar"
             }
           ]
         },
@@ -1220,11 +940,6 @@
             {
               "name": "http4s-blaze-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-core_2.12/0.23.7/http4s-blaze-core_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-blaze-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-core_2.12/0.23.7/http4s-blaze-core_2.12-0.23.7-sources.jar"
             }
           ]
         },
@@ -1237,11 +952,6 @@
             {
               "name": "fs2-io_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.3/fs2-io_2.12-3.2.3.jar"
-            },
-            {
-              "name": "fs2-io_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.3/fs2-io_2.12-3.2.3-sources.jar"
             }
           ]
         },
@@ -1254,11 +964,6 @@
             {
               "name": "http4s-crypto_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.12/0.2.0/http4s-crypto_2.12-0.2.0.jar"
-            },
-            {
-              "name": "http4s-crypto_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_2.12/0.2.0/http4s-crypto_2.12-0.2.0-sources.jar"
             }
           ]
         },
@@ -1271,11 +976,6 @@
             {
               "name": "simulacrum-scalafix-annotations_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4-sources.jar"
             }
           ]
         },
@@ -1288,11 +988,6 @@
             {
               "name": "akka-stream_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.12/2.6.17/akka-stream_2.12-2.6.17.jar"
-            },
-            {
-              "name": "akka-stream_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.12/2.6.17/akka-stream_2.12-2.6.17-sources.jar"
             }
           ]
         },
@@ -1305,11 +1000,6 @@
             {
               "name": "cats-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -1322,11 +1012,6 @@
             {
               "name": "cats-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -1339,11 +1024,6 @@
             {
               "name": "vault_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.12/3.1.0/vault_2.12-3.1.0.jar"
-            },
-            {
-              "name": "vault_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.12/3.1.0/vault_2.12-3.1.0-sources.jar"
             }
           ]
         },
@@ -1356,11 +1036,6 @@
             {
               "name": "scalatest-featurespec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-featurespec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -1373,11 +1048,6 @@
             {
               "name": "ws_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
-            },
-            {
-              "name": "ws_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7-sources.jar"
             }
           ]
         },
@@ -1390,11 +1060,6 @@
             {
               "name": "blaze-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-core_2.12/0.15.2/blaze-core_2.12-0.15.2.jar"
-            },
-            {
-              "name": "blaze-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/blaze-core_2.12/0.15.2/blaze-core_2.12-0.15.2-sources.jar"
             }
           ]
         },
@@ -1407,11 +1072,6 @@
             {
               "name": "http4s-circe_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-circe_2.12/0.23.7/http4s-circe_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-circe_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-circe_2.12/0.23.7/http4s-circe_2.12-0.23.7-sources.jar"
             }
           ]
         },
@@ -1424,11 +1084,6 @@
             {
               "name": "literally_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar"
-            },
-            {
-              "name": "literally_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2-sources.jar"
             }
           ]
         },
@@ -1441,11 +1096,6 @@
             {
               "name": "shaded-oauth",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-oauth/2.1.6/shaded-oauth-2.1.6.jar"
-            },
-            {
-              "name": "shaded-oauth",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/shaded-oauth/2.1.6/shaded-oauth-2.1.6-sources.jar"
             }
           ]
         },
@@ -1458,11 +1108,6 @@
             {
               "name": "config",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar"
-            },
-            {
-              "name": "config",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0-sources.jar"
             }
           ]
         },
@@ -1475,11 +1120,6 @@
             {
               "name": "fs2-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.3/fs2-core_2.12-3.2.3.jar"
-            },
-            {
-              "name": "fs2-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.3/fs2-core_2.12-3.2.3-sources.jar"
             }
           ]
         },
@@ -1492,11 +1132,6 @@
             {
               "name": "scala-xml_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar"
-            },
-            {
-              "name": "scala-xml_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0-sources.jar"
             }
           ]
         },
@@ -1509,11 +1144,6 @@
             {
               "name": "scalatest-propspec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-propspec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -1526,11 +1156,6 @@
             {
               "name": "jawn-fs2_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.12/2.1.0/jawn-fs2_2.12-2.1.0.jar"
-            },
-            {
-              "name": "jawn-fs2_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-fs2_2.12/2.1.0/jawn-fs2_2.12-2.1.0-sources.jar"
             }
           ]
         },
@@ -1543,11 +1168,6 @@
             {
               "name": "scalatest-refspec_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-refspec_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -1560,11 +1180,6 @@
             {
               "name": "scalatest-funsuite_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10.jar"
-            },
-            {
-              "name": "scalatest-funsuite_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10-sources.jar"
             }
           ]
         },
@@ -1577,11 +1192,6 @@
             {
               "name": "http4s-blaze-server_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-server_2.12/0.23.7/http4s-blaze-server_2.12-0.23.7.jar"
-            },
-            {
-              "name": "http4s-blaze-server_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-blaze-server_2.12/0.23.7/http4s-blaze-server_2.12-0.23.7-sources.jar"
             }
           ]
         }

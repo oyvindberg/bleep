@@ -178,11 +178,6 @@
             {
               "name": "sbt",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.3.3/sbt-1.3.3.jar"
-            },
-            {
-              "name": "sbt",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.3.3/sbt-1.3.3-sources.jar"
             }
           ]
         },
@@ -195,11 +190,6 @@
             {
               "name": "jsoniter-scala-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
-            },
-            {
-              "name": "jsoniter-scala-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0-sources.jar"
             }
           ]
         },
@@ -212,11 +202,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         }

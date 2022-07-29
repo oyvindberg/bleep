@@ -112,11 +112,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar"
-            },
-            {
-              "name": "scala3-library_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0-sources.jar"
             }
           ]
         },
@@ -129,11 +124,6 @@
             {
               "name": "circe-generic_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.1/circe-generic_3-0.14.1.jar"
-            },
-            {
-              "name": "circe-generic_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.1/circe-generic_3-0.14.1-sources.jar"
             }
           ]
         },
@@ -146,11 +136,6 @@
             {
               "name": "jawn-parser_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.1.2/jawn-parser_3-1.1.2.jar"
-            },
-            {
-              "name": "jawn-parser_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.1.2/jawn-parser_3-1.1.2-sources.jar"
             }
           ]
         },
@@ -163,11 +148,6 @@
             {
               "name": "cats-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.6.1/cats-core_3-2.6.1.jar"
-            },
-            {
-              "name": "cats-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.6.1/cats-core_3-2.6.1-sources.jar"
             }
           ]
         },
@@ -180,11 +160,6 @@
             {
               "name": "simulacrum-scalafix-annotations_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4-sources.jar"
             }
           ]
         },
@@ -197,11 +172,6 @@
             {
               "name": "circe-parser_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.1/circe-parser_3-0.14.1.jar"
-            },
-            {
-              "name": "circe-parser_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.1/circe-parser_3-0.14.1-sources.jar"
             }
           ]
         },
@@ -214,11 +184,6 @@
             {
               "name": "circe-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.1/circe-core_3-0.14.1.jar"
-            },
-            {
-              "name": "circe-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.1/circe-core_3-0.14.1-sources.jar"
             }
           ]
         },
@@ -231,11 +196,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -248,11 +208,6 @@
             {
               "name": "cats-kernel_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.6.1/cats-kernel_3-2.6.1.jar"
-            },
-            {
-              "name": "cats-kernel_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.6.1/cats-kernel_3-2.6.1-sources.jar"
             }
           ]
         },
@@ -265,11 +220,6 @@
             {
               "name": "circe-jawn_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.1/circe-jawn_3-0.14.1.jar"
-            },
-            {
-              "name": "circe-jawn_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.1/circe-jawn_3-0.14.1-sources.jar"
             }
           ]
         },
@@ -282,11 +232,6 @@
             {
               "name": "circe-numbers_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.1/circe-numbers_3-0.14.1.jar"
-            },
-            {
-              "name": "circe-numbers_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.1/circe-numbers_3-0.14.1-sources.jar"
             }
           ]
         }

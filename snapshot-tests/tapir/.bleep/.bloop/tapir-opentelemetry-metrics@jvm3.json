@@ -112,11 +112,6 @@
             {
               "name": "magnolia_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.0.0-M7/magnolia_3-1.0.0-M7.jar"
-            },
-            {
-              "name": "magnolia_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.0.0-M7/magnolia_3-1.0.0-M7-sources.jar"
             }
           ]
         },
@@ -129,11 +124,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar"
-            },
-            {
-              "name": "scala3-library_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0-sources.jar"
             }
           ]
         },
@@ -146,11 +136,6 @@
             {
               "name": "opentelemetry-api-metrics",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-metrics/1.9.1-alpha/opentelemetry-api-metrics-1.9.1-alpha.jar"
-            },
-            {
-              "name": "opentelemetry-api-metrics",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-metrics/1.9.1-alpha/opentelemetry-api-metrics-1.9.1-alpha-sources.jar"
             }
           ]
         },
@@ -163,11 +148,6 @@
             {
               "name": "core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.2.7/core_3-1.2.7.jar"
-            },
-            {
-              "name": "core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.2.7/core_3-1.2.7-sources.jar"
             }
           ]
         },
@@ -180,11 +160,6 @@
             {
               "name": "opentelemetry-api",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.9.1/opentelemetry-api-1.9.1.jar"
-            },
-            {
-              "name": "opentelemetry-api",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.9.1/opentelemetry-api-1.9.1-sources.jar"
             }
           ]
         },
@@ -197,11 +172,6 @@
             {
               "name": "core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.4.18/core_3-1.4.18.jar"
-            },
-            {
-              "name": "core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.4.18/core_3-1.4.18-sources.jar"
             }
           ]
         },
@@ -214,11 +184,6 @@
             {
               "name": "ws_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.2.7/ws_3-1.2.7.jar"
-            },
-            {
-              "name": "ws_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.2.7/ws_3-1.2.7-sources.jar"
             }
           ]
         },
@@ -231,11 +196,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -248,11 +208,6 @@
             {
               "name": "opentelemetry-sdk-common",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.9.1/opentelemetry-sdk-common-1.9.1.jar"
-            },
-            {
-              "name": "opentelemetry-sdk-common",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.9.1/opentelemetry-sdk-common-1.9.1-sources.jar"
             }
           ]
         },
@@ -265,11 +220,6 @@
             {
               "name": "opentelemetry-context",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.9.1/opentelemetry-context-1.9.1.jar"
-            },
-            {
-              "name": "opentelemetry-context",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.9.1/opentelemetry-context-1.9.1-sources.jar"
             }
           ]
         },
@@ -282,11 +232,6 @@
             {
               "name": "opentelemetry-sdk-trace",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.9.1/opentelemetry-sdk-trace-1.9.1.jar"
-            },
-            {
-              "name": "opentelemetry-sdk-trace",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.9.1/opentelemetry-sdk-trace-1.9.1-sources.jar"
             }
           ]
         },
@@ -299,11 +244,6 @@
             {
               "name": "opentelemetry-sdk",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.9.1/opentelemetry-sdk-1.9.1.jar"
-            },
-            {
-              "name": "opentelemetry-sdk",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.9.1/opentelemetry-sdk-1.9.1-sources.jar"
             }
           ]
         },
@@ -316,11 +256,6 @@
             {
               "name": "opentelemetry-semconv",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.9.1-alpha/opentelemetry-semconv-1.9.1-alpha.jar"
-            },
-            {
-              "name": "opentelemetry-semconv",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.9.1-alpha/opentelemetry-semconv-1.9.1-alpha-sources.jar"
             }
           ]
         }

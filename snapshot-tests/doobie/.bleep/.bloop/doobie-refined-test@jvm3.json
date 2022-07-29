@@ -182,11 +182,6 @@
             {
               "name": "scala-xml_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.0.1/scala-xml_3-2.0.1.jar"
-            },
-            {
-              "name": "scala-xml_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.0.1/scala-xml_3-2.0.1-sources.jar"
             }
           ]
         },
@@ -199,11 +194,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar"
-            },
-            {
-              "name": "scala3-library_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1-sources.jar"
             }
           ]
         },
@@ -216,11 +206,6 @@
             {
               "name": "cats-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.7.0/cats-core_3-2.7.0.jar"
-            },
-            {
-              "name": "cats-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.7.0/cats-core_3-2.7.0-sources.jar"
             }
           ]
         },
@@ -233,11 +218,6 @@
             {
               "name": "simulacrum-scalafix-annotations_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4-sources.jar"
             }
           ]
         },
@@ -250,11 +230,6 @@
             {
               "name": "fs2-core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.2.4/fs2-core_3-3.2.4.jar"
-            },
-            {
-              "name": "fs2-core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_3/3.2.4/fs2-core_3-3.2.4-sources.jar"
             }
           ]
         },
@@ -267,11 +242,6 @@
             {
               "name": "scala-collection-compat_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.6.0/scala-collection-compat_3-2.6.0.jar"
-            },
-            {
-              "name": "scala-collection-compat_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.6.0/scala-collection-compat_3-2.6.0-sources.jar"
             }
           ]
         },
@@ -284,11 +254,6 @@
             {
               "name": "scodec-bits_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.30/scodec-bits_3-1.1.30.jar"
-            },
-            {
-              "name": "scodec-bits_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.30/scodec-bits_3-1.1.30-sources.jar"
             }
           ]
         },
@@ -301,11 +266,6 @@
             {
               "name": "munit-cats-effect-3_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect-3_3/1.0.7/munit-cats-effect-3_3-1.0.7.jar"
-            },
-            {
-              "name": "munit-cats-effect-3_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect-3_3/1.0.7/munit-cats-effect-3_3-1.0.7-sources.jar"
             }
           ]
         },
@@ -318,11 +278,6 @@
             {
               "name": "hamcrest-core",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
-            },
-            {
-              "name": "hamcrest-core",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3-sources.jar"
             }
           ]
         },
@@ -335,11 +290,6 @@
             {
               "name": "munit_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/0.7.29/munit_3-0.7.29.jar"
-            },
-            {
-              "name": "munit_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_3/0.7.29/munit_3-0.7.29-sources.jar"
             }
           ]
         },
@@ -352,11 +302,6 @@
             {
               "name": "test-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            },
-            {
-              "name": "test-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar"
             }
           ]
         },
@@ -369,11 +314,6 @@
             {
               "name": "junit-interface",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/0.7.29/junit-interface-0.7.29.jar"
-            },
-            {
-              "name": "junit-interface",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/0.7.29/junit-interface-0.7.29-sources.jar"
             }
           ]
         },
@@ -386,11 +326,6 @@
             {
               "name": "refined_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_3/0.9.28/refined_3-0.9.28.jar"
-            },
-            {
-              "name": "refined_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_3/0.9.28/refined_3-0.9.28-sources.jar"
             }
           ]
         },
@@ -403,11 +338,6 @@
             {
               "name": "cats-effect-kernel_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.3.5/cats-effect-kernel_3-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect-kernel_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_3/3.3.5/cats-effect-kernel_3-3.3.5-sources.jar"
             }
           ]
         },
@@ -420,11 +350,6 @@
             {
               "name": "typename_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_3/1.0.0/typename_3-1.0.0.jar"
-            },
-            {
-              "name": "typename_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_3/1.0.0/typename_3-1.0.0-sources.jar"
             }
           ]
         },
@@ -437,11 +362,6 @@
             {
               "name": "cats-free_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.7.0/cats-free_3-2.7.0.jar"
-            },
-            {
-              "name": "cats-free_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_3/2.7.0/cats-free_3-2.7.0-sources.jar"
             }
           ]
         },
@@ -454,11 +374,6 @@
             {
               "name": "scalacheck-effect-munit_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/1.0.3/scalacheck-effect-munit_3-1.0.3.jar"
-            },
-            {
-              "name": "scalacheck-effect-munit_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_3/1.0.3/scalacheck-effect-munit_3-1.0.3-sources.jar"
             }
           ]
         },
@@ -471,11 +386,6 @@
             {
               "name": "scalacheck-effect_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/1.0.3/scalacheck-effect_3-1.0.3.jar"
-            },
-            {
-              "name": "scalacheck-effect_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/1.0.3/scalacheck-effect_3-1.0.3-sources.jar"
             }
           ]
         },
@@ -488,11 +398,6 @@
             {
               "name": "junit",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
-            },
-            {
-              "name": "junit",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2-sources.jar"
             }
           ]
         },
@@ -505,11 +410,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -522,11 +422,6 @@
             {
               "name": "cats-kernel_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.7.0/cats-kernel_3-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.7.0/cats-kernel_3-2.7.0-sources.jar"
             }
           ]
         },
@@ -539,11 +434,6 @@
             {
               "name": "cats-effect-std_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.3.5/cats-effect-std_3-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect-std_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_3/3.3.5/cats-effect-std_3-3.3.5-sources.jar"
             }
           ]
         },
@@ -556,11 +446,6 @@
             {
               "name": "scalacheck_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.15.4/scalacheck_3-1.15.4.jar"
-            },
-            {
-              "name": "scalacheck_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_3/1.15.4/scalacheck_3-1.15.4-sources.jar"
             }
           ]
         },
@@ -573,11 +458,6 @@
             {
               "name": "cats-effect_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.3.5/cats-effect_3-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_3/3.3.5/cats-effect_3-3.3.5-sources.jar"
             }
           ]
         },
@@ -590,11 +470,6 @@
             {
               "name": "h2",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/1.4.200/h2-1.4.200.jar"
-            },
-            {
-              "name": "h2",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/1.4.200/h2-1.4.200-sources.jar"
             }
           ]
         },
@@ -607,11 +482,6 @@
             {
               "name": "shapeless_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
-            },
-            {
-              "name": "shapeless_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7-sources.jar"
             }
           ]
         },
@@ -624,11 +494,6 @@
             {
               "name": "munit-scalacheck_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/0.7.29/munit-scalacheck_3-0.7.29.jar"
-            },
-            {
-              "name": "munit-scalacheck_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_3/0.7.29/munit-scalacheck_3-0.7.29-sources.jar"
             }
           ]
         }

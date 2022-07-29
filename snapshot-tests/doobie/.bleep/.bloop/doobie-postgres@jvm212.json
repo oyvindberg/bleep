@@ -144,11 +144,6 @@
             {
               "name": "shapeless_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7.jar"
-            },
-            {
-              "name": "shapeless_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.7/shapeless_2.12-2.3.7-sources.jar"
             }
           ]
         },
@@ -161,11 +156,6 @@
             {
               "name": "cats-effect-std_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.5/cats-effect-std_2.12-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect-std_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.3.5/cats-effect-std_2.12-3.3.5-sources.jar"
             }
           ]
         },
@@ -178,11 +168,6 @@
             {
               "name": "scala-collection-compat_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.6.0/scala-collection-compat_2.12-2.6.0.jar"
-            },
-            {
-              "name": "scala-collection-compat_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.6.0/scala-collection-compat_2.12-2.6.0-sources.jar"
             }
           ]
         },
@@ -195,11 +180,6 @@
             {
               "name": "ip4s-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.2/ip4s-core_2.12-3.1.2.jar"
-            },
-            {
-              "name": "ip4s-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.1.2/ip4s-core_2.12-3.1.2-sources.jar"
             }
           ]
         },
@@ -212,11 +192,6 @@
             {
               "name": "typename_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.12/1.0.0/typename_2.12-1.0.0.jar"
-            },
-            {
-              "name": "typename_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tpolecat/typename_2.12/1.0.0/typename_2.12-1.0.0-sources.jar"
             }
           ]
         },
@@ -229,11 +204,6 @@
             {
               "name": "cats-free_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.12/2.7.0/cats-free_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-free_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.12/2.7.0/cats-free_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -246,11 +216,6 @@
             {
               "name": "cats-effect-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.5/cats-effect-kernel_2.12-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.3.5/cats-effect-kernel_2.12-3.3.5-sources.jar"
             }
           ]
         },
@@ -263,11 +228,6 @@
             {
               "name": "checker-qual",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar"
-            },
-            {
-              "name": "checker-qual",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0-sources.jar"
             }
           ]
         },
@@ -280,11 +240,6 @@
             {
               "name": "scodec-bits_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.30/scodec-bits_2.12-1.1.30.jar"
-            },
-            {
-              "name": "scodec-bits_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.30/scodec-bits_2.12-1.1.30-sources.jar"
             }
           ]
         },
@@ -297,11 +252,6 @@
             {
               "name": "cats-effect_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.5/cats-effect_2.12-3.3.5.jar"
-            },
-            {
-              "name": "cats-effect_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.3.5/cats-effect_2.12-3.3.5-sources.jar"
             }
           ]
         },
@@ -314,11 +264,6 @@
             {
               "name": "simulacrum-scalafix-annotations_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4-sources.jar"
             }
           ]
         },
@@ -331,11 +276,6 @@
             {
               "name": "cats-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.7.0/cats-core_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -348,11 +288,6 @@
             {
               "name": "cats-kernel_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0.jar"
-            },
-            {
-              "name": "cats-kernel_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0-sources.jar"
             }
           ]
         },
@@ -365,11 +300,6 @@
             {
               "name": "literally_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar"
-            },
-            {
-              "name": "literally_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2-sources.jar"
             }
           ]
         },
@@ -382,11 +312,6 @@
             {
               "name": "fs2-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.4/fs2-core_2.12-3.2.4.jar"
-            },
-            {
-              "name": "fs2-core_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.2.4/fs2-core_2.12-3.2.4-sources.jar"
             }
           ]
         },
@@ -399,11 +324,6 @@
             {
               "name": "postgresql",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.3.2/postgresql-42.3.2.jar"
-            },
-            {
-              "name": "postgresql",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.3.2/postgresql-42.3.2-sources.jar"
             }
           ]
         },
@@ -416,11 +336,6 @@
             {
               "name": "postgis-jdbc",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2.5.1/postgis-jdbc-2.5.1.jar"
-            },
-            {
-              "name": "postgis-jdbc",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/postgis/postgis-jdbc/2.5.1/postgis-jdbc-2.5.1-sources.jar"
             }
           ]
         },
@@ -433,11 +348,6 @@
             {
               "name": "scala-reflect",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
-            },
-            {
-              "name": "scala-reflect",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15-sources.jar"
             }
           ]
         },
@@ -450,11 +360,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15-sources.jar"
             }
           ]
         },
@@ -467,11 +372,6 @@
             {
               "name": "fs2-io_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.4/fs2-io_2.12-3.2.4.jar"
-            },
-            {
-              "name": "fs2-io_2.12",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.2.4/fs2-io_2.12-3.2.4-sources.jar"
             }
           ]
         }

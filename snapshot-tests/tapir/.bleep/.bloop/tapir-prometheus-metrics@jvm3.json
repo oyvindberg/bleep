@@ -110,11 +110,6 @@
             {
               "name": "magnolia_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.0.0-M7/magnolia_3-1.0.0-M7.jar"
-            },
-            {
-              "name": "magnolia_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_3/1.0.0-M7/magnolia_3-1.0.0-M7-sources.jar"
             }
           ]
         },
@@ -127,11 +122,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar"
-            },
-            {
-              "name": "scala3-library_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0-sources.jar"
             }
           ]
         },
@@ -144,11 +134,6 @@
             {
               "name": "simpleclient",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.12.0/simpleclient-0.12.0.jar"
-            },
-            {
-              "name": "simpleclient",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.12.0/simpleclient-0.12.0-sources.jar"
             }
           ]
         },
@@ -161,11 +146,6 @@
             {
               "name": "core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.2.7/core_3-1.2.7.jar"
-            },
-            {
-              "name": "core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_3/1.2.7/core_3-1.2.7-sources.jar"
             }
           ]
         },
@@ -178,11 +158,6 @@
             {
               "name": "core_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.4.18/core_3-1.4.18.jar"
-            },
-            {
-              "name": "core_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_3/1.4.18/core_3-1.4.18-sources.jar"
             }
           ]
         },
@@ -195,11 +170,6 @@
             {
               "name": "ws_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.2.7/ws_3-1.2.7.jar"
-            },
-            {
-              "name": "ws_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_3/1.2.7/ws_3-1.2.7-sources.jar"
             }
           ]
         },
@@ -212,11 +182,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -229,11 +194,6 @@
             {
               "name": "simpleclient_tracer_otel",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.12.0/simpleclient_tracer_otel-0.12.0.jar"
-            },
-            {
-              "name": "simpleclient_tracer_otel",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.12.0/simpleclient_tracer_otel-0.12.0-sources.jar"
             }
           ]
         },
@@ -246,11 +206,6 @@
             {
               "name": "simpleclient_tracer_otel_agent",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.12.0/simpleclient_tracer_otel_agent-0.12.0.jar"
-            },
-            {
-              "name": "simpleclient_tracer_otel_agent",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.12.0/simpleclient_tracer_otel_agent-0.12.0-sources.jar"
             }
           ]
         },
@@ -263,11 +218,6 @@
             {
               "name": "simpleclient_tracer_common",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.12.0/simpleclient_tracer_common-0.12.0.jar"
-            },
-            {
-              "name": "simpleclient_tracer_common",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.12.0/simpleclient_tracer_common-0.12.0-sources.jar"
             }
           ]
         },
@@ -280,11 +230,6 @@
             {
               "name": "simpleclient_common",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.12.0/simpleclient_common-0.12.0.jar"
-            },
-            {
-              "name": "simpleclient_common",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.12.0/simpleclient_common-0.12.0-sources.jar"
             }
           ]
         }

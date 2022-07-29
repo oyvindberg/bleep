@@ -143,11 +143,6 @@
             {
               "name": "circe-parser_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1.jar"
-            },
-            {
-              "name": "circe-parser_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.1/circe-parser_2.13-0.14.1-sources.jar"
             }
           ]
         },
@@ -160,11 +155,6 @@
             {
               "name": "snakeyaml",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28.jar"
-            },
-            {
-              "name": "snakeyaml",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.28/snakeyaml-1.28-sources.jar"
             }
           ]
         },
@@ -177,11 +167,6 @@
             {
               "name": "cats-kernel_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1.jar"
-            },
-            {
-              "name": "cats-kernel_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.6.1/cats-kernel_2.13-2.6.1-sources.jar"
             }
           ]
         },
@@ -194,11 +179,6 @@
             {
               "name": "cats-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1.jar"
-            },
-            {
-              "name": "cats-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.6.1/cats-core_2.13-2.6.1-sources.jar"
             }
           ]
         },
@@ -211,11 +191,6 @@
             {
               "name": "circe-yaml_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.1/circe-yaml_2.13-0.14.1.jar"
-            },
-            {
-              "name": "circe-yaml_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.1/circe-yaml_2.13-0.14.1-sources.jar"
             }
           ]
         },
@@ -228,11 +203,6 @@
             {
               "name": "circe-generic_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1.jar"
-            },
-            {
-              "name": "circe-generic_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.1/circe-generic_2.13-0.14.1-sources.jar"
             }
           ]
         },
@@ -245,11 +215,6 @@
             {
               "name": "circe-core_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1.jar"
-            },
-            {
-              "name": "circe-core_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.1/circe-core_2.13-0.14.1-sources.jar"
             }
           ]
         },
@@ -262,11 +227,6 @@
             {
               "name": "simulacrum-scalafix-annotations_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar"
-            },
-            {
-              "name": "simulacrum-scalafix-annotations_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4-sources.jar"
             }
           ]
         },
@@ -279,11 +239,6 @@
             {
               "name": "circe-numbers_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1.jar"
-            },
-            {
-              "name": "circe-numbers_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.1/circe-numbers_2.13-0.14.1-sources.jar"
             }
           ]
         },
@@ -296,11 +251,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
-            },
-            {
-              "name": "scala-library",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
             }
           ]
         },
@@ -313,11 +263,6 @@
             {
               "name": "jawn-parser_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2.jar"
-            },
-            {
-              "name": "jawn-parser_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.1.2/jawn-parser_2.13-1.1.2-sources.jar"
             }
           ]
         },
@@ -330,11 +275,6 @@
             {
               "name": "circe-jawn_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1.jar"
-            },
-            {
-              "name": "circe-jawn_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.1/circe-jawn_2.13-0.14.1-sources.jar"
             }
           ]
         },
@@ -347,11 +287,6 @@
             {
               "name": "shapeless_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
-            },
-            {
-              "name": "shapeless_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7-sources.jar"
             }
           ]
         }
