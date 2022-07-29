@@ -7,10 +7,10 @@ import nosbt.InteractionService
 
 import scala.collection.immutable.SortedMap
 
-object Publish extends App {
+object Publish extends BleepScriptRunner("Publish") {
   val groupId = "build.bleep"
 
-  bootstrap.forScript("Publish") { (started, commands) =>
+  def runScript(started: Started, commands: Commands, args: List[String]): Unit = {
     commands.compile(started.build.projects.keys.filter(projectsToPublish.include).toList)
 
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)

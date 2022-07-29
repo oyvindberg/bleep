@@ -6,10 +6,10 @@ import bleep.tasks.publishing._
 
 import scala.collection.immutable.SortedMap
 
-object PublishLocal extends App {
+object PublishLocal extends BleepScriptRunner("PublishLocal") {
   val groupId = "build.bleep"
 
-  bootstrap.forScript("PublishLocal") { (started, commands) =>
+  def runScript(started: Started, commands: Commands, args: List[String]): Unit = {
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     started.logger.withContext(dynVer.version).info("publishing locally")
     commands.compile(started.build.projects.keys.filter(projectsToPublish.include).toList)
