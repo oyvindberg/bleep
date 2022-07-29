@@ -42,7 +42,7 @@ object Main {
         .lazyForceLoad(userPaths)
         .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.coursierCacheDir, bleepConfig.authentications, None))
 
-    List(
+    CommonOpts.opts *> List(
       Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
       setupIdeCmd(buildPaths, logger, None),
       importCmd(buildLoader, buildPaths, logger),
