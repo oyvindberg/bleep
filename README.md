@@ -78,7 +78,7 @@ object GenNativeImage extends App {
 
 It might already be clear to you, but anyways:
 
-- you can start this program from bleep (`bleep native-image`), from your IDE, from anywhere
+- you can start this program from Bleep (`bleep native-image`), from your IDE, from anywhere
 - you can debug it like a normal program
 - you can include any dependencies you want, from any scala version. No class loader issues.
 - you have all the structured info from the build, without having to express code in your build
@@ -91,19 +91,19 @@ Bleep also aims to provide a top notch CLI experience
 
 https://user-images.githubusercontent.com/247937/144334308-215c1351-11d3-4452-ad66-2529fd7450f1.mp4
 
-## How to install bleep
+## How to install Bleep
 
 1) install [Coursier CLI](https://get-coursier.io)
-2) cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/fix-channel/coursier-channel.json bleep
+2) `cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep`
 
-## How to build bleep
+## How to build Bleep
 
 Bleep is built with Bleep, so you'll need to install it first
 
 1) clone repository
-2) git submodule init
-3) git submodule update
-4) bleep native-image
+2) `git submodule init`
+3) `git submodule update`
+4) `bleep native-image`
 
 Step 4) is rather slow, and for most purposes you can use the `bleep_dev.sh` script instead.
 

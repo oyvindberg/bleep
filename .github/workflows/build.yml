@@ -26,7 +26,7 @@ jobs:
         run: scalafmt -c .scalafmt.conf --check
 
       - name: Install bleep stable
-        run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/fix-channel/coursier-channel.json bleep --verbose
+        run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep --verbose
 
       - name: Run tests
         env:
@@ -69,7 +69,7 @@ jobs:
           extraFiles: bleep.yaml
 
       - name: Install bleep stable
-        run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/fix-channel/coursier-channel.json bleep --verbose
+        run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep --verbose
 
       - name: Build native image (non-windows)
         run: |
