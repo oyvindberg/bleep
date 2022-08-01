@@ -47,6 +47,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
     testIn("bloop")
   }
 
+  test("sbt") {
+    testIn("sbt")
+  }
+
   test("converter") {
     val generatedFiles = Map(
       model.CrossProjectName(model.ProjectName("importer-portable"), None) -> Vector(
