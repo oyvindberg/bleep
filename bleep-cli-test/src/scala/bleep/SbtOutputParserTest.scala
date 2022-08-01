@@ -98,7 +98,7 @@ class SbtOutputParserTest extends AnyFunSuite with TripleEqualsSupport {
                    |[info] 	List(2.12.16)
                    |[info] ...""".stripMargin
 
-    val result = Import.parseScalaVersionsOutput(output.split("\n").toList)
+    val result = Import.ScalaVersionOutput.parse(output.split("\n").toList).combined.toMap
     val expected = Map(Versions.Scala("2.13.8") -> Set("treesNative"), Versions.Scala("2.12.16") -> Set("treesNative2", "treesNative", "binaryJVMProjects"))
     assert(result === expected)
   }

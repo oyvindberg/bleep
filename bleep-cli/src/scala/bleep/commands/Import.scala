@@ -82,34 +82,67 @@ object Import {
     commit()
     b.result()
   }
+  class ScalaVersionOutput(
+      _scalaVersions: mutable.Map[Versions.Scala, Set[String]],
+      _crossVersions: mutable.Map[Versions.Scala, Set[String]]
+  ) {
+    private val toSorted = SortedMap.empty[Versions.Scala, Set[String]]
 
-  def parseScalaVersionsOutput(lines: List[String]): SortedMap[Versions.Scala, Set[String]] = {
-    val builder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
+    val scalaVersions: SortedMap[Versions.Scala, Set[String]] = toSorted ++ _scalaVersions
 
-    var i = 0
-    while (i < lines.length) {
-      val line = lines(i)
-      def words = line.split("\\s")
-      def projectName = words(words.length - 3) // third last, before `/` and `binaryJVMProjects` above
-      if (line.contains("ProjectRef")) ()
-      else if (line.endsWith(" / scalaVersion")) {
-        val nextLine = lines(i + 1)
-        val scalaVersion = Versions.Scala(nextLine.split("\\s").last)
-        builder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
-      } else if (line.endsWith(" / crossScalaVersions")) {
-        val nextLine = lines(i + 1)
-        val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
-        versions.map { scalaVersion =>
-          builder.getOrElseUpdate(Versions.Scala(scalaVersion), mutable.Set.empty).add(projectName)
-        }
-      }
-
-      i += 1
+    val crossVersions: SortedMap[Versions.Scala, Set[String]] = {
+      val filtered = _crossVersions
+        // don't repeat what was already in default scala versions
+        .map { case (v, projects) => (v, projects -- scalaVersions.getOrElse(v, Set.empty)) }
+        .filter { case (_, ps) => ps.nonEmpty }
+      toSorted ++ filtered
     }
 
-    SortedMap.empty[Versions.Scala, Set[String]] ++ builder.map { case (v, projects) => (v, projects.toSet) }
+    def combined: SortedMap[Versions.Scala, Set[String]] = {
+      val keys = scalaVersions.keys ++ crossVersions.keys
+      toSorted ++ keys.map { key =>
+        (key, scalaVersions.getOrElse(key, Set.empty) ++ crossVersions.getOrElse(key, Set.empty))
+      }
+    }
   }
+  object ScalaVersionOutput {
+    def parse(lines: List[String]): ScalaVersionOutput = {
+      val scalaVersionsBuilder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
+      val crossVersionsBuilder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
 
+      var i = 0
+      while (i < lines.length) {
+        val line = lines(i)
+
+        def words = line.split("\\s")
+
+        def projectName = words(words.length - 3) // third last, before `/` and `binaryJVMProjects` above
+
+        if (line.contains("ProjectRef")) ()
+        else if (line.endsWith(" / scalaVersion")) {
+          val nextLine = lines(i + 1)
+          val scalaVersion = Versions.Scala(nextLine.split("\\s").last)
+          scalaVersionsBuilder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
+        } else if (line.endsWith(" / crossScalaVersions")) {
+          val nextLine = lines(i + 1)
+          val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
+          versions.map { scalaVersion =>
+            crossVersionsBuilder.getOrElseUpdate(Versions.Scala(scalaVersion), mutable.Set.empty).add(projectName)
+          }
+        }
+
+        i += 1
+      }
+
+      val scalaVersions = scalaVersionsBuilder.map { case (v, projects) => (v, projects.toSet) }
+      val crossVersions = crossVersionsBuilder
+        // don't repeat what was already in default scala versions
+        .map { case (v, projects) => (v, projects.toSet -- scalaVersions.getOrElse(v, Set.empty)) }
+        .filter { case (_, ps) => ps.nonEmpty }
+
+      new ScalaVersionOutput(scalaVersions, crossVersions)
+    }
+  }
 }
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
@@ -162,7 +195,7 @@ case class Import(
 
     logger.info("Will call sbt multiple times to retrieve information about the existing build. Grab some popcorn as it may take a while!")
 
-    // run this as a command to discover all projects, possibly across several builds
+    // run this as a command to discover all projects, possibly across several builds, possibly including non-aggregated projects
     val allProjectNamesByBuild: Map[Path, List[String]] = {
       val cmd = List("sbt", "projects")
       logger.info("Calling sbt to discover projects...")
@@ -193,26 +226,26 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 
       try {
         // ask for all (cross) scala versions for these projects
-        val projectNamesByScalaVersion: Map[Versions.Scala, Set[String]] = {
-          val cmd = List("sbt", "show " + projectNames.map(p => s"$p/crossScalaVersions").mkString(" "))
+        val scalaVersionOutput: Import.ScalaVersionOutput = {
+          val cmd = List("sbt", "show " + projectNames.map(p => s"$p/scalaVersion $p/crossScalaVersions").mkString(" "))
           logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
           logger.withContext(sbtBuildDir).debug(cmd)
           val output = Process(cmd, sbtBuildDir.toFile, sbtEnvs: _*).lazyLines(logger.processLogger("sbt discover cross projects")).toList
 
-          val result = Import.parseScalaVersionsOutput(output)
+          val result = Import.ScalaVersionOutput.parse(output)
 
-          result
+          result.combined
             .foldLeft(logger) { case (logger, (scala, projects)) => logger.withContext(scala.scalaVersion, projects.size) }
             .info("Discovered projects")
 
           result
         }
 
-        val args: Iterable[String] =
-          // then finally dump each of the three configurations we care about into two files each.
-          projectNamesByScalaVersion.flatMap { case (scalaVersion, projects) =>
+        // then finally dump each of the three configurations we care about into two files each.
+        val args: Iterable[String] = {
+          def argsFor(scalaVersion: Versions.Scala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
             List(
-              s"++ ${scalaVersion.scalaVersion}",
+              if (switchScalaVersion) s"++ ${scalaVersion.scalaVersion}" else "",
               s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
               s"""set Global / bloopConfigDir := file("${destinationPaths.bleepImportBloopDir / scalaVersion.scalaVersion}")"""
             ) ++ projects.flatMap { p =>
@@ -226,7 +259,10 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
                 s"$p/IntegrationTest/exportProject"
               )
             }
-          }
+
+          scalaVersionOutput.scalaVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = false) } ++
+            scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) }
+        }
 
         val cmd = "sbt" :: args.toList
         logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
