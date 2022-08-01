@@ -282,11 +282,19 @@ object importBloopFilesFromSbt {
   def translatePlatform(platform: Config.Platform, templateDirs: Replacements, resolution: Option[Config.Resolution]): model.Platform =
     platform match {
       case Config.Platform.Js(config, mainClass) =>
-        // note, this lives in config.version, but it's blank for scala 3.
-        val jsVersion = resolution
-          .flatMap(_.modules.find(mod => mod.organization == Versions.scalaJsOrganization.value && mod.name.startsWith("scalajs-library")))
-          .map(mod => Versions.ScalaJs(mod.version))
-          .getOrElse(throw new BuildException.Text("Couldn't find scalajs-library jar to determine version"))
+        val jsVersion = {
+          // blank for scala 3.
+          val fromPlatform = Option(config.version).filterNot(_.isEmpty)
+          // fallback, the original version may have been evicted for a newer one through a dependency, so it's a bit imprecise
+          val fromDependencies = resolution.flatMap(_.modules.collectFirst {
+            case mod if mod.organization == Versions.scalaJsOrganization.value && mod.name.startsWith("scalajs-library") => mod.version
+          })
+
+          fromPlatform
+            .orElse(fromDependencies)
+            .map(version => Versions.ScalaJs(version))
+            .getOrElse(throw new BuildException.Text("Couldn't find scalajs-library jar to determine version"))
+        }
 
         val translatedPlatform = model.Platform.Js(
           jsVersion = jsVersion,

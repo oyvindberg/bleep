@@ -18,15 +18,11 @@ projects:
       js212:
         dependencies:
         - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - forceJvm: true
-          module: org.scala-js::scalajs-library:1.8.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
       js213:
         dependencies:
         - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - forceJvm: true
-          module: org.scala-js::scalajs-library:1.8.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
       jvm211:
@@ -384,14 +380,6 @@ projects:
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   tests-test:
     cross:
-      js212:
-        dependencies:
-          forceJvm: true
-          module: org.scala-js::scalajs-test-bridge:1.8.0
-      js213:
-        dependencies:
-          forceJvm: true
-          module: org.scala-js::scalajs-test-bridge:1.8.0
       native212:
         dependencies: org.scala-native::test-interface:0.4.5
       native213:
@@ -571,13 +559,11 @@ templates:
       jsKind: none
       jsMode: debug
       jsNodeVersion: 18.4.0
-      jsVersion: 1.10.1
+      jsVersion: 1.8.0
       name: js
     resources:
     - ./${PLATFORM}-jvm/src/${SCOPE}/resources
     - ./${PLATFORM}-native/src/${SCOPE}/resources
-    scala:
-      compilerPlugins: org.scala-js:::scalajs-compiler:1.8.0
     source-layout: cross-full
     sources:
     - ./${PLATFORM}-jvm/src/${SCOPE}/scala

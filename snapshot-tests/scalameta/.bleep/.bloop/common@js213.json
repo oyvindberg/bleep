@@ -52,7 +52,7 @@
       "name": "scala-compiler",
       "version": "2.13.8",
       "options": [
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.8/1.10.1/scalajs-compiler_2.13.8-1.10.1.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.8/1.8.0/scalajs-compiler_2.13.8-1.8.0.jar",
         "-Ymacro-annotations",
         "-feature",
         "-unchecked"
@@ -82,7 +82,7 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "1.10.1",
+        "version": "1.8.0",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,

@@ -38,8 +38,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_sjs1_2.12/0.11.11/scalapb-runtime_sjs1_2.12-0.11.11.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-junit-test-runtime_2.12/1.6.0/scalajs-junit-test-runtime_2.12-1.6.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.10.1/scalajs-library_2.12-1.10.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.10.1/scalajs-test-bridge_2.12-1.10.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.10.1/scalajs-test-interface_2.12-1.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.8.0/scalajs-test-bridge_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.8.0/scalajs-test-interface_2.12-1.8.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_sjs1_2.12/2.7.0/scala-collection-compat_sjs1_2.12-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
@@ -70,7 +70,7 @@
       "name": "scala-compiler",
       "version": "2.12.16",
       "options": [
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.16/1.10.1/scalajs-compiler_2.12.16-1.10.1.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.16/1.8.0/scalajs-compiler_2.12.16-1.8.0.jar",
         "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.16/2.1.1/paradise_2.12.16-2.1.1.jar",
         "-feature",
         "-unchecked"
@@ -154,7 +154,7 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "1.10.1",
+        "version": "1.8.0",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,
@@ -173,12 +173,12 @@
         {
           "organization": "org.scala-js",
           "name": "scalajs-test-bridge_2.12",
-          "version": "1.10.1",
+          "version": "1.8.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-bridge_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.10.1/scalajs-test-bridge_2.12-1.10.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.8.0/scalajs-test-bridge_2.12-1.8.0.jar"
             }
           ]
         },
@@ -341,12 +341,12 @@
         {
           "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.12",
-          "version": "1.10.1",
+          "version": "1.8.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.10.1/scalajs-test-interface_2.12-1.10.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.8.0/scalajs-test-interface_2.12-1.8.0.jar"
             }
           ]
         },
