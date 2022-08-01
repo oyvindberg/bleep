@@ -1,7 +1,7 @@
 {
   "version": "1.4.0",
   "project": {
-    "name": "scalafixinternaltests-test",
+    "name": "scalafixinternaltests-test@jvm213",
     "directory": "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s",
     "sources": [
@@ -9,10 +9,11 @@
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/scalafixinternaltests-test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/scalafixinternaltests-test@jvm213"
     ],
     "dependencies": [
-      "scalafixinternalrules"
+      "scalafixinternalrules@jvm213",
+      "scalafixinternaltests@jvm213"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/scalafix-cli_2.13.8/0.9.34/scalafix-cli_2.13.8-0.9.34.jar",
@@ -57,13 +58,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.0.8/scalatest_2.13-3.0.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/paiges-core_2.13/0.4.2/paiges-core_2.13-0.4.2.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternalrules/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternalrules/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests/jvm213/classes"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests-test",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests-test/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests-test/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests-test/jvm213/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/tests/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/scalafixinternaltests-test"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-resources/scalafixinternaltests-test@jvm213"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -104,7 +106,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests-test/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternaltests-test/jvm213/inc_compile.zip",
       "setup": {
         "order": "mixed",
         "addLibraryToBootClasspath": true,

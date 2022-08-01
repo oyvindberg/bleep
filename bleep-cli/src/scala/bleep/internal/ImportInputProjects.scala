@@ -46,12 +46,23 @@ object ImportInputProjects {
       else Main
   }
 
-  def cachedFn[In, Out](f: In => Out): (In => Out) = {
-    val cache = mutable.Map.empty[In, Out]
-    in => cache.getOrElseUpdate(in, f(in))
-  }
+  def keepRelevant(bloopFiles: Iterable[Config.File]): Iterable[Config.File] = {
+    // not transitive
+    val reverseDeps: Map[String, Iterable[String]] =
+      bloopFiles
+        .flatMap(f => f.project.dependencies.map(from => (from, f.project.name)))
+        .groupBy { case (from, _) => from }
+        .map { case (name, tuples) => (name, tuples.map { case (_, to) => to }.toSet) }
 
-  def apply(bloopFiles: Iterable[Config.File], sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject]): ImportInputProjects = {
+    // may have multiple cross builds per project name. we'll consider them together
+    val byName: Map[String, Iterable[Config.File]] =
+      bloopFiles.groupBy(f => f.project.name)
+
+    def cachedFn[In, Out](f: In => Out): (In => Out) = {
+      val cache = mutable.Map.empty[In, Out]
+      in => cache.getOrElseUpdate(in, f(in))
+    }
+
     val hasSources: Path => Boolean =
       cachedFn { path =>
         def isSource(path: Path): Boolean =
@@ -64,23 +75,32 @@ object ImportInputProjects {
         Files.exists(path) && Files.walk(path).filter(isSource).findFirst().isPresent
       }
 
-    ImportInputProjects(
-      bloopFiles
-        .collect {
-          case bloopFile if bloopFile.project.sources.exists(hasSources.apply) =>
-            val sbtExportFile =
-              sbtExportFiles.filter(f => f.bloopName == bloopFile.project.name).toList match {
-                case Nil =>
-                  sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name}")
-                case List(one) =>
-                  one
-                case many =>
-                  many.find(f => bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full)).getOrElse {
-                    sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name} among ${many.map(_.scalaVersion)}")
-                  }
-              }
+    def include(projectName: String): Boolean = {
+      val keepBecauseFoundSources = byName(projectName).exists(f => f.project.sources.exists(hasSources.apply))
+      val keepBecauseFoundDownstreamWithSources = reverseDeps.getOrElse(projectName, Nil).exists(include)
+      keepBecauseFoundSources || keepBecauseFoundDownstreamWithSources
+    }
 
-            InputProject(bloopFile, sbtExportFile)
+    bloopFiles.filter(f => include(f.project.name))
+  }
+
+  def apply(bloopFiles: Iterable[Config.File], sbtExportFiles: Iterable[ReadSbtExportFile.ExportedProject]): ImportInputProjects =
+    ImportInputProjects(
+      keepRelevant(bloopFiles)
+        .collect { case bloopFile =>
+          val sbtExportFile =
+            sbtExportFiles.filter(f => f.bloopName == bloopFile.project.name).toList match {
+              case Nil =>
+                sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name}")
+              case List(one) =>
+                one
+              case many =>
+                many.find(f => bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full)).getOrElse {
+                  sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name} among ${many.map(_.scalaVersion)}")
+                }
+            }
+
+          InputProject(bloopFile, sbtExportFile)
         }
         .groupBy(ip => ip.name)
         .flatMap {
@@ -101,5 +121,4 @@ object ImportInputProjects {
             }
         }
     )
-  }
 }

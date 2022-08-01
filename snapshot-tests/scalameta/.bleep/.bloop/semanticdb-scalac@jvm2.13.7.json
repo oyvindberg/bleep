@@ -1,0 +1,258 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "semanticdb-scalac@jvm2.13.7",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/scala-2.13.7",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-sources/semanticdb-scalac@jvm2.13.7"
+    ],
+    "dependencies": [
+      "common@jvm213",
+      "parsers@jvm213",
+      "scalameta@jvm213",
+      "semanticdb-scalac-core@jvm2.13.7",
+      "trees@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.2/protobuf-java-3.19.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.5/geny_2.13-0.6.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.11/lenses_2.13-0.11.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.11/scalapb-runtime_2.13-0.11.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.20.0/jline-3.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.7.0/scala-collection-compat_2.13-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.7/scala-compiler-2.13.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.7/scala-reflect-2.13.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.7/scalap-2.13.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.13/2.3.1/fastparse-v2_2.13-2.3.1.jar",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/common/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/parsers/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/scalameta/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdb-scalac-core/jvm2.13.7/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/trees/jvm213/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdb-scalac/jvm2.13.7",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdb-scalac/jvm2.13.7/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-resources/semanticdb-scalac@jvm2.13.7"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.7",
+      "options": [
+        "-Ymacro-annotations",
+        "-feature",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.7/scala-compiler-2.13.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.7/scala-reflect-2.13.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.20.0/jline-3.20.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdb-scalac/jvm2.13.7/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/scalameta"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.jline",
+          "name": "jline",
+          "version": "3.20.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.20.0/jline-3.20.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "scalapb-runtime_2.13",
+          "version": "0.11.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalapb-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.11/scalapb-runtime_2.13-0.11.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.13.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.7/scala-compiler-2.13.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "fastparse-v2_2.13",
+          "version": "2.3.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fastparse-v2_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.13/2.3.1/fastparse-v2_2.13-2.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.7.0/scala-collection-compat_2.13-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scalap",
+          "version": "2.13.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalap",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.7/scalap-2.13.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.7/scala-reflect-2.13.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "3.19.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.2/protobuf-java-3.19.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.13",
+          "version": "0.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.7/scala-library-2.13.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.13",
+          "version": "0.11.11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "lenses_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.11/lenses_2.13-0.11.11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.13",
+          "version": "0.6.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "geny_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.5/geny_2.13-0.6.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.8.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

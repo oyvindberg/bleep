@@ -271,7 +271,7 @@ projects:
     dependsOn: example
     extends:
     - template-common-test
-    - template-cross-jvm-212-213
+    - template-cross-all
     folder: ./../../snapshot-tests-in/doobie/modules/example
 templates:
   template-common:
@@ -286,15 +286,12 @@ templates:
     sbt-scope: test
   template-cross-all:
     cross:
-      jvm3:
-        extends: template-scala-3
-    extends: template-cross-jvm-212-213
-  template-cross-jvm-212-213:
-    cross:
       jvm212:
         extends: template-scala-2.12
       jvm213:
         extends: template-scala-2.13
+      jvm3:
+        extends: template-scala-3
   template-scala-2:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2

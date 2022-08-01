@@ -64,8 +64,17 @@ projects:
     - ./../../semanticdb/semanticdb/semanticdb.proto
     - ./../../semanticdb/semanticdb/semanticidx.proto
     sources: ./../../semanticdb/semanticdb
-  communitytest-test:
+  communitytest:
+    dependencies: org.scalameta::munit:0.7.29
     dependsOn: scalameta
+    extends:
+    - template-common-main
+    - template-cross-jvm-211-212-213
+    folder: ./../../snapshot-tests-in/scalameta/community-test
+    resources: ./src/${SCOPE}/protobuf
+    sources: ./src/${SCOPE}/protobuf
+  communitytest-test:
+    dependsOn: communitytest
     extends:
     - template-common-test
     - template-cross-jvm-211-212-213
@@ -73,6 +82,7 @@ projects:
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   metac:
+    dependsOn: semanticdb-scalac
     extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
     folder: ./../../snapshot-tests-in/scalameta/semanticdb/metac
   parsers:
@@ -181,90 +191,52 @@ projects:
     folder: ./../../snapshot-tests-in/scalameta/scalameta-docs
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
+  semanticdb-scalac:
+    dependsOn: semanticdb-scalac-core
+    extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
+    folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/plugin
   semanticdb-scalac-core:
     cross:
+      jvm2.11.12:
+        dependencies: org.scala-lang:scala-compiler:2.11.12
       jvm2.12.10:
         dependencies: org.scala-lang:scala-compiler:2.12.10
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.10
       jvm2.12.11:
         dependencies: org.scala-lang:scala-compiler:2.12.11
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.11
       jvm2.12.12:
         dependencies: org.scala-lang:scala-compiler:2.12.12
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.12
       jvm2.12.13:
         dependencies: org.scala-lang:scala-compiler:2.12.13
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.13
       jvm2.12.14:
         dependencies: org.scala-lang:scala-compiler:2.12.14
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.14
       jvm2.12.15:
         dependencies: org.scala-lang:scala-compiler:2.12.15
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.15
+      jvm2.12.16:
+        dependencies: org.scala-lang:scala-compiler:2.12.16
       jvm2.12.8:
         dependencies: org.scala-lang:scala-compiler:2.12.8
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.8
       jvm2.12.9:
         dependencies: org.scala-lang:scala-compiler:2.12.9
-        extends: template-scala-2.12-jvm
-        scala:
-          version: 2.12.9
       jvm2.13.0:
         dependencies: org.scala-lang:scala-compiler:2.13.0
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.0
       jvm2.13.1:
         dependencies: org.scala-lang:scala-compiler:2.13.1
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.1
       jvm2.13.2:
         dependencies: org.scala-lang:scala-compiler:2.13.2
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.2
       jvm2.13.3:
         dependencies: org.scala-lang:scala-compiler:2.13.3
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.3
       jvm2.13.4:
         dependencies: org.scala-lang:scala-compiler:2.13.4
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.4
       jvm2.13.5:
         dependencies: org.scala-lang:scala-compiler:2.13.5
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.5
       jvm2.13.6:
         dependencies: org.scala-lang:scala-compiler:2.13.6
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.6
       jvm2.13.7:
         dependencies: org.scala-lang:scala-compiler:2.13.7
-        extends: template-scala-2.13-jvm
-        scala:
-          version: 2.13.7
+      jvm2.13.8:
+        dependencies: org.scala-lang:scala-compiler:2.13.8
     dependsOn: scalameta
-    extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
+    extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
     folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/library
   semanticdbintegration:
     cross:
@@ -470,18 +442,82 @@ templates:
     extends: template-common
     isTestProject: true
     sbt-scope: test
+  ? template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
+  : cross:
+      jvm2.12.10:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.10
+      jvm2.12.11:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.11
+      jvm2.12.12:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.12
+      jvm2.12.13:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.13
+      jvm2.12.14:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.14
+      jvm2.12.15:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.15
+      jvm2.12.8:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.8
+      jvm2.12.9:
+        extends: template-scala-2.12-jvm
+        scala:
+          version: 2.12.9
+      jvm2.13.0:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.0
+      jvm2.13.1:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.1
+      jvm2.13.2:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.2
+      jvm2.13.3:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.3
+      jvm2.13.4:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.4
+      jvm2.13.5:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.5
+      jvm2.13.6:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.6
+      jvm2.13.7:
+        extends: template-scala-2.13-jvm
+        scala:
+          version: 2.13.7
+    extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
   template-cross-jvm-2.11.12-2.12.16-2.13.8:
     cross:
       jvm2.11.12:
-        dependencies: org.scala-lang:scala-compiler:2.11.12
         extends: template-scala-2.11
       jvm2.12.16:
-        dependencies: org.scala-lang:scala-compiler:2.12.16
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.16
       jvm2.13.8:
-        dependencies: org.scala-lang:scala-compiler:2.13.8
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.8

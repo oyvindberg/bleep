@@ -19,6 +19,7 @@
       "http4s-servlet-test@jvm3",
       "http4s-servlet@jvm3",
       "http4s-testing-test@jvm3",
+      "http4s-testing@jvm3",
       "http4s-tomcat-server@jvm3"
     ],
     "classpath": [
@@ -107,6 +108,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-servlet-test/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-servlet/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-tomcat-server/jvm3/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-tomcat-server-test/jvm3",

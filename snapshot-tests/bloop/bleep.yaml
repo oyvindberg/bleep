@@ -309,10 +309,23 @@ projects:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
         -language:implicitConversions -unchecked
+  bloop-launcher+test:
+    dependsOn: bloop-launcher-core
+    extends:
+    - template-common-main
+    - template-scala-2.12-jvm
+    folder: ./../../snapshot-tests-in/bloop/launcher-test
+    resources:
+    - ./../LICENSE.md
+    - ./../NOTICE.md
+    scala:
+      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
+        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
+        -language:higherKinds -language:implicitConversions -unchecked
   bloop-launcher+test-test:
     dependsOn:
     - bloop-frontend-test
-    - bloop-launcher-core
+    - bloop-launcher+test
     extends:
     - template-common-test
     - template-scala-2.12-jvm

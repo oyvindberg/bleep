@@ -20,7 +20,8 @@
       "http4s-dsl@jvm213",
       "http4s-laws@jvm213",
       "http4s-server@jvm213",
-      "http4s-testing-test@jvm213"
+      "http4s-testing-test@jvm213",
+      "http4s-testing@jvm213"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar",
@@ -69,7 +70,8 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-dsl/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-laws/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-server/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-server-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-server-test/jvm213/classes",

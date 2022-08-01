@@ -26,7 +26,8 @@
       "http4s-laws@js213",
       "http4s-server-test@js213",
       "http4s-server@js213",
-      "http4s-testing-test@js213"
+      "http4s-testing-test@js213",
+      "http4s-testing@js213"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar",
@@ -95,7 +96,8 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-laws/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-server-test/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-server/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing/js213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-ember-server-test/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-ember-server-test/js213/classes",
