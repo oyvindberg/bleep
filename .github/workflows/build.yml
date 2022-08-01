@@ -60,7 +60,7 @@ jobs:
       - uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
-          version: '22.1.0'
+          version: '22.2.0'
           java-version: '17'
           components: 'native-image'
       - uses: coursier/setup-action@v1.2.0-M3
