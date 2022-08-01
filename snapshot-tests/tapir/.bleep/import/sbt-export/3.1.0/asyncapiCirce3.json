@@ -1,0 +1,125 @@
+{
+  "organization": "com.softwaremill.sttp.tapir",
+  "bloopName": "asyncapiCirce3",
+  "sbtName": "tapir-asyncapi-circe",
+  "scalaFullVersion": "3.1.0",
+  "scalaBinaryVersion": "3",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala3-compiler",
+    "revision": "3.1.0",
+    "configurations": "scala-tool->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scaladoc",
+    "revision": "3.1.0",
+    "configurations": "scala-doc-tool->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala3-library",
+    "revision": "3.1.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "io.circe",
+    "name": "circe-core",
+    "revision": "0.14.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "io.circe",
+    "name": "circe-parser",
+    "revision": "0.14.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "io.circe",
+    "name": "circe-generic",
+    "revision": "0.14.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "",
+    "suffix": ""
+  }
+}

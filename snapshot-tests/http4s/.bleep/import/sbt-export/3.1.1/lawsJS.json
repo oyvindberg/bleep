@@ -1,0 +1,321 @@
+{
+  "organization": "org.http4s",
+  "bloopName": "lawsJS",
+  "sbtName": "laws",
+  "scalaFullVersion": "3.1.1",
+  "scalaBinaryVersion": "3",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala3-compiler",
+    "revision": "3.1.1",
+    "configurations": "scala-tool->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scaladoc",
+    "revision": "3.1.1",
+    "configurations": "scala-doc-tool->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala3-library_sjs1",
+    "revision": "3.1.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-js",
+    "name": "scalajs-library_2.13",
+    "revision": "1.9.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-js",
+    "name": "scalajs-test-bridge_2.13",
+    "revision": "1.9.0",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "cats-laws",
+    "revision": "2.7.0",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "ch.qos.logback",
+    "name": "logback-classic",
+    "revision": "1.2.6",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scalacheck",
+    "name": "scalacheck",
+    "revision": "1.15.4",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "case-insensitive-testing",
+    "revision": "1.2.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "cats-effect",
+    "revision": "3.3.6",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "cats-effect-testkit",
+    "revision": "3.3.6",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "cats-laws",
+    "revision": "2.7.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "discipline-core",
+    "revision": "1.4.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "com.comcast",
+    "name": "ip4s-test-kit",
+    "revision": "3.1.2",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scalacheck",
+    "name": "scalacheck",
+    "revision": "1.15.4",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "scalacheck-effect-munit",
+    "revision": "1.0.3",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "munit-cats-effect-3",
+    "revision": "1.0.7",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "sjs1_",
+      "suffix": ""
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "sjs1_",
+    "suffix": ""
+  }
+}

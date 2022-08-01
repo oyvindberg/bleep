@@ -1,0 +1,144 @@
+{
+  "organization": "org.http4s",
+  "bloopName": "scala-xml-it",
+  "sbtName": "scala-xml",
+  "scalaFullVersion": "3.1.1",
+  "scalaBinaryVersion": "3",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala3-compiler",
+    "revision": "3.1.1",
+    "configurations": "scala-tool->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scaladoc",
+    "revision": "3.1.1",
+    "configurations": "scala-doc-tool->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala3-library",
+    "revision": "3.1.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.typelevel",
+    "name": "cats-laws",
+    "revision": "2.7.0",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "ch.qos.logback",
+    "name": "logback-classic",
+    "revision": "1.2.6",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scalacheck",
+    "name": "scalacheck",
+    "revision": "1.15.4",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang.modules",
+    "name": "scala-xml",
+    "revision": "2.0.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "",
+    "suffix": ""
+  }
+}

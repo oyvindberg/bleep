@@ -1,0 +1,184 @@
+{
+  "organization": "ch.epfl.scala",
+  "bloopName": "gradleBloop211-test",
+  "sbtName": "gradle-bloop",
+  "scalaFullVersion": "2.11.12",
+  "scalaBinaryVersion": "2.11",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala-compiler",
+    "revision": "2.11.12",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.11.12",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.11.12",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "dev.gradleplugins",
+    "name": "gradle-api",
+    "revision": "5.0",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "dev.gradleplugins",
+    "name": "gradle-test-kit",
+    "revision": "5.0",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.gradle",
+    "name": "gradle-core",
+    "revision": "5.0",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.gradle",
+    "name": "gradle-tooling-api",
+    "revision": "5.0",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.codehaus.groovy",
+    "name": "groovy",
+    "revision": "2.5.4",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "com.android.tools.build",
+    "name": "gradle",
+    "revision": "4.2.0",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "io.github.classgraph",
+    "name": "classgraph",
+    "revision": "4.8.78",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "",
+    "suffix": ""
+  }
+}

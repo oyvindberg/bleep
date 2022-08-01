@@ -1,0 +1,101 @@
+{
+  "organization": "org.scalablytyped.converter",
+  "bloopName": "logging-test",
+  "sbtName": "logging",
+  "scalaFullVersion": "2.12.14",
+  "scalaBinaryVersion": "2.12",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala-compiler",
+    "revision": "2.12.14",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.12.14",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.12.14",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "com.lihaoyi",
+    "name": "sourcecode",
+    "revision": "0.2.7",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "com.lihaoyi",
+    "name": "fansi",
+    "revision": "0.2.14",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "",
+    "suffix": ""
+  }
+}

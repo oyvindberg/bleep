@@ -1,0 +1,200 @@
+{
+  "organization": "ch.epfl.scala",
+  "bloopName": "bloopShared",
+  "sbtName": "bloop-shared",
+  "scalaFullVersion": "2.12.15",
+  "scalaBinaryVersion": "2.12",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala-compiler",
+    "revision": "2.12.15",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.12.15",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.12.15",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "ch.epfl.scala",
+    "name": "bsp4s",
+    "revision": "2.0.0-M13",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-sbt",
+    "name": "zinc",
+    "revision": "1.6.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.apache.logging.log4j",
+    "name": "log4j-core",
+    "revision": "2.17.1",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "net.jpountz.lz4",
+    "name": "lz4",
+    "revision": "1.3.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "dev.dirs",
+    "name": "directories",
+    "revision": "26",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-sbt",
+    "name": "test-interface",
+    "revision": "1.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-sbt",
+    "name": "test-agent",
+    "revision": "1.4.4",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scalameta",
+    "name": "semanticdb-scalac",
+    "revision": "4.4.32",
+    "configurations": "plugin->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Full",
+      "prefix": "",
+      "suffix": ""
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "",
+    "suffix": ""
+  }
+}

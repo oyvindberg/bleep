@@ -769,7 +769,7 @@ templates:
       options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
         -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars
         -Wunused:privates -Wvalue-discard -Xlint:deprecation -Ybackend-parallelism
-        8 -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -language:_
+        10 -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -language:_
       version: 2.13.8
   template-scala-2-js:
     extends: template-js

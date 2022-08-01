@@ -1,0 +1,2290 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "gradleBloop211",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/scala-2.11",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/java",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/target/gradle-bloop-2.11/scala-2.11/src_managed/main"
+        ],
+        "dependencies": [
+            "jsonConfig211JVM"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.11.12/jsonConfig211JVM/scala-2.11/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0.jar",
+            "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0.jar",
+            "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.11/2.4.0/jsoniter-scala-core_2.11-2.4.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/builder/4.2.0/builder-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/aapt2-proto/4.2.0-7147631/aapt2-proto-4.2.0-7147631.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/aaptcompiler/4.2.0/aaptcompiler-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/crash/27.2.0/crash-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-gradle-api/27.2.0/lint-gradle-api-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle-api/4.2.0/gradle-api-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-compiler-common/4.2.0/databinding-compiler-common-4.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.31/kotlin-stdlib-jdk8-1.4.31.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/android/tools/build/transform-api/2.0.0-deprecated-use-gradle-api/transform-api-2.0.0-deprecated-use-gradle-api.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.0/asm-7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/7.0/asm-analysis-7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/7.0/asm-commons-7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/7.0/asm-util-7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.9/jopt-simple-4.9.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-gradle/6.0.3/proguard-gradle-6.0.3.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/bundletool/1.1.0/bundletool-1.1.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-processor/1.0.0-beta09/jetifier-processor-1.0.0-beta09.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javapoet/1.10.0/javapoet-1.10.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.10.0/protobuf-java-3.10.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/3.10.0/protobuf-java-util-3.10.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/crypto/tink/tink/1.3.0-rc2/tink-1.3.0-rc2.jar",
+            "<COURSIER>/https/maven.google.com/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/flatbuffers/flatbuffers-java/1.12.0/flatbuffers-java-1.12.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-model/4.2.0/builder-model-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-test-api/4.2.0/builder-test-api-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/sdklib/27.2.0/sdklib-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/sdk-common/27.2.0/sdk-common-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/common/27.2.0/common-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/manifest-merger/27.2.0/manifest-merger-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/ddms/ddmlib/27.2.0/ddmlib-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/zipflinger/4.2.0/zipflinger-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/signflinger/4.2.0/signflinger-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/protos/27.2.0/protos-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/tracker/27.2.0/tracker-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/apksig/4.2.0/apksig-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/build/apkzlib/4.2.0/apkzlib-4.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javawriter/2.5.0/javawriter-2.5.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.56/bcpkix-jdk15on-1.56.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/7.0/asm-tree-7.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/it/unimi/dsi/fastutil/8.4.0/fastutil-8.4.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/layoutlib/layoutlib-api/27.2.0/layoutlib-api-27.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/annotations/27.2.0/annotations-27.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.6/httpmime-4.5.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.10/httpcore-4.4.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.6/httpclient-4.5.6.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-model/27.2.0/lint-model-27.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.jar",
+            "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-common/4.2.0/databinding-common-4.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/databinding/baseLibrary/4.2.0/baseLibrary-4.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4/4.5.3/antlr4-4.5.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.6/gson-2.8.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.3.2/jaxb-runtime-2.3.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.31/kotlin-stdlib-jdk7-1.4.31.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-base/6.0.3/proguard-base-6.0.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.2/error_prone_annotations-2.3.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/dagger/dagger/2.28.3/dagger-2.28.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jdom/jdom2/2.0.6/jdom2-2.0.6.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/json/json/20180813/json-20180813.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.8.1/checker-qual-2.8.1.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/dvlib/27.2.0/dvlib-27.2.0.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/repository/27.2.0/repository-27.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.12/commons-compress-1.12.jar",
+            "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/shared/27.2.0/shared-27.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/xerces/xercesImpl/2.12.0/xercesImpl-2.12.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.18/animal-sniffer-annotations-1.18.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/2.3.2/jakarta.xml.bind-api-2.3.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/txw2/2.3.2/txw2-2.3.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/3.0.8/istack-commons-runtime-3.0.8.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jvnet/staxex/stax-ex/1.8.1/stax-ex-1.8.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/fastinfoset/FastInfoset/1.2.16/FastInfoset-1.2.16.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.1/jakarta.activation-api-1.2.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/javax.activation/1.2.0/javax.activation-1.2.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.1/jimfs-1.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/xml-apis/xml-apis/1.4.01/xml-apis-1.4.01.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.11.12/gradleBloop211",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.11.12/gradleBloop211/scala-2.11/classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/target/gradle-bloop-2.11/scala-2.11/resource_managed/main",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/LICENSE.md",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/NOTICE.md"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.11.12",
+            "options": [
+                "-deprecation",
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-language:existentials",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Yno-adapted-args",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-value-discard",
+                "-Xfuture"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.3/jline-2.14.3.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.11.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.github.plokhotnyuk.jsoniter-scala",
+                    "name": "jsoniter-scala-core_2.11",
+                    "version": "2.4.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsoniter-scala-core_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.11/2.4.0/jsoniter-scala-core_2.11-2.4.0.jar"
+                        },
+                        {
+                            "name": "jsoniter-scala-core_2.11",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.11/2.4.0/jsoniter-scala-core_2.11-2.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "dev.gradleplugins",
+                    "name": "gradle-api",
+                    "version": "5.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gradle-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0.jar"
+                        },
+                        {
+                            "name": "gradle-api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-api/5.0/gradle-api-5.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "dev.gradleplugins",
+                    "name": "gradle-test-kit",
+                    "version": "5.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gradle-test-kit",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0.jar"
+                        },
+                        {
+                            "name": "gradle-test-kit",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/gradleplugins/gradle-test-kit/5.0/gradle-test-kit-5.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.gradle",
+                    "name": "gradle-core",
+                    "version": "5.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gradle-core",
+                            "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0.jar"
+                        },
+                        {
+                            "name": "gradle-core",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-core/5.0/gradle-core-5.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.gradle",
+                    "name": "gradle-tooling-api",
+                    "version": "5.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gradle-tooling-api",
+                            "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0.jar"
+                        },
+                        {
+                            "name": "gradle-tooling-api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.gradle.org/gradle/libs-releases-local/org/gradle/gradle-tooling-api/5.0/gradle-tooling-api-5.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.codehaus.groovy",
+                    "name": "groovy",
+                    "version": "2.5.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "groovy",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4.jar"
+                        },
+                        {
+                            "name": "groovy",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/groovy/groovy/2.5.4/groovy-2.5.4-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "gradle",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gradle",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "341228eb834fd057e5bf1239d9e37e4564ba32cd"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0.jar"
+                        },
+                        {
+                            "name": "gradle",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "d438bf9d449bb510ebc0acb4c3fa2ca5f8324397"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle/4.2.0/gradle-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.slf4j",
+                    "name": "slf4j-api",
+                    "version": "1.7.25",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "slf4j-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar"
+                        },
+                        {
+                            "name": "slf4j-api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "builder",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "builder",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "a82f979efe703211baee9917c8d2edd3df6382c8"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/builder/4.2.0/builder-4.2.0.jar"
+                        },
+                        {
+                            "name": "builder",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "0c21f83edb6bd2575ba9d99feea399b90cb1c9e6"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/builder/4.2.0/builder-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "aapt2-proto",
+                    "version": "4.2.0-7147631",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "aapt2-proto",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "1501d986817b6cef09fc198e8e6ca00a15c13f00"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/aapt2-proto/4.2.0-7147631/aapt2-proto-4.2.0-7147631.jar"
+                        },
+                        {
+                            "name": "aapt2-proto",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "cfcd63e7cc47a793f4bc7d7d7d0d38acf5c0e8ae"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/aapt2-proto/4.2.0-7147631/aapt2-proto-4.2.0-7147631-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "aaptcompiler",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "aaptcompiler",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6c406a804e2fa1f536ab187d34863dae96dd05d0"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/aaptcompiler/4.2.0/aaptcompiler-4.2.0.jar"
+                        },
+                        {
+                            "name": "aaptcompiler",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c2de5ea14b0088ed2f39332551437b88941b0306"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/aaptcompiler/4.2.0/aaptcompiler-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.analytics-library",
+                    "name": "crash",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "crash",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6c4a17cac6f9e58882123cccbfd642b0e602f726"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/crash/27.2.0/crash-27.2.0.jar"
+                        },
+                        {
+                            "name": "crash",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "101518c2dc9e603839110204aa560b13292a3dd6"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/crash/27.2.0/crash-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.lint",
+                    "name": "lint-gradle-api",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "lint-gradle-api",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6ff70b4255a0458910d12f6c65017609618429a4"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-gradle-api/27.2.0/lint-gradle-api-27.2.0.jar"
+                        },
+                        {
+                            "name": "lint-gradle-api",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "e7b983e72766afad7d8c8bff78496c9b7a759539"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-gradle-api/27.2.0/lint-gradle-api-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "gradle-api",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gradle-api",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "57eacf3a9bd9755e77638da57344bea4d45bb251"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle-api/4.2.0/gradle-api-4.2.0.jar"
+                        },
+                        {
+                            "name": "gradle-api",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "48b3cdd54e2587ea502f752306dd50c71fae4513"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/gradle-api/4.2.0/gradle-api-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "androidx.databinding",
+                    "name": "databinding-compiler-common",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "databinding-compiler-common",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "f2f0bebb7cd57cf7440aa99cdf02d066c2a390d6"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-compiler-common/4.2.0/databinding-compiler-common-4.2.0.jar"
+                        },
+                        {
+                            "name": "databinding-compiler-common",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "145fd8dca482371748e44039f1cae43359f5b66e"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-compiler-common/4.2.0/databinding-compiler-common-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains.kotlin",
+                    "name": "kotlin-stdlib-jdk8",
+                    "version": "1.4.31",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "kotlin-stdlib-jdk8",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.31/kotlin-stdlib-jdk8-1.4.31.jar"
+                        },
+                        {
+                            "name": "kotlin-stdlib-jdk8",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk8/1.4.31/kotlin-stdlib-jdk8-1.4.31-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "transform-api",
+                    "version": "2.0.0-deprecated-use-gradle-api",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "transform-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/android/tools/build/transform-api/2.0.0-deprecated-use-gradle-api/transform-api-2.0.0-deprecated-use-gradle-api.jar"
+                        },
+                        {
+                            "name": "transform-api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/android/tools/build/transform-api/2.0.0-deprecated-use-gradle-api/transform-api-2.0.0-deprecated-use-gradle-api-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.ow2.asm",
+                    "name": "asm",
+                    "version": "7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "asm",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.0/asm-7.0.jar"
+                        },
+                        {
+                            "name": "asm",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.0/asm-7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.ow2.asm",
+                    "name": "asm-analysis",
+                    "version": "7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "asm-analysis",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/7.0/asm-analysis-7.0.jar"
+                        },
+                        {
+                            "name": "asm-analysis",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-analysis/7.0/asm-analysis-7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.ow2.asm",
+                    "name": "asm-commons",
+                    "version": "7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "asm-commons",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/7.0/asm-commons-7.0.jar"
+                        },
+                        {
+                            "name": "asm-commons",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-commons/7.0/asm-commons-7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.ow2.asm",
+                    "name": "asm-util",
+                    "version": "7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "asm-util",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/7.0/asm-util-7.0.jar"
+                        },
+                        {
+                            "name": "asm-util",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-util/7.0/asm-util-7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.sf.jopt-simple",
+                    "name": "jopt-simple",
+                    "version": "4.9",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jopt-simple",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.9/jopt-simple-4.9.jar"
+                        },
+                        {
+                            "name": "jopt-simple",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/jopt-simple/jopt-simple/4.9/jopt-simple-4.9-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.sf.proguard",
+                    "name": "proguard-gradle",
+                    "version": "6.0.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "proguard-gradle",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-gradle/6.0.3/proguard-gradle-6.0.3.jar"
+                        },
+                        {
+                            "name": "proguard-gradle",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-gradle/6.0.3/proguard-gradle-6.0.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "bundletool",
+                    "version": "1.1.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "bundletool",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "582c071113a4447a8f9743a0dea8558f5c499c61"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/bundletool/1.1.0/bundletool-1.1.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build.jetifier",
+                    "name": "jetifier-core",
+                    "version": "1.0.0-beta09",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jetifier-core",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c98ee0e5579aed97e17f605a89b101115a2f5a61"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09.jar"
+                        },
+                        {
+                            "name": "jetifier-core",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c513281b5616c35f9e3316a7dbf5553e9b4a3879"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-core/1.0.0-beta09/jetifier-core-1.0.0-beta09-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build.jetifier",
+                    "name": "jetifier-processor",
+                    "version": "1.0.0-beta09",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jetifier-processor",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "fb2a015ff56e24939a88593ac73b84e627864476"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-processor/1.0.0-beta09/jetifier-processor-1.0.0-beta09.jar"
+                        },
+                        {
+                            "name": "jetifier-processor",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "31bb732d1131d8e8eb85ad98f93e89adadd9f4e3"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/jetifier/jetifier-processor/1.0.0-beta09/jetifier-processor-1.0.0-beta09-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.squareup",
+                    "name": "javapoet",
+                    "version": "1.10.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "javapoet",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javapoet/1.10.0/javapoet-1.10.0.jar"
+                        },
+                        {
+                            "name": "javapoet",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javapoet/1.10.0/javapoet-1.10.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.protobuf",
+                    "name": "protobuf-java",
+                    "version": "3.10.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protobuf-java",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.10.0/protobuf-java-3.10.0.jar"
+                        },
+                        {
+                            "name": "protobuf-java",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.10.0/protobuf-java-3.10.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.protobuf",
+                    "name": "protobuf-java-util",
+                    "version": "3.10.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protobuf-java-util",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/3.10.0/protobuf-java-util-3.10.0.jar"
+                        },
+                        {
+                            "name": "protobuf-java-util",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java-util/3.10.0/protobuf-java-util-3.10.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.crypto.tink",
+                    "name": "tink",
+                    "version": "1.3.0-rc2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "tink",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/crypto/tink/tink/1.3.0-rc2/tink-1.3.0-rc2.jar"
+                        },
+                        {
+                            "name": "tink",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/crypto/tink/tink/1.3.0-rc2/tink-1.3.0-rc2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.testing.platform",
+                    "name": "core-proto",
+                    "version": "0.0.8-alpha01",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core-proto",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "f107a202fcbb34706f08e7fb8c31ea25bf504d7c"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01.jar"
+                        },
+                        {
+                            "name": "core-proto",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "2c29c3f6a80480089da1ad34d9ca3fb4e368afbd"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/google/testing/platform/core-proto/0.0.8-alpha01/core-proto-0.0.8-alpha01-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.flatbuffers",
+                    "name": "flatbuffers-java",
+                    "version": "1.12.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "flatbuffers-java",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/flatbuffers/flatbuffers-java/1.12.0/flatbuffers-java-1.12.0.jar"
+                        },
+                        {
+                            "name": "flatbuffers-java",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/flatbuffers/flatbuffers-java/1.12.0/flatbuffers-java-1.12.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.tensorflow",
+                    "name": "tensorflow-lite-metadata",
+                    "version": "0.1.0-rc2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "tensorflow-lite-metadata",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2.jar"
+                        },
+                        {
+                            "name": "tensorflow-lite-metadata",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/tensorflow/tensorflow-lite-metadata/0.1.0-rc2/tensorflow-lite-metadata-0.1.0-rc2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "builder-model",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "builder-model",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "5e5536e15c44135d0814be7a2ef64988207cab52"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-model/4.2.0/builder-model-4.2.0.jar"
+                        },
+                        {
+                            "name": "builder-model",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c7bb17f57d01e33fdbda26e7963b0dc831e98700"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-model/4.2.0/builder-model-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "builder-test-api",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "builder-test-api",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "070d70efb44c109513673cd44ea8fc187917ca87"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-test-api/4.2.0/builder-test-api-4.2.0.jar"
+                        },
+                        {
+                            "name": "builder-test-api",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "18d8e526b44f4220b2a857e4b6f5136c2ec89aba"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/builder-test-api/4.2.0/builder-test-api-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools",
+                    "name": "sdklib",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "sdklib",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "53d092eda5e71f3009209baa5f5ace3aaa5a7e33"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/sdklib/27.2.0/sdklib-27.2.0.jar"
+                        },
+                        {
+                            "name": "sdklib",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "063ccf8cf4ca4a067bf564b6392e2d0065f24aa0"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/sdklib/27.2.0/sdklib-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools",
+                    "name": "sdk-common",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "sdk-common",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "96291744fe309ad0e1c7ec5bd5f2d36b9dcf693b"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/sdk-common/27.2.0/sdk-common-27.2.0.jar"
+                        },
+                        {
+                            "name": "sdk-common",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "1f66d0ac0f88761068f517deebfd122aa39884b0"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/sdk-common/27.2.0/sdk-common-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools",
+                    "name": "common",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "common",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "0b004d1abfcd4c3b83b62a6d672d8e03f0061210"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/common/27.2.0/common-27.2.0.jar"
+                        },
+                        {
+                            "name": "common",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c28ef583f4b1996b25f6e5eac7b5d1f81248e40c"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/common/27.2.0/common-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "manifest-merger",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "manifest-merger",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c074b9a439ac617236bc31f978b4520b0fc86fb7"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/manifest-merger/27.2.0/manifest-merger-27.2.0.jar"
+                        },
+                        {
+                            "name": "manifest-merger",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "bf90a44a0b3295f1372a285919f64480b6fd32a1"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/manifest-merger/27.2.0/manifest-merger-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.ddms",
+                    "name": "ddmlib",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ddmlib",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "59661295b59ef744dd5f2821573c2396a009e974"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/ddms/ddmlib/27.2.0/ddmlib-27.2.0.jar"
+                        },
+                        {
+                            "name": "ddmlib",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "be2bad386312454fd5eb1d4ada765619803c3aed"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/ddms/ddmlib/27.2.0/ddmlib-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android",
+                    "name": "zipflinger",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "zipflinger",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "b9f6661c53cf54fa868db832d2847d7af96d3dc5"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/zipflinger/4.2.0/zipflinger-4.2.0.jar"
+                        },
+                        {
+                            "name": "zipflinger",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "1d8174e3ac5e8519e350c39862e1b63717125206"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/zipflinger/4.2.0/zipflinger-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android",
+                    "name": "signflinger",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "signflinger",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "99e94d23459e582bbca3c266465f8cdd1fe8b711"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/signflinger/4.2.0/signflinger-4.2.0.jar"
+                        },
+                        {
+                            "name": "signflinger",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "31883e30b96ded4c52b9bda8e277af7fd64debb7"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/signflinger/4.2.0/signflinger-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.analytics-library",
+                    "name": "protos",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protos",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "133ebd79a84b4aecc1e6bf0f90f84064054ae64f"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/protos/27.2.0/protos-27.2.0.jar"
+                        },
+                        {
+                            "name": "protos",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "e8c7afbb36e42c70dfa2b2069854e32dc92f3a66"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/protos/27.2.0/protos-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.analytics-library",
+                    "name": "tracker",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "tracker",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "52946983ba7136bb94ba0e99eb7fbbe78a1a5b17"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/tracker/27.2.0/tracker-27.2.0.jar"
+                        },
+                        {
+                            "name": "tracker",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c6d35bc4e5dcfe92d6afb7c97c342b8b7881319a"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/tracker/27.2.0/tracker-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "apksig",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "apksig",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "98c4358ab08d3ef7cd66c79cc91b632b63fc48ac"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/apksig/4.2.0/apksig-4.2.0.jar"
+                        },
+                        {
+                            "name": "apksig",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "47170ac6c77b6973bf4e9d01436dbc6c3d921eda"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/apksig/4.2.0/apksig-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.build",
+                    "name": "apkzlib",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "apkzlib",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "49cb407f13ef01fa8b6c21b4429b2f876767f68e"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/apkzlib/4.2.0/apkzlib-4.2.0.jar"
+                        },
+                        {
+                            "name": "apkzlib",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "ac1d8d798cb4bd7325d32c56574b323389e9349f"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/build/apkzlib/4.2.0/apkzlib-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.squareup",
+                    "name": "javawriter",
+                    "version": "2.5.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "javawriter",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javawriter/2.5.0/javawriter-2.5.0.jar"
+                        },
+                        {
+                            "name": "javawriter",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/javawriter/2.5.0/javawriter-2.5.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.bouncycastle",
+                    "name": "bcpkix-jdk15on",
+                    "version": "1.56",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "bcpkix-jdk15on",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.56/bcpkix-jdk15on-1.56.jar"
+                        },
+                        {
+                            "name": "bcpkix-jdk15on",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcpkix-jdk15on/1.56/bcpkix-jdk15on-1.56-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.bouncycastle",
+                    "name": "bcprov-jdk15on",
+                    "version": "1.56",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "bcprov-jdk15on",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56.jar"
+                        },
+                        {
+                            "name": "bcprov-jdk15on",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.56/bcprov-jdk15on-1.56-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.ow2.asm",
+                    "name": "asm-tree",
+                    "version": "7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "asm-tree",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/7.0/asm-tree-7.0.jar"
+                        },
+                        {
+                            "name": "asm-tree",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm-tree/7.0/asm-tree-7.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "javax.inject",
+                    "name": "javax.inject",
+                    "version": "1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "javax.inject",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+                        },
+                        {
+                            "name": "javax.inject",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "it.unimi.dsi",
+                    "name": "fastutil",
+                    "version": "8.4.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fastutil",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/it/unimi/dsi/fastutil/8.4.0/fastutil-8.4.0.jar"
+                        },
+                        {
+                            "name": "fastutil",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/it/unimi/dsi/fastutil/8.4.0/fastutil-8.4.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.googlecode.json-simple",
+                    "name": "json-simple",
+                    "version": "1.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "json-simple",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1.jar"
+                        },
+                        {
+                            "name": "json-simple",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/json-simple/json-simple/1.1/json-simple-1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.layoutlib",
+                    "name": "layoutlib-api",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "layoutlib-api",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "e8e77f698e9b6f26d88207751d5ef65068133a57"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/layoutlib/layoutlib-api/27.2.0/layoutlib-api-27.2.0.jar"
+                        },
+                        {
+                            "name": "layoutlib-api",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "945da35e0ab07d283e8045e395d3e567bd50cc9a"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/layoutlib/layoutlib-api/27.2.0/layoutlib-api-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.guava",
+                    "name": "guava",
+                    "version": "28.1-jre",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "guava",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre.jar"
+                        },
+                        {
+                            "name": "guava",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/28.1-jre/guava-28.1-jre-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools",
+                    "name": "annotations",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "annotations",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "8994674629f58684e973ac01c570b75bc3725169"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/annotations/27.2.0/annotations-27.2.0.jar"
+                        },
+                        {
+                            "name": "annotations",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "03d7c416e71b94f1b9270514b63e4865bde1444d"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/annotations/27.2.0/annotations-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.httpcomponents",
+                    "name": "httpmime",
+                    "version": "4.5.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "httpmime",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.6/httpmime-4.5.6.jar"
+                        },
+                        {
+                            "name": "httpmime",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.6/httpmime-4.5.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.httpcomponents",
+                    "name": "httpcore",
+                    "version": "4.4.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "httpcore",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.10/httpcore-4.4.10.jar"
+                        },
+                        {
+                            "name": "httpcore",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.10/httpcore-4.4.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.httpcomponents",
+                    "name": "httpclient",
+                    "version": "4.5.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "httpclient",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.6/httpclient-4.5.6.jar"
+                        },
+                        {
+                            "name": "httpclient",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.6/httpclient-4.5.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.lint",
+                    "name": "lint-model",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "lint-model",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "997bf8f85c6b6a2ca99013a7a4deb5d68fe26a06"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-model/27.2.0/lint-model-27.2.0.jar"
+                        },
+                        {
+                            "name": "lint-model",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "ced9dedb23e2ecb5513b0d661f5d914b78b27695"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/lint/lint-model/27.2.0/lint-model-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains.kotlin",
+                    "name": "kotlin-reflect",
+                    "version": "1.4.31",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "kotlin-reflect",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31.jar"
+                        },
+                        {
+                            "name": "kotlin-reflect",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-reflect/1.4.31/kotlin-reflect-1.4.31-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "androidx.databinding",
+                    "name": "databinding-common",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "databinding-common",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "3723c4679dde4ea48598eda6a4735df5b130efca"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-common/4.2.0/databinding-common-4.2.0.jar"
+                        },
+                        {
+                            "name": "databinding-common",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "401bf945c019c13b0211cccaad20f3e7b62fd315"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/androidx/databinding/databinding-common/4.2.0/databinding-common-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.databinding",
+                    "name": "baseLibrary",
+                    "version": "4.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "baseLibrary",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "60a87775da182d9d6156d6e0fd7da74a9aced2ed"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/databinding/baseLibrary/4.2.0/baseLibrary-4.2.0.jar"
+                        },
+                        {
+                            "name": "baseLibrary",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "f719fafa4a07e0cf70dc4f868214a4b14c22ca3a"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/databinding/baseLibrary/4.2.0/baseLibrary-4.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.antlr",
+                    "name": "antlr4",
+                    "version": "4.5.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "antlr4",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4/4.5.3/antlr4-4.5.3.jar"
+                        },
+                        {
+                            "name": "antlr4",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/antlr/antlr4/4.5.3/antlr4-4.5.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-io",
+                    "name": "commons-io",
+                    "version": "2.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-io",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4.jar"
+                        },
+                        {
+                            "name": "commons-io",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.4/commons-io-2.4-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.googlecode.juniversalchardet",
+                    "name": "juniversalchardet",
+                    "version": "1.0.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "juniversalchardet",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3.jar"
+                        },
+                        {
+                            "name": "juniversalchardet",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/googlecode/juniversalchardet/juniversalchardet/1.0.3/juniversalchardet-1.0.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.code.gson",
+                    "name": "gson",
+                    "version": "2.8.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "gson",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.6/gson-2.8.6.jar"
+                        },
+                        {
+                            "name": "gson",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.6/gson-2.8.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.glassfish.jaxb",
+                    "name": "jaxb-runtime",
+                    "version": "2.3.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jaxb-runtime",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.3.2/jaxb-runtime-2.3.2.jar"
+                        },
+                        {
+                            "name": "jaxb-runtime",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/jaxb-runtime/2.3.2/jaxb-runtime-2.3.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains.kotlin",
+                    "name": "kotlin-stdlib",
+                    "version": "1.4.31",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "kotlin-stdlib",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31.jar"
+                        },
+                        {
+                            "name": "kotlin-stdlib",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.4.31/kotlin-stdlib-1.4.31-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains.kotlin",
+                    "name": "kotlin-stdlib-jdk7",
+                    "version": "1.4.31",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "kotlin-stdlib-jdk7",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.31/kotlin-stdlib-jdk7-1.4.31.jar"
+                        },
+                        {
+                            "name": "kotlin-stdlib-jdk7",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-jdk7/1.4.31/kotlin-stdlib-jdk7-1.4.31-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.sf.proguard",
+                    "name": "proguard-base",
+                    "version": "6.0.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "proguard-base",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-base/6.0.3/proguard-base-6.0.3.jar"
+                        },
+                        {
+                            "name": "proguard-base",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/proguard/proguard-base/6.0.3/proguard-base-6.0.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.auto.value",
+                    "name": "auto-value-annotations",
+                    "version": "1.6.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "auto-value-annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2.jar"
+                        },
+                        {
+                            "name": "auto-value-annotations",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/auto/value/auto-value-annotations/1.6.2/auto-value-annotations-1.6.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.errorprone",
+                    "name": "error_prone_annotations",
+                    "version": "2.3.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "error_prone_annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.2/error_prone_annotations-2.3.2.jar"
+                        },
+                        {
+                            "name": "error_prone_annotations",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.2/error_prone_annotations-2.3.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.dagger",
+                    "name": "dagger",
+                    "version": "2.28.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "dagger",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/dagger/dagger/2.28.3/dagger-2.28.3.jar"
+                        },
+                        {
+                            "name": "dagger",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/dagger/dagger/2.28.3/dagger-2.28.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jdom",
+                    "name": "jdom2",
+                    "version": "2.0.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jdom2",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jdom/jdom2/2.0.6/jdom2-2.0.6.jar"
+                        },
+                        {
+                            "name": "jdom2",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jdom/jdom2/2.0.6/jdom2-2.0.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.json",
+                    "name": "json",
+                    "version": "20180813",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "json",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json/json/20180813/json-20180813.jar"
+                        },
+                        {
+                            "name": "json",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json/json/20180813/json-20180813-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.checkerframework",
+                    "name": "checker-qual",
+                    "version": "2.8.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "checker-qual",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.8.1/checker-qual-2.8.1.jar"
+                        },
+                        {
+                            "name": "checker-qual",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.8.1/checker-qual-2.8.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools",
+                    "name": "dvlib",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "dvlib",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "6d43a851ff6f97e3c920a36e9fab10924c9c6dfa"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/dvlib/27.2.0/dvlib-27.2.0.jar"
+                        },
+                        {
+                            "name": "dvlib",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "e6202b458f835234fbb7f87ff19243f8158cca20"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/dvlib/27.2.0/dvlib-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools",
+                    "name": "repository",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "repository",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "effd29b0a3597bbc1a9503936fc6814b4cb27213"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/repository/27.2.0/repository-27.2.0.jar"
+                        },
+                        {
+                            "name": "repository",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "5aecccddbd208f7796565497e43df810a7aad2c0"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/repository/27.2.0/repository-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.apache.commons",
+                    "name": "commons-compress",
+                    "version": "1.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-compress",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.12/commons-compress-1.12.jar"
+                        },
+                        {
+                            "name": "commons-compress",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.12/commons-compress-1.12-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.android.tools.analytics-library",
+                    "name": "shared",
+                    "version": "27.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "shared",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "eb396a103c26535b63bad79ed84ec082351a0764"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/shared/27.2.0/shared-27.2.0.jar"
+                        },
+                        {
+                            "name": "shared",
+                            "classifier": "sources",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "a74fca652c8ce3f9211b55c241afa11deb4747c1"
+                            },
+                            "path": "<COURSIER>/https/maven.google.com/com/android/tools/analytics-library/shared/27.2.0/shared-27.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains.intellij.deps",
+                    "name": "trove4j",
+                    "version": "1.0.20181211",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "trove4j",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211.jar"
+                        },
+                        {
+                            "name": "trove4j",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/intellij/deps/trove4j/1.0.20181211/trove4j-1.0.20181211-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "xerces",
+                    "name": "xercesImpl",
+                    "version": "2.12.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "xercesImpl",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/xerces/xercesImpl/2.12.0/xercesImpl-2.12.0.jar"
+                        },
+                        {
+                            "name": "xercesImpl",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/xerces/xercesImpl/2.12.0/xercesImpl-2.12.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.sf.kxml",
+                    "name": "kxml2",
+                    "version": "2.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "kxml2",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0.jar"
+                        },
+                        {
+                            "name": "kxml2",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/sf/kxml/kxml2/2.3.0/kxml2-2.3.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.code.findbugs",
+                    "name": "jsr305",
+                    "version": "3.0.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsr305",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+                        },
+                        {
+                            "name": "jsr305",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains",
+                    "name": "annotations",
+                    "version": "13.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar"
+                        },
+                        {
+                            "name": "annotations",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.guava",
+                    "name": "failureaccess",
+                    "version": "1.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "failureaccess",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
+                        },
+                        {
+                            "name": "failureaccess",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.guava",
+                    "name": "listenablefuture",
+                    "version": "9999.0-empty-to-avoid-conflict-with-guava",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "listenablefuture",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.j2objc",
+                    "name": "j2objc-annotations",
+                    "version": "1.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "j2objc-annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
+                        },
+                        {
+                            "name": "j2objc-annotations",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.codehaus.mojo",
+                    "name": "animal-sniffer-annotations",
+                    "version": "1.18",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "animal-sniffer-annotations",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.18/animal-sniffer-annotations-1.18.jar"
+                        },
+                        {
+                            "name": "animal-sniffer-annotations",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.18/animal-sniffer-annotations-1.18-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-logging",
+                    "name": "commons-logging",
+                    "version": "1.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-logging",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar"
+                        },
+                        {
+                            "name": "commons-logging",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "commons-codec",
+                    "name": "commons-codec",
+                    "version": "1.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "commons-codec",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10.jar"
+                        },
+                        {
+                            "name": "commons-codec",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.10/commons-codec-1.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "jakarta.xml.bind",
+                    "name": "jakarta.xml.bind-api",
+                    "version": "2.3.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jakarta.xml.bind-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/2.3.2/jakarta.xml.bind-api-2.3.2.jar"
+                        },
+                        {
+                            "name": "jakarta.xml.bind-api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/2.3.2/jakarta.xml.bind-api-2.3.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.glassfish.jaxb",
+                    "name": "txw2",
+                    "version": "2.3.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "txw2",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/txw2/2.3.2/txw2-2.3.2.jar"
+                        },
+                        {
+                            "name": "txw2",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/glassfish/jaxb/txw2/2.3.2/txw2-2.3.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.sun.istack",
+                    "name": "istack-commons-runtime",
+                    "version": "3.0.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "istack-commons-runtime",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/3.0.8/istack-commons-runtime-3.0.8.jar"
+                        },
+                        {
+                            "name": "istack-commons-runtime",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/istack/istack-commons-runtime/3.0.8/istack-commons-runtime-3.0.8-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jvnet.staxex",
+                    "name": "stax-ex",
+                    "version": "1.8.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "stax-ex",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jvnet/staxex/stax-ex/1.8.1/stax-ex-1.8.1.jar"
+                        },
+                        {
+                            "name": "stax-ex",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jvnet/staxex/stax-ex/1.8.1/stax-ex-1.8.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.sun.xml.fastinfoset",
+                    "name": "FastInfoset",
+                    "version": "1.2.16",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "FastInfoset",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/fastinfoset/FastInfoset/1.2.16/FastInfoset-1.2.16.jar"
+                        },
+                        {
+                            "name": "FastInfoset",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/xml/fastinfoset/FastInfoset/1.2.16/FastInfoset-1.2.16-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "jakarta.activation",
+                    "name": "jakarta.activation-api",
+                    "version": "1.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jakarta.activation-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.1/jakarta.activation-api-1.2.1.jar"
+                        },
+                        {
+                            "name": "jakarta.activation-api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.1/jakarta.activation-api-1.2.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jetbrains.kotlin",
+                    "name": "kotlin-stdlib-common",
+                    "version": "1.4.31",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "kotlin-stdlib-common",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31.jar"
+                        },
+                        {
+                            "name": "kotlin-stdlib-common",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib-common/1.4.31/kotlin-stdlib-common-1.4.31-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.sun.activation",
+                    "name": "javax.activation",
+                    "version": "1.2.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "javax.activation",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/javax.activation/1.2.0/javax.activation-1.2.0.jar"
+                        },
+                        {
+                            "name": "javax.activation",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/sun/activation/javax.activation/1.2.0/javax.activation-1.2.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.jimfs",
+                    "name": "jimfs",
+                    "version": "1.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jimfs",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.1/jimfs-1.1.jar"
+                        },
+                        {
+                            "name": "jimfs",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.1/jimfs-1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna-platform",
+                    "version": "5.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna-platform",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0.jar"
+                        },
+                        {
+                            "name": "jna-platform",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.6.0/jna-platform-5.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "xml-apis",
+                    "name": "xml-apis",
+                    "version": "1.4.01",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "xml-apis",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/xml-apis/xml-apis/1.4.01/xml-apis-1.4.01.jar"
+                        },
+                        {
+                            "name": "xml-apis",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/xml-apis/xml-apis/1.4.01/xml-apis-1.4.01-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna",
+                    "version": "5.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0.jar"
+                        },
+                        {
+                            "name": "jna",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.6.0/jna-5.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.11.12",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}
