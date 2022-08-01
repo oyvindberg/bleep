@@ -34,6 +34,12 @@ projects:
     scala:
       options: -Wconf:cat=unused-nowarn:s
     sources: ./src/${SCOPE}/scala-sbt-1.0
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 3.1.0
   sttp-mock-server:
     dependencies:
     - io.circe::circe-core:0.14.1
@@ -1200,6 +1206,8 @@ projects:
     - template-cross-jvm-212-213
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/tapir/client/testserver
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common:
     scala:

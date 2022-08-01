@@ -456,6 +456,12 @@ projects:
     folder: ./../../snapshot-tests-in/sbt/scripted-sbt-redux
     scala:
       version: 2.12.16
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 2.13.8
   servertestproj:
     dependsOn: scripted-sbt-redux-test
     extends:
@@ -807,6 +813,8 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/zinc-lm-integration
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common:
     java:

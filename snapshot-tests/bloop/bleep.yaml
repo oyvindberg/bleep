@@ -658,6 +658,12 @@ projects:
     resources:
     - ./../../LICENSE.md
     - ./../../NOTICE.md
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 2.13.8
   sockets:
     dependencies:
     - net.java.dev.jna:jna-platform:5.8.0
@@ -680,6 +686,8 @@ resolvers:
 - https://maven.google.com
 - type: ivy
   uri: https://repo.typesafe.com/typesafe/ivy-releases/
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common-main:
     sbt-scope: main
