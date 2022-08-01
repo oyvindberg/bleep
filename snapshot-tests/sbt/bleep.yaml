@@ -443,13 +443,32 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
       version: 2.12.16
-  servertestproj-test:
+  scripted-sbt-redux-test:
     dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
+      configuration: provided
+      module: org.scala-sbt:launcher-interface:1.3.3
+    dependsOn:
+    - sbt-test
+    - scripted-sbt-redux
+    extends:
+    - template-common-test
+    - template-scala-2.12
+    folder: ./../../snapshot-tests-in/sbt/scripted-sbt-redux
+    scala:
+      version: 2.12.16
+  servertestproj:
+    dependsOn: scripted-sbt-redux-test
+    extends:
+    - template-common-main
+    - template-scala-2.12
+    folder: ./../../snapshot-tests-in/sbt/server-test
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+      version: 2.12.16
+  servertestproj-test:
+    dependsOn: servertestproj
     extends:
     - template-common-test
     - template-scala-2.12
@@ -481,13 +500,9 @@ projects:
       jvm212:
         scala:
           version: 2.12.16
-    dependencies:
-    - com.eed3si9n.verify::verify:1.0.0
-    - junit:junit:4.13.1
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - qa.hedgehog::hedgehog-sbt:0.7.0
-    dependsOn: task-system
+    dependsOn:
+    - task-system
+    - tasks-test
     extends:
     - template-common-test
     - template-cross-all
@@ -510,6 +525,22 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  tasks-test:
+    cross:
+      jvm212:
+        scala:
+          version: 2.12.16
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: tasks
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/tasks
   test-agent:
     dependencies: org.scala-sbt:test-interface:1.0
     extends:

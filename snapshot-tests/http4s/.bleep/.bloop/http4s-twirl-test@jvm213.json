@@ -15,6 +15,7 @@
       "http4s-core@jvm213",
       "http4s-laws@jvm213",
       "http4s-testing-test@jvm213",
+      "http4s-testing@jvm213",
       "http4s-twirl@jvm213"
     ],
     "classpath": [
@@ -65,6 +66,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-core/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-laws/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-twirl/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-twirl-test/jvm213",

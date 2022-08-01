@@ -14,6 +14,7 @@
     ],
     "dependencies": [
       "common@jvm211",
+      "communitytest@jvm211",
       "parsers@jvm211",
       "scalameta@jvm211",
       "trees@jvm211"
@@ -25,14 +26,20 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.0/sourcecode_2.11-0.3.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.7/lenses_2.11-0.9.7.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.11/0.9.7/scalapb-runtime_2.11-0.9.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.11.12/scalap-2.11.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.11/2.3.1/fastparse-v2_2.11-2.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/0.7.29/junit-interface-0.7.29.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.11/0.7.29/munit_2.11-0.7.29.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/common/jvm211/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/communitytest/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/parsers/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/scalameta/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/trees/jvm211/classes"
@@ -209,38 +216,26 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_2.11",
-          "version": "0.3.0",
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "sourcecode_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.0/sourcecode_2.11-0.3.0.jar"
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.11.12",
+          "organization": "org.scalameta",
+          "name": "junit-interface",
+          "version": "0.7.29",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-parser-combinators_2.11",
-          "version": "1.0.4",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-parser-combinators_2.11",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
+              "name": "junit-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/0.7.29/junit-interface-0.7.29.jar"
             }
           ]
         },
@@ -301,6 +296,78 @@
             {
               "name": "fastparse-v2_2.11",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.11/2.3.1/fastparse-v2_2.11-2.3.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hamcrest",
+          "name": "hamcrest-core",
+          "version": "1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "hamcrest-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.11",
+          "version": "0.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.0/sourcecode_2.11-0.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "junit",
+          "name": "junit",
+          "version": "4.13.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "junit",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.11.12",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_2.11",
+          "version": "0.7.29",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "munit_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.11/0.7.29/munit_2.11-0.7.29.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-parser-combinators_2.11",
+          "version": "1.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-parser-combinators_2.11",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
             }
           ]
         }

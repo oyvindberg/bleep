@@ -634,6 +634,13 @@ projects:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/servlet
+  http4s-testing:
+    dependsOn: http4s-laws
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/http4s/testing
+    source-layout: cross-full
   http4s-testing-test:
     cross:
       js213:
@@ -647,14 +654,23 @@ projects:
     - org.typelevel::cats-effect-laws:3.3.6
     - org.typelevel::discipline-munit:1.0.9
     - org.typelevel::scalacheck-effect:1.0.3
-    dependsOn: http4s-laws
+    dependsOn: http4s-testing
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/testing
     source-layout: cross-full
+  http4s-tests:
+    dependsOn: http4s-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/http4s/tests
+    source-layout: cross-full
   http4s-tests-test:
-    dependsOn: http4s-testing-test
+    dependsOn:
+    - http4s-testing-test
+    - http4s-tests
     extends:
     - template-common-test
     - template-cross-all
@@ -708,17 +724,34 @@ projects:
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/output
   scalafixinternalrules:
-    dependencies: ch.epfl.scala::scalafix-core:0.9.34
+    cross:
+      jvm213:
+        dependencies: ch.epfl.scala::scalafix-core:0.9.34
     extends:
     - template-common-main
-    - template-scala-2.13-jvm
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/rules
-  scalafixinternaltests-test:
-    dependencies: ch.epfl.scala:::scalafix-testkit:0.9.34
+  scalafixinternaltests:
+    cross:
+      jvm3:
+        scala:
+          options: -Yrangepos
     dependsOn: scalafixinternalrules
     extends:
+    - template-common-main
+    - template-cross-jvm-all
+    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
+  scalafixinternaltests-test:
+    cross:
+      jvm213:
+        dependencies: ch.epfl.scala:::scalafix-testkit:0.9.34
+      jvm3:
+        scala:
+          options: -Yrangepos
+    dependsOn: scalafixinternaltests
+    extends:
     - template-common-test
-    - template-scala-2.13-jvm
+    - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
 templates:
   template-common:

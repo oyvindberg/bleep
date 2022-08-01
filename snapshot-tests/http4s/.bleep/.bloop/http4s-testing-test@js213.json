@@ -17,7 +17,8 @@
     ],
     "dependencies": [
       "http4s-core@js213",
-      "http4s-laws@js213"
+      "http4s-laws@js213",
+      "http4s-testing@js213"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar",
@@ -72,7 +73,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_2.13/3.1.0/vault_sjs1_2.13-3.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-core/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-laws/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-laws/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing/js213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-testing-test/js213/classes",
