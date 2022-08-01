@@ -24,7 +24,7 @@
     ],
     "dependencies": [
       "common@jvm213",
-      "metac@jvm213",
+      "metac@jvm2.13.8",
       "parsers@jvm213",
       "scalameta@jvm213",
       "semanticdbintegration@jvm213",
@@ -63,7 +63,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/junit-interface/0.7.29/junit-interface-0.7.29.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.13/0.7.29/munit_2.13-0.7.29.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/common/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.13.8/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/parsers/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/scalameta/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdbintegration/jvm213/classes",

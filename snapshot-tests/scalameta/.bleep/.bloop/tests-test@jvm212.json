@@ -24,7 +24,7 @@
     ],
     "dependencies": [
       "common@jvm212",
-      "metac@jvm212",
+      "metac@jvm2.12.16",
       "parsers@jvm212",
       "scalameta@jvm212",
       "semanticdbintegration@jvm212",
@@ -62,7 +62,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_2.12/0.7.29/munit_2.12-0.7.29.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/common/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.12.16/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/parsers/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/scalameta/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdbintegration/jvm212/classes",

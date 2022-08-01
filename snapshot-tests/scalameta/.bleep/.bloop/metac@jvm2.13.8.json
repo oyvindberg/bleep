@@ -1,7 +1,7 @@
 {
   "version": "1.4.0",
   "project": {
-    "name": "metac@jvm213",
+    "name": "metac@jvm2.13.8",
     "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
@@ -11,7 +11,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/scala-2.13",
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/scala-2.13.8",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-sources/metac@jvm213"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-sources/metac@jvm2.13.8"
     ],
     "dependencies": [
       
@@ -23,12 +23,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm213/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.13.8",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.13.8/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-resources/metac@jvm213"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-resources/metac@jvm2.13.8"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -46,7 +46,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.13.8/inc_compile.zip",
       "setup": {
         "order": "mixed",
         "addLibraryToBootClasspath": true,

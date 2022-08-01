@@ -118,7 +118,7 @@ object BuildCreateNew {
       for {
         p <- platforms
         s <- scalas
-      } yield (p, s, model.CrossProjectName(model.ProjectName(name), model.CrossId.defaultFrom(Some(s), Some(p))))
+      } yield (p, s, model.CrossProjectName(model.ProjectName(name), model.CrossId.defaultFrom(Some(s), Some(p), isFull = false)))
 
     val mainProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
       variants(name).map { case (platformId, scala, crossName) =>

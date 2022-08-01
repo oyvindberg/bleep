@@ -3,6 +3,7 @@ package bleep.internal
 import bleep.{model, Versions}
 import bloop.config.Config
 import coursier.core.Configuration
+import sbt.librarymanagement.CrossVersion
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -89,7 +90,11 @@ object ImportInputProjects {
             importableProjects.map { ip =>
               val maybeCrossId = model.CrossId.defaultFrom(
                 maybeScalaVersion = ip.bloopFile.project.scala.map(s => Versions.Scala(s.version)),
-                maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name))
+                maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name)),
+                isFull = ip.sbtExportFile.crossVersion match {
+                  case _: CrossVersion.Full => true
+                  case _                    => false
+                }
               )
 
               (model.CrossProjectName(name, maybeCrossId), ip)
