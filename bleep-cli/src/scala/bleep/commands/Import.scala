@@ -9,7 +9,9 @@ import cats.syntax.apply._
 import com.monovore.decline.Opts
 
 import java.nio.file.{Files, Path}
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import scala.sys.process.Process
 
 object Import {
   case class Options(
@@ -56,6 +58,7 @@ case class Import(
 ) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
+      logger.info("Calling sbt to retrieve information about the existing build. Grab some popcorn as it may take a while !")
       generateBloopAndDependencyFiles()
     }
 
@@ -88,27 +91,74 @@ case class Import(
       tempAddBloopPlugin,
       s"""
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.0")
-addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.1.0")
+addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 """
     )
 
     try {
       // only accepts relative paths
       val importDir = RelPath.relativeTo(sbtBuildDir, destinationPaths.bleepImportDir)
-      implicit val wd = sbtBuildDir
+
+      FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
+
+      val args: Iterable[String] = {
+        val input = Process(List("sbt", "show scalaVersion;show crossScalaVersions"), sbtBuildDir.toFile)
+          .lazyLines(logger.processLogger("sbt get project/scala matrix"))
+          .toArray
+        val projectNamesByScalaVersion = parseSbtOutput(input)
+
+        projectNamesByScalaVersion.flatMap { case (scalaVersion, projects) =>
+          List(
+            s"++ ${scalaVersion.scalaVersion}",
+            s"""set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"""",
+            "exportAllProjects",
+            s"""set Global / bloopConfigDir := baseDirectory.value / "$importDir/bloop/${scalaVersion.scalaVersion}""""
+          ) ++ projects.map(p => s"$p/bloopInstall")
+        }
+      }
+
       cli(
-        List(
-          "sbt",
-          s"""set Global / bloopConfigDir := baseDirectory.value / s"$importDir/bloop/$${scalaBinaryVersion.value}"""",
-          "+bloopInstall",
-          s"""set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"""",
-          "+exportAllProjects"
-        ),
+        "sbt" :: args.toList,
         logger,
         "sbt",
         env = List("SBT_OPTS" -> "-Xmx3072M")
-      )
+      )(sbtBuildDir)
     } finally Files.delete(tempAddBloopPlugin)
+  }
+
+  def parseSbtOutput(lines: Array[String]): Map[Versions.Scala, Set[String]] = {
+    /*
+[info] ...
+[info] binaryJVMProjects / scalaVersion
+[info] 	2.12.16
+[info] ...
+[info] treesNative / crossScalaVersions
+[info] 	List(2.13.8, 2.12.16)
+[info] ...
+     */
+    val builder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
+
+    var i = 0
+    while (i < lines.length) {
+      val line = lines(i)
+      def words = line.split("\\s")
+      def projectName = words(words.length - 3) // third last, before `/` and `binaryJVMProjects` above
+      if (line.endsWith(" / scalaVersion")) {
+        val nextLine = lines(i + 1)
+        val scalaVersion = Versions.Scala(nextLine.split("\\s").last)
+        builder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
+      } else if (line.endsWith(" / crossScalaVersions")) {
+        val nextLine = lines(i + 1)
+        val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
+        versions.map { scalaVersion =>
+          builder.getOrElseUpdate(Versions.Scala(scalaVersion), mutable.Set.empty).add(projectName)
+        }
+      }
+
+      i += 1
+    }
+
+    builder.map { case (v, projects) => (v, projects.toSet) }.toMap
   }
 
   /** @param hackDropBleepDependency

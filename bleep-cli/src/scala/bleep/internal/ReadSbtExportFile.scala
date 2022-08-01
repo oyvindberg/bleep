@@ -1,7 +1,8 @@
 package bleep.internal
 
 import bleep.BuildException
-import sbt.librarymanagement.{ModuleID, ScalaVersion}
+import sbt.librarymanagement.syntax.ExclusionRule
+import sbt.librarymanagement.{CrossVersion, ModuleID, ScalaVersion}
 import sjsonnew.support.scalajson.unsafe.{Converter, Parser}
 import sjsonnew.{Builder, JsonFormat, Unbuilder}
 
@@ -15,7 +16,16 @@ object ReadSbtExportFile {
       case Success(value)     => value
     }
 
-  case class ExportedProject(organization: String, bloopName: String, sbtName: String, scalaVersion: ScalaVersion, dependencies: Seq[ModuleID])
+  case class ExportedProject(
+      organization: String,
+      bloopName: String,
+      sbtName: String,
+      scalaVersion: ScalaVersion,
+      dependencies: Seq[ModuleID],
+      autoScalaLibrary: Boolean,
+      excludeDependencies: Seq[ExclusionRule],
+      crossVersion: CrossVersion
+  )
 
   object ExportedProject {
     import sbt.librarymanagement.LibraryManagementCodec._
@@ -31,9 +41,22 @@ object ReadSbtExportFile {
             val scalaFullVersion = unbuilder.readField[String]("scalaFullVersion")
             val scalaBinaryVersion = unbuilder.readField[String]("scalaBinaryVersion")
             val dependencies = unbuilder.readField[List[ModuleID]]("dependencies")
+            val autoScalaLibrary = unbuilder.readField[Boolean]("autoScalaLibrary")
+            val excludeDependencies = unbuilder.readField[Seq[ExclusionRule]]("excludeDependencies")
+            val crossVersion = unbuilder.readField[CrossVersion]("crossVersion")
+
             unbuilder.endObject()
 
-            ExportedProject(organization, bloopName, sbtName, scalaVersion = ScalaVersion(scalaFullVersion, scalaBinaryVersion), dependencies = dependencies)
+            ExportedProject(
+              organization,
+              bloopName,
+              sbtName,
+              scalaVersion = ScalaVersion(scalaFullVersion, scalaBinaryVersion),
+              dependencies = dependencies,
+              autoScalaLibrary,
+              excludeDependencies,
+              crossVersion
+            )
           case None =>
             sjsonnew.deserializationError("expected a json value to read")
         }
@@ -46,6 +69,9 @@ object ReadSbtExportFile {
         builder.addField("scalaFullVersion", obj.scalaVersion.full)
         builder.addField("scalaBinaryVersion", obj.scalaVersion.binary)
         builder.addField("dependencies", obj.dependencies.toList)
+        builder.addField("autoScalaLibrary", obj.autoScalaLibrary)
+        builder.addField("excludeDependencies", obj.excludeDependencies)
+        builder.addField("crossVersion", obj.crossVersion)
         builder.endObject()
       }
     }
