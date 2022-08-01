@@ -1,0 +1,158 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "semanticdbIntegration",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/scalameta",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/scala-2.13",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/java",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/target/scala-2.13/src_managed/main"
+        ],
+        "dependencies": [
+            "semanticdbIntegrationMacros"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.8/semanticdbIntegrationMacros/scala-2.13/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.8/semanticdbIntegration",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.8/semanticdbIntegration/scala-2.13/classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/main/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/target/scala-2.13/resource_managed/main"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.13.8",
+            "options": [
+                "-Ymacro-annotations",
+                "-feature",
+                "-unchecked",
+                "-deprecation",
+                "-Xplugin:<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/target/scala-2.13/semanticdb-scalac_2.13.8-4.5.9-SNAPSHOT.jar",
+                "-Xplugin-require:semanticdb",
+                "-Wunused:imports",
+                "-Yrangepos",
+                "-P:semanticdb:text:on",
+                "-P:semanticdb:failures:error",
+                "-P:semanticdb:exclude:Exclude.scala",
+                "-P:semanticdb:sourceroot:<BLEEP_GIT>/snapshot-tests-in/scalameta",
+                "-P:semanticdb:synthetics:on"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                "-parameters"
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/scalameta"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.8",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.8",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}

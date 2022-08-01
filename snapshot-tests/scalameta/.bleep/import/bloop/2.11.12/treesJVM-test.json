@@ -1,0 +1,318 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "treesJVM-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/scalameta",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/scala-2.11",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/js-jvm/src/test/scala-2.11",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/js-jvm/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/js-jvm/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm-native/src/test/scala-2.11",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm-native/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm-native/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/shared/src/test/scala-2.11",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/shared/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/shared/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/target/scala-2.11/src_managed/test"
+        ],
+        "dependencies": [
+            "commonJVM",
+            "treesJVM"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.11.12/treesJVM/scala-2.11/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.11.12/commonJVM/scala-2.11/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.11/2.3.1/fastparse-v2_2.11-2.3.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.0/sourcecode_2.11-0.3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.11/0.9.7/scalapb-runtime_2.11-0.9.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/0.1.4/geny_2.11-0.1.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.7/lenses_2.11-0.9.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.8.0/protobuf-java-3.8.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/2.1.2/fastparse_2.11-2.1.2.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.11.12/treesJVM",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.11.12/treesJVM/scala-2.11/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/src/test/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/js-jvm/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm-native/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/shared/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees/jvm/target/scala-2.11/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.11.12",
+            "options": [
+                "-feature",
+                "-unchecked",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.11.12/2.1.1/paradise_2.11.12-2.1.1.jar"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.3/jline-2.14.3.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/scalameta"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.11.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "fastparse-v2_2.11",
+                    "version": "2.3.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fastparse-v2_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.11/2.3.1/fastparse-v2_2.11-2.3.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "sourcecode_2.11",
+                    "version": "0.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "sourcecode_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.11/0.3.0/sourcecode_2.11-0.3.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thesamet.scalapb",
+                    "name": "scalapb-runtime_2.11",
+                    "version": "0.9.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalapb-runtime_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.11/0.9.7/scalapb-runtime_2.11-0.9.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "geny_2.11",
+                    "version": "0.1.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "geny_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.11/0.1.4/geny_2.11-0.1.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thesamet.scalapb",
+                    "name": "lenses_2.11",
+                    "version": "0.9.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "lenses_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.11/0.9.7/lenses_2.11-0.9.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.protobuf",
+                    "name": "protobuf-java",
+                    "version": "3.8.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protobuf-java",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.8.0/protobuf-java-3.8.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "fastparse_2.11",
+                    "version": "2.1.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fastparse_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.11/2.1.2/fastparse_2.11-2.1.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.11.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.11.12",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-xml_2.11",
+                    "version": "1.0.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-xml_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-parser-combinators_2.11",
+                    "version": "1.0.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-parser-combinators_2.11",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.11.12",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.11.12/scala-compiler-2.11.12.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.11.12",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

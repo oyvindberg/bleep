@@ -1,0 +1,160 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "semanticdbIntegration-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/scalameta",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/target/scala-2.12/src_managed/test"
+        ],
+        "dependencies": [
+            "semanticdbIntegrationMacros",
+            "semanticdbIntegration"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.16/semanticdbIntegration/scala-2.12/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.16/semanticdbIntegrationMacros/scala-2.12/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.16/semanticdbIntegration",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.16/semanticdbIntegration/scala-2.12/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/src/test/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration/target/scala-2.12/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.16",
+            "options": [
+                "-feature",
+                "-unchecked",
+                "-deprecation",
+                "-Xplugin:<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/target/scala-2.12/semanticdb-scalac_2.12.16-4.5.9-SNAPSHOT.jar",
+                "-Xplugin-require:semanticdb",
+                "-Ywarn-unused-import",
+                "-Yrangepos",
+                "-P:semanticdb:text:on",
+                "-P:semanticdb:failures:error",
+                "-P:semanticdb:exclude:Exclude.scala",
+                "-P:semanticdb:sourceroot:<BLEEP_GIT>/snapshot-tests-in/scalameta",
+                "-P:semanticdb:synthetics:on",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.16/2.1.1/paradise_2.12.16-2.1.1.jar"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                "-parameters"
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/scalameta"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.16",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.16",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

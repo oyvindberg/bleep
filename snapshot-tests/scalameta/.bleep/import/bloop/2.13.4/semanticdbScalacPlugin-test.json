@@ -1,0 +1,325 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "semanticdbScalacPlugin-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/scalameta",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/scala-2.13",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/target/scala-2.13/src_managed/test"
+        ],
+        "dependencies": [
+            "semanticdbScalacCore",
+            "semanticdbScalacPlugin"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/semanticdbScalacPlugin/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/semanticdbScalacCore/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/scalametaJVM/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/parsersJVM/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/treesJVM/scala-2.13/classes",
+            "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/commonJVM/scala-2.13/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.4/scala-library-2.13.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.4/scala-compiler-2.13.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.4/scalap-2.13.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.4/scala-reflect-2.13.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.16.0/jline-3.16.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.13/2.3.1/fastparse-v2_2.13-2.3.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.11/scalapb-runtime_2.13-0.11.11.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.5/geny_2.13-0.6.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.11/lenses_2.13-0.11.11.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.2/protobuf-java-3.19.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.7.0/scala-collection-compat_2.13-2.7.0.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/semanticdbScalacPlugin",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.4/semanticdbScalacPlugin/scala-2.13/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/src/test/protobuf",
+            "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/plugin/target/scala-2.13/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.13.4",
+            "options": [
+                "-Ymacro-annotations",
+                "-feature",
+                "-unchecked",
+                "-Ymacro-annotations",
+                "-feature",
+                "-unchecked"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.4/scala-library-2.13.4.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.4/scala-compiler-2.13.4.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.4/scala-reflect-2.13.4.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.16.0/jline-3.16.0.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/scalameta"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.4/scala-library-2.13.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.13.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.4/scala-compiler-2.13.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scalap",
+                    "version": "2.13.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalap",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.13.4/scalap-2.13.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.13.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.4/scala-reflect-2.13.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.jline",
+                    "name": "jline",
+                    "version": "3.16.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jline",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.16.0/jline-3.16.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "net.java.dev.jna",
+                    "name": "jna",
+                    "version": "5.3.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jna",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalameta",
+                    "name": "fastparse-v2_2.13",
+                    "version": "2.3.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "fastparse-v2_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_2.13/2.3.1/fastparse-v2_2.13-2.3.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "sourcecode_2.13",
+                    "version": "0.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "sourcecode_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thesamet.scalapb",
+                    "name": "scalapb-runtime_2.13",
+                    "version": "0.11.11",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalapb-runtime_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.11/scalapb-runtime_2.13-0.11.11.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.lihaoyi",
+                    "name": "geny_2.13",
+                    "version": "0.6.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "geny_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.13/0.6.5/geny_2.13-0.6.5.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thesamet.scalapb",
+                    "name": "lenses_2.13",
+                    "version": "0.11.11",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "lenses_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.11/lenses_2.13-0.11.11.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.google.protobuf",
+                    "name": "protobuf-java",
+                    "version": "3.19.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "protobuf-java",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.2/protobuf-java-3.19.2.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-collection-compat_2.13",
+                    "version": "2.7.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-collection-compat_2.13",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.7.0/scala-collection-compat_2.13-2.7.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.13.4",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.4/scala-compiler-2.13.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.13.4",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.4/scala-library-2.13.4.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}

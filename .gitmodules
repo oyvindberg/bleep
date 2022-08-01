@@ -40,3 +40,6 @@
 [submodule "snapshot-tests-in/sbt"]
 	path = snapshot-tests-in/sbt
 	url = git@github.com:sbt/sbt.git
+[submodule "snapshot-tests-in/scalameta"]
+	path = snapshot-tests-in/scalameta
+	url = git@github.com:scalameta/scalameta.git

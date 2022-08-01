@@ -1,0 +1,101 @@
+{
+  "organization": "org.scalameta",
+  "bloopName": "semanticdbIntegrationMacros-it",
+  "sbtName": "semanticdbintegrationmacros",
+  "scalaFullVersion": "2.11.12",
+  "scalaBinaryVersion": "2.11",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala-compiler",
+    "revision": "2.11.12",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.11.12",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.11.12",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scalamacros",
+    "name": "paradise",
+    "revision": "2.1.1",
+    "configurations": "plugin->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Full",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-reflect",
+    "revision": "2.11.12",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "",
+    "suffix": ""
+  }
+}

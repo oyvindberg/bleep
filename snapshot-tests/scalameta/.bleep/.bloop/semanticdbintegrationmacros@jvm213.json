@@ -1,0 +1,105 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "semanticdbintegrationmacros@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-sources/semanticdbintegrationmacros@jvm213"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdbintegrationmacros/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdbintegrationmacros/jvm213/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-resources/semanticdbintegrationmacros@jvm213"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.8",
+      "options": [
+        "-Ymacro-annotations",
+        "-feature",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdbintegrationmacros/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/scalameta"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.8",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
