@@ -1,7 +1,7 @@
 {
   "version": "1.4.0",
   "project": {
-    "name": "metac@jvm211",
+    "name": "metac@jvm2.11.12",
     "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
@@ -11,7 +11,7 @@
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/scala-2.11",
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/scala-2.11.12",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-sources/metac@jvm211"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-sources/metac@jvm2.11.12"
     ],
     "dependencies": [
       
@@ -23,12 +23,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm211",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm211/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.11.12",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.11.12/classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-resources/metac@jvm211"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/generated-resources/metac@jvm2.11.12"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -46,7 +46,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.11/1.0.5/scala-xml_2.11-1.0.5.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.11/1.0.4/scala-parser-combinators_2.11-1.0.4.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm211/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.11.12/inc_compile.zip",
       "setup": {
         "order": "mixed",
         "addLibraryToBootClasspath": true,

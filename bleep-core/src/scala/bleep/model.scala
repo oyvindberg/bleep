@@ -379,10 +379,13 @@ object model {
 
   case class CrossId(value: String)
   object CrossId {
-    def defaultFrom(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId]): Option[CrossId] = {
-      val maybeBinVersion = maybeScalaVersion.map(_.binVersion.replace(".", ""))
+    def defaultFrom(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], isFull: Boolean): Option[CrossId] = {
+      val maybeVersion = maybeScalaVersion.map {
+        case scala if isFull => scala.scalaVersion
+        case scala           => scala.binVersion.replace(".", "")
+      }
       val maybePlatformIdString = maybePlatformId.map(_.value)
-      (maybePlatformIdString, maybeBinVersion) match {
+      (maybePlatformIdString, maybeVersion) match {
         case (Some(platformId), Some(binVersion)) => Some(model.CrossId(s"$platformId$binVersion"))
         case (Some(platformId), None)             => Some(model.CrossId(platformId))
         case (None, Some(binVersion))             => Some(model.CrossId(binVersion))

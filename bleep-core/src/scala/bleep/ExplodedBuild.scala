@@ -45,8 +45,16 @@ case class ExplodedBuild(
                   depCross.platform.flatMap(_.name) == p.platform.flatMap(_.name)
                 }
 
+              def sameScalaBinVersionAndPlatform: Option[model.CrossProjectName] =
+                depCrossVersions.find { crossName =>
+                  val depCross = projects(crossName)
+                  depCross.scala.flatMap(_.version).map(_.binVersion) == p.scala.flatMap(_.version).map(_.binVersion) &&
+                  depCross.platform.flatMap(_.name) == p.platform.flatMap(_.name)
+                }
+
               sameCrossId
                 .orElse(sameScalaAndPlatform)
+                .orElse(sameScalaBinVersionAndPlatform)
                 .getOrElse(
                   sys.error(s"Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")} to use for project ${crossProjectName.value}")
                 )

@@ -17,7 +17,11 @@ class ProjectGlobs(activeProjectsFromPath: List[model.CrossProjectName], explode
         .groupBy { case name @ model.CrossProjectName(_, crossId) =>
           crossId.orElse {
             val p = explodedBuild.projects(name)
-            model.CrossId.defaultFrom(p.scala.flatMap(_.version), p.platform.flatMap(_.name))
+            model.CrossId.defaultFrom(
+              p.scala.flatMap(_.version),
+              p.platform.flatMap(_.name),
+              isFull = false // todo: represent in project
+            )
           }
         }
         .collect { case (Some(crossId), names) => (crossId.value, names) }
