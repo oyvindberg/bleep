@@ -74,6 +74,7 @@ projects:
     extends: template-common-main
     folder: ./../../snapshot-tests-in/converter/scalajs
   scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
     platform:
       name: jvm
     scala:

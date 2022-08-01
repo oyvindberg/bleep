@@ -753,6 +753,14 @@ projects:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 3.1.1
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common:
     java:

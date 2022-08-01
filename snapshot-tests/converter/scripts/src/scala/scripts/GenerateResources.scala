@@ -32,5 +32,19 @@ object GenerateResources extends App {
       Files.writeString(to, content)
     }
 
+
+
+    Vector(
+      bleep.model.CrossProjectName(bleep.model.ProjectName("sbt-converter"), None)).foreach { crossName =>
+      val to = started.buildPaths.generatedResourcesDir(crossName).resolve("sbt/sbt.autoplugins")
+      started.logger.withContext(crossName).warn(s"Writing $to")
+      val content = s"""|org.scalablytyped.converter.plugin.ScalablyTypedConverterExternalNpmPlugin
+      |org.scalablytyped.converter.plugin.ScalablyTypedConverterGenSourcePlugin
+      |org.scalablytyped.converter.plugin.ScalablyTypedConverterPlugin
+      |org.scalablytyped.converter.plugin.ScalablyTypedPluginBase""".stripMargin
+      Files.createDirectories(to.getParent)
+      Files.writeString(to, content)
+    }
+
   }
 }

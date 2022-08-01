@@ -171,7 +171,7 @@ case class Import(
 
     val files = generateBuild(
       inputProjects,
-      hackDropBleepDependency = false,
+      bleepTasksVersion = model.Version(constants.BleepVersionTemplate),
       generatedFiles,
       existingBuild
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
@@ -272,13 +272,9 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
     }
   }
 
-  /** @param hackDropBleepDependency
-    *   a bit of technical debt. For tests we cannot resolve the bleep dependency since it's not published anywhere. Let's get back to this
-    * @return
-    */
   def generateBuild(
       inputProjects: ImportInputProjects,
-      hackDropBleepDependency: Boolean,
+      bleepTasksVersion: model.Version,
       generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]],
       maybeExistingBleepJson: Option[model.Build]
   ): Map[Path, String] = {
@@ -319,9 +315,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
           `sbt-scope` = None,
           sources = JsonSet.empty,
           resources = JsonSet.empty,
-          dependencies =
-            if (hackDropBleepDependency) JsonSet.empty
-            else JsonSet(Dep.Scala("build.bleep", "bleep-tasks", constants.BleepVersionTemplate)),
+          dependencies = JsonSet(Dep.Scala("build.bleep", "bleep-tasks", bleepTasksVersion.value)),
           java = None,
           scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty, strict = None)),
           platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),

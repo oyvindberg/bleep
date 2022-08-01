@@ -191,6 +191,12 @@ projects:
     folder: ./../../snapshot-tests-in/scalameta/scalameta-docs
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 2.13.8
   semanticdb-scalac:
     dependsOn: semanticdb-scalac-core
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
@@ -431,6 +437,8 @@ projects:
     - ./../tokens/${PLATFORM}/src/${SCOPE}/scala
     - ./../tokens/shared/src/${SCOPE}/scala
     - ./../tokens/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common:
     scala:

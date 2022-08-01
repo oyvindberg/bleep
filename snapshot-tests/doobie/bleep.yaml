@@ -273,6 +273,14 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/doobie/modules/example
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 3.1.1
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common:
     platform:
