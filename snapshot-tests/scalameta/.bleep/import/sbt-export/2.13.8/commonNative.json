@@ -1,0 +1,268 @@
+{
+  "organization": "org.scalameta",
+  "bloopName": "commonNative",
+  "sbtName": "common",
+  "scalaFullVersion": "2.13.8",
+  "scalaBinaryVersion": "2.13",
+  "dependencies": [{
+    "organization": "org.scala-lang",
+    "name": "scala-compiler",
+    "revision": "2.13.8",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.13.8",
+    "configurations": "scala-tool->default,optional(default)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-library",
+    "revision": "2.13.8",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "test-interface",
+    "revision": "0.4.5",
+    "configurations": "test",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "native0.4_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "scalalib",
+    "revision": "0.4.5",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "native0.4_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "nscplugin",
+    "revision": "0.4.5",
+    "configurations": "plugin->default(compile)",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Full",
+      "prefix": "",
+      "suffix": ""
+    }
+  }, {
+    "organization": "com.lihaoyi",
+    "name": "sourcecode",
+    "revision": "0.3.0",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "native0.4_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "org.scala-lang",
+    "name": "scala-reflect",
+    "revision": "2.13.8",
+    "configurations": "provided",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "com.thesamet.scalapb",
+    "name": "scalapb-runtime",
+    "revision": "0.11.11",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "native0.4_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "com.thesamet.scalapb",
+    "name": "scalapb-runtime",
+    "revision": "0.11.11",
+    "configurations": "protobuf",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Binary",
+      "prefix": "native0.4_",
+      "suffix": ""
+    }
+  }, {
+    "organization": "com.thesamet.scalapb",
+    "name": "protoc-gen-scala",
+    "revision": "0.11.11",
+    "configurations": "protobuf",
+    "isChanging": false,
+    "isTransitive": true,
+    "isForce": false,
+    "explicitArtifacts": [{
+      "name": "protoc-gen-scala",
+      "type": "protoc-plugin",
+      "extension": "sh",
+      "classifier": "unix",
+      "configurations": [],
+      "extraAttributes": {
+
+      },
+      "allowInsecureProtocol": false
+    }],
+    "inclusions": [],
+    "exclusions": [],
+    "extraAttributes": {
+
+    },
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }],
+  "autoScalaLibrary": true,
+  "excludeDependencies": [{
+    "organization": "org.scala-native",
+    "name": "nativelib_native0.4_3",
+    "artifact": "*",
+    "configurations": [],
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "clib_native0.4_3",
+    "artifact": "*",
+    "configurations": [],
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "posixlib_native0.4_3",
+    "artifact": "*",
+    "configurations": [],
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "windowslib_native0.4_3",
+    "artifact": "*",
+    "configurations": [],
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "javalib_native0.4_3",
+    "artifact": "*",
+    "configurations": [],
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }, {
+    "organization": "org.scala-native",
+    "name": "auxlib_native0.4_3",
+    "artifact": "*",
+    "configurations": [],
+    "crossVersion": {
+      "type": "Disabled"
+    }
+  }],
+  "crossVersion": {
+    "type": "Binary",
+    "prefix": "native0.4_",
+    "suffix": ""
+  }
+}
