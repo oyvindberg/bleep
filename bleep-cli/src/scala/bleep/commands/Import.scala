@@ -38,6 +38,7 @@ object Import {
 
   val opts: Opts[Options] =
     (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript).mapN(Options.apply)
+
   def findGeneratedJsonFiles(under: Path): Iterable[Path] =
     Files
       .list(under)
@@ -45,20 +46,82 @@ object Import {
       .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
       .toList
       .asScala
+
+  def parseProjectsOutput(lines: List[String]): Map[Path, List[String]] = {
+    var currentPath = Option.empty[Path]
+    val projectNames = List.newBuilder[String]
+    val b = Map.newBuilder[Path, List[String]]
+    var i = 0
+
+    def commit() = {
+      currentPath match {
+        case Some(currentPath) => b += ((currentPath, projectNames.result()))
+        case None              => ()
+      }
+      projectNames.clear()
+    }
+
+    while (i < lines.length) {
+      val line = lines(i)
+
+      if (line.contains("In file:")) {
+        commit()
+        // store next build file found
+        currentPath = Some(Path.of(line.split(":").last.trim))
+      } else if (currentPath.isDefined) {
+        line.split("\\s+") match {
+          case Array(_, name) if !name.contains("**") => projectNames += name
+          case Array(_, "*", name)                    => projectNames += name
+          case _                                      =>
+        }
+      }
+
+      i += 1
+    }
+    commit()
+    b.result()
+  }
+
+  def parseScalaVersionsOutput(lines: List[String]): Map[Versions.Scala, Set[String]] = {
+    val builder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
+
+    var i = 0
+    while (i < lines.length) {
+      val line = lines(i)
+      def words = line.split("\\s")
+      def projectName = words(words.length - 3) // third last, before `/` and `binaryJVMProjects` above
+      if (line.contains("ProjectRef")) ()
+      else if (line.endsWith(" / scalaVersion")) {
+        val nextLine = lines(i + 1)
+        val scalaVersion = Versions.Scala(nextLine.split("\\s").last)
+        builder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
+      } else if (line.endsWith(" / crossScalaVersions")) {
+        val nextLine = lines(i + 1)
+        val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
+        versions.map { scalaVersion =>
+          builder.getOrElseUpdate(Versions.Scala(scalaVersion), mutable.Set.empty).add(projectName)
+        }
+      }
+
+      i += 1
+    }
+
+    builder.map { case (v, projects) => (v, projects.toSet) }.toMap
+  }
+
 }
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
 case class Import(
-    existingBuild: Option[model.Build],
-    sbtBuildDir: Path,
-    destinationPaths: BuildPaths,
-    logger: Logger,
-    options: Import.Options,
-    bleepVersion: model.Version
+                   existingBuild: Option[model.Build],
+                   sbtBuildDir: Path,
+                   destinationPaths: BuildPaths,
+                   logger: Logger,
+                   options: Import.Options,
+                   bleepVersion: model.Version
 ) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
-      logger.info("Calling sbt to retrieve information about the existing build. Grab some popcorn as it may take a while !")
       generateBloopAndDependencyFiles()
     }
 
@@ -84,81 +147,94 @@ case class Import(
     Right(())
   }
 
+  /**
+    * I know, launching sbt three plus times is incredibly slow.
+    *
+    * I'm sure it's possible to do the same thing from within sbt and only launch it first, but you know. it's not at all easy.
+    */
   def generateBloopAndDependencyFiles(): Unit = {
-    val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
+    val sbtEnvs = List(
+      "SBT_OPTS" -> Some("-Xmx4096M"),
+      "JAVA_HOME" -> sys.env.get("JAVA_HOME")
+    ).collect { case (k, Some(v)) => (k, v) }
 
-    FileUtils.writeString(
-      tempAddBloopPlugin,
-      s"""
+    FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
+
+    logger.info("Calling sbt multiple times to retrieve information about the existing build. Grab some popcorn as it may take a while !")
+
+    // run this as a command to discover all projects, possibly across several builds
+    val allProjectNamesByBuild: Map[Path, List[String]] = {
+      val cmd = List("sbt", "projects")
+      logger.info("Calling sbt to discover projects...")
+      logger.debug(cmd)
+      val output = Process(cmd, sbtBuildDir.toFile, sbtEnvs: _*)
+        .lazyLines(logger.processLogger("sbt discover projects"))
+        .toList
+
+      val result = Import.parseProjectsOutput(output)
+
+      result.foreach { case (buildDir, projects) =>
+        logger.info(s"Discovered ${projects.length} in $buildDir")
+      }
+
+      result
+    }
+
+    allProjectNamesByBuild.foreach { case ( /* shadow*/ sbtBuildDir, projectNames) =>
+      val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
+
+      FileUtils.writeString(
+        tempAddBloopPlugin,
+        s"""
 addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.0")
 addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 """
-    )
+      )
 
-    try {
-      // only accepts relative paths
-      val importDir = RelPath.relativeTo(sbtBuildDir, destinationPaths.bleepImportDir)
+      try {
+        // ask for all (cross) scala versions for these projects
+        val projectNamesByScalaVersion: Map[Versions.Scala, Set[String]] = {
+          val cmd = List("sbt", "show " + projectNames.map(p => s"$p/scalaVersion $p/crossScalaVersions").mkString(" "))
+          logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
+          logger.withContext(sbtBuildDir).debug(cmd)
+          val output = Process(cmd, sbtBuildDir.toFile, sbtEnvs: _*).lazyLines(logger.processLogger("sbt discover cross projects")).toList
 
-      FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
+          val result = Import.parseScalaVersionsOutput(output)
 
-      val args: Iterable[String] = {
-        val input = Process(List("sbt", "show scalaVersion;show crossScalaVersions"), sbtBuildDir.toFile)
-          .lazyLines(logger.processLogger("sbt get project/scala matrix"))
-          .toArray
-        val projectNamesByScalaVersion = parseSbtOutput(input)
+          result
+            .foldLeft(logger) { case (logger, (scala, projects)) => logger.withContext(scala.scalaVersion, projects.size) }
+            .info("Discovered projects")
 
-        projectNamesByScalaVersion.flatMap { case (scalaVersion, projects) =>
-          List(
-            s"++ ${scalaVersion.scalaVersion}",
-            s"""set ThisBuild / exportProjectsTo := baseDirectory.value / s"$importDir/sbt-export"""",
-            "exportAllProjects",
-            s"""set Global / bloopConfigDir := baseDirectory.value / "$importDir/bloop/${scalaVersion.scalaVersion}""""
-          ) ++ projects.map(p => s"$p/bloopInstall")
+          result
         }
-      }
 
-      cli(
-        "sbt" :: args.toList,
-        logger,
-        "sbt",
-        env = List("SBT_OPTS" -> "-Xmx3072M")
-      )(sbtBuildDir)
-    } finally Files.delete(tempAddBloopPlugin)
-  }
+        val args: Iterable[String] =
+          // then finally dump each of the three configurations we care about into two files each.
+          projectNamesByScalaVersion.flatMap { case (scalaVersion, projects) =>
+            List(
+              s"++ ${scalaVersion.scalaVersion}",
+              s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
+              s"""set Global / bloopConfigDir := file("${destinationPaths.bleepImportBloopDir / scalaVersion.scalaVersion}")"""
+            ) ++ projects.flatMap { p =>
+              List(
+                s"$p/bloopGenerate",
+                s"$p/Test/bloopGenerate",
+                // if this configuration is not defined it seems to just return `None`
+                s"$p/IntegrationTest/bloopGenerate",
+                s"$p/exportProject",
+                s"$p/Test/exportProject",
+                s"$p/IntegrationTest/exportProject"
+              )
+            }
+          }
 
-  def parseSbtOutput(lines: Array[String]): Map[Versions.Scala, Set[String]] = {
-    /*
-[info] ...
-[info] binaryJVMProjects / scalaVersion
-[info] 	2.12.16
-[info] ...
-[info] treesNative / crossScalaVersions
-[info] 	List(2.13.8, 2.12.16)
-[info] ...
-     */
-    val builder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
 
-    var i = 0
-    while (i < lines.length) {
-      val line = lines(i)
-      def words = line.split("\\s")
-      def projectName = words(words.length - 3) // third last, before `/` and `binaryJVMProjects` above
-      if (line.endsWith(" / scalaVersion")) {
-        val nextLine = lines(i + 1)
-        val scalaVersion = Versions.Scala(nextLine.split("\\s").last)
-        builder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
-      } else if (line.endsWith(" / crossScalaVersions")) {
-        val nextLine = lines(i + 1)
-        val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
-        versions.map { scalaVersion =>
-          builder.getOrElseUpdate(Versions.Scala(scalaVersion), mutable.Set.empty).add(projectName)
-        }
-      }
-
-      i += 1
+        val cmd = "sbt" :: args.toList
+        logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
+        logger.withContext(sbtBuildDir).debug(cmd)
+        cli(cmd, logger, "sbt", env = sbtEnvs)(sbtBuildDir)
+      } finally Files.delete(tempAddBloopPlugin)
     }
-
-    builder.map { case (v, projects) => (v, projects.toSet) }.toMap
   }
 
   /** @param hackDropBleepDependency
