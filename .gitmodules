@@ -37,3 +37,6 @@
 [submodule "liberated/sbt-tpolecat"]
 	path = liberated/sbt-tpolecat
 	url = git@github.com:bleep-build/sbt-tpolecat.git
+[submodule "snapshot-tests-in/sbt"]
+	path = snapshot-tests-in/sbt
+	url = git@github.com:sbt/sbt.git
