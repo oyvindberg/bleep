@@ -1,7 +1,7 @@
 {
   "organization": "ch.epfl.scala",
   "bloopName": "jsBridge06",
-  "sbtName": "bloop-js-bridge-0.6",
+  "sbtName": "bloop-js-bridge-0-6",
   "scalaFullVersion": "2.12.15",
   "scalaBinaryVersion": "2.12",
   "dependencies": [{

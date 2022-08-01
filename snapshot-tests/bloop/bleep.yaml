@@ -185,7 +185,7 @@ projects:
     - com.lihaoyi::utest:0.6.9
     dependsOn:
     - bloop-frontend
-    - buildpressConfig
+    - buildpressconfig
     extends:
     - template-common-test
     - template-scala-2.12-jvm
@@ -217,7 +217,7 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
-  bloop-js-bridge-0.6:
+  bloop-js-bridge-0-6:
     dependencies:
     - configuration: provided
       module: org.scala-js::scalajs-js-envs:0.6.32
@@ -237,7 +237,7 @@ projects:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
         -language:implicitConversions -unchecked
-  bloop-js-bridge-0.6-test:
+  bloop-js-bridge-0-6-test:
     dependencies:
     - configuration: provided
       module: org.scala-js::scalajs-js-envs:0.6.32
@@ -247,7 +247,7 @@ projects:
       module: org.scala-js::scalajs-tools:0.6.32
     dependsOn:
     - bloop-frontend-test
-    - bloop-js-bridge-0.6
+    - bloop-js-bridge-0-6
     extends:
     - template-common-test
     - template-scala-2.12-jvm
@@ -342,7 +342,7 @@ projects:
     resources:
     - ./../LICENSE.md
     - ./../NOTICE.md
-  bloop-native-bridge-0.4:
+  bloop-native-bridge-0-4:
     dependencies:
       configuration: provided
       module: org.scala-native::tools:0.4.0
@@ -358,13 +358,13 @@ projects:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
         -language:implicitConversions -unchecked
-  bloop-native-bridge-0.4-test:
+  bloop-native-bridge-0-4-test:
     dependencies:
       configuration: provided
       module: org.scala-native::tools:0.4.0
     dependsOn:
     - bloop-frontend-test
-    - bloop-native-bridge-0.4
+    - bloop-native-bridge-0-4
     extends:
     - template-common-test
     - template-scala-2.12-jvm
@@ -444,7 +444,7 @@ projects:
     dependsOn:
     - bloop-shared
     - bloopgun-core
-    - buildpressConfig
+    - buildpressconfig
     extends:
     - template-common-main
     - template-scala-2.12-jvm
@@ -458,7 +458,7 @@ projects:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
         -language:implicitConversions -unchecked
-  buildpressConfig:
+  buildpressconfig:
     dependencies:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0
     - configuration: provided

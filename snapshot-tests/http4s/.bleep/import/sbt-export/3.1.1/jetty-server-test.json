@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "jetty-server-test",
-  "sbtName": "jetty-server",
+  "sbtName": "http4s-jetty-server",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

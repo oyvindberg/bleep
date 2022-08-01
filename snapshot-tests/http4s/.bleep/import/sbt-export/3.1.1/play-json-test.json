@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "play-json-test",
-  "sbtName": "play-json",
+  "sbtName": "http4s-play-json",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

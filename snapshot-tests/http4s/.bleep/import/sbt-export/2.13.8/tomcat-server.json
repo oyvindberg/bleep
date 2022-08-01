@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "tomcat-server",
-  "sbtName": "tomcat-server",
+  "sbtName": "http4s-tomcat-server",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

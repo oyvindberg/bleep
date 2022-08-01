@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "scalafixInternalRules-it",
-  "sbtName": "scalafixInternalRules",
+  "sbtName": "scalafixinternalrules",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

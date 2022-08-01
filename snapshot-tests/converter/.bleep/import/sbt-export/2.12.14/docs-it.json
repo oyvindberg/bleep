@@ -1,7 +1,7 @@
 {
   "organization": "docs",
   "bloopName": "docs-it",
-  "sbtName": "docs",
+  "sbtName": "converter-docs",
   "scalaFullVersion": "2.12.14",
   "scalaBinaryVersion": "2.12",
   "dependencies": [{

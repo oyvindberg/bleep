@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "scalatags-test",
-  "sbtName": "scalatags",
+  "sbtName": "http4s-scalatags",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

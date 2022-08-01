@@ -1,7 +1,7 @@
 {
   "organization": "com.softwaremill.sttp.tapir",
   "bloopName": "documentation-it",
-  "sbtName": "doc",
+  "sbtName": "tapir-doc",
   "scalaFullVersion": "2.13.6",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

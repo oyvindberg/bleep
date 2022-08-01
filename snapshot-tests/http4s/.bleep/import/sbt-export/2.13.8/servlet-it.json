@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "servlet-it",
-  "sbtName": "servlet",
+  "sbtName": "http4s-servlet",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

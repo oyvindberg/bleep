@@ -1,138 +1,138 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: testing
 projects:
-  async-http-client:
+  http4s-async-http-client:
     dependencies:
     - co.fs2::fs2-reactive-streams:3.2.5
     - io.netty:netty-buffer:4.1.74.Final
     - io.netty:netty-codec-http:4.1.74.Final
     - org.asynchttpclient:async-http-client:2.12.3
     - org.reactivestreams:reactive-streams:1.0.3
-    dependsOn: client
+    dependsOn: http4s-client
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/async-http-client
-  async-http-client-test:
+  http4s-async-http-client-test:
     dependsOn:
-    - async-http-client
-    - client-test
+    - http4s-async-http-client
+    - http4s-client-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/async-http-client
-  bench:
+  http4s-bench:
     dependencies:
     - io.circe::circe-parser:0.15.0-M1
     - org.openjdk.jmh:jmh-core:1.32
     - org.openjdk.jmh:jmh-generator-bytecode:1.32
     - org.openjdk.jmh:jmh-generator-reflection:1.32
     dependsOn:
-    - circe
-    - ember-core
+    - http4s-circe
+    - http4s-ember-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/bench
-  blaze-client:
+  http4s-blaze-client:
     dependsOn:
-    - blaze-core
-    - client
+    - http4s-blaze-core
+    - http4s-client
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-client
-  blaze-client-test:
+  http4s-blaze-client-test:
     dependsOn:
-    - blaze-client
-    - blaze-core-test
-    - client-test
+    - http4s-blaze-client
+    - http4s-blaze-core-test
+    - http4s-client-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-client
-  blaze-core:
+  http4s-blaze-core:
     dependencies: org.http4s::blaze-http:0.15.3
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-core
-  blaze-core-test:
+  http4s-blaze-core-test:
     dependsOn:
-    - blaze-core
-    - testing-test
+    - http4s-blaze-core
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-core
-  blaze-server:
+  http4s-blaze-server:
     dependsOn:
-    - blaze-core
-    - server
+    - http4s-blaze-core
+    - http4s-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-server
-  blaze-server-test:
+  http4s-blaze-server-test:
     dependsOn:
-    - blaze-core-test
-    - blaze-server
-    - server-test
+    - http4s-blaze-core-test
+    - http4s-blaze-server
+    - http4s-server-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/blaze-server
-  boopickle:
+  http4s-boopickle:
     dependencies: io.suzaku::boopickle:1.4.0
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/boopickle
     source-layout: cross-pure
-  boopickle-test:
+  http4s-boopickle-test:
     dependsOn:
-    - boopickle
-    - testing-test
+    - http4s-boopickle
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/boopickle
     source-layout: cross-pure
-  circe:
+  http4s-circe:
     dependencies:
     - io.circe::circe-core:0.15.0-M1
     - io.circe::circe-jawn:0.15.0-M1
-    dependsOn: jawn
+    dependsOn: http4s-jawn
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/circe
     source-layout: cross-pure
-  circe-test:
+  http4s-circe-test:
     dependencies: io.circe::circe-testing:0.15.0-M1
     dependsOn:
-    - circe
-    - jawn-test
+    - http4s-circe
+    - http4s-jawn-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/circe
     source-layout: cross-pure
-  client:
-    dependsOn: core
+  http4s-client:
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/client
     source-layout: cross-full
-  client-test:
+  http4s-client-test:
     cross:
       js213:
-        dependsOn: node-serverless
+        dependsOn: http4s-node-serverless
       js3:
-        dependsOn: node-serverless
+        dependsOn: http4s-node-serverless
       jvm213:
         dependencies:
         - io.netty:netty-buffer:4.1.74.Final
@@ -142,16 +142,16 @@ projects:
         - io.netty:netty-buffer:4.1.74.Final
         - io.netty:netty-codec-http:4.1.74.Final
     dependsOn:
-    - client
-    - dsl
-    - server
-    - testing-test
+    - http4s-client
+    - http4s-dsl
+    - http4s-server
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/client
     source-layout: cross-full
-  core:
+  http4s-core:
     cross:
       js213:
         dependencies:
@@ -189,7 +189,7 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/core
     source-layout: cross-full
-  core-test:
+  http4s-core-test:
     cross:
       jvm213:
         dependencies:
@@ -200,49 +200,49 @@ projects:
     - org.scalacheck::scalacheck:1.15.4
     - org.scalameta::munit:0.7.29
     - org.typelevel::cats-laws:2.7.0
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/core
     source-layout: cross-full
-  dropwizard-metrics:
+  http4s-dropwizard-metrics:
     dependencies:
     - io.dropwizard.metrics:metrics-core:4.2.8
     - io.dropwizard.metrics:metrics-json:4.2.8
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/dropwizard-metrics
-  dropwizard-metrics-test:
+  http4s-dropwizard-metrics-test:
     dependsOn:
-    - client
-    - dropwizard-metrics
-    - dsl
-    - server
-    - testing-test
+    - http4s-client
+    - http4s-dropwizard-metrics
+    - http4s-dsl
+    - http4s-server
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/dropwizard-metrics
-  dsl:
-    dependsOn: core
+  http4s-dsl:
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/dsl
     source-layout: cross-pure
-  dsl-test:
+  http4s-dsl-test:
     dependsOn:
-    - dsl
-    - testing-test
+    - http4s-dsl
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/dsl
     source-layout: cross-pure
-  ember-client:
+  http4s-ember-client:
     cross:
       js213:
         dependencies: org.typelevel::log4cats-noop:2.2.0
@@ -254,24 +254,24 @@ projects:
         dependencies: org.typelevel::log4cats-slf4j:2.2.0
     dependencies: org.typelevel::keypool:0.4.7
     dependsOn:
-    - client
-    - ember-core
+    - http4s-client
+    - http4s-ember-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-client
     source-layout: cross-full
-  ember-client-test:
+  http4s-ember-client-test:
     dependsOn:
-    - client-test
-    - ember-client
-    - ember-core-test
+    - http4s-client-test
+    - http4s-ember-client
+    - http4s-ember-core-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-client
     source-layout: cross-full
-  ember-core:
+  http4s-ember-core:
     cross:
       js213:
         dependencies: org.http4s::hpack:1.0.3
@@ -282,23 +282,23 @@ projects:
       jvm3:
         dependencies: com.twitter:hpack:1.0.2
     dependencies: org.typelevel::log4cats-core:2.2.0
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-core
     source-layout: cross-full
-  ember-core-test:
+  http4s-ember-core-test:
     dependencies: org.typelevel::log4cats-testing:2.2.0
     dependsOn:
-    - ember-core
-    - testing-test
+    - http4s-ember-core
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-core
     source-layout: cross-full
-  ember-server:
+  http4s-ember-server:
     cross:
       js213:
         dependencies: org.typelevel::log4cats-noop:2.2.0
@@ -309,14 +309,14 @@ projects:
       jvm3:
         dependencies: org.typelevel::log4cats-slf4j:2.2.0
     dependsOn:
-    - ember-core
-    - server
+    - http4s-ember-core
+    - http4s-server
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-server
     source-layout: cross-full
-  ember-server-test:
+  http4s-ember-server-test:
     cross:
       jvm213:
         dependencies:
@@ -327,166 +327,166 @@ projects:
         - com.github.jnr:jnr-unixsocket:0.38.17
         - org.java-websocket:Java-WebSocket:1.5.2
     dependsOn:
-    - ember-client
-    - ember-core-test
-    - ember-server
-    - server-test
+    - http4s-ember-client
+    - http4s-ember-core-test
+    - http4s-ember-server
+    - http4s-server-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/ember-server
     source-layout: cross-full
-  examples:
+  http4s-examples:
     dependencies:
     - ch.qos.logback:logback-classic:1.2.6
     - io.circe::circe-generic:0.15.0-M1
     dependsOn:
-    - circe
-    - dropwizard-metrics
-    - dsl
-    - scala-xml
-    - server
+    - http4s-circe
+    - http4s-dropwizard-metrics
+    - http4s-dsl
+    - http4s-scala-xml
+    - http4s-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples
-  examples-blaze:
+  http4s-examples-blaze:
     dependsOn:
-    - blaze-client
-    - blaze-server
-    - examples
+    - http4s-blaze-client
+    - http4s-blaze-server
+    - http4s-examples
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/blaze
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-  examples-docker:
+  http4s-examples-docker:
     dependsOn:
-    - blaze-server
-    - dsl
+    - http4s-blaze-server
+    - http4s-dsl
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/docker
-  examples-ember:
+  http4s-examples-ember:
     dependsOn:
-    - ember-client
-    - ember-server
-    - examples
+    - http4s-ember-client
+    - http4s-ember-server
+    - http4s-examples
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/ember
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-  examples-ember-client-h2:
+  http4s-examples-ember-client-h2:
     dependsOn:
-    - dsl
-    - ember-client
+    - http4s-dsl
+    - http4s-ember-client
     extends:
     - template-common-main
     - template-cross-js-all
     folder: ./../../snapshot-tests-in/http4s/examples/ember-client-h2
-  examples-ember-server-h2:
+  http4s-examples-ember-server-h2:
     dependsOn:
-    - dsl
-    - ember-server
+    - http4s-dsl
+    - http4s-ember-server
     extends:
     - template-common-main
     - template-cross-js-all
     folder: ./../../snapshot-tests-in/http4s/examples/ember-server-h2
-  examples-jetty:
+  http4s-examples-jetty:
     dependsOn:
-    - examples
-    - jetty-server
+    - http4s-examples
+    - http4s-jetty-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/jetty
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-  examples-tomcat:
+  http4s-examples-tomcat:
     dependsOn:
-    - examples
-    - tomcat-server
+    - http4s-examples
+    - http4s-tomcat-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/tomcat
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-  examples-war:
+  http4s-examples-war:
     dependencies:
       configuration: provided
       module: javax.servlet:javax.servlet-api:3.1.0
     dependsOn:
-    - examples
-    - servlet
+    - http4s-examples
+    - http4s-servlet
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/examples/war
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-  jawn:
+  http4s-jawn:
     dependencies:
     - org.typelevel::jawn-fs2:2.2.0
     - org.typelevel::jawn-parser:1.3.2
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/jawn
     source-layout: cross-pure
-  jawn-test:
+  http4s-jawn-test:
     dependsOn:
-    - jawn
-    - testing-test
+    - http4s-jawn
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/jawn
     source-layout: cross-pure
-  jetty-client:
+  http4s-jetty-client:
     dependencies:
     - org.eclipse.jetty:jetty-client:9.4.45.v20220203
     - org.eclipse.jetty:jetty-http:9.4.45.v20220203
     - org.eclipse.jetty:jetty-util:9.4.45.v20220203
-    dependsOn: client
+    dependsOn: http4s-client
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-client
-  jetty-client-test:
+  http4s-jetty-client-test:
     dependsOn:
-    - client-test
-    - jetty-client
+    - http4s-client-test
+    - http4s-jetty-client
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-client
-  jetty-server:
+  http4s-jetty-server:
     dependencies:
     - org.eclipse.jetty.http2:http2-server:9.4.45.v20220203
     - org.eclipse.jetty:jetty-server:9.4.45.v20220203
     - org.eclipse.jetty:jetty-servlet:9.4.45.v20220203
     - org.eclipse.jetty:jetty-util:9.4.45.v20220203
-    dependsOn: servlet
+    dependsOn: http4s-servlet
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-server
-  jetty-server-test:
+  http4s-jetty-server-test:
     dependsOn:
-    - dsl-test
-    - jetty-server
-    - servlet-test
+    - http4s-dsl-test
+    - http4s-jetty-server
+    - http4s-servlet-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/jetty-server
-  laws:
+  http4s-laws:
     dependencies:
     - com.comcast::ip4s-test-kit:3.1.2
     - org.scalacheck::scalacheck:1.15.4
@@ -497,155 +497,130 @@ projects:
     - org.typelevel::discipline-core:1.4.0
     - org.typelevel::munit-cats-effect-3:1.0.7
     - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/laws
     source-layout: cross-pure
-  node-serverless:
-    dependsOn: core
+  http4s-node-serverless:
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-js-all
     folder: ./../../snapshot-tests-in/http4s/node-serverless
-  okhttp-client:
+  http4s-okhttp-client:
     dependencies:
     - com.squareup.okhttp3:okhttp:4.9.3
     - com.squareup.okio:okio:2.10.0
-    dependsOn: client
+    dependsOn: http4s-client
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/okhttp-client
-  okhttp-client-test:
+  http4s-okhttp-client-test:
     dependsOn:
-    - client-test
-    - okhttp-client
+    - http4s-client-test
+    - http4s-okhttp-client
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/okhttp-client
-  play-json:
+  http4s-play-json:
     dependencies:
       for3Use213: true
       module: com.typesafe.play::play-json:2.9.2
-    dependsOn: jawn
+    dependsOn: http4s-jawn
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/play-json
-  play-json-test:
+  http4s-play-json-test:
     dependsOn:
-    - jawn-test
-    - play-json
+    - http4s-jawn-test
+    - http4s-play-json
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/play-json
-  prometheus-metrics:
+  http4s-prometheus-metrics:
     dependencies:
     - io.prometheus:simpleclient:0.15.0
     - io.prometheus:simpleclient_common:0.15.0
     - io.prometheus:simpleclient_hotspot:0.15.0
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/prometheus-metrics
-  prometheus-metrics-test:
+  http4s-prometheus-metrics-test:
     dependsOn:
-    - client
-    - dsl
-    - prometheus-metrics
-    - server
-    - testing-test
+    - http4s-client
+    - http4s-dsl
+    - http4s-prometheus-metrics
+    - http4s-server
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/prometheus-metrics
-  scala-xml:
+  http4s-scala-xml:
     dependencies: org.scala-lang.modules::scala-xml:2.0.1
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scala-xml
-  scala-xml-test:
+  http4s-scala-xml-test:
     dependsOn:
-    - scala-xml
-    - testing-test
+    - http4s-scala-xml
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scala-xml
-  scalafixInternalInput:
-    dependsOn: core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/input
-  scalafixInternalOutput:
-    dependsOn: core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/output
-  scalafixInternalRules:
-    dependencies: ch.epfl.scala::scalafix-core:0.9.34
-    extends:
-    - template-common-main
-    - template-scala-2.13-jvm
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/rules
-  scalafixInternalTests-test:
-    dependencies: ch.epfl.scala:::scalafix-testkit:0.9.34
-    dependsOn: scalafixInternalRules
-    extends:
-    - template-common-test
-    - template-scala-2.13-jvm
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
-  scalatags:
+  http4s-scalatags:
     dependencies: com.lihaoyi::scalatags:0.11.1
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalatags
-  scalatags-test:
+  http4s-scalatags-test:
     dependsOn:
-    - scalatags
-    - testing-test
+    - http4s-scalatags
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/scalatags
-  server:
-    dependsOn: core
+  http4s-server:
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/server
     source-layout: cross-full
-  server-test:
+  http4s-server-test:
     dependsOn:
-    - dsl
-    - server
-    - testing-test
+    - http4s-dsl
+    - http4s-server
+    - http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/server
     source-layout: cross-full
-  servlet:
+  http4s-servlet:
     dependencies:
       configuration: provided
       module: javax.servlet:javax.servlet-api:3.1.0
-    dependsOn: server
+    dependsOn: http4s-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/servlet
-  servlet-test:
+  http4s-servlet-test:
     dependencies:
     - configuration: provided
       module: javax.servlet:javax.servlet-api:3.1.0
@@ -653,13 +628,13 @@ projects:
     - org.eclipse.jetty:jetty-server:9.4.45.v20220203
     - org.eclipse.jetty:jetty-servlet:9.4.45.v20220203
     dependsOn:
-    - server-test
-    - servlet
+    - http4s-server-test
+    - http4s-servlet
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/servlet
-  testing-test:
+  http4s-testing-test:
     cross:
       js213:
         dependencies: io.github.cquiroz::scala-java-time-tzdb:2.3.0
@@ -672,54 +647,79 @@ projects:
     - org.typelevel::cats-effect-laws:3.3.6
     - org.typelevel::discipline-munit:1.0.9
     - org.typelevel::scalacheck-effect:1.0.3
-    dependsOn: laws
+    dependsOn: http4s-laws
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/testing
     source-layout: cross-full
-  tests-test:
-    dependsOn: testing-test
+  http4s-tests-test:
+    dependsOn: http4s-testing-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ./../../snapshot-tests-in/http4s/tests
     source-layout: cross-full
-  tomcat-server:
+  http4s-tomcat-server:
     dependencies:
     - org.apache.tomcat:tomcat-catalina:9.0.58
     - org.apache.tomcat:tomcat-coyote:9.0.58
     - org.apache.tomcat:tomcat-util-scan:9.0.58
-    dependsOn: servlet
+    dependsOn: http4s-servlet
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/tomcat-server
-  tomcat-server-test:
+  http4s-tomcat-server-test:
     dependsOn:
-    - servlet-test
-    - tomcat-server
+    - http4s-servlet-test
+    - http4s-tomcat-server
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/tomcat-server
-  twirl:
+  http4s-twirl:
     dependencies:
       for3Use213: true
       module: com.typesafe.play::twirl-api:1.5.1
-    dependsOn: core
+    dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/twirl
-  twirl-test:
+  http4s-twirl-test:
     dependsOn:
-    - testing-test
-    - twirl
+    - http4s-testing-test
+    - http4s-twirl
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ./../../snapshot-tests-in/http4s/twirl
+  scalafixinternalinput:
+    dependsOn: http4s-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/input
+  scalafixinternaloutput:
+    dependsOn: http4s-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-all
+    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/output
+  scalafixinternalrules:
+    dependencies: ch.epfl.scala::scalafix-core:0.9.34
+    extends:
+    - template-common-main
+    - template-scala-2.13-jvm
+    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/rules
+  scalafixinternaltests-test:
+    dependencies: ch.epfl.scala:::scalafix-testkit:0.9.34
+    dependsOn: scalafixinternalrules
+    extends:
+    - template-common-test
+    - template-scala-2.13-jvm
+    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
 templates:
   template-common:
     java:

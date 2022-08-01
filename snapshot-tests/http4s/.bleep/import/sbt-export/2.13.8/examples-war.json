@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "examples-war",
-  "sbtName": "examples-war",
+  "sbtName": "http4s-examples-war",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

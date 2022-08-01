@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "scalafixInternalInput-test",
-  "sbtName": "scalafixInternalInput",
+  "sbtName": "scalafixinternalinput",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

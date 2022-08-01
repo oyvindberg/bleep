@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "lawsJS-test",
-  "sbtName": "laws",
+  "sbtName": "http4s-laws",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

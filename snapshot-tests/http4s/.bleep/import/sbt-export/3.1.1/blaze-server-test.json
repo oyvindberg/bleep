@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "blaze-server-test",
-  "sbtName": "blaze-server",
+  "sbtName": "http4s-blaze-server",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

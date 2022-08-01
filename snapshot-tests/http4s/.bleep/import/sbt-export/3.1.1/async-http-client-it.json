@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "async-http-client-it",
-  "sbtName": "async-http-client",
+  "sbtName": "http4s-async-http-client",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{
