@@ -29,7 +29,7 @@ object GeneratedFilesScript {
       val space = " "
       val tripleQuote = quote * 3
       val triggersTripleQuote = Set('\n', '\\', '"')
-      val MaxStringLiteral = 65534 - 100
+      val MaxStringLiteral = 5000
       (str, indent) =>
         val cleaned = str.replace("\\", "\\\\")
         val groups = cleaned
