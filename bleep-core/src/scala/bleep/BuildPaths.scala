@@ -30,7 +30,8 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
 
     val replacements = Replacements.paths(dir, buildDir) ++
       Replacements.targetDir(targetDir) ++
-      Replacements.scope(p.`sbt-scope`.getOrElse(""))
+      Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
+      Replacements.versions(scalaVersion, maybePlatformId.map(_.value), includeEpoch = true)
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout

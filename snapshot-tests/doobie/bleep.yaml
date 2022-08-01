@@ -17,10 +17,10 @@ projects:
     cross:
       jvm212:
         dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/${SCOPE}/scala-2.13-
+        sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.13-
       jvm213:
         dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/${SCOPE}/scala-2.13+
+        sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}+
       jvm3:
         sources: ./src/${SCOPE}/scala-2.13+
     dependencies: org.tpolecat::typename:1.0.0

@@ -69,6 +69,8 @@ object importBloopFilesFromSbt {
           Replacements.targetDir(originalTarget) ++
           Replacements.scope(projectType.sbtScope)
 
+      val replacementsWithVersions = replacements ++ Replacements.versions(scalaVersion, bloopProject.platform.map(_.name), includeEpoch = true)
+
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
 
@@ -110,12 +112,12 @@ object importBloopFilesFromSbt {
         val shortenedSourcesRelPaths =
           sourcesRelPaths
             .filterNot(inferredSourceLayout.sources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
-            .map(replacements.templatize.relPath)
+            .map(replacementsWithVersions.templatize.relPath)
 
         val shortenedResourcesRelPaths =
           resourcesRelPaths
             .filterNot(inferredSourceLayout.resources(scalaVersion, maybePlatformId, Some(projectType.sbtScope)))
-            .map(replacements.templatize.relPath)
+            .map(replacementsWithVersions.templatize.relPath)
 
         Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
@@ -321,8 +323,8 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(compilerPlugins: Seq[Dep], replacementsDirs: Replacements, scalaVersions: ScalaVersions)(s: Config.Scala): model.Scala = {
-    val options = parseOptionsDropSemanticDb(s.options, Some(replacementsDirs))
+  def translateScala(compilerPlugins: Seq[Dep], replacements: Replacements, scalaVersions: ScalaVersions)(s: Config.Scala): model.Scala = {
+    val options = parseOptionsDropSemanticDb(s.options, Some(replacements))
 
     val notCompilerPlugins = options.values.filter {
       case Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => false

@@ -87,166 +87,95 @@ projects:
           module: org.scala-lang:scala-compiler:2.12.16
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
-        resources: ./js/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/js/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.12
-        - ./../transversers/js/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.12
-        - ./js/src/${SCOPE}/protobuf
       js213:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.13.8
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
-        resources: ./js/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/js/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.13
-        - ./../transversers/js/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.13
-        - ./js/src/${SCOPE}/protobuf
       jvm211:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.11.12
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.11.12
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/jvm/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.11
-        - ./../transversers/jvm/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.11
-        - ./jvm/src/${SCOPE}/protobuf
       jvm212:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.12.16
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/jvm/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.12
-        - ./../transversers/jvm/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.12
-        - ./jvm/src/${SCOPE}/protobuf
       jvm213:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.13.8
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/jvm/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.13
-        - ./../transversers/jvm/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.13
-        - ./jvm/src/${SCOPE}/protobuf
       native212:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.12.16
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
-        resources: ./native/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/native/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.12
-        - ./../transversers/native/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.12
-        - ./native/src/${SCOPE}/protobuf
       native213:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.13.8
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
-        resources: ./native/src/${SCOPE}/protobuf
-        sources:
-        - ./../quasiquotes/native/src/${SCOPE}/scala
-        - ./../quasiquotes/shared/src/${SCOPE}/scala-2.13
-        - ./../transversers/native/src/${SCOPE}/scala
-        - ./../transversers/shared/src/${SCOPE}/scala-2.13
-        - ./native/src/${SCOPE}/protobuf
     dependsOn: trees
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ./../../snapshot-tests-in/scalameta/scalameta/parsers
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
+    - ./${PLATFORM}/src/${SCOPE}/protobuf
+    - ./../quasiquotes/${PLATFORM}/src/${SCOPE}/scala
     - ./../quasiquotes/shared/src/${SCOPE}/scala
+    - ./../quasiquotes/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./../transversers/${PLATFORM}/src/${SCOPE}/scala
     - ./../transversers/shared/src/${SCOPE}/scala
+    - ./../transversers/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
   scalameta:
     cross:
       js212:
         dependencies: org.scala-lang:scalap:2.12.16
-        resources: ./js/src/${SCOPE}/protobuf
-        sources:
-        - ./../contrib/js/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.12
-        - ./js/src/${SCOPE}/protobuf
       js213:
         dependencies: org.scala-lang:scalap:2.13.8
-        resources: ./js/src/${SCOPE}/protobuf
-        sources:
-        - ./../contrib/js/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.13
-        - ./js/src/${SCOPE}/protobuf
       jvm211:
         dependencies: org.scala-lang:scalap:2.11.12
-        resources: ./jvm/src/${SCOPE}/protobuf
         sources:
         - ./../../semanticdb/metacp
         - ./../../semanticdb/symtab
-        - ./../contrib/jvm/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.11
-        - ./jvm/src/${SCOPE}/protobuf
       jvm212:
         dependencies: org.scala-lang:scalap:2.12.16
-        resources: ./jvm/src/${SCOPE}/protobuf
         sources:
         - ./../../semanticdb/metacp
         - ./../../semanticdb/symtab
-        - ./../contrib/jvm/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.12
-        - ./jvm/src/${SCOPE}/protobuf
       jvm213:
         dependencies: org.scala-lang:scalap:2.13.8
-        resources: ./jvm/src/${SCOPE}/protobuf
         sources:
         - ./../../semanticdb/metacp
         - ./../../semanticdb/symtab
-        - ./../contrib/jvm/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.13
-        - ./jvm/src/${SCOPE}/protobuf
       native212:
         dependencies: org.scala-lang:scalap:2.12.16
-        resources: ./native/src/${SCOPE}/protobuf
-        sources:
-        - ./../contrib/native/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.12
-        - ./native/src/${SCOPE}/protobuf
       native213:
         dependencies: org.scala-lang:scalap:2.13.8
-        resources: ./native/src/${SCOPE}/protobuf
-        sources:
-        - ./../contrib/native/src/${SCOPE}/scala
-        - ./../contrib/shared/src/${SCOPE}/scala-2.13
-        - ./native/src/${SCOPE}/protobuf
     dependsOn: parsers
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ./../../snapshot-tests-in/scalameta/scalameta/scalameta
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
+    - ./${PLATFORM}/src/${SCOPE}/protobuf
     - ./../../semanticdb/cli
     - ./../../semanticdb/metap
     - ./../../semanticdb/semanticdb
+    - ./../contrib/${PLATFORM}/src/${SCOPE}/scala
     - ./../contrib/shared/src/${SCOPE}/scala
+    - ./../contrib/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
   scalameta-docs:
     dependencies: org.scalameta::mdoc:2.3.2
     dependsOn: scalameta
@@ -263,97 +192,81 @@ projects:
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.10
-        sources: ./src/${SCOPE}/scala-2.12.10
       jvm2.12.11:
         dependencies: org.scala-lang:scala-compiler:2.12.11
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.11
-        sources: ./src/${SCOPE}/scala-2.12.11
       jvm2.12.12:
         dependencies: org.scala-lang:scala-compiler:2.12.12
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.12
-        sources: ./src/${SCOPE}/scala-2.12.12
       jvm2.12.13:
         dependencies: org.scala-lang:scala-compiler:2.12.13
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.13
-        sources: ./src/${SCOPE}/scala-2.12.13
       jvm2.12.14:
         dependencies: org.scala-lang:scala-compiler:2.12.14
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.14
-        sources: ./src/${SCOPE}/scala-2.12.14
       jvm2.12.15:
         dependencies: org.scala-lang:scala-compiler:2.12.15
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.15
-        sources: ./src/${SCOPE}/scala-2.12.15
       jvm2.12.8:
         dependencies: org.scala-lang:scala-compiler:2.12.8
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.8
-        sources: ./src/${SCOPE}/scala-2.12.8
       jvm2.12.9:
         dependencies: org.scala-lang:scala-compiler:2.12.9
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.9
-        sources: ./src/${SCOPE}/scala-2.12.9
       jvm2.13.0:
         dependencies: org.scala-lang:scala-compiler:2.13.0
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.0
-        sources: ./src/${SCOPE}/scala-2.13.0
       jvm2.13.1:
         dependencies: org.scala-lang:scala-compiler:2.13.1
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.1
-        sources: ./src/${SCOPE}/scala-2.13.1
       jvm2.13.2:
         dependencies: org.scala-lang:scala-compiler:2.13.2
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.2
-        sources: ./src/${SCOPE}/scala-2.13.2
       jvm2.13.3:
         dependencies: org.scala-lang:scala-compiler:2.13.3
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.3
-        sources: ./src/${SCOPE}/scala-2.13.3
       jvm2.13.4:
         dependencies: org.scala-lang:scala-compiler:2.13.4
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.4
-        sources: ./src/${SCOPE}/scala-2.13.4
       jvm2.13.5:
         dependencies: org.scala-lang:scala-compiler:2.13.5
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.5
-        sources: ./src/${SCOPE}/scala-2.13.5
       jvm2.13.6:
         dependencies: org.scala-lang:scala-compiler:2.13.6
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.6
-        sources: ./src/${SCOPE}/scala-2.13.6
       jvm2.13.7:
         dependencies: org.scala-lang:scala-compiler:2.13.7
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.7
-        sources: ./src/${SCOPE}/scala-2.13.7
     dependsOn: scalameta
     extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
     folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/library
@@ -401,32 +314,14 @@ projects:
     sources: ./src/${SCOPE}/protobuf
   testkit:
     cross:
-      js212:
-        resources: ./js/src/${SCOPE}/protobuf
-        sources: ./js/src/${SCOPE}/protobuf
-      js213:
-        resources: ./js/src/${SCOPE}/protobuf
-        sources: ./js/src/${SCOPE}/protobuf
       jvm211:
         dependencies: org.rauschig:jarchivelib:1.2.0
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
       jvm212:
         dependencies: org.rauschig:jarchivelib:1.2.0
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
       jvm213:
         dependencies:
         - org.rauschig:jarchivelib:1.2.0
         - org.scala-lang.modules::scala-parallel-collections:1.0.4
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
-      native212:
-        resources: ./native/src/${SCOPE}/protobuf
-        sources: ./native/src/${SCOPE}/protobuf
-      native213:
-        resources: ./native/src/${SCOPE}/protobuf
-        sources: ./native/src/${SCOPE}/protobuf
     dependencies:
     - com.lihaoyi::geny:0.7.1
     - org.scalameta::munit:0.7.29
@@ -435,115 +330,79 @@ projects:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ./../../snapshot-tests-in/scalameta/scalameta/testkit
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
+    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   testkit-test:
     cross:
       jvm211:
         dependencies: org.scala-lang:scala-compiler:2.11.12
-        sources:
-        - ./js-jvm/src/${SCOPE}/scala-2.11
-        - ./jvm-native/src/${SCOPE}/scala-2.11
       jvm212:
         dependencies: org.scala-lang:scala-compiler:2.12.16
-        sources:
-        - ./js-jvm/src/${SCOPE}/scala-2.12
-        - ./jvm-native/src/${SCOPE}/scala-2.12
       jvm213:
         dependencies: org.scala-lang:scala-compiler:2.13.8
-        sources:
-        - ./js-jvm/src/${SCOPE}/scala-2.13
-        - ./jvm-native/src/${SCOPE}/scala-2.13
     dependsOn: testkit
     extends:
     - template-common-test
     - template-cross-jvm-211-212-213
     folder: ./../../snapshot-tests-in/scalameta/scalameta/testkit
     resources:
-    - ./js-jvm/src/${SCOPE}/resources
-    - ./jvm-native/src/${SCOPE}/resources
-    - ./jvm/src/${SCOPE}/protobuf
+    - ./${PLATFORM}-native/src/${SCOPE}/resources
+    - ./${PLATFORM}/src/${SCOPE}/protobuf
+    - ./js-${PLATFORM}/src/${SCOPE}/resources
     source-layout: cross-full
     sources:
-    - ./js-jvm/src/${SCOPE}/scala
-    - ./js-jvm/src/${SCOPE}/scala-2
-    - ./jvm-native/src/${SCOPE}/scala
-    - ./jvm-native/src/${SCOPE}/scala-2
-    - ./jvm/src/${SCOPE}/protobuf
+    - ./${PLATFORM}-native/src/${SCOPE}/scala
+    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_EPOCH}
+    - ./${PLATFORM}/src/${SCOPE}/protobuf
+    - ./js-${PLATFORM}/src/${SCOPE}/scala
+    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_EPOCH}
   tests:
     cross:
-      js212:
-        resources: ./js/src/${SCOPE}/protobuf
-        sources: ./js/src/${SCOPE}/protobuf
-      js213:
-        resources: ./js/src/${SCOPE}/protobuf
-        sources: ./js/src/${SCOPE}/protobuf
       jvm211:
         dependencies: io.get-coursier::coursier:2.0.0-RC5-6
         dependsOn:
         - metac
         - semanticdbintegration
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
       jvm212:
         dependencies: io.get-coursier::coursier:2.0.0-RC5-6
         dependsOn:
         - metac
         - semanticdbintegration
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
       jvm213:
         dependencies: io.get-coursier::coursier:2.0.0-RC5-6
         dependsOn:
         - metac
         - semanticdbintegration
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
-      native212:
-        resources: ./native/src/${SCOPE}/protobuf
-        sources: ./native/src/${SCOPE}/protobuf
-      native213:
-        resources: ./native/src/${SCOPE}/protobuf
-        sources: ./native/src/${SCOPE}/protobuf
     dependsOn: testkit
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ./../../snapshot-tests-in/scalameta/tests
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
+    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   tests-test:
     cross:
       js212:
         dependencies:
           forceJvm: true
           module: org.scala-js::scalajs-test-bridge:1.8.0
-        resources: ./js/src/${SCOPE}/protobuf
-        sources: ./js/src/${SCOPE}/protobuf
       js213:
         dependencies:
           forceJvm: true
           module: org.scala-js::scalajs-test-bridge:1.8.0
-        resources: ./js/src/${SCOPE}/protobuf
-        sources: ./js/src/${SCOPE}/protobuf
-      jvm211:
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
-      jvm212:
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
-      jvm213:
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources: ./jvm/src/${SCOPE}/protobuf
       native212:
         dependencies: org.scala-native::test-interface:0.4.5
-        resources: ./native/src/${SCOPE}/protobuf
-        sources: ./native/src/${SCOPE}/protobuf
       native213:
         dependencies: org.scala-native::test-interface:0.4.5
-        resources: ./native/src/${SCOPE}/protobuf
-        sources: ./native/src/${SCOPE}/protobuf
     dependsOn: tests
     extends:
     - template-common-test
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ./../../snapshot-tests-in/scalameta/tests
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
+    sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   trees:
     cross:
       js212:
@@ -552,145 +411,66 @@ projects:
           module: org.scala-lang:scala-compiler:2.12.16
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
-        resources: ./js/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/js/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.12
-        - ./../inputs/js/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.12
-        - ./../io/js/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.12
-        - ./../tokenizers/js/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.12
-        - ./../tokens/js/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.12
-        - ./js/src/${SCOPE}/protobuf
       js213:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.13.8
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
-        resources: ./js/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/js/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.13
-        - ./../inputs/js/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.13
-        - ./../io/js/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.13
-        - ./../tokenizers/js/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.13
-        - ./../tokens/js/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.13
-        - ./js/src/${SCOPE}/protobuf
       jvm211:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.11.12
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.11.12
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/jvm/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.11
-        - ./../inputs/jvm/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.11
-        - ./../io/jvm/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.11
-        - ./../tokenizers/jvm/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.11
-        - ./../tokens/jvm/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.11
-        - ./jvm/src/${SCOPE}/protobuf
       jvm212:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.12.16
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/jvm/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.12
-        - ./../inputs/jvm/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.12
-        - ./../io/jvm/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.12
-        - ./../tokenizers/jvm/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.12
-        - ./../tokens/jvm/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.12
-        - ./jvm/src/${SCOPE}/protobuf
       jvm213:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.13.8
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
-        resources: ./jvm/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/jvm/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.13
-        - ./../inputs/jvm/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.13
-        - ./../io/jvm/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.13
-        - ./../tokenizers/jvm/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.13
-        - ./../tokens/jvm/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.13
-        - ./jvm/src/${SCOPE}/protobuf
       native212:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.12.16
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.12.16
-        resources: ./native/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/native/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.12
-        - ./../inputs/native/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.12
-        - ./../io/native/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.12
-        - ./../tokenizers/native/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.12
-        - ./../tokens/native/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.12
-        - ./native/src/${SCOPE}/protobuf
       native213:
         dependencies:
         - configuration: provided
           module: org.scala-lang:scala-compiler:2.13.8
         - configuration: provided
           module: org.scala-lang:scala-reflect:2.13.8
-        resources: ./native/src/${SCOPE}/protobuf
-        sources:
-        - ./../dialects/native/src/${SCOPE}/scala
-        - ./../dialects/shared/src/${SCOPE}/scala-2.13
-        - ./../inputs/native/src/${SCOPE}/scala
-        - ./../inputs/shared/src/${SCOPE}/scala-2.13
-        - ./../io/native/src/${SCOPE}/scala
-        - ./../io/shared/src/${SCOPE}/scala-2.13
-        - ./../tokenizers/native/src/${SCOPE}/scala
-        - ./../tokenizers/shared/src/${SCOPE}/scala-2.13
-        - ./../tokens/native/src/${SCOPE}/scala
-        - ./../tokens/shared/src/${SCOPE}/scala-2.13
-        - ./native/src/${SCOPE}/protobuf
     dependencies: org.scalameta::fastparse-v2:2.3.1
     dependsOn: common
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ./../../snapshot-tests-in/scalameta/scalameta/trees
+    resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
+    - ./${PLATFORM}/src/${SCOPE}/protobuf
+    - ./../dialects/${PLATFORM}/src/${SCOPE}/scala
     - ./../dialects/shared/src/${SCOPE}/scala
+    - ./../dialects/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./../inputs/${PLATFORM}/src/${SCOPE}/scala
     - ./../inputs/shared/src/${SCOPE}/scala
+    - ./../inputs/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./../io/${PLATFORM}/src/${SCOPE}/scala
     - ./../io/shared/src/${SCOPE}/scala
+    - ./../io/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./../tokenizers/${PLATFORM}/src/${SCOPE}/scala
     - ./../tokenizers/shared/src/${SCOPE}/scala
+    - ./../tokenizers/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./../tokens/${PLATFORM}/src/${SCOPE}/scala
     - ./../tokens/shared/src/${SCOPE}/scala
+    - ./../tokens/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
 templates:
   template-common:
     scala:
@@ -707,22 +487,21 @@ templates:
       jvm2.11.12:
         dependencies: org.scala-lang:scala-compiler:2.11.12
         extends: template-scala-2.11
-        sources: ./src/${SCOPE}/scala-2.11.12
       jvm2.12.16:
         dependencies: org.scala-lang:scala-compiler:2.12.16
         extends: template-scala-2.12-jvm
         scala:
           version: 2.12.16
-        sources: ./src/${SCOPE}/scala-2.12.16
       jvm2.13.8:
         dependencies: org.scala-lang:scala-compiler:2.13.8
         extends: template-scala-2.13-jvm
         scala:
           version: 2.13.8
-        sources: ./src/${SCOPE}/scala-2.13.8
     extends: template-common-main
     resources: ./src/${SCOPE}/protobuf
-    sources: ./src/${SCOPE}/protobuf
+    sources:
+    - ./src/${SCOPE}/protobuf
+    - ./src/${SCOPE}/scala-${SCALA_VERSION}
   template-cross-jvm-211-212-213:
     cross:
       jvm211:
@@ -736,40 +515,40 @@ templates:
         extends: template-scala-2.13-js
       jvm211:
         resources:
-        - ./js-jvm/src/${SCOPE}/resources
-        - ./jvm-native/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
         source-layout: cross-full
         sources:
-        - ./js-jvm/src/${SCOPE}/scala
-        - ./js-jvm/src/${SCOPE}/scala-2
-        - ./js-jvm/src/${SCOPE}/scala-2.11
-        - ./jvm-native/src/${SCOPE}/scala
-        - ./jvm-native/src/${SCOPE}/scala-2
-        - ./jvm-native/src/${SCOPE}/scala-2.11
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_EPOCH}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_EPOCH}
       jvm212:
         resources:
-        - ./js-jvm/src/${SCOPE}/resources
-        - ./jvm-native/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
         source-layout: cross-full
         sources:
-        - ./js-jvm/src/${SCOPE}/scala
-        - ./js-jvm/src/${SCOPE}/scala-2
-        - ./js-jvm/src/${SCOPE}/scala-2.12
-        - ./jvm-native/src/${SCOPE}/scala
-        - ./jvm-native/src/${SCOPE}/scala-2
-        - ./jvm-native/src/${SCOPE}/scala-2.12
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_EPOCH}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_EPOCH}
       jvm213:
         resources:
-        - ./js-jvm/src/${SCOPE}/resources
-        - ./jvm-native/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
         source-layout: cross-full
         sources:
-        - ./js-jvm/src/${SCOPE}/scala
-        - ./js-jvm/src/${SCOPE}/scala-2
-        - ./js-jvm/src/${SCOPE}/scala-2.13
-        - ./jvm-native/src/${SCOPE}/scala
-        - ./jvm-native/src/${SCOPE}/scala-2
-        - ./jvm-native/src/${SCOPE}/scala-2.13
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_EPOCH}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_EPOCH}
       native212:
         extends: template-scala-2.12-native
       native213:
@@ -795,16 +574,18 @@ templates:
       jsVersion: 1.10.1
       name: js
     resources:
-    - ./js-jvm/src/${SCOPE}/resources
-    - ./js-native/src/${SCOPE}/resources
+    - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+    - ./${PLATFORM}-native/src/${SCOPE}/resources
     scala:
       compilerPlugins: org.scala-js:::scalajs-compiler:1.8.0
     source-layout: cross-full
     sources:
-    - ./js-jvm/src/${SCOPE}/scala
-    - ./js-jvm/src/${SCOPE}/scala-2
-    - ./js-native/src/${SCOPE}/scala
-    - ./js-native/src/${SCOPE}/scala-2
+    - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+    - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_EPOCH}
+    - ./${PLATFORM}-native/src/${SCOPE}/scala
+    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_EPOCH}
   template-native:
     platform:
       name: native
@@ -812,14 +593,16 @@ templates:
       nativeMode: debug
       nativeVersion: 0.4.5
     resources:
-    - ./js-native/src/${SCOPE}/resources
-    - ./jvm-native/src/${SCOPE}/resources
+    - ./js-${PLATFORM}/src/${SCOPE}/resources
+    - ./jvm-${PLATFORM}/src/${SCOPE}/resources
     source-layout: cross-full
     sources:
-    - ./js-native/src/${SCOPE}/scala
-    - ./js-native/src/${SCOPE}/scala-2
-    - ./jvm-native/src/${SCOPE}/scala
-    - ./jvm-native/src/${SCOPE}/scala-2
+    - ./js-${PLATFORM}/src/${SCOPE}/scala
+    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_EPOCH}
+    - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+    - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_EPOCH}
   template-scala-2.11:
     platform:
       name: jvm
@@ -835,9 +618,6 @@ templates:
     - template-scala-2.12
     scala:
       version: 2.12.16
-    sources:
-    - ./js-jvm/src/${SCOPE}/scala-2.12
-    - ./js-native/src/${SCOPE}/scala-2.12
   template-scala-2.12-jvm:
     extends: template-scala-2.12
     platform:
@@ -848,9 +628,6 @@ templates:
     - template-scala-2.12
     scala:
       version: 2.12.16
-    sources:
-    - ./js-native/src/${SCOPE}/scala-2.12
-    - ./jvm-native/src/${SCOPE}/scala-2.12
   template-scala-2.13:
     scala:
       options: -Ymacro-annotations
@@ -860,9 +637,6 @@ templates:
     - template-scala-2.13
     scala:
       version: 2.13.8
-    sources:
-    - ./js-jvm/src/${SCOPE}/scala-2.13
-    - ./js-native/src/${SCOPE}/scala-2.13
   template-scala-2.13-jvm:
     extends: template-scala-2.13
     platform:
@@ -873,6 +647,3 @@ templates:
     - template-scala-2.13
     scala:
       version: 2.13.8
-    sources:
-    - ./js-native/src/${SCOPE}/scala-2.13
-    - ./jvm-native/src/${SCOPE}/scala-2.13

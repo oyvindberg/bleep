@@ -161,7 +161,9 @@ object GenBloopFiles {
       }
 
     val templateDirs =
-      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++ Replacements.targetDir(projectPaths.targetDir)
+      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
+        Replacements.targetDir(projectPaths.targetDir) ++
+        Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value), includeEpoch = true)
 
     def require[T](ot: Option[T], name: String): T =
       ot match {
