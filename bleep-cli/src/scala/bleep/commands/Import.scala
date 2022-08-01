@@ -160,7 +160,7 @@ case class Import(
 
     FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
 
-    logger.info("Calling sbt multiple times to retrieve information about the existing build. Grab some popcorn as it may take a while !")
+    logger.info("Will call sbt multiple times to retrieve information about the existing build. Grab some popcorn as it may take a while!")
 
     // run this as a command to discover all projects, possibly across several builds
     val allProjectNamesByBuild: Map[Path, List[String]] = {
@@ -194,7 +194,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
       try {
         // ask for all (cross) scala versions for these projects
         val projectNamesByScalaVersion: Map[Versions.Scala, Set[String]] = {
-          val cmd = List("sbt", "show " + projectNames.map(p => s"$p/scalaVersion $p/crossScalaVersions").mkString(" "))
+          val cmd = List("sbt", "show " + projectNames.map(p => s"$p/crossScalaVersions").mkString(" "))
           logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
           logger.withContext(sbtBuildDir).debug(cmd)
           val output = Process(cmd, sbtBuildDir.toFile, sbtEnvs: _*).lazyLines(logger.processLogger("sbt discover cross projects")).toList
