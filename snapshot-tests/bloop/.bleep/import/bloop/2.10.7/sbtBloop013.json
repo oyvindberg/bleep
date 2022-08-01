@@ -1,0 +1,1331 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "sbtBloop013",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/bloop",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/scala-2.10",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/java",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/scala-sbt-0.13",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/target/0.13.18/scala-2.10/sbt-0.13/src_managed/main"
+        ],
+        "dependencies": [
+            "jsonConfig210JVM"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.10.7/jsonConfig210JVM/scala-2.10/classes",
+            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt/0.13.18/jars/sbt.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main/0.13.18/jars/main.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-interface/0.13.18/jars/compiler-interface.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.10/0.9.3/circe-parser_2.10-0.9.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.10/0.9.3/circe-core_2.10-0.9.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.10/0.9.3/circe-generic_2.10-0.9.3.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/actions/0.13.18/jars/actions.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main-settings/0.13.18/jars/main-settings.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/interface/0.13.18/jars/interface.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/io/0.13.18/jars/io.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/ivy/0.13.18/jars/ivy.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/logging/0.13.18/jars/logging.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/logic/0.13.18/jars/logic.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/process/0.13.18/jars/process.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/run/0.13.18/jars/run.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/command/0.13.18/jars/command.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.1/launcher-interface-1.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.10/0.9.3/circe-jawn_2.10-0.9.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.10/0.9.3/circe-numbers_2.10-0.9.3.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.10/1.0.1/cats-core_2.10-1.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.10/1.1.1/macro-compat_2.10-1.1.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/quasiquotes_2.10/2.1.1/quasiquotes_2.10-2.1.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.10/2.3.3/shapeless_2.10-2.3.3.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/classpath/0.13.18/jars/classpath.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/completion/0.13.18/jars/completion.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/api/0.13.18/jars/api.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-integration/0.13.18/jars/compiler-integration.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-ivy-integration/0.13.18/jars/compiler-ivy-integration.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/relation/0.13.18/jars/relation.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/task-system/0.13.18/jars/task-system.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/tasks/0.13.18/jars/tasks.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/tracking/0.13.18/jars/tracking.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/testing/0.13.18/jars/testing.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/apply-macro/0.13.18/jars/apply-macro.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-tools.sbinary/sbinary_2.10/0.4.2/jars/sbinary_2.10.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/control/0.13.18/jars/control.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/cross/0.13.18/jars/cross.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/collections/0.13.18/jars/collections.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310/ivy-2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.50/jsch-0.1.50.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/serialization_2.10/0.1.2/serialization_2.10-0.1.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.10.7/scala-reflect-2.10.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.5/jline-2.14.5.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/template-resolver/0.1/template-resolver-0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.10/0.11.1/jawn-parser_2.10-0.11.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.10/1.0.1/cats-macros_2.10-1.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.10/1.0.1/cats-kernel_2.10-1.0.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/machinist_2.10/0.6.2/machinist_2.10-0.6.2.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.7/scala-compiler-2.10.7.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/classfile/0.13.18/jars/classfile.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/incremental-compiler/0.13.18/jars/incremental-compiler.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compile/0.13.18/jars/compile.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/persist/0.13.18/jars/persist.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/cache/0.13.18/jars/cache.jar",
+            "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/test-agent/0.13.18/jars/test-agent.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-pickling_2.10/0.10.1/scala-pickling_2.10-0.10.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.10/3.2.10/json4s-core_2.10-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/json4s-support_2.10/0.6.0/json4s-support_2.10-0.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.10/3.2.10/json4s-ast_2.10-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.6/paranamer-2.6.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.10.7/sbtBloop013",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.10.7/sbtBloop013/scala-2.10/sbt-0.13/classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/target/0.13.18/scala-2.10/sbt-0.13/resource_managed/main",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/LICENSE.md",
+            "<BLEEP_GIT>/snapshot-tests-in/bloop/NOTICE.md"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.10.7",
+            "options": [
+                "-deprecation",
+                "-encoding",
+                "UTF-8",
+                "-feature",
+                "-language:existentials",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Yno-adapted-args",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-value-discard",
+                "-Xfuture"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.7/scala-compiler-2.10.7.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.10.7/scala-reflect-2.10.7.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/jline/2.10.7/jline-2.10.7.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.4/jansi-1.4.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.10.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-parser_2.10",
+                    "version": "0.9.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-parser_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.10/0.9.3/circe-parser_2.10-0.9.3.jar"
+                        },
+                        {
+                            "name": "circe-parser_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.10/0.9.3/circe-parser_2.10-0.9.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-core_2.10",
+                    "version": "0.9.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-core_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.10/0.9.3/circe-core_2.10-0.9.3.jar"
+                        },
+                        {
+                            "name": "circe-core_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.10/0.9.3/circe-core_2.10-0.9.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-generic_2.10",
+                    "version": "0.9.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-generic_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.10/0.9.3/circe-generic_2.10-0.9.3.jar"
+                        },
+                        {
+                            "name": "circe-generic_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.10/0.9.3/circe-generic_2.10-0.9.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-jawn_2.10",
+                    "version": "0.9.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-jawn_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.10/0.9.3/circe-jawn_2.10-0.9.3.jar"
+                        },
+                        {
+                            "name": "circe-jawn_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.10/0.9.3/circe-jawn_2.10-0.9.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.circe",
+                    "name": "circe-numbers_2.10",
+                    "version": "0.9.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "circe-numbers_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.10/0.9.3/circe-numbers_2.10-0.9.3.jar"
+                        },
+                        {
+                            "name": "circe-numbers_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.10/0.9.3/circe-numbers_2.10-0.9.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-core_2.10",
+                    "version": "1.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-core_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.10/1.0.1/cats-core_2.10-1.0.1.jar"
+                        },
+                        {
+                            "name": "cats-core_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.10/1.0.1/cats-core_2.10-1.0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "macro-compat_2.10",
+                    "version": "1.1.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "macro-compat_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.10/1.1.1/macro-compat_2.10-1.1.1.jar"
+                        },
+                        {
+                            "name": "macro-compat_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.10/1.1.1/macro-compat_2.10-1.1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalamacros",
+                    "name": "quasiquotes_2.10",
+                    "version": "2.1.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "quasiquotes_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/quasiquotes_2.10/2.1.1/quasiquotes_2.10-2.1.1.jar"
+                        },
+                        {
+                            "name": "quasiquotes_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/quasiquotes_2.10/2.1.1/quasiquotes_2.10-2.1.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.chuusai",
+                    "name": "shapeless_2.10",
+                    "version": "2.3.3",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "shapeless_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.10/2.3.3/shapeless_2.10-2.3.3.jar"
+                        },
+                        {
+                            "name": "shapeless_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.10/2.3.3/shapeless_2.10-2.3.3-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.spire-math",
+                    "name": "jawn-parser_2.10",
+                    "version": "0.11.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jawn-parser_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.10/0.11.1/jawn-parser_2.10-0.11.1.jar"
+                        },
+                        {
+                            "name": "jawn-parser_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.10/0.11.1/jawn-parser_2.10-0.11.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-macros_2.10",
+                    "version": "1.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-macros_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.10/1.0.1/cats-macros_2.10-1.0.1.jar"
+                        },
+                        {
+                            "name": "cats-macros_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.10/1.0.1/cats-macros_2.10-1.0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "cats-kernel_2.10",
+                    "version": "1.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "cats-kernel_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.10/1.0.1/cats-kernel_2.10-1.0.1.jar"
+                        },
+                        {
+                            "name": "cats-kernel_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.10/1.0.1/cats-kernel_2.10-1.0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.typelevel",
+                    "name": "machinist_2.10",
+                    "version": "0.6.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "machinist_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/machinist_2.10/0.6.2/machinist_2.10-0.6.2.jar"
+                        },
+                        {
+                            "name": "machinist_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/machinist_2.10/0.6.2/machinist_2.10-0.6.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.10.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.10.7/scala-reflect-2.10.7.jar"
+                        },
+                        {
+                            "name": "scala-reflect",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.10.7/scala-reflect-2.10.7-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "sbt",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "sbt",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt/0.13.18/jars/sbt.jar"
+                        },
+                        {
+                            "name": "sbt",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt/0.13.18/srcs/sbt-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "main",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "main",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "f1a0cc23ee9814513354020df39f6e61d14c956e"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main/0.13.18/jars/main.jar"
+                        },
+                        {
+                            "name": "main",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main/0.13.18/srcs/main-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "compiler-interface",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "compiler-interface",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "cbb6ba3ac0c85f8214872eeca87ea74554ec60ba"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-interface/0.13.18/jars/compiler-interface.jar"
+                        },
+                        {
+                            "name": "compiler-interface",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-interface/0.13.18/srcs/compiler-interface-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "actions",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "actions",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "c65a17a9d1daf8eea5fcfaa3952ffa7ab1d15eda"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/actions/0.13.18/jars/actions.jar"
+                        },
+                        {
+                            "name": "actions",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/actions/0.13.18/srcs/actions-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "main-settings",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "main-settings",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "f7621e9e6ce25d67640eda839ebced4a31ddcc57"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main-settings/0.13.18/jars/main-settings.jar"
+                        },
+                        {
+                            "name": "main-settings",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main-settings/0.13.18/srcs/main-settings-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "interface",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "interface",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/interface/0.13.18/jars/interface.jar"
+                        },
+                        {
+                            "name": "interface",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/interface/0.13.18/srcs/interface-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "io",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "io",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "fdf93ada5440d9e030e9b7b06a29b6e8faba64c4"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/io/0.13.18/jars/io.jar"
+                        },
+                        {
+                            "name": "io",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/io/0.13.18/srcs/io-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "ivy",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "ivy",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "df76461a2fc9484e23b3aef532af51528a7ff077"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/ivy/0.13.18/jars/ivy.jar"
+                        },
+                        {
+                            "name": "ivy",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/ivy/0.13.18/srcs/ivy-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "logging",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "logging",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/logging/0.13.18/jars/logging.jar"
+                        },
+                        {
+                            "name": "logging",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/logging/0.13.18/srcs/logging-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "logic",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "logic",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/logic/0.13.18/jars/logic.jar"
+                        },
+                        {
+                            "name": "logic",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/logic/0.13.18/srcs/logic-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "process",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "process",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/process/0.13.18/jars/process.jar"
+                        },
+                        {
+                            "name": "process",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/process/0.13.18/srcs/process-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "run",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "run",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/run/0.13.18/jars/run.jar"
+                        },
+                        {
+                            "name": "run",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/run/0.13.18/srcs/run-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "command",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "command",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "51f7e01ae90a5463e1703ce125d5270bad52f4b2"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/command/0.13.18/jars/command.jar"
+                        },
+                        {
+                            "name": "command",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/command/0.13.18/srcs/command-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "launcher-interface",
+                    "version": "1.0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "launcher-interface",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.1/launcher-interface-1.0.1.jar"
+                        },
+                        {
+                            "name": "launcher-interface",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.1/launcher-interface-1.0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "classpath",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "classpath",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/classpath/0.13.18/jars/classpath.jar"
+                        },
+                        {
+                            "name": "classpath",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/classpath/0.13.18/srcs/classpath-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "completion",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "completion",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "e5157f76e9de91d811e492622fc9ce475c6c69cb"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/completion/0.13.18/jars/completion.jar"
+                        },
+                        {
+                            "name": "completion",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/completion/0.13.18/srcs/completion-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "api",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "api",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "d541cb0bc3cda7507d1d46c3c7aa7bf7a39f6a00"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/api/0.13.18/jars/api.jar"
+                        },
+                        {
+                            "name": "api",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/api/0.13.18/srcs/api-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "compiler-integration",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "compiler-integration",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-integration/0.13.18/jars/compiler-integration.jar"
+                        },
+                        {
+                            "name": "compiler-integration",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-integration/0.13.18/srcs/compiler-integration-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "compiler-ivy-integration",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "compiler-ivy-integration",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-ivy-integration/0.13.18/jars/compiler-ivy-integration.jar"
+                        },
+                        {
+                            "name": "compiler-ivy-integration",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compiler-ivy-integration/0.13.18/srcs/compiler-ivy-integration-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "relation",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "relation",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/relation/0.13.18/jars/relation.jar"
+                        },
+                        {
+                            "name": "relation",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/relation/0.13.18/srcs/relation-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "task-system",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "task-system",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/task-system/0.13.18/jars/task-system.jar"
+                        },
+                        {
+                            "name": "task-system",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/task-system/0.13.18/srcs/task-system-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "tasks",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "tasks",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/tasks/0.13.18/jars/tasks.jar"
+                        },
+                        {
+                            "name": "tasks",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/tasks/0.13.18/srcs/tasks-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "tracking",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "tracking",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/tracking/0.13.18/jars/tracking.jar"
+                        },
+                        {
+                            "name": "tracking",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/tracking/0.13.18/srcs/tracking-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "testing",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "testing",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/testing/0.13.18/jars/testing.jar"
+                        },
+                        {
+                            "name": "testing",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/testing/0.13.18/srcs/testing-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "apply-macro",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "apply-macro",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/apply-macro/0.13.18/jars/apply-macro.jar"
+                        },
+                        {
+                            "name": "apply-macro",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/apply-macro/0.13.18/srcs/apply-macro-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-tools.sbinary",
+                    "name": "sbinary_2.10",
+                    "version": "0.4.2",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "sbinary_2.10",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-tools.sbinary/sbinary_2.10/0.4.2/jars/sbinary_2.10.jar"
+                        },
+                        {
+                            "name": "sbinary_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-tools.sbinary/sbinary_2.10/0.4.2/srcs/sbinary_2.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "control",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "control",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/control/0.13.18/jars/control.jar"
+                        },
+                        {
+                            "name": "control",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/control/0.13.18/srcs/control-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "cross",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "cross",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/cross/0.13.18/jars/cross.jar"
+                        },
+                        {
+                            "name": "cross",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/cross/0.13.18/srcs/cross-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "collections",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "collections",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "7e2b36c8d0145bf1e8e2dd0fd207a6c3d04faba4"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/collections/0.13.18/jars/collections.jar"
+                        },
+                        {
+                            "name": "collections",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/collections/0.13.18/srcs/collections-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt.ivy",
+                    "name": "ivy",
+                    "version": "2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ivy",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310/ivy-2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310.jar"
+                        },
+                        {
+                            "name": "ivy",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310/ivy-2.3.0-sbt-b18f59ea3bc914a297bb6f1a4f7fb0ace399e310-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.jcraft",
+                    "name": "jsch",
+                    "version": "0.1.50",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jsch",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.50/jsch-0.1.50.jar"
+                        },
+                        {
+                            "name": "jsch",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.50/jsch-0.1.50-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "serialization_2.10",
+                    "version": "0.1.2",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "serialization_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/serialization_2.10/0.1.2/serialization_2.10-0.1.2.jar"
+                        },
+                        {
+                            "name": "serialization_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/serialization_2.10/0.1.2/serialization_2.10-0.1.2-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "jline",
+                    "name": "jline",
+                    "version": "2.14.5",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "jline",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.5/jline-2.14.5.jar"
+                        },
+                        {
+                            "name": "jline",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.5/jline-2.14.5-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "template-resolver",
+                    "version": "0.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "template-resolver",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/template-resolver/0.1/template-resolver-0.1.jar"
+                        },
+                        {
+                            "name": "template-resolver",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/template-resolver/0.1/template-resolver-0.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.10.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.7/scala-compiler-2.10.7.jar"
+                        },
+                        {
+                            "name": "scala-compiler",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.7/scala-compiler-2.10.7-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "classfile",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "classfile",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/classfile/0.13.18/jars/classfile.jar"
+                        },
+                        {
+                            "name": "classfile",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/classfile/0.13.18/srcs/classfile-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "incremental-compiler",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "incremental-compiler",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "d5d1aa78745a3d1b64a36a7c3eb01bc14d76b768"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/incremental-compiler/0.13.18/jars/incremental-compiler.jar"
+                        },
+                        {
+                            "name": "incremental-compiler",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/incremental-compiler/0.13.18/srcs/incremental-compiler-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "compile",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "compile",
+                            "checksum": {
+                                "type": "sha1",
+                                "digest": "7c7249fe74480b86655f896a3bca179af21e6645"
+                            },
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compile/0.13.18/jars/compile.jar"
+                        },
+                        {
+                            "name": "compile",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/compile/0.13.18/srcs/compile-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "persist",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "persist",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/persist/0.13.18/jars/persist.jar"
+                        },
+                        {
+                            "name": "persist",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/persist/0.13.18/srcs/persist-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "cache",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "cache",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/cache/0.13.18/jars/cache.jar"
+                        },
+                        {
+                            "name": "cache",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/cache/0.13.18/srcs/cache-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "test-agent",
+                    "version": "0.13.18",
+                    "configurations": "compile",
+                    "artifacts": [
+                        {
+                            "name": "test-agent",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/test-agent/0.13.18/jars/test-agent.jar"
+                        },
+                        {
+                            "name": "test-agent",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/test-agent/0.13.18/srcs/test-agent-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "test-interface",
+                    "version": "1.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "test-interface",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+                        },
+                        {
+                            "name": "test-interface",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-pickling_2.10",
+                    "version": "0.10.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-pickling_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-pickling_2.10/0.10.1/scala-pickling_2.10-0.10.1.jar"
+                        },
+                        {
+                            "name": "scala-pickling_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-pickling_2.10/0.10.1/scala-pickling_2.10-0.10.1-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.json4s",
+                    "name": "json4s-core_2.10",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "json4s-core_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.10/3.2.10/json4s-core_2.10-3.2.10.jar"
+                        },
+                        {
+                            "name": "json4s-core_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-core_2.10/3.2.10/json4s-core_2.10-3.2.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.spire-math",
+                    "name": "json4s-support_2.10",
+                    "version": "0.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "json4s-support_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/json4s-support_2.10/0.6.0/json4s-support_2.10-0.6.0.jar"
+                        },
+                        {
+                            "name": "json4s-support_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/json4s-support_2.10/0.6.0/json4s-support_2.10-0.6.0-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.json4s",
+                    "name": "json4s-ast_2.10",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "json4s-ast_2.10",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.10/3.2.10/json4s-ast_2.10-3.2.10.jar"
+                        },
+                        {
+                            "name": "json4s-ast_2.10",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/json4s/json4s-ast_2.10/3.2.10/json4s-ast_2.10-3.2.10-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.thoughtworks.paranamer",
+                    "name": "paranamer",
+                    "version": "2.6",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "paranamer",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.6/paranamer-2.6.jar"
+                        },
+                        {
+                            "name": "paranamer",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.6/paranamer-2.6-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-compiler",
+                    "version": "2.10.7",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-compiler",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.7/scala-compiler-2.10.7.jar"
+                        },
+                        {
+                            "name": "scala-compiler",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.10.7/scala-compiler-2.10.7-sources.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.10.7",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7.jar"
+                        },
+                        {
+                            "name": "scala-library",
+                            "classifier": "sources",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7-sources.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "library"
+        ]
+    }
+}

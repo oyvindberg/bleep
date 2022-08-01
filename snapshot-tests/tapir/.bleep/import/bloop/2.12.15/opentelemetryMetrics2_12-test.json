@@ -1,0 +1,679 @@
+{
+    "version": "1.4.0",
+    "project": {
+        "name": "opentelemetryMetrics2_12-test",
+        "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/.sbt/matrix/opentelemetryMetrics2_12",
+        "workspaceDir": "<BLEEP_GIT>/snapshot-tests-in/tapir",
+        "sources": [
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scala",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scala-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/java",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scalajvm",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scalajvm-2.12",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scala-2",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scala-2.13-",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/scalajvm-2",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/jvm-2.12/src_managed/test"
+        ],
+        "dependencies": [
+            "core2_12-test",
+            "opentelemetryMetrics2_12"
+        ],
+        "classpath": [
+            "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/import/bloop/2.12.15/opentelemetryMetrics2_12/scala-2.12/classes",
+            "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/import/bloop/2.12.15/core2_12/scala-2.12/classes",
+            "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/import/bloop/2.12.15/core2_12/scala-2.12/test-classes",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.9.1/opentelemetry-api-1.9.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.9.1/opentelemetry-sdk-1.9.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.5.0-alpha/opentelemetry-sdk-metrics-1.5.0-alpha.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.15.4/scalacheck_2.12-1.15.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-15_2.12/3.2.10.0/scalacheck-1-15_2.12-3.2.10.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/scalacheck-toolbox-datetime_2.12/0.6.0/scalacheck-toolbox-datetime_2.12-0.6.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.9.1/opentelemetry-context-1.9.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.9.1/opentelemetry-sdk-common-1.9.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.9.1/opentelemetry-sdk-trace-1.9.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-metrics/1.9.1-alpha/opentelemetry-api-metrics-1.9.1-alpha.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.4.4/scala-collection-compat_2.12-2.4.4.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.10/joda-time-2.10.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.9.1-alpha/opentelemetry-semconv-1.9.1-alpha.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar"
+        ],
+        "out": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/import/bloop/2.12.15/opentelemetryMetrics2_12",
+        "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/import/bloop/2.12.15/opentelemetryMetrics2_12/scala-2.12/test-classes",
+        "resources": [
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/resources",
+            "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/target/jvm-2.12/resource_managed/test"
+        ],
+        "scala": {
+            "organization": "org.scala-lang",
+            "name": "scala-compiler",
+            "version": "2.12.15",
+            "options": [
+                "-encoding",
+                "utf8",
+                "-deprecation",
+                "-explaintypes",
+                "-feature",
+                "-language:existentials",
+                "-language:experimental.macros",
+                "-language:higherKinds",
+                "-language:implicitConversions",
+                "-unchecked",
+                "-Xcheckinit",
+                "-Xlint:adapted-args",
+                "-Xlint:by-name-right-associative",
+                "-Xlint:constant",
+                "-Xlint:delayedinit-select",
+                "-Xlint:doc-detached",
+                "-Xlint:inaccessible",
+                "-Xlint:infer-any",
+                "-Xlint:missing-interpolator",
+                "-Xlint:nullary-override",
+                "-Xlint:nullary-unit",
+                "-Xlint:option-implicit",
+                "-Xlint:package-object-classes",
+                "-Xlint:poly-implicit-overload",
+                "-Xlint:private-shadow",
+                "-Xlint:stars-align",
+                "-Xlint:type-parameter-shadow",
+                "-Xlint:unsound-match",
+                "-Yno-adapted-args",
+                "-Ywarn-dead-code",
+                "-Ywarn-extra-implicit",
+                "-Ywarn-nullary-override",
+                "-Ywarn-nullary-unit",
+                "-Ywarn-numeric-widen",
+                "-Ywarn-unused:implicits",
+                "-Ywarn-unused:imports",
+                "-Ywarn-unused:locals",
+                "-Ywarn-unused:params",
+                "-Ywarn-unused:patvars",
+                "-Ywarn-unused:privates",
+                "-Ywarn-value-discard",
+                "-Ypartial-unification",
+                "-Ywarn-macros:after",
+                "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar"
+            ],
+            "jars": [
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+                "<COURSIER>/https/repo1.maven.org/maven2/jline/jline/2.14.6/jline-2.14.6.jar"
+            ],
+            "setup": {
+                "order": "mixed",
+                "addLibraryToBootClasspath": true,
+                "addCompilerToClasspath": false,
+                "addExtraJarsToClasspath": false,
+                "manageBootClasspath": true,
+                "filterLibraryFromClasspath": true
+            }
+        },
+        "java": {
+            "options": [
+                
+            ]
+        },
+        "test": {
+            "frameworks": [
+                {
+                    "names": [
+                        "org.scalacheck.ScalaCheckFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs2.runner.Specs2Framework",
+                        "org.specs2.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.specs.runner.SpecsFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "org.scalatest.tools.Framework",
+                        "org.scalatest.tools.ScalaTestFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "com.novocode.junit.JUnitFramework"
+                    ]
+                },
+                {
+                    "names": [
+                        "munit.Framework"
+                    ]
+                }
+            ],
+            "options": {
+                "excludes": [
+                    
+                ],
+                "arguments": [
+                    {
+                        "args": [
+                            "-oD"
+                        ]
+                    }
+                ]
+            }
+        },
+        "platform": {
+            "name": "jvm",
+            "config": {
+                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "options": [
+                    "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/tapir"
+                ]
+            },
+            "mainClass": [
+                
+            ]
+        },
+        "resolution": {
+            "modules": [
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-api",
+                    "version": "1.9.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-api",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.9.1/opentelemetry-api-1.9.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-sdk",
+                    "version": "1.9.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-sdk",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.9.1/opentelemetry-sdk-1.9.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.model",
+                    "name": "core_2.12",
+                    "version": "1.4.18",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "core_2.12",
+                    "version": "1.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "core_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.softwaremill.sttp.shared",
+                    "name": "ws_2.12",
+                    "version": "1.2.7",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "ws_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.propensive",
+                    "name": "magnolia_2.12",
+                    "version": "0.17.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "magnolia_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-context",
+                    "version": "1.9.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-context",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.9.1/opentelemetry-context-1.9.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-sdk-common",
+                    "version": "1.9.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-sdk-common",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.9.1/opentelemetry-sdk-common-1.9.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-sdk-trace",
+                    "version": "1.9.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-sdk-trace",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.9.1/opentelemetry-sdk-trace-1.9.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.propensive",
+                    "name": "mercator_2.12",
+                    "version": "0.2.1",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "mercator_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-semconv",
+                    "version": "1.9.1-alpha",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-semconv",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.9.1-alpha/opentelemetry-semconv-1.9.1-alpha.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-api-metrics",
+                    "version": "1.9.1-alpha",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-api-metrics",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-metrics/1.9.1-alpha/opentelemetry-api-metrics-1.9.1-alpha.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-reflect",
+                    "version": "2.12.15",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-reflect",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang",
+                    "name": "scala-library",
+                    "version": "2.12.15",
+                    "configurations": "optional",
+                    "artifacts": [
+                        {
+                            "name": "scala-library",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "io.opentelemetry",
+                    "name": "opentelemetry-sdk-metrics",
+                    "version": "1.5.0-alpha",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "opentelemetry-sdk-metrics",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-metrics/1.5.0-alpha/opentelemetry-sdk-metrics-1.5.0-alpha.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.10/scalatest_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalacheck",
+                    "name": "scalacheck_2.12",
+                    "version": "1.15.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalacheck_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.15.4/scalacheck_2.12-1.15.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatestplus",
+                    "name": "scalacheck-1-15_2.12",
+                    "version": "3.2.10.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalacheck-1-15_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-15_2.12/3.2.10.0/scalacheck-1-15_2.12-3.2.10.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "com.47deg",
+                    "name": "scalacheck-toolbox-datetime_2.12",
+                    "version": "0.6.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalacheck-toolbox-datetime_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/com/47deg/scalacheck-toolbox-datetime_2.12/0.6.0/scalacheck-toolbox-datetime_2.12-0.6.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-core_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-core_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_2.12/3.2.10/scalatest-core_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-featurespec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-featurespec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_2.12/3.2.10/scalatest-featurespec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-flatspec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-flatspec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_2.12/3.2.10/scalatest-flatspec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-freespec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-freespec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_2.12/3.2.10/scalatest-freespec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-funsuite_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-funsuite_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_2.12/3.2.10/scalatest-funsuite_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-funspec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-funspec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_2.12/3.2.10/scalatest-funspec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-propspec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-propspec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_2.12/3.2.10/scalatest-propspec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-refspec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-refspec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_2.12/3.2.10/scalatest-refspec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-wordspec_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-wordspec_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.10/scalatest-wordspec_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-diagrams_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-diagrams_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_2.12/3.2.10/scalatest-diagrams_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-matchers-core_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-matchers-core_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_2.12/3.2.10/scalatest-matchers-core_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-shouldmatchers_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-shouldmatchers_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.12/3.2.10/scalatest-shouldmatchers_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-mustmatchers_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-mustmatchers_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_2.12/3.2.10/scalatest-mustmatchers_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-sbt",
+                    "name": "test-interface",
+                    "version": "1.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "test-interface",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-collection-compat_2.12",
+                    "version": "2.4.4",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-collection-compat_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.4.4/scala-collection-compat_2.12-2.4.4.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "joda-time",
+                    "name": "joda-time",
+                    "version": "2.10.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "joda-time",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.10/joda-time-2.10.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalatest",
+                    "name": "scalatest-compatible",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalatest-compatible",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-compatible/3.2.10/scalatest-compatible-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scalactic",
+                    "name": "scalactic_2.12",
+                    "version": "3.2.10",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scalactic_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_2.12/3.2.10/scalactic_2.12-3.2.10.jar"
+                        }
+                    ]
+                },
+                {
+                    "organization": "org.scala-lang.modules",
+                    "name": "scala-xml_2.12",
+                    "version": "1.3.0",
+                    "configurations": "default",
+                    "artifacts": [
+                        {
+                            "name": "scala-xml_2.12",
+                            "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar"
+                        }
+                    ]
+                }
+            ]
+        },
+        "tags": [
+            "test"
+        ]
+    }
+}
