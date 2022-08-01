@@ -9,6 +9,7 @@ import cats.syntax.apply._
 import com.monovore.decline.Opts
 
 import java.nio.file.{Files, Path}
+import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 import scala.sys.process.Process
@@ -82,7 +83,7 @@ object Import {
     b.result()
   }
 
-  def parseScalaVersionsOutput(lines: List[String]): Map[Versions.Scala, Set[String]] = {
+  def parseScalaVersionsOutput(lines: List[String]): SortedMap[Versions.Scala, Set[String]] = {
     val builder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
 
     var i = 0
@@ -106,19 +107,19 @@ object Import {
       i += 1
     }
 
-    builder.map { case (v, projects) => (v, projects.toSet) }.toMap
+    SortedMap.empty[Versions.Scala, Set[String]] ++ builder.map { case (v, projects) => (v, projects.toSet) }
   }
 
 }
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
 case class Import(
-                   existingBuild: Option[model.Build],
-                   sbtBuildDir: Path,
-                   destinationPaths: BuildPaths,
-                   logger: Logger,
-                   options: Import.Options,
-                   bleepVersion: model.Version
+    existingBuild: Option[model.Build],
+    sbtBuildDir: Path,
+    destinationPaths: BuildPaths,
+    logger: Logger,
+    options: Import.Options,
+    bleepVersion: model.Version
 ) extends BleepCommand {
   override def run(): Either[BuildException, Unit] = {
     if (!options.skipSbt) {
@@ -147,8 +148,7 @@ case class Import(
     Right(())
   }
 
-  /**
-    * I know, launching sbt three plus times is incredibly slow.
+  /** I know, launching sbt three plus times is incredibly slow.
     *
     * I'm sure it's possible to do the same thing from within sbt and only launch it first, but you know. it's not at all easy.
     */
@@ -227,7 +227,6 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
               )
             }
           }
-
 
         val cmd = "sbt" :: args.toList
         logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")

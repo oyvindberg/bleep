@@ -41,6 +41,9 @@ object Versions {
       case other                  => other
     }
   }
+  object Scala {
+    implicit val ordering: Ordering[Scala] = Ordering.by(_.scalaVersion)
+  }
 
   val Scala212 = Scala("2.12.15")
   val Scala213 = Scala("2.13.6")
