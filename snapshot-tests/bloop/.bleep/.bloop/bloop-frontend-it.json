@@ -16,7 +16,7 @@
       "bloop-config@jvm212",
       "bloop-frontend",
       "bloop-shared",
-      "buildpressConfig",
+      "buildpressconfig",
       "sockets"
     ],
     "classpath": [
@@ -147,7 +147,7 @@
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-config/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-frontend/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-shared/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpressConfig/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpressconfig/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/sockets/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-frontend-it",

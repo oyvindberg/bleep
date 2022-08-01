@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "okhttp-client",
-  "sbtName": "okhttp-client",
+  "sbtName": "http4s-okhttp-client",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

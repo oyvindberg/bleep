@@ -14,7 +14,7 @@
     "dependencies": [
       "bloop-shared",
       "bloopgun-core@jvm212",
-      "buildpressConfig"
+      "buildpressconfig"
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4s_2.12/2.0.0-M13/bsp4s_2.12-2.0.0-M13.jar",
@@ -105,7 +105,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-shared/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloopgun-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpressConfig/classes"
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpressconfig/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpress",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpress/classes",

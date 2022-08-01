@@ -1,7 +1,7 @@
 {
   "organization": "ch.epfl.scala",
   "bloopName": "benchmarkBridge",
-  "sbtName": "benchmarkBridge",
+  "sbtName": "benchmarkbridge",
   "scalaFullVersion": "2.12.15",
   "scalaBinaryVersion": "2.12",
   "dependencies": [{

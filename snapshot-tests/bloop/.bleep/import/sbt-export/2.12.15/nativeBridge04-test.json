@@ -1,7 +1,7 @@
 {
   "organization": "ch.epfl.scala",
   "bloopName": "nativeBridge04-test",
-  "sbtName": "bloop-native-bridge-0.4",
+  "sbtName": "bloop-native-bridge-0-4",
   "scalaFullVersion": "2.12.15",
   "scalaBinaryVersion": "2.12",
   "dependencies": [{

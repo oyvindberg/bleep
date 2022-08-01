@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "scala-xml",
-  "sbtName": "scala-xml",
+  "sbtName": "http4s-scala-xml",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

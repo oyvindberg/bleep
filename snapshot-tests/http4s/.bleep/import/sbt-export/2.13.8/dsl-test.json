@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "dsl-test",
-  "sbtName": "dsl",
+  "sbtName": "http4s-dsl",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

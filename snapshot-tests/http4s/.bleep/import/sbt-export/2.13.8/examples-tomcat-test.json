@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "examples-tomcat-test",
-  "sbtName": "examples-tomcat",
+  "sbtName": "http4s-examples-tomcat",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

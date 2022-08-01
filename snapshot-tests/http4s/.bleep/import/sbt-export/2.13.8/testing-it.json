@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "testing-it",
-  "sbtName": "testing",
+  "sbtName": "http4s-testing",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

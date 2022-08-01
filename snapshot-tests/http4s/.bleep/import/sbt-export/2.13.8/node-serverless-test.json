@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "node-serverless-test",
-  "sbtName": "node-serverless",
+  "sbtName": "http4s-node-serverless",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

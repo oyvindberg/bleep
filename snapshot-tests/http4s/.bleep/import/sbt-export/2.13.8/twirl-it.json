@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "twirl-it",
-  "sbtName": "twirl",
+  "sbtName": "http4s-twirl",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

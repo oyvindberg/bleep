@@ -17,7 +17,7 @@
       "bloop-frontend",
       "bloop-frontend-it",
       "bloop-shared",
-      "buildpressConfig",
+      "buildpressconfig",
       "compilation",
       "infrastructure",
       "sockets"
@@ -172,7 +172,7 @@
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-frontend-it/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-frontend/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-shared/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpressConfig/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpressconfig/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/compilation/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/infrastructure/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/sockets/classes"

@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "ember-client-it",
-  "sbtName": "ember-client",
+  "sbtName": "http4s-ember-client",
   "scalaFullVersion": "3.1.1",
   "scalaBinaryVersion": "3",
   "dependencies": [{

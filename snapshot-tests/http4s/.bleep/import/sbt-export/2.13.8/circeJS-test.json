@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "circeJS-test",
-  "sbtName": "circe",
+  "sbtName": "http4s-circe",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

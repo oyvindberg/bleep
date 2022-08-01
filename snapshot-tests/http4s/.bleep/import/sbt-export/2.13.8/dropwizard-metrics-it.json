@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "dropwizard-metrics-it",
-  "sbtName": "dropwizard-metrics",
+  "sbtName": "http4s-dropwizard-metrics",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

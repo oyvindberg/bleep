@@ -1,7 +1,7 @@
 {
   "organization": "ch.epfl.scala",
   "bloopName": "buildpressConfig",
-  "sbtName": "buildpressConfig",
+  "sbtName": "buildpressconfig",
   "scalaFullVersion": "2.12.15",
   "scalaBinaryVersion": "2.12",
   "dependencies": [{

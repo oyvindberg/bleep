@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "prometheus-metrics-it",
-  "sbtName": "prometheus-metrics",
+  "sbtName": "http4s-prometheus-metrics",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{

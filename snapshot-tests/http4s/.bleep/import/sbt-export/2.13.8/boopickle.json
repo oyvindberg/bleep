@@ -1,7 +1,7 @@
 {
   "organization": "org.http4s",
   "bloopName": "boopickle",
-  "sbtName": "boopickle",
+  "sbtName": "http4s-boopickle",
   "scalaFullVersion": "2.13.8",
   "scalaBinaryVersion": "2.13",
   "dependencies": [{
