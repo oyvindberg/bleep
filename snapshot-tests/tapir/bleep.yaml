@@ -154,9 +154,9 @@ projects:
   tapir-aws-lambda:
     cross:
       js212:
-        sources: ./src/${SCOPE}/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-${SCALA_EPOCH}
       js213:
-        sources: ./src/${SCOPE}/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-${SCALA_EPOCH}
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
     - ch.qos.logback:logback-core:1.2.7
@@ -268,11 +268,11 @@ projects:
   tapir-client-tests:
     cross:
       js212:
-        sources: ./src/${SCOPE}/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-${SCALA_EPOCH}
       js213:
-        sources: ./src/${SCOPE}/scalajvm-2
+        sources: ./src/${SCOPE}/scalajvm-${SCALA_EPOCH}
       js3:
-        sources: ./src/${SCOPE}/scalajvm-3
+        sources: ./src/${SCOPE}/scalajvm-${SCALA_EPOCH}
     dependencies:
     - forceJvm: true
       module: org.http4s::http4s-blaze-server:0.23.7
@@ -1259,7 +1259,7 @@ templates:
     scala:
       strict: true
       version: 2.12.15
-    sources: ./src/${SCOPE}/scala-2.13-
+    sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.13-
   template-scala-2.12-js:
     extends:
     - template-js
@@ -1282,7 +1282,7 @@ templates:
         -encoding utf8 -feature -language:existentials -language:experimental.macros
         -language:higherKinds -language:implicitConversions -unchecked
       version: 2.13.6
-    sources: ./src/${SCOPE}/scala-2.13+
+    sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}+
   template-scala-2.13-js:
     extends:
     - template-js
