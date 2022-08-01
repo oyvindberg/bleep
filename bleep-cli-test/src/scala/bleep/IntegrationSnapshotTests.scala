@@ -199,6 +199,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
           .map(_.normalize())
           .filterNot(_.startsWith(originalTargetDir))
           .filterNot(output.sources.contains)
+          .filter(_.isAbsolute)
           .sorted
         assert(lostSources.isEmpty, crossProjectName.value)
 
@@ -206,8 +207,9 @@ class IntegrationSnapshotTests extends SnapshotTest {
         val lostResources = input.resources
           .getOrElse(Nil)
           .filterNot(_.iterator().asScala.contains(target))
-          .sorted
           .filterNot(output.resources.getOrElse(Nil).contains)
+          .filter(_.isAbsolute)
+          .sorted
         assert(lostResources.isEmpty, crossProjectName.value)
 
         /** @param classesDirs
