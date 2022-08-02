@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.internal.FileUtils
-import bleep.{BleepException, BuildPaths, yaml}
+import bleep.{yaml, BleepException, BuildPaths}
 
 import java.nio.file.Files
 

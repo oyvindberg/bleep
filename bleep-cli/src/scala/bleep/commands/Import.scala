@@ -153,7 +153,7 @@ case class Import(
     destinationPaths: BuildPaths,
     logger: Logger,
     options: Import.Options,
-    bleepVersion: model.Version
+    bleepVersion: model.BleepVersion
 ) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
@@ -172,7 +172,7 @@ case class Import(
 
     val files = generateBuild(
       inputProjects,
-      bleepTasksVersion = model.Version(constants.BleepVersionTemplate),
+      bleepTasksVersion = model.BleepVersion(constants.BleepVersionTemplate),
       generatedFiles,
       existingBuild
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
@@ -275,7 +275,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 
   def generateBuild(
       inputProjects: ImportInputProjects,
-      bleepTasksVersion: model.Version,
+      bleepTasksVersion: model.BleepVersion,
       generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]],
       maybeExistingBleepJson: Option[model.Build]
   ): Map[Path, String] = {

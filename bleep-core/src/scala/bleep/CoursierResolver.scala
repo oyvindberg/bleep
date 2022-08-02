@@ -60,7 +60,7 @@ object CoursierResolver {
       downloadSources: Boolean,
       cacheIn: Path,
       authentications: Option[CoursierResolver.Authentications],
-      wantedBleepVersion: Option[model.Version]
+      wantedBleepVersion: Option[model.BleepVersion]
   ): CoursierResolver = {
     val params = Params(downloadSources, authentications, repos)
     val direct = new Direct(new CoursierLogger(logger), params)
@@ -263,7 +263,7 @@ object CoursierResolver {
     }
   }
 
-  class WithBleepVersion(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.Version]) extends CoursierResolver {
+  class WithBleepVersion(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
     override val params = outer.params
     override def resolve(deps: Set[Dependency], forceScalaVersion: Option[model.VersionScala]): Either[CoursierError, Result] = {
       val rewrittenDeps =

@@ -81,7 +81,7 @@ package object parser {
       .catchNonFatal(node.getTag match {
         case Tag.INT if node.getValue.startsWith("0x") || node.getValue.contains("_") =>
           flattener.construct(node) match {
-            case int: Integer         =>
+            case int: Integer =>
               Json.fromLong(int.toLong)
             case long: java.lang.Long => Json.fromLong(long)
             case bigint: java.math.BigInteger =>

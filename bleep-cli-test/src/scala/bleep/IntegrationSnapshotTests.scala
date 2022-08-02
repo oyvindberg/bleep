@@ -66,7 +66,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     val buildLoader = BuildLoader.inDirectory(outFolder / project)
     val destinationPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)
     val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
-    val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.Version("testing"))
+    val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.BleepVersion("testing"))
 
     // if this directory exists, assume it has all files in good condition, but with paths not filled in
     if (!Files.exists(destinationPaths.bleepImportDir)) {
@@ -118,7 +118,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
-      importer.generateBuild(inputProjects, bleepTasksVersion = model.Version("0.0.1-M14"), generatedFiles, maybeExistingBleepJson = None)
+      importer.generateBuild(inputProjects, bleepTasksVersion = model.BleepVersion("0.0.1-M14"), generatedFiles, maybeExistingBleepJson = None)
 
     // write build files, and produce an (in-memory) exploded build plus new bloop files
     writeAndCompareEarly(destinationPaths.buildDir, buildFiles)

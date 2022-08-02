@@ -14,7 +14,7 @@ case class BuildCreateNew(
     platforms: NonEmptyList[model.PlatformId],
     scalas: NonEmptyList[model.VersionScala],
     name: String,
-    bleepVersion: model.Version
+    bleepVersion: model.BleepVersion
 ) extends BleepCommand {
 
   override def run(): Either[BleepException, Unit] = {
@@ -110,7 +110,7 @@ object BuildCreateNew {
       platforms: NonEmptyList[model.PlatformId],
       scalas: NonEmptyList[model.VersionScala],
       name: String,
-      bleepVersion: model.Version
+      bleepVersion: model.BleepVersion
   ): model.Build = {
     val defaultOpts =
       model.Options(Set(model.Options.Opt.WithArgs("-encoding", List("utf8")), model.Options.Opt.Flag("-feature"), model.Options.Opt.Flag("-unchecked")))

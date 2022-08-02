@@ -53,7 +53,7 @@ class BleepBspServer(
 
         val initParams = new bsp4j.InitializeBuildParams(
           s"bleep / ${params.getDisplayName}",
-          s"${BleepVersion.version} / ${params.getVersion}",
+          s"${model.BleepVersion.current} / ${params.getVersion}",
           Constants.bspVersion,
           workspaceDir.toUri.toASCIIString,
           new bsp4j.BuildClientCapabilities(supportedLanguages)
@@ -78,7 +78,7 @@ class BleepBspServer(
         logger.debug("Sending buildInitialize BSP command to Bloop")
         bloopServer.buildInitialize(initParams).thenApply { _ =>
           bloopServer.onBuildInitialized()
-          new bsp4j.InitializeBuildResult("bleep", BleepVersion.version, Constants.bspVersion, capabilities)
+          new bsp4j.InitializeBuildResult("bleep", model.BleepVersion.current.value, Constants.bspVersion, capabilities)
         }
     }
   }

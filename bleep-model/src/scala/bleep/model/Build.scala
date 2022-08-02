@@ -5,7 +5,7 @@ import io.circe.{Decoder, DecodingFailure, Encoder, JsonObject}
 
 case class Build(
     $schema: String,
-    $version: Version,
+    $version: BleepVersion,
     templates: JsonMap[TemplateId, Project],
     scripts: JsonMap[ScriptName, JsonList[ScriptDef]],
     resolvers: JsonList[Repository],
@@ -14,7 +14,7 @@ case class Build(
 )
 
 object Build {
-  def empty(version: Version) = Build($schema, version, JsonMap.empty, JsonMap.empty, JsonList.empty, JsonMap.empty, None)
+  def empty(version: BleepVersion) = Build($schema, version, JsonMap.empty, JsonMap.empty, JsonList.empty, JsonMap.empty, None)
 
   implicit val decodes: Decoder[Build] =
     Decoder.instance(c =>
@@ -23,7 +23,7 @@ object Build {
           case ok @ $schema => Right(ok)
           case notOk        => Left(DecodingFailure(s"$notOk must be ${$schema}", c.history))
         }
-        version <- c.downField("$version").as[Version]
+        version <- c.downField("$version").as[BleepVersion]
         /* construct a custom decoder for `Project` to give better error messages */
         templateIds <- c.downField("templates").as[Option[JsonObject]].map(_.fold(Iterable.empty[TemplateId])(_.keys.map(TemplateId.apply)))
         templateIdDecoder = TemplateId.decoder(templateIds)
