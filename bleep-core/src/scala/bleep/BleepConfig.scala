@@ -3,9 +3,7 @@ package bleep
 import bleep.bsp.CompileServerMode
 import bleep.internal.FileUtils
 import bleep.logging.Logger
-import bleep.toYaml.asYamlString
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-import io.circe.yaml12.parser.decode
 import io.circe.{Decoder, Encoder}
 
 import java.nio.file.Files
@@ -38,13 +36,14 @@ object BleepConfig {
   implicit val encoder: Encoder[BleepConfig] = deriveEncoder
 
   def store(logger: Logger, userPaths: UserPaths, config: BleepConfig): Unit = {
-    FileUtils.writeString(userPaths.configYaml, asYamlString(config))
+    yaml.writeShortened(config, userPaths.configYaml)
+
     logger.withContext(userPaths.configYaml).debug(s"wrote")
   }
 
   def load(userPaths: UserPaths): Either[BleepException, Option[BleepConfig]] =
     if (FileUtils.exists(userPaths.configYaml)) {
-      decode[BleepConfig](Files.readString(userPaths.configYaml)) match {
+      yaml.decode[BleepConfig](Files.readString(userPaths.configYaml)) match {
         case Left(e)       => Left(new BleepException.InvalidJson(userPaths.configYaml, e))
         case Right(config) => Right(Some(config))
       }

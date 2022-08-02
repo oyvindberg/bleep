@@ -1,4 +1,4 @@
-package io.circe.yaml12
+package bleep.internal.forkedcirceyaml
 
 import cats.syntax.either._
 import io.circe._
@@ -80,13 +80,14 @@ package object parser {
     def convertScalarNode(node: ScalarNode) = Either
       .catchNonFatal(node.getTag match {
         case Tag.INT if node.getValue.startsWith("0x") || node.getValue.contains("_") =>
-          Json.fromJsonNumber(flattener.construct(node) match {
-            case int: Integer         => JsonLong(int.toLong)
-            case long: java.lang.Long => JsonLong(long)
+          flattener.construct(node) match {
+            case int: Integer         =>
+              Json.fromLong(int.toLong)
+            case long: java.lang.Long => Json.fromLong(long)
             case bigint: java.math.BigInteger =>
-              JsonDecimal(bigint.toString)
+              Json.fromBigDecimal(BigDecimal(bigint))
             case other => throw new NumberFormatException(s"Unexpected number type: ${other.getClass}")
-          })
+          }
         case Tag.INT | Tag.FLOAT =>
           JsonNumber.fromString(node.getValue).map(Json.fromJsonNumber).getOrElse {
             throw new NumberFormatException(s"Invalid numeric string ${node.getValue}")

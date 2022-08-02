@@ -1,9 +1,8 @@
 package bleep
 package commands
 
-import bleep.internal.{formatsCrossProjectName, FileUtils, Templates}
-import bleep.rewrites.{normalizeBuild, Defaults}
-import bleep.toYaml.asYamlString
+import bleep.internal.{Templates, formatsCrossProjectName}
+import bleep.rewrites.{Defaults, normalizeBuild}
 
 case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
@@ -19,11 +18,7 @@ case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates:
         started.logger.error("Project templating did illegal rewrites. Please report this as a bug")
         diffs.foreach { case (projectName, msg) => started.logger.withContext(projectName).error(msg) }
     }
-
-    FileUtils.writeString(
-      started.buildPaths.bleepYamlFile,
-      asYamlString(build)
-    )
+    yaml.writeShortened(build, started.buildPaths.bleepYamlFile)
     Right(())
   }
 }

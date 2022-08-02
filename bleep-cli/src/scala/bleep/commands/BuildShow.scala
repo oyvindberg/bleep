@@ -2,7 +2,6 @@ package bleep
 package commands
 
 import bleep.BleepException
-import bleep.toYaml.asYamlString
 import bloop.config.ConfigCodecs
 import cats.data.NonEmptyList
 
@@ -12,7 +11,7 @@ object BuildShow {
       projects.toList.foreach { projectName =>
         val p = started.rawBuild.projects.value(projectName)
         println(fansi.Color.Red(projectName.value))
-        println(asYamlString(p))
+        println(yaml.encodeShortened(p))
       }
 
       Right(())
@@ -25,7 +24,7 @@ object BuildShow {
         // we don't currently do these cleanups to be able to go back to short version
         val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
         println(fansi.Color.Red(crossProjectName.value))
-        println(asYamlString(p))
+        println(yaml.encodeShortened(p))
       }
 
       Right(())

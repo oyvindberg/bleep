@@ -3,7 +3,7 @@ package bleep.model
 import bleep.internal.Functions.stripExtends
 import bleep.internal.rewriteDependentData
 import bleep.rewrites.Defaults
-import bleep.toYaml.asYamlString
+import bleep.yaml
 
 import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
@@ -94,8 +94,8 @@ object ExplodedBuild {
       (before.projects.get(projectName), after.projects.get(projectName)) match {
         case (Some(before), Some(after)) if after == before => ()
         case (Some(before), Some(after)) =>
-          val onlyInBefore = asYamlString(before.removeAll(after))
-          val onlyInAfter = asYamlString(Option(after.removeAll(before)))
+          val onlyInBefore = yaml.encodeShortened(before.removeAll(after))
+          val onlyInAfter = yaml.encodeShortened(Option(after.removeAll(before)))
           diffs += ((projectName, s"before: $onlyInBefore, after: $onlyInAfter"))
         case (Some(_), None) =>
           diffs += ((projectName, "was dropped"))

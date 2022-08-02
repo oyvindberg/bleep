@@ -1,7 +1,7 @@
-package io.circe.yaml12
+package bleep.internal.forkedcirceyaml
 
+import bleep.internal.forkedcirceyaml.Printer._
 import io.circe._
-import io.circe.yaml12.Printer._
 import org.snakeyaml.engine.v2.api.{DumpSettings, StreamDataWriter}
 import org.snakeyaml.engine.v2.common
 import org.snakeyaml.engine.v2.emitter.Emitter
