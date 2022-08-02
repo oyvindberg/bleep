@@ -1,17 +1,16 @@
 package bleep
 package bsp
 
-import bleep.{BleepException, Lazy}
 import bleep.bsp.CompileServerMode.{NewEachInvocation, Shared}
-import bleep.internal.{dependencyOrdering, FileUtils}
+import bleep.internal.FileUtils
 import bleep.logging.Logger
-import bleep.model.JsonSet
+import bleep.{BleepException, Lazy}
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
 import java.io.File
-import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Path, StandardCopyOption}
 import java.nio.file.attribute.PosixFilePermission
+import java.nio.file._
 import scala.build.blooprifle.BloopRifleConfig
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Random, Success, Try}
@@ -48,7 +47,7 @@ object SetupBloopRifle {
       .left
       .map(msg => new BleepException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
-        resolver.forceGet.resolve(JsonSet(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
+        resolver.forceGet.resolve(Set(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
           case Left(coursierError) => Left(new BleepException.ResolveError(coursierError, "installing bloop"))
           case Right(res)          => Right((res.jarFiles, true))
         }
