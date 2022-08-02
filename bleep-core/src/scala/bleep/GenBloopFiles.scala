@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{conversions, dependencyOrdering, rewriteDependentData, FileUtils}
+import bleep.internal.{conversions, rewriteDependentData, FileUtils}
 import bleep.logging.Logger
 import bleep.model.{Dep, JsonSet, Options, Replacements, VersionScala, VersionScalaPlatform}
 import bloop.config.{Config, ConfigCodecs}
@@ -233,8 +233,8 @@ object GenBloopFiles {
         dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
 
       def resolve(all: JsonSet[Dep]) = {
-        val concreteDeps: JsonSet[Dependency] =
-          all.map { dep =>
+        val concreteDeps: Set[Dependency] =
+          all.values.toSet[Dep].map { dep =>
             dep.dependency(scalaPlatform) match {
               case Left(err)    => throw new BleepException.Text(crossName, err)
               case Right(value) => value
@@ -309,7 +309,7 @@ object GenBloopFiles {
           scalaVersion.compiler.forceDependency(VersionScalaPlatform.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
-          resolver.resolve(JsonSet(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
+          resolver.resolve(Set(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
             case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
             case Right(res)          => res.jars
           }
@@ -328,11 +328,11 @@ object GenBloopFiles {
 
         val compilerPlugins: Options = {
           val fromPlatform = scalaPlatform.compilerPlugin
-          val fromScala = maybeScala.fold(JsonSet.empty[Dep])(_.compilerPlugins)
-          val specified: JsonSet[Dep] =
-            fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
+          val fromScala = maybeScala.fold(Set.empty[Dep])(_.compilerPlugins.values)
+          val specified: Set[Dep] =
+            fromPlatform.foldLeft(fromScala) { case (all, dep) => all + dep }
 
-          val deps: JsonSet[Dependency] =
+          val deps: Set[Dependency] =
             specified.map(_.withTransitive(false).forceDependency(VersionScalaPlatform.Jvm(scalaVersion)))
 
           val jars: Seq[Path] =

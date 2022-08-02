@@ -12,9 +12,6 @@ package object internal {
   implicit val formatsTemplateId: Formatter[TemplateId] = _.value
   implicit val formatterProjectName: Formatter[ProjectName] = pn => fansi.Str(pn.value)
 
-  implicit val dependencyOrdering: Ordering[Dependency] =
-    Ordering.by(_.toString())
-
   implicit class IterableOps[I[t] <: Iterable[t], T](private val ts: I[T]) extends AnyVal {
     // surprisingly difficult to express with default collections
     def optReduce(op: (T, T) => Option[T]): Option[T] = {
