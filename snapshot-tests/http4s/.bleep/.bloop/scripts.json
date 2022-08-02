@@ -14,8 +14,8 @@
       
     ],
     "classpath": [
-      "<HOME>/.ivy2/local/build.bleep/bleep-core_3/0.0.1-M14/jars/bleep-core_3.jar",
-      "<HOME>/.ivy2/local/build.bleep/bleep-tasks_3/0.0.1-M14/jars/bleep-tasks_3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-core_3/0.0.1-M14/bleep-core_3-0.0.1-M14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-tasks_3/0.0.1-M14/bleep-tasks_3-0.0.1-M14.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.13/1.5.2/bloop-config_2.13-1.5.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.0.0/bsp4j-2.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.3/shapeless_2.13-2.3.3.jar",
@@ -377,11 +377,11 @@
           "organization": "build.bleep",
           "name": "bleep-core_3",
           "version": "0.0.1-M14",
-          "configurations": "compile",
+          "configurations": "default",
           "artifacts": [
             {
               "name": "bleep-core_3",
-              "path": "<HOME>/.ivy2/local/build.bleep/bleep-core_3/0.0.1-M14/jars/bleep-core_3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-core_3/0.0.1-M14/bleep-core_3-0.0.1-M14.jar"
             }
           ]
         },
@@ -917,11 +917,11 @@
           "organization": "build.bleep",
           "name": "bleep-tasks_3",
           "version": "0.0.1-M14",
-          "configurations": "compile",
+          "configurations": "default",
           "artifacts": [
             {
               "name": "bleep-tasks_3",
-              "path": "<HOME>/.ivy2/local/build.bleep/bleep-tasks_3/0.0.1-M14/jars/bleep-tasks_3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-tasks_3/0.0.1-M14/bleep-tasks_3-0.0.1-M14.jar"
             }
           ]
         },
