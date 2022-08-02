@@ -3,7 +3,6 @@ package commands
 
 import bleep.internal.Templates
 import bleep.logging.Logger
-import bleep.toYaml.asYamlString
 import bleep.{constants, model, BleepException}
 import cats.data.NonEmptyList
 
@@ -57,7 +56,7 @@ case class BuildCreateNew(
     val build = BuildCreateNew.genBuild(logger, exampleFiles, platforms, scalas, name, bleepVersion)
 
     val value = Map[Path, String](
-      buildPaths.bleepYamlFile -> asYamlString(build),
+      buildPaths.bleepYamlFile -> yaml.encodeShortened(build),
       buildPaths.buildDir / exampleFiles.main.relPath -> exampleFiles.main.contents,
       buildPaths.buildDir / exampleFiles.test.relPath -> exampleFiles.test.contents
     )

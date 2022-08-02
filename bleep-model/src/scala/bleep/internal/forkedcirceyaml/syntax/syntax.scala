@@ -1,4 +1,4 @@
-package io.circe.yaml12
+package bleep.internal.forkedcirceyaml
 
 import io.circe.Json
 

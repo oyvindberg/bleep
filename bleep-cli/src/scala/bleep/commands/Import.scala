@@ -6,7 +6,6 @@ import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
 import bleep.rewrites.{normalizeBuild, Defaults}
-import bleep.toYaml.asYamlString
 import cats.syntax.apply._
 import com.monovore.decline.Opts
 
@@ -338,11 +337,11 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 
         Map(
           scriptPath -> scriptSource,
-          destinationPaths.bleepYamlFile -> asYamlString(buildWithScript)
+          destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildWithScript)
         )
       case None =>
         Map(
-          destinationPaths.bleepYamlFile -> asYamlString(build)
+          destinationPaths.bleepYamlFile -> yaml.encodeShortened(build)
         )
     }
   }

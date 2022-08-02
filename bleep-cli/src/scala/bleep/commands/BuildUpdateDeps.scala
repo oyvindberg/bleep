@@ -1,8 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{CoursierLogger, FileUtils}
-import bleep.toYaml.asYamlString
+import bleep.internal.CoursierLogger
 import coursier.Repository
 import coursier.cache.FileCache
 import coursier.core.{Dependency, Versions}
@@ -42,10 +41,7 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
 
     val newBuild = BuildUpdateDeps.upgradedBuild(upgrades, started.rawBuild)
 
-    FileUtils.writeString(
-      started.buildPaths.bleepYamlFile,
-      asYamlString(newBuild)
-    )
+    yaml.writeShortened(newBuild, started.buildPaths.bleepYamlFile)
 
     Right(())
   }

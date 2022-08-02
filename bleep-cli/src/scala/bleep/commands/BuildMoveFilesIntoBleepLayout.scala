@@ -4,7 +4,6 @@ package commands
 import bleep.RelPath
 import bleep.internal.{FileUtils, Templates}
 import bleep.rewrites.normalizeBuild
-import bleep.toYaml.asYamlString
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
@@ -26,7 +25,7 @@ case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand 
       scala.sys.process.Process(List("git", "mv", from.toString, to.toString), started.buildPaths.buildDir.toFile).!!
     }
 
-    FileUtils.writeString(started.buildPaths.bleepYamlFile, asYamlString(build2))
+    yaml.writeShortened(build2, started.buildPaths.bleepYamlFile)
     started.logger.withContext(started.buildPaths.bleepYamlFile).debug(s"wrote")
     Right(())
   }
