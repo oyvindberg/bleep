@@ -233,8 +233,8 @@ object Main {
 
         maybeWantedVersion match {
           case Right(wantedVersion) if model.BleepVersion.current == wantedVersion || wantedVersion == model.BleepVersion.dev => ()
-          case Right(wantedVersion) if opts.ignoreWantedVersion =>
-            logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --ignore-version-in-build-file")
+          case Right(wantedVersion) if opts.dev =>
+            logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
           case Right(wantedVersion) =>
             logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepYaml}")
             FetchBleepRelease(wantedVersion, logger, ExecutionContext.global) match {

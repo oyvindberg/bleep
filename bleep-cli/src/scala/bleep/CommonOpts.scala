@@ -3,21 +3,16 @@ package bleep
 import cats.syntax.apply._
 import com.monovore.decline.Opts
 
-case class CommonOpts(noColor: Boolean, debug: Boolean, directory: Option[String], ignoreWantedVersion: Boolean)
+case class CommonOpts(noColor: Boolean, debug: Boolean, directory: Option[String], dev: Boolean)
 
 object CommonOpts {
   val noColor: Opts[Boolean] = Opts.flag("no-color", "enable CI-friendly output").orFalse
   val debug: Opts[Boolean] = Opts.flag("debug", "enable more output").orFalse
   val directory: Opts[Option[String]] = Opts.option[String]("directory", "enable more output", "d").orNone
-  val ignoreVersionInBuildFile: Opts[Boolean] = Opts
-    .flag(
-      "ignore-version-in-build-file",
-      "use the current bleep binary and don't launch the one specified in bleep.yaml"
-    )
-    .orFalse
+  val dev: Opts[Boolean] = Opts.flag("dev", "use the current bleep binary and don't launch the one specified in bleep.yaml").orFalse
 
   val opts: Opts[CommonOpts] =
-    (noColor, debug, directory, ignoreVersionInBuildFile).mapN { case (noColor, debug, directory, ignoreVersionInBuildFile) =>
+    (noColor, debug, directory, dev).mapN { case (noColor, debug, directory, ignoreVersionInBuildFile) =>
       CommonOpts(noColor, debug, directory, ignoreVersionInBuildFile)
     }
 
@@ -27,13 +22,13 @@ object CommonOpts {
     var debug = false
     var directory = Option.empty[String]
     val keepArgs = List.newBuilder[String]
-    var ignoreVersionInBuildFile = false
+    var dev = false
     var idx = 0
     while (idx < args.length) {
       args(idx) match {
-        case "--no-color"                     => noColor = true
-        case "--debug"                        => debug = true
-        case "--ignore-version-in-build-file" => ignoreVersionInBuildFile = true
+        case "--no-color" => noColor = true
+        case "--debug"    => debug = true
+        case "--dev"      => dev = true
         case "-d" | "--directory" if args.isDefinedAt(idx + 1) =>
           directory = Some(args(idx + 1))
           idx += 1
@@ -45,6 +40,6 @@ object CommonOpts {
       idx += 1
     }
 
-    (CommonOpts(noColor, debug, directory, ignoreVersionInBuildFile), keepArgs.result())
+    (CommonOpts(noColor, debug, directory, dev), keepArgs.result())
   }
 }

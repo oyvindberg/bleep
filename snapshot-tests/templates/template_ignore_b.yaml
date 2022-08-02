@@ -1,6 +1,6 @@
 {
   "$schema" : "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json",
-  "$version" : "testing",
+  "$version" : "dev",
   "projects" : {
     "a" : {
       "extends" : "template-common"
