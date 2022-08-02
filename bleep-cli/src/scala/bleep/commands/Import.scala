@@ -165,7 +165,7 @@ case class Import(
       val contents = Files.readString(path)
       ReadSbtExportFile.parse(path, contents)
     }
-    val inputProjects = ImportInputProjects(bloopFiles, sbtExportFiles)
+    val inputProjects = ImportInputProjects(bloopFiles, sbtExportFiles, forceInclude = Set.empty)
 
     val generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]] =
       if (options.skipGeneratedResourcesScript) Map.empty else findGeneratedFiles(inputProjects)

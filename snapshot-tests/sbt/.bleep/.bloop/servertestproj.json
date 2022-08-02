@@ -25,8 +25,6 @@
       "sbt",
       "sbt-test",
       "scripted-plugin@jvm212",
-      "scripted-sbt-redux",
-      "scripted-sbt-redux-test",
       "task-system@jvm212",
       "tasks@jvm212",
       "test-agent",
@@ -37,7 +35,6 @@
       "util-logging@jvm212",
       "util-position@jvm212",
       "util-relation@jvm212",
-      "util-scripted@jvm212",
       "util-tracking@jvm212",
       "zinc-lm-integration@jvm212"
     ],
@@ -147,8 +144,6 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/sbt-test/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/sbt/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/scripted-plugin/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/scripted-sbt-redux-test/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/scripted-sbt-redux/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/task-system/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/tasks/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/test-agent/classes",
@@ -159,7 +154,6 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-logging/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-position/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-relation/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-scripted/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-tracking/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/zinc-lm-integration/jvm212/classes"
     ],
