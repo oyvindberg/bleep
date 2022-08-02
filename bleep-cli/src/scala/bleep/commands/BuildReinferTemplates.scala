@@ -1,11 +1,11 @@
 package bleep
 package commands
 
-import bleep.internal.{asYamlString, FileUtils, Templates}
+import bleep.internal.{asYamlString, formatsCrossProjectName, FileUtils, Templates}
 import bleep.rewrites.normalizeBuild
 
 case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val normalizedBuild = normalizeBuild(started.build)
     val droppedTemplates = normalizedBuild.dropTemplates
 

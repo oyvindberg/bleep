@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.Replacements
+import bleep.model.{Replacements, SourceLayout, VersionScala}
 
 import java.nio.file.Path
 

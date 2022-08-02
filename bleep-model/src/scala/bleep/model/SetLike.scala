@@ -1,4 +1,4 @@
-package bleep.internal
+package bleep.model
 
 trait SetLike[T <: SetLike[T]] extends Any {
   def intersect(other: T): T

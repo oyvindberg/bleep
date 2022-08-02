@@ -2,12 +2,13 @@ package bleep
 package commands
 
 import bleep.internal.FileUtils
+import bleep.BleepException
 
 import java.nio.file.{Files, Path}
 import scala.util.Properties
 
 case class Clean(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val outDirectories: List[Path] =
       projects.map(projectName => started.bloopFiles(projectName).forceGet.project.out).filter(Files.exists(_))
 

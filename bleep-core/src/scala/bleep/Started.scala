@@ -1,6 +1,7 @@
 package bleep
 
 import bloop.config.Config
+import coursier.jvm.JavaHome
 
 import java.nio.file.Path
 import scala.collection.immutable.SortedMap
@@ -32,8 +33,8 @@ case class Started(
 
   lazy val jvmCommand: Path = {
     val jvm = rawBuild.jvm.getOrElse {
-      logger.warn(s"Using system JVM. You should specify your wanted JVM in ${constants.BuildFileName} to get reproducible builds")
-      model.Jvm.System
+      logger.warn(s"Using system JVM. You should specify your wanted JVM in ${BuildLoader.BuildFileName} to get reproducible builds")
+      model.Jvm(JavaHome.systemId, None)
     }
     FetchJvm(logger, jvm, executionContext)
   }

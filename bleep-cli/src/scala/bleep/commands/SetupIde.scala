@@ -23,7 +23,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
       "languages"
     )(x => (x.getName, x.getArgv, x.getVersion, x.getBspVersion, x.getLanguages))
 
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val progName = (new Argv0).get("bleep")
     val details = new bsp4j.BspConnectionDetails(
       "bleep",

@@ -3,6 +3,7 @@ package bleep
 import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
 import bleep.bsp.BspCommandFailed
 import bleep.internal.BspClientDisplayProgress
+import bleep.BleepException
 import ch.epfl.scala.bsp4j
 
 import java.util
@@ -23,9 +24,9 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
   def buildTargets(buildPaths: BuildPaths, projects: Seq[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
     projects.map(p => buildTarget(buildPaths, p)).asJava
 
-  def runWithServer(bloop: BloopServer): Either[BuildException, Unit]
+  def runWithServer(bloop: BloopServer): Either[BleepException, Unit]
 
-  override final def run(): Either[BuildException, Unit] = {
+  override final def run(): Either[BleepException, Unit] = {
     val bleepConfig = started.lazyConfig.forceGet
 
     bleepConfig.compileServerMode match {

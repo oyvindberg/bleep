@@ -20,5 +20,5 @@ object findOriginalTargetDir {
     }
 
   def force(crossProjectName: model.CrossProjectName, bloopProject: Config.Project): Path =
-    apply(bloopProject).getOrElse(throw new BuildException.TargetFolderNotDetermined(crossProjectName))
+    apply(bloopProject).getOrElse(throw new BleepException.TargetFolderNotDetermined(crossProjectName))
 }

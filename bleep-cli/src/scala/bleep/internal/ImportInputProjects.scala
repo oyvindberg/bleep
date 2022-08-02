@@ -1,6 +1,7 @@
 package bleep.internal
 
-import bleep.{model, VersionScala}
+import bleep.model
+import bleep.model.VersionScala
 import bloop.config.Config
 import coursier.core.Configuration
 import sbt.librarymanagement.CrossVersion

@@ -1,7 +1,8 @@
 package bleep
 
-import bleep.internal.{dependencyOrdering, rewriteDependentData, FileUtils, Replacements}
+import bleep.internal.{conversions, dependencyOrdering, rewriteDependentData, FileUtils}
 import bleep.logging.Logger
+import bleep.model.{Dep, JsonSet, Options, Replacements, VersionScala, VersionScalaPlatform}
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
 import coursier.core.{Configuration, Extension}
@@ -156,7 +157,7 @@ object GenBloopFiles {
 
     val scalaPlatform: VersionScalaPlatform =
       VersionScalaPlatform.fromExplodedProject(explodedProject) match {
-        case Left(err)       => throw new BuildException.Text(crossName, err)
+        case Left(err)       => throw new BleepException.Text(crossName, err)
         case Right(versions) => versions
       }
 
@@ -168,7 +169,7 @@ object GenBloopFiles {
     def require[T](ot: Option[T], name: String): T =
       ot match {
         case Some(value) => value
-        case None        => throw new BuildException.Text(crossName, s"missing platform field `$name`")
+        case None        => throw new BleepException.Text(crossName, s"missing platform field `$name`")
       }
 
     val configuredPlatform: Option[Config.Platform] =
@@ -177,8 +178,8 @@ object GenBloopFiles {
           Config.Platform.Js(
             Config.JsConfig(
               version = require(platform.jsVersion, "version").scalaJsVersion,
-              mode = platform.jsMode.getOrElse(Config.JsConfig.empty.mode),
-              kind = platform.jsKind.getOrElse(Config.JsConfig.empty.kind),
+              mode = platform.jsMode.fold(Config.JsConfig.empty.mode)(conversions.linkerMode.from),
+              kind = platform.jsKind.fold(Config.JsConfig.empty.kind)(conversions.moduleKindJS.from),
               emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(Config.JsConfig.empty.emitSourceMaps),
               jsdom = platform.jsJsdom,
               output = None,
@@ -203,7 +204,7 @@ object GenBloopFiles {
           Config.Platform.Native(
             config = Config.NativeConfig(
               version = require(platform.nativeVersion, "version").scalaNativeVersion,
-              mode = require(platform.nativeMode, "nativeMode"),
+              mode = require(platform.nativeMode.map(conversions.linkerMode.from), "nativeMode"),
               gc = require(platform.nativeGc, "nativeGc"),
               targetTriple = empty.targetTriple,
               clang = empty.clang,
@@ -235,13 +236,13 @@ object GenBloopFiles {
         val concreteDeps: JsonSet[Dependency] =
           all.map { dep =>
             dep.dependency(scalaPlatform) match {
-              case Left(err)    => throw new BuildException.Text(crossName, err)
+              case Left(err)    => throw new BleepException.Text(crossName, err)
               case Right(value) => value
             }
           }
 
         resolver.resolve(concreteDeps, forceScalaVersion = scalaVersion) match {
-          case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
+          case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
           case Right(value)        => value
         }
       }
@@ -309,14 +310,14 @@ object GenBloopFiles {
 
         val resolvedScalaCompiler: List[Path] =
           resolver.resolve(JsonSet(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
-            case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
+            case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
             case Right(res)          => res.jars
           }
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
           Config.CompileSetup(
-            order = provided.order.get,
+            order = conversions.compileOrder.from(provided.order.get),
             addLibraryToBootClasspath = provided.addLibraryToBootClasspath.get,
             addCompilerToClasspath = provided.addCompilerToClasspath.get,
             addExtraJarsToClasspath = provided.addExtraJarsToClasspath.get,
@@ -336,7 +337,7 @@ object GenBloopFiles {
 
           val jars: Seq[Path] =
             resolver.resolve(deps, forceScalaVersion = Some(scalaVersion)) match {
-              case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
+              case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
               case Right(res) =>
                 res.fullDetailedArtifacts.collect {
                   case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath

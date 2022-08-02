@@ -1,7 +1,8 @@
-package bleep
+package bleep.model
 
-import bleep.internal.codecs._
 import bleep.internal.ShortenAndSortJson
+import bleep.internal.codecs._
+import bleep.{model, BleepException}
 import coursier.core._
 import io.circe.syntax._
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
@@ -20,7 +21,7 @@ sealed trait Dep {
   def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency]
   def dependencyForce(projectName: model.CrossProjectName, scalaPlatform: VersionScalaPlatform): Dependency =
     dependency(scalaPlatform) match {
-      case Left(err)    => throw new BuildException.Text(projectName, err)
+      case Left(err)    => throw new BleepException.Text(projectName, err)
       case Right(value) => value
     }
 

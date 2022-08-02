@@ -1,12 +1,16 @@
 package bleep
 
+import bleep.internal.ShortenAndSortJson
+import bleep.logging.Formatter
+import bleep.model.{CrossProjectName, ProjectName, TemplateId}
 import coursier.Dependency
 import io.circe.Encoder
 import io.circe.syntax.EncoderOps
 
 package object internal {
-
-  def assertUsed(anies: Any*): Unit = ((), anies)._1
+  implicit val formatsCrossProjectName: Formatter[CrossProjectName] = _.value
+  implicit val formatsTemplateId: Formatter[TemplateId] = _.value
+  implicit val formatterProjectName: Formatter[ProjectName] = pn => fansi.Str(pn.value)
 
   implicit val dependencyOrdering: Ordering[Dependency] =
     Ordering.by(_.toString())

@@ -25,26 +25,30 @@ projects:
     - for3Use213: true
       module: ch.epfl.scala::bloop-config:1.5.2
     - com.lihaoyi::fansi:0.3.1
-    - io.circe::circe-core:0.14.2
-    - io.circe::circe-generic:0.14.2
-    - io.circe::circe-parser:0.14.2
-    - io.circe::circe-yaml:0.14.1
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
       module: io.get-coursier::coursier-jvm:2.1.0-M6-28-gbad85693f
     - exclusions:
-        org.scala-lang.modules: scala-collection-compat_2.13
-      for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-M6-28-gbad85693f
-    - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
       module: org.scala-sbt::librarymanagement-core:1.6.1
-    - org.snakeyaml:snakeyaml-engine:2.3
     - org.virtuslab.scala-cli::bloop-rifle:0.1.9
+    dependsOn: bleep-model
     extends: template-cross-all
-    sources: ../liberated/sbt-tpolecat/src/main/scala
+    sources: ./../liberated/sbt-tpolecat/src/main/scala
+  bleep-model:
+    dependencies:
+    - io.circe::circe-core:0.14.2
+    - io.circe::circe-generic:0.14.2
+    - io.circe::circe-parser:0.14.2
+    - io.circe::circe-yaml:0.14.1
+    - org.snakeyaml:snakeyaml-engine:2.3
+    - exclusions:
+        org.scala-lang.modules: scala-collection-compat_2.13
+      for3Use213: true
+      module: io.get-coursier::coursier:2.1.0-M6-28-gbad85693f
+    extends: template-cross-all
   bleep-tasks:
     dependsOn: bleep-core
     extends: template-cross-all

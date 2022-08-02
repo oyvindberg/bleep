@@ -1,7 +1,7 @@
 package bleep.tasks.publishing
 
-import bleep.createJar
-import bleep.{ProjectPaths, RelPath}
+import bleep.{RelPath, createJar}
+import bleep.ProjectPaths
 import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets

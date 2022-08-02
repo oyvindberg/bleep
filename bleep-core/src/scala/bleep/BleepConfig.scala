@@ -41,15 +41,15 @@ object BleepConfig {
     logger.withContext(userPaths.configYaml).debug(s"wrote")
   }
 
-  def load(userPaths: UserPaths): Either[BuildException, Option[BleepConfig]] =
+  def load(userPaths: UserPaths): Either[BleepException, Option[BleepConfig]] =
     if (FileUtils.exists(userPaths.configYaml)) {
       decode[BleepConfig](Files.readString(userPaths.configYaml)) match {
-        case Left(e)       => Left(new BuildException.InvalidJson(userPaths.configYaml, e))
+        case Left(e)       => Left(new BleepException.InvalidJson(userPaths.configYaml, e))
         case Right(config) => Right(Some(config))
       }
     } else Right(None)
 
-  def loadOrDefault(userPaths: UserPaths): Either[BuildException, BleepConfig] =
+  def loadOrDefault(userPaths: UserPaths): Either[BleepException, BleepConfig] =
     load(userPaths).map(_.getOrElse(default))
 
   def lazyForceLoad(userPaths: UserPaths): Lazy[BleepConfig] =
@@ -60,7 +60,7 @@ object BleepConfig {
       }
     }
 
-  def rewritePersisted(logger: Logger, userPaths: UserPaths)(f: BleepConfig => BleepConfig): Either[BuildException, BleepConfig] =
+  def rewritePersisted(logger: Logger, userPaths: UserPaths)(f: BleepConfig => BleepConfig): Either[BleepException, BleepConfig] =
     load(userPaths).map {
       case None =>
         val config = f(default)

@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.BuildPaths.Mode
-import bleep.internal.Os
+import bleep.internal.{fatal, Os}
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext
@@ -20,10 +20,10 @@ object bootstrap {
 
     maybeStarted match {
       case Left(buildException) =>
-        BuildException.fatal("Couldn't initialize bleep", logger, buildException)
+        fatal("Couldn't initialize bleep", logger, buildException)
       case Right(started) =>
         Try(f(started, new Commands(started))) match {
-          case Failure(th) => BuildException.fatal("failed :(", logger, th)
+          case Failure(th) => fatal("failed :(", logger, th)
           case Success(_)  => ()
         }
     }
@@ -35,7 +35,7 @@ object bootstrap {
       rewrites: List[Rewrite],
       lazyConfig: Lazy[BleepConfig],
       resolver: CoursierResolver.Factory = CoursierResolver.Factory.default
-  ): Either[BuildException, Started] = {
+  ): Either[BleepException, Started] = {
     val t0 = System.currentTimeMillis()
 
     try
@@ -72,8 +72,8 @@ object bootstrap {
         )
       }
     catch {
-      case x: BuildException => Left(x)
-      case th: Throwable     => Left(new BuildException.Cause(th, "couldn't initialize bleep"))
+      case x: BleepException => Left(x)
+      case th: Throwable     => Left(new BleepException.Cause(th, "couldn't initialize bleep"))
     }
   }
 }

@@ -1,6 +1,7 @@
-package bleep
+package bleep.model
 
 import coursier.core.{ModuleName, Organization}
+import io.circe.{Decoder, Encoder}
 
 case class VersionScalaNative(scalaNativeVersion: String) {
   val scalaNativeBinVersion: String =
@@ -16,4 +17,6 @@ case class VersionScalaNative(scalaNativeVersion: String) {
 
 object VersionScalaNative {
   val org = Organization("org.scala-native")
+  implicit val decodesScalaNativeVersion: Decoder[VersionScalaNative] = Decoder[String].map(VersionScalaNative.apply)
+  implicit val encodesScalaNativeVersion: Encoder[VersionScalaNative] = Encoder[String].contramap(_.scalaNativeVersion)
 }

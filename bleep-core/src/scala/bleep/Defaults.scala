@@ -1,10 +1,12 @@
 package bleep
 
+import bleep.internal.conversions
+import bleep.model.{Options, SourceLayout}
 import bloop.config.Config
 
 object Defaults {
   val DefaultCompileSetup = model.CompileSetup(
-    order = Some(Config.CompileSetup.empty.order),
+    order = Some(conversions.compileOrder.to(Config.CompileSetup.empty.order)),
     addLibraryToBootClasspath = Some(Config.CompileSetup.empty.addLibraryToBootClasspath),
     addCompilerToClasspath = Some(Config.CompileSetup.empty.addCompilerToClasspath),
     addExtraJarsToClasspath = Some(Config.CompileSetup.empty.addExtraJarsToClasspath),

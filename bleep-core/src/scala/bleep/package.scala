@@ -1,3 +1,4 @@
+import bleep.{BleepException, RelPath}
 import bleep.logging.Logger
 
 import java.nio.file.Path
@@ -28,7 +29,7 @@ package object bleep {
       case 0 => ()
       case n =>
         logger.debug(s"Failed command with error code $n: ${cmd.mkString(" ")}")
-        throw new BuildException.Text(s"Failed external command '$action'")
+        throw new BleepException.Text(s"Failed external command '$action'")
     }
   }
 }

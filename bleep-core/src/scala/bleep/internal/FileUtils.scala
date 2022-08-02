@@ -1,6 +1,7 @@
 package bleep
 package internal
 
+import bleep.RelPath
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file._

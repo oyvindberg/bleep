@@ -1,6 +1,7 @@
-package bleep
+package bleep.model
 
 import coursier.core.{ModuleName, Organization}
+import io.circe.{Decoder, Encoder}
 
 case class VersionScala(scalaVersion: String) {
   require(scalaVersion.nonEmpty)
@@ -38,6 +39,9 @@ case class VersionScala(scalaVersion: String) {
   }
 }
 object VersionScala {
+  implicit val decodes: Decoder[VersionScala] = Decoder[String].map(VersionScala.apply)
+  implicit val encodes: Encoder[VersionScala] = Encoder[String].contramap(_.scalaVersion)
+
   // this accepts any nightly or milestone with the same binversion as a major release. good enough for now
   val Version = "(\\d+).(\\d+).(\\d+).*".r
 

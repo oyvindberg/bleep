@@ -1,9 +1,11 @@
 package bleep
 package commands
 
+import bleep.RelPath
 import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
+import bleep.model.{Dep, JsonList, JsonMap, JsonSet, Options, VersionScala}
 import bleep.rewrites.normalizeBuild
 import cats.syntax.apply._
 import com.monovore.decline.Opts
@@ -154,7 +156,7 @@ case class Import(
     options: Import.Options,
     bleepVersion: model.Version
 ) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
       generateBloopAndDependencyFiles()
     }

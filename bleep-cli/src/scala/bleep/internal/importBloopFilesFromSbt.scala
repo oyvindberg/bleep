@@ -1,8 +1,22 @@
 package bleep
 package internal
 
+import bleep.RelPath
 import bleep.internal.ImportInputProjects.ProjectType
 import bleep.logging.Logger
+import bleep.model.{
+  Dep,
+  JsonList,
+  JsonMap,
+  JsonSet,
+  Options,
+  Replacements,
+  SourceLayout,
+  VersionScala,
+  VersionScalaJs,
+  VersionScalaNative,
+  VersionScalaPlatform
+}
 import bloop.config.Config
 import coursier.core.Configuration
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
@@ -75,7 +89,7 @@ object importBloopFilesFromSbt {
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
 
       val scalaPlatform = VersionScalaPlatform.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
-        case Left(value)  => throw new BuildException.Text(crossName, value)
+        case Left(value)  => throw new BleepException.Text(crossName, value)
         case Right(value) => value
       }
 
@@ -293,13 +307,13 @@ object importBloopFilesFromSbt {
           fromPlatform
             .orElse(fromDependencies)
             .map(version => VersionScalaJs(version))
-            .getOrElse(throw new BuildException.Text("Couldn't find scalajs-library jar to determine version"))
+            .getOrElse(throw new BleepException.Text("Couldn't find scalajs-library jar to determine version"))
         }
 
         val translatedPlatform = model.Platform.Js(
           jsVersion = jsVersion,
-          jsMode = Some(config.mode),
-          jsKind = Some(config.kind),
+          jsMode = Some(conversions.linkerMode.to(config.mode)),
+          jsKind = Some(conversions.moduleKindJS.to(config.kind)),
           jsEmitSourceMaps = Some(config.emitSourceMaps),
           jsJsdom = config.jsdom,
           jsNodeVersion = config.nodePath
@@ -324,7 +338,7 @@ object importBloopFilesFromSbt {
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
           nativeVersion = Some(VersionScalaNative(config.version)),
-          nativeMode = Some(config.mode),
+          nativeMode = Some(conversions.linkerMode.to(config.mode)),
           nativeGc = Some(config.gc),
           nativeMainClass = mainClass
         )
@@ -359,7 +373,7 @@ object importBloopFilesFromSbt {
       options = remainingOptions,
       setup = s.setup.map(setup =>
         model.CompileSetup(
-          order = Some(setup.order),
+          order = Some(conversions.compileOrder.to(setup.order)),
           addLibraryToBootClasspath = Some(setup.addLibraryToBootClasspath),
           addCompilerToClasspath = Some(setup.addCompilerToClasspath),
           addExtraJarsToClasspath = Some(setup.addExtraJarsToClasspath),

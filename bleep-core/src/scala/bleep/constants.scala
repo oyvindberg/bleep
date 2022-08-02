@@ -9,8 +9,6 @@ object constants {
   val BleepVersionTemplate = "$BLEEP_VERSION"
   val Node = "18.4.0"
 
-  val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json"
-
   private val ivyLocalUri =
     URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)
 
@@ -19,8 +17,6 @@ object constants {
     model.Repository.Ivy(None, ivyLocalUri),
     model.Repository.Maven(None, URI.create(Repositories.central.root))
   )
-
-  val BuildFileName = "bleep.yaml"
 
   val ScalaPluginPrefix = "-Xplugin"
 }

@@ -1,8 +1,8 @@
 package bleep
 package commands
 
-import bleep.VersionScalaPlatform
 import bleep.internal.{asYamlString, CoursierLogger, FileUtils}
+import bleep.model.{Dep, JsonMap, VersionScalaPlatform}
 import coursier.Repository
 import coursier.cache.FileCache
 import coursier.core.{Dependency, Versions}
@@ -13,7 +13,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
 
 case class BuildUpdateDeps(started: Started) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     // a bleep dependency may be instantiated into several different coursier dependencies
     // depending on which scala versions and platforms are plugging in
     // collect all instantiations into this structure
@@ -57,7 +57,7 @@ object BuildUpdateDeps {
       .flatMap { case (crossName, p) =>
         VersionScalaPlatform.fromExplodedProject(p) match {
           case Left(err) =>
-            throw new BuildException.Text(crossName, err)
+            throw new BleepException.Text(crossName, err)
           case Right(scalaPlatform) =>
             p.dependencies.values.iterator.collect {
               case dep if !dep.version.contains("$") => (dep, dep.dependencyForce(crossName, scalaPlatform))

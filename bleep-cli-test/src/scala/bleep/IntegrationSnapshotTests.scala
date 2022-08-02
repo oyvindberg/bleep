@@ -2,7 +2,8 @@ package bleep
 
 import bleep.commands.Import
 import bleep.commands.Import.Options
-import bleep.internal.{findGeneratedFiles, FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile, Replacements}
+import bleep.internal.{findGeneratedFiles, FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile}
+import bleep.model.Replacements
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.paths.CoursierPaths
@@ -170,7 +171,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
           val replacements = Replacements.targetDir(targetDir) ++
             Replacements.ofReplacements(List(("snapshot-tests-in", "snapshot-tests")))
           val original = project.scala.map(_.options).getOrElse(Nil)
-          bleep.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
+          model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
             case opt if opt.toString.contains("semanticdb") => Nil
             case opt                                        => opt.render
           }

@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.{BuildLoader, Lazy}
 import bleep.internal.asYamlString
 import com.monovore.decline.Opts
 
@@ -8,14 +9,14 @@ import scala.collection.immutable.SortedSet
 import scala.util.control.NonFatal
 
 case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val revision = opts.revision.getOrElse("HEAD")
 
-    val oldBuildStr: Lazy[Either[BuildException, String]] = Lazy {
+    val oldBuildStr: Lazy[Either[BleepException, String]] = Lazy {
       try
-        Right(scala.sys.process.Process(List("git", "show", s"$revision:${constants.BuildFileName}"), started.buildPaths.buildDir.toFile).!!)
+        Right(scala.sys.process.Process(List("git", "show", s"$revision:${BuildLoader.BuildFileName}"), started.buildPaths.buildDir.toFile).!!)
       catch {
-        case NonFatal(th) => Left(new BuildException.Cause(th, "couldn't load build"))
+        case NonFatal(th) => Left(new BleepException.Cause(th, "couldn't load build"))
       }
     }
 

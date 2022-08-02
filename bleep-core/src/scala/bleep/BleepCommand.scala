@@ -1,5 +1,5 @@
 package bleep
 
 trait BleepCommand {
-  def run(): Either[BuildException, Unit]
+  def run(): Either[BleepException, Unit]
 }

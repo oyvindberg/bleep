@@ -1,14 +1,16 @@
 package bleep
 package commands
 
+import bleep.RelPath
 import bleep.internal.{asYamlString, FileUtils, Templates}
+import bleep.model.{JsonMap, JsonSet}
 import bleep.rewrites.normalizeBuild
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 
 case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val (build1, filesToMove) = BuildMoveFilesIntoBleepLayout.newBuildAndFilesToMove(started.build, started.buildPaths)
     val normalizedBuild = normalizeBuild(build1)
     val newTemplates = started.rawBuild.templates.value.map { case (templateId, p) =>

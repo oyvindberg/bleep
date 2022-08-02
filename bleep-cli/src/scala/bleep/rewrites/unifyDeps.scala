@@ -1,6 +1,8 @@
 package bleep
 package rewrites
 
+import bleep.model.Dep
+
 /** The `Dep.ScalaDependency` structure has three fields we can only correctly determine in context of a given scala version. We need to propagate those three
   * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better
   */
