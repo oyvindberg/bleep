@@ -3,8 +3,8 @@ package scripts
 
 import bleep.tasks._
 
-object GenNativeImage extends BleepScriptRunner("GenNativeImage") {
-  def runScript(started: Started, commands: Commands, args: List[String]): Unit = {
+object GenNativeImage extends BleepScript("GenNativeImage") {
+  def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProjects(projectName)
     commands.compile(List(projectName))
