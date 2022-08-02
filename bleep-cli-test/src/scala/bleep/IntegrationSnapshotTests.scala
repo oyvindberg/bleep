@@ -98,22 +98,30 @@ class IntegrationSnapshotTests extends SnapshotTest {
           (bloopFilePath, originalContents, importedBloopFile)
         }
 
-    val inputProjects = ImportInputProjects(
-      importedBloopFiles.map { case (_, _, file) => file },
-      sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile }
-    )
-
     // cache contents of all generated files in a json file which is checked in.
     // these files will be machine and time dependent, but it's fine. just thread the content through, and update when sbt imports are refreshed
     val generatedFilesJsonFile = destinationPaths.buildDir / "generated-files.json"
-    val generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]] = {
+    val generatedFilesCached: Option[Map[model.CrossProjectName, Vector[GeneratedFile]]] = {
       val jsonFile = generatedFilesJsonFile
 
-      if (FileUtils.exists(jsonFile)) decode[Map[model.CrossProjectName, Vector[GeneratedFile]]](Files.readString(jsonFile)) match {
-        case Left(th)     => throw th
-        case Right(value) => value
+      if (FileUtils.exists(jsonFile))
+        decode[Map[model.CrossProjectName, Vector[GeneratedFile]]](Files.readString(jsonFile)) match {
+          case Left(th)     => throw th
+          case Right(value) => Some(value)
+        }
+      else None
+    }
+
+    val inputProjects = ImportInputProjects(
+      importedBloopFiles.map { case (_, _, file) => file },
+      sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile },
+      forceInclude = generatedFilesCached match {
+        case Some(map) => map.keySet
+        case None      => Set.empty
       }
-      else findGeneratedFiles(inputProjects)
+    )
+    val generatedFiles = generatedFilesCached.getOrElse {
+      findGeneratedFiles(inputProjects)
     }
 
     // generate a build file and store it

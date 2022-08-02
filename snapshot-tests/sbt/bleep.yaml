@@ -443,19 +443,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
       version: 2.12.16
-  scripted-sbt-redux-test:
-    dependencies:
-      configuration: provided
-      module: org.scala-sbt:launcher-interface:1.3.3
-    dependsOn:
-    - sbt-test
-    - scripted-sbt-redux
-    extends:
-    - template-common-test
-    - template-scala-2.12
-    folder: ./../../snapshot-tests-in/sbt/scripted-sbt-redux
-    scala:
-      version: 2.12.16
   scripts:
     dependencies: build.bleep::bleep-tasks:0.0.1-M14
     platform:
@@ -463,7 +450,7 @@ projects:
     scala:
       version: 2.13.8
   servertestproj:
-    dependsOn: scripted-sbt-redux-test
+    dependsOn: sbt-test
     extends:
     - template-common-main
     - template-scala-2.12
