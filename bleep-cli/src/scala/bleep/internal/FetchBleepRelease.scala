@@ -13,7 +13,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 
 object FetchBleepRelease {
   // file names were changed in 0.0.1-M8
-  val oldLayouts: Set[model.Version] = Range.inclusive(1, 7).toSet.map((n: Int) => model.Version(s"0.0.1-M$n"))
+  val oldLayouts: Set[model.BleepVersion] = Range.inclusive(1, 7).toSet.map((n: Int) => model.BleepVersion(s"0.0.1-M$n"))
 
   def findExecutable(file: File): Either[String, File] =
     if (file.isDirectory) {
@@ -24,11 +24,11 @@ object FetchBleepRelease {
       }
     } else Right(file)
 
-  def apply(wanted: model.Version, logger: Logger, executionContext: ExecutionContext): Either[BleepException, Path] =
+  def apply(wanted: model.BleepVersion, logger: Logger, executionContext: ExecutionContext): Either[BleepException, Path] =
     apply(wanted, logger, executionContext, JvmIndex.currentArchitecture, JvmIndex.currentOs)
 
   def apply(
-      wanted: model.Version,
+      wanted: model.BleepVersion,
       logger: Logger,
       executionContext: ExecutionContext,
       arch: Either[String, String],

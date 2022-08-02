@@ -31,7 +31,7 @@ object importBloopFilesFromSbt {
       sbtBuildDir: Path,
       destinationPaths: BuildPaths,
       inputProjects: ImportInputProjects,
-      bleepVersion: model.Version
+      bleepVersion: model.BleepVersion
   ): model.ExplodedBuild = {
 
     val projects = inputProjects.values.map { case (crossName, inputProject) =>

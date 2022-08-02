@@ -1,7 +1,7 @@
 package bleep.packaging
 
-import bleep.BleepVersion
 import bleep.logging.Logger
+import bleep.model.BleepVersion
 import bloop.config.Config
 
 import java.nio.file.attribute.FileTime
@@ -24,7 +24,7 @@ object PackagePlugin {
     val manifest = new Manifest()
     val attrs = manifest.getMainAttributes
     attrs.put(Attributes.Name.IMPLEMENTATION_TITLE, projectName)
-    attrs.put(new Attributes.Name("Created-By"), s"Bleep/${BleepVersion.version}")
+    attrs.put(new Attributes.Name("Created-By"), s"Bleep/${BleepVersion.current.value}")
     mainClass.foreach(cls => attrs.put(Attributes.Name.MAIN_CLASS, cls))
     manifest
   }

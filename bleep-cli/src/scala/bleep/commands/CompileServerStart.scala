@@ -26,7 +26,7 @@ case class CompileServerStart(logger: Logger, userPaths: UserPaths, lazyResolver
           BloopServer.buildServer(
             config = rifleConfig,
             clientName = "bleep",
-            clientVersion = BleepVersion.version,
+            clientVersion = model.BleepVersion.current.value,
             workspace = tempDir,
             classesDir = tempDir / "classes",
             buildClient = BspClientDisplayProgress(logger),

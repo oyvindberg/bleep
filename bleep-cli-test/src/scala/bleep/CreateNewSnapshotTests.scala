@@ -22,7 +22,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
         platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
         scalas = NonEmptyList.of(model.VersionScala.Scala3, model.VersionScala.Scala213),
         name = "myapp",
-        bleepVersion = model.Version("testing")
+        bleepVersion = model.BleepVersion("testing")
       ).genAllFiles(buildPaths)
 
     writeAndCompareEarly(buildPaths.buildDir, generatedProjectFiles)

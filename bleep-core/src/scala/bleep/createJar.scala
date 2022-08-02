@@ -36,7 +36,7 @@ object createJar {
   private def createManifest(): Manifest = {
     val m = new java.util.jar.Manifest()
     m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
-    m.getMainAttributes.putValue("Created-By", s"Bleep/${BleepVersion.version}")
+    m.getMainAttributes.putValue("Created-By", s"Bleep/${model.BleepVersion.current.value}")
     m
   }
 }

@@ -185,7 +185,7 @@ object Main {
       commands.Import.opts.map { opts =>
         val existingBuild = buildLoader.existing.flatMap(_.build.forceGet).toOption
 
-        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.Version(BleepVersion.version))
+        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
       }
     )
 
@@ -213,7 +213,7 @@ object Main {
           .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
           .withDefault(NonEmptyList.of(model.VersionScala.Scala3)),
         Opts.argument[String]("wanted project name")
-      ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.Version(BleepVersion.version)) }
+      ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.BleepVersion.current) }
     )
 
   // there is a flag to change build directory. we need to intercept that very early
@@ -228,11 +228,11 @@ object Main {
     buildLoader match {
       case BuildLoader.NonExisting(_) => ()
       case existing: BuildLoader.Existing =>
-        val maybeWantedVersion: Either[Exception, model.Version] =
-          existing.json.forceGet.flatMap(json => json.hcursor.downField("$version").as[model.Version])
+        val maybeWantedVersion: Either[Exception, model.BleepVersion] =
+          existing.json.forceGet.flatMap(json => json.hcursor.downField("$version").as[model.BleepVersion])
 
         maybeWantedVersion match {
-          case Right(wantedVersion) if BleepVersion.version == wantedVersion.value || wantedVersion == model.Version.dev => ()
+          case Right(wantedVersion) if model.BleepVersion.current == wantedVersion || wantedVersion == model.BleepVersion.dev => ()
           case Right(wantedVersion) if opts.ignoreWantedVersion =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --ignore-version-in-build-file")
           case Right(wantedVersion) =>
@@ -365,7 +365,7 @@ object Main {
     }
 
   def run(logger: Logger, opts: Opts[BleepCommand], restArgs: List[String]): Unit =
-    Command("bleep", s"Bleeping fast build! (version ${BleepVersion.version})")(opts).parse(restArgs, sys.env) match {
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)
         System.exit(1)

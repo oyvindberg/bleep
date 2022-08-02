@@ -13,16 +13,25 @@ object GenerateResources extends App {
 
   def writeGenerated(started: Started, version: String): Unit =
     started.build.projects.foreach {
-      case (crossName, _) if crossName.name.value == "bleep-core" =>
-        val to = started.buildPaths.generatedSourcesDir(crossName).resolve("sbt-buildinfo/BleepVersion.scala")
+      case (crossName, _) if crossName.name.value == "bleep-model" =>
+        val to = started.buildPaths.generatedSourcesDir(crossName).resolve("bleep/model/BleepVersion.scala")
         started.logger.withContext(crossName).warn(s"Writing $to")
         val content =
-          s"""|package bleep
+          s"""|//
+              |// GENERATED FILE!
+              |//
+              |package bleep.model
               |
-              |/** This object was generated. */
-              |case object BleepVersion {
-              |  val version: String = "$version"
-              |  override val toString: String = "version: $version"
+              |import io.circe.{Decoder, Encoder}
+              |
+              |case class BleepVersion(value: String) extends AnyVal
+              |
+              |object BleepVersion {
+              |  val dev = BleepVersion("dev")
+              |  val current = BleepVersion("$version")
+              |  implicit val ordering: Ordering[BleepVersion] = Ordering.by(_.value)
+              |  implicit val encodes: Encoder[BleepVersion] = Encoder[String].contramap(_.value)
+              |  implicit val decodes: Decoder[BleepVersion] = Decoder[String].map(BleepVersion.apply)
               |}""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
