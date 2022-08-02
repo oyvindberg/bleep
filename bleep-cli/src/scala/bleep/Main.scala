@@ -81,6 +81,9 @@ object Main {
           Opts.subcommand("build", "rewrite build")(
             List(
               newCommand(started.logger, started.buildPaths.cwd),
+              Opts.subcommand("create-directories", "create all source and resource folders for project(s)")(
+                projectNames.map(names => commands.BuildCreateDirectories(started, names))
+              ),
               Opts.subcommand("templates-reapply", "apply existing templates again")(
                 Opts(commands.BuildReapplyTemplates(started))
               ),
