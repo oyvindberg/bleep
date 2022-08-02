@@ -1,7 +1,7 @@
 package bleep.tasks.publishing
 
-import bleep.internal.{rewriteDependentData, ScalaVersions}
-import bleep.{model, BuildException, Dep, RelPath, Started}
+import bleep.internal.rewriteDependentData
+import bleep.{model, BuildException, Dep, RelPath, Started, VersionScalaPlatform}
 import coursier.core.{Dependency, Info}
 
 import scala.collection.immutable.SortedMap
@@ -23,7 +23,7 @@ object fileBundle {
       bundleLayout: BundleLayout
   ): SortedMap[model.CrossProjectName, Deployable] =
     rewriteDependentData(started.build.projects).startFrom[Deployable](shouldInclude) { case (projectName, project, recurse) =>
-      val scalaVersion = ScalaVersions.fromExplodedProject(project) match {
+      val scalaPlatform = VersionScalaPlatform.fromExplodedProject(project) match {
         case Left(err)    => throw new BuildException.Text(projectName, err)
         case Right(value) => value
       }
@@ -31,11 +31,11 @@ object fileBundle {
       val deps: List[Dependency] =
         List(
           started.build.resolvedDependsOn(projectName).toList.map(recurse(_).forceGet.asDependency),
-          project.dependencies.values.toList.map(_.dependencyForce(projectName, scalaVersion)),
-          scalaVersion.libraries(project.isTestProject.getOrElse(false)).map(_.dependencyForce(projectName, scalaVersion)).toList
+          project.dependencies.values.toList.map(_.dependencyForce(projectName, scalaPlatform)),
+          scalaPlatform.libraries(project.isTestProject.getOrElse(false)).map(_.dependencyForce(projectName, scalaPlatform)).toList
         ).flatten
 
-      val self: Dependency = asDep(projectName, project).dependencyForce(projectName, scalaVersion)
+      val self: Dependency = asDep(projectName, project).dependencyForce(projectName, scalaPlatform)
 
       val files =
         bundleLayout match {

@@ -7,6 +7,7 @@ import java.nio.file.Path
 
 object constants {
   val BleepVersionTemplate = "$BLEEP_VERSION"
+  val Node = "18.4.0"
 
   val $schema = "https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json"
 

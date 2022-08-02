@@ -24,7 +24,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
 
   final def project(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
-    val scalaVersion: Option[Versions.Scala] = p.scala.flatMap(_.version)
+    val scalaVersion: Option[VersionScala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
     val targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
 

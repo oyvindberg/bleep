@@ -19,10 +19,24 @@ import java.net.URI
 import java.nio.file.{Files, Path}
 
 trait CoursierResolver {
-  def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result]
+  val params: CoursierResolver.Params
+
+  def resolve(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.VersionScala]): Either[CoursierError, CoursierResolver.Result]
 }
 
 object CoursierResolver {
+  case class Params(
+      downloadSources: Boolean,
+      authentications: Option[CoursierResolver.Authentications],
+      repos: List[model.Repository]
+  )
+  object Params {
+    implicit val codec: Codec[Params] =
+      Codec.forProduct3[Params, Boolean, Option[CoursierResolver.Authentications], List[model.Repository]]("downloadSources", "authentications", "repos")(
+        Params.apply
+      )(x => (x.downloadSources, x.authentications, x.repos))
+  }
+
   trait Factory {
     def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver
   }
@@ -48,7 +62,8 @@ object CoursierResolver {
       authentications: Option[CoursierResolver.Authentications],
       wantedBleepVersion: Option[model.Version]
   ): CoursierResolver = {
-    val direct = new Direct(new CoursierLogger(logger), repos, downloadSources, authentications)
+    val params = Params(downloadSources, authentications, repos)
+    val direct = new Direct(new CoursierLogger(logger), params)
     val cached = new Cached(logger, direct, cacheIn)
     new WithBleepVersion(cached, wantedBleepVersion)
   }
@@ -134,7 +149,7 @@ object CoursierResolver {
     // break circular structure
     private implicit lazy val encoderMap: Encoder[Map[String, Artifact]] =
       Encoder.instance(a => Encoder.encodeMap(KeyEncoder.encodeKeyString, codecArtifact).apply(a))
-    
+
     private implicit lazy val decoderMap: Decoder[Map[String, Artifact]] =
       Decoder.instance(c => Decoder.decodeMap(KeyDecoder.decodeKeyString, codecArtifact).apply(c))
 
@@ -157,21 +172,16 @@ object CoursierResolver {
         IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
     }
 
-  private class Direct(
-      val logger: CoursierLogger,
-      val repos: List[model.Repository],
-      downloadSources: Boolean,
-      authentications: Option[CoursierResolver.Authentications]
-  ) extends CoursierResolver {
+  private class Direct(val logger: CoursierLogger, val params: Params) extends CoursierResolver {
 
     val fileCache = FileCache[Task]().withLogger(logger)
 
-    override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] = {
+    override def resolve(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.VersionScala]): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
-        val newClassifiers = if (downloadSources) List(Classifier.sources) else Nil
+        val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
         Fetch[Task](fileCache)
-          .withRepositories(coursierRepos(repos, authentications))
+          .withRepositories(coursierRepos(params.repos, params.authentications))
           .withDependencies(deps.values.toList)
           .withResolutionParams(
             ResolutionParams()
@@ -196,10 +206,11 @@ object CoursierResolver {
   }
 
   private class Cached(logger: Logger, underlying: Direct, in: Path) extends CoursierResolver {
-    override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, CoursierResolver.Result] =
-      if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying(deps, forceScalaVersion)
+    override val params = underlying.params
+    override def resolve(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.VersionScala]): Either[CoursierError, CoursierResolver.Result] =
+      if (deps.values.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, forceScalaVersion)
       else {
-        val request = Cached.Request(underlying.fileCache.location, deps, underlying.repos, forceScalaVersion.map(_.scalaVersion))
+        val request = Cached.Request(underlying.fileCache.location, deps, underlying.params, forceScalaVersion.map(_.scalaVersion))
         val digest = request.asJson.noSpaces.hashCode // both `noSpaces` and `String.hashCode` should hopefully be stable
         val cachePath = in / s"$digest.json"
 
@@ -221,7 +232,7 @@ object CoursierResolver {
             val depNames = deps.map(_.module.name.value).values
             val ctxLogger = logger.withContext(cachePath).withContext(depNames)
             ctxLogger.debug(s"coursier cache miss")
-            underlying(deps, forceScalaVersion).map {
+            underlying.resolve(deps, forceScalaVersion).map {
               case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
                 ctxLogger.info("Not caching because result is changing")
                 changingResult
@@ -234,16 +245,16 @@ object CoursierResolver {
   }
 
   private object Cached {
-    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], repos: List[model.Repository], forceScalaVersion: Option[String])
+    case class Request(cacheLocation: File, wanted: JsonSet[Dependency], params: Params, forceScalaVersion: Option[String])
 
     object Request {
 
       import Result.codecDependency
 
       implicit val codec: Codec[Request] =
-        Codec.forProduct4[Request, File, JsonSet[Dependency], List[model.Repository], Option[String]]("", "wanted", "repos", "forceScalaVersion")(
+        Codec.forProduct4[Request, File, JsonSet[Dependency], Params, Option[String]]("cacheLocation", "wanted", "params", "forceScalaVersion")(
           Request.apply
-        )(x => (x.cacheLocation, x.wanted, x.repos, x.forceScalaVersion))
+        )(x => (x.cacheLocation, x.wanted, x.params, x.forceScalaVersion))
     }
 
     case class Both(request: Request, result: Result)
@@ -253,7 +264,8 @@ object CoursierResolver {
   }
 
   class WithBleepVersion(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.Version]) extends CoursierResolver {
-    override def apply(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.Versions.Scala]): Either[CoursierError, Result] = {
+    override val params = outer.params
+    override def resolve(deps: JsonSet[Dependency], forceScalaVersion: Option[bleep.VersionScala]): Either[CoursierError, Result] = {
       val rewrittenDeps =
         maybeWantedBleepVersion match {
           case Some(wantedBleepVersion) =>
@@ -263,7 +275,7 @@ object CoursierResolver {
             }
           case None => deps
         }
-      outer(rewrittenDeps, forceScalaVersion)
+      outer.resolve(rewrittenDeps, forceScalaVersion)
     }
   }
 }

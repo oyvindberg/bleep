@@ -13,7 +13,7 @@ import java.time.Instant
 
 class TemplateTest extends SnapshotTest {
   override val outFolder = Paths.get("snapshot-tests").resolve("templates").toAbsolutePath
-  val scala = model.Scala(Some(Versions.Scala213), Options.empty, None, JsonSet.empty, None)
+  val scala = model.Scala(Some(VersionScala.Scala213), Options.empty, None, JsonSet.empty, None)
   val a = noCross("a")
   val aTest = noCross("aTest")
   val b = noCross("b")
@@ -33,7 +33,7 @@ class TemplateTest extends SnapshotTest {
   }
 
   test("should extract common template and a test template") {
-    val scala = model.Scala(Some(Versions.Scala213), Options.empty, None, JsonSet.empty, None)
+    val scala = model.Scala(Some(VersionScala.Scala213), Options.empty, None, JsonSet.empty, None)
     val projects = Map(
       a -> p.copy(scala = Some(scala)),
       aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = JsonSet(a.name)),
@@ -48,7 +48,7 @@ class TemplateTest extends SnapshotTest {
   }
 
   test("should heed ignoreWhenInferringTemplates") {
-    val scala = model.Scala(Some(Versions.Scala213), Options.empty, None, JsonSet.empty, None)
+    val scala = model.Scala(Some(VersionScala.Scala213), Options.empty, None, JsonSet.empty, None)
     val projects = Map(
       a -> p.copy(scala = Some(scala)),
       b -> p.copy(dependsOn = JsonSet(a.name)),

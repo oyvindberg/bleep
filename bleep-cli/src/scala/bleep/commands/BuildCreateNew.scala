@@ -12,7 +12,7 @@ case class BuildCreateNew(
     logger: Logger,
     cwd: Path,
     platforms: NonEmptyList[model.PlatformId],
-    scalas: NonEmptyList[Versions.Scala],
+    scalas: NonEmptyList[VersionScala],
     name: String,
     bleepVersion: model.Version
 ) extends BleepCommand {
@@ -108,13 +108,13 @@ object BuildCreateNew {
       logger: Logger,
       exampleFiles: ExampleFiles,
       platforms: NonEmptyList[model.PlatformId],
-      scalas: NonEmptyList[Versions.Scala],
+      scalas: NonEmptyList[VersionScala],
       name: String,
       bleepVersion: model.Version
   ): model.Build = {
     val defaultOpts = Options(Set(Options.Opt.WithArgs("-encoding", List("utf8")), Options.Opt.Flag("-feature"), Options.Opt.Flag("-unchecked")))
 
-    def variants(name: String): NonEmptyList[(model.PlatformId, Versions.Scala, model.CrossProjectName)] =
+    def variants(name: String): NonEmptyList[(model.PlatformId, VersionScala, model.CrossProjectName)] =
       for {
         p <- platforms
         s <- scalas
@@ -139,7 +139,7 @@ object BuildCreateNew {
               case model.PlatformId.Jvm =>
                 model.Platform.Jvm(Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = Options.empty)
               case model.PlatformId.Js =>
-                model.Platform.Js(Versions.ScalaJs1, None, None, None, None, jsNodeVersion = Some(Versions.Node), Some(exampleFiles.main.cls))
+                model.Platform.Js(VersionScalaJs.ScalaJs1, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
               case model.PlatformId.Native =>
                 sys.error("native not implemented yet")
             }
@@ -167,7 +167,7 @@ object BuildCreateNew {
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm    => model.Platform.Jvm(Options.empty, jvmMainClass = None, jvmRuntimeOptions = Options.empty)
-              case model.PlatformId.Js     => model.Platform.Js(Versions.ScalaJs1, None, None, None, None, Some(Versions.Node), None)
+              case model.PlatformId.Js     => model.Platform.Js(VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
               case model.PlatformId.Native => sys.error("native not implemented yet")
             }
           ),

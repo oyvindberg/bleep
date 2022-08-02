@@ -47,7 +47,7 @@ object SetupBloopRifle {
       .left
       .map(msg => new BuildException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
-        resolver.forceGet(JsonSet(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
+        resolver.forceGet.resolve(JsonSet(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
           case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
           case Right(res)          => Right((res.jarFiles, true))
         }

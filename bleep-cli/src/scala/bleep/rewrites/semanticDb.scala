@@ -23,11 +23,11 @@ case class semanticDb(buildPaths: BuildPaths) extends Rewrite {
       case _ => explodedProject
     }
 
-  def compilerPlugin(version: Versions.Scala): Option[Dep.ScalaDependency] =
+  def compilerPlugin(version: VersionScala): Option[Dep.ScalaDependency] =
     if (version.is3) None
     else Some(Dep.ScalaFullVersion("org.scalameta", "semanticdb-scalac", "4.5.0"))
 
-  def compilerOption(version: Versions.Scala): Options.Opt = {
+  def compilerOption(version: VersionScala): Options.Opt = {
     val sv = version.scalaVersion
     Options.Opt.Flag {
       if (sv.startsWith("0.") || sv.startsWith("3.0.0-M1") || sv.startsWith("3.0.0-M2")) "-Ysemanticdb"
@@ -36,7 +36,7 @@ case class semanticDb(buildPaths: BuildPaths) extends Rewrite {
     }
   }
 
-  def targetRootOptions(version: Versions.Scala, projectPaths: ProjectPaths): Option[Options.Opt] =
+  def targetRootOptions(version: VersionScala, projectPaths: ProjectPaths): Option[Options.Opt] =
     if (version.is3) {
       // this is copied from sbt, but wrong. semanticdbTarget ends up as empty string,
       // and the .semanticdb files ends up in the source folders.
@@ -46,7 +46,7 @@ case class semanticDb(buildPaths: BuildPaths) extends Rewrite {
     } else
       Some(Options.Opt.Flag(s"-P:semanticdb:targetroot:${projectPaths.classes}"))
 
-  def sourceRootOptions(version: Versions.Scala): Option[Options.Opt] =
+  def sourceRootOptions(version: VersionScala): Option[Options.Opt] =
     if (version.is3) { None }
     else Some(Options.Opt.Flag(s"-P:semanticdb:sourceroot:${buildPaths.buildDir}"))
 }

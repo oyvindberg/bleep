@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{dependencyOrdering, rewriteDependentData, FileUtils, Replacements, ScalaVersions}
+import bleep.internal.{dependencyOrdering, rewriteDependentData, FileUtils, Replacements}
 import bleep.logging.Logger
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
@@ -145,7 +145,7 @@ object GenBloopFiles {
     val explodedJava: Option[model.Java] =
       explodedProject.java
 
-    val scalaVersion: Option[Versions.Scala] =
+    val scalaVersion: Option[VersionScala] =
       maybeScala.flatMap(_.version)
 
     val explodedPlatform: Option[model.Platform] =
@@ -154,8 +154,8 @@ object GenBloopFiles {
         case platform                     => platform
       }
 
-    val versions: ScalaVersions =
-      ScalaVersions.fromExplodedProject(explodedProject) match {
+    val scalaPlatform: VersionScalaPlatform =
+      VersionScalaPlatform.fromExplodedProject(explodedProject) match {
         case Left(err)       => throw new BuildException.Text(crossName, err)
         case Right(versions) => versions
       }
@@ -222,8 +222,8 @@ object GenBloopFiles {
       }
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
-      val fromScalaVersion =
-        versions.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      val fromPlatform =
+        scalaPlatform.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -234,13 +234,13 @@ object GenBloopFiles {
       def resolve(all: JsonSet[Dep]) = {
         val concreteDeps: JsonSet[Dependency] =
           all.map { dep =>
-            dep.dependency(versions) match {
+            dep.dependency(scalaPlatform) match {
               case Left(err)    => throw new BuildException.Text(crossName, err)
               case Right(value) => value
             }
           }
 
-        resolver(concreteDeps, forceScalaVersion = scalaVersion) match {
+        resolver.resolve(concreteDeps, forceScalaVersion = scalaVersion) match {
           case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
           case Right(value)        => value
         }
@@ -250,7 +250,7 @@ object GenBloopFiles {
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
       val normal =
-        resolve(explodedProject.dependencies.union(JsonSet.fromIterable(filteredInherited ++ fromScalaVersion)))
+        resolve(explodedProject.dependencies.union(JsonSet.fromIterable(filteredInherited ++ fromPlatform)))
 
       val runtime =
         if (explodedProject.dependencies.values.exists(providedOrOptional) || inherited.size != filteredInherited.size) {
@@ -262,7 +262,7 @@ object GenBloopFiles {
             optionalsFromProject.map(_.withConfiguration(Configuration.empty))
 
           resolve {
-            JsonSet.fromIterable(filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromScalaVersion)
+            JsonSet.fromIterable(filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform)
           }
         } else normal
 
@@ -305,10 +305,10 @@ object GenBloopFiles {
     val configuredScala: Option[Config.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
-          scalaVersion.compiler.forceDependency(ScalaVersions.Jvm(scalaVersion))
+          scalaVersion.compiler.forceDependency(VersionScalaPlatform.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
-          resolver(JsonSet(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
+          resolver.resolve(JsonSet(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
             case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
             case Right(res)          => res.jars
           }
@@ -326,16 +326,16 @@ object GenBloopFiles {
         }
 
         val compilerPlugins: Options = {
-          val fromPlatform = versions.compilerPlugin
+          val fromPlatform = scalaPlatform.compilerPlugin
           val fromScala = maybeScala.fold(JsonSet.empty[Dep])(_.compilerPlugins)
           val specified: JsonSet[Dep] =
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all ++ JsonSet(dep) }
 
           val deps: JsonSet[Dependency] =
-            specified.map(_.withTransitive(false).forceDependency(ScalaVersions.Jvm(scalaVersion)))
+            specified.map(_.withTransitive(false).forceDependency(VersionScalaPlatform.Jvm(scalaVersion)))
 
           val jars: Seq[Path] =
-            resolver(deps, forceScalaVersion = Some(scalaVersion)) match {
+            resolver.resolve(deps, forceScalaVersion = Some(scalaVersion)) match {
               case Left(coursierError) => throw BuildException.ResolveError(coursierError, crossName)
               case Right(res) =>
                 res.fullDetailedArtifacts.collect {
