@@ -66,7 +66,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     val buildLoader = BuildLoader.inDirectory(outFolder / project)
     val destinationPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)
     val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
-    val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.BleepVersion("testing"))
+    val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.BleepVersion.dev)
 
     // if this directory exists, assume it has all files in good condition, but with paths not filled in
     if (!Files.exists(destinationPaths.bleepImportDir)) {

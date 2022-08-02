@@ -80,7 +80,7 @@ jobs:
       - name: Test binary after build (non-windows)
         env:
           CI: true
-        run: ./${{ matrix.file_name }} --ignore-version-in-build-file test --no-color jvm213
+        run: ./${{ matrix.file_name }} --dev test --no-color jvm213
         if: runner.os != 'Windows'
 
       - name: generate resources (windows)
@@ -102,7 +102,7 @@ jobs:
         env:
           CI: true
         # todo: fix tests on windows
-        run: .\${{ matrix.file_name }} --ignore-version-in-build-file compile --no-color jvm213
+        run: .\${{ matrix.file_name }} --dev compile --no-color jvm213
         if: runner.os == 'Windows'
 
       - name: Temporarily save package

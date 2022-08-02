@@ -16,7 +16,7 @@
     },
     "PlatformName": {
       "type": "string",
-      "emum": [
+      "enum": [
         "jvm",
         "js",
         "native"
@@ -170,7 +170,17 @@
       "type": "object",
       "properties": {
         "version": {
-          "type": "string"
+          "oneOf": [
+            {
+              "type": "string",
+              "enum": [
+                "dev"
+              ]
+            },
+            {
+              "type": "string"
+            }
+          ]
         },
         "options": {
           "$ref": "#/$defs/Options"
