@@ -1,6 +1,8 @@
 package bleep
 package scripts
 
+import bleep.RelPath
+import bleep.model.Dep
 import bleep.tasks.publishing._
 import coursier.Info
 import nosbt.InteractionService

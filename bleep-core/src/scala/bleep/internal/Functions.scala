@@ -1,6 +1,7 @@
 package bleep.internal
 
-import bleep.{model, JsonMap, JsonSet}
+import bleep.model.{JsonMap, JsonSet}
+import bleep.model
 
 object Functions {
   def stripExtends(p: model.Project): model.Project =

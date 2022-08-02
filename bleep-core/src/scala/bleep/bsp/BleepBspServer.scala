@@ -3,6 +3,7 @@ package bsp
 
 import bleep.internal.throwableMessages
 import bleep.logging.Logger
+import bleep.BleepException
 import ch.epfl.scala.bsp4j
 import com.google.gson.{JsonObject, JsonPrimitive}
 
@@ -17,7 +18,7 @@ class BleepBspServer(
     val logger: Logger,
     var sendToIdeClient: bsp4j.BuildClient,
     var bloopServer: BuildServer,
-    var ensureBloopUpToDate: () => Either[BuildException, Started]
+    var ensureBloopUpToDate: () => Either[BleepException, Started]
 ) extends BuildServer {
   val supportedLanguages: util.List[String] = List("scala", "java").asJava
 

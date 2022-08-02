@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.model
+import bleep.{RelPath, model}
 
 object GeneratedFilesScript {
   @FunctionalInterface
@@ -91,7 +91,7 @@ object GeneratedFilesScript {
       vector.map(Repr[T].str(_, indent + 2)).mkString(s"Vector($space", s",$space  ", ")")
     }
 
-    implicit def relPath: Repr[bleep.RelPath] = { case (relPath, indent) =>
+    implicit def relPath: Repr[RelPath] = { case (relPath, indent) =>
       s"bleep.RelPath.force(${str(relPath.toString, indent)})"
     }
 

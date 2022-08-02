@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.BuildException
+import bleep.BleepException
 import sbt.librarymanagement.syntax.ExclusionRule
 import sbt.librarymanagement.{CrossVersion, ModuleID, ScalaVersion}
 import sjsonnew.support.scalajson.unsafe.{Converter, Parser}
@@ -12,7 +12,7 @@ import scala.util.{Failure, Success}
 object ReadSbtExportFile {
   def parse(path: Path, jsonStr: String): ExportedProject =
     Parser.parseFromString(jsonStr).flatMap(Converter.fromJson[ExportedProject](_)) match {
-      case Failure(exception) => throw new BuildException.InvalidJson(path, exception)
+      case Failure(exception) => throw new BleepException.InvalidJson(path, exception)
       case Success(value)     => value
     }
 

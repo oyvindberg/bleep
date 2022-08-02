@@ -5,7 +5,7 @@ import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.rewrites.normalizeBuild
 
 case class BuildReapplyTemplates(started: Started) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val normalizedBuild = normalizeBuild(started.build)
     val build = Templates.reapply(normalizedBuild, started.rawBuild.templates)
 

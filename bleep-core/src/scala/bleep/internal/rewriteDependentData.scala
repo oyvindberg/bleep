@@ -1,7 +1,6 @@
 package bleep.internal
 
 import bleep.Lazy
-
 import scala.collection.immutable.SortedMap
 
 // this exists to be able to lazily process things with dependencies

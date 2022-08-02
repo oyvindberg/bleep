@@ -1,6 +1,8 @@
 package bleep
 package rewrites
 
+import bleep.model.{Dep, JsonSet, Options, VersionScala}
+
 case class semanticDb(buildPaths: BuildPaths) extends Rewrite {
   override val name = "semanticdb"
 

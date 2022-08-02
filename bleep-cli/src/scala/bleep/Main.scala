@@ -1,10 +1,10 @@
 package bleep
 
-import bleep.BuildException.fatal
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.internal.{FetchBleepRelease, Os, ProjectGlobs}
+import bleep.internal.{fatal, FetchBleepRelease, Os, ProjectGlobs}
 import bleep.logging._
+import bleep.model.VersionScala
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._

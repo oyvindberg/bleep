@@ -3,6 +3,7 @@ package bleep
 import bleep.commands.BuildCreateNew
 import bleep.internal.FileUtils
 import bleep.logging.LogLevel
+import bleep.model.VersionScala
 import bleep.testing.SnapshotTest
 import cats.data.NonEmptyList
 

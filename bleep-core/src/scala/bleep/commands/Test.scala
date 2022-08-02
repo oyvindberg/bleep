@@ -2,13 +2,14 @@ package bleep
 package commands
 
 import bleep.bsp.BspCommandFailed
+import bleep.BleepException
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.TestParams
 
 import scala.build.bloop.BloopServer
 
 case class Test(started: Started, projects: List[model.CrossProjectName]) extends BleepCommandRemote(started) {
-  override def runWithServer(bloop: BloopServer): Either[BuildException, Unit] = {
+  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
     val targets = buildTargets(started.buildPaths, projects)
     val result = bloop.server.buildTargetTest(new TestParams(targets)).get()
 

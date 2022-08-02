@@ -1,7 +1,8 @@
 package bleep
 
-import bleep.internal.Templates
+import bleep.internal.{ShortenAndSortJson, Templates}
 import bleep.internal.Templates.TemplateDef
+import bleep.model.{JsonSet, Options, VersionScala}
 import bleep.testing.SnapshotTest
 import io.circe.Decoder
 import io.circe.syntax.EncoderOps
@@ -81,7 +82,7 @@ class TemplateTest extends SnapshotTest {
     val pre = ExplodedBuild(model.Build.empty(model.Version("testing")), Map.empty, projects)
     val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, None, noColor = false)).withContext(testName).untyped
     val build = Templates(logger, pre, ignoreWhenInferringTemplates)
-    writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> build.asJson.foldWith(internal.ShortenAndSortJson).spaces2))
+    writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> build.asJson.foldWith(ShortenAndSortJson).spaces2))
 
     // complain if we have done illegal rewrites during templating
     val post = ExplodedBuild.of(build).dropTemplates

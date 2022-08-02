@@ -1,10 +1,11 @@
 package bleep
 package bsp
 
-import bleep.Lazy
+import bleep.{BleepException, Lazy}
 import bleep.bsp.CompileServerMode.{NewEachInvocation, Shared}
 import bleep.internal.{dependencyOrdering, FileUtils}
 import bleep.logging.Logger
+import bleep.model.JsonSet
 import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
@@ -40,15 +41,15 @@ object SetupBloopRifle {
       )
   }
 
-  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BuildException, (Seq[File], Boolean)] = {
+  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] = {
     val modString = BloopRifleConfig.defaultModule
     ModuleParser
       .module(modString, BloopRifleConfig.defaultScalaVersion)
       .left
-      .map(msg => new BuildException.ModuleFormatError(modString, msg))
+      .map(msg => new BleepException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
         resolver.forceGet.resolve(JsonSet(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
-          case Left(coursierError) => Left(new BuildException.ResolveError(coursierError, "installing bloop"))
+          case Left(coursierError) => Left(new BleepException.ResolveError(coursierError, "installing bloop"))
           case Right(res)          => Right((res.jarFiles, true))
         }
       }

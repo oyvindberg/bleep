@@ -1,6 +1,5 @@
-package bleep
+package bleep.model
 
-import bleep.internal.SetLike
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 
 case class JsonMap[K, V <: SetLike[V]](value: Map[K, V]) extends SetLike[JsonMap[K, V]] {

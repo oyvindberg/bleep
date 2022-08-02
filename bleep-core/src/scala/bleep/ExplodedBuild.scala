@@ -2,6 +2,7 @@ package bleep
 
 import bleep.internal.Functions.stripExtends
 import bleep.internal.{asYamlString, rewriteDependentData}
+import bleep.model.{JsonList, JsonMap, JsonSet}
 
 import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
@@ -75,7 +76,7 @@ case class ExplodedBuild(
           resolvedDependsOn(depName).foreach(go)
 
         case None =>
-          sys.error(s"Project ${name.value} depends on non-existing project ${depName.value}")
+          throw new BleepException.Text(name, s"depends on non-existing project ${depName.value}")
       }
 
     resolvedDependsOn(name).foreach(go)

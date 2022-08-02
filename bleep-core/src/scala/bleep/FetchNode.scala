@@ -2,6 +2,7 @@ package bleep
 
 import bleep.internal.{CoursierLogger, FileUtils}
 import bleep.logging.Logger
+import bleep.BleepException
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.JvmIndex
 import coursier.util.{Artifact, Task}
@@ -29,13 +30,13 @@ class FetchNode(logger: Logger, ec: ExecutionContext) {
       case ("amd64", "darwin")  => s"https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-darwin-x64.tar.gz"
       case ("amd64", "windows") => s"https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-win-x64.zip"
       case ("amd64", "linux")   => s"https://nodejs.org/dist/v$nodeVersion/node-v$nodeVersion-linux-x64.tar.gz"
-      case (arch, os)           => throw new BuildException.Text(s"Unsupported combination of architecture $arch and os $os")
+      case (arch, os)           => throw new BleepException.Text(s"Unsupported combination of architecture $arch and os $os")
     }
     val fileCache = FileCache[Task]().withLogger(new CoursierLogger(logger))
     val cache = ArchiveCache[Task]().withCache(fileCache)
 
     Await.result(cache.get(Artifact(url)).value(ec), Duration.Inf) match {
-      case Left(value) => throw new BuildException.Cause(value, s"couldn't download node $nodeVersion from url $url")
+      case Left(value) => throw new BleepException.Cause(value, s"couldn't download node $nodeVersion from url $url")
       case Right(folder) =>
         val nodeBin = folder.toPath / folder.getName.replace(".tar.gz", "").replace(".zip", "") / (if (os == "windows") "node.exe" else "bin/node")
         if (!FileUtils.exists(nodeBin)) {

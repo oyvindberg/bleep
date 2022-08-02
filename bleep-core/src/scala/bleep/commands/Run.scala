@@ -2,6 +2,7 @@ package bleep
 package commands
 
 import bleep.bsp.BspCommandFailed
+import bleep.BleepException
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams, ScalaMainClassesResult}
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -17,11 +18,11 @@ case class Run(
     maybeOverriddenMain: Option[String],
     args: List[String]
 ) extends BleepCommandRemote(started) {
-  override def runWithServer(bloop: BloopServer): Either[BuildException, Unit] = {
+  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverriddenMain.orElse(started.build.projects(project).platform.flatMap(_.mainClass))
 
-    val maybeMain: Either[BuildException, String] =
+    val maybeMain: Either[BleepException, String] =
       maybeSpecifiedMain match {
         case Some(mainClass) => Right(mainClass)
         case None =>
@@ -62,7 +63,7 @@ case class Run(
     }
   }
 
-  def discoverMain(bloop: BloopServer): Either[BuildException, String] = {
+  def discoverMain(bloop: BloopServer): Either[BleepException, String] = {
     val req = new ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](buildTarget(started.buildPaths, project)))
     started.logger.debug(req.toString)
 
@@ -81,9 +82,9 @@ case class Run(
 
 object Run {
   case class AmbiguousMain(mainClasses: Seq[String])
-      extends BuildException(
+      extends BleepException(
         s"Discovered more than one main class, so you need to specify which one you want with `--class ...`. ${mainClasses.map(fansi.Color.Magenta(_)).mkString("\n", "\n, ", "\n")}"
       )
 
-  case class NoMain() extends BuildException(s"No main class found. Specify which one you want with `--class ...`")
+  case class NoMain() extends BleepException(s"No main class found. Specify which one you want with `--class ...`")
 }

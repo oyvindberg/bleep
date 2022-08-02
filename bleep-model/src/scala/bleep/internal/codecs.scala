@@ -1,7 +1,7 @@
 package bleep.internal
 
 import coursier.core._
-import io.circe.{Codec, Decoder, Encoder, KeyDecoder, KeyEncoder}
+import io.circe._
 
 import java.io.File
 import java.net.URI

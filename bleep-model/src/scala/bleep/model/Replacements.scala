@@ -1,6 +1,6 @@
-package bleep.internal
+package bleep.model
 
-import bleep.{Options, RelPath, VersionScala}
+import bleep.RelPath
 
 import java.nio.file.Path
 

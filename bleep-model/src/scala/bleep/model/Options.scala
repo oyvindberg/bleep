@@ -1,6 +1,5 @@
-package bleep
+package bleep.model
 
-import bleep.internal.{Replacements, SetLike}
 import io.circe.{Decoder, Encoder, Json}
 
 /** A description of javac/scalac options.

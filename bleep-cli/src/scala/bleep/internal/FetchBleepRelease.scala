@@ -24,7 +24,7 @@ object FetchBleepRelease {
       }
     } else Right(file)
 
-  def apply(wanted: model.Version, logger: Logger, executionContext: ExecutionContext): Either[BuildException, Path] =
+  def apply(wanted: model.Version, logger: Logger, executionContext: ExecutionContext): Either[BleepException, Path] =
     apply(wanted, logger, executionContext, JvmIndex.currentArchitecture, JvmIndex.currentOs)
 
   def apply(
@@ -33,7 +33,7 @@ object FetchBleepRelease {
       executionContext: ExecutionContext,
       arch: Either[String, String],
       os: Either[String, String]
-  ): Either[BuildException, Path] = {
+  ): Either[BleepException, Path] = {
     val base = s"https://github.com/oyvindberg/bleep/releases/download/v${wanted.value}"
 
     val isOldLayout = oldLayouts(wanted)
@@ -53,7 +53,7 @@ object FetchBleepRelease {
       }
 
     maybeUrl match {
-      case Left(msg) => Left(new BuildException.Text(msg))
+      case Left(msg) => Left(new BleepException.Text(msg))
       case Right(uri) =>
         val fetching: Future[Either[ArtifactError, File]] = ArchiveCache[Task]()
           .withCache(FileCache().withLogger(new CoursierLogger(logger)))
@@ -62,11 +62,11 @@ object FetchBleepRelease {
 
         Await.result(fetching, Duration.Inf) match {
           case Left(artifactError) =>
-            Left(new BuildException.ArtifactResolveError(artifactError, s"bleep version ${wanted.value}"))
+            Left(new BleepException.ArtifactResolveError(artifactError, s"bleep version ${wanted.value}"))
           case Right(file) =>
             findExecutable(file) match {
               case Left(msg) =>
-                Left(new BuildException.Text(msg))
+                Left(new BleepException.Text(msg))
               case Right(executable) =>
                 JvmIndex.currentOs match {
                   case Right("darwin" | "linux") =>

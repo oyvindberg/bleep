@@ -1,9 +1,10 @@
 package bleep
 package commands
 
-import bleep.SourceLayout.Normal
 import bleep.internal.{asYamlString, FileUtils, Templates}
 import bleep.logging.Logger
+import bleep.model._
+import bleep.{constants, BleepException}
 import cats.data.NonEmptyList
 
 import java.nio.file.{Files, Path}
@@ -17,13 +18,13 @@ case class BuildCreateNew(
     bleepVersion: model.Version
 ) extends BleepCommand {
 
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val buildLoader = BuildLoader.inDirectory(cwd)
     val buildPaths = BuildPaths(cwd, buildLoader, BuildPaths.Mode.Normal)
     generate(buildPaths).map(_ => ())
   }
 
-  def generate(buildPaths: BuildPaths): Either[BuildException, (Started, Map[Path, String])] = {
+  def generate(buildPaths: BuildPaths): Either[BleepException, (Started, Map[Path, String])] = {
     val allFiles = genAllFiles(buildPaths)
 
     val syncedFiles = FileUtils.syncPaths(cwd, allFiles, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
@@ -127,7 +128,7 @@ object BuildCreateNew {
           cross = JsonMap.empty,
           folder = None,
           dependsOn = JsonSet.empty,
-          `source-layout` = Some(Normal),
+          `source-layout` = Some(SourceLayout.Normal),
           `sbt-scope` = None,
           sources = JsonSet.empty,
           resources = JsonSet.empty,
@@ -157,7 +158,7 @@ object BuildCreateNew {
           cross = JsonMap.empty,
           folder = None,
           dependsOn = JsonSet(model.ProjectName(name)),
-          `source-layout` = Some(Normal),
+          `source-layout` = Some(SourceLayout.Normal),
           `sbt-scope` = None,
           sources = JsonSet.empty,
           resources = JsonSet.empty,

@@ -1,7 +1,8 @@
 package bleep.testing
 
 import bleep.internal.FileUtils.DeleteUnknowns
-import bleep.internal.{FileUtils, Replacements}
+import bleep.internal.FileUtils
+import bleep.model.Replacements
 import coursier.jvm.JvmIndex
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport

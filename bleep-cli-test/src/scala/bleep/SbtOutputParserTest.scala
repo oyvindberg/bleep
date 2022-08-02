@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.commands.Import
+import bleep.model.VersionScala
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 

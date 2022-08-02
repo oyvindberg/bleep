@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.Replacements
+import bleep.model.Replacements
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 

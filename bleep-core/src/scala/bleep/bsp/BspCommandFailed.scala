@@ -1,11 +1,11 @@
 package bleep.bsp
 
-import bleep.{model, BuildException}
-import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
+import bleep.{model, BleepException}
 import ch.epfl.scala.bsp4j
+import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 class BspCommandFailed(what: String, projects: List[model.CrossProjectName], reason: BspCommandFailed.Reason)
-    extends BuildException(s"$what ${projects.map(_.value).mkString(", ")} ${reason.str}", reason.throwable.orNull)
+    extends BleepException(s"$what ${projects.map(_.value).mkString(", ")} ${reason.str}", reason.throwable.orNull)
 
 object BspCommandFailed {
   sealed trait Reason {

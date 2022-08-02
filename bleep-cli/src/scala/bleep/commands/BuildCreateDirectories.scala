@@ -1,13 +1,12 @@
 package bleep
 package commands
 
-import bleep.internal.FileUtils
+import bleep.internal.{formatsCrossProjectName, FileUtils}
 
 import java.nio.file.{Files, Path}
-import scala.collection.immutable
 
 case class BuildCreateDirectories(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
-  override def run(): Either[BuildException, Unit] = {
+  override def run(): Either[BleepException, Unit] = {
     val dirsWithProject: Map[Path, List[model.CrossProjectName]] =
       projects
         .flatMap { crossName =>

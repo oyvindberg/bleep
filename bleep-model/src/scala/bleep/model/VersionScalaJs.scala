@@ -1,6 +1,7 @@
-package bleep
+package bleep.model
 
 import coursier.core.{ModuleName, Organization}
+import io.circe.{Decoder, Encoder}
 
 case class VersionScalaJs(scalaJsVersion: String) {
   require(scalaJsVersion.nonEmpty)
@@ -29,4 +30,7 @@ case class VersionScalaJs(scalaJsVersion: String) {
 object VersionScalaJs {
   val org = Organization("org.scala-js")
   val ScalaJs1 = VersionScalaJs("1.9.0")
+
+  implicit val decodes: Decoder[VersionScalaJs] = Decoder[String].map(VersionScalaJs.apply)
+  implicit val encodes: Encoder[VersionScalaJs] = Encoder[String].contramap(_.scalaJsVersion)
 }
