@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.{Options, RelPath, Versions}
+import bleep.{Options, RelPath, VersionScala}
 
 import java.nio.file.Path
 
@@ -81,7 +81,7 @@ object Replacements {
   def scope(scope: String): Replacements =
     if (scope.isEmpty) empty else ofReplacements(List(scope -> "${SCOPE}"))
 
-  def versions(scalaVersion: Option[Versions.Scala], platform: Option[String], includeEpoch: Boolean): Replacements =
+  def versions(scalaVersion: Option[VersionScala], platform: Option[String], includeEpoch: Boolean): Replacements =
     ofReplacements(
       List(
         scalaVersion match {

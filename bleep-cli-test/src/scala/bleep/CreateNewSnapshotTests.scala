@@ -20,7 +20,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
         logger,
         cwd = buildPaths.buildDir,
         platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
-        scalas = NonEmptyList.of(Versions.Scala3, Versions.Scala213),
+        scalas = NonEmptyList.of(VersionScala.Scala3, VersionScala.Scala213),
         name = "myapp",
         bleepVersion = model.Version("testing")
       ).genAllFiles(buildPaths)

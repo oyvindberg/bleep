@@ -96,7 +96,7 @@ object model {
   }
 
   case class Scala(
-      version: Option[Versions.Scala],
+      version: Option[VersionScala],
       options: Options,
       setup: Option[CompileSetup],
       compilerPlugins: JsonSet[Dep],
@@ -137,8 +137,8 @@ object model {
   }
 
   object Scala {
-    implicit val decodesScala: Decoder[Versions.Scala] = Decoder[String].map(Versions.Scala.apply)
-    implicit val encodesScala: Encoder[Versions.Scala] = Encoder[String].contramap(_.scalaVersion)
+    implicit val decodesScala: Decoder[VersionScala] = Decoder[String].map(VersionScala.apply)
+    implicit val encodesScala: Encoder[VersionScala] = Encoder[String].contramap(_.scalaVersion)
 
     implicit val decodes: Decoder[Scala] = deriveDecoder
     implicit val encodes: Encoder[Scala] = deriveEncoder
@@ -177,7 +177,7 @@ object model {
   case class Platform(
       name: Option[PlatformId],
       mainClass: Option[String],
-      jsVersion: Option[Versions.ScalaJs],
+      jsVersion: Option[VersionScalaJs],
       jsMode: Option[Config.LinkerMode],
       jsKind: Option[Config.ModuleKindJS],
       jsEmitSourceMaps: Option[Boolean],
@@ -193,7 +193,7 @@ object model {
       jvmRuntimeOptions: Options,
       //        classpath: Option[List[Path]],
       //        resources: Option[List[Path]]
-      nativeVersion: Option[Versions.ScalaNative],
+      nativeVersion: Option[VersionScalaNative],
       nativeMode: Option[Config.LinkerMode],
       nativeGc: Option[String]
       //      targetTriple: Option[String],
@@ -295,7 +295,7 @@ object model {
     }
     object Js {
       def apply(
-          jsVersion: Versions.ScalaJs,
+          jsVersion: VersionScalaJs,
           jsMode: Option[Config.LinkerMode],
           jsKind: Option[Config.ModuleKindJS],
           jsEmitSourceMaps: Option[Boolean],
@@ -325,7 +325,7 @@ object model {
         }
     }
     object Native {
-      def apply(nativeVersion: Option[Versions.ScalaNative], nativeMode: Option[Config.LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
+      def apply(nativeVersion: Option[VersionScalaNative], nativeMode: Option[Config.LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
         new Platform(
           name = Some(PlatformId.Native),
           mainClass = nativeMainClass,
@@ -348,10 +348,10 @@ object model {
         }
     }
 
-    implicit val decodesScalaJsVersion: Decoder[Versions.ScalaJs] = Decoder[String].map(Versions.ScalaJs.apply)
-    implicit val encodesScalaJsVersion: Encoder[Versions.ScalaJs] = Encoder[String].contramap(_.scalaJsVersion)
-    implicit val decodesScalaNativeVersion: Decoder[Versions.ScalaNative] = Decoder[String].map(Versions.ScalaNative.apply)
-    implicit val encodesScalaNativeVersion: Encoder[Versions.ScalaNative] = Encoder[String].contramap(_.scalaNativeVersion)
+    implicit val decodesScalaJsVersion: Decoder[VersionScalaJs] = Decoder[String].map(VersionScalaJs.apply)
+    implicit val encodesScalaJsVersion: Encoder[VersionScalaJs] = Encoder[String].contramap(_.scalaJsVersion)
+    implicit val decodesScalaNativeVersion: Decoder[VersionScalaNative] = Decoder[String].map(VersionScalaNative.apply)
+    implicit val encodesScalaNativeVersion: Encoder[VersionScalaNative] = Encoder[String].contramap(_.scalaNativeVersion)
     implicit val decodes: Decoder[Platform] = deriveDecoder
     implicit val encodes: Encoder[Platform] = deriveEncoder
   }
@@ -379,7 +379,7 @@ object model {
 
   case class CrossId(value: String)
   object CrossId {
-    def defaultFrom(maybeScalaVersion: Option[Versions.Scala], maybePlatformId: Option[model.PlatformId], isFull: Boolean): Option[CrossId] = {
+    def defaultFrom(maybeScalaVersion: Option[VersionScala], maybePlatformId: Option[model.PlatformId], isFull: Boolean): Option[CrossId] = {
       val maybeVersion = maybeScalaVersion.map {
         case scala if isFull => scala.scalaVersion
         case scala           => scala.binVersion.replace(".", "")

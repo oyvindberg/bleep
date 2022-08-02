@@ -83,14 +83,14 @@ object Import {
     b.result()
   }
   class ScalaVersionOutput(
-      _scalaVersions: mutable.Map[Versions.Scala, Set[String]],
-      _crossVersions: mutable.Map[Versions.Scala, Set[String]]
+      _scalaVersions: mutable.Map[VersionScala, Set[String]],
+      _crossVersions: mutable.Map[VersionScala, Set[String]]
   ) {
-    private val toSorted = SortedMap.empty[Versions.Scala, Set[String]]
+    private val toSorted = SortedMap.empty[VersionScala, Set[String]]
 
-    val scalaVersions: SortedMap[Versions.Scala, Set[String]] = toSorted ++ _scalaVersions
+    val scalaVersions: SortedMap[VersionScala, Set[String]] = toSorted ++ _scalaVersions
 
-    val crossVersions: SortedMap[Versions.Scala, Set[String]] = {
+    val crossVersions: SortedMap[VersionScala, Set[String]] = {
       val filtered = _crossVersions
         // don't repeat what was already in default scala versions
         .map { case (v, projects) => (v, projects -- scalaVersions.getOrElse(v, Set.empty)) }
@@ -98,7 +98,7 @@ object Import {
       toSorted ++ filtered
     }
 
-    def combined: SortedMap[Versions.Scala, Set[String]] = {
+    def combined: SortedMap[VersionScala, Set[String]] = {
       val keys = scalaVersions.keys ++ crossVersions.keys
       toSorted ++ keys.map { key =>
         (key, scalaVersions.getOrElse(key, Set.empty) ++ crossVersions.getOrElse(key, Set.empty))
@@ -107,8 +107,8 @@ object Import {
   }
   object ScalaVersionOutput {
     def parse(lines: List[String]): ScalaVersionOutput = {
-      val scalaVersionsBuilder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
-      val crossVersionsBuilder = mutable.Map.empty[Versions.Scala, mutable.Set[String]]
+      val scalaVersionsBuilder = mutable.Map.empty[VersionScala, mutable.Set[String]]
+      val crossVersionsBuilder = mutable.Map.empty[VersionScala, mutable.Set[String]]
 
       var i = 0
       while (i < lines.length) {
@@ -121,13 +121,13 @@ object Import {
         if (line.contains("ProjectRef")) ()
         else if (line.endsWith(" / scalaVersion")) {
           val nextLine = lines(i + 1)
-          val scalaVersion = Versions.Scala(nextLine.split("\\s").last)
+          val scalaVersion = VersionScala(nextLine.split("\\s").last)
           scalaVersionsBuilder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
         } else if (line.endsWith(" / crossScalaVersions")) {
           val nextLine = lines(i + 1)
           val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
           versions.map { scalaVersion =>
-            crossVersionsBuilder.getOrElseUpdate(Versions.Scala(scalaVersion), mutable.Set.empty).add(projectName)
+            crossVersionsBuilder.getOrElseUpdate(VersionScala(scalaVersion), mutable.Set.empty).add(projectName)
           }
         }
 
@@ -243,7 +243,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 
         // then finally dump each of the three configurations we care about into two files each.
         val args: Iterable[String] = {
-          def argsFor(scalaVersion: Versions.Scala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
+          def argsFor(scalaVersion: VersionScala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
             List(
               if (switchScalaVersion) s"++ ${scalaVersion.scalaVersion}" else "",
               s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
@@ -303,7 +303,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
     GeneratedFilesScript(generatedFiles) match {
       case Some((className, scriptSource)) =>
         // todo: find a project and use same scala config
-        val scalaVersion = normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(Versions.Scala3))
+        val scalaVersion = normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(VersionScala.Scala3))
 
         val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
         val scriptsProject = model.Project(

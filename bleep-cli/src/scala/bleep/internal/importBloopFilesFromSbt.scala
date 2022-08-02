@@ -59,8 +59,8 @@ object importBloopFilesFromSbt {
       val dependsOn: JsonSet[model.ProjectName] =
         JsonSet.fromIterable(bloopProject.dependencies.flatMap(inputProjects.byBloopName.get).map(_.name))
 
-      val scalaVersion: Option[Versions.Scala] =
-        bloopProject.scala.map(s => Versions.Scala(s.version))
+      val scalaVersion: Option[VersionScala] =
+        bloopProject.scala.map(s => VersionScala(s.version))
 
       val originalTarget = internal.findOriginalTargetDir.force(crossName, bloopProject)
 
@@ -74,7 +74,7 @@ object importBloopFilesFromSbt {
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
 
-      val scalaVersions = ScalaVersions.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
+      val scalaPlatform = VersionScalaPlatform.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
         case Left(value)  => throw new BuildException.Text(crossName, value)
         case Right(value) => value
       }
@@ -123,7 +123,7 @@ object importBloopFilesFromSbt {
       }
 
       val (compilerPlugins, dependencies) = {
-        val providedDeps = scalaVersions.libraries(isTest = projectType.testLike)
+        val providedDeps = scalaPlatform.libraries(isTest = projectType.testLike)
         importDeps(logger, inputProject, crossName, configuredPlatform.flatMap(_.name), providedDeps)
       }
 
@@ -131,7 +131,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(compilerPlugins, replacements, scalaVersions))
+        bloopProject.scala.map(translateScala(compilerPlugins, replacements, scalaPlatform))
 
       val testFrameworks: JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {
@@ -287,12 +287,12 @@ object importBloopFilesFromSbt {
           val fromPlatform = Option(config.version).filterNot(_.isEmpty)
           // fallback, the original version may have been evicted for a newer one through a dependency, so it's a bit imprecise
           val fromDependencies = resolution.flatMap(_.modules.collectFirst {
-            case mod if mod.organization == Versions.scalaJsOrganization.value && mod.name.startsWith("scalajs-library") => mod.version
+            case mod if mod.organization == VersionScalaJs.org.value && mod.name.startsWith("scalajs-library") => mod.version
           })
 
           fromPlatform
             .orElse(fromDependencies)
-            .map(version => Versions.ScalaJs(version))
+            .map(version => VersionScalaJs(version))
             .getOrElse(throw new BuildException.Text("Couldn't find scalajs-library jar to determine version"))
         }
 
@@ -307,7 +307,7 @@ object importBloopFilesFromSbt {
               import scala.sys.process._
               List(nodePath.toString, "--version").!!.drop(1) // initial v
             }
-            .orElse(Some(Versions.Node)),
+            .orElse(Some(constants.Node)),
 //          output = config.output.map(output => RelPath.relativeTo(directory, output)),
           jsMainClass = mainClass
         )
@@ -323,7 +323,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
-          nativeVersion = Some(Versions.ScalaNative(config.version)),
+          nativeVersion = Some(VersionScalaNative(config.version)),
           nativeMode = Some(config.mode),
           nativeGc = Some(config.gc),
           nativeMainClass = mainClass
@@ -331,7 +331,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(compilerPlugins: Seq[Dep], replacements: Replacements, scalaVersions: ScalaVersions)(s: Config.Scala): model.Scala = {
+  def translateScala(compilerPlugins: Seq[Dep], replacements: Replacements, scalaPlatform: VersionScalaPlatform)(s: Config.Scala): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacements))
 
     val notCompilerPlugins = options.values.filter {
@@ -341,7 +341,7 @@ object importBloopFilesFromSbt {
 
     val filteredCompilerPlugins: Seq[Dep] =
       compilerOptionsDropSemanticDb {
-        scalaVersions.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
+        scalaPlatform.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
       }
 
     val (strict, remainingOptions) = {
@@ -355,7 +355,7 @@ object importBloopFilesFromSbt {
     }
 
     model.Scala(
-      version = Some(Versions.Scala(s.version)),
+      version = Some(VersionScala(s.version)),
       options = remainingOptions,
       setup = s.setup.map(setup =>
         model.CompileSetup(

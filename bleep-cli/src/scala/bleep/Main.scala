@@ -21,8 +21,8 @@ object Main {
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
 
-  val possibleScalaVersions: Map[String, Versions.Scala] =
-    List(Versions.Scala3, Versions.Scala213, Versions.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
+  val possibleScalaVersions: Map[String, VersionScala] =
+    List(VersionScala.Scala3, VersionScala.Scala213, VersionScala.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
 
   object metavars {
     val projectNameExact = "project name exact"
@@ -208,7 +208,7 @@ object Main {
           .withDefault(NonEmptyList.of(model.PlatformId.Jvm)),
         Opts
           .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
-          .withDefault(NonEmptyList.of(Versions.Scala3)),
+          .withDefault(NonEmptyList.of(VersionScala.Scala3)),
         Opts.argument[String]("wanted project name")
       ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.Version(BleepVersion.version)) }
     )

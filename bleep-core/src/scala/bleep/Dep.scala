@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.codecs._
-import bleep.internal.{ScalaVersions, ShortenAndSortJson}
+import bleep.internal.ShortenAndSortJson
 import coursier.core._
 import io.circe.syntax._
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
@@ -17,9 +17,9 @@ sealed trait Dep {
 
   val repr: String
   def isSimple: Boolean
-  def dependency(versions: ScalaVersions): Either[String, Dependency]
-  def dependencyForce(projectName: model.CrossProjectName, versions: ScalaVersions): Dependency =
-    dependency(versions) match {
+  def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency]
+  def dependencyForce(projectName: model.CrossProjectName, scalaPlatform: VersionScalaPlatform): Dependency =
+    dependency(scalaPlatform) match {
       case Left(err)    => throw new BuildException.Text(projectName, err)
       case Right(value) => value
     }
@@ -28,8 +28,8 @@ sealed trait Dep {
   def withVersion(version: String): Dep
   def withTransitive(value: Boolean): Dep
 
-  final def forceDependency(versions: ScalaVersions): Dependency =
-    dependency(versions) match {
+  final def forceDependency(scalaPlatform: VersionScalaPlatform): Dependency =
+    dependency(scalaPlatform) match {
       case Left(err)         => throw new RuntimeException(s"Unexpected: $err")
       case Right(dependency) => dependency
     }
@@ -90,7 +90,7 @@ object Dep {
     val repr: String =
       organization.value + ":" + moduleName.value + ":" + version
 
-    override def dependency(versions: ScalaVersions): Either[String, Dependency] =
+    override def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency] =
       Right(this.dependency)
 
     def dependency: Dependency =
@@ -142,9 +142,9 @@ object Dep {
     val repr: String =
       s"${organization.value}${if (fullCrossVersion) ":::" else "::"}${baseModuleName.value}:$version"
 
-    def dependency(versions: ScalaVersions): Either[String, Dependency] =
-      versions match {
-        case withScala: ScalaVersions.WithScala =>
+    def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency] =
+      scalaPlatform match {
+        case withScala: VersionScalaPlatform.WithScala =>
           withScala.moduleName(
             baseModuleName,
             needsScala = true,
@@ -169,7 +169,7 @@ object Dep {
               Left(s"Cannot include dependency with $withScala")
           }
 
-        case ScalaVersions.Java =>
+        case VersionScalaPlatform.Java =>
           Left(s"You need to configure a scala version to resolve $repr")
       }
 

@@ -1,7 +1,8 @@
 package bleep
 package commands
 
-import bleep.internal.{asYamlString, CoursierLogger, FileUtils, ScalaVersions}
+import bleep.VersionScalaPlatform
+import bleep.internal.{asYamlString, CoursierLogger, FileUtils}
 import coursier.Repository
 import coursier.cache.FileCache
 import coursier.core.{Dependency, Versions}
@@ -54,12 +55,12 @@ object BuildUpdateDeps {
   def instantiateAllDependencies(build: ExplodedBuild): Map[Dep, List[Dependency]] =
     build.projects.toList
       .flatMap { case (crossName, p) =>
-        ScalaVersions.fromExplodedProject(p) match {
+        VersionScalaPlatform.fromExplodedProject(p) match {
           case Left(err) =>
             throw new BuildException.Text(crossName, err)
-          case Right(scalaVersions) =>
+          case Right(scalaPlatform) =>
             p.dependencies.values.iterator.collect {
-              case dep if !dep.version.contains("$") => (dep, dep.dependencyForce(crossName, scalaVersions))
+              case dep if !dep.version.contains("$") => (dep, dep.dependencyForce(crossName, scalaPlatform))
             }
         }
       }
