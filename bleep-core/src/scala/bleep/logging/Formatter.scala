@@ -1,5 +1,6 @@
 package bleep.logging
 
+import bleep.model
 import fansi.Str
 
 import java.io.File
@@ -12,6 +13,11 @@ trait Formatter[T] {
 
 object Formatter {
   @inline def apply[T: Formatter](t: T): Str = implicitly[Formatter[T]].apply(t)
+
+  // these shouldn't be here. will need to find some way to avoid the orphan instances if logging lib is extracted from bleep
+  implicit val formatsCrossProjectName: Formatter[model.CrossProjectName] = _.value
+  implicit val formatsTemplateId: Formatter[model.TemplateId] = _.value
+  implicit val formatterProjectName: Formatter[model.ProjectName] = pn => fansi.Str(pn.value)
 
   implicit def Tuple2Formatter[T1: Formatter, T2: Formatter]: Formatter[(T1, T2)] = { case (t1, t2) =>
     Str.join(List(Formatter(t1), Formatter(t2)), ", ")

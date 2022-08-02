@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{formatsCrossProjectName, Templates}
+import bleep.internal.Templates
 import bleep.rewrites.{normalizeBuild, Defaults}
 
 case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {

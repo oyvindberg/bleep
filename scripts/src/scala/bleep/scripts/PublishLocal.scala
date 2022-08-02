@@ -1,7 +1,6 @@
 package bleep.scripts
 
 import bleep._
-import bleep.internal.formatsCrossProjectName
 import bleep.tasks.publishing._
 
 import scala.collection.immutable.SortedMap
