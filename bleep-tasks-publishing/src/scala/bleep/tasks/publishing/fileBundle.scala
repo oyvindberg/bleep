@@ -2,7 +2,7 @@ package bleep.tasks.publishing
 
 import bleep.internal.rewriteDependentData
 import bleep.model.{Dep, VersionScalaPlatform}
-import bleep.{BleepException, RelPath, Started, model}
+import bleep.{model, BleepException, RelPath, Started}
 import coursier.core.{Dependency, Info}
 
 import scala.collection.immutable.SortedMap

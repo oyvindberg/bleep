@@ -1,6 +1,7 @@
 package bleep.internal
 
-import bleep.{model, ExplodedBuild, Started}
+import bleep.model.ExplodedBuild
+import bleep.{model, Started}
 
 object ProjectGlobs {
   def apply(started: Started) = new ProjectGlobs(started.activeProjectsFromPath, started.build)

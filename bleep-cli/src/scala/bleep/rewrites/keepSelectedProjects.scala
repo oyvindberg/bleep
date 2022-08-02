@@ -2,6 +2,7 @@ package bleep
 package rewrites
 
 import bleep.internal.ProjectGlobs
+import bleep.model.ExplodedBuild
 
 case class keepSelectedProjects(selectedProjectGlobs: List[String]) extends Rewrite {
   override val name = "keep-selected-projects"

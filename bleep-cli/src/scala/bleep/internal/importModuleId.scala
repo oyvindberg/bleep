@@ -1,8 +1,8 @@
 package bleep.internal
 
 import bleep.logging.Logger
-import bleep.model.{Dep, JsonMap, JsonSet}
 import bleep.model
+import bleep.model.{Dep, JsonMap, JsonSet}
 import coursier.core.{Classifier, Configuration, Extension, Module, ModuleName, Organization, Publication, Type}
 import sbt.librarymanagement
 

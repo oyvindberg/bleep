@@ -1,8 +1,8 @@
 package bleep
 package commands
 
-import bleep.bsp.BspCommandFailed
 import bleep.BleepException
+import bleep.bsp.BspCommandFailed
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams, ScalaMainClassesResult}
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError

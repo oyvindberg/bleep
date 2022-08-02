@@ -1,6 +1,6 @@
 package bleep.tasks.publishing
 
-import bleep.{RelPath, createJar}
+import bleep.{createJar, RelPath}
 import bleep.ProjectPaths
 import coursier.core.{Configuration, Dependency, Info}
 

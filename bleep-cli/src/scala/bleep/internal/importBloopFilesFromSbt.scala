@@ -1,22 +1,10 @@
 package bleep
 package internal
 
-import bleep.RelPath
 import bleep.internal.ImportInputProjects.ProjectType
 import bleep.logging.Logger
-import bleep.model.{
-  Dep,
-  JsonList,
-  JsonMap,
-  JsonSet,
-  Options,
-  Replacements,
-  SourceLayout,
-  VersionScala,
-  VersionScalaJs,
-  VersionScalaNative,
-  VersionScalaPlatform
-}
+import bleep.model._
+import bleep.{model, RelPath}
 import bloop.config.Config
 import coursier.core.Configuration
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
@@ -76,7 +64,7 @@ object importBloopFilesFromSbt {
       val scalaVersion: Option[VersionScala] =
         bloopProject.scala.map(s => VersionScala(s.version))
 
-      val originalTarget = internal.findOriginalTargetDir.force(crossName, bloopProject)
+      val originalTarget = findOriginalTargetDir.force(crossName, bloopProject)
 
       val replacements =
         Replacements.paths(sbtBuildDir, directory) ++
@@ -185,7 +173,7 @@ object importBloopFilesFromSbt {
           .toList
       )
 
-    ExplodedBuild(model.Build.empty(bleepVersion).copy(resolvers = buildResolvers), templates = Map.empty, projects = projects)
+    model.ExplodedBuild(model.Build.empty(bleepVersion).copy(resolvers = buildResolvers), templates = Map.empty, projects = projects)
   }
 
   def importDeps(

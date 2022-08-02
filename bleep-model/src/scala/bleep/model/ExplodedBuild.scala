@@ -1,18 +1,19 @@
-package bleep
+package bleep.model
 
 import bleep.internal.Functions.stripExtends
-import bleep.internal.{asYamlString, rewriteDependentData}
-import bleep.model.{JsonList, JsonMap, JsonSet}
+import bleep.internal.rewriteDependentData
+import bleep.rewrites.Defaults
+import bleep.toYaml.asYamlString
 
 import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
 
 case class ExplodedBuild(
-    build: model.Build,
-    templates: Map[model.TemplateId, model.Project],
-    projects: Map[model.CrossProjectName, model.Project]
+    build: Build,
+    templates: Map[TemplateId, Project],
+    projects: Map[CrossProjectName, Project]
 ) {
-  def scripts: Map[model.ScriptName, JsonList[model.ScriptDef]] =
+  def scripts: Map[ScriptName, JsonList[ScriptDef]] =
     build.scripts.value
 
   def dropTemplates: ExplodedBuild =
@@ -21,32 +22,32 @@ case class ExplodedBuild(
       projects = projects.map { case (crossName, p) => (crossName, stripExtends(p)) }
     )
 
-  val retainCrossTemplates: Map[model.ProjectName, JsonSet[model.TemplateId]] =
+  val retainCrossTemplates: Map[ProjectName, JsonSet[TemplateId]] =
     build.projects.value.flatMap { case (projectName, p) =>
       Some((projectName, p.`extends`))
     }
 
   // in json we just specify projectName, but in bleep we need to know which cross version to pick
-  val resolvedDependsOn: Map[model.CrossProjectName, SortedSet[model.CrossProjectName]] = {
-    val byName: Map[model.ProjectName, Iterable[model.CrossProjectName]] =
+  val resolvedDependsOn: Map[CrossProjectName, SortedSet[CrossProjectName]] = {
+    val byName: Map[ProjectName, Iterable[CrossProjectName]] =
       projects.groupBy(_._1.name).map { case (k, v) => (k, v.keys) }
 
     projects.map { case (crossProjectName, p) =>
-      val resolvedDependsOn: SortedSet[model.CrossProjectName] =
+      val resolvedDependsOn: SortedSet[CrossProjectName] =
         p.dependsOn.values.map { depName =>
           byName(depName) match {
             case unambiguous if unambiguous.size == 1 => unambiguous.head
             case depCrossVersions =>
               val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 
-              def sameScalaAndPlatform: Option[model.CrossProjectName] =
+              def sameScalaAndPlatform: Option[CrossProjectName] =
                 depCrossVersions.find { crossName =>
                   val depCross = projects(crossName)
                   depCross.scala.flatMap(_.version) == p.scala.flatMap(_.version) &&
                   depCross.platform.flatMap(_.name) == p.platform.flatMap(_.name)
                 }
 
-              def sameScalaBinVersionAndPlatform: Option[model.CrossProjectName] =
+              def sameScalaBinVersionAndPlatform: Option[CrossProjectName] =
                 depCrossVersions.find { crossName =>
                   val depCross = projects(crossName)
                   depCross.scala.flatMap(_.version).map(_.binVersion) == p.scala.flatMap(_.version).map(_.binVersion) &&
@@ -66,17 +67,17 @@ case class ExplodedBuild(
     }
   }
 
-  def transitiveDependenciesFor(name: model.CrossProjectName): Map[model.CrossProjectName, model.Project] = {
-    val builder = Map.newBuilder[model.CrossProjectName, model.Project]
+  def transitiveDependenciesFor(name: CrossProjectName): Map[CrossProjectName, Project] = {
+    val builder = Map.newBuilder[CrossProjectName, Project]
 
-    def go(depName: model.CrossProjectName): Unit =
+    def go(depName: CrossProjectName): Unit =
       projects.get(depName) match {
         case Some(p) =>
           builder += ((depName, p))
           resolvedDependsOn(depName).foreach(go)
 
         case None =>
-          throw new BleepException.Text(name, s"depends on non-existing project ${depName.value}")
+          throw new bleep.BleepException.Text(name, s"depends on non-existing project ${depName.value}")
       }
 
     resolvedDependsOn(name).foreach(go)
@@ -86,9 +87,9 @@ case class ExplodedBuild(
 }
 
 object ExplodedBuild {
-  def diffProjects(before: ExplodedBuild, after: ExplodedBuild): SortedMap[model.CrossProjectName, String] = {
+  def diffProjects(before: ExplodedBuild, after: ExplodedBuild): SortedMap[CrossProjectName, String] = {
     val allProjects = before.projects.keySet ++ after.projects.keySet
-    val diffs = SortedMap.newBuilder[model.CrossProjectName, String]
+    val diffs = SortedMap.newBuilder[CrossProjectName, String]
     allProjects.foreach { projectName =>
       (before.projects.get(projectName), after.projects.get(projectName)) match {
         case (Some(before), Some(after)) if after == before => ()
@@ -107,28 +108,28 @@ object ExplodedBuild {
     diffs.result()
   }
 
-  def of(build: model.Build): ExplodedBuild = {
-    val explodedTemplates: SortedMap[model.TemplateId, model.Project] =
-      rewriteDependentData(build.templates.value).eager[model.Project] { (_, p, eval) =>
+  def of(build: Build): ExplodedBuild = {
+    val explodedTemplates: SortedMap[TemplateId, Project] =
+      rewriteDependentData(build.templates.value).eager[Project] { (_, p, eval) =>
         p.`extends`.values.foldLeft(p)((acc, templateId) => acc.union(eval(templateId).forceGet))
       }
 
-    def explode(p: model.Project): model.Project =
+    def explode(p: Project): Project =
       p.`extends`.values.foldLeft(p)((acc, templateId) => acc.union(explodedTemplates(templateId)))
 
-    val explodedProjects: Map[model.CrossProjectName, model.Project] =
+    val explodedProjects: Map[CrossProjectName, Project] =
       build.projects.value.flatMap { case (projectName, p) =>
         val explodedP = explode(p)
 
-        val explodeCross: Map[model.CrossProjectName, model.Project] =
+        val explodeCross: Map[CrossProjectName, Project] =
           if (explodedP.cross.isEmpty) {
             val withDefaults = Defaults.add.project(explodedP)
-            Map(model.CrossProjectName(projectName, None) -> withDefaults)
+            Map(CrossProjectName(projectName, None) -> withDefaults)
           } else {
             explodedP.cross.value.map { case (crossId, crossP) =>
               val combinedWithCrossProject = explode(crossP).union(explodedP.copy(cross = JsonMap.empty))
               val withDefaults = Defaults.add.project(combinedWithCrossProject)
-              (model.CrossProjectName(projectName, Some(crossId)), withDefaults)
+              (CrossProjectName(projectName, Some(crossId)), withDefaults)
             }
           }
 

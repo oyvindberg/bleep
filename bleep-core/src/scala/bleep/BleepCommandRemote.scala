@@ -1,9 +1,7 @@
 package bleep
 
-import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
-import bleep.bsp.BspCommandFailed
+import bleep.bsp.{BleepRifleLogger, BspCommandFailed, CompileServerMode, SetupBloopRifle}
 import bleep.internal.BspClientDisplayProgress
-import bleep.BleepException
 import ch.epfl.scala.bsp4j
 
 import java.util

@@ -3,7 +3,7 @@ package bleep
 import bleep.internal.codecs._
 import bleep.internal.{CoursierLogger, FileUtils}
 import bleep.logging.Logger
-import bleep.model.{JsonSet, VersionScala}
+import bleep.model.VersionScala
 import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core._

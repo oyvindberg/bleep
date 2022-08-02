@@ -1,7 +1,6 @@
 package bleep.testing
 
-import bleep.internal.FileUtils.DeleteUnknowns
-import bleep.internal.FileUtils
+import bleep.FileSync
 import bleep.model.Replacements
 import coursier.jvm.JvmIndex
 import coursier.paths.CoursierPaths
@@ -45,7 +44,7 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
         }
         succeed
       } else {
-        FileUtils.syncPaths(in, fileMap, deleteUnknowns = DeleteUnknowns.Yes(maxDepth = None), soft = true)
+        FileSync.syncPaths(in, fileMap, deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = None), soft = true)
         pending
       }
     }
@@ -66,7 +65,7 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
         }
         succeed
       } else {
-        FileUtils.syncPaths(in, fileMap, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
+        FileSync.syncPaths(in, fileMap, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = true)
         succeed
       }
     }

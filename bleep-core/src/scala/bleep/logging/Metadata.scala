@@ -1,8 +1,8 @@
 package bleep.logging
 
-import java.time.Instant
-
 import sourcecode.{Enclosing, File, Line}
+
+import java.time.Instant
 
 final class Metadata(
     val instant: Instant,

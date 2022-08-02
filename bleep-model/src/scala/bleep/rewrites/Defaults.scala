@@ -1,17 +1,17 @@
-package bleep
+package bleep.rewrites
 
-import bleep.internal.conversions
-import bleep.model.{Options, SourceLayout}
-import bloop.config.Config
+import bleep.model.{CompileOrder, ExplodedBuild, Options, SourceLayout}
+import bleep.{model, Rewrite}
 
 object Defaults {
+  // values copied from bloops `Config.CompileSetup.empty`
   val DefaultCompileSetup = model.CompileSetup(
-    order = Some(conversions.compileOrder.to(Config.CompileSetup.empty.order)),
-    addLibraryToBootClasspath = Some(Config.CompileSetup.empty.addLibraryToBootClasspath),
-    addCompilerToClasspath = Some(Config.CompileSetup.empty.addCompilerToClasspath),
-    addExtraJarsToClasspath = Some(Config.CompileSetup.empty.addExtraJarsToClasspath),
-    manageBootClasspath = Some(Config.CompileSetup.empty.manageBootClasspath),
-    filterLibraryFromClasspath = Some(Config.CompileSetup.empty.filterLibraryFromClasspath)
+    order = Some(CompileOrder.Mixed),
+    addLibraryToBootClasspath = Some(true),
+    addCompilerToClasspath = Some(false),
+    addExtraJarsToClasspath = Some(false),
+    manageBootClasspath = Some(true),
+    filterLibraryFromClasspath = Some(true)
   )
 
   val Jvm: model.Platform =

@@ -1,11 +1,7 @@
 package bleep
 
-import bleep.internal.ShortenAndSortJson
 import bleep.logging.Formatter
 import bleep.model.{CrossProjectName, ProjectName, TemplateId}
-import coursier.Dependency
-import io.circe.Encoder
-import io.circe.syntax.EncoderOps
 
 package object internal {
   implicit val formatsCrossProjectName: Formatter[CrossProjectName] = _.value
@@ -42,12 +38,4 @@ package object internal {
 
   def throwableMessages(th: Throwable): List[String] =
     th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)
-
-  private val printer = new io.circe.yaml12.Printer(
-    preserveOrder = true,
-    dropNullKeys = true
-  )
-
-  def asYamlString[T: Encoder](t: T): String =
-    printer.pretty(t.asJson.foldWith(ShortenAndSortJson))
 }

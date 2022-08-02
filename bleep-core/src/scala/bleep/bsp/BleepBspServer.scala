@@ -1,9 +1,9 @@
 package bleep
 package bsp
 
+import bleep.BleepException
 import bleep.internal.throwableMessages
 import bleep.logging.Logger
-import bleep.BleepException
 import ch.epfl.scala.bsp4j
 import com.google.gson.{JsonObject, JsonPrimitive}
 

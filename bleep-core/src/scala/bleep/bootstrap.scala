@@ -1,7 +1,8 @@
 package bleep
 
 import bleep.BuildPaths.Mode
-import bleep.internal.{fatal, Os}
+import bleep.internal.{Os, fatal}
+import bleep.model.ExplodedBuild
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext

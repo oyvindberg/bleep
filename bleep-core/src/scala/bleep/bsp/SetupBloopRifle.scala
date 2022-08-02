@@ -9,8 +9,8 @@ import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
 import java.io.File
-import java.nio.file.attribute.PosixFilePermission
 import java.nio.file._
+import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Random, Success, Try}

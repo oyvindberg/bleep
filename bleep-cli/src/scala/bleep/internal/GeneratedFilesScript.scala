@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.{RelPath, model}
+import bleep.{model, RelPath}
 
 object GeneratedFilesScript {
   @FunctionalInterface

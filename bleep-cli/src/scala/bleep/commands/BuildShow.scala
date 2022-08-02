@@ -2,8 +2,8 @@ package bleep
 package commands
 
 import bleep.BleepException
-import bleep.internal.asYamlString
 import bleep.model.{JsonMap, JsonSet}
+import bleep.toYaml.asYamlString
 import bloop.config.ConfigCodecs
 import cats.data.NonEmptyList
 
