@@ -3,10 +3,6 @@ package bleep
 import bleep.logging.Formatter
 
 package object internal {
-  implicit val formatsCrossProjectName: Formatter[model.CrossProjectName] = _.value
-  implicit val formatsTemplateId: Formatter[model.TemplateId] = _.value
-  implicit val formatterProjectName: Formatter[model.ProjectName] = pn => fansi.Str(pn.value)
-
   implicit class IterableOps[I[t] <: Iterable[t], T](private val ts: I[T]) extends AnyVal {
     // surprisingly difficult to express with default collections
     def optReduce(op: (T, T) => Option[T]): Option[T] = {

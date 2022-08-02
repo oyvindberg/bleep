@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{formatsCrossProjectName, FileUtils}
+import bleep.internal.FileUtils
 
 import java.nio.file.{Files, Path}
 
