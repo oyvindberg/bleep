@@ -1,10 +1,11 @@
 package bleep
 
-import bleep.internal.{conversions, rewriteDependentData, FileUtils}
+import bleep.internal.{conversions, rewriteDependentData}
 import bleep.logging.Logger
-import bleep.model.{Dep, JsonSet, Options, Replacements, VersionScala, VersionScalaPlatform}
+import bleep.model._
+import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
+import com.github.plokhotnyuk.jsoniter_scala.core.{WriterConfig, readFromString, writeToString}
 import coursier.core.{Configuration, Extension}
 import coursier.{Classifier, Dependency}
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
@@ -79,10 +80,10 @@ object GenBloopFiles {
 
         val fileMap = encodedFiles(buildPaths, bloopFiles).updated(buildPaths.digestFile, currentHash)
 
-        val synced = FileUtils.syncPaths(
+        val synced = FileSync.syncPaths(
           folder = buildPaths.bleepBloopDir,
           fileMap = fileMap,
-          deleteUnknowns = FileUtils.DeleteUnknowns.Yes(maxDepth = Some(1)),
+          deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
           soft = true
         )
 

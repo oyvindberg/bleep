@@ -1,8 +1,9 @@
 package bleep
 package commands
 
+import bleep.model.ExplodedBuild
+import bleep.toYaml.asYamlString
 import bleep.{BuildLoader, Lazy}
-import bleep.internal.asYamlString
 import com.monovore.decline.Opts
 
 import scala.collection.immutable.SortedSet

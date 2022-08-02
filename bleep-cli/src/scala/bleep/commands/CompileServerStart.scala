@@ -1,10 +1,10 @@
 package bleep
 package commands
 
-import bleep.{BleepException, Lazy}
 import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
 import bleep.internal.BspClientDisplayProgress
 import bleep.logging.Logger
+import bleep.{BleepException, Lazy}
 
 import java.nio.file.Files
 import scala.build.bloop.{BloopServer, BloopThreads}

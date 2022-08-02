@@ -1,6 +1,8 @@
 package bleep
 package rewrites
 
+import bleep.model.ExplodedBuild
+
 /** Throw away information which is superfluous. may be needed after import or after user edits build
   */
 object normalizeBuild extends Rewrite {

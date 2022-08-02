@@ -1,8 +1,8 @@
 package bleep.bsp
 
-import bleep.internal.{asYamlString, FileUtils}
-import bleep.BuildPaths
-import bleep.BleepException
+import bleep.internal.FileUtils
+import bleep.toYaml.asYamlString
+import bleep.{BleepException, BuildPaths}
 import io.circe.yaml12.parser.decode
 
 import java.nio.file.Files

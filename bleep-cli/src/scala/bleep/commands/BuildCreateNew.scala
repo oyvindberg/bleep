@@ -1,10 +1,11 @@
 package bleep
 package commands
 
-import bleep.internal.{asYamlString, FileUtils, Templates}
+import bleep.internal.Templates
 import bleep.logging.Logger
 import bleep.model._
-import bleep.{constants, BleepException}
+import bleep.toYaml.asYamlString
+import bleep.{constants, model, BleepException}
 import cats.data.NonEmptyList
 
 import java.nio.file.{Files, Path}
@@ -27,7 +28,7 @@ case class BuildCreateNew(
   def generate(buildPaths: BuildPaths): Either[BleepException, (Started, Map[Path, String])] = {
     val allFiles = genAllFiles(buildPaths)
 
-    val syncedFiles = FileUtils.syncPaths(cwd, allFiles, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = true)
+    val syncedFiles = FileSync.syncPaths(cwd, allFiles, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = true)
 
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
@@ -178,7 +179,7 @@ object BuildCreateNew {
         (crossName, p)
       }
 
-    val explodedBuild = ExplodedBuild(
+    val explodedBuild = model.ExplodedBuild(
       build = model.Build.empty(bleepVersion).copy(jvm = Some(model.Jvm.graalvm)),
       templates = Map.empty,
       projects = (mainProjects.toList ++ testProjects.toList).toMap

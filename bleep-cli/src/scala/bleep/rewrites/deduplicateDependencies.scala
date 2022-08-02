@@ -2,7 +2,7 @@ package bleep
 package rewrites
 
 import bleep.internal.rewriteDependentData
-import bleep.model.{Dep, JsonSet}
+import bleep.model.{Dep, ExplodedBuild, JsonSet}
 import coursier.core.Configuration
 
 /** Trims dependencies, both on libraries and on projects, which are already provided by a parent project */

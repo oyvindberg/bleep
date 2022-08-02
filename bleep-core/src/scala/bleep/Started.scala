@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.model.ExplodedBuild
 import bloop.config.Config
 import coursier.jvm.JavaHome
 

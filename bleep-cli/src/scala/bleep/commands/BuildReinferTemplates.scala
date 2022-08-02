@@ -1,8 +1,10 @@
 package bleep
 package commands
 
-import bleep.internal.{asYamlString, formatsCrossProjectName, FileUtils, Templates}
-import bleep.rewrites.normalizeBuild
+import bleep.internal.{formatsCrossProjectName, FileUtils, Templates}
+import bleep.model.ExplodedBuild
+import bleep.rewrites.{normalizeBuild, Defaults}
+import bleep.toYaml.asYamlString
 
 case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {

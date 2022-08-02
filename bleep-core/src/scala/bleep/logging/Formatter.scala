@@ -1,9 +1,9 @@
 package bleep.logging
 
-import java.io.File
-import java.net.URI
 import fansi.Str
 
+import java.io.File
+import java.net.URI
 import java.nio.file.Path
 
 trait Formatter[T] {

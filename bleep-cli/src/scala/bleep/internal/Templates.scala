@@ -2,7 +2,7 @@ package bleep
 package internal
 
 import bleep.logging.{Formatter, Logger}
-import bleep.model.{JsonMap, JsonSet}
+import bleep.model.{ExplodedBuild, JsonMap, JsonSet}
 import bleep.rewrites.deduplicateDependencies
 
 import scala.annotation.tailrec

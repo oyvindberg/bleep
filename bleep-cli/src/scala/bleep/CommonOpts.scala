@@ -1,7 +1,7 @@
 package bleep
 
-import com.monovore.decline.Opts
 import cats.syntax.apply._
+import com.monovore.decline.Opts
 
 case class CommonOpts(noColor: Boolean, debug: Boolean, directory: Option[String], ignoreWantedVersion: Boolean)
 

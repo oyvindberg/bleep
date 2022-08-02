@@ -1,8 +1,9 @@
 package bleep
 package commands
 
-import bleep.internal.{asYamlString, CoursierLogger, FileUtils}
-import bleep.model.{Dep, JsonMap, VersionScalaPlatform}
+import bleep.internal.{CoursierLogger, FileUtils}
+import bleep.model.{Dep, ExplodedBuild, JsonMap, VersionScalaPlatform}
+import bleep.toYaml.asYamlString
 import coursier.Repository
 import coursier.cache.FileCache
 import coursier.core.{Dependency, Versions}

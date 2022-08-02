@@ -1,8 +1,9 @@
 package bleep
 
 import bleep.bsp.CompileServerMode
-import bleep.internal.{asYamlString, FileUtils}
+import bleep.internal.FileUtils
 import bleep.logging.Logger
+import bleep.toYaml.asYamlString
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.yaml12.parser.decode
 import io.circe.{Decoder, Encoder}

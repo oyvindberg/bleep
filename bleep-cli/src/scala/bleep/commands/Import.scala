@@ -5,8 +5,9 @@ import bleep.RelPath
 import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
-import bleep.model.{Dep, JsonList, JsonMap, JsonSet, Options, VersionScala}
-import bleep.rewrites.normalizeBuild
+import bleep.model._
+import bleep.rewrites.{normalizeBuild, Defaults}
+import bleep.toYaml.asYamlString
 import cats.syntax.apply._
 import com.monovore.decline.Opts
 
@@ -178,7 +179,7 @@ case class Import(
       existingBuild
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 
-    FileUtils.syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileUtils.DeleteUnknowns.No, soft = false)
+    FileSync.syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = false)
 
     Right(())
   }

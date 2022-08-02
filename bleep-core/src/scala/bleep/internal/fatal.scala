@@ -1,8 +1,8 @@
 package bleep
 package internal
 
-import bleep.logging.Logger
 import bleep.BleepException
+import bleep.logging.Logger
 
 object fatal {
   def apply(context: String, logger: Logger, throwable: Throwable): Nothing = {

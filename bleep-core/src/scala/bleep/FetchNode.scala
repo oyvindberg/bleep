@@ -2,14 +2,13 @@ package bleep
 
 import bleep.internal.{CoursierLogger, FileUtils}
 import bleep.logging.Logger
-import bleep.BleepException
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.JvmIndex
 import coursier.util.{Artifact, Task}
 
 import java.nio.file.Path
-import scala.concurrent.{Await, ExecutionContext}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext}
 
 class FetchNode(logger: Logger, ec: ExecutionContext) {
   def apply(nodeVersion: String): Path = {

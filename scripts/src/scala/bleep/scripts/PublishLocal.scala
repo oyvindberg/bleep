@@ -1,7 +1,7 @@
 package bleep.scripts
 
 import bleep._
-import bleep.internal.{formatsCrossProjectName, FileUtils}
+import bleep.internal.formatsCrossProjectName
 import bleep.model.Dep
 import bleep.tasks.publishing._
 
@@ -24,10 +24,10 @@ object PublishLocal extends BleepScriptRunner("PublishLocal") {
       )
 
     bundledProjects.foreach { case (projectName, Deployable(asDependency, files)) =>
-      FileUtils.syncBytes(
+      FileSync.syncBytes(
         constants.ivy2Path,
         files.all,
-        deleteUnknowns = FileUtils.DeleteUnknowns.No,
+        deleteUnknowns = FileSync.DeleteUnknowns.No,
         soft = false
       )
       started.logger.withContext("dep", asDependency.module.repr).withContext(projectName).info("Written")

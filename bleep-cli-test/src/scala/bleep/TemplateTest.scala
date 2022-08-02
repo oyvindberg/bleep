@@ -1,8 +1,9 @@
 package bleep
 
-import bleep.internal.{ShortenAndSortJson, Templates}
 import bleep.internal.Templates.TemplateDef
-import bleep.model.{JsonSet, Options, VersionScala}
+import bleep.internal.{ShortenAndSortJson, Templates}
+import bleep.model.{ExplodedBuild, JsonSet, Options, VersionScala}
+import bleep.rewrites.Defaults
 import bleep.testing.SnapshotTest
 import io.circe.Decoder
 import io.circe.syntax.EncoderOps

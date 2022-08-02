@@ -1,4 +1,3 @@
-import bleep.{BleepException, RelPath}
 import bleep.logging.Logger
 
 import java.nio.file.Path

@@ -1,8 +1,8 @@
 package bleep
 package commands
 
-import bleep.internal.FileUtils
 import bleep.BleepException
+import bleep.internal.FileUtils
 
 import java.nio.file.{Files, Path}
 import scala.util.Properties
