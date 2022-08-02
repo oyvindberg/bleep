@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.{BleepException, model}
+import bleep.{model, BleepException}
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 

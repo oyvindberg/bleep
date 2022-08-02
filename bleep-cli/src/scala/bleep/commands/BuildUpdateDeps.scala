@@ -2,7 +2,6 @@ package bleep
 package commands
 
 import bleep.internal.{CoursierLogger, FileUtils}
-import bleep.model.{Dep, ExplodedBuild, JsonMap, VersionScalaPlatform}
 import bleep.toYaml.asYamlString
 import coursier.Repository
 import coursier.cache.FileCache
@@ -18,19 +17,19 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
     // a bleep dependency may be instantiated into several different coursier dependencies
     // depending on which scala versions and platforms are plugging in
     // collect all instantiations into this structure
-    val allDeps: Map[Dep, List[Dependency]] =
+    val allDeps: Map[model.Dep, List[Dependency]] =
       BuildUpdateDeps.instantiateAllDependencies(started.build)
 
     val config = started.lazyConfig.forceGet
     val repos = CoursierResolver.coursierRepos(started.rawBuild.resolvers.values, config.authentications).filter(_.repr.contains("http"))
     val fileCache = FileCache[Task]().withLogger(new CoursierLogger(started.logger))
 
-    val foundByDep: Map[Dep, List[Versions]] = {
+    val foundByDep: Map[model.Dep, List[Versions]] = {
       implicit val ec: ExecutionContext = started.executionContext
       Await.result(BuildUpdateDeps.fetchAllVersions(fileCache, repos, allDeps), Duration.Inf)
     }
 
-    val upgrades: Map[Dep, Dep] =
+    val upgrades: Map[model.Dep, model.Dep] =
       foundByDep.flatMap { case (bleepDep, versions) =>
         // one particular scala/platform combination may be dropped. let's say it'll hold the rest back for now, it's the easiest.
         val latest = versions.map(_.latest).min
@@ -53,10 +52,10 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
 }
 
 object BuildUpdateDeps {
-  def instantiateAllDependencies(build: ExplodedBuild): Map[Dep, List[Dependency]] =
+  def instantiateAllDependencies(build: model.ExplodedBuild): Map[model.Dep, List[Dependency]] =
     build.projects.toList
       .flatMap { case (crossName, p) =>
-        VersionScalaPlatform.fromExplodedProject(p) match {
+        model.VersionScalaPlatform.fromExplodedProject(p) match {
           case Left(err) =>
             throw new BleepException.Text(crossName, err)
           case Right(scalaPlatform) =>
@@ -68,22 +67,22 @@ object BuildUpdateDeps {
       .groupBy { case (bleepDep, _) => bleepDep }
       .map { case (bleepDep, list) => (bleepDep, list.map { case (_, csDep) => csDep }.distinct) }
 
-  def upgradedBuild(upgrades: Map[Dep, Dep], build: model.Build): model.Build = {
+  def upgradedBuild(upgrades: Map[model.Dep, model.Dep], build: model.Build): model.Build = {
     def go(p: model.Project): model.Project =
       p.copy(
-        cross = JsonMap(p.cross.value.map { case (crossId, p) => (crossId, go(p)) }),
+        cross = model.JsonMap(p.cross.value.map { case (crossId, p) => (crossId, go(p)) }),
         dependencies = p.dependencies.map(dep => upgrades.getOrElse(dep, dep))
       )
 
     build.copy(
-      projects = JsonMap(build.projects.value.map { case (projectName, p) => (projectName, go(p)) }),
-      templates = JsonMap(build.templates.value.map { case (templateId, p) => (templateId, go(p)) })
+      projects = model.JsonMap(build.projects.value.map { case (projectName, p) => (projectName, go(p)) }),
+      templates = model.JsonMap(build.templates.value.map { case (templateId, p) => (templateId, go(p)) })
     )
   }
 
-  def fetchAllVersions(fileCache: FileCache[Task], repos: List[Repository], allDeps: Map[Dep, List[Dependency]])(implicit
+  def fetchAllVersions(fileCache: FileCache[Task], repos: List[Repository], allDeps: Map[model.Dep, List[Dependency]])(implicit
       ec: ExecutionContext
-  ): Future[Map[Dep, List[Versions]]] =
+  ): Future[Map[model.Dep, List[Versions]]] =
     Future
       .sequence {
         allDeps.map { case (bleepDep, csDeps) =>

@@ -1,6 +1,5 @@
 package bleep.model
 
-import bleep.model
 import coursier.core.ModuleName
 
 /** Encodes legal combinations of scala versions and platform versions */

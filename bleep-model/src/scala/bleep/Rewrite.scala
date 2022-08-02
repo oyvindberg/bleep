@@ -1,9 +1,7 @@
 package bleep
 
-import bleep.model.ExplodedBuild
-
 trait Rewrite {
   val name: String
 
-  def apply(explodedBuild: ExplodedBuild): ExplodedBuild
+  def apply(explodedBuild: model.ExplodedBuild): model.ExplodedBuild
 }

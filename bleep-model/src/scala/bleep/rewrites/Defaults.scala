@@ -1,12 +1,11 @@
 package bleep.rewrites
 
-import bleep.model.{CompileOrder, ExplodedBuild, Options, SourceLayout}
 import bleep.{model, Rewrite}
 
 object Defaults {
   // values copied from bloops `Config.CompileSetup.empty`
   val DefaultCompileSetup = model.CompileSetup(
-    order = Some(CompileOrder.Mixed),
+    order = Some(model.CompileOrder.Mixed),
     addLibraryToBootClasspath = Some(true),
     addCompilerToClasspath = Some(false),
     addExtraJarsToClasspath = Some(false),
@@ -24,8 +23,8 @@ object Defaults {
       jsEmitSourceMaps = None,
       jsJsdom = None,
       jsNodeVersion = None,
-      jvmOptions = Options(Set(Options.Opt.Flag("-Duser.dir=${BUILD_DIR}"))),
-      jvmRuntimeOptions = Options.empty,
+      jvmOptions = model.Options(Set(model.Options.Opt.Flag("-Duser.dir=${BUILD_DIR}"))),
+      jvmRuntimeOptions = model.Options.empty,
       nativeVersion = None,
       nativeMode = None,
       nativeGc = None
@@ -34,7 +33,7 @@ object Defaults {
   object remove extends Rewrite {
     override val name: String = "defaults-remove"
 
-    override def apply(build: ExplodedBuild): ExplodedBuild = {
+    override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
       val newProjects = build.projects.map { case (crossName, p) => (crossName, project(p)) }
       build.copy(projects = newProjects)
     }
@@ -44,7 +43,7 @@ object Defaults {
         scala = proj.scala.map(ret => ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))),
         platform = proj.platform.map(x => x.removeAll(Defaults.Jvm)),
         `source-layout` = proj.`source-layout`.filterNot { sourceLayout =>
-          val default = if (proj.scala.isDefined) SourceLayout.Normal else SourceLayout.Java
+          val default = if (proj.scala.isDefined) model.SourceLayout.Normal else model.SourceLayout.Java
           sourceLayout == default
         }
       )
@@ -53,7 +52,7 @@ object Defaults {
   object add extends Rewrite {
     override val name: String = "defaults-add"
 
-    override def apply(build: ExplodedBuild): ExplodedBuild = {
+    override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
       val newProjects = build.projects.map { case (crossName, p) => (crossName, project(p)) }
       build.copy(projects = newProjects)
     }
@@ -63,7 +62,7 @@ object Defaults {
         scala = proj.scala.map(x => x.copy(setup = Some(x.setup.fold(DefaultCompileSetup)(_.union(DefaultCompileSetup))))),
         platform = proj.platform.map(x => if (x.name.contains(model.PlatformId.Jvm)) x.union(Defaults.Jvm) else x),
         `source-layout` = proj.`source-layout`.orElse {
-          val default = if (proj.scala.isDefined) SourceLayout.Normal else SourceLayout.Java
+          val default = if (proj.scala.isDefined) model.SourceLayout.Normal else model.SourceLayout.Java
           Some(default)
         }
       )

@@ -3,7 +3,6 @@ package bleep
 import bleep.commands.BuildCreateNew
 import bleep.internal.FileUtils
 import bleep.logging.LogLevel
-import bleep.model.VersionScala
 import bleep.testing.SnapshotTest
 import cats.data.NonEmptyList
 
@@ -21,7 +20,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
         logger,
         cwd = buildPaths.buildDir,
         platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
-        scalas = NonEmptyList.of(VersionScala.Scala3, VersionScala.Scala213),
+        scalas = NonEmptyList.of(model.VersionScala.Scala3, model.VersionScala.Scala213),
         name = "myapp",
         bleepVersion = model.Version("testing")
       ).genAllFiles(buildPaths)

@@ -1,8 +1,6 @@
 package bleep
 package rewrites
 
-import bleep.model.ExplodedBuild
-
 /** Throw away information which is superfluous. may be needed after import or after user edits build
   */
 object normalizeBuild extends Rewrite {
@@ -15,6 +13,6 @@ object normalizeBuild extends Rewrite {
       deduplicateDependencies
     )
 
-  override def apply(build: ExplodedBuild): ExplodedBuild =
+  override def apply(build: model.ExplodedBuild): model.ExplodedBuild =
     Pipeline.foldLeft(build)((acc, f) => f(acc))
 }

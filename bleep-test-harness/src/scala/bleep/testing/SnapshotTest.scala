@@ -1,7 +1,6 @@
 package bleep.testing
 
-import bleep.FileSync
-import bleep.model.Replacements
+import bleep.{model, FileSync}
 import coursier.jvm.JvmIndex
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
@@ -18,8 +17,8 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   val outFolder: Path =
     Paths.get("snapshot-tests").toAbsolutePath
 
-  val absolutePaths: Replacements =
-    Replacements.ofReplacements(
+  val absolutePaths: model.Replacements =
+    model.Replacements.ofReplacements(
       List(
         (CoursierPaths.cacheDirectory().toString, "<COURSIER>"),
         (CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>"),

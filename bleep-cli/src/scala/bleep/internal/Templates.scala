@@ -2,7 +2,6 @@ package bleep
 package internal
 
 import bleep.logging.{Formatter, Logger}
-import bleep.model.{ExplodedBuild, JsonMap, JsonSet}
 import bleep.rewrites.deduplicateDependencies
 
 import scala.annotation.tailrec
@@ -39,7 +38,7 @@ object Templates {
     def withTemplate(t: model.TemplateId): model.Project =
       p.copy(`extends` = p.`extends` + t)
     def dropTemplates: model.Project =
-      p.copy(`extends` = JsonSet.empty)
+      p.copy(`extends` = model.JsonSet.empty)
   }
 
   sealed trait TemplateDef {
@@ -250,7 +249,7 @@ object Templates {
 
   /** Takes an exploded build, infers templates and applies them. also groups cross projects
     */
-  def apply(logger: Logger, build0: ExplodedBuild, ignoreWhenInferringTemplates: model.ProjectName => Boolean): model.Build = {
+  def apply(logger: Logger, build0: model.ExplodedBuild, ignoreWhenInferringTemplates: model.ProjectName => Boolean): model.Build = {
 
     val s1 = step[model.CrossProjectName](
       logger,
@@ -277,7 +276,7 @@ object Templates {
         case (templateDef, Some(p)) if !p.current.isEmpty => (templateDef.templateId, p.current)
       }
       val projects = s2.templatedProjects.map { case (n, cp) => (n, cp.current) }
-      build0.build.copy(templates = JsonMap(templates), projects = JsonMap(projects))
+      build0.build.copy(templates = model.JsonMap(templates), projects = model.JsonMap(projects))
     }
 
     garbageCollectTemplates(inlineTrivialTemplates(build))
@@ -302,7 +301,7 @@ object Templates {
       override def apply(p: model.Project, templateDef: TemplateDef): model.Project = {
         val keepParent: Set[model.TemplateId] = templateDef.allParents.map(_.templateId).toSet
 
-        p.copy(`extends` = JsonSet(p.`extends`.values.filter(keepParent)))
+        p.copy(`extends` = model.JsonSet(p.`extends`.values.filter(keepParent)))
       }
     }
   }
@@ -387,7 +386,7 @@ object Templates {
 
   /** Takes an exploded build, reapplies existing templates
     */
-  def reapply(build0: ExplodedBuild, unexplodedTemplates: JsonMap[model.TemplateId, model.Project]): model.Build = {
+  def reapply(build0: model.ExplodedBuild, unexplodedTemplates: model.JsonMap[model.TemplateId, model.Project]): model.Build = {
 
     val deduplicated: Map[model.CrossProjectName, ProjectKeepExploded] = {
       val deduplicatedProjects = deduplicateDependencies(build0).projects
@@ -405,7 +404,7 @@ object Templates {
 
     val groupedCrossProjects: Map[model.ProjectName, ProjectKeepExploded] =
       groupCrossProjects(templated).map { case (name, p) =>
-        val retainedTemplates = build0.retainCrossTemplates.getOrElse(name, JsonSet.empty[model.TemplateId])
+        val retainedTemplates = build0.retainCrossTemplates.getOrElse(name, model.JsonSet.empty[model.TemplateId])
         val pp = p.copy(current = p.current.copy(`extends` = retainedTemplates))
         (name, pp)
       }
@@ -418,7 +417,7 @@ object Templates {
 
     build0.build.copy(
       templates = unexplodedTemplates,
-      projects = JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
+      projects = model.JsonMap(groupedTemplatedCrossProjects.map { case (n, cp) => (n, cp.current) })
     )
   }
 
@@ -449,12 +448,12 @@ object Templates {
         val currentCross: model.Project = {
           val common = compressingProjectByCrossId.map(_._2.current).reduce(_.intersect(_))
           val cross = compressingProjectByCrossId.map { case (projectName, p) => (projectName, p.current.removeAll(common)) }.toMap
-          common.copy(cross = JsonMap(cross))
+          common.copy(cross = model.JsonMap(cross))
         }
         val explodedCross = {
           val common = compressingProjectByCrossId.map(_._2.exploded).reduce(_.intersect(_))
           val cross = compressingProjectByCrossId.map { case (projectName, p) => (projectName, p.exploded) }.toMap
-          common.copy(cross = JsonMap(cross))
+          common.copy(cross = model.JsonMap(cross))
         }
 
         (name, ProjectKeepExploded(explodedCross, currentCross))
@@ -473,13 +472,13 @@ object Templates {
 
     b.projects.value.values.foreach(go)
 
-    b.copy(templates = JsonMap(b.templates.value.filter { case (templateId, _) => seen(templateId) }))
+    b.copy(templates = model.JsonMap(b.templates.value.filter { case (templateId, _) => seen(templateId) }))
   }
 
   def inlineTrivialTemplates(b: model.Build): model.Build = {
     val toInline: Map[model.TemplateId, List[model.TemplateId]] =
       b.templates.value.collect {
-        case (name, p) if p.`extends`.values.size <= 1 && p.copy(`extends` = JsonSet.empty).isEmpty => (name, p.`extends`.values.toList)
+        case (name, p) if p.`extends`.values.size <= 1 && p.copy(`extends` = model.JsonSet.empty).isEmpty => (name, p.`extends`.values.toList)
       }
 
     def expand(templateId: model.TemplateId): List[model.TemplateId] =
@@ -490,13 +489,13 @@ object Templates {
 
     def go(p: model.Project): model.Project =
       p.copy(
-        `extends` = JsonSet(p.`extends`.values.flatMap(expand)),
-        cross = JsonMap(p.cross.value.map { case (crossId, p) => (crossId, go(p)) })
+        `extends` = model.JsonSet(p.`extends`.values.flatMap(expand)),
+        cross = model.JsonMap(p.cross.value.map { case (crossId, p) => (crossId, go(p)) })
       )
 
     b.copy(
-      templates = JsonMap(b.templates.value.collect { case (templateId, p) if !toInline.contains(templateId) => (templateId, go(p)) }),
-      projects = JsonMap(b.projects.value.map { case (name, p) => (name, go(p)) })
+      templates = model.JsonMap(b.templates.value.collect { case (templateId, p) if !toInline.contains(templateId) => (templateId, go(p)) }),
+      projects = model.JsonMap(b.projects.value.map { case (name, p) => (name, go(p)) })
     )
   }
 

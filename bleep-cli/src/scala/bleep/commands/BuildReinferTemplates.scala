@@ -2,7 +2,6 @@ package bleep
 package commands
 
 import bleep.internal.{formatsCrossProjectName, FileUtils, Templates}
-import bleep.model.ExplodedBuild
 import bleep.rewrites.{normalizeBuild, Defaults}
 import bleep.toYaml.asYamlString
 
@@ -14,7 +13,7 @@ case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates:
     val build = Templates(started.logger, droppedTemplates, ignoreWhenInferringTemplates)
 
     // fail if we have done illegal rewrites during templating
-    ExplodedBuild.diffProjects(Defaults.add(normalizedBuild).dropTemplates, ExplodedBuild.of(build).dropTemplates) match {
+    model.ExplodedBuild.diffProjects(Defaults.add(normalizedBuild).dropTemplates, model.ExplodedBuild.of(build).dropTemplates) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         started.logger.error("Project templating did illegal rewrites. Please report this as a bug")

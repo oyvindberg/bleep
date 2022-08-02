@@ -2,7 +2,6 @@ package bleep
 package scripts
 
 import bleep.RelPath
-import bleep.model.Dep
 import bleep.tasks.publishing._
 import coursier.Info
 import nosbt.InteractionService
@@ -63,7 +62,7 @@ object Publish extends BleepScriptRunner("Publish") {
     val bundledProjects: SortedMap[model.CrossProjectName, Deployable] =
       fileBundle(
         started,
-        asDep = (crossName, _) => Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
+        asDep = (crossName, _) => model.Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
         shouldInclude = projectsToPublish.include,
         bundleLayout = fileBundle.BundleLayout.Maven(info)
       )

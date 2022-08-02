@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.model.ExplodedBuild
 import bleep.toYaml.asYamlString
 import bleep.{BuildLoader, Lazy}
 import com.monovore.decline.Opts
@@ -22,7 +21,7 @@ case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCom
     }
 
     BuildLoader.Existing(started.buildPaths.bleepYamlFile, oldBuildStr).build.forceGet.map { build =>
-      val oldProjects = ExplodedBuild.of(build).projects
+      val oldProjects = model.ExplodedBuild.of(build).projects
       val newProjects = started.build.projects
       val allProjectNames = SortedSet.empty[model.CrossProjectName] ++ oldProjects.keys ++ newProjects.keys
       allProjectNames.foreach { projectName =>

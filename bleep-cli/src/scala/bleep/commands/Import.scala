@@ -5,7 +5,6 @@ import bleep.RelPath
 import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
-import bleep.model._
 import bleep.rewrites.{normalizeBuild, Defaults}
 import bleep.toYaml.asYamlString
 import cats.syntax.apply._
@@ -86,14 +85,14 @@ object Import {
     b.result()
   }
   class ScalaVersionOutput(
-      _scalaVersions: mutable.Map[VersionScala, Set[String]],
-      _crossVersions: mutable.Map[VersionScala, Set[String]]
+      _scalaVersions: mutable.Map[model.VersionScala, Set[String]],
+      _crossVersions: mutable.Map[model.VersionScala, Set[String]]
   ) {
-    private val toSorted = SortedMap.empty[VersionScala, Set[String]]
+    private val toSorted = SortedMap.empty[model.VersionScala, Set[String]]
 
-    val scalaVersions: SortedMap[VersionScala, Set[String]] = toSorted ++ _scalaVersions
+    val scalaVersions: SortedMap[model.VersionScala, Set[String]] = toSorted ++ _scalaVersions
 
-    val crossVersions: SortedMap[VersionScala, Set[String]] = {
+    val crossVersions: SortedMap[model.VersionScala, Set[String]] = {
       val filtered = _crossVersions
         // don't repeat what was already in default scala versions
         .map { case (v, projects) => (v, projects -- scalaVersions.getOrElse(v, Set.empty)) }
@@ -101,7 +100,7 @@ object Import {
       toSorted ++ filtered
     }
 
-    def combined: SortedMap[VersionScala, Set[String]] = {
+    def combined: SortedMap[model.VersionScala, Set[String]] = {
       val keys = scalaVersions.keys ++ crossVersions.keys
       toSorted ++ keys.map { key =>
         (key, scalaVersions.getOrElse(key, Set.empty) ++ crossVersions.getOrElse(key, Set.empty))
@@ -110,8 +109,8 @@ object Import {
   }
   object ScalaVersionOutput {
     def parse(lines: List[String]): ScalaVersionOutput = {
-      val scalaVersionsBuilder = mutable.Map.empty[VersionScala, mutable.Set[String]]
-      val crossVersionsBuilder = mutable.Map.empty[VersionScala, mutable.Set[String]]
+      val scalaVersionsBuilder = mutable.Map.empty[model.VersionScala, mutable.Set[String]]
+      val crossVersionsBuilder = mutable.Map.empty[model.VersionScala, mutable.Set[String]]
 
       var i = 0
       while (i < lines.length) {
@@ -124,13 +123,13 @@ object Import {
         if (line.contains("ProjectRef")) ()
         else if (line.endsWith(" / scalaVersion")) {
           val nextLine = lines(i + 1)
-          val scalaVersion = VersionScala(nextLine.split("\\s").last)
+          val scalaVersion = model.VersionScala(nextLine.split("\\s").last)
           scalaVersionsBuilder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
         } else if (line.endsWith(" / crossScalaVersions")) {
           val nextLine = lines(i + 1)
           val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
           versions.map { scalaVersion =>
-            crossVersionsBuilder.getOrElseUpdate(VersionScala(scalaVersion), mutable.Set.empty).add(projectName)
+            crossVersionsBuilder.getOrElseUpdate(model.VersionScala(scalaVersion), mutable.Set.empty).add(projectName)
           }
         }
 
@@ -246,7 +245,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 
         // then finally dump each of the three configurations we care about into two files each.
         val args: Iterable[String] = {
-          def argsFor(scalaVersion: VersionScala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
+          def argsFor(scalaVersion: model.VersionScala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
             List(
               if (switchScalaVersion) s"++ ${scalaVersion.scalaVersion}" else "",
               s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
@@ -294,7 +293,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
       }
 
     // complain if we have done illegal rewrites during templating
-    ExplodedBuild.diffProjects(Defaults.add(normalizedBuild), ExplodedBuild.of(build).dropTemplates) match {
+    model.ExplodedBuild.diffProjects(Defaults.add(normalizedBuild), model.ExplodedBuild.of(build).dropTemplates) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         logger.error("Project templating did illegal rewrites. Please report this as a bug")
@@ -306,29 +305,30 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
     GeneratedFilesScript(generatedFiles) match {
       case Some((className, scriptSource)) =>
         // todo: find a project and use same scala config
-        val scalaVersion = normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(VersionScala.Scala3))
+        val scalaVersion =
+          normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(model.VersionScala.Scala3))
 
         val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
         val scriptsProject = model.Project(
-          `extends` = JsonSet.empty,
-          cross = JsonMap.empty,
+          `extends` = model.JsonSet.empty,
+          cross = model.JsonMap.empty,
           folder = None,
-          dependsOn = JsonSet.empty,
+          dependsOn = model.JsonSet.empty,
           `source-layout` = None,
           `sbt-scope` = None,
-          sources = JsonSet.empty,
-          resources = JsonSet.empty,
-          dependencies = JsonSet(Dep.Scala("build.bleep", "bleep-tasks", bleepTasksVersion.value)),
+          sources = model.JsonSet.empty,
+          resources = model.JsonSet.empty,
+          dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-tasks", bleepTasksVersion.value)),
           java = None,
-          scala = Some(model.Scala(scalaVersion, Options.empty, None, JsonSet.empty, strict = None)),
-          platform = Some(model.Platform.Jvm(Options.empty, None, Options.empty)),
+          scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
+          platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
           isTestProject = None,
-          testFrameworks = JsonSet.empty
+          testFrameworks = model.JsonSet.empty
         )
 
         val buildWithScript = build.copy(
           projects = build.projects.updated(scriptProjectName.name, scriptsProject),
-          scripts = build.scripts.updated(model.ScriptName("generate-resources"), JsonList(List(model.ScriptDef(scriptProjectName, className))))
+          scripts = build.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef(scriptProjectName, className))))
         )
 
         val scriptPath = destinationPaths.project(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"

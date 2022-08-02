@@ -2,12 +2,11 @@ package bleep.internal
 
 import bleep.logging.Logger
 import bleep.model
-import bleep.model.{Dep, JsonMap, JsonSet}
 import coursier.core.{Classifier, Configuration, Extension, Module, ModuleName, Organization, Publication, Type}
 import sbt.librarymanagement
 
 object importModuleId {
-  def apply(logger: Logger, moduleID: librarymanagement.ModuleID, platformId: Option[model.PlatformId]): Either[String, Dep] = {
+  def apply(logger: Logger, moduleID: librarymanagement.ModuleID, platformId: Option[model.PlatformId]): Either[String, model.Dep] = {
     val ctxLogger = logger.withContext(moduleID.name)
 
     val configuration = moduleID.configurations.fold(Configuration.empty)(Configuration(_))
@@ -19,14 +18,14 @@ object importModuleId {
       ctxLogger.warn(s"Dropping branchName $branchName")
     }
 
-    val exclusions: JsonMap[Organization, JsonSet[ModuleName]] = {
+    val exclusions: model.JsonMap[Organization, model.JsonSet[ModuleName]] = {
       def mapRule(rule: librarymanagement.InclExclRule): Either[String, (Organization, ModuleName)] =
         if (rule.configurations.nonEmpty) Left(s"Configurations in rule not supported: ${rule.configurations}")
         else if (rule.artifact != "*") Left(s"Only artifact = '*' is supported, not ${rule.artifact}")
         else if (rule.crossVersion != librarymanagement.Disabled) Left(s"Only ModuleVersion.Disabled is supported: ${rule.crossVersion}")
         else Right((Organization(rule.organization), ModuleName(rule.name)))
 
-      JsonMap {
+      model.JsonMap {
         moduleID.exclusions
           .flatMap { rule =>
             mapRule(rule) match {
@@ -37,7 +36,7 @@ object importModuleId {
             }
           }
           .groupBy { case (org, _) => org }
-          .map { case (org, tuples) => (org, JsonSet.fromIterable(tuples.map(_._2))) }
+          .map { case (org, tuples) => (org, model.JsonSet.fromIterable(tuples.map(_._2))) }
       }
     }
 
@@ -59,7 +58,7 @@ object importModuleId {
     JavaOrScalaModule.parse(platformId, moduleID.organization, moduleID.name, moduleID.crossVersion).map {
       case x: JavaOrScalaModule.JavaModule =>
         val (isSbtPlugin, attrs) = extractIsSbt(moduleID.extraAttributes)
-        Dep.JavaDependency(
+        model.Dep.JavaDependency(
           organization = x.module.organization,
           moduleName = x.module.name,
           version = moduleID.revision,
@@ -71,7 +70,7 @@ object importModuleId {
           isSbtPlugin = isSbtPlugin
         )
       case x: JavaOrScalaModule.ScalaModule =>
-        Dep.ScalaDependency(
+        model.Dep.ScalaDependency(
           organization = x.baseModule.organization,
           baseModuleName = x.baseModule.name,
           version = moduleID.revision,

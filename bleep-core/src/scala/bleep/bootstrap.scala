@@ -1,8 +1,7 @@
 package bleep
 
 import bleep.BuildPaths.Mode
-import bleep.internal.{Os, fatal}
-import bleep.model.ExplodedBuild
+import bleep.internal.{fatal, Os}
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext
@@ -42,7 +41,7 @@ object bootstrap {
     try
       pre.build.forceGet.map { build =>
         val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, build))
-        val explodedBuild = rewrites.foldLeft(ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
+        val explodedBuild = rewrites.foldLeft(model.ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
 
         val activeProjects: List[model.CrossProjectName] =
           if (pre.buildPaths.cwd == pre.buildPaths.buildDir) explodedBuild.projects.keys.toList

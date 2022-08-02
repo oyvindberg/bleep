@@ -3,7 +3,6 @@ package internal
 
 import bleep.internal.ImportInputProjects.ProjectType
 import bleep.logging.Logger
-import bleep.model._
 import bleep.{model, RelPath}
 import bloop.config.Config
 import coursier.core.Configuration
@@ -22,12 +21,18 @@ object importBloopFilesFromSbt {
     Set("jvm", "js", "native").flatMap(str => List(str, s".$str"))
 
   private case class Sources(
-      sourceLayout: SourceLayout,
-      sources: JsonSet[RelPath],
-      resources: JsonSet[RelPath]
+      sourceLayout: model.SourceLayout,
+      sources: model.JsonSet[RelPath],
+      resources: model.JsonSet[RelPath]
   )
 
-  def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths, inputProjects: ImportInputProjects, bleepVersion: model.Version): ExplodedBuild = {
+  def apply(
+      logger: Logger,
+      sbtBuildDir: Path,
+      destinationPaths: BuildPaths,
+      inputProjects: ImportInputProjects,
+      bleepVersion: model.Version
+  ): model.ExplodedBuild = {
 
     val projects = inputProjects.values.map { case (crossName, inputProject) =>
       val bloopProject = inputProject.bloopFile.project
@@ -58,25 +63,25 @@ object importBloopFilesFromSbt {
           case relPath                             => Some(relPath)
         }
 
-      val dependsOn: JsonSet[model.ProjectName] =
-        JsonSet.fromIterable(bloopProject.dependencies.flatMap(inputProjects.byBloopName.get).map(_.name))
+      val dependsOn: model.JsonSet[model.ProjectName] =
+        model.JsonSet.fromIterable(bloopProject.dependencies.flatMap(inputProjects.byBloopName.get).map(_.name))
 
-      val scalaVersion: Option[VersionScala] =
-        bloopProject.scala.map(s => VersionScala(s.version))
+      val scalaVersion: Option[model.VersionScala] =
+        bloopProject.scala.map(s => model.VersionScala(s.version))
 
       val originalTarget = findOriginalTargetDir.force(crossName, bloopProject)
 
       val replacements =
-        Replacements.paths(sbtBuildDir, directory) ++
-          Replacements.targetDir(originalTarget) ++
-          Replacements.scope(projectType.sbtScope)
+        model.Replacements.paths(sbtBuildDir, directory) ++
+          model.Replacements.targetDir(originalTarget) ++
+          model.Replacements.scope(projectType.sbtScope)
 
-      val replacementsWithVersions = replacements ++ Replacements.versions(scalaVersion, bloopProject.platform.map(_.name), includeEpoch = true)
+      val replacementsWithVersions = replacements ++ model.Replacements.versions(scalaVersion, bloopProject.platform.map(_.name), includeEpoch = true)
 
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
 
-      val scalaPlatform = VersionScalaPlatform.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
+      val scalaPlatform = model.VersionScalaPlatform.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
         case Left(value)  => throw new BleepException.Text(crossName, value)
         case Right(value) => value
       }
@@ -84,7 +89,7 @@ object importBloopFilesFromSbt {
       val sources: Sources = {
         val sourcesRelPaths = {
           val sources = bloopProject.sources.filterNot(_.startsWith(originalTarget))
-          JsonSet.fromIterable(sources.map {
+          model.JsonSet.fromIterable(sources.map {
             // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
             case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
             case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
@@ -93,7 +98,7 @@ object importBloopFilesFromSbt {
 
         val resourcesRelPaths = {
           val resources = bloopProject.resources.getOrElse(Nil).filterNot(_.startsWith(originalTarget))
-          JsonSet.fromIterable(resources.map {
+          model.JsonSet.fromIterable(resources.map {
             // this case was needed for scalameta, where a stray "semanticdb/semanticdb" relative directory appeared.
             case relative if !relative.isAbsolute => RelPath.relativeTo(directory, bloopProject.workspaceDir.get.resolve(relative))
             case absoluteDir                      => RelPath.relativeTo(directory, absoluteDir)
@@ -102,8 +107,8 @@ object importBloopFilesFromSbt {
 
         val maybePlatformId = configuredPlatform.flatMap(_.name)
 
-        val inferredSourceLayout: SourceLayout =
-          SourceLayout.All.values.maxBy { layout =>
+        val inferredSourceLayout: model.SourceLayout =
+          model.SourceLayout.All.values.maxBy { layout =>
             val fromLayout = layout.sources(scalaVersion, maybePlatformId, Some(projectType.sbtScope))
             val fromProject = sourcesRelPaths
             val matching = fromLayout.intersect(fromProject).size
@@ -135,22 +140,22 @@ object importBloopFilesFromSbt {
       val configuredScala: Option[model.Scala] =
         bloopProject.scala.map(translateScala(compilerPlugins, replacements, scalaPlatform))
 
-      val testFrameworks: JsonSet[model.TestFrameworkName] =
+      val testFrameworks: model.JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {
           val names: List[String] =
             bloopProject.test.toList.flatMap(_.frameworks).flatMap(_.names).filterNot(includedTestFramework)
 
-          JsonSet.fromIterable(names.map(model.TestFrameworkName.apply))
-        } else JsonSet.empty
+          model.JsonSet.fromIterable(names.map(model.TestFrameworkName.apply))
+        } else model.JsonSet.empty
 
       crossName -> model.Project(
-        `extends` = JsonSet.empty,
-        cross = JsonMap.empty,
+        `extends` = model.JsonSet.empty,
+        cross = model.JsonMap.empty,
         folder = folder,
         dependsOn = dependsOn,
         sources = sources.sources,
         resources = sources.resources,
-        dependencies = JsonSet.fromIterable(dependencies),
+        dependencies = model.JsonSet.fromIterable(dependencies),
         java = configuredJava,
         scala = configuredScala,
         platform = configuredPlatform,
@@ -161,8 +166,8 @@ object importBloopFilesFromSbt {
       )
     }
 
-    val buildResolvers: JsonList[model.Repository] =
-      JsonList(
+    val buildResolvers: model.JsonList[model.Repository] =
+      model.JsonList(
         inputProjects.values.values.toArray
           .flatMap(inputProject => inputProject.bloopFile.project.resolution)
           .flatMap(_.modules)
@@ -181,8 +186,8 @@ object importBloopFilesFromSbt {
       inputProject: ImportInputProjects.InputProject,
       crossName: model.CrossProjectName,
       platformName: Option[model.PlatformId],
-      providedDeps: Seq[Dep]
-  ): (Seq[Dep], Seq[Dep]) = {
+      providedDeps: Seq[model.Dep]
+  ): (Seq[model.Dep], Seq[model.Dep]) = {
     // compare by string to ignore things like configuration
     val providedDepReprs: Set[String] =
       providedDeps.map(_.repr).toSet
@@ -206,9 +211,9 @@ object importBloopFilesFromSbt {
     val plugins = all.collect {
       case dep if dep.configuration == CompilerPluginConfig || (dep.configuration == CompilerPluginScalaJsTest && inputProject.projectType.testLike) =>
         dep.withConfiguration(Configuration.empty) match {
-          case x: Dep.JavaDependency => x
+          case x: model.Dep.JavaDependency => x
           // always true for compiler plugins. this is really just aesthetic in the generated json file
-          case x: Dep.ScalaDependency => x.copy(forceJvm = false)
+          case x: model.Dep.ScalaDependency => x.copy(forceJvm = false)
         }
     }
 
@@ -278,10 +283,10 @@ object importBloopFilesFromSbt {
     }
   }
 
-  def translateJava(templateDirs: Replacements)(java: Config.Java): model.Java =
+  def translateJava(templateDirs: model.Replacements)(java: Config.Java): model.Java =
     model.Java(options = parseOptionsDropSemanticDb(java.options, Some(templateDirs)))
 
-  def translatePlatform(platform: Config.Platform, templateDirs: Replacements, resolution: Option[Config.Resolution]): model.Platform =
+  def translatePlatform(platform: Config.Platform, templateDirs: model.Replacements, resolution: Option[Config.Resolution]): model.Platform =
     platform match {
       case Config.Platform.Js(config, mainClass) =>
         val jsVersion = {
@@ -289,12 +294,12 @@ object importBloopFilesFromSbt {
           val fromPlatform = Option(config.version).filterNot(_.isEmpty)
           // fallback, the original version may have been evicted for a newer one through a dependency, so it's a bit imprecise
           val fromDependencies = resolution.flatMap(_.modules.collectFirst {
-            case mod if mod.organization == VersionScalaJs.org.value && mod.name.startsWith("scalajs-library") => mod.version
+            case mod if mod.organization == model.VersionScalaJs.org.value && mod.name.startsWith("scalajs-library") => mod.version
           })
 
           fromPlatform
             .orElse(fromDependencies)
-            .map(version => VersionScalaJs(version))
+            .map(version => model.VersionScalaJs(version))
             .getOrElse(throw new BleepException.Text("Couldn't find scalajs-library jar to determine version"))
         }
 
@@ -320,12 +325,12 @@ object importBloopFilesFromSbt {
           mainClass,
           jvmRuntimeOptions = runtimeConfig
             .map(rc => parseOptionsDropSemanticDb(rc.options, Some(templateDirs)))
-            .getOrElse(Options.empty)
+            .getOrElse(model.Options.empty)
         )
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
-          nativeVersion = Some(VersionScalaNative(config.version)),
+          nativeVersion = Some(model.VersionScalaNative(config.version)),
           nativeMode = Some(conversions.linkerMode.to(config.mode)),
           nativeGc = Some(config.gc),
           nativeMainClass = mainClass
@@ -333,15 +338,17 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(compilerPlugins: Seq[Dep], replacements: Replacements, scalaPlatform: VersionScalaPlatform)(s: Config.Scala): model.Scala = {
+  def translateScala(compilerPlugins: Seq[model.Dep], replacements: model.Replacements, scalaPlatform: model.VersionScalaPlatform)(
+      s: Config.Scala
+  ): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacements))
 
     val notCompilerPlugins = options.values.filter {
-      case Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => false
-      case _                                                                      => true
+      case model.Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => false
+      case _                                                                            => true
     }
 
-    val filteredCompilerPlugins: Seq[Dep] =
+    val filteredCompilerPlugins: Seq[model.Dep] =
       compilerOptionsDropSemanticDb {
         scalaPlatform.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
       }
@@ -349,15 +356,15 @@ object importBloopFilesFromSbt {
     val (strict, remainingOptions) = {
       val tpolecat = new TpolecatPlugin(DevMode)
 
-      val tpolecatOptions = Options.parse(tpolecat.scalacOptions(s.version).toList, None)
+      val tpolecatOptions = model.Options.parse(tpolecat.scalacOptions(s.version).toList, None)
       if (tpolecatOptions.values.forall(notCompilerPlugins.contains))
-        (Some(true), new Options(notCompilerPlugins -- tpolecatOptions.values))
+        (Some(true), new model.Options(notCompilerPlugins -- tpolecatOptions.values))
       else
-        (None, new Options(notCompilerPlugins))
+        (None, new model.Options(notCompilerPlugins))
     }
 
     model.Scala(
-      version = Some(VersionScala(s.version)),
+      version = Some(model.VersionScala(s.version)),
       options = remainingOptions,
       setup = s.setup.map(setup =>
         model.CompileSetup(
@@ -369,18 +376,18 @@ object importBloopFilesFromSbt {
           filterLibraryFromClasspath = Some(setup.filterLibraryFromClasspath)
         )
       ),
-      compilerPlugins = JsonSet.fromIterable(filteredCompilerPlugins),
+      compilerPlugins = model.JsonSet.fromIterable(filteredCompilerPlugins),
       strict = strict
     )
   }
 
   // semanticdb flags are added back when bleep is in IDE mode
-  def parseOptionsDropSemanticDb(strings: List[String], maybeRelativize: Option[Replacements]) = {
-    val opts = Options.parse(strings, maybeRelativize)
+  def parseOptionsDropSemanticDb(strings: List[String], maybeRelativize: Option[model.Replacements]) = {
+    val opts = model.Options.parse(strings, maybeRelativize)
     val filtered = opts.values.filterNot(_.render.mkString.contains("semanticdb"))
-    Options(filtered)
+    model.Options(filtered)
   }
 
-  def compilerOptionsDropSemanticDb(deps: Seq[Dep]): Seq[Dep] =
+  def compilerOptionsDropSemanticDb(deps: Seq[model.Dep]): Seq[model.Dep] =
     deps.filterNot(_.repr.contains("semanticdb-scalac"))
 }

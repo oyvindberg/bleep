@@ -1,13 +1,12 @@
 package bleep.internal
 
-import bleep.model.ExplodedBuild
 import bleep.{model, Started}
 
 object ProjectGlobs {
   def apply(started: Started) = new ProjectGlobs(started.activeProjectsFromPath, started.build)
 }
 
-class ProjectGlobs(activeProjectsFromPath: List[model.CrossProjectName], explodedBuild: ExplodedBuild) {
+class ProjectGlobs(activeProjectsFromPath: List[model.CrossProjectName], explodedBuild: model.ExplodedBuild) {
   def projectCompletions(projects: Iterable[model.CrossProjectName]): Map[String, Iterable[model.CrossProjectName]] = {
     val crossNames: Map[String, Iterable[model.CrossProjectName]] =
       projects.map(projectName => projectName.value -> List(projectName)).toMap

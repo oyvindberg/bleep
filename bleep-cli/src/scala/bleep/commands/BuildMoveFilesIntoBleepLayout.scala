@@ -3,7 +3,6 @@ package commands
 
 import bleep.RelPath
 import bleep.internal.{FileUtils, Templates}
-import bleep.model.{ExplodedBuild, JsonMap, JsonSet}
 import bleep.rewrites.normalizeBuild
 import bleep.toYaml.asYamlString
 
@@ -15,10 +14,10 @@ case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand 
     val (build1, filesToMove) = BuildMoveFilesIntoBleepLayout.newBuildAndFilesToMove(started.build, started.buildPaths)
     val normalizedBuild = normalizeBuild(build1)
     val newTemplates = started.rawBuild.templates.value.map { case (templateId, p) =>
-      (templateId, p.copy(sources = JsonSet.empty, resources = JsonSet.empty, `sbt-scope` = None, folder = None))
+      (templateId, p.copy(sources = model.JsonSet.empty, resources = model.JsonSet.empty, `sbt-scope` = None, folder = None))
     }
 
-    val build2 = Templates.reapply(normalizedBuild, JsonMap(newTemplates))
+    val build2 = Templates.reapply(normalizedBuild, model.JsonMap(newTemplates))
 
     // commit below
     filesToMove.foreach { case (from, to) =>
@@ -34,7 +33,7 @@ case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand 
 }
 
 object BuildMoveFilesIntoBleepLayout {
-  def newBuildAndFilesToMove(build: ExplodedBuild, buildPaths: BuildPaths): (ExplodedBuild, SortedMap[Path, Path]) = {
+  def newBuildAndFilesToMove(build: model.ExplodedBuild, buildPaths: BuildPaths): (model.ExplodedBuild, SortedMap[Path, Path]) = {
 
     val moves = collection.mutable.Map.empty[Path, Path]
     def registerMove(from: Path, to: Path): Unit =

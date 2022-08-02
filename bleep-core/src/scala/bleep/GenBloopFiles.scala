@@ -2,10 +2,9 @@ package bleep
 
 import bleep.internal.{conversions, rewriteDependentData}
 import bleep.logging.Logger
-import bleep.model._
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{WriterConfig, readFromString, writeToString}
+import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
 import coursier.core.{Configuration, Extension}
 import coursier.{Classifier, Dependency}
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
@@ -20,7 +19,7 @@ sealed trait GenBloopFiles {
       logger: Logger,
       buildPaths: BuildPaths,
       lazyResolver: Lazy[CoursierResolver],
-      explodedBuild: ExplodedBuild,
+      explodedBuild: model.ExplodedBuild,
       fetchNode: FetchNode
   ): GenBloopFiles.Files
 }
@@ -33,7 +32,7 @@ object GenBloopFiles {
         logger: Logger,
         buildPaths: BuildPaths,
         lazyResolver: Lazy[CoursierResolver],
-        explodedBuild: ExplodedBuild,
+        explodedBuild: model.ExplodedBuild,
         fetchNode: FetchNode
     ): GenBloopFiles.Files =
       rewriteDependentData(explodedBuild.projects).apply { (crossName, project, getDep) =>
@@ -54,7 +53,7 @@ object GenBloopFiles {
         logger: Logger,
         buildPaths: BuildPaths,
         lazyResolver: Lazy[CoursierResolver],
-        explodedBuild: ExplodedBuild,
+        explodedBuild: model.ExplodedBuild,
         fetchNode: FetchNode
     ): GenBloopFiles.Files = {
       val currentHash = List(
@@ -118,7 +117,7 @@ object GenBloopFiles {
       buildPaths: BuildPaths,
       crossName: model.CrossProjectName,
       explodedProject: model.Project,
-      build: ExplodedBuild,
+      build: model.ExplodedBuild,
       getBloopProject: model.CrossProjectName => Config.File,
       fetchNode: FetchNode
   ): Config.File = {
@@ -147,7 +146,7 @@ object GenBloopFiles {
     val explodedJava: Option[model.Java] =
       explodedProject.java
 
-    val scalaVersion: Option[VersionScala] =
+    val scalaVersion: Option[model.VersionScala] =
       maybeScala.flatMap(_.version)
 
     val explodedPlatform: Option[model.Platform] =
@@ -156,16 +155,16 @@ object GenBloopFiles {
         case platform                     => platform
       }
 
-    val scalaPlatform: VersionScalaPlatform =
-      VersionScalaPlatform.fromExplodedProject(explodedProject) match {
+    val scalaPlatform: model.VersionScalaPlatform =
+      model.VersionScalaPlatform.fromExplodedProject(explodedProject) match {
         case Left(err)       => throw new BleepException.Text(crossName, err)
         case Right(versions) => versions
       }
 
     val templateDirs =
-      Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
-        Replacements.targetDir(projectPaths.targetDir) ++
-        Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value), includeEpoch = true)
+      model.Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
+        model.Replacements.targetDir(projectPaths.targetDir) ++
+        model.Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value), includeEpoch = true)
 
     def require[T](ot: Option[T], name: String): T =
       ot match {
@@ -230,12 +229,12 @@ object GenBloopFiles {
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
 
-      def providedOrOptional(dep: Dep): Boolean =
+      def providedOrOptional(dep: model.Dep): Boolean =
         dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
 
-      def resolve(all: JsonSet[Dep]) = {
+      def resolve(all: model.JsonSet[model.Dep]) = {
         val concreteDeps: Set[Dependency] =
-          all.values.toSet[Dep].map { dep =>
+          all.values.toSet[model.Dep].map { dep =>
             dep.dependency(scalaPlatform) match {
               case Left(err)    => throw new BleepException.Text(crossName, err)
               case Right(value) => value
@@ -252,7 +251,7 @@ object GenBloopFiles {
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
       val normal =
-        resolve(explodedProject.dependencies.union(JsonSet.fromIterable(filteredInherited ++ fromPlatform)))
+        resolve(explodedProject.dependencies.union(model.JsonSet.fromIterable(filteredInherited ++ fromPlatform)))
 
       val runtime =
         if (explodedProject.dependencies.values.exists(providedOrOptional) || inherited.size != filteredInherited.size) {
@@ -264,7 +263,7 @@ object GenBloopFiles {
             optionalsFromProject.map(_.withConfiguration(Configuration.empty))
 
           resolve {
-            JsonSet.fromIterable(filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform)
+            model.JsonSet.fromIterable(filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform)
           }
         } else normal
 
@@ -301,13 +300,13 @@ object GenBloopFiles {
       Config.Resolution(modules)
     }
 
-    val classPath: JsonSet[Path] =
-      JsonSet.fromIterable(allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedRuntimeDependencies.jars)
+    val classPath: model.JsonSet[Path] =
+      model.JsonSet.fromIterable(allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedRuntimeDependencies.jars)
 
     val configuredScala: Option[Config.Scala] =
       scalaVersion.map { scalaVersion =>
         val scalaCompiler: Dependency =
-          scalaVersion.compiler.forceDependency(VersionScalaPlatform.Jvm(scalaVersion))
+          scalaVersion.compiler.forceDependency(model.VersionScalaPlatform.Jvm(scalaVersion))
 
         val resolvedScalaCompiler: List[Path] =
           resolver.resolve(Set(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
@@ -327,14 +326,14 @@ object GenBloopFiles {
           )
         }
 
-        val compilerPlugins: Options = {
+        val compilerPlugins: model.Options = {
           val fromPlatform = scalaPlatform.compilerPlugin
-          val fromScala = maybeScala.fold(Set.empty[Dep])(_.compilerPlugins.values)
-          val specified: Set[Dep] =
+          val fromScala = maybeScala.fold(Set.empty[model.Dep])(_.compilerPlugins.values)
+          val specified: Set[model.Dep] =
             fromPlatform.foldLeft(fromScala) { case (all, dep) => all + dep }
 
           val deps: Set[Dependency] =
-            specified.map(_.withTransitive(false).forceDependency(VersionScalaPlatform.Jvm(scalaVersion)))
+            specified.map(_.withTransitive(false).forceDependency(model.VersionScalaPlatform.Jvm(scalaVersion)))
 
           val jars: Seq[Path] =
             resolver.resolve(deps, forceScalaVersion = Some(scalaVersion)) match {
@@ -348,18 +347,18 @@ object GenBloopFiles {
           val relevantJars: Seq[Path] =
             jars.filterNot(resolvedScalaCompiler.toSet)
 
-          Options.fromIterable(relevantJars.map(p => Options.Opt.Flag(s"${constants.ScalaPluginPrefix}:$p")))
+          model.Options.fromIterable(relevantJars.map(p => model.Options.Opt.Flag(s"${constants.ScalaPluginPrefix}:$p")))
         }
 
-        val scalacOptions: Options =
+        val scalacOptions: model.Options =
           maybeScala match {
             case Some(scala) =>
               val base = scala.options.union(compilerPlugins)
               if (scala.strict.getOrElse(false)) {
-                val tpolecat = Options.parse(new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion).toList, None)
+                val tpolecat = model.Options.parse(new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion).toList, None)
                 base.union(tpolecat)
               } else base
-            case None => Options.empty
+            case None => model.Options.empty
           }
 
         Config.Scala(
@@ -382,13 +381,13 @@ object GenBloopFiles {
         sources = projectPaths.sourcesDirs.all.toList,
         sourcesGlobs = None,
         sourceRoots = None,
-        dependencies = JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
+        dependencies = model.JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
         classpath = classPath.values.toList,
         out = projectPaths.targetDir,
         classesDir = projectPaths.classes,
         resources = Some(projectPaths.resourcesDirs.all.toList),
         scala = configuredScala,
-        java = Some(Config.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(Options.empty)).render)),
+        java = Some(Config.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(model.Options.empty)).render)),
         sbt = None,
         test = if (explodedProject.isTestProject.getOrElse(false)) {
           val default = Config.Test.defaultConfiguration
