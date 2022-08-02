@@ -1,11 +1,10 @@
 package bleep
 
-import bleep.model.Replacements
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 
 class ReplacementsTest extends AnyFunSuite with TripleEqualsSupport {
-  val mainScope = Replacements.scope("main")
+  val mainScope = model.Replacements.scope("main")
 
   test("infers templates on whole path segment") {
     val pre = RelPath.force("src/main/scala")

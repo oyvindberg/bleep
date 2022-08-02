@@ -1,7 +1,6 @@
 package bleep.tasks.publishing
 
 import bleep.internal.rewriteDependentData
-import bleep.model.{Dep, VersionScalaPlatform}
 import bleep.{model, BleepException, RelPath, Started}
 import coursier.core.{Dependency, Info}
 
@@ -19,12 +18,12 @@ object fileBundle {
 
   def apply(
       started: Started,
-      asDep: (model.CrossProjectName, model.Project) => Dep,
+      asDep: (model.CrossProjectName, model.Project) => model.Dep,
       shouldInclude: model.CrossProjectName => Boolean,
       bundleLayout: BundleLayout
   ): SortedMap[model.CrossProjectName, Deployable] =
     rewriteDependentData(started.build.projects).startFrom[Deployable](shouldInclude) { case (projectName, project, recurse) =>
-      val scalaPlatform = VersionScalaPlatform.fromExplodedProject(project) match {
+      val scalaPlatform = model.VersionScalaPlatform.fromExplodedProject(project) match {
         case Left(err)    => throw new BleepException.Text(projectName, err)
         case Right(value) => value
       }

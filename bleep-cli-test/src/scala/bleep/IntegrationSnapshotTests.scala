@@ -3,7 +3,6 @@ package bleep
 import bleep.commands.Import
 import bleep.commands.Import.Options
 import bleep.internal.{findGeneratedFiles, FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile}
-import bleep.model.Replacements
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.paths.CoursierPaths
@@ -168,8 +167,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
         // scalacOptions are the same, modulo ordering, duplicates, target directory and semanticdb
         def patchedOptions(project: Config.Project, targetDir: Path): List[String] = {
-          val replacements = Replacements.targetDir(targetDir) ++
-            Replacements.ofReplacements(List(("snapshot-tests-in", "snapshot-tests")))
+          val replacements = model.Replacements.targetDir(targetDir) ++
+            model.Replacements.ofReplacements(List(("snapshot-tests-in", "snapshot-tests")))
           val original = project.scala.map(_.options).getOrElse(Nil)
           model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
             case opt if opt.toString.contains("semanticdb") => Nil

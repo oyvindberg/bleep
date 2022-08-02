@@ -2,7 +2,6 @@ package bleep
 
 import bleep.internal.Templates.TemplateDef
 import bleep.internal.{ShortenAndSortJson, Templates}
-import bleep.model.{ExplodedBuild, JsonSet, Options, VersionScala}
 import bleep.rewrites.Defaults
 import bleep.testing.SnapshotTest
 import io.circe.Decoder
@@ -15,13 +14,13 @@ import java.time.Instant
 
 class TemplateTest extends SnapshotTest {
   override val outFolder = Paths.get("snapshot-tests").resolve("templates").toAbsolutePath
-  val scala = model.Scala(Some(VersionScala.Scala213), Options.empty, None, JsonSet.empty, None)
+  val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
   val a = noCross("a")
   val aTest = noCross("aTest")
   val b = noCross("b")
   val bTest = noCross("bTest")
   val p: model.Project = model.Project.empty
-  val fooOpt: Options = Options(Set(Options.Opt.Flag("foo")))
+  val fooOpt = model.Options(Set(model.Options.Opt.Flag("foo")))
 
   test("should extract common template") {
     val projects = Map(
@@ -35,11 +34,11 @@ class TemplateTest extends SnapshotTest {
   }
 
   test("should extract common template and a test template") {
-    val scala = model.Scala(Some(VersionScala.Scala213), Options.empty, None, JsonSet.empty, None)
+    val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
     val projects = Map(
       a -> p.copy(scala = Some(scala)),
-      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = JsonSet(a.name)),
-      bTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = JsonSet(a.name))
+      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(a.name)),
+      bTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(a.name))
     )
 
     val build = run(projects, "common_test_template.yaml")
@@ -50,11 +49,11 @@ class TemplateTest extends SnapshotTest {
   }
 
   test("should heed ignoreWhenInferringTemplates") {
-    val scala = model.Scala(Some(VersionScala.Scala213), Options.empty, None, JsonSet.empty, None)
+    val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
     val projects = Map(
       a -> p.copy(scala = Some(scala)),
-      b -> p.copy(dependsOn = JsonSet(a.name)),
-      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = JsonSet(a.name))
+      b -> p.copy(dependsOn = model.JsonSet(a.name)),
+      aTest -> p.copy(scala = Some(scala.copy(options = fooOpt)), isTestProject = Some(true), dependsOn = model.JsonSet(a.name))
     )
 
     val build = run(projects, "template_ignore_b.yaml", ignoreWhenInferringTemplates = Set(b.name))
@@ -80,14 +79,14 @@ class TemplateTest extends SnapshotTest {
       testName: String,
       ignoreWhenInferringTemplates: Set[model.ProjectName] = Set.empty
   ): model.Build = {
-    val pre = ExplodedBuild(model.Build.empty(model.Version("testing")), Map.empty, projects)
+    val pre = model.ExplodedBuild(model.Build.empty(model.Version("testing")), Map.empty, projects)
     val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, None, noColor = false)).withContext(testName).untyped
     val build = Templates(logger, pre, ignoreWhenInferringTemplates)
     writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> build.asJson.foldWith(ShortenAndSortJson).spaces2))
 
     // complain if we have done illegal rewrites during templating
-    val post = ExplodedBuild.of(build).dropTemplates
-    ExplodedBuild.diffProjects(Defaults.add(pre), post) match {
+    val post = model.ExplodedBuild.of(build).dropTemplates
+    model.ExplodedBuild.diffProjects(Defaults.add(pre), post) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         diffs.foreach { case (projectName, msg) => System.err.println(s"$projectName: $msg") }

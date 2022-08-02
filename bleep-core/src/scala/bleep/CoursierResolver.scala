@@ -3,7 +3,6 @@ package bleep
 import bleep.internal.codecs._
 import bleep.internal.{CoursierLogger, FileUtils}
 import bleep.logging.Logger
-import bleep.model.VersionScala
 import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.core._
@@ -22,7 +21,7 @@ import java.nio.file.{Files, Path}
 trait CoursierResolver {
   val params: CoursierResolver.Params
 
-  def resolve(deps: Set[Dependency], forceScalaVersion: Option[VersionScala]): Either[CoursierError, CoursierResolver.Result]
+  def resolve(deps: Set[Dependency], forceScalaVersion: Option[model.VersionScala]): Either[CoursierError, CoursierResolver.Result]
 }
 
 object CoursierResolver {
@@ -177,7 +176,7 @@ object CoursierResolver {
 
     val fileCache = FileCache[Task]().withLogger(logger)
 
-    override def resolve(deps: Set[Dependency], forceScalaVersion: Option[VersionScala]): Either[CoursierError, CoursierResolver.Result] = {
+    override def resolve(deps: Set[Dependency], forceScalaVersion: Option[model.VersionScala]): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
@@ -208,7 +207,7 @@ object CoursierResolver {
 
   private class Cached(logger: Logger, underlying: Direct, in: Path) extends CoursierResolver {
     override val params = underlying.params
-    override def resolve(deps: Set[Dependency], forceScalaVersion: Option[VersionScala]): Either[CoursierError, CoursierResolver.Result] =
+    override def resolve(deps: Set[Dependency], forceScalaVersion: Option[model.VersionScala]): Either[CoursierError, CoursierResolver.Result] =
       if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, forceScalaVersion)
       else {
         val request = Cached.Request(underlying.fileCache.location, deps.toList.sortBy(_.toString()), underlying.params, forceScalaVersion.map(_.scalaVersion))
@@ -266,7 +265,7 @@ object CoursierResolver {
 
   class WithBleepVersion(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.Version]) extends CoursierResolver {
     override val params = outer.params
-    override def resolve(deps: Set[Dependency], forceScalaVersion: Option[VersionScala]): Either[CoursierError, Result] = {
+    override def resolve(deps: Set[Dependency], forceScalaVersion: Option[model.VersionScala]): Either[CoursierError, Result] = {
       val rewrittenDeps =
         maybeWantedBleepVersion match {
           case Some(wantedBleepVersion) =>

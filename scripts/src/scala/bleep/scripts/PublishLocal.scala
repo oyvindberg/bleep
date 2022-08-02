@@ -2,7 +2,6 @@ package bleep.scripts
 
 import bleep._
 import bleep.internal.formatsCrossProjectName
-import bleep.model.Dep
 import bleep.tasks.publishing._
 
 import scala.collection.immutable.SortedMap
@@ -18,7 +17,7 @@ object PublishLocal extends BleepScriptRunner("PublishLocal") {
     val bundledProjects: SortedMap[model.CrossProjectName, Deployable] =
       fileBundle(
         started,
-        asDep = (crossName, _) => Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
+        asDep = (crossName, _) => model.Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
         shouldInclude = projectsToPublish.include,
         bundleLayout = fileBundle.BundleLayout.Ivy
       )

@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.model.ExplodedBuild
 import bloop.config.Config
 import coursier.jvm.JavaHome
 
@@ -11,7 +10,7 @@ import scala.concurrent.ExecutionContext
 case class Started(
     prebootstrapped: Prebootstrapped,
     rewrites: List[Rewrite],
-    build: ExplodedBuild,
+    build: model.ExplodedBuild,
     bloopFiles: GenBloopFiles.Files,
     activeProjectsFromPath: List[model.CrossProjectName],
     lazyConfig: Lazy[BleepConfig],

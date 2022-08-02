@@ -1,7 +1,6 @@
 package bleep.internal
 
 import bleep.model
-import bleep.model.VersionScala
 import bloop.config.Config
 import coursier.core.Configuration
 import sbt.librarymanagement.CrossVersion
@@ -110,7 +109,7 @@ object ImportInputProjects {
           case (name, importableProjects) =>
             importableProjects.map { ip =>
               val maybeCrossId = model.CrossId.defaultFrom(
-                maybeScalaVersion = ip.bloopFile.project.scala.map(s => VersionScala(s.version)),
+                maybeScalaVersion = ip.bloopFile.project.scala.map(s => model.VersionScala(s.version)),
                 maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name)),
                 isFull = ip.sbtExportFile.crossVersion match {
                   case _: CrossVersion.Full => true

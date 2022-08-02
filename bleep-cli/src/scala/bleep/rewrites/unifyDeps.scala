@@ -1,18 +1,16 @@
 package bleep
 package rewrites
 
-import bleep.model.{Dep, ExplodedBuild}
-
 /** The `Dep.ScalaDependency` structure has three fields we can only correctly determine in context of a given scala version. We need to propagate those three
   * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better
   */
 object unifyDeps extends Rewrite {
   override val name = "unify-deps"
 
-  def findReplacements(allDeps: Iterable[Dep]): Map[Dep, Dep] = {
-    val javaDeps = allDeps.collect { case x: Dep.JavaDependency => x }
-    val scalaDeps = allDeps.collect { case x: Dep.ScalaDependency => x }
-    val rewrittenScalaDeps: Map[Dep, Dep] =
+  def findReplacements(allDeps: Iterable[model.Dep]): Map[model.Dep, model.Dep] = {
+    val javaDeps = allDeps.collect { case x: model.Dep.JavaDependency => x }
+    val scalaDeps = allDeps.collect { case x: model.Dep.ScalaDependency => x }
+    val rewrittenScalaDeps: Map[model.Dep, model.Dep] =
       scalaDeps
         .groupBy(x => x.copy(forceJvm = false, for3Use213 = false, for213Use3 = false))
         .flatMap { case (base, providedByBase) =>
@@ -26,8 +24,8 @@ object unifyDeps extends Rewrite {
     rewrittenScalaDeps ++ javaDeps.map(x => (x, x))
   }
 
-  override def apply(build: ExplodedBuild): ExplodedBuild = {
-    val replacements: Map[Dep, Dep] =
+  override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
+    val replacements: Map[model.Dep, model.Dep] =
       findReplacements(build.projects.flatMap(_._2.dependencies.values))
 
     val projectPlatforms: Map[model.ProjectName, Set[model.PlatformId]] =
@@ -40,8 +38,8 @@ object unifyDeps extends Rewrite {
     build.copy(projects = build.projects.map { case (crossName, p) =>
       val newP = p.copy(dependencies = p.dependencies.map { dep0 =>
         val dep0ForceJvm = dep0 match {
-          case x: Dep.JavaDependency  => x
-          case x: Dep.ScalaDependency => x.copy(forceJvm = true)
+          case x: model.Dep.JavaDependency  => x
+          case x: model.Dep.ScalaDependency => x.copy(forceJvm = true)
         }
 
         val dep1 = replacements(dep0)

@@ -3,7 +3,6 @@ package commands
 
 import bleep.internal.Templates
 import bleep.logging.Logger
-import bleep.model._
 import bleep.toYaml.asYamlString
 import bleep.{constants, model, BleepException}
 import cats.data.NonEmptyList
@@ -14,7 +13,7 @@ case class BuildCreateNew(
     logger: Logger,
     cwd: Path,
     platforms: NonEmptyList[model.PlatformId],
-    scalas: NonEmptyList[VersionScala],
+    scalas: NonEmptyList[model.VersionScala],
     name: String,
     bleepVersion: model.Version
 ) extends BleepCommand {
@@ -69,7 +68,7 @@ case class BuildCreateNew(
 object BuildCreateNew {
 
   class ExampleFiles(name: String) {
-    val fansi = Dep.Scala("com.lihaoyi", "fansi", "0.3.1")
+    val fansi = model.Dep.Scala("com.lihaoyi", "fansi", "0.3.1")
     object main {
       val relPath = RelPath.force(s"$name/src/scala/com/foo/App.scala")
       val contents =
@@ -88,7 +87,7 @@ object BuildCreateNew {
       val cls = "com.foo.App"
     }
 
-    val scalatest = Dep.Scala("org.scalatest", "scalatest", "3.2.11")
+    val scalatest = model.Dep.Scala("org.scalatest", "scalatest", "3.2.11")
     object test {
       val relPath = RelPath.force(s"$name-test/src/scala/com/foo/AppTest.scala")
       val contents =
@@ -110,13 +109,14 @@ object BuildCreateNew {
       logger: Logger,
       exampleFiles: ExampleFiles,
       platforms: NonEmptyList[model.PlatformId],
-      scalas: NonEmptyList[VersionScala],
+      scalas: NonEmptyList[model.VersionScala],
       name: String,
       bleepVersion: model.Version
   ): model.Build = {
-    val defaultOpts = Options(Set(Options.Opt.WithArgs("-encoding", List("utf8")), Options.Opt.Flag("-feature"), Options.Opt.Flag("-unchecked")))
+    val defaultOpts =
+      model.Options(Set(model.Options.Opt.WithArgs("-encoding", List("utf8")), model.Options.Opt.Flag("-feature"), model.Options.Opt.Flag("-unchecked")))
 
-    def variants(name: String): NonEmptyList[(model.PlatformId, VersionScala, model.CrossProjectName)] =
+    def variants(name: String): NonEmptyList[(model.PlatformId, model.VersionScala, model.CrossProjectName)] =
       for {
         p <- platforms
         s <- scalas
@@ -125,29 +125,29 @@ object BuildCreateNew {
     val mainProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
       variants(name).map { case (platformId, scala, crossName) =>
         val p = model.Project(
-          `extends` = JsonSet.empty,
-          cross = JsonMap.empty,
+          `extends` = model.JsonSet.empty,
+          cross = model.JsonMap.empty,
           folder = None,
-          dependsOn = JsonSet.empty,
-          `source-layout` = Some(SourceLayout.Normal),
+          dependsOn = model.JsonSet.empty,
+          `source-layout` = Some(model.SourceLayout.Normal),
           `sbt-scope` = None,
-          sources = JsonSet.empty,
-          resources = JsonSet.empty,
-          dependencies = JsonSet(exampleFiles.fansi),
+          sources = model.JsonSet.empty,
+          resources = model.JsonSet.empty,
+          dependencies = model.JsonSet(exampleFiles.fansi),
           java = None,
-          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty, strict = Some(true))),
+          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = model.JsonSet.empty, strict = Some(true))),
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm =>
-                model.Platform.Jvm(Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = Options.empty)
+                model.Platform.Jvm(model.Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = model.Options.empty)
               case model.PlatformId.Js =>
-                model.Platform.Js(VersionScalaJs.ScalaJs1, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
+                model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
               case model.PlatformId.Native =>
                 sys.error("native not implemented yet")
             }
           ),
           isTestProject = None,
-          testFrameworks = JsonSet.empty
+          testFrameworks = model.JsonSet.empty
         )
         (crossName, p)
       }
@@ -155,26 +155,26 @@ object BuildCreateNew {
     val testProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
       variants(s"$name-test").map { case (platformId, scala, crossName) =>
         val p = model.Project(
-          `extends` = JsonSet.empty,
-          cross = JsonMap.empty,
+          `extends` = model.JsonSet.empty,
+          cross = model.JsonMap.empty,
           folder = None,
-          dependsOn = JsonSet(model.ProjectName(name)),
-          `source-layout` = Some(SourceLayout.Normal),
+          dependsOn = model.JsonSet(model.ProjectName(name)),
+          `source-layout` = Some(model.SourceLayout.Normal),
           `sbt-scope` = None,
-          sources = JsonSet.empty,
-          resources = JsonSet.empty,
-          dependencies = JsonSet(exampleFiles.scalatest),
+          sources = model.JsonSet.empty,
+          resources = model.JsonSet.empty,
+          dependencies = model.JsonSet(exampleFiles.scalatest),
           java = None,
-          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = JsonSet.empty, strict = Some(true))),
+          scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = model.JsonSet.empty, strict = Some(true))),
           platform = Some(
             platformId match {
-              case model.PlatformId.Jvm    => model.Platform.Jvm(Options.empty, jvmMainClass = None, jvmRuntimeOptions = Options.empty)
-              case model.PlatformId.Js     => model.Platform.Js(VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
+              case model.PlatformId.Jvm    => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)
+              case model.PlatformId.Js     => model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
               case model.PlatformId.Native => sys.error("native not implemented yet")
             }
           ),
           isTestProject = Some(true),
-          testFrameworks = JsonSet.empty
+          testFrameworks = model.JsonSet.empty
         )
         (crossName, p)
       }

@@ -1,7 +1,5 @@
 package bleep
 
-import bleep.model.{Replacements, SourceLayout, VersionScala}
-
 import java.nio.file.Path
 
 case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
@@ -24,18 +22,18 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
 
   final def project(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
-    val scalaVersion: Option[VersionScala] = p.scala.flatMap(_.version)
+    val scalaVersion: Option[model.VersionScala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
     val targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
 
-    val replacements = Replacements.paths(dir, buildDir) ++
-      Replacements.targetDir(targetDir) ++
-      Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
-      Replacements.versions(scalaVersion, maybePlatformId.map(_.value), includeEpoch = true)
+    val replacements = model.Replacements.paths(dir, buildDir) ++
+      model.Replacements.targetDir(targetDir) ++
+      model.Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
+      model.Replacements.versions(scalaVersion, maybePlatformId.map(_.value), includeEpoch = true)
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout
-      case None               => if (scalaVersion.isDefined) SourceLayout.Normal else SourceLayout.Java
+      case None               => if (scalaVersion.isDefined) model.SourceLayout.Normal else model.SourceLayout.Java
     }
 
     val sources = {
