@@ -8,7 +8,7 @@ import nosbt.InteractionService
 
 import scala.collection.immutable.SortedMap
 
-object Publish extends BleepScript("Publish") {
+object Publish extends BleepScriptRunner("Publish") {
   val groupId = "build.bleep"
 
   def run(started: Started, commands: Commands, args: List[String]): Unit = {

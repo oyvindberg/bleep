@@ -5,7 +5,7 @@ import bleep.tasks.publishing._
 
 import scala.collection.immutable.SortedMap
 
-object PublishLocal extends BleepScript("PublishLocal") {
+object PublishLocal extends BleepScriptRunner("PublishLocal") {
   val groupId = "build.bleep"
 
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
