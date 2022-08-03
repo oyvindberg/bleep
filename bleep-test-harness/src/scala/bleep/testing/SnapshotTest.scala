@@ -20,13 +20,17 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   val absolutePaths: model.Replacements =
     model.Replacements.ofReplacements(
       List(
-        (CoursierPaths.cacheDirectory().toString, "<COURSIER>"),
-        (CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>"),
-        (JvmIndex.defaultOs(), "<OS>"),
-        (JvmIndex.defaultArchitecture(), "<ARCHITECTURE>"),
-        (System.getProperty("user.dir"), "<BLEEP_GIT>"),
-        (System.getProperty("user.home"), "<HOME>")
-      )
+        Some((CoursierPaths.cacheDirectory().toString, "<COURSIER>")),
+        Some((CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>")),
+        Some((JvmIndex.defaultOs(), "<OS>")),
+        Some((JvmIndex.defaultArchitecture(), "<ARCHITECTURE>")),
+        JvmIndex.defaultArchitecture() match {
+          case "amd64" => Some(("x64", "<ARCHITECTURE>"))
+          case _       => None
+        },
+        Some((System.getProperty("user.dir"), "<BLEEP_GIT>")),
+        Some((System.getProperty("user.home"), "<HOME>"))
+      ).flatten
     )
 
   def writeAndCompare(in: Path, fileMap: Map[Path, String]): Assertion =
