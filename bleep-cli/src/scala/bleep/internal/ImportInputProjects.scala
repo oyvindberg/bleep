@@ -1,10 +1,11 @@
 package bleep.internal
 
 import bleep.model
-import bleep.model.CrossProjectName
+import bleep.model.{CrossId, CrossProjectName}
 import bloop.config.Config
 import coursier.core.Configuration
 import sbt.librarymanagement
+import sbt.librarymanagement.CrossVersion
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -117,21 +118,34 @@ object ImportInputProjects {
         case (name, one) if one.size == 1 =>
           List((model.CrossProjectName(name, None), one.head))
         case (name, importableProjects) =>
-          importableProjects.map { ip =>
-            val maybeCrossId = model.CrossId.defaultFrom(
-              maybeScalaVersion = ip.bloopFile.project.scala.map(s => model.VersionScala(s.version)),
-              maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name)),
-              isFull = ip.sbtExportFile.crossVersion match {
-                case _: librarymanagement.CrossVersion.Full => true
-                case _                                      => false
-              }
-            )
+          // multiple projects may translate to same crossId. we discard all except one
+          val byCrossId: Map[Option[CrossId], Iterable[InputProject]] =
+            importableProjects.groupBy(ip => mkCrossId(ip, None))
 
-            (model.CrossProjectName(name, maybeCrossId), ip)
+          byCrossId.map {
+            case (maybeCrossId, one) if one.size == 1 =>
+              (model.CrossProjectName(name, maybeCrossId), one.head)
+            case (maybeCrossId, conflicting) =>
+              // note that this being a `Map` the discard would be automatic,
+              // but for consistency this code will pick the same each time
+              val chosen = conflicting.maxBy(ip => mkCrossId(ip, overrideIsFull = Some(true)))
+              (model.CrossProjectName(name, maybeCrossId), chosen)
           }
       }
 
     val relevant = keepRelevant(cross, forceInclude)
     ImportInputProjects(relevant)
   }
+
+  def mkCrossId(ip: ImportInputProjects.InputProject, overrideIsFull: Option[Boolean]): Option[CrossId] =
+    model.CrossId.defaultFrom(
+      maybeScalaVersion = ip.bloopFile.project.scala.map(s => model.VersionScala(s.version)),
+      maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name)),
+      isFull = overrideIsFull.getOrElse {
+        ip.sbtExportFile.crossVersion match {
+          case _: CrossVersion.Full => true
+          case _                    => false
+        }
+      }
+    )
 }

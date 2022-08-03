@@ -2,10 +2,6 @@ $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
   actions:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - org.scala-sbt::librarymanagement-core:1.7.0
     - org.scala-sbt::zinc-apiinfo:1.7.1
@@ -27,10 +23,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   actions-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -44,9 +36,6 @@ projects:
     folder: ./../../snapshot-tests-in/sbt/main-actions
   collections:
     cross:
-      jvm212:
-        scala:
-          version: 2.12.16
       jvm213:
         dependencies: org.scala-lang.modules::scala-parallel-collections:0.2.0
     dependencies: com.eed3si9n::sjson-new-scalajson:0.9.1
@@ -62,10 +51,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   collections-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -78,10 +63,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/internal/util-collection
   command:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - org.scala-sbt::librarymanagement-core:1.7.0
     - org.scala-sbt::zinc-classpath:1.7.1
@@ -103,10 +84,6 @@ projects:
         -language:existentials -language:postfixOps
     sources: ./src/${SCOPE}/contraband-scala
   command-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -121,10 +98,6 @@ projects:
     scala:
       options: -Ywarn-unused:-locals,-explicits,-privates
   completion:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - org.jline:jline-builtins:3.19.0
     - org.jline:jline-reader:3.19.0
@@ -142,10 +115,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   completion-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -161,8 +130,6 @@ projects:
     cross:
       jvm212:
         dependencies: org.scala-lang:scala-compiler:2.12.16
-        scala:
-          version: 2.12.16
       jvm213:
         dependencies: org.scala-lang:scala-compiler:2.13.8
     dependsOn: collections
@@ -175,10 +142,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   logic:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependsOn:
     - collections
     - util-relation
@@ -191,10 +154,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   logic-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -208,9 +167,6 @@ projects:
     folder: ./../../snapshot-tests-in/sbt/internal/util-logic
   main:
     cross:
-      jvm212:
-        scala:
-          version: 2.12.16
       jvm213:
         dependencies: org.scala-lang.modules::scala-parallel-collections:1.0.0
     dependencies:
@@ -237,10 +193,6 @@ projects:
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
     sources: ./src/${SCOPE}/contraband-scala
   main-settings:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependsOn:
     - command
     - task-system
@@ -254,10 +206,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   main-settings-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -270,10 +218,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/main-settings
   main-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -286,10 +230,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/main
   protocol:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scala-sbt.ipcsocket:ipcsocket:1.5.0
     dependsOn: util-logging
     extends:
@@ -303,10 +243,6 @@ projects:
         -language:existentials -language:postfixOps
     sources: ./src/${SCOPE}/contraband-scala
   run:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scala-sbt::zinc-classpath:1.7.1
     dependsOn:
     - util-control
@@ -325,10 +261,6 @@ projects:
         -language:existentials -language:postfixOps
     sources: ./src/${SCOPE}/contraband-scala
   run-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -355,12 +287,7 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-      version: 2.12.16
   sbt-client:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.11
     dependencies:
     - org.fusesource.jansi:jansi:2.1.0
     - org.scalameta:svm-subs:101.0.0
@@ -383,7 +310,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Xsource:3 -language:existentials
         -language:postfixOps
-      version: 2.12.16
     sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-test:
     dependencies:
@@ -399,13 +325,7 @@ projects:
     folder: ./../../snapshot-tests-in/sbt/sbt-app
     platform:
       jvmOptions: -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
-    scala:
-      version: 2.12.16
   scripted-plugin:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     extends:
     - template-common-main
     - template-cross-all
@@ -424,7 +344,6 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-      version: 2.12.16
   scripted-sbt-redux:
     dependencies:
       configuration: provided
@@ -442,7 +361,6 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-      version: 2.12.16
   scripts:
     dependencies: build.bleep::bleep-tasks:0.0.1-M14
     platform:
@@ -459,21 +377,14 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-      version: 2.12.16
   servertestproj-test:
     dependsOn: servertestproj
     extends:
     - template-common-test
     - template-scala-2.12
     folder: ./../../snapshot-tests-in/sbt/server-test
-    scala:
-      version: 2.12.16
     sources: ./target/generated/src/${SCOPE}/scala/testpkg/TestProperties.scala
   task-system:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependsOn:
     - tasks
     - util-cache
@@ -489,10 +400,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   task-system-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependsOn:
     - task-system
     - tasks-test
@@ -501,10 +408,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/tasks-standard
   tasks:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependsOn:
     - collections
     - util-control
@@ -519,10 +422,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   tasks-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -542,12 +441,7 @@ projects:
     folder: ./../../snapshot-tests-in/sbt/testing/agent
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
-      version: 2.12.16
   testing:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - org.scala-lang.modules::scala-xml:1.3.0
     - org.scala-sbt::zinc-classpath:1.7.1
@@ -571,8 +465,6 @@ projects:
     cross:
       jvm212:
         dependencies: org.scala-lang:scala-reflect:2.12.16
-        scala:
-          version: 2.12.16
       jvm213:
         dependencies: org.scala-lang:scala-reflect:2.13.8
     dependencies:
@@ -590,10 +482,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-cache-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-cache
     extends:
@@ -601,10 +489,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/util-cache
   util-control:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     extends:
     - template-common-main
     - template-cross-all
@@ -624,14 +508,12 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
-      version: 2.12.16
     source-layout: java
   util-logging:
     cross:
       jvm212:
         scala:
           options: -Ywarn-unused:-locals,-explicits,-privates
-          version: 2.12.16
     dependencies:
     - com.eed3si9n::sjson-new-core:0.9.0
     - com.lmax:disruptor:3.4.2
@@ -661,7 +543,6 @@ projects:
       jvm212:
         scala:
           options: -Ywarn-unused:-locals,-explicits,-privates
-          version: 2.12.16
     dependencies:
     - org.scalacheck::scalacheck:1.15.4
     - org.scalatest::scalatest:3.2.10
@@ -674,8 +555,6 @@ projects:
     cross:
       jvm212:
         dependencies: org.scala-lang:scala-reflect:2.12.16
-        scala:
-          version: 2.12.16
       jvm213:
         dependencies: org.scala-lang:scala-reflect:2.13.8
     extends:
@@ -688,10 +567,6 @@ projects:
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:experimental.macros
         -language:postfixOps
   util-position-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-position
     extends:
@@ -701,10 +576,6 @@ projects:
     scala:
       options: -language:experimental.macros
   util-relation:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     extends:
     - template-common-main
     - template-cross-all
@@ -714,10 +585,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-relation-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scalacheck::scalacheck:1.15.4
     dependsOn: util-relation
     extends:
@@ -725,10 +592,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/internal/util-relation
   util-scripted:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn: util-logging
     extends:
@@ -740,10 +603,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-tracking:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependsOn: util-cache
     extends:
     - template-common-main
@@ -756,10 +615,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   util-tracking-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: util-tracking
     extends:
@@ -767,10 +622,6 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/util-tracking
   zinc-lm-integration:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - org.scala-sbt::librarymanagement-core:1.7.0
     - org.scala-sbt::zinc-compile-core:1.7.1
@@ -784,10 +635,6 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   zinc-lm-integration-test:
-    cross:
-      jvm212:
-        scala:
-          version: 2.12.16
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
     - junit:junit:4.13.1
@@ -836,6 +683,7 @@ templates:
   template-scala-2.12:
     scala:
       options: -Xfatal-warnings -Yno-adapted-args -Ywarn-unused-import
+      version: 2.12.16
   template-scala-2.13:
     scala:
       version: 2.13.8
