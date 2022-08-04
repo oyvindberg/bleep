@@ -63,8 +63,8 @@ paths and so on.
 import bleep.{bootstrap, model}
 import bleep.tasks._
 
-object GenNativeImage extends App {
-  bootstrap.forScript("GenNativeImage") { started =>
+object GenNativeImage extends BleepScript("GenNativeImage") {
+  def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val projectName = model.ProjectName("myproject")
     val project = started.bloopFiles(projectName).forceGet
 
