@@ -96,7 +96,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.12/2.0.16/coursier-util_2.12-2.0.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.12/2.0.16/coursier_2.12-2.0.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.0.0/concurrent-reference-hash-map-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.3/windows-ansi-0.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.3/<MASKED_OS>-ansi-0.0.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/soc/directories/10/directories-10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-eval_2.12/2.3.3/monix-eval_2.12-2.3.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/monix/monix-execution_2.12/2.3.3/monix-execution_2.12-2.3.3.jar",
@@ -725,14 +725,14 @@
           ]
         },
         {
-          "organization": "io.github.alexarchambault.windows-ansi",
-          "name": "windows-ansi",
+          "organization": "io.github.alexarchambault.<MASKED_OS>-ansi",
+          "name": "<MASKED_OS>-ansi",
           "version": "0.0.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "windows-ansi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.3/windows-ansi-0.0.3.jar"
+              "name": "<MASKED_OS>-ansi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.3/<MASKED_OS>-ansi-0.0.3.jar"
             }
           ]
         },

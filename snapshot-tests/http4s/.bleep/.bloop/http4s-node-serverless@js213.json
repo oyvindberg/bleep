@@ -116,7 +116,7 @@
         "kind": "none",
         "emitSourceMaps": false,
         "jsdom": false,
-        "nodePath": "<COURSIER_ARC>/https/nodejs.org/dist/v18.4.0/node-v18.4.0-<OS>-<ARCHITECTURE>.tar.gz/node-v18.4.0-<OS>-<ARCHITECTURE>/bin/node",
+        "nodePath": "<COURSIER_ARC>/https/nodejs.org/dist/v18.4.0/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>.tar.gz/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>/bin/node",
         "toolchain": [
           
         ]

@@ -16,21 +16,21 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
 
   val outFolder: Path =
     Paths.get("snapshot-tests").toAbsolutePath
-
+  JvmIndex.defaultArchitecture()
   val absolutePaths: model.Replacements =
     model.Replacements.ofReplacements(
       List(
-        Some((CoursierPaths.cacheDirectory().toString, "<COURSIER>")),
-        Some((CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>")),
-        Some((JvmIndex.defaultOs(), "<OS>")),
-        Some((JvmIndex.defaultArchitecture(), "<ARCHITECTURE>")),
-        JvmIndex.defaultArchitecture() match {
-          case "amd64" => Some(("x64", "<ARCHITECTURE>"))
-          case _       => None
-        },
-        Some((System.getProperty("user.dir"), "<BLEEP_GIT>")),
-        Some((System.getProperty("user.home"), "<HOME>"))
-      ).flatten
+        (CoursierPaths.cacheDirectory().toString, "<COURSIER>"),
+        (CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>"),
+        (System.getProperty("user.dir"), "<BLEEP_GIT>"),
+        (System.getProperty("user.home"), "<HOME>"),
+        ("darwin", "<MASKED_OS>"),
+        ("linux", "<MASKED_OS>"),
+        ("windows", "<MASKED_OS>"),
+        ("x64", "<MASKED_ARCHITECTURE>"),
+        ("amd64", "<MASKED_ARCHITECTURE>"),
+        ("arm64", "<MASKED_ARCHITECTURE>")
+      )
     )
 
   def writeAndCompare(in: Path, fileMap: Map[Path, String]): Assertion =

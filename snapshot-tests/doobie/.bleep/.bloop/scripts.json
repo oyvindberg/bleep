@@ -45,11 +45,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.0-M6-28-gbad85693f/coursier-jvm_2.13-2.1.0-M6-28-gbad85693f.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.0-M6-28-gbad85693f/coursier-util_2.13-2.1.0-M6-28-gbad85693f.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.0-M6-28-gbad85693f/coursier_2.13-2.1.0-M6-28-gbad85693f.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/jniutils/<MASKED_OS>-jni-utils/0.3.3/<MASKED_OS>-jni-utils-0.3.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/libdaemon/libdaemon_3/0.0.10/libdaemon_3-0.0.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc1/snailgun-core_2.13-0.4.1-sc1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.3/windows-ansi-0.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.3/<MASKED_OS>-ansi-0.0.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7.jar",
@@ -494,14 +494,14 @@
           ]
         },
         {
-          "organization": "io.github.alexarchambault.windows-ansi",
-          "name": "windows-ansi",
+          "organization": "io.github.alexarchambault.<MASKED_OS>-ansi",
+          "name": "<MASKED_OS>-ansi",
           "version": "0.0.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "windows-ansi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/windows-ansi/windows-ansi/0.0.3/windows-ansi-0.0.3.jar"
+              "name": "<MASKED_OS>-ansi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.3/<MASKED_OS>-ansi-0.0.3.jar"
             }
           ]
         },
@@ -903,13 +903,13 @@
         },
         {
           "organization": "io.get-coursier.jniutils",
-          "name": "windows-jni-utils",
+          "name": "<MASKED_OS>-jni-utils",
           "version": "0.3.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "windows-jni-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/jniutils/windows-jni-utils/0.3.3/windows-jni-utils-0.3.3.jar"
+              "name": "<MASKED_OS>-jni-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/jniutils/<MASKED_OS>-jni-utils/0.3.3/<MASKED_OS>-jni-utils-0.3.3.jar"
             }
           ]
         },
