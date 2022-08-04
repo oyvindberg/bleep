@@ -28,7 +28,7 @@ projects:
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-M6-28-gbad85693f
+      module: io.get-coursier::coursier-jvm:2.1.0-M6-49-gff26f8e39
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
@@ -47,7 +47,7 @@ projects:
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-M6-28-gbad85693f
+      module: io.get-coursier::coursier:2.1.0-M6-49-gff26f8e39
     extends: template-cross-all
   bleep-tasks:
     dependsOn: bleep-core
