@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M14
+$version: 0.0.1-M15
 jvm:
   name: graalvm-java17:22.1.0
 projects:
@@ -43,11 +43,11 @@ projects:
     - io.circe::circe-generic:0.14.2
     - io.circe::circe-parser:0.14.2
     - io.circe::circe-yaml:0.14.1
-    - org.snakeyaml:snakeyaml-engine:2.3
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
       module: io.get-coursier::coursier:2.1.0-M6-49-gff26f8e39
+    - org.snakeyaml:snakeyaml-engine:2.3
     extends: template-cross-all
   bleep-tasks:
     dependsOn: bleep-core
@@ -132,30 +132,15 @@ templates:
         extends: template-scala-2.12
       jvm213:
         extends: template-scala-2.13
-  template-scala-2:
-    scala:
-      options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
-        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
-        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
-        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -language:existentials
   template-scala-2.12:
-    extends: template-scala-2
     scala:
-      options: -Xlint:by-name-right-associative -Xlint:nullary-override -Xlint:unsound-match
-        -Yno-adapted-args -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit
-        -Ywarn-nullary-override -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits
-        -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
-        -Ywarn-unused:privates -Ywarn-value-discard -deprecation
+      strict: true
       version: 2.12.15
   template-scala-2.13:
-    extends: template-scala-2
     scala:
-      options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
-        -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars
-        -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit -Xlint:deprecation
-        -Xlint:implicit-not-found -Xlint:implicit-recursion -Xlint:strict-unsealed-patmat
+      strict: true
       version: 2.13.8
   template-scala-3:
     scala:
-      options: -Ykind-projector -deprecation
+      strict: true
       version: 3.1.1
