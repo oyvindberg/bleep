@@ -128,6 +128,8 @@ object GeneratedFilesScript {
       val script = s"""
 package scripts
 
+import bleep.{Commands, Started}
+
 import java.nio.file.Files
 
 object GenerateResources extends BleepScript("GenerateResources") {
