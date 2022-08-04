@@ -60,11 +60,11 @@ Bleep provides you with the entire build in a structured format, so you can quer
 paths and so on.
 
 ```scala
-import bleep.{bootstrap, model}
+import bleep._
 import bleep.tasks._
 
-object GenNativeImage extends App {
-  bootstrap.forScript("GenNativeImage") { started =>
+object GenNativeImage extends BleepScript("GenNativeImage") {
+  def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val projectName = model.ProjectName("myproject")
     val project = started.bloopFiles(projectName).forceGet
 
