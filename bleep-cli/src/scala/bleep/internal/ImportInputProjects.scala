@@ -1,10 +1,9 @@
 package bleep.internal
 
 import bleep.model
-import bleep.model.{CrossId, CrossProjectName}
+import bleep.model.{CrossId, CrossProjectName, VersionScala}
 import bloop.config.Config
 import coursier.core.Configuration
-import sbt.librarymanagement
 import sbt.librarymanagement.CrossVersion
 
 import java.nio.file.{Files, Path}
@@ -104,9 +103,12 @@ object ImportInputProjects {
             case List(one) =>
               one
             case many =>
-              many.find(f => bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full)).getOrElse {
-                sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name} among ${many.map(_.scalaVersion)}")
-              }
+              many
+                .find(f => bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full))
+                .orElse(many.find(f => bloopFile.project.scala.map(s => VersionScala(s.version).binVersion).contains(f.scalaVersion.binary)))
+                .getOrElse {
+                  sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name} among ${many.map(_.scalaVersion)}")
+                }
           }
 
         InputProject(bloopFile, sbtExportFile)
