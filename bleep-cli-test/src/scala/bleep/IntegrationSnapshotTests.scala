@@ -47,8 +47,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
   test("bloop") {
     // todo: cache result of looking up existing sources in a json file as well
-    cli(List("git", "submodule", "init"), logger, "git submodule init")(inFolder / "bloop")
-    cli(List("git", "submodule", "update"), logger, "git submodule update")(inFolder / "bloop")
+    cli(action = "git submodule init", cwd = inFolder / "bloop", cmd = List("git", "submodule", "init"), logger = logger)
+    cli("git submodule update", inFolder / "bloop", List("git", "submodule", "update"), logger)
     testIn("bloop")
   }
 

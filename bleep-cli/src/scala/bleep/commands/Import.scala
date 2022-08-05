@@ -13,7 +13,6 @@ import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
-import scala.sys.process.Process
 
 object Import {
   case class Options(
@@ -49,7 +48,7 @@ object Import {
       .toList
       .asScala
 
-  def parseProjectsOutput(lines: List[String]): Map[Path, List[String]] = {
+  def parseProjectsOutput(lines: Array[String]): Map[Path, List[String]] = {
     var currentPath = Option.empty[Path]
     val projectNames = List.newBuilder[String]
     val b = Map.newBuilder[Path, List[String]]
@@ -107,7 +106,7 @@ object Import {
     }
   }
   object ScalaVersionOutput {
-    def parse(lines: List[String]): ScalaVersionOutput = {
+    def parse(lines: Array[String]): ScalaVersionOutput = {
       val scalaVersionsBuilder = mutable.Map.empty[model.VersionScala, mutable.Set[String]]
       val crossVersionsBuilder = mutable.Map.empty[model.VersionScala, mutable.Set[String]]
 
@@ -198,14 +197,16 @@ case class Import(
 
     // run this as a command to discover all projects, possibly across several builds, possibly including non-aggregated projects
     val allProjectNamesByBuild: Map[Path, List[String]] = {
-      val cmd = List("sbt", "projects")
       logger.info("Calling sbt to discover projects...")
-      logger.debug(cmd)
-      val output = Process(cmd, sbtBuildDir.toFile, sbtEnvs: _*)
-        .lazyLines(logger.processLogger("sbt discover projects"))
-        .toList
+      val output = cli(
+        action = "sbt discover projects",
+        cwd = sbtBuildDir,
+        cmd = List("sbt", "projects"),
+        logger = logger,
+        env = sbtEnvs
+      )
 
-      val result = Import.parseProjectsOutput(output)
+      val result = Import.parseProjectsOutput(output.stdout)
 
       result.foreach { case (buildDir, projects) =>
         logger.info(s"Discovered ${projects.length} in $buildDir")
@@ -231,9 +232,17 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
           val cmd = List("sbt", "show " + projectNames.map(p => s"$p/scalaVersion $p/crossScalaVersions").mkString(" "))
           logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
           logger.withContext(sbtBuildDir).debug(cmd)
-          val output = Process(cmd, sbtBuildDir.toFile, sbtEnvs: _*).lazyLines(logger.processLogger("sbt discover cross projects")).toList
 
-          val result = Import.ScalaVersionOutput.parse(output)
+          val output =
+            cli(
+              "sbt discover cross projects",
+              sbtBuildDir,
+              cmd,
+              logger,
+              env = sbtEnvs
+            )
+
+          val result = Import.ScalaVersionOutput.parse(output.stdout)
 
           result.combined
             .foldLeft(logger) { case (logger, (scala, projects)) => logger.withContext(scala.scalaVersion, projects.size) }
@@ -262,13 +271,20 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
             }
 
           scalaVersionOutput.scalaVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = false) } ++
-            scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) }
+            scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) } ++
+            List("exit")
         }
 
-        val cmd = "sbt" :: args.toList
         logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
-        logger.withContext(sbtBuildDir).debug(cmd)
-        cli(cmd, logger, "sbt", env = sbtEnvs)(sbtBuildDir)
+        logger.withContext(sbtBuildDir).debug(args)
+        cli(
+          action = "sbt",
+          cwd = sbtBuildDir,
+          cmd = List("sbt export"),
+          logger = logger,
+          stdIn = cli.StdIn.Provided(args.mkString("\n").getBytes),
+          env = sbtEnvs
+        )
       } finally Files.delete(tempAddBloopPlugin)
     }
   }
