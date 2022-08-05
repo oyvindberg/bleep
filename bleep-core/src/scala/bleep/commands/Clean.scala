@@ -20,7 +20,12 @@ case class Clean(started: Started, projects: List[model.CrossProjectName]) exten
         }
       } else {
         // fast path
-        cli(List(List("rm", "-Rf"), outDirectories.map(_.toString)).flatten, started.logger, "clean files")(FileUtils.TempDir)
+        cli(
+          action = "clean files",
+          cwd = FileUtils.TempDir,
+          cmd = List(List("rm", "-Rf"), outDirectories.map(_.toString)).flatten,
+          logger = started.logger
+        )
         outDirectories.foreach(directory => started.logger.info(s"Deleted $directory"))
       }
     }

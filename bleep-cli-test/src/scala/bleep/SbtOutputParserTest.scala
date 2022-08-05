@@ -75,7 +75,7 @@ class SbtOutputParserTest extends AnyFunSuite with TripleEqualsSupport {
                   |[info] 	   jvm
                   |[info] 	   micro""".stripMargin
 
-    val result = Import.parseProjectsOutput(input.split("\n").toList)
+    val result = Import.parseProjectsOutput(input.split("\n"))
 
     val expected = Map(
       Path.of("/home/foo/bleep/snapshot-tests-in/bloop") -> List("backend", "benchmarkBridge", "benchmarks", "bloop", "bloop4j", "bloopShared"),
@@ -98,7 +98,7 @@ class SbtOutputParserTest extends AnyFunSuite with TripleEqualsSupport {
                    |[info] 	List(2.12.16)
                    |[info] ...""".stripMargin
 
-    val result = Import.ScalaVersionOutput.parse(output.split("\n").toList).combined.toMap
+    val result = Import.ScalaVersionOutput.parse(output.split("\n")).combined
     val expected =
       Map(model.VersionScala("2.13.8") -> Set("treesNative"), model.VersionScala("2.12.16") -> Set("treesNative2", "treesNative", "binaryJVMProjects"))
     assert(result === expected)
