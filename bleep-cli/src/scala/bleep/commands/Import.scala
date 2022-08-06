@@ -278,9 +278,9 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
         logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
         logger.withContext(sbtBuildDir).debug(args)
         cli(
-          action = "sbt",
+          action = "sbt export",
           cwd = sbtBuildDir,
-          cmd = List("sbt export"),
+          cmd = List("sbt"),
           logger = logger,
           stdIn = cli.StdIn.Provided(args.mkString("\n").getBytes),
           env = sbtEnvs
