@@ -2,6 +2,7 @@ package bleep
 package commands
 
 import bleep.RelPath
+import bleep.cli.StdIn
 import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
@@ -181,6 +182,9 @@ case class Import(
     Right(())
   }
 
+  def sbtCommands(cmds: Iterable[String]) =
+    StdIn.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
+
   /** I know, launching sbt three plus times is incredibly slow.
     *
     * I'm sure it's possible to do the same thing from within sbt and only launch it first, but you know. it's not at all easy.
@@ -198,12 +202,14 @@ case class Import(
     // run this as a command to discover all projects, possibly across several builds, possibly including non-aggregated projects
     val allProjectNamesByBuild: Map[Path, List[String]] = {
       logger.info("Calling sbt to discover projects...")
+
       val output = cli(
         action = "sbt discover projects",
         cwd = sbtBuildDir,
-        cmd = List("sbt", "projects"),
+        cmd = List("sbt"),
         logger = logger,
-        env = sbtEnvs
+        env = sbtEnvs,
+        stdIn = sbtCommands(List("projects"))
       )
 
       val result = Import.parseProjectsOutput(output.stdout)
@@ -229,17 +235,18 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
       try {
         // ask for all (cross) scala versions for these projects
         val scalaVersionOutput: Import.ScalaVersionOutput = {
-          val cmd = List("sbt", "show " + projectNames.map(p => s"$p/scalaVersion $p/crossScalaVersions").mkString(" "))
           logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
-          logger.withContext(sbtBuildDir).debug(cmd)
+          val cmds = projectNames.map(p => s"show $p/scalaVersion $p/crossScalaVersions")
+          logger.withContext(sbtBuildDir).debug(cmds)
 
           val output =
             cli(
               "sbt discover cross projects",
               sbtBuildDir,
-              cmd,
+              List("sbt"),
               logger,
-              env = sbtEnvs
+              env = sbtEnvs,
+              stdIn = sbtCommands(cmds)
             )
 
           val result = Import.ScalaVersionOutput.parse(output.stdout)
@@ -252,7 +259,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
         }
 
         // then finally dump each of the three configurations we care about into two files each.
-        val args: Iterable[String] = {
+        val cmds: Iterable[String] = {
           def argsFor(scalaVersion: model.VersionScala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
             List(
               if (switchScalaVersion) s"++ ${scalaVersion.scalaVersion}" else "",
@@ -271,18 +278,17 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
             }
 
           scalaVersionOutput.scalaVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = false) } ++
-            scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) } ++
-            List("exit")
+            scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) }
         }
 
         logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
-        logger.withContext(sbtBuildDir).debug(args)
+        logger.withContext(sbtBuildDir).debug(cmds)
         cli(
           action = "sbt export",
           cwd = sbtBuildDir,
           cmd = List("sbt"),
           logger = logger,
-          stdIn = cli.StdIn.Provided(args.mkString("\n").getBytes),
+          stdIn = sbtCommands(cmds),
           env = sbtEnvs
         )
       } finally Files.delete(tempAddBloopPlugin)
