@@ -42,7 +42,9 @@ object cli {
         stdIn match {
           case StdIn.No             => ()
           case StdIn.Attach         => BasicIO.connectToIn(os)
-          case StdIn.Provided(data) => os.write(data)
+          case StdIn.Provided(data) =>
+            os.write(data)
+            os.close()
         },
       processOutput = BasicIO.processFully { line =>
         output += WrittenLine.StdOut(line)
