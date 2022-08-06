@@ -65,7 +65,7 @@ object CoursierResolver {
     val params = Params(downloadSources, authentications, repos)
     val direct = new Direct(new CoursierLogger(logger), params)
     val cached = new Cached(logger, direct, cacheIn)
-    new WithBleepVersion(cached, wantedBleepVersion)
+    new TemplatedVersions(cached, wantedBleepVersion)
   }
 
   final case class Authentications(configs: Map[URI, Authentication])
@@ -263,18 +263,21 @@ object CoursierResolver {
     }
   }
 
-  class WithBleepVersion(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
+  class TemplatedVersions(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
     override val params = outer.params
     override def resolve(deps: Set[Dependency], forceScalaVersion: Option[model.VersionScala]): Either[CoursierError, Result] = {
       val rewrittenDeps =
-        maybeWantedBleepVersion match {
-          case Some(wantedBleepVersion) =>
-            deps.map {
-              case dep if dep.version == constants.BleepVersionTemplate => dep.withVersion(wantedBleepVersion.value)
-              case dep                                                  => dep
-            }
-          case None => deps
+        deps.map {
+          case dep if dep.version == constants.BleepVersionTemplate =>
+            dep.withVersion(maybeWantedBleepVersion.getOrElse(sys.error("expected to have a bleep version")).value)
+          case dep if dep.version == constants.ScalaVersionTemplate =>
+            dep.withVersion(forceScalaVersion.getOrElse(sys.error("Expected to have a scala version")).scalaVersion)
+          case dep => dep
         }
+      maybeWantedBleepVersion match {
+        case Some(wantedBleepVersion) =>
+        case None                     => deps
+      }
       outer.resolve(rewrittenDeps, forceScalaVersion)
     }
   }

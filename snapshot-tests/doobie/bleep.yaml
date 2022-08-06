@@ -46,9 +46,9 @@ projects:
   doobie-free:
     cross:
       jvm212:
-        dependencies: org.scala-lang:scala-reflect:2.12.15
+        dependencies: org.scala-lang:scala-reflect:$SCALA_VERSION
       jvm213:
-        dependencies: org.scala-lang:scala-reflect:2.13.8
+        dependencies: org.scala-lang:scala-reflect:$SCALA_VERSION
     dependencies:
     - co.fs2::fs2-core:3.2.4
     - org.scala-lang.modules::scala-collection-compat:2.6.0

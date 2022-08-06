@@ -202,7 +202,9 @@ object importBloopFilesFromSbt {
         case Right(dep) if providedDepReprs(dep.repr) =>
           None
         case Right(dep) =>
-          Some(dep)
+          if (inputProject.bloopFile.project.scala.map(_.version).contains(dep.version))
+            Some(dep.withVersion(constants.ScalaVersionTemplate))
+          else Some(dep)
       }
     }
 

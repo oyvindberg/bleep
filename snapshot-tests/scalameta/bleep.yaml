@@ -16,45 +16,29 @@ projects:
   common:
     cross:
       js212:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
       js213:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
       jvm211:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.9.7
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.11.12
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.9.7
       jvm212:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
       jvm213:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
       native212:
         dependencies:
         - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - org.scala-lang:scala-library:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
+        - org.scala-lang:scala-library:$SCALA_VERSION
         - org.scala-native::scalalib:0.4.5
       native213:
         dependencies:
         - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - org.scala-lang:scala-library:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
+        - org.scala-lang:scala-library:$SCALA_VERSION
         - org.scala-native::scalalib:0.4.5
-    dependencies: com.lihaoyi::sourcecode:0.3.0
+    dependencies:
+    - com.lihaoyi::sourcecode:0.3.0
+    - configuration: provided
+      module: org.scala-lang:scala-reflect:$SCALA_VERSION
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
@@ -86,49 +70,11 @@ projects:
     extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
     folder: ./../../snapshot-tests-in/scalameta/semanticdb/metac
   parsers:
-    cross:
-      js212:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      js213:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
-      jvm211:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.11.12
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.11.12
-      jvm212:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      jvm213:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
-      native212:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      native213:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
+    dependencies:
+    - configuration: provided
+      module: org.scala-lang:scala-compiler:$SCALA_VERSION
+    - configuration: provided
+      module: org.scala-lang:scala-reflect:$SCALA_VERSION
     dependsOn: trees
     extends:
     - template-common-main
@@ -145,29 +91,19 @@ projects:
     - ./../transversers/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
   scalameta:
     cross:
-      js212:
-        dependencies: org.scala-lang:scalap:2.12.16
-      js213:
-        dependencies: org.scala-lang:scalap:2.13.8
       jvm211:
-        dependencies: org.scala-lang:scalap:2.11.12
         sources:
         - ./../../semanticdb/metacp
         - ./../../semanticdb/symtab
       jvm212:
-        dependencies: org.scala-lang:scalap:2.12.16
         sources:
         - ./../../semanticdb/metacp
         - ./../../semanticdb/symtab
       jvm213:
-        dependencies: org.scala-lang:scalap:2.13.8
         sources:
         - ./../../semanticdb/metacp
         - ./../../semanticdb/symtab
-      native212:
-        dependencies: org.scala-lang:scalap:2.12.16
-      native213:
-        dependencies: org.scala-lang:scalap:2.13.8
+    dependencies: org.scala-lang:scalap:$SCALA_VERSION
     dependsOn: parsers
     extends:
     - template-common-main
@@ -202,45 +138,7 @@ projects:
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
     folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/plugin
   semanticdb-scalac-core:
-    cross:
-      jvm2.11.12:
-        dependencies: org.scala-lang:scala-compiler:2.11.12
-      jvm2.12.10:
-        dependencies: org.scala-lang:scala-compiler:2.12.10
-      jvm2.12.11:
-        dependencies: org.scala-lang:scala-compiler:2.12.11
-      jvm2.12.12:
-        dependencies: org.scala-lang:scala-compiler:2.12.12
-      jvm2.12.13:
-        dependencies: org.scala-lang:scala-compiler:2.12.13
-      jvm2.12.14:
-        dependencies: org.scala-lang:scala-compiler:2.12.14
-      jvm2.12.15:
-        dependencies: org.scala-lang:scala-compiler:2.12.15
-      jvm2.12.16:
-        dependencies: org.scala-lang:scala-compiler:2.12.16
-      jvm2.12.8:
-        dependencies: org.scala-lang:scala-compiler:2.12.8
-      jvm2.12.9:
-        dependencies: org.scala-lang:scala-compiler:2.12.9
-      jvm2.13.0:
-        dependencies: org.scala-lang:scala-compiler:2.13.0
-      jvm2.13.1:
-        dependencies: org.scala-lang:scala-compiler:2.13.1
-      jvm2.13.2:
-        dependencies: org.scala-lang:scala-compiler:2.13.2
-      jvm2.13.3:
-        dependencies: org.scala-lang:scala-compiler:2.13.3
-      jvm2.13.4:
-        dependencies: org.scala-lang:scala-compiler:2.13.4
-      jvm2.13.5:
-        dependencies: org.scala-lang:scala-compiler:2.13.5
-      jvm2.13.6:
-        dependencies: org.scala-lang:scala-compiler:2.13.6
-      jvm2.13.7:
-        dependencies: org.scala-lang:scala-compiler:2.13.7
-      jvm2.13.8:
-        dependencies: org.scala-lang:scala-compiler:2.13.8
+    dependencies: org.scala-lang:scala-compiler:$SCALA_VERSION
     dependsOn: scalameta
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
     folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/library
@@ -267,19 +165,9 @@ projects:
       options: -Yrangepos -deprecation
     sources: ./src/${SCOPE}/protobuf
   semanticdbintegrationmacros:
-    cross:
-      jvm211:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.11.12
-      jvm212:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      jvm213:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
+    dependencies:
+      configuration: provided
+      module: org.scala-lang:scala-reflect:$SCALA_VERSION
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
@@ -307,13 +195,7 @@ projects:
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   testkit-test:
-    cross:
-      jvm211:
-        dependencies: org.scala-lang:scala-compiler:2.11.12
-      jvm212:
-        dependencies: org.scala-lang:scala-compiler:2.12.16
-      jvm213:
-        dependencies: org.scala-lang:scala-compiler:2.13.8
+    dependencies: org.scala-lang:scala-compiler:$SCALA_VERSION
     dependsOn: testkit
     extends:
     - template-common-test
@@ -370,50 +252,12 @@ projects:
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   trees:
-    cross:
-      js212:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      js213:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
-      jvm211:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.11.12
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.11.12
-      jvm212:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      jvm213:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
-      native212:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.12.16
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.16
-      native213:
-        dependencies:
-        - configuration: provided
-          module: org.scala-lang:scala-compiler:2.13.8
-        - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.8
-    dependencies: org.scalameta::fastparse-v2:2.3.1
+    dependencies:
+    - configuration: provided
+      module: org.scala-lang:scala-compiler:$SCALA_VERSION
+    - configuration: provided
+      module: org.scala-lang:scala-reflect:$SCALA_VERSION
+    - org.scalameta::fastparse-v2:2.3.1
     dependsOn: common
     extends:
     - template-common-main

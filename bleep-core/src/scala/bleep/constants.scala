@@ -7,6 +7,7 @@ import java.nio.file.Path
 
 object constants {
   val BleepVersionTemplate = "$BLEEP_VERSION"
+  val ScalaVersionTemplate = "$SCALA_VERSION"
   val Node = "18.4.0"
 
   private val ivyLocalUri =

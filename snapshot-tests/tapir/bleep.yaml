@@ -18,7 +18,7 @@ projects:
   sbt-openapi-codegen-test:
     dependencies:
     - com.47deg::scalacheck-toolbox-datetime:0.6.0
-    - org.scala-lang:scala-compiler:2.12.15
+    - org.scala-lang:scala-compiler:$SCALA_VERSION
     - configuration: provided
       module: org.scala-sbt:sbt:1.5.5
     - org.scalacheck::scalacheck:1.15.4
@@ -298,13 +298,13 @@ projects:
         - com.propensive::magnolia:0.17.0
         - org.scala-js::scalajs-dom:2.0.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.15
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       js213:
         dependencies:
         - com.propensive::magnolia:0.17.0
         - org.scala-js::scalajs-dom:2.0.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.6
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       js3:
         dependencies:
         - com.softwaremill.magnolia1_3::magnolia:1.0.0-M7
@@ -313,12 +313,12 @@ projects:
         dependencies:
         - com.propensive::magnolia:0.17.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.15
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       jvm213:
         dependencies:
         - com.propensive::magnolia:0.17.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.6
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       jvm3:
         dependencies: com.softwaremill.magnolia1_3::magnolia:1.0.0-M7
     dependencies:
@@ -338,14 +338,14 @@ projects:
         - io.github.cquiroz::scala-java-time-tzdb:2.3.0
         - io.github.cquiroz::scala-java-time:2.3.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.15
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       js213:
         dependencies:
         - com.47deg::scalacheck-toolbox-datetime:0.6.0
         - io.github.cquiroz::scala-java-time-tzdb:2.3.0
         - io.github.cquiroz::scala-java-time:2.3.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.6
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       js3:
         dependencies:
         - io.github.cquiroz::scala-java-time-tzdb:2.3.0
@@ -355,12 +355,12 @@ projects:
         dependencies:
         - com.47deg::scalacheck-toolbox-datetime:0.6.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.15
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
       jvm213:
         dependencies:
         - com.47deg::scalacheck-toolbox-datetime:0.6.0
         - configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.6
+          module: org.scala-lang:scala-reflect:$SCALA_VERSION
     dependencies:
     - org.scalacheck::scalacheck:1.15.4
     - org.scalatest::scalatest:3.2.10
@@ -373,18 +373,15 @@ projects:
   tapir-derevo:
     cross:
       jvm212:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.15
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
       jvm213:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.6
         scala:
           options: -Ymacro-annotations
-    dependencies: tf.tofu::derevo-core:0.12.8
+    dependencies:
+    - configuration: provided
+      module: org.scala-lang:scala-reflect:$SCALA_VERSION
+    - tf.tofu::derevo-core:0.12.8
     dependsOn: tapir-newtype
     extends:
     - template-common-main
@@ -393,18 +390,15 @@ projects:
   tapir-derevo-test:
     cross:
       jvm212:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.12.15
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
       jvm213:
-        dependencies:
-          configuration: provided
-          module: org.scala-lang:scala-reflect:2.13.6
         scala:
           options: -Ymacro-annotations
-    dependencies: org.scalatest::scalatest:3.2.10
+    dependencies:
+    - configuration: provided
+      module: org.scala-lang:scala-reflect:$SCALA_VERSION
+    - org.scalatest::scalatest:3.2.10
     dependsOn: tapir-derevo
     extends:
     - template-common-test

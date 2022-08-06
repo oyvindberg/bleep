@@ -489,7 +489,7 @@ projects:
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
   compilation:
-    dependencies: org.scala-lang:scala-compiler:2.12.15
+    dependencies: org.scala-lang:scala-compiler:$SCALA_VERSION
     dependsOn: infrastructure
     extends:
     - template-common-main
@@ -627,7 +627,7 @@ projects:
     folder: ./../../snapshot-tests-in/bloop/integrations/maven-bloop
     sbt-scope: test
   micro:
-    dependencies: org.scala-lang:scala-compiler:2.12.15
+    dependencies: org.scala-lang:scala-compiler:$SCALA_VERSION
     dependsOn: infrastructure
     extends:
     - template-common-main

@@ -16,7 +16,7 @@ projects:
     extends: template-common-main
     folder: ./../../snapshot-tests-in/converter/core
   import-scalajs-definitions:
-    dependencies: org.scala-lang:scalap:2.12.14
+    dependencies: org.scala-lang:scalap:$SCALA_VERSION
     dependsOn: importer
     extends: template-common-main
     folder: ./../../snapshot-tests-in/converter/import-scalajs-definitions
