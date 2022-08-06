@@ -128,7 +128,7 @@ object GeneratedFilesScript {
       val script = s"""
 package scripts
 
-import bleep.{Commands, Started}
+import bleep.{BleepScript, Commands, Started}
 
 import java.nio.file.Files
 
