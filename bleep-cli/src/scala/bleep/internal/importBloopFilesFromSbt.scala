@@ -81,7 +81,7 @@ object importBloopFilesFromSbt {
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
 
-      val scalaPlatform = model.VersionScalaPlatform.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
+      val versionCombo = model.VersionCombo.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
         case Left(value)  => throw new BleepException.Text(crossName, value)
         case Right(value) => value
       }
@@ -130,7 +130,7 @@ object importBloopFilesFromSbt {
       }
 
       val (compilerPlugins, dependencies) = {
-        val providedDeps = scalaPlatform.libraries(isTest = projectType.testLike)
+        val providedDeps = versionCombo.libraries(isTest = projectType.testLike)
         importDeps(logger, inputProject, crossName, configuredPlatform.flatMap(_.name), providedDeps)
       }
 
@@ -138,7 +138,7 @@ object importBloopFilesFromSbt {
         bloopProject.java.map(translateJava(replacements))
 
       val configuredScala: Option[model.Scala] =
-        bloopProject.scala.map(translateScala(compilerPlugins, replacements, scalaPlatform))
+        bloopProject.scala.map(translateScala(compilerPlugins, replacements, versionCombo))
 
       val testFrameworks: model.JsonSet[model.TestFrameworkName] =
         if (projectType.testLike) {
@@ -340,7 +340,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
     }
 
-  def translateScala(compilerPlugins: Seq[model.Dep], replacements: model.Replacements, scalaPlatform: model.VersionScalaPlatform)(
+  def translateScala(compilerPlugins: Seq[model.Dep], replacements: model.Replacements, versionCombo: model.VersionCombo)(
       s: Config.Scala
   ): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacements))
@@ -352,7 +352,7 @@ object importBloopFilesFromSbt {
 
     val filteredCompilerPlugins: Seq[model.Dep] =
       compilerOptionsDropSemanticDb {
-        scalaPlatform.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
+        versionCombo.compilerPlugin.foldLeft(compilerPlugins) { case (all, fromPlatform) => all.filterNot(_ == fromPlatform) }
       }
 
     val (strict, remainingOptions) = {

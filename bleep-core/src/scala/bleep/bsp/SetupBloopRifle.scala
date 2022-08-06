@@ -5,7 +5,6 @@ import bleep.bsp.CompileServerMode.{NewEachInvocation, Shared}
 import bleep.internal.FileUtils
 import bleep.logging.Logger
 import bleep.{BleepException, Lazy}
-import coursier.core.Dependency
 import coursier.parse.ModuleParser
 
 import java.io.File
@@ -47,7 +46,8 @@ object SetupBloopRifle {
       .left
       .map(msg => new BleepException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
-        resolver.forceGet.resolve(Set(Dependency(mod, bloopVersion)), forceScalaVersion = None) match {
+        val dep = model.Dep.Java(mod.organization.value, mod.name.value, bloopVersion)
+        resolver.forceGet.resolve(Set(dep), model.VersionCombo.Java) match {
           case Left(coursierError) => Left(new BleepException.ResolveError(coursierError, "installing bloop"))
           case Right(res)          => Right((res.jarFiles, true))
         }
