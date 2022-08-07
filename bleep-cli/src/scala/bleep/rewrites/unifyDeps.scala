@@ -37,10 +37,7 @@ object unifyDeps extends Rewrite {
 
     build.copy(projects = build.projects.map { case (crossName, p) =>
       val newP = p.copy(dependencies = p.dependencies.map { dep0 =>
-        val dep0ForceJvm = dep0 match {
-          case x: model.Dep.JavaDependency  => x
-          case x: model.Dep.ScalaDependency => x.copy(forceJvm = true)
-        }
+        val dep0ForceJvm = dep0.mapScala(_.copy(forceJvm = true))
 
         val dep1 = replacements(dep0)
 

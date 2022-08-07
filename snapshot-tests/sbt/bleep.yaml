@@ -127,7 +127,7 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/internal/util-complete
   core-macros:
-    dependencies: org.scala-lang:scala-compiler:$SCALA_VERSION
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: collections
     extends:
     - template-common-main
@@ -461,7 +461,7 @@ projects:
     dependencies:
     - com.eed3si9n::sjson-new-murmurhash:0.9.1
     - com.eed3si9n::sjson-new-scalajson:0.9.1
-    - org.scala-lang:scala-reflect:$SCALA_VERSION
+    - org.scala-lang:scala-reflect:${SCALA_VERSION}
     - org.scala-sbt::io:1.7.0
     extends:
     - template-common-main
@@ -544,7 +544,7 @@ projects:
     - template-cross-all
     folder: ./../../snapshot-tests-in/sbt/internal/util-logging
   util-position:
-    dependencies: org.scala-lang:scala-reflect:$SCALA_VERSION
+    dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
     - template-common-main
     - template-cross-all

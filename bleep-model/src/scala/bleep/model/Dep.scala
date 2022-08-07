@@ -26,6 +26,12 @@ sealed trait Dep {
   def withVersion(version: String): Dep
   def withTransitive(value: Boolean): Dep
 
+  def mapScala(f: Dep.ScalaDependency => Dep.ScalaDependency): Dep =
+    this match {
+      case java: Dep.JavaDependency   => java
+      case scala: Dep.ScalaDependency => f(scala)
+    }
+
   final def asDependency(combo: VersionCombo): Either[String, Dependency] =
     asJava(combo).map(_.dependency)
 

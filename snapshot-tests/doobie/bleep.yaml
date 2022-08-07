@@ -17,7 +17,7 @@ projects:
     cross:
       jvm212:
         dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.13-
+        sources: ./src/${SCOPE}/scala-2.13-
       jvm213:
         dependencies: com.chuusai::shapeless:2.3.7
         sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}+
@@ -46,9 +46,9 @@ projects:
   doobie-free:
     cross:
       jvm212:
-        dependencies: org.scala-lang:scala-reflect:$SCALA_VERSION
+        dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
       jvm213:
-        dependencies: org.scala-lang:scala-reflect:$SCALA_VERSION
+        dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
     dependencies:
     - co.fs2::fs2-core:3.2.4
     - org.scala-lang.modules::scala-collection-compat:2.6.0

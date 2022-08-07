@@ -47,10 +47,8 @@ object SetupBloopRifle {
       .map(msg => new BleepException.ModuleFormatError(modString, msg))
       .flatMap { mod =>
         val dep = model.Dep.Java(mod.organization.value, mod.name.value, bloopVersion)
-        resolver.forceGet.resolve(Set(dep), model.VersionCombo.Java) match {
-          case Left(coursierError) => Left(new BleepException.ResolveError(coursierError, "installing bloop"))
-          case Right(res)          => Right((res.jarFiles, true))
-        }
+        val res = resolver.forceGet.force(Set(dep), model.VersionCombo.Java, "installing bloop")
+        Right((res.jarFiles, true))
       }
   }
 

@@ -22,6 +22,12 @@ trait CoursierResolver {
   val params: CoursierResolver.Params
 
   def resolve(deps: Set[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result]
+
+  final def force(deps: Set[model.Dep], versionCombo: model.VersionCombo, context: String): CoursierResolver.Result =
+    resolve(deps, versionCombo) match {
+      case Left(err)    => throw new BleepException.ResolveError(err, context)
+      case Right(value) => value
+    }
 }
 
 object CoursierResolver {
@@ -54,6 +60,7 @@ object CoursierResolver {
         )
     }
   }
+
   def apply(
       repos: List[model.Repository],
       logger: Logger,
@@ -264,19 +271,8 @@ object CoursierResolver {
   class TemplatedVersions(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
     override val params = outer.params
     override def resolve(deps: Set[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, Result] = {
-      val rewrittenDeps =
-        deps.map {
-          case dep if dep.version == constants.BleepVersionTemplate =>
-            dep.withVersion(maybeWantedBleepVersion.getOrElse(sys.error("expected to have a bleep version")).value)
-
-          case dep if dep.version == constants.ScalaVersionTemplate =>
-            val version = versionCombo.asScala match {
-              case Some(scalaCombo) => scalaCombo.scalaVersion.scalaVersion
-              case None             => throw new BleepException.Text(s"You can only use ${constants.ScalaVersionTemplate} in scala projects")
-            }
-            dep.withVersion(version)
-          case dep => dep
-        }
+      val replacements = model.Replacements.versions(maybeWantedBleepVersion, versionCombo, includeEpoch = true, includeBinVersion = true)
+      val rewrittenDeps = deps.map(replacements.fill.dep)
       outer.resolve(rewrittenDeps, versionCombo)
     }
   }

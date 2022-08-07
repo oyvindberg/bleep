@@ -23,7 +23,7 @@ object Defaults {
       jsEmitSourceMaps = None,
       jsJsdom = None,
       jsNodeVersion = None,
-      jvmOptions = model.Options(Set(model.Options.Opt.Flag("-Duser.dir=${BUILD_DIR}"))),
+      jvmOptions = model.Options(Set(model.Options.Opt.Flag(s"-Duser.dir=${model.Replacements.known.BuildDir}"))),
       jvmRuntimeOptions = model.Options.empty,
       nativeVersion = None,
       nativeMode = None,

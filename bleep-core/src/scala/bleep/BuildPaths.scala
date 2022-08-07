@@ -2,7 +2,7 @@ package bleep
 
 import java.nio.file.Path
 
-case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
+case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode, wantedBleepVersion: Option[model.BleepVersion]) {
   lazy val buildDir = bleepYamlFile.getParent
   lazy val bspBleepJsonFile: Path = buildDir / ".bsp" / "bleep.json"
   lazy val dotBleepDir: Path = buildDir / ".bleep"
@@ -24,12 +24,13 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode) {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[model.VersionScala] = p.scala.flatMap(_.version)
     val maybePlatformId = p.platform.flatMap(_.name)
-    val targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
+    val maybePlatformVersion = p.platform.flatMap(p => p.jsVersion.map(_.scalaJsVersion).orElse(p.nativeVersion.map(_.scalaNativeVersion)))
 
+    val targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
     val replacements = model.Replacements.paths(dir, buildDir) ++
       model.Replacements.targetDir(targetDir) ++
       model.Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
-      model.Replacements.versions(scalaVersion, maybePlatformId.map(_.value), includeEpoch = true)
+      model.Replacements.versions(wantedBleepVersion, scalaVersion, maybePlatformId, maybePlatformVersion, includeEpoch = true, includeBinVersion = true)
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout
@@ -71,5 +72,5 @@ object BuildPaths {
   }
 
   def apply(cwd: Path, buildLoader: BuildLoader, mode: BuildPaths.Mode): BuildPaths =
-    BuildPaths(cwd, buildLoader.bleepYaml, mode)
+    BuildPaths(cwd, buildLoader.bleepYaml, mode, buildLoader.existing.toOption.flatMap(_.wantedVersion.forceGet.toOption))
 }
