@@ -40,8 +40,8 @@ object cli {
     val processIO = new ProcessIO(
       writeInput = os =>
         stdIn match {
-          case StdIn.No             => ()
-          case StdIn.Attach         => BasicIO.connectToIn(os)
+          case StdIn.No     => ()
+          case StdIn.Attach => BasicIO.connectToIn(os)
           case StdIn.Provided(data) =>
             os.write(data)
             os.close()
