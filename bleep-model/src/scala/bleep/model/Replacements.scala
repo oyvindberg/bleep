@@ -14,6 +14,8 @@ class Replacements private (val sortedValues: List[(String, String)]) {
     def relPath(relPath: RelPath): RelPath =
       new RelPath(relPath.segments.map(string))
 
+    def dep(dep: Dep): Dep = dep.withVersion(string(dep.version))
+
     def opts(options: Options): Options =
       new Options(options.values.map {
         case Options.Opt.Flag(name)           => Options.Opt.Flag(string(name))
@@ -62,41 +64,94 @@ class Replacements private (val sortedValues: List[(String, String)]) {
 object Replacements {
   val empty: Replacements = ofReplacements(Nil)
 
+  object known {
+    val BleepVersion = "${BLEEP_VERSION}"
+    val BuildDir = "${BUILD_DIR}"
+    val Platform = "${PLATFORM}"
+    val PlatformVersion = "${PLATFORM_VERSION}"
+    val ProjectDir = "${PROJECT_DIR}"
+    val ScalaBinVersion = "${SCALA_BIN_VERSION}"
+    val ScalaEpoch = "${SCALA_EPOCH}"
+    val ScalaVersion = "${SCALA_VERSION}"
+    val Scope = "${SCOPE}"
+    val TargetDir = "${TARGET_DIR}"
+  }
+
   def ofReplacements(map: List[(String, String)]): Replacements =
     new Replacements(map.distinct.sortBy(-_._1.length)) // longest first
 
   def targetDir(target: Path): Replacements =
     ofReplacements(
-      List(target.toString -> "${TARGET_DIR}")
+      List(target.toString -> known.TargetDir)
     )
 
   def paths(build: Path, project: Path): Replacements =
     ofReplacements(
       List(
-        project.toString -> "${PROJECT_DIR}",
-        build.toString -> "${BUILD_DIR}"
+        project.toString -> known.ProjectDir,
+        build.toString -> known.BuildDir
       )
     )
 
   def scope(scope: String): Replacements =
-    if (scope.isEmpty) empty else ofReplacements(List(scope -> "${SCOPE}"))
+    if (scope.isEmpty) empty
+    else ofReplacements(List(scope -> known.Scope))
 
-  def versions(scalaVersion: Option[VersionScala], platform: Option[String], includeEpoch: Boolean): Replacements =
+  def versions(
+      bleepVersion: Option[BleepVersion],
+      scalaVersion: Option[VersionScala],
+      platform: Option[PlatformId],
+      platformVersion: Option[String],
+      includeEpoch: Boolean,
+      includeBinVersion: Boolean
+  ): Replacements =
     ofReplacements(
       List(
         scalaVersion match {
           case Some(scalaVersion) =>
             List(
-              scalaVersion.epoch.toString -> (if (includeEpoch) Some("${SCALA_EPOCH}") else None),
-              scalaVersion.binVersion -> Some("${SCALA_BIN_VERSION}"),
-              scalaVersion.scalaVersion -> Some("${SCALA_VERSION}")
+              (scalaVersion.epoch.toString, if (includeEpoch) Some(known.ScalaEpoch) else None),
+              (scalaVersion.binVersion, if (includeBinVersion) Some(known.ScalaBinVersion) else None),
+              (scalaVersion.scalaVersion, Some(known.ScalaVersion))
             ).collect { case (k, Some(v)) => (k, v) }
           case None => Nil
         },
         platform match {
-          case Some(platform) => List(s"$platform" -> "${PLATFORM}")
+          case Some(platform) => List(platform.value -> known.Platform)
           case None           => Nil
+        },
+        platformVersion match {
+          case Some(version) =>
+            List(version -> known.PlatformVersion)
+          case None => Nil
+        },
+        bleepVersion match {
+          case Some(value) => List(value.value -> known.BleepVersion)
+          case None        => Nil
         }
       ).flatten
+    )
+
+  // note: bleepVersion may not be the running version in the case of `--dev`
+  // where the version found in the build is used instead.
+  // this is so that bleep-task dependencies can be resolved.
+  def versions(bleepVersion: Option[BleepVersion], versionCombo: VersionCombo, includeEpoch: Boolean, includeBinVersion: Boolean): Replacements =
+    versions(
+      bleepVersion,
+      scalaVersion = versionCombo.asScala.map(_.scalaVersion),
+      platform = versionCombo match {
+        case VersionCombo.Java         => None
+        case VersionCombo.Jvm(_)       => Some(PlatformId.Jvm)
+        case VersionCombo.Js(_, _)     => Some(PlatformId.Js)
+        case VersionCombo.Native(_, _) => Some(PlatformId.Native)
+      },
+      platformVersion = versionCombo match {
+        case VersionCombo.Java                   => None
+        case VersionCombo.Jvm(_)                 => None
+        case VersionCombo.Js(_, scalaJsVersion)  => Some(scalaJsVersion.scalaJsVersion)
+        case VersionCombo.Native(_, scalaNative) => Some(scalaNative.scalaNativeVersion)
+      },
+      includeEpoch = includeEpoch,
+      includeBinVersion = includeBinVersion
     )
 }

@@ -70,10 +70,10 @@ projects:
         sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}-13
       js212:
         dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0
-        sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.11-13
+        sources: ./src/${SCOPE}/scala-2.11-13
       js213:
         dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0
-        sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.11-13
+        sources: ./src/${SCOPE}/scala-2.11-13
       jvm210:
         dependencies:
         - io.circe::circe-core:0.9.3
@@ -84,10 +84,10 @@ projects:
         sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}-13
       jvm212:
         dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0
-        sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.11-13
+        sources: ./src/${SCOPE}/scala-2.11-13
       jvm213:
         dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0
-        sources: ./src/${SCOPE}/scala-${SCALA_EPOCH}.11-13
+        sources: ./src/${SCOPE}/scala-2.11-13
     extends:
     - template-common-main
     - template-cross-all
@@ -99,21 +99,21 @@ projects:
       js211:
         dependencies:
           forceJvm: true
-          module: org.scala-js::scalajs-junit-test-runtime:1.6.0
+          module: org.scala-js::scalajs-junit-test-runtime:${PLATFORM_VERSION}
         scala:
-          compilerPlugins: org.scala-js:::scalajs-junit-test-plugin:1.6.0
+          compilerPlugins: org.scala-js:::scalajs-junit-test-plugin:${PLATFORM_VERSION}
       js212:
         dependencies:
           forceJvm: true
-          module: org.scala-js::scalajs-junit-test-runtime:1.6.0
+          module: org.scala-js::scalajs-junit-test-runtime:${PLATFORM_VERSION}
         scala:
-          compilerPlugins: org.scala-js:::scalajs-junit-test-plugin:1.6.0
+          compilerPlugins: org.scala-js:::scalajs-junit-test-plugin:${PLATFORM_VERSION}
       js213:
         dependencies:
           forceJvm: true
-          module: org.scala-js::scalajs-junit-test-runtime:1.6.0
+          module: org.scala-js::scalajs-junit-test-runtime:${PLATFORM_VERSION}
         scala:
-          compilerPlugins: org.scala-js:::scalajs-junit-test-plugin:1.6.0
+          compilerPlugins: org.scala-js:::scalajs-junit-test-plugin:${PLATFORM_VERSION}
       jvm210:
         dependencies:
         - com.github.sbt:junit-interface:0.13.3
@@ -489,7 +489,7 @@ projects:
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
   compilation:
-    dependencies: org.scala-lang:scala-compiler:2.12.15
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: infrastructure
     extends:
     - template-common-main
@@ -627,7 +627,7 @@ projects:
     folder: ./../../snapshot-tests-in/bloop/integrations/maven-bloop
     sbt-scope: test
   micro:
-    dependencies: org.scala-lang:scala-compiler:2.12.15
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: infrastructure
     extends:
     - template-common-main

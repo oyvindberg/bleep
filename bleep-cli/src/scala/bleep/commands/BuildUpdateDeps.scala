@@ -51,12 +51,12 @@ object BuildUpdateDeps {
   def instantiateAllDependencies(build: model.ExplodedBuild): Map[model.Dep, List[Dependency]] =
     build.projects.toList
       .flatMap { case (crossName, p) =>
-        model.VersionScalaPlatform.fromExplodedProject(p) match {
+        model.VersionCombo.fromExplodedProject(p) match {
           case Left(err) =>
             throw new BleepException.Text(crossName, err)
-          case Right(scalaPlatform) =>
+          case Right(versionCombo) =>
             p.dependencies.values.iterator.collect {
-              case dep if !dep.version.contains("$") => (dep, dep.dependencyForce(crossName, scalaPlatform))
+              case dep if !dep.version.contains("$") => (dep, dep.asDependencyForce(Some(crossName), versionCombo))
             }
         }
       }

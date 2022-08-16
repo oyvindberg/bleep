@@ -172,7 +172,7 @@ case class Import(
 
     val files = generateBuild(
       inputProjects,
-      bleepTasksVersion = model.BleepVersion(constants.BleepVersionTemplate),
+      bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
       generatedFiles,
       existingBuild
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }

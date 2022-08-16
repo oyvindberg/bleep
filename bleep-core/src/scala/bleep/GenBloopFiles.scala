@@ -5,8 +5,8 @@ import bleep.logging.Logger
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
+import coursier.Classifier
 import coursier.core.{Configuration, Extension}
-import coursier.{Classifier, Dependency}
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
 
 import java.nio.charset.StandardCharsets.UTF_8
@@ -155,8 +155,8 @@ object GenBloopFiles {
         case platform                     => platform
       }
 
-    val scalaPlatform: model.VersionScalaPlatform =
-      model.VersionScalaPlatform.fromExplodedProject(explodedProject) match {
+    val versionCombo: model.VersionCombo =
+      model.VersionCombo.fromExplodedProject(explodedProject) match {
         case Left(err)       => throw new BleepException.Text(crossName, err)
         case Right(versions) => versions
       }
@@ -164,7 +164,7 @@ object GenBloopFiles {
     val templateDirs =
       model.Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
-        model.Replacements.versions(maybeScala.flatMap(_.version), explodedPlatform.flatMap(_.name).map(_.value), includeEpoch = true)
+        model.Replacements.versions(Some(build.build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
 
     def require[T](ot: Option[T], name: String): T =
       ot match {
@@ -224,7 +224,7 @@ object GenBloopFiles {
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
       val fromPlatform =
-        scalaPlatform.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+        versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -232,26 +232,11 @@ object GenBloopFiles {
       def providedOrOptional(dep: model.Dep): Boolean =
         dep.configuration == Configuration.provided || dep.configuration == Configuration.optional
 
-      def resolve(all: model.JsonSet[model.Dep]) = {
-        val concreteDeps: Set[Dependency] =
-          all.values.toSet[model.Dep].map { dep =>
-            dep.dependency(scalaPlatform) match {
-              case Left(err)    => throw new BleepException.Text(crossName, err)
-              case Right(value) => value
-            }
-          }
-
-        resolver.resolve(concreteDeps, forceScalaVersion = scalaVersion) match {
-          case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
-          case Right(value)        => value
-        }
-      }
-
       // drop provided/optional from inherited deps
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
-      val normal =
-        resolve(explodedProject.dependencies.union(model.JsonSet.fromIterable(filteredInherited ++ fromPlatform)))
+      val deps = explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)
+      val normal = resolver.force(deps, versionCombo, crossName.value)
 
       val runtime =
         if (explodedProject.dependencies.values.exists(providedOrOptional) || inherited.size != filteredInherited.size) {
@@ -262,9 +247,8 @@ object GenBloopFiles {
           val noLongerOptionalsFromProject =
             optionalsFromProject.map(_.withConfiguration(Configuration.empty))
 
-          resolve {
-            model.JsonSet.fromIterable(filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform)
-          }
+          val deps = (filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform).toSet
+          resolver.force(deps, versionCombo, crossName.value)
         } else normal
 
       (normal, runtime)
@@ -305,14 +289,10 @@ object GenBloopFiles {
 
     val configuredScala: Option[Config.Scala] =
       scalaVersion.map { scalaVersion =>
-        val scalaCompiler: Dependency =
-          scalaVersion.compiler.forceDependency(model.VersionScalaPlatform.Jvm(scalaVersion))
+        val compiler = scalaVersion.compiler.mapScala(_.copy(forceJvm = true)).asJava(versionCombo).getOrElse(sys.error("unexpected"))
 
         val resolvedScalaCompiler: List[Path] =
-          resolver.resolve(Set(scalaCompiler), forceScalaVersion = Some(scalaVersion)) match {
-            case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
-            case Right(res)          => res.jars
-          }
+          resolver.force(Set(compiler), versionCombo = versionCombo, crossName.value).jars
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
@@ -327,22 +307,15 @@ object GenBloopFiles {
         }
 
         val compilerPlugins: model.Options = {
-          val fromPlatform = scalaPlatform.compilerPlugin
-          val fromScala = maybeScala.fold(Set.empty[model.Dep])(_.compilerPlugins.values)
-          val specified: Set[model.Dep] =
-            fromPlatform.foldLeft(fromScala) { case (all, dep) => all + dep }
-
-          val deps: Set[Dependency] =
-            specified.map(_.withTransitive(false).forceDependency(model.VersionScalaPlatform.Jvm(scalaVersion)))
+          val deps: Set[model.Dep] =
+            (versionCombo.compilerPlugin.toSet ++ maybeScala.fold(Set.empty[model.Dep])(_.compilerPlugins.values))
+              .map(_.withTransitive(false).mapScala(_.copy(forceJvm = true)))
 
           val jars: Seq[Path] =
-            resolver.resolve(deps, forceScalaVersion = Some(scalaVersion)) match {
-              case Left(coursierError) => throw BleepException.ResolveError(coursierError, crossName)
-              case Right(res) =>
-                res.fullDetailedArtifacts.collect {
-                  case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath
-                }
-            }
+            resolver
+              .force(deps, versionCombo, crossName.value)
+              .fullDetailedArtifacts
+              .collect { case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath }
 
           val relevantJars: Seq[Path] =
             jars.filterNot(resolvedScalaCompiler.toSet)
@@ -362,9 +335,9 @@ object GenBloopFiles {
           }
 
         Config.Scala(
-          organization = scalaCompiler.module.organization.value,
-          name = scalaCompiler.module.name.value,
-          version = scalaCompiler.version,
+          organization = compiler.organization.value,
+          name = compiler.moduleName.value,
+          version = compiler.version,
           options = templateDirs.fill.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
           analysis = Some(projectPaths.incrementalAnalysis),

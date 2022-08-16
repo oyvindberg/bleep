@@ -16,23 +16,29 @@ sealed trait Dep {
   val publication: Publication
   val transitive: Boolean
 
+  val baseModuleName: ModuleName
+
   val repr: String
   def isSimple: Boolean
-  def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency]
-  def dependencyForce(projectName: model.CrossProjectName, scalaPlatform: VersionScalaPlatform): Dependency =
-    dependency(scalaPlatform) match {
-      case Left(err)    => throw new BleepException.Text(projectName, err)
-      case Right(value) => value
-    }
+  def asJava(combo: VersionCombo): Either[String, Dep.JavaDependency]
 
   def withConfiguration(newConfiguration: Configuration): Dep
   def withVersion(version: String): Dep
   def withTransitive(value: Boolean): Dep
 
-  final def forceDependency(scalaPlatform: VersionScalaPlatform): Dependency =
-    dependency(scalaPlatform) match {
-      case Left(err)         => throw new RuntimeException(s"Unexpected: $err")
-      case Right(dependency) => dependency
+  def mapScala(f: Dep.ScalaDependency => Dep.ScalaDependency): Dep =
+    this match {
+      case java: Dep.JavaDependency   => java
+      case scala: Dep.ScalaDependency => f(scala)
+    }
+
+  final def asDependency(combo: VersionCombo): Either[String, Dependency] =
+    asJava(combo).map(_.dependency)
+
+  final def asDependencyForce(projectName: Option[model.CrossProjectName], combo: VersionCombo): Dependency =
+    asDependency(combo) match {
+      case Left(err)    => throw new BleepException.Text(projectName, err)
+      case Right(value) => value
     }
 }
 
@@ -80,7 +86,7 @@ object Dep {
       transitive: Boolean = defaults.transitive,
       isSbtPlugin: Boolean = defaults.isSbtPlugin
   ) extends Dep {
-    def isSimple: Boolean =
+    override def isSimple: Boolean =
       attributes == defaults.attributes &&
         configuration == defaults.configuration &&
         exclusions == defaults.exclusions &&
@@ -88,11 +94,18 @@ object Dep {
         transitive == defaults.transitive &&
         isSbtPlugin == defaults.isSbtPlugin
 
-    val repr: String =
+    override val repr: String =
       organization.value + ":" + moduleName.value + ":" + version
 
-    override def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency] =
-      Right(this.dependency)
+    override val baseModuleName: ModuleName = moduleName
+
+    override def asJava(combo: VersionCombo): Either[String, JavaDependency] = Right(this)
+
+    override def withConfiguration(newConfiguration: Configuration): Dep.JavaDependency =
+      copy(configuration = newConfiguration)
+
+    override def withVersion(version: String): Dep.JavaDependency = copy(version = version)
+    override def withTransitive(value: Boolean): Dep.JavaDependency = copy(transitive = value)
 
     def dependency: Dependency =
       new Dependency(
@@ -108,12 +121,6 @@ object Dep {
         optional = false, // todo: we now express this in configuration. also here?
         transitive = transitive
       )
-
-    override def withConfiguration(newConfiguration: Configuration): Dep.JavaDependency =
-      copy(configuration = newConfiguration)
-
-    override def withVersion(version: String): Dep.JavaDependency = copy(version = version)
-    override def withTransitive(value: Boolean): Dep.JavaDependency = copy(transitive = value)
   }
 
   final case class ScalaDependency(
@@ -130,7 +137,7 @@ object Dep {
       publication: Publication = defaults.publication,
       transitive: Boolean = defaults.transitive
   ) extends Dep {
-    def isSimple: Boolean =
+    override def isSimple: Boolean =
       forceJvm == defaults.forceJvm &&
         for3Use213 == defaults.for3Use213 &&
         for213Use3 == defaults.for213Use3 &&
@@ -140,45 +147,52 @@ object Dep {
         publication == defaults.publication &&
         transitive == defaults.transitive
 
-    val repr: String =
+    override val repr: String =
       s"${organization.value}${if (fullCrossVersion) ":::" else "::"}${baseModuleName.value}:$version"
-
-    def dependency(scalaPlatform: VersionScalaPlatform): Either[String, Dependency] =
-      scalaPlatform match {
-        case withScala: VersionScalaPlatform.WithScala =>
-          withScala.moduleName(
-            baseModuleName,
-            needsScala = true,
-            needsFullCrossVersion = fullCrossVersion,
-            forceJvm = forceJvm,
-            for3Use213 = for3Use213,
-            for213Use3 = for213Use3
-          ) match {
-            case Some(moduleName) =>
-              Right(
-                new Dependency(
-                  module = new Module(organization, moduleName, attributes),
-                  version = version,
-                  configuration = configuration,
-                  minimizedExclusions = exclusions.value.flatMap { case (org, moduleNames) => moduleNames.values.map(moduleName => (org, moduleName)) }.toSet,
-                  publication = publication,
-                  optional = false, // todo: we now express this in configuration. also here?
-                  transitive = transitive
-                )
-              )
-            case None =>
-              Left(s"Cannot include dependency with $withScala")
-          }
-
-        case VersionScalaPlatform.Java =>
-          Left(s"You need to configure a scala version to resolve $repr")
-      }
 
     override def withConfiguration(newConfiguration: Configuration): Dep.ScalaDependency =
       copy(configuration = newConfiguration)
 
     override def withVersion(version: String): Dep.ScalaDependency = copy(version = version)
     override def withTransitive(value: Boolean): Dep.ScalaDependency = copy(transitive = value)
+
+    def moduleName(combo: model.VersionCombo.Scala): ModuleName = {
+      val platformSuffix: String =
+        combo match {
+          case _ if forceJvm                             => ""
+          case model.VersionCombo.Jvm(_)                 => ""
+          case model.VersionCombo.Js(_, scalaJsVersion)  => s"_sjs${scalaJsVersion.scalaJsBinVersion}"
+          case model.VersionCombo.Native(_, scalaNative) => s"_native${scalaNative.scalaNativeBinVersion}"
+        }
+
+      val scalaSuffix: String =
+        if (fullCrossVersion) "_" + combo.scalaVersion.scalaVersion
+        else if (for3Use213 && combo.scalaVersion.is3) "_2.13"
+        else if (for213Use3 && combo.scalaVersion.binVersion == "2.13") "_3"
+        else "_" + combo.scalaVersion.binVersion
+
+      baseModuleName.map(_ + (platformSuffix + scalaSuffix))
+    }
+
+    def asJava(combo: VersionCombo): Either[String, JavaDependency] =
+      combo match {
+        case scalaCombo: VersionCombo.Scala =>
+          Right(
+            Dep.JavaDependency(
+              organization,
+              moduleName(scalaCombo),
+              version,
+              attributes,
+              configuration,
+              exclusions,
+              publication,
+              transitive,
+              isSbtPlugin = false
+            )
+          )
+        case VersionCombo.Java =>
+          Left(s"You need to configure a scala version to resolve $repr")
+      }
   }
 
   implicit val decodes: Decoder[Dep] =

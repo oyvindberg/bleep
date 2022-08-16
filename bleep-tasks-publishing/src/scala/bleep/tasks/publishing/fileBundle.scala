@@ -23,7 +23,7 @@ object fileBundle {
       bundleLayout: BundleLayout
   ): SortedMap[model.CrossProjectName, Deployable] =
     rewriteDependentData(started.build.projects).startFrom[Deployable](shouldInclude) { case (projectName, project, recurse) =>
-      val scalaPlatform = model.VersionScalaPlatform.fromExplodedProject(project) match {
+      val versionCombo = model.VersionCombo.fromExplodedProject(project) match {
         case Left(err)    => throw new BleepException.Text(projectName, err)
         case Right(value) => value
       }
@@ -31,11 +31,11 @@ object fileBundle {
       val deps: List[Dependency] =
         List(
           started.build.resolvedDependsOn(projectName).toList.map(recurse(_).forceGet.asDependency),
-          project.dependencies.values.toList.map(_.dependencyForce(projectName, scalaPlatform)),
-          scalaPlatform.libraries(project.isTestProject.getOrElse(false)).map(_.dependencyForce(projectName, scalaPlatform)).toList
+          project.dependencies.values.toList.map(_.asDependencyForce(Some(projectName), versionCombo)),
+          versionCombo.libraries(project.isTestProject.getOrElse(false)).map(_.asDependencyForce(Some(projectName), versionCombo)).toList
         ).flatten
 
-      val self: Dependency = asDep(projectName, project).dependencyForce(projectName, scalaPlatform)
+      val self: Dependency = asDep(projectName, project).asDependencyForce(Some(projectName), versionCombo)
 
       val files =
         bundleLayout match {

@@ -228,10 +228,7 @@ object Main {
     buildLoader match {
       case BuildLoader.NonExisting(_) => ()
       case existing: BuildLoader.Existing =>
-        val maybeWantedVersion: Either[Exception, model.BleepVersion] =
-          existing.json.forceGet.flatMap(json => json.hcursor.downField("$version").as[model.BleepVersion])
-
-        maybeWantedVersion match {
+        existing.wantedVersion.forceGet match {
           case Right(wantedVersion) if model.BleepVersion.current == wantedVersion || wantedVersion == model.BleepVersion.dev => ()
           case Right(wantedVersion) if opts.dev =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
