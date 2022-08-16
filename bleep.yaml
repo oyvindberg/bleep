@@ -23,17 +23,17 @@ projects:
   bleep-core:
     dependencies:
     - for3Use213: true
-      module: ch.epfl.scala::bloop-config:1.5.2
-    - com.lihaoyi::fansi:0.3.1
+      module: ch.epfl.scala::bloop-config:1.5.3
+    - com.lihaoyi::fansi:0.4.0
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-M6-49-gff26f8e39
+      module: io.get-coursier::coursier-jvm:2.1.0-M6-53-gb4f448130
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: org.scala-sbt::librarymanagement-core:1.6.1
-    - org.virtuslab.scala-cli::bloop-rifle:0.1.9
+      module: org.scala-sbt::librarymanagement-core:1.7.0
+    - org.virtuslab.scala-cli::bloop-rifle:0.1.11
     dependsOn: bleep-model
     extends: template-cross-all
     sources: ./../liberated/sbt-tpolecat/src/main/scala
@@ -46,7 +46,7 @@ projects:
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-M6-49-gff26f8e39
+      module: io.get-coursier::coursier:2.1.0-M6-53-gb4f448130
     - org.snakeyaml:snakeyaml-engine:2.3
     extends: template-cross-all
   bleep-tasks:
@@ -55,7 +55,7 @@ projects:
     resources: ./../liberated/sbt-native-image/plugin/src/main/resources
     sources: ./../liberated/sbt-native-image/plugin/src/main/scala
   bleep-tasks-mdoc:
-    dependencies: org.jsoup:jsoup:1.12.1
+    dependencies: org.jsoup:jsoup:1.15.2
     dependsOn: bleep-tasks
     extends: template-cross-all
     sources: ./../liberated/mdoc/mdoc-sbt/src/main/scala
