@@ -4,7 +4,7 @@ package rewrites
 /** The `Dep.ScalaDependency` structure has three fields we can only correctly determine in context of a given scala version. We need to propagate those three
   * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better
   */
-object unifyDeps extends Rewrite {
+object unifyDeps extends BuildRewrite {
   override val name = "unify-deps"
 
   def findReplacements(allDeps: Iterable[model.Dep]): Map[model.Dep, model.Dep] = {
@@ -24,19 +24,17 @@ object unifyDeps extends Rewrite {
     rewrittenScalaDeps ++ javaDeps.map(x => (x, x))
   }
 
-  override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
+  val OnlyJvm = Set(model.PlatformId.Jvm)
+
+  protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] = {
     val replacements: Map[model.Dep, model.Dep] =
-      findReplacements(build.projects.flatMap(_._2.dependencies.values))
+      findReplacements(oldBuild.explodedProjects.flatMap(_._2.dependencies.values))
 
     val projectPlatforms: Map[model.ProjectName, Set[model.PlatformId]] =
-      build.projects
-        .groupBy(_._1.name)
-        .map { case (name, crossProjects) => (name, crossProjects.flatMap(_._2.platform.flatMap(_.name)).toSet) }
+      oldBuild.explodedProjectsByName.map { case (name, crossProjects) => (name, crossProjects.values.flatMap(_.platform.flatMap(_.name)).toSet) }
 
-    val OnlyJvm = Set(model.PlatformId.Jvm)
-
-    build.copy(projects = build.projects.map { case (crossName, p) =>
-      val newP = p.copy(dependencies = p.dependencies.map { dep0 =>
+    val newProjects = oldBuild.explodedProjects.map { case (crossName, p) =>
+      val newDependencies = p.dependencies.map { dep0 =>
         val dep0ForceJvm = dep0.mapScala(_.copy(forceJvm = true))
 
         val dep1 = replacements(dep0)
@@ -44,8 +42,10 @@ object unifyDeps extends Rewrite {
         // don't litter forceJvm = true needlessly
         if (dep1 == dep0ForceJvm && projectPlatforms(crossName.name) == OnlyJvm) dep0
         else dep1
-      })
-      (crossName, newP)
-    })
+      }
+      (crossName, p.copy(dependencies = newDependencies))
+    }
+
+    newProjects
   }
 }

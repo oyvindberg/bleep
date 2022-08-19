@@ -12,7 +12,7 @@ case class ProjectPaths(dir: Path, targetDir: Path, sourcesDirs: ProjectPaths.Di
 }
 
 object ProjectPaths {
-  case class DirsByOrigin(fromSourceLayout: SortedSet[Path], fromJson: SortedSet[Path], generated: Path) {
-    val all: SortedSet[Path] = fromSourceLayout ++ fromJson ++ List(generated)
+  case class DirsByOrigin(fromSourceLayout: SortedSet[Path], fromJson: Map[RelPath, Path], generated: Path) {
+    val all: SortedSet[Path] = fromSourceLayout ++ fromJson.values ++ List(generated)
   }
 }

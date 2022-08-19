@@ -22,20 +22,17 @@ object fileBundle {
       shouldInclude: model.CrossProjectName => Boolean,
       bundleLayout: BundleLayout
   ): SortedMap[model.CrossProjectName, Deployable] =
-    rewriteDependentData(started.build.projects).startFrom[Deployable](shouldInclude) { case (projectName, project, recurse) =>
-      val versionCombo = model.VersionCombo.fromExplodedProject(project) match {
-        case Left(err)    => throw new BleepException.Text(projectName, err)
-        case Right(value) => value
-      }
+    rewriteDependentData(started.build.explodedProjects).startFrom[Deployable](shouldInclude) { case (projectName, project, eval) =>
+      val versionCombo = model.VersionCombo.unsafeFromExplodedProject(project, projectName)
 
       val deps: List[Dependency] =
         List(
-          started.build.resolvedDependsOn(projectName).toList.map(recurse(_).forceGet.asDependency),
-          project.dependencies.values.toList.map(_.asDependencyForce(Some(projectName), versionCombo)),
-          versionCombo.libraries(project.isTestProject.getOrElse(false)).map(_.asDependencyForce(Some(projectName), versionCombo)).toList
+          started.build.resolvedDependsOn(projectName).toList.map(eval(_).forceGet.asDependency),
+          project.dependencies.values.toList.map(_.unsafeAsDependency(Some(projectName), versionCombo)),
+          versionCombo.libraries(project.isTestProject.getOrElse(false)).map(_.unsafeAsDependency(Some(projectName), versionCombo)).toList
         ).flatten
 
-      val self: Dependency = asDep(projectName, project).asDependencyForce(Some(projectName), versionCombo)
+      val self: Dependency = asDep(projectName, project).unsafeAsDependency(Some(projectName), versionCombo)
 
       val files =
         bundleLayout match {

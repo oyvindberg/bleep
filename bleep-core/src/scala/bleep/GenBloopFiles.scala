@@ -14,12 +14,12 @@ import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.util.Try
 
-sealed trait GenBloopFiles {
+trait GenBloopFiles {
   def apply(
       logger: Logger,
       buildPaths: BuildPaths,
       lazyResolver: Lazy[CoursierResolver],
-      explodedBuild: model.ExplodedBuild,
+      build: model.Build,
       fetchNode: FetchNode
   ): GenBloopFiles.Files
 }
@@ -27,73 +27,57 @@ sealed trait GenBloopFiles {
 object GenBloopFiles {
   type Files = SortedMap[model.CrossProjectName, Lazy[Config.File]]
 
-  case object InMemory extends GenBloopFiles {
-    override def apply(
-        logger: Logger,
-        buildPaths: BuildPaths,
-        lazyResolver: Lazy[CoursierResolver],
-        explodedBuild: model.ExplodedBuild,
-        fetchNode: FetchNode
-    ): GenBloopFiles.Files =
-      rewriteDependentData(explodedBuild.projects).apply { (crossName, project, getDep) =>
-        translateProject(
-          lazyResolver.forceGet,
-          buildPaths,
-          crossName,
-          project,
-          explodedBuild,
-          getBloopProject = depName => getDep(depName).forceGet(s"${crossName.value} => ${depName.value}"),
-          fetchNode
-        )
+  val InMemory: GenBloopFiles = (_, buildPaths, lazyResolver, build, fetchNode) =>
+    rewriteDependentData(build.explodedProjects).apply { (crossName, project, eval) =>
+      translateProject(
+        lazyResolver.forceGet,
+        buildPaths,
+        crossName,
+        project,
+        build,
+        getBloopProject = depName => eval(depName).forceGet(s"${crossName.value} => ${depName.value}"),
+        fetchNode
+      )
+    }
+
+  val SyncToDisk: GenBloopFiles = (logger, buildPaths, lazyResolver, build, fetchNode) => {
+    val currentHash = List(
+      build.$version,
+      build.explodedProjects.toVector.sortBy(_._1)
+    ).hashCode().toString
+
+    val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
+
+    if (oldHash.contains(currentHash)) {
+      logger.debug(s"${buildPaths.bleepBloopDir} up to date")
+
+      val map = build.explodedProjects.map { case (crossProjectName, _) =>
+        val load = Lazy(readAndParseBloopFile(buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")))
+        (crossProjectName, load)
       }
-  }
+      SortedMap.empty[model.CrossProjectName, Lazy[Config.File]] ++ map
+    } else {
+      logger.warn(s"Refreshing ${buildPaths.bleepBloopDir}...")
 
-  case object SyncToDisk extends GenBloopFiles {
-    override def apply(
-        logger: Logger,
-        buildPaths: BuildPaths,
-        lazyResolver: Lazy[CoursierResolver],
-        explodedBuild: model.ExplodedBuild,
-        fetchNode: FetchNode
-    ): GenBloopFiles.Files = {
-      val currentHash = List(
-        explodedBuild.build.$version,
-        explodedBuild.projects.toVector.sortBy(_._1)
-      ).hashCode().toString
+      val bloopFiles =
+        InMemory(logger, buildPaths, lazyResolver, build, fetchNode)
 
-      val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
+      val fileMap = encodedFiles(buildPaths, bloopFiles).updated(buildPaths.digestFile, currentHash)
 
-      if (oldHash.contains(currentHash)) {
-        logger.debug(s"${buildPaths.bleepBloopDir} up to date")
+      val synced = FileSync.syncPaths(
+        folder = buildPaths.bleepBloopDir,
+        fileMap = fileMap,
+        deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
+        soft = true
+      )
 
-        val map = explodedBuild.projects.map { case (crossProjectName, _) =>
-          val load = Lazy(readAndParseBloopFile(buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")))
-          (crossProjectName, load)
-        }
-        SortedMap.empty[model.CrossProjectName, Lazy[Config.File]] ++ map
-      } else {
-        logger.warn(s"Refreshing ${buildPaths.bleepBloopDir}...")
+      val syncDetails = synced
+        .groupBy { case (_, synced) => synced }
+        .map { case (synced, files) => s"$synced: (${files.size})" }
+        .mkString(", ")
 
-        val bloopFiles =
-          InMemory(logger, buildPaths, lazyResolver, explodedBuild, fetchNode)
-
-        val fileMap = encodedFiles(buildPaths, bloopFiles).updated(buildPaths.digestFile, currentHash)
-
-        val synced = FileSync.syncPaths(
-          folder = buildPaths.bleepBloopDir,
-          fileMap = fileMap,
-          deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
-          soft = true
-        )
-
-        val syncDetails = synced
-          .groupBy { case (_, synced) => synced }
-          .map { case (synced, files) => s"$synced: (${files.size})" }
-          .mkString(", ")
-
-        logger.warn(s"Wrote ${bloopFiles.size} files to ${buildPaths.bleepBloopDir}: $syncDetails")
-        bloopFiles
-      }
+      logger.warn(s"Wrote ${bloopFiles.size} files to ${buildPaths.bleepBloopDir}: $syncDetails")
+      bloopFiles
     }
   }
 
@@ -117,7 +101,7 @@ object GenBloopFiles {
       buildPaths: BuildPaths,
       crossName: model.CrossProjectName,
       explodedProject: model.Project,
-      build: model.ExplodedBuild,
+      build: model.Build,
       getBloopProject: model.CrossProjectName => Config.File,
       fetchNode: FetchNode
   ): Config.File = {
@@ -156,15 +140,12 @@ object GenBloopFiles {
       }
 
     val versionCombo: model.VersionCombo =
-      model.VersionCombo.fromExplodedProject(explodedProject) match {
-        case Left(err)       => throw new BleepException.Text(crossName, err)
-        case Right(versions) => versions
-      }
+      model.VersionCombo.unsafeFromExplodedProject(explodedProject, crossName)
 
     val templateDirs =
       model.Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
-        model.Replacements.versions(Some(build.build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
+        model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
 
     def require[T](ot: Option[T], name: String): T =
       ot match {
@@ -348,9 +329,9 @@ object GenBloopFiles {
     Config.File(
       "1.4.0",
       Config.Project(
-        crossName.value,
-        projectPaths.dir,
-        Some(buildPaths.buildDir),
+        name = crossName.value,
+        directory = projectPaths.dir,
+        workspaceDir = Some(buildPaths.buildDir),
         sources = projectPaths.sourcesDirs.all.toList,
         sourcesGlobs = None,
         sourceRoots = None,

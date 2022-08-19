@@ -39,14 +39,14 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode, wan
 
     val sources = {
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.sources.values.map(relPath => dir / replacements.fill.relPath(relPath))
+      val fromJson = p.sources.values.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
       val generated = generatedSourcesDir(crossName)
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
     val resources = {
       val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.resources.values.map(relPath => dir / replacements.fill.relPath(relPath))
+      val fromJson = p.resources.values.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
       val generated = generatedResourcesDir(crossName)
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }

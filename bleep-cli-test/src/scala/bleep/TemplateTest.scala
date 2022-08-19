@@ -1,8 +1,8 @@
 package bleep
 
-import bleep.internal.Templates.TemplateDef
-import bleep.internal.{ShortenAndSortJson, Templates}
+import bleep.internal.{BleepTemplateLogger, ShortenAndSortJson}
 import bleep.rewrites.Defaults
+import bleep.templates.{templatesInfer, TemplateDef}
 import bleep.testing.SnapshotTest
 import io.circe.Decoder
 import io.circe.syntax.EncoderOps
@@ -78,31 +78,31 @@ class TemplateTest extends SnapshotTest {
       projects: Map[model.CrossProjectName, model.Project],
       testName: String,
       ignoreWhenInferringTemplates: Set[model.ProjectName] = Set.empty
-  ): model.Build = {
-    val pre = model.ExplodedBuild(model.Build.empty(model.BleepVersion.dev), Map.empty, projects)
+  ): model.BuildFile = {
+    val pre = model.Build.Exploded(model.BleepVersion.dev, projects, model.JsonList.empty, None, Map.empty)
     val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, None, noColor = false)).withContext(testName).untyped
-    val build = Templates(logger, pre, ignoreWhenInferringTemplates)
-    writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> build.asJson.foldWith(ShortenAndSortJson).spaces2))
+    val buildFile = templatesInfer(new BleepTemplateLogger(logger), pre, ignoreWhenInferringTemplates)
+    writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> buildFile.asJson.foldWith(ShortenAndSortJson(Nil)).spaces2))
 
     // complain if we have done illegal rewrites during templating
-    val post = model.ExplodedBuild.of(build).dropTemplates
-    model.ExplodedBuild.diffProjects(Defaults.add(pre), post) match {
+    val post = model.Build.FileBacked(buildFile).dropBuildFile.dropTemplates
+    model.Build.diffProjects(Defaults.add(pre), post) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         diffs.foreach { case (projectName, msg) => System.err.println(s"$projectName: $msg") }
         fail("Project templating did illegal rewrites. ")
     }
 
-    build
+    buildFile
   }
 
   def requireProjectsHaveTemplate(
-      build: model.Build,
+      buildFile: model.BuildFile,
       templateId: TemplateDef,
       firstProject: model.ProjectName,
       restProjects: model.ProjectName*
   )(implicit prettifier: Prettifier, pos: source.Position): Assertion = {
-    val ps = build.projects.value.filter { case (k, _) => firstProject == k || restProjects.contains(k) }
+    val ps = buildFile.projects.value.filter { case (k, _) => firstProject == k || restProjects.contains(k) }
     assert(
       ps.values.forall(_.`extends`.values.contains(templateId.templateId)),
       ps.map { case (k, v) => s"$k:${v.`extends`.values.mkString(", ")}" }.mkString("\n")
@@ -110,7 +110,7 @@ class TemplateTest extends SnapshotTest {
   }
 
   def requireTemplateHasParent(
-      build: model.Build,
+      build: model.BuildFile,
       childTemplate: TemplateDef,
       parentTemplate: TemplateDef
   )(implicit prettifier: Prettifier, pos: source.Position): Assertion = {
@@ -121,14 +121,14 @@ class TemplateTest extends SnapshotTest {
     )
   }
 
-  def requireBuildHasTemplate(build: model.Build, templateId: TemplateDef)(implicit prettifier: Prettifier, pos: source.Position): model.Project = {
+  def requireBuildHasTemplate(buildFile: model.BuildFile, templateId: TemplateDef)(implicit prettifier: Prettifier, pos: source.Position): model.Project = {
     assert(
-      build.templates.value.contains(templateId.templateId),
-      build.templates.value.keySet.mkString(", ")
+      buildFile.templates.value.contains(templateId.templateId),
+      buildFile.templates.value.keySet.mkString(", ")
     )
-    build.templates.value(templateId.templateId)
+    buildFile.templates.value(templateId.templateId)
   }
-  def requireBuildHasProject(build: model.Build, name: model.ProjectName)(implicit prettifier: Prettifier, pos: source.Position): model.Project = {
+  def requireBuildHasProject(build: model.BuildFile, name: model.ProjectName)(implicit prettifier: Prettifier, pos: source.Position): model.Project = {
     assert(
       build.projects.value.contains(name),
       build.projects.value.keySet.mkString(", ")

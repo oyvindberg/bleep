@@ -12,7 +12,7 @@ object Publish extends BleepScript("Publish") {
   val groupId = "build.bleep"
 
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    commands.compile(started.build.projects.keys.filter(projectsToPublish.include).toList)
+    commands.compile(started.build.explodedProjects.keys.filter(projectsToPublish.include).toList)
 
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     val pgp = new PgpPlugin(

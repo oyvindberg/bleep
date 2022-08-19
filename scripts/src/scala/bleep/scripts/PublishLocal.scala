@@ -11,7 +11,7 @@ object PublishLocal extends BleepScript("PublishLocal") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     started.logger.withContext(dynVer.version).info("publishing locally")
-    commands.compile(started.build.projects.keys.filter(projectsToPublish.include).toList)
+    commands.compile(started.build.explodedProjects.keys.filter(projectsToPublish.include).toList)
 
     val bundledProjects: SortedMap[model.CrossProjectName, Deployable] =
       fileBundle(

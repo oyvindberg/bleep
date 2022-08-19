@@ -20,7 +20,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         --initialize-at-build-time=scala.Symbol
         --initialize-at-build-time=scala.Symbol$
         --native-image-info""".split("\n").map(_.trim),
-      nativeImageJvm = started.rawBuild.jvm.getOrElse(model.Jvm.graalvm),
+      nativeImageJvm = started.build.jvm.getOrElse(model.Jvm.graalvm),
       env = List(
         ("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false")
       )

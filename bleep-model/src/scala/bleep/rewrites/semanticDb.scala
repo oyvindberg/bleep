@@ -1,11 +1,11 @@
 package bleep
 package rewrites
 
-case class semanticDb(buildPaths: BuildPaths) extends Rewrite {
+case class semanticDb(buildPaths: BuildPaths) extends BuildRewrite {
   override val name = "semanticdb"
 
-  override def apply(explodedBuild: model.ExplodedBuild): model.ExplodedBuild =
-    explodedBuild.copy(projects = explodedBuild.projects.map { case (name, p) => (name, apply(name, p)) })
+  protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+    oldBuild.explodedProjects.map { case (name, p) => (name, apply(name, p)) }
 
   def apply(name: model.CrossProjectName, explodedProject: model.Project): model.Project =
     explodedProject.scala match {

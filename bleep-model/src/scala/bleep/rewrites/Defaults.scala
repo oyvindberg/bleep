@@ -1,6 +1,5 @@
-package bleep.rewrites
-
-import bleep.{model, Rewrite}
+package bleep
+package rewrites
 
 object Defaults {
   // values copied from bloops `Config.CompileSetup.empty`
@@ -30,13 +29,11 @@ object Defaults {
       nativeGc = None
     )
 
-  object remove extends Rewrite {
+  object remove extends BuildRewrite {
     override val name: String = "defaults-remove"
 
-    override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
-      val newProjects = build.projects.map { case (crossName, p) => (crossName, project(p)) }
-      build.copy(projects = newProjects)
-    }
+    protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+      oldBuild.explodedProjects.map { case (name, p) => (name, project(p)) }
 
     def project(proj: model.Project): model.Project =
       proj.copy(
@@ -49,13 +46,11 @@ object Defaults {
       )
   }
 
-  object add extends Rewrite {
+  object add extends BuildRewrite {
     override val name: String = "defaults-add"
 
-    override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
-      val newProjects = build.projects.map { case (crossName, p) => (crossName, project(p)) }
-      build.copy(projects = newProjects)
-    }
+    protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+      oldBuild.explodedProjects.map { case (name, p) => (name, project(p)) }
 
     def project(proj: model.Project): model.Project =
       proj.copy(
