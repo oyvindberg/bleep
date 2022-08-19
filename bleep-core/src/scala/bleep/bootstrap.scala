@@ -2,6 +2,7 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.internal.{fatal, Os}
+import bleep.rewrites.BuildRewrite
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext
@@ -15,7 +16,7 @@ object bootstrap {
     val maybeStarted = for {
       existingBuild <- buildLoader.existing
       pre = Prebootstrapped(buildPaths, logger, existingBuild)
-      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfig.lazyForceLoad(pre.userPaths))
+      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfigOps.lazyForceLoad(pre.userPaths))
     } yield started
 
     maybeStarted match {
@@ -32,21 +33,21 @@ object bootstrap {
   def from(
       pre: Prebootstrapped,
       genBloopFiles: GenBloopFiles,
-      rewrites: List[Rewrite],
-      lazyConfig: Lazy[BleepConfig],
+      rewrites: List[BuildRewrite],
+      lazyConfig: Lazy[model.BleepConfig],
       resolver: CoursierResolver.Factory = CoursierResolver.Factory.default
   ): Either[BleepException, Started] = {
     val t0 = System.currentTimeMillis()
 
     try
-      pre.build.forceGet.map { build =>
-        val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, build))
-        val explodedBuild = rewrites.foldLeft(model.ExplodedBuild.of(build)) { case (b, patch) => patch(b) }
+      pre.existingBuild.buildFile.forceGet.map { buildFile =>
+        val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, buildFile))
+        val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
 
         val activeProjects: List[model.CrossProjectName] =
-          if (pre.buildPaths.cwd == pre.buildPaths.buildDir) explodedBuild.projects.keys.toList
+          if (pre.buildPaths.cwd == pre.buildPaths.buildDir) build.explodedProjects.keys.toList
           else
-            explodedBuild.projects.flatMap { case (crossProjectName, p) =>
+            build.explodedProjects.flatMap { case (crossProjectName, p) =>
               val folder = pre.buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
               if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
               else None
@@ -55,7 +56,7 @@ object bootstrap {
         val ec = ExecutionContext.global
         val fetchNode = new FetchNode(pre.logger, ec)
         val bloopFiles: GenBloopFiles.Files =
-          genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, explodedBuild, fetchNode)
+          genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, build, fetchNode)
 
         val td = System.currentTimeMillis() - t0
         pre.logger.info(s"bootstrapped in $td ms")
@@ -63,7 +64,7 @@ object bootstrap {
         Started(
           prebootstrapped = pre,
           rewrites = rewrites,
-          build = explodedBuild,
+          build = build,
           bloopFiles = bloopFiles,
           activeProjectsFromPath = activeProjects,
           lazyConfig = lazyConfig,

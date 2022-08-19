@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
+import bleep.bsp.{BleepRifleLogger, SetupBloopRifle}
 import bleep.internal.FileUtils
 import bleep.logging.Logger
 import bleep.{BleepException, Lazy}
@@ -11,14 +11,14 @@ import scala.concurrent.ExecutionContext
 
 case class CompileServerStop(logger: Logger, userPaths: UserPaths, lazyResolver: Lazy[CoursierResolver]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] =
-    BleepConfig
+    BleepConfigOps
       .rewritePersisted(logger, userPaths) { bleepConfig =>
         bleepConfig.compileServerMode match {
-          case CompileServerMode.NewEachInvocation =>
+          case model.CompileServerMode.NewEachInvocation =>
             logger.warn("Nothing to stop")
             bleepConfig
 
-          case CompileServerMode.Shared =>
+          case model.CompileServerMode.Shared =>
             val bleepRifleLogger = new BleepRifleLogger(logger)
             val rifleConfig = SetupBloopRifle(bleepConfig, logger, userPaths, lazyResolver, bleepRifleLogger, ExecutionContext.global)
             if (BloopRifle.check(rifleConfig, bleepRifleLogger)) {
@@ -26,7 +26,7 @@ case class CompileServerStop(logger: Logger, userPaths: UserPaths, lazyResolver:
             } else
               logger.info("bloop server was not running")
 
-            bleepConfig.copy(compileServerMode = CompileServerMode.NewEachInvocation)
+            bleepConfig.copy(compileServerMode = model.CompileServerMode.NewEachInvocation)
         }
       }
       .map(_ => ())

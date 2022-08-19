@@ -8,17 +8,17 @@ import scala.collection.immutable.SortedMap
 //  where processing one thing requires having processed its dependencies first
 object rewriteDependentData {
   @FunctionalInterface
-  trait Get[K, VV] {
-    def apply(k: K): Lazy[VV]
+  trait Eval[K, V] {
+    def apply(key: K): Lazy[V]
   }
 
   def apply[K: Ordering, V](in: Map[K, V]) = new Api(in)
 
   final class Api[K: Ordering, V](in: Map[K, V]) {
-    def eager[VV](f: (K, V, Get[K, VV]) => VV): SortedMap[K, VV] =
+    def eager[VV](f: (K, V, Eval[K, VV]) => VV): SortedMap[K, VV] =
       apply(f).map { case (k, v) => (k, v.forceGet) }
 
-    def startFrom[VV](include: K => Boolean)(f: (K, V, Get[K, VV]) => VV): SortedMap[K, VV] = {
+    def startFrom[VV](include: K => Boolean)(f: (K, V, Eval[K, VV]) => VV): SortedMap[K, VV] = {
       val lazyMap = apply(f)
       lazyMap.foreach {
         case (k, lazyV) if include(k) => lazyV.forceGet
@@ -28,14 +28,14 @@ object rewriteDependentData {
       lazyMap.flatMap { case (k, v) => v.getIfEvaluated.map(vv => (k, vv)) }
     }
 
-    def apply[VV](f: (K, V, Get[K, VV]) => VV): SortedMap[K, Lazy[VV]] = {
+    def apply[VV](f: (K, V, Eval[K, VV]) => VV): SortedMap[K, Lazy[VV]] = {
       // sorted to ensure consistency
       val sortedIn = SortedMap.empty[K, V] ++ in
 
-      lazy val get: Get[K, VV] = rewritten.apply
+      lazy val eval: Eval[K, VV] = rewritten.apply
 
       lazy val rewritten: SortedMap[K, Lazy[VV]] =
-        sortedIn.map { case (k, v) => k -> Lazy(f(k, v, get)) }
+        sortedIn.map { case (k, v) => k -> Lazy(f(k, v, eval)) }
 
       rewritten
     }

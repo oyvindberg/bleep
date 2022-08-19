@@ -1,5 +1,7 @@
 package bleep
 
+import bleep.logging.Logger
+import bleep.rewrites.BuildRewrite
 import bloop.config.Config
 import coursier.jvm.JavaHome
 
@@ -9,21 +11,23 @@ import scala.concurrent.ExecutionContext
 
 case class Started(
     prebootstrapped: Prebootstrapped,
-    rewrites: List[Rewrite],
-    build: model.ExplodedBuild,
+    rewrites: List[BuildRewrite],
+    build: model.Build,
     bloopFiles: GenBloopFiles.Files,
     activeProjectsFromPath: List[model.CrossProjectName],
-    lazyConfig: Lazy[BleepConfig],
+    lazyConfig: Lazy[model.BleepConfig],
     resolver: Lazy[CoursierResolver],
     executionContext: ExecutionContext
 ) {
   def buildPaths: BuildPaths = prebootstrapped.buildPaths
   def userPaths: UserPaths = prebootstrapped.userPaths
-  def rawBuild = build.build
-  def logger = prebootstrapped.logger
+  def logger: Logger = prebootstrapped.logger
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
-    buildPaths.project(crossName, build.projects(crossName))
+    buildPaths.project(crossName, build.explodedProjects(crossName))
+
+  lazy val globs: model.ProjectGlobs =
+    new model.ProjectGlobs(activeProjectsFromPath, build.explodedProjects)
 
   lazy val bloopProjects: SortedMap[model.CrossProjectName, Config.Project] =
     bloopFiles.map { case (name, lazyProject) => (name, lazyProject.forceGet.project) }
@@ -32,7 +36,7 @@ case class Started(
     bloopProjects.values.toList
 
   lazy val jvmCommand: Path = {
-    val jvm = rawBuild.jvm.getOrElse {
+    val jvm = build.jvm.getOrElse {
       logger.warn(s"Using system JVM. You should specify your wanted JVM in ${BuildLoader.BuildFileName} to get reproducible builds")
       model.Jvm(JavaHome.systemId, None)
     }
@@ -44,11 +48,11 @@ case class Started(
       case Some(fromCommandLine) => fromCommandLine.sorted
       case None =>
         activeProjectsFromPath match {
-          case Nil      => build.projects.keys.toList.sorted
+          case Nil      => build.explodedProjects.keys.toList.sorted
           case nonEmpty => nonEmpty
         }
     }
 
   def chosenTestProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
-    chosenProjects(maybeFromCommandLine).filter(projectName => build.projects(projectName).isTestProject.getOrElse(false))
+    chosenProjects(maybeFromCommandLine).filter(projectName => build.explodedProjects(projectName).isTestProject.getOrElse(false))
 }

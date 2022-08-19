@@ -3,6 +3,7 @@ package bleep
 import bleep.commands.Import
 import bleep.commands.Import.Options
 import bleep.internal.{findGeneratedFiles, FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile}
+import bleep.rewrites.{keepSelectedProjects, BuildRewrite}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.paths.CoursierPaths
@@ -17,13 +18,13 @@ class IntegrationSnapshotTests extends SnapshotTest {
   val logger = logging.stdout(LogPatterns.logFile).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
   object testResolver extends CoursierResolver.Factory {
-    override def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver = {
+    override def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver = {
       val cachePath =
         if (enforceUpToDate) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
         else pre.userPaths.coursierCacheDir
 
       CoursierResolver(
-        repos = build.resolvers.values,
+        repos = buildFile.resolvers.values,
         logger = logger,
         downloadSources = false,
         cacheIn = cachePath,
@@ -129,7 +130,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
-      importer.generateBuild(inputProjects, bleepTasksVersion = model.BleepVersion("0.0.1-M14"), generatedFiles, maybeExistingBleepJson = None)
+      importer.generateBuild(inputProjects, bleepTasksVersion = model.BleepVersion("0.0.1-M14"), generatedFiles, maybeExistingBuildFile = None)
 
     // write build files, and produce an (in-memory) exploded build plus new bloop files
     writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
@@ -138,7 +139,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
       GenBloopFiles.InMemory,
       rewrites = Nil,
-      Lazy(BleepConfig.default),
+      Lazy(model.BleepConfig.default),
       testResolver
     ) match {
       case Left(th)       => throw th

@@ -94,8 +94,7 @@ object Replacements {
     )
 
   def scope(scope: String): Replacements =
-    if (scope.isEmpty) empty
-    else ofReplacements(List(scope -> known.Scope))
+    ofReplacements(List(scope -> known.Scope))
 
   def versions(
       bleepVersion: Option[BleepVersion],

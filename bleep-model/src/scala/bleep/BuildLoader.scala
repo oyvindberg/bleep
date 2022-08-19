@@ -46,11 +46,11 @@ object BuildLoader {
     val wantedVersion: Lazy[Either[Exception, model.BleepVersion]] =
       json.map(_.flatMap(json => json.hcursor.downField("$version").as[model.BleepVersion]))
 
-    val build: Lazy[Either[BleepException, model.Build]] =
+    val buildFile: Lazy[Either[BleepException, model.BuildFile]] =
       json.map {
         case Left(be) => Left(be)
         case Right(json) =>
-          json.as[model.Build] match {
+          json.as[model.BuildFile] match {
             case Left(th)     => Left(new BleepException.InvalidJson(bleepYaml, th))
             case Right(build) => Right(build)
           }

@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.bsp.{BleepRifleLogger, CompileServerMode, SetupBloopRifle}
+import bleep.bsp.{BleepRifleLogger, SetupBloopRifle}
 import bleep.internal.BspClientDisplayProgress
 import bleep.logging.Logger
 import bleep.{BleepException, Lazy}
@@ -13,8 +13,8 @@ import scala.concurrent.ExecutionContext
 
 case class CompileServerStart(logger: Logger, userPaths: UserPaths, lazyResolver: Lazy[CoursierResolver]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] =
-    BleepConfig
-      .rewritePersisted(logger, userPaths)(_.copy(compileServerMode = CompileServerMode.Shared))
+    BleepConfigOps
+      .rewritePersisted(logger, userPaths)(_.copy(compileServerMode = model.CompileServerMode.Shared))
       .flatMap { bleepConfig =>
         val threads = BloopThreads.create()
         val bleepRifleLogger = new BleepRifleLogger(logger)

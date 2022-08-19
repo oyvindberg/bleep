@@ -14,9 +14,9 @@ case class BuildCreateDirectories(started: Started, projects: List[model.CrossPr
           val dirs = List(
             // don't generate folders for generated sources
             paths.sourcesDirs.fromSourceLayout,
-            paths.sourcesDirs.fromJson,
+            paths.sourcesDirs.fromJson.values,
             paths.resourcesDirs.fromSourceLayout,
-            paths.resourcesDirs.fromJson
+            paths.resourcesDirs.fromJson.values
           ).flatten
           dirs.map(dir => (dir, crossName))
         }

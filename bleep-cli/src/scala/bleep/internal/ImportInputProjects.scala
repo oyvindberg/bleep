@@ -1,7 +1,6 @@
-package bleep.internal
+package bleep
+package internal
 
-import bleep.model
-import bleep.model.{CrossId, CrossProjectName, VersionScala}
 import bloop.config.Config
 import coursier.core.Configuration
 import sbt.librarymanagement.CrossVersion
@@ -50,7 +49,7 @@ object ImportInputProjects {
   def keepRelevant(
       projects: Map[model.CrossProjectName, ImportInputProjects.InputProject],
       forceInclude: Set[model.CrossProjectName]
-  ): Map[CrossProjectName, InputProject] = {
+  ): Map[model.CrossProjectName, InputProject] = {
     // not transitive
     val reverseBloopDeps: Map[String, Iterable[String]] =
       projects
@@ -59,7 +58,7 @@ object ImportInputProjects {
         .map { case (name, tuples) => (name, tuples.map { case (_, to) => to }.toSet) }
 
     // may have multiple cross builds per project name. we'll consider them together
-    val byName: Map[String, Map[CrossProjectName, InputProject]] =
+    val byName: Map[String, Map[model.CrossProjectName, InputProject]] =
       projects.groupBy { case (_, f) => f.bloopFile.project.name }
 
     def cachedFn[In, Out](f: In => Out): (In => Out) = {
@@ -105,7 +104,7 @@ object ImportInputProjects {
             case many =>
               many
                 .find(f => bloopFile.project.scala.map(_.version).contains(f.scalaVersion.full))
-                .orElse(many.find(f => bloopFile.project.scala.map(s => VersionScala(s.version).binVersion).contains(f.scalaVersion.binary)))
+                .orElse(many.find(f => bloopFile.project.scala.map(s => model.VersionScala(s.version).binVersion).contains(f.scalaVersion.binary)))
                 .getOrElse {
                   sys.error(s"Couldn't pick sbt export file for project ${bloopFile.project.name} among ${many.map(_.scalaVersion)}")
                 }
@@ -121,7 +120,7 @@ object ImportInputProjects {
           List((model.CrossProjectName(name, None), one.head))
         case (name, importableProjects) =>
           // multiple projects may translate to same crossId. we discard all except one
-          val byCrossId: Map[Option[CrossId], Iterable[InputProject]] =
+          val byCrossId: Map[Option[model.CrossId], Iterable[InputProject]] =
             importableProjects.groupBy(ip => mkCrossId(ip, None))
 
           byCrossId.map {
@@ -139,7 +138,7 @@ object ImportInputProjects {
     ImportInputProjects(relevant)
   }
 
-  def mkCrossId(ip: ImportInputProjects.InputProject, overrideIsFull: Option[Boolean]): Option[CrossId] =
+  def mkCrossId(ip: ImportInputProjects.InputProject, overrideIsFull: Option[Boolean]): Option[model.CrossId] =
     model.CrossId.defaultFrom(
       maybeScalaVersion = ip.bloopFile.project.scala.map(s => model.VersionScala(s.version)),
       maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name)),

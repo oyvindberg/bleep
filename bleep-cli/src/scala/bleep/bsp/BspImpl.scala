@@ -2,6 +2,7 @@ package bleep
 package bsp
 
 import bleep.Lazy
+import bleep.rewrites.BuildRewrite
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
@@ -31,11 +32,11 @@ object BspImpl {
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
 
-      val bleepConfig = BleepConfig.loadOrDefault(pre.userPaths) match {
+      val bleepConfig = BleepConfigOps.loadOrDefault(pre.userPaths) match {
         case Left(th)     => throw th
         case Right(value) => value
       }
-      val build = pre.build.forceGet match {
+      val build = pre.existingBuild.buildFile.forceGet match {
         case Left(th)     => throw th
         case Right(value) => value
       }
@@ -65,7 +66,7 @@ object BspImpl {
         // run on `workspaceBuildTargets` later for the side-effect of updating build
         bspBloopServer.ensureBloopUpToDate = () =>
           ProjectSelection.load(pre.buildPaths).flatMap { maybeSelectedProjectGlobs =>
-            val bspRewrites: List[Rewrite] = List(
+            val bspRewrites: List[BuildRewrite] = List(
 //              List(rewrites.semanticDb(pre.buildPaths)),
               maybeSelectedProjectGlobs match {
                 case Some(selectedProjectGlobs) => List(rewrites.keepSelectedProjects(selectedProjectGlobs))

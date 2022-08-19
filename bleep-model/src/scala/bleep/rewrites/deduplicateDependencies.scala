@@ -5,13 +5,13 @@ import bleep.internal.rewriteDependentData
 import coursier.core.Configuration
 
 /** Trims dependencies, both on libraries and on projects, which are already provided by a parent project */
-object deduplicateDependencies extends Rewrite {
+object deduplicateDependencies extends BuildRewrite {
   override val name = "deduplicate-dependencies"
 
-  override def apply(build: model.ExplodedBuild): model.ExplodedBuild = {
-    val projects = rewriteDependentData(build.projects).apply[model.Project] { (projectName, p, getDep) =>
+  protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+    rewriteDependentData(oldBuild.explodedProjects).eager[model.Project] { (projectName, p, eval) =>
       val shortenedDeps: Map[model.CrossProjectName, model.Project] =
-        build.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, getDep(pn).forceGet(pn.value)) }
+        oldBuild.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, eval(pn).forceGet(pn.value)) }
 
       val shortenedDependsOn: model.JsonSet[model.ProjectName] =
         p.dependsOn.filterNot(shortenedDeps.flatMap { case (_, p) => p.dependsOn.values }.toSet)
@@ -32,9 +32,4 @@ object deduplicateDependencies extends Rewrite {
 
       p.copy(dependsOn = shortenedDependsOn, dependencies = shortenedDependencies)
     }
-
-    val forcedProjects = projects.map { case (projectName, lazyProject) => (projectName, lazyProject.forceGet(projectName.value)) }
-
-    build.copy(projects = forcedProjects)
-  }
 }

@@ -3,6 +3,11 @@ package bleep.model
 import io.circe.{Decoder, Encoder, KeyDecoder, KeyEncoder}
 
 case class JsonMap[K, V <: SetLike[V]](value: Map[K, V]) extends SetLike[JsonMap[K, V]] {
+  def map[VV <: SetLike[VV]](f: ((K, V)) => (K, VV)): JsonMap[K, VV] =
+    new JsonMap(value.map(f))
+  def filter(f: ((K, V)) => Boolean): JsonMap[K, V] =
+    new JsonMap(value.filter(f))
+
   def updated(k: K, v: V): JsonMap[K, V] =
     JsonMap(value.updated(k, v))
 

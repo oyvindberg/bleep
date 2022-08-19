@@ -2,9 +2,8 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.internal.{fatal, FetchBleepRelease, Os, ProjectGlobs}
+import bleep.internal.{fatal, FetchBleepRelease, Os}
 import bleep.logging._
-import bleep.model
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._
@@ -38,7 +37,7 @@ object Main {
     val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
     val userPaths = UserPaths.fromAppDirs
     val resolver =
-      BleepConfig
+      BleepConfigOps
         .lazyForceLoad(userPaths)
         .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.coursierCacheDir, bleepConfig.authentications, None))
 
@@ -53,24 +52,24 @@ object Main {
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
 
-  def hasBuildOpts(started: Started, globs: ProjectGlobs): Opts[BleepCommand] = {
+  def hasBuildOpts(started: Started): Opts[BleepCommand] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
-        .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(globs.projectNamesNoCrossMap)))
+        .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
 
     val projectNames: Opts[List[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(globs.projectNameMap)))
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
         .map(_.toList.flatten)
         .orNone
         .map(started.chosenProjects)
 
     val projectName: Opts[model.CrossProjectName] =
-      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(globs.exactProjectMap)))
+      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
 
     val testProjectNames: Opts[List[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(globs.testProjectNameMap)))
+        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(started.globs.testProjectNameMap)))
         .map(_.toList.flatten)
         .orNone
         .map(started.chosenTestProjects)
@@ -137,7 +136,7 @@ object Main {
               commands.Run(started, projectName, mainClass, arguments)
             }
           ),
-          setupIdeCmd(started.buildPaths, started.logger, Some(globs.projectNameMap)),
+          setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap)),
           Opts.subcommand("clean", "clean")(
             projectNames.map(projectNames => commands.Clean(started, projectNames))
           ),
@@ -183,7 +182,7 @@ object Main {
   def importCmd(buildLoader: BuildLoader, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
       commands.Import.opts.map { opts =>
-        val existingBuild = buildLoader.existing.flatMap(_.build.forceGet).toOption
+        val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
         commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
       }
@@ -274,24 +273,22 @@ object Main {
           case existing: BuildLoader.Existing =>
             val pre = Prebootstrapped(logger, userPaths, BuildPaths(cwd, buildLoader, Mode.Normal), existing)
 
-            val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
+            val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
             bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
-                val globs = ProjectGlobs(started)
-
                 val completer = new Completer({
                   case metavars.platformName       => model.PlatformId.All.map(_.value)
                   case metavars.scalaVersion       => possibleScalaVersions.keys.toList
-                  case metavars.projectNameExact   => globs.exactProjectMap.keys.toList
-                  case metavars.projectNameNoCross => globs.projectNamesNoCrossMap.keys.toList
-                  case metavars.projectName        => globs.projectNameMap.keys.toList
-                  case metavars.testProjectName    => globs.testProjectNameMap.keys.toList
+                  case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
+                  case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
+                  case metavars.projectName        => started.globs.projectNameMap.keys.toList
+                  case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
                   case _                           => Nil
                 })
-                completer.completeOpts(restArgs)(hasBuildOpts(started, globs))
+                completer.completeOpts(restArgs)(hasBuildOpts(started))
             }
         }
 
@@ -352,10 +349,10 @@ object Main {
 
             loggerResource.use { logger =>
               val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
-              val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
+              val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
               bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)
-                case Right(started) => run(logger, hasBuildOpts(started, ProjectGlobs(started)), restArgs)
+                case Right(started) => run(logger, hasBuildOpts(started), restArgs)
               }
             }
         }

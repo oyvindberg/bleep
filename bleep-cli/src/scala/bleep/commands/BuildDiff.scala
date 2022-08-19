@@ -19,9 +19,9 @@ case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCom
       }
     }
 
-    BuildLoader.Existing(started.buildPaths.bleepYamlFile, oldBuildStr).build.forceGet.map { build =>
-      val oldProjects = model.ExplodedBuild.of(build).projects
-      val newProjects = started.build.projects
+    BuildLoader.Existing(started.buildPaths.bleepYamlFile, oldBuildStr).buildFile.forceGet.map { build =>
+      val oldProjects = model.Build.FileBacked(build).explodedProjects
+      val newProjects = started.build.explodedProjects
       val allProjectNames = SortedSet.empty[model.CrossProjectName] ++ oldProjects.keys ++ newProjects.keys
       allProjectNames.foreach { projectName =>
         val p = s"Project ${fansi.Bold.On(projectName.value)}"

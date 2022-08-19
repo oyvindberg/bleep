@@ -1,8 +1,9 @@
 package bleep
 package commands
 
-import bleep.internal.Templates
+import bleep.internal.BleepTemplateLogger
 import bleep.logging.Logger
+import bleep.templates.templatesInfer
 import bleep.{constants, model, BleepException}
 import cats.data.NonEmptyList
 
@@ -31,7 +32,7 @@ case class BuildCreateNew(
     syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
 
     val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepYamlFile))
-    val bleepConfig = BleepConfig.lazyForceLoad(pre.userPaths)
+    val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
     bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) map { started =>
       val projects = started.bloopProjectsList
@@ -111,7 +112,7 @@ object BuildCreateNew {
       scalas: NonEmptyList[model.VersionScala],
       name: String,
       bleepVersion: model.BleepVersion
-  ): model.Build = {
+  ): model.BuildFile = {
     val defaultOpts =
       model.Options(Set(model.Options.Opt.WithArgs("-encoding", List("utf8")), model.Options.Opt.Flag("-feature"), model.Options.Opt.Flag("-unchecked")))
 
@@ -178,12 +179,14 @@ object BuildCreateNew {
         (crossName, p)
       }
 
-    val explodedBuild = model.ExplodedBuild(
-      build = model.Build.empty(bleepVersion).copy(jvm = Some(model.Jvm.graalvm)),
-      templates = Map.empty,
-      projects = (mainProjects.toList ++ testProjects.toList).toMap
+    val explodedBuild = model.Build.Exploded(
+      bleepVersion,
+      explodedProjects = (mainProjects.toList ++ testProjects.toList).toMap,
+      resolvers = model.JsonList.empty,
+      jvm = Some(model.Jvm.graalvm),
+      scripts = Map.empty
     )
 
-    Templates.apply(logger, explodedBuild, ignoreWhenInferringTemplates = _ => false)
+    templatesInfer(new BleepTemplateLogger(logger), explodedBuild, ignoreWhenInferringTemplates = _ => false)
   }
 }

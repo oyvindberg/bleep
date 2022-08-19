@@ -32,7 +32,7 @@ object importBloopFilesFromSbt {
       destinationPaths: BuildPaths,
       inputProjects: ImportInputProjects,
       bleepVersion: model.BleepVersion
-  ): model.ExplodedBuild = {
+  ): model.Build.Exploded = {
 
     val projects = inputProjects.values.map { case (crossName, inputProject) =>
       val bloopProject = inputProject.bloopFile.project
@@ -179,7 +179,7 @@ object importBloopFilesFromSbt {
           .toList
       )
 
-    model.ExplodedBuild(model.Build.empty(bleepVersion).copy(resolvers = buildResolvers), templates = Map.empty, projects = projects)
+    model.Build.Exploded(bleepVersion, projects, buildResolvers, jvm = None, scripts = Map.empty)
   }
 
   def importDeps(

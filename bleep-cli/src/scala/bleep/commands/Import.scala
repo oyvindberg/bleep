@@ -7,6 +7,7 @@ import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
 import bleep.rewrites.{normalizeBuild, Defaults}
+import bleep.templates.templatesInfer
 import cats.syntax.apply._
 import com.monovore.decline.Opts
 
@@ -148,7 +149,7 @@ object Import {
 
 // pardon the very imperative interface of the class with indirect flow through files. let's refactor later
 case class Import(
-    existingBuild: Option[model.Build],
+    existingBuild: Option[model.BuildFile],
     sbtBuildDir: Path,
     destinationPaths: BuildPaths,
     logger: Logger,
@@ -299,35 +300,35 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
       inputProjects: ImportInputProjects,
       bleepTasksVersion: model.BleepVersion,
       generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]],
-      maybeExistingBleepJson: Option[model.Build]
+      maybeExistingBuildFile: Option[model.BuildFile]
   ): Map[Path, String] = {
 
     val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, inputProjects, bleepVersion)
     val normalizedBuild = normalizeBuild(build0)
 
-    val build1 = Templates(logger, normalizedBuild, options.ignoreWhenInferringTemplates)
+    val buildFile = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates)
 
-    val build =
-      maybeExistingBleepJson match {
-        case Some(existingBuild) => build1.copy(scripts = existingBuild.scripts)
-        case None                => build1
+    val buildFile1 =
+      maybeExistingBuildFile match {
+        case Some(existingBuild) => buildFile.copy(scripts = existingBuild.scripts)
+        case None                => buildFile
       }
 
     // complain if we have done illegal rewrites during templating
-    model.ExplodedBuild.diffProjects(Defaults.add(normalizedBuild), model.ExplodedBuild.of(build).dropTemplates) match {
+    model.Build.diffProjects(Defaults.add(normalizedBuild), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         logger.error("Project templating did illegal rewrites. Please report this as a bug")
         diffs.foreach { case (projectName, msg) => logger.withContext(projectName).error(msg) }
     }
 
-    logger.info(s"Imported ${build0.projects.size} cross targets for ${build.projects.value.size} projects")
+    logger.info(s"Imported ${build0.explodedProjects.size} cross targets for ${buildFile1.projects.value.size} projects")
 
     GeneratedFilesScript(generatedFiles) match {
       case Some((className, scriptSource)) =>
         // todo: find a project and use same scala config
         val scalaVersion =
-          normalizedBuild.projects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(model.VersionScala.Scala3))
+          normalizedBuild.explodedProjects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(model.VersionScala.Scala3))
 
         val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
         val scriptsProject = model.Project(
@@ -347,9 +348,9 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
           testFrameworks = model.JsonSet.empty
         )
 
-        val buildWithScript = build.copy(
-          projects = build.projects.updated(scriptProjectName.name, scriptsProject),
-          scripts = build.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef(scriptProjectName, className))))
+        val buildWithScript = buildFile1.copy(
+          projects = buildFile1.projects.updated(scriptProjectName.name, scriptsProject),
+          scripts = buildFile1.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef(scriptProjectName, className))))
         )
 
         val scriptPath = destinationPaths.project(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"
@@ -363,7 +364,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
         )
       case None =>
         Map(
-          destinationPaths.bleepYamlFile -> yaml.encodeShortened(build)
+          destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1)
         )
     }
   }

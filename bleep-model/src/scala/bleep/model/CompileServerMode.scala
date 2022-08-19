@@ -1,5 +1,4 @@
-package bleep
-package bsp
+package bleep.model
 
 import io.circe.syntax.KeyOps
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}

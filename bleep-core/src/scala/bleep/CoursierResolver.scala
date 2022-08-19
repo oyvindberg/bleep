@@ -15,7 +15,6 @@ import io.circe._
 import io.circe.syntax._
 
 import java.io.File
-import java.net.URI
 import java.nio.file.{Files, Path}
 
 trait CoursierResolver {
@@ -33,30 +32,30 @@ trait CoursierResolver {
 object CoursierResolver {
   case class Params(
       downloadSources: Boolean,
-      authentications: Option[CoursierResolver.Authentications],
+      authentications: Option[model.Authentications],
       repos: List[model.Repository]
   )
   object Params {
     implicit val codec: Codec[Params] =
-      Codec.forProduct3[Params, Boolean, Option[CoursierResolver.Authentications], List[model.Repository]]("downloadSources", "authentications", "repos")(
+      Codec.forProduct3[Params, Boolean, Option[model.Authentications], List[model.Repository]]("downloadSources", "authentications", "repos")(
         Params.apply
       )(x => (x.downloadSources, x.authentications, x.repos))
   }
 
   trait Factory {
-    def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver
+    def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver
   }
 
   object Factory {
     object default extends Factory {
-      def apply(pre: Prebootstrapped, config: BleepConfig, build: model.Build): CoursierResolver =
+      def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver =
         CoursierResolver(
-          build.resolvers.values,
+          buildFile.resolvers.values,
           pre.logger,
           downloadSources = true,
           pre.userPaths.coursierCacheDir,
           config.authentications,
-          Some(build.$version)
+          Some(buildFile.$version)
         )
     }
   }
@@ -66,56 +65,13 @@ object CoursierResolver {
       logger: Logger,
       downloadSources: Boolean,
       cacheIn: Path,
-      authentications: Option[CoursierResolver.Authentications],
+      authentications: Option[model.Authentications],
       wantedBleepVersion: Option[model.BleepVersion]
   ): CoursierResolver = {
     val params = Params(downloadSources, authentications, repos)
     val direct = new Direct(new CoursierLogger(logger), params)
     val cached = new Cached(logger, direct, cacheIn)
     new TemplatedVersions(cached, wantedBleepVersion)
-  }
-
-  final case class Authentications(configs: Map[URI, Authentication])
-
-  object Authentications {
-    val empty: Authentications = Authentications(Map.empty)
-
-    implicit val authenticationCodec: Codec[Authentication] =
-      Codec.forProduct7[Authentication, Option[String], Option[String], Option[Map[String, String]], Option[Boolean], Option[String], Option[Boolean], Option[
-        Boolean
-      ]](
-        "user",
-        "password",
-        "headers",
-        "optional",
-        "realm",
-        "httpsOnly",
-        "passOnRedirect"
-      )((user, pass, headers, optional, realm, httpsOnly, redirect) =>
-        Authentication(
-          user.getOrElse(""),
-          pass,
-          headers.map(_.toList).getOrElse(Nil),
-          optional.getOrElse(false),
-          realm,
-          httpsOnly.getOrElse(true),
-          redirect.getOrElse(true)
-        )
-      )(x => (Some(x.user), x.passwordOpt, Some(x.httpHeaders.toMap), Some(x.optional), x.realmOpt, Some(x.httpsOnly), Some(x.passOnRedirect)))
-
-    implicit val keyEncoder: KeyEncoder[URI] = KeyEncoder.encodeKeyString.contramap(_.toString)
-    implicit val keyDecoder: KeyDecoder[URI] = KeyDecoder.decodeKeyString.map(URI.create)
-
-    implicit val codec: Codec[Authentications] =
-      Codec
-        .from(Decoder[Option[Map[URI, Authentication]]], Encoder[Option[Map[URI, Authentication]]])
-        .iemap {
-          case None    => Right(empty)
-          case Some(m) => Right(Authentications(m))
-        } {
-          case auth if auth.configs.isEmpty => None
-          case auth                         => Some(auth.configs)
-        }
   }
 
   // this is a simplified version of the original `Fetch.Result` with a json codec
@@ -168,7 +124,7 @@ object CoursierResolver {
     // format: on
   }
 
-  def coursierRepos(repos: List[model.Repository], authentications: Option[CoursierResolver.Authentications]): List[Repository] =
+  def coursierRepos(repos: List[model.Repository], authentications: Option[model.Authentications]): List[Repository] =
     (repos ++ constants.DefaultRepos).map {
       case bleep.model.Repository.Folder(_, path) =>
         // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
@@ -189,7 +145,7 @@ object CoursierResolver {
 
         Fetch[Task](fileCache)
           .withRepositories(coursierRepos(params.repos, params.authentications))
-          .withDependencies(deps.toList.sorted.map(_.asDependencyForce(None, versionCombo)))
+          .withDependencies(deps.toList.sorted.map(_.unsafeAsDependency(None, versionCombo)))
           .withResolutionParams(
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)

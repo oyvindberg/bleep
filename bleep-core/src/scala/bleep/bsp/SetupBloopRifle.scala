@@ -1,10 +1,8 @@
 package bleep
 package bsp
 
-import bleep.bsp.CompileServerMode.{NewEachInvocation, Shared}
 import bleep.internal.FileUtils
 import bleep.logging.Logger
-import bleep.{BleepException, Lazy}
 import coursier.parse.ModuleParser
 
 import java.io.File
@@ -16,14 +14,14 @@ import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
   def apply(
-      bleepConfig: BleepConfig,
+      bleepConfig: model.BleepConfig,
       logger: Logger,
       userPaths: UserPaths,
       resolver: Lazy[CoursierResolver],
       bleepRifleLogger: BleepRifleLogger,
       executionContext: ExecutionContext
   ): BloopRifleConfig = {
-    val jvm = bleepConfig.jvmOrSetDefault(logger, userPaths)
+    val jvm = BleepConfigOps.jvmOrSetDefault(logger, userPaths, bleepConfig)
     val resolvedJvm = FetchJvm(logger, jvm, executionContext)
 
     BloopRifleConfig
@@ -81,7 +79,7 @@ object SetupBloopRifle {
     dir
   }
 
-  def bspSocketFile(userPaths: UserPaths, mode: CompileServerMode): Path = {
+  def bspSocketFile(userPaths: UserPaths, mode: model.CompileServerMode): Path = {
     val somewhatRandomIdentifier = Try(ProcessHandle.current.pid) match {
       case Failure(_) =>
         val r = new Random
@@ -91,15 +89,15 @@ object SetupBloopRifle {
 
     val socketName: String =
       mode match {
-        case NewEachInvocation => somewhatRandomIdentifier
-        case Shared            => "shared"
+        case model.CompileServerMode.NewEachInvocation => somewhatRandomIdentifier
+        case model.CompileServerMode.Shared            => "shared"
       }
 
     val socket: Path =
       socketDirectory(userPaths, somewhatRandomIdentifier) / socketName
 
     mode match {
-      case NewEachInvocation =>
+      case model.CompileServerMode.NewEachInvocation =>
         Runtime.getRuntime.addShutdownHook(
           new Thread("delete-bloop-bsp-named-socket") {
             override def run() = {
@@ -109,7 +107,7 @@ object SetupBloopRifle {
           }
         )
 
-      case Shared =>
+      case model.CompileServerMode.Shared => ()
     }
 
     socket

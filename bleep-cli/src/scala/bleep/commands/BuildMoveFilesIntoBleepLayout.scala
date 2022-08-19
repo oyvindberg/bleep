@@ -2,50 +2,37 @@ package bleep
 package commands
 
 import bleep.RelPath
-import bleep.internal.{FileUtils, Templates}
-import bleep.rewrites.normalizeBuild
+import bleep.internal.FileUtils
+import bleep.logging.Logger
+import bleep.rewrites.BuildRewrite
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
+import scala.sys.process.Process
 
 case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
-    val (build1, filesToMove) = BuildMoveFilesIntoBleepLayout.newBuildAndFilesToMove(started.build, started.buildPaths)
-    val normalizedBuild = normalizeBuild(build1)
-    val newTemplates = started.rawBuild.templates.value.map { case (templateId, p) =>
-      (templateId, p.copy(sources = model.JsonSet.empty, resources = model.JsonSet.empty, `sbt-scope` = None, folder = None))
-    }
-
-    val build2 = Templates.reapply(normalizedBuild, model.JsonMap(newTemplates))
-
-    // commit below
-    filesToMove.foreach { case (from, to) =>
-      started.logger.info(s"$from => $to")
-      Files.createDirectories(to.getParent)
-      scala.sys.process.Process(List("git", "mv", from.toString, to.toString), started.buildPaths.buildDir.toFile).!!
-    }
-
-    yaml.writeShortened(build2, started.buildPaths.bleepYamlFile)
-    started.logger.withContext(started.buildPaths.bleepYamlFile).debug(s"wrote")
+    val build = started.build.requireFileBacked(ctx = "command move-files-into-bleep-layout")
+    val (rewrittenBuild, filesToMove) = BuildMoveFilesIntoBleepLayout.newBuildAndFilesToMove(build, started.buildPaths)
+    BuildMoveFilesIntoBleepLayout.commit(started.logger, started.buildPaths, filesToMove, rewrittenBuild.file)
     Right(())
   }
 }
 
 object BuildMoveFilesIntoBleepLayout {
-  def newBuildAndFilesToMove(build: model.ExplodedBuild, buildPaths: BuildPaths): (model.ExplodedBuild, SortedMap[Path, Path]) = {
+  def newBuildAndFilesToMove(build: model.Build.FileBacked, buildPaths: BuildPaths): (model.Build.FileBacked, SortedMap[Path, Path]) = {
 
     val moves = collection.mutable.Map.empty[Path, Path]
     def registerMove(from: Path, to: Path): Unit =
       if (!FileUtils.exists(from) || from == to) ()
       else
         moves.get(from) match {
-          case None       => moves(from) = to
-          case Some(`to`) => ()
-          case Some(differentTo) =>
-            sys.error(s"cannot move $from to both $to and $differentTo")
+          case None              => moves(from) = to
+          case Some(`to`)        => ()
+          case Some(differentTo) => sys.error(s"cannot move $from to both $to and $differentTo")
         }
 
-    val newProjects = build.projects.map { case (crossName, p0) =>
+    val newProjects = build.explodedProjects.map { case (crossName, p0) =>
       // compute paths for the same project after we remove `folder` and `sbt-scope`
       val p1 = p0.copy(folder = None, `sbt-scope` = None)
       val fromDirs = buildPaths.project(crossName, p0)
@@ -58,24 +45,43 @@ object BuildMoveFilesIntoBleepLayout {
 
       // then move explicit source folders. ordering may change here, and if files are located outside of project we compute
       // a new relative path instead
-      def newPath(relPath: RelPath): RelPath =
+      def newPath(isResource: Boolean)(relPath: RelPath): RelPath = {
+        val from = (if (isResource) fromDirs.resourcesDirs else fromDirs.sourcesDirs).fromJson(relPath)
+        val to = (if (isResource) toDirs.resourcesDirs else toDirs.sourcesDirs).fromJson(relPath)
+
         // outside of project dir we calculate new relative path and do no moving
-        if (relPath.segments.headOption.contains("..")) {
-          val from = fromDirs.dir / relPath
+        if (!from.startsWith(fromDirs.dir)) {
+          // note: commits
           RelPath.relativeTo(toDirs.dir, from)
         } else {
-          val shortenedRelPath = p0.`sbt-scope`.foldLeft(relPath)((relPath, scope) => relPath.filter(_ != scope))
-          registerMove(fromDirs.dir / relPath, toDirs.dir / shortenedRelPath)
-          shortenedRelPath
+          registerMove(from, to)
+          relPath.filter(_ != model.Replacements.known.Scope)
         }
+      }
 
       val p2 = p1.copy(
-        sources = p0.sources.map(newPath),
-        resources = p0.resources.map(newPath)
+        sources = p0.sources.map(newPath(isResource = false)),
+        resources = p0.resources.map(newPath(isResource = true))
       )
       (crossName, p2)
     }
 
-    (build.copy(projects = newProjects), moves.to(SortedMap))
+    val build1 = BuildRewrite.withProjects(build, newProjects)
+    val filesToMove = moves.to(SortedMap)
+    (build1, filesToMove)
+  }
+
+  def commit(logger: Logger, buildPaths: BuildPaths, filesToMove: SortedMap[Path, Path], rewrittenBuild: model.BuildFile): Unit = {
+    // commit below
+    filesToMove.foreach { case (from, to) =>
+      logger.info(s"$from => $to")
+      Files.createDirectories(to.getParent)
+
+      (Process(List("git", "mv", from.toString, to.toString), buildPaths.buildDir.toFile) #||
+        Process(List("mv", from.toString, to.toString), buildPaths.buildDir.toFile)).!!
+    }
+
+    yaml.writeShortened(rewrittenBuild, buildPaths.bleepYamlFile)
+    logger.withContext(buildPaths.bleepYamlFile).debug(s"wrote")
   }
 }

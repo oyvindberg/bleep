@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.bsp.{BleepRifleLogger, BspCommandFailed, CompileServerMode, SetupBloopRifle}
+import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
 import bleep.internal.BspClientDisplayProgress
 import ch.epfl.scala.bsp4j
 
@@ -16,7 +16,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
 
   def projectFromBuildTarget(name: bsp4j.BuildTargetIdentifier): model.CrossProjectName = {
     val id = name.getUri.split("=").last
-    started.build.projects.keys.find(_.value == id).getOrElse(sys.error(s"Couldn't find project for $name"))
+    started.build.explodedProjects.keys.find(_.value == id).getOrElse(sys.error(s"Couldn't find project for $name"))
   }
 
   def buildTargets(buildPaths: BuildPaths, projects: Seq[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
@@ -28,9 +28,9 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
     val bleepConfig = started.lazyConfig.forceGet
 
     bleepConfig.compileServerMode match {
-      case CompileServerMode.NewEachInvocation =>
+      case model.CompileServerMode.NewEachInvocation =>
         started.logger.warn("TIP: run `bleep compile-server start` so you'll get a warm/fast compile server")
-      case CompileServerMode.Shared => ()
+      case model.CompileServerMode.Shared => ()
     }
 
     val bleepRifleLogger = new BleepRifleLogger(started.logger)
@@ -60,11 +60,11 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
       }
     finally
       bleepConfig.compileServerMode match {
-        case CompileServerMode.NewEachInvocation =>
+        case model.CompileServerMode.NewEachInvocation =>
           server.shutdown()
           Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, bleepRifleLogger)
           ()
-        case CompileServerMode.Shared =>
+        case model.CompileServerMode.Shared =>
           ()
       }
   }

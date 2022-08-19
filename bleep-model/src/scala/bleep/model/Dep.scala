@@ -35,7 +35,7 @@ sealed trait Dep {
   final def asDependency(combo: VersionCombo): Either[String, Dependency] =
     asJava(combo).map(_.dependency)
 
-  final def asDependencyForce(projectName: Option[model.CrossProjectName], combo: VersionCombo): Dependency =
+  final def unsafeAsDependency(projectName: Option[model.CrossProjectName], combo: VersionCombo): Dependency =
     asDependency(combo) match {
       case Left(err)    => throw new BleepException.Text(projectName, err)
       case Right(value) => value
@@ -298,7 +298,7 @@ object Dep {
             "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson),
             "isSbtPlugin" := (if (x.isSbtPlugin == Dep.defaults.isSbtPlugin) Json.Null else x.isSbtPlugin.asJson)
           )
-          .foldWith(ShortenAndSortJson)
+          .foldWith(ShortenAndSortJson(Nil))
       case x: ScalaDependency =>
         Json
           .obj(
@@ -312,7 +312,7 @@ object Dep {
             "publication" := (if (x.publication == Dep.defaults.publication) Json.Null else x.publication.asJson),
             "transitive" := (if (x.transitive == Dep.defaults.transitive) Json.Null else x.transitive.asJson)
           )
-          .foldWith(ShortenAndSortJson)
+          .foldWith(ShortenAndSortJson(Nil))
     }
 
   implicit val ordering: Ordering[Dep] =

@@ -1,6 +1,6 @@
 package bleep.model
 
-import bleep.model
+import bleep.BleepException
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -55,20 +55,20 @@ object VersionCombo {
       Some(scalaNative.compilerPlugin)
   }
 
-  def fromExplodedScalaAndPlatform(maybeScala: Option[VersionScala], maybePlatform: Option[model.Platform]): Either[String, VersionCombo] =
+  def fromExplodedScalaAndPlatform(maybeScala: Option[VersionScala], maybePlatform: Option[Platform]): Either[String, VersionCombo] =
     maybeScala match {
       case Some(scalaVersion) =>
         maybePlatform match {
-          case Some(model.Platform.Jvm(_)) =>
+          case Some(Platform.Jvm(_)) =>
             Right(Jvm(scalaVersion))
-          case Some(model.Platform.Js(platform)) =>
+          case Some(Platform.Js(platform)) =>
             platform.jsVersion match {
               case Some(scalaJsVersion) =>
                 Right(Js(scalaVersion, scalaJsVersion))
               case None =>
                 Left(s"Must specify scala.js version for scala ${scalaVersion.scalaVersion}")
             }
-          case Some(model.Platform.Native(platform)) =>
+          case Some(Platform.Native(platform)) =>
             platform.nativeVersion match {
               case Some(scalaNativeVersion) => Right(Native(scalaVersion, scalaNativeVersion))
               case None                     => Left(s"Must specify scala native version for scala ${scalaVersion.scalaVersion}")
@@ -78,11 +78,17 @@ object VersionCombo {
 
       case None =>
         maybePlatform match {
-          case Some(model.Platform.Jvm(_)) | None => Right(Java)
-          case Some(platform)                     => Left(s"Must specify scala version to use platform ${platform.name}")
+          case Some(Platform.Jvm(_)) | None => Right(Java)
+          case Some(platform)               => Left(s"Must specify scala version to use platform ${platform.name}")
         }
     }
 
-  def fromExplodedProject(p: model.Project): Either[String, VersionCombo] =
+  def fromExplodedProject(p: Project): Either[String, VersionCombo] =
     fromExplodedScalaAndPlatform(p.scala.flatMap(_.version), p.platform)
+
+  def unsafeFromExplodedProject(p: Project, crossName: CrossProjectName): VersionCombo =
+    fromExplodedProject(p) match {
+      case Left(err)       => throw new BleepException.Text(crossName, err)
+      case Right(versions) => versions
+    }
 }

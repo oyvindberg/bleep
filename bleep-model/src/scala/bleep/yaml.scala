@@ -18,7 +18,7 @@ object yaml {
   }
 
   def encodeShortened[T: Encoder](t: T): String =
-    printer.pretty(t.asJson.foldWith(ShortenAndSortJson))
+    printer.pretty(t.asJson.foldWith(ShortenAndSortJson(Nil)))
 
   def decode[T: Decoder](yaml: String): Either[Error, T] = forkedcirceyaml.parser.decode(yaml)
 

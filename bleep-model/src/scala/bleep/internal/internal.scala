@@ -1,7 +1,5 @@
 package bleep
 
-import bleep.logging.Formatter
-
 package object internal {
   implicit class IterableOps[I[t] <: Iterable[t], T](private val ts: I[T]) extends AnyVal {
     // surprisingly difficult to express with default collections
