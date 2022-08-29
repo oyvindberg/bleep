@@ -227,7 +227,7 @@ case class Import(
       FileUtils.writeString(
         tempAddBloopPlugin,
         s"""
-addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.0")
+addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.3")
 addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 """
       )
