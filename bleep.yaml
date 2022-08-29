@@ -114,7 +114,6 @@ templates:
     scala:
       options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
-    source-layout: sbt-matrix
   template-common-test:
     dependsOn: bleep-test-harness
     extends: template-common
