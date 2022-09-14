@@ -24,12 +24,7 @@ object BleepConfigOps {
     load(userPaths).map(_.getOrElse(model.BleepConfig.default))
 
   def lazyForceLoad(userPaths: UserPaths): Lazy[model.BleepConfig] =
-    Lazy {
-      loadOrDefault(userPaths) match {
-        case Left(th)      => throw th
-        case Right(config) => config
-      }
-    }
+    Lazy(loadOrDefault(userPaths).orThrow)
 
   def rewritePersisted(logger: Logger, userPaths: UserPaths)(f: model.BleepConfig => model.BleepConfig): Either[BleepException, model.BleepConfig] =
     load(userPaths).map {

@@ -145,7 +145,7 @@ object CoursierResolver {
 
         Fetch[Task](fileCache)
           .withRepositories(coursierRepos(params.repos, params.authentications))
-          .withDependencies(deps.toList.sorted.map(_.unsafeAsDependency(None, versionCombo)))
+          .withDependencies(deps.toList.sorted.map(_.asDependency(versionCombo).orThrowText))
           .withResolutionParams(
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)

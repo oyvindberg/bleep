@@ -109,10 +109,9 @@ class IntegrationSnapshotTests extends SnapshotTest {
       val jsonFile = generatedFilesJsonFile
 
       if (FileUtils.exists(jsonFile))
-        decode[Map[model.CrossProjectName, Vector[GeneratedFile]]](Files.readString(jsonFile)) match {
-          case Left(th)     => throw th
-          case Right(value) => Some(value)
-        }
+        decode[Map[model.CrossProjectName, Vector[GeneratedFile]]](Files.readString(jsonFile))
+          .map(Some.apply)
+          .orThrowWithError(s"Couldn't decode $jsonFile")
       else None
     }
 
@@ -135,16 +134,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
     // write build files, and produce an (in-memory) exploded build plus new bloop files
     writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
 
-    val started = bootstrap.from(
-      Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
-      GenBloopFiles.InMemory,
-      rewrites = Nil,
-      Lazy(model.BleepConfig.default),
-      testResolver
-    ) match {
-      case Left(th)       => throw th
-      case Right(started) => started
-    }
+    val started = bootstrap
+      .from(
+        Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
+        GenBloopFiles.InMemory,
+        rewrites = Nil,
+        Lazy(model.BleepConfig.default),
+        testResolver
+      )
+      .orThrow
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[Path, String] =

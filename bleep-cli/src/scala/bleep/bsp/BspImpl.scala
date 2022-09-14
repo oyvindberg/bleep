@@ -32,14 +32,8 @@ object BspImpl {
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
 
-      val bleepConfig = BleepConfigOps.loadOrDefault(pre.userPaths) match {
-        case Left(th)     => throw th
-        case Right(value) => value
-      }
-      val build = pre.existingBuild.buildFile.forceGet match {
-        case Left(th)     => throw th
-        case Right(value) => value
-      }
+      val bleepConfig = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
+      val build = pre.existingBuild.buildFile.forceGet.orThrow
       val bleepRifleLogger = new BleepRifleLogger(pre.logger)
 
       val bloopRifleConfig = {

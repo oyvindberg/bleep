@@ -34,12 +34,6 @@ sealed trait Dep {
 
   final def asDependency(combo: VersionCombo): Either[String, Dependency] =
     asJava(combo).map(_.dependency)
-
-  final def unsafeAsDependency(projectName: Option[model.CrossProjectName], combo: VersionCombo): Dependency =
-    asDependency(combo) match {
-      case Left(err)    => throw new BleepException.Text(projectName, err)
-      case Right(value) => value
-    }
 }
 
 object Dep {

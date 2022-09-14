@@ -85,10 +85,4 @@ object VersionCombo {
 
   def fromExplodedProject(p: Project): Either[String, VersionCombo] =
     fromExplodedScalaAndPlatform(p.scala.flatMap(_.version), p.platform)
-
-  def unsafeFromExplodedProject(p: Project, crossName: CrossProjectName): VersionCombo =
-    fromExplodedProject(p) match {
-      case Left(err)       => throw new BleepException.Text(crossName, err)
-      case Right(versions) => versions
-    }
 }

@@ -2,10 +2,7 @@ package bleep
 
 class Commands(started: Started) {
   private def force(cmd: BleepCommand): Unit =
-    cmd.run() match {
-      case Left(th) => throw th
-      case Right(_) => ()
-    }
+    cmd.run().orThrow
 
   def clean(projects: List[model.CrossProjectName]): Unit =
     force(commands.Clean(started, projects))
