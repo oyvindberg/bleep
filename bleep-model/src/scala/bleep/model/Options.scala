@@ -12,7 +12,7 @@ case class Options(values: Set[Options.Opt]) extends SetLike[Options] {
 
   override def union(other: Options) = new Options(values ++ other.values)
   override def intersect(other: Options) = new Options(values.intersect(other.values))
-  override def removeAll(other: Options) = new Options(values.diff(other.values))
+  override def removeAll(other: Options) = new Options(values -- other.values)
 }
 
 object Options {

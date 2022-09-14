@@ -50,8 +50,8 @@ case class Project(
       sources = sources.removeAll(other.sources),
       resources = resources.removeAll(other.resources),
       dependencies = dependencies.removeAll(other.dependencies),
-      java = List(java, other.java).flatten.reduceOption(_ removeAll _),
-      scala = List(scala, other.scala).flatten.reduceOption(_ removeAll _),
+      java = removeAllFrom(java, other.java),
+      scala = removeAllFrom(scala, other.scala),
       platform = (platform, other.platform) match {
         case (Some(one), Some(two)) => one.removeAllDropEmpty(two)
         case _                      => platform

@@ -24,7 +24,7 @@ case class Scala(
     Scala(
       version = if (`version` == other.`version`) None else `version`,
       options = options.removeAll(other.options),
-      setup = List(setup, other.setup).flatten.reduceOption(_ removeAll _),
+      setup = removeAllFrom(setup, other.setup),
       compilerPlugins = compilerPlugins.removeAll(other.compilerPlugins),
       strict = if (strict == other.strict) None else strict
     )
