@@ -1,0 +1,581 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+projects:
+  actions:
+    dependencies:
+    - org.scala-sbt::librarymanagement-core:1.7.0
+    - org.scala-sbt::zinc-apiinfo:1.7.1
+    - org.scala-sbt::zinc:1.7.1
+    - org.scala-sbt:compiler-interface:1.7.1
+    dependsOn:
+    - completion
+    - run
+    - task-system
+    - testing
+    - util-relation
+    - util-tracking
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main-actions
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  actions-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: actions
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main-actions
+  collections:
+    cross:
+      jvm213:
+        dependencies: org.scala-lang.modules::scala-parallel-collections:0.2.0
+    dependencies: com.eed3si9n::sjson-new-scalajson:0.9.1
+    dependsOn: util-position
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-collection
+    resources:
+    - ./../../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  collections-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: collections
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-collection
+  command:
+    dependencies:
+    - org.scala-sbt::librarymanagement-core:1.7.0
+    - org.scala-sbt::zinc-classpath:1.7.1
+    - org.scala-sbt::zinc:1.7.1
+    - org.scala-sbt:compiler-interface:1.7.1
+    - org.scala-sbt:launcher-interface:1.3.3
+    - org.scala-sbt:template-resolver:0.1
+    dependsOn:
+    - completion
+    - protocol
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main-command
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
+        -language:existentials -language:postfixOps
+    sources: ./src/${SCOPE}/contraband-scala
+  command-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: command
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main-command
+    scala:
+      options: -Ywarn-unused:-locals,-explicits,-privates
+  completion:
+    dependencies:
+    - org.jline:jline-builtins:3.19.0
+    - org.jline:jline-reader:3.19.0
+    dependsOn:
+    - util-control
+    - util-logging
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-complete
+    resources:
+    - ./../../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  completion-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: completion
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-complete
+  core-macros:
+    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
+    dependsOn: collections
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/core-macros
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  logic:
+    dependsOn:
+    - collections
+    - util-relation
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-logic
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  logic-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: logic
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-logic
+  main:
+    cross:
+      jvm213:
+        dependencies: org.scala-lang.modules::scala-parallel-collections:1.0.0
+    dependencies:
+    - com.github.ben-manes.caffeine:caffeine:2.8.5
+    - io.get-coursier::lm-coursier-shaded:2.0.10
+    - org.apache.logging.log4j:log4j-slf4j-impl:2.17.1
+    - org.scala-sbt::librarymanagement-ivy:1.7.0
+    - org.scala-sbt::zinc-compile:1.7.1
+    dependsOn:
+    - actions
+    - logic
+    - main-settings
+    - scripted-plugin
+    - zinc-lm-integration
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main
+    resources:
+    - ./../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    sources: ./src/${SCOPE}/contraband-scala
+  main-settings:
+    dependsOn:
+    - command
+    - task-system
+    - util-relation
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main-settings
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  main-settings-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: main-settings
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main-settings
+  main-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: main
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/main
+  protocol:
+    dependencies: org.scala-sbt.ipcsocket:ipcsocket:1.5.0
+    dependsOn: util-logging
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/protocol
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
+        -language:existentials -language:postfixOps
+    sources: ./src/${SCOPE}/contraband-scala
+  run:
+    dependencies: org.scala-sbt::zinc-classpath:1.7.1
+    dependsOn:
+    - util-control
+    - util-logging
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/run
+    resources:
+    - ./../LICENSE
+    - ./../licenses/LICENSE_Apache
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
+        -language:existentials -language:postfixOps
+    sources: ./src/${SCOPE}/contraband-scala
+  run-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: run
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/run
+    scala:
+      options: -Ywarn-unused:-locals,-explicits,-privates
+  sbt-client:
+    dependencies:
+    - org.fusesource.jansi:jansi:2.1.0
+    - org.scalameta:svm-subs:101.0.0
+    dependsOn: command
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/client
+  scripted-plugin:
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/scripted-plugin
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  scripts:
+    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    platform:
+      name: jvm
+    scala:
+      version: 2.13.8
+  task-system:
+    dependsOn:
+    - tasks
+    - util-cache
+    - util-logging
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/tasks-standard
+    resources:
+    - ./../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  task-system-test:
+    dependsOn:
+    - task-system
+    - tasks-test
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/tasks-standard
+  tasks:
+    dependsOn:
+    - collections
+    - util-control
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/tasks
+    resources:
+    - ./../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  tasks-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: tasks
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/tasks
+  test-agent:
+    dependencies: org.scala-sbt:test-interface:1.0
+    extends:
+    - template-common-main
+    - template-scala-2.12
+    folder: ./../../snapshot-tests-in/sbt/testing/agent
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+  testing:
+    dependencies:
+    - org.scala-lang.modules::scala-xml:1.3.0
+    - org.scala-sbt::zinc-classpath:1.7.1
+    - org.scala-sbt:launcher-interface:1.3.3
+    dependsOn:
+    - test-agent
+    - util-logging
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/testing
+    resources:
+    - ./../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Ywarn-unused:-locals,-explicits,-privates
+        -language:existentials -language:postfixOps
+    sources: ./src/${SCOPE}/contraband-scala
+  util-cache:
+    dependencies:
+    - com.eed3si9n::sjson-new-murmurhash:0.9.1
+    - com.eed3si9n::sjson-new-scalajson:0.9.1
+    - org.scala-lang:scala-reflect:${SCALA_VERSION}
+    - org.scala-sbt::io:1.7.0
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/util-cache
+    resources:
+    - ./../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  util-cache-test:
+    dependencies: org.scalatest::scalatest:3.2.10
+    dependsOn: util-cache
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/util-cache
+  util-control:
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-control
+    resources:
+    - ./../../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  util-interface:
+    extends:
+    - template-common-main
+    - template-scala-2.12
+    folder: ./../../snapshot-tests-in/sbt/internal/util-interface
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    source-layout: java
+  util-logging:
+    dependencies:
+    - com.eed3si9n::sjson-new-core:0.9.0
+    - com.lmax:disruptor:3.4.2
+    - org.apache.logging.log4j:log4j-api:2.17.1
+    - org.apache.logging.log4j:log4j-core:2.17.1
+    - org.jline:jline-terminal-jansi:3.19.0
+    - org.jline:jline-terminal-jna:3.19.0
+    - org.jline:jline-terminal:3.19.0
+    - org.scala-sbt.jline:jline:2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493
+    - org.scala-sbt::io:1.7.0
+    dependsOn:
+    - core-macros
+    - util-interface
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-logging
+    resources:
+    - ./../../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    sources: ./src/${SCOPE}/contraband-scala
+  util-logging-test:
+    dependencies:
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    dependsOn: util-logging
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-logging
+  util-position:
+    dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-position
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:experimental.macros
+        -language:postfixOps
+  util-position-test:
+    dependencies: org.scalatest::scalatest:3.2.10
+    dependsOn: util-position
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-position
+    scala:
+      options: -language:experimental.macros
+  util-relation:
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-relation
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  util-relation-test:
+    dependencies: org.scalacheck::scalacheck:1.15.4
+    dependsOn: util-relation
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-relation
+  util-scripted:
+    dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
+    dependsOn: util-logging
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/internal/util-scripted
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  util-tracking:
+    dependsOn: util-cache
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/util-tracking
+    resources:
+    - ./../LICENSE
+    - ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  util-tracking-test:
+    dependencies: org.scalatest::scalatest:3.2.10
+    dependsOn: util-tracking
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/util-tracking
+  zinc-lm-integration:
+    dependencies:
+    - org.scala-sbt::librarymanagement-core:1.7.0
+    - org.scala-sbt::zinc-compile-core:1.7.1
+    - org.scala-sbt:launcher-interface:1.3.3
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/zinc-lm-integration
+    resources: ./NOTICE
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+  zinc-lm-integration-test:
+    dependencies:
+    - com.eed3si9n.verify::verify:1.0.0
+    - junit:junit:4.13.1
+    - org.scala-sbt::librarymanagement-ivy:1.7.0
+    - org.scalacheck::scalacheck:1.15.4
+    - org.scalatest::scalatest:3.2.10
+    - qa.hedgehog::hedgehog-sbt:0.7.0
+    dependsOn: zinc-lm-integration
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/sbt/zinc-lm-integration
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
+templates:
+  template-common:
+    java:
+      options: -Xlint -Xlint:-serial -source 1.8 -target 1.8
+    platform:
+      name: jvm
+    scala:
+      options: -Xfuture -Xlint -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -Ywarn-value-discard
+        -deprecation -encoding utf8 -feature -language:higherKinds -language:implicitConversions
+        -unchecked
+  template-common-main:
+    extends: template-common
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - verify.runner.Framework
+  template-cross-all:
+    cross:
+      jvm213:
+        extends: template-scala-2.13
+  template-scala-2.12:
+    scala:
+      options: -Xfatal-warnings -Yno-adapted-args -Ywarn-unused-import
+      version: 2.12.16
+  template-scala-2.13:
+    scala:
+      version: 2.13.8
