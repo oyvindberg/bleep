@@ -19,9 +19,7 @@ object BuildPatch {
   def apply(build: model.Build.FileBacked, patch: BuildPatch): model.Build.FileBacked =
     patch match {
       case BuildPatch.RemoveProjects(crossProjectNames) =>
-        val affected = Affected {
-          build.explodedProjects.filter { case (crossName, _) => crossProjectNames.contains(crossName) }
-        }
+        val affected = Affected(build, crossProjectNames)
 
         if (affected.crossProjects.isEmpty) build
         else {
@@ -208,9 +206,9 @@ object BuildPatch {
     }
   }
 
-  private case class Affected(crossProjects: Map[model.CrossProjectName, /* exploded */ model.Project]) {
-    lazy val crossProjectNames: Set[model.CrossProjectName] =
-      crossProjects.keySet
+  private case class Affected(build: model.Build, crossProjectNames: Set[model.CrossProjectName]) {
+    lazy val crossProjects: Map[model.CrossProjectName, model.Project] =
+      build.explodedProjects.filter { case (crossName, _) => crossProjectNames.contains(crossName) }
 
     lazy val crossProjectsByProjectName: Map[model.ProjectName, Map[model.CrossProjectName, model.Project]] =
       crossProjects.groupBy { case (crossName, _) => crossName.name }
@@ -231,9 +229,7 @@ object BuildPatch {
 
   def removeFrom(build: model.Build.FileBacked, removeValues: model.Project, targetCrossProjects: Set[model.CrossProjectName]): model.Build.FileBacked = {
     // collect list of things we may have to rewrite. reminder that it's common that things are inherited from templates
-    val affected = Affected {
-      build.explodedProjects.filter { case (crossName, p) => targetCrossProjects.contains(crossName) && (p.removeAll(removeValues) != p) }
-    }
+    val affected = Affected(build, targetCrossProjects)
 
     // when we remove values from a template which is inherited by a project which should keep its values
     // we need to push values down to the project definition
@@ -293,7 +289,7 @@ object BuildPatch {
 
         if (!affected.projectNames(name)) project1
         else {
-          val change = project.intersect(removeValues)
+          val change = project1.intersect(removeValues)
           val project2 = project1.removeAll(change)
 
           // push values from shared project to cross projects if there are any non-affected by the removal

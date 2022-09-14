@@ -1,0 +1,306 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: dev
+projects:
+  bench:
+    dependencies:
+    - org.openjdk.jmh:jmh-core:1.32
+    - org.openjdk.jmh:jmh-generator-bytecode:1.32
+    - org.openjdk.jmh:jmh-generator-reflection:1.32
+    dependsOn: doobie-postgres
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/bench
+    scala:
+      options: -Xfatal-warnings
+  doobie-core:
+    cross:
+      jvm213:
+        dependencies: com.chuusai::shapeless:2.3.7
+        sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}+
+    dependencies: org.tpolecat::typename:1.0.0
+    dependsOn: doobie-free
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/core
+    scala:
+      options: -Xfatal-warnings -Yno-predef
+  doobie-core-test:
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: doobie-core
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/core
+    scala:
+      options: -Yno-predef
+  doobie-free:
+    cross:
+      jvm213:
+        dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
+    dependencies:
+    - co.fs2::fs2-core:3.2.4
+    - org.scala-lang.modules::scala-collection-compat:2.6.0
+    - org.typelevel::cats-core:2.7.0
+    - org.typelevel::cats-effect:3.3.5
+    - org.typelevel::cats-free:2.7.0
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/free
+    scala:
+      options: -Yno-predef
+  doobie-h2:
+    dependencies: com.h2database:h2:1.4.200
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/h2
+  doobie-h2-circe:
+    dependencies:
+    - io.circe::circe-core:0.14.1
+    - io.circe::circe-parser:0.14.1
+    dependsOn: doobie-h2
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
+    scala:
+      options: -Xfatal-warnings
+  doobie-h2-circe-test:
+    dependencies:
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: doobie-h2-circe
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
+  doobie-h2-test:
+    dependsOn:
+    - doobie-core-test
+    - doobie-h2
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/h2
+  doobie-hikari:
+    dependencies:
+    - exclusions:
+        org.slf4j: slf4j-api
+      module: com.zaxxer:HikariCP:4.0.3
+    - org.slf4j:slf4j-api:1.7.36
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/hikari
+    scala:
+      options: -Xfatal-warnings
+  doobie-hikari-test:
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.slf4j:slf4j-nop:1.7.36
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn:
+    - doobie-hikari
+    - doobie-postgres
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/hikari
+  doobie-munit:
+    dependencies: org.scalameta::munit:0.7.29
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/munit
+    scala:
+      options: -Xfatal-warnings
+  doobie-munit-test:
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: doobie-munit
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/munit
+  doobie-postgres:
+    dependencies:
+    - co.fs2::fs2-io:3.2.4
+    - configuration: provided
+      module: net.postgis:postgis-jdbc:2.5.1
+    - org.postgresql:postgresql:42.3.2
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres
+  doobie-postgres-circe:
+    dependencies:
+    - io.circe::circe-core:0.14.1
+    - io.circe::circe-parser:0.14.1
+    dependsOn: doobie-postgres
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
+    scala:
+      options: -Xfatal-warnings
+  doobie-postgres-circe-test:
+    dependencies:
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: doobie-postgres-circe
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
+  doobie-postgres-test:
+    dependencies:
+      configuration: provided
+      module: net.postgis:postgis-jdbc:2.5.1
+    dependsOn:
+    - doobie-core-test
+    - doobie-postgres
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/postgres
+  doobie-refined:
+    dependencies: eu.timepit::refined:0.9.28
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/refined
+    scala:
+      options: -Xfatal-warnings
+  doobie-refined-test:
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: doobie-refined
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/refined
+  doobie-scalatest:
+    dependencies: org.scalatest::scalatest:3.2.10
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
+    scala:
+      options: -Xfatal-warnings
+  doobie-scalatest-test:
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: doobie-scalatest
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
+  doobie-specs2:
+    cross:
+      jvm213:
+        dependencies: org.specs2::specs2-core:4.13.2
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/specs2
+    scala:
+      options: -Xfatal-warnings
+  doobie-specs2-test:
+    cross:
+      jvm213:
+        dependencies:
+        - org.typelevel::munit-cats-effect-3:1.0.7
+        - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn:
+    - doobie-h2
+    - doobie-specs2
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/specs2
+  example:
+    dependsOn:
+    - doobie-h2
+    - doobie-hikari
+    - doobie-postgres
+    - doobie-scalatest
+    - doobie-specs2
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/example
+    scala:
+      options: -Xfatal-warnings
+  example-test:
+    dependencies:
+    - org.typelevel::munit-cats-effect-3:1.0.7
+    - org.typelevel::scalacheck-effect-munit:1.0.3
+    dependsOn: example
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./../../snapshot-tests-in/doobie/modules/example
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
+templates:
+  template-common:
+    platform:
+      name: jvm
+  template-common-main:
+    extends: template-common
+    sbt-scope: main
+  template-common-test:
+    extends: template-common
+    isTestProject: true
+    sbt-scope: test
+  template-cross-all:
+    cross:
+      jvm213:
+        extends: template-scala-2.13
+  template-scala-2:
+    scala:
+      compilerPlugins: org.typelevel:::kind-projector:0.13.2
+      options: -Xcheckinit -explaintypes
+  template-scala-2.12:
+    extends: template-scala-2
+    scala:
+      strict: true
+      version: 2.12.15
+  template-scala-2.13:
+    extends: template-scala-2
+    scala:
+      options: -Vimplicits -Vtype-diffs -Wdead-code -Wextra-implicit -Wnumeric-widen
+        -Wunused:explicits -Wunused:implicits -Wunused:imports -Wunused:locals -Wunused:nowarn
+        -Wunused:params -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit
+        -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
+        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
+        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+        -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat -Xlint:type-parameter-shadow
+        -encoding utf8 -feature -language:existentials -language:experimental.macros
+        -language:higherKinds -language:implicitConversions -unchecked
+      version: 2.13.8
+  template-scala-3:
+    scala:
+      options: -explain -explain-types
+      strict: true
+      version: 3.1.1
