@@ -1,7 +1,7 @@
-package bleep.tasks.publishing
+package bleep
+package tasks.publishing
 
 import bleep.internal.rewriteDependentData
-import bleep.{model, BleepException, RelPath, Started}
 import coursier.core.{Dependency, Info}
 
 import scala.collection.immutable.SortedMap
@@ -23,16 +23,16 @@ object fileBundle {
       bundleLayout: BundleLayout
   ): SortedMap[model.CrossProjectName, Deployable] =
     rewriteDependentData(started.build.explodedProjects).startFrom[Deployable](shouldInclude) { case (projectName, project, eval) =>
-      val versionCombo = model.VersionCombo.unsafeFromExplodedProject(project, projectName)
+      val versionCombo = model.VersionCombo.fromExplodedProject(project).orThrowTextWithContext(projectName)
 
       val deps: List[Dependency] =
         List(
           started.build.resolvedDependsOn(projectName).toList.map(eval(_).forceGet.asDependency),
-          project.dependencies.values.toList.map(_.unsafeAsDependency(Some(projectName), versionCombo)),
-          versionCombo.libraries(project.isTestProject.getOrElse(false)).map(_.unsafeAsDependency(Some(projectName), versionCombo)).toList
+          project.dependencies.values.toList.map(_.asDependency(versionCombo).orThrowTextWithContext(projectName)),
+          versionCombo.libraries(project.isTestProject.getOrElse(false)).map(_.asDependency(versionCombo).orThrowTextWithContext(projectName)).toList
         ).flatten
 
-      val self: Dependency = asDep(projectName, project).unsafeAsDependency(Some(projectName), versionCombo)
+      val self: Dependency = asDep(projectName, project).asDependency(versionCombo).orThrowTextWithContext(projectName)
 
       val files =
         bundleLayout match {

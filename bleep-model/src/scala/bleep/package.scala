@@ -1,8 +1,10 @@
 import java.nio.file.Path
 
 package object bleep {
+  implicit def bleepExceptionOps[Th, T](e: Either[Th, T]): BleepException.ExpectOps[Th, T] =
+    new BleepException.ExpectOps(e)
 
-  implicit class PathOps(path: Path) {
+  implicit class PathOps(private val path: Path) extends AnyVal {
     def /(relPath: RelPath): Path =
       relPath.segments.foldLeft(path) {
         case (acc, "..")    => acc.getParent

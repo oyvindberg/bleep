@@ -54,15 +54,15 @@ object BuildUpdateDeps {
   def instantiateAllDependencies(build: model.Build): Map[ContextualDep, Dependency] =
     build.explodedProjects
       .flatMap { case (crossName, p) =>
-        val versionCombo = model.VersionCombo.unsafeFromExplodedProject(p, crossName)
+        val versionCombo = model.VersionCombo.fromExplodedProject(p).orThrowTextWithContext(crossName)
         p.dependencies.values.iterator.collect {
-          case dep if !dep.version.contains("$") => ((dep, versionCombo), dep.unsafeAsDependency(Some(crossName), versionCombo))
+          case dep if !dep.version.contains("$") => ((dep, versionCombo), dep.asDependency(versionCombo).orThrowTextWithContext(crossName))
         }
       }
 
   def upgradedBuild(logger: Logger, upgrades: Map[ContextualDep, model.Dep], build: model.Build.FileBacked): model.Build.FileBacked = {
     val newProjects = build.explodedProjects.map { case (crossName, p) =>
-      val versionCombo = model.VersionCombo.unsafeFromExplodedProject(p, crossName)
+      val versionCombo = model.VersionCombo.fromExplodedProject(p).orThrowTextWithContext(crossName)
       val newDeps = p.dependencies.map { dep =>
         upgrades.get((dep, versionCombo)) match {
           case Some(newDep) =>

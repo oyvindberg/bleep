@@ -79,10 +79,7 @@ object importBloopFilesFromSbt {
       val configuredPlatform: Option[model.Platform] =
         bloopProject.platform.map(translatePlatform(_, replacements, bloopProject.resolution))
 
-      val versionCombo = model.VersionCombo.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform) match {
-        case Left(value)  => throw new BleepException.Text(crossName, value)
-        case Right(value) => value
-      }
+      val versionCombo = model.VersionCombo.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform).orThrowTextWithContext(crossName)
 
       val replacementsWithVersions = replacements ++ model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = true)
 
@@ -300,7 +297,8 @@ object importBloopFilesFromSbt {
           fromPlatform
             .orElse(fromDependencies)
             .map(version => model.VersionScalaJs(version))
-            .getOrElse(throw new BleepException.Text("Couldn't find scalajs-library jar to determine version"))
+            .toRight("Couldn't find scalajs-library jar to determine version")
+            .orThrowText
         }
 
         val translatedPlatform = model.Platform.Js(

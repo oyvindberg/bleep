@@ -5,6 +5,12 @@ import coursier.error.CoursierError
 
 import java.nio.file.Path
 
+/** The pattern for error handling in bleep:
+  *   - every function where 1) a failure may be handled upstream, or 2) it's a point that it's pure, must return a coproduct like `Either`
+  *   - everything else fails by throwing `BleepException`s.
+  *
+  * Other exceptions should be wrapped in `BleepException` with a suitable text, but a lot of work remains in that direction
+  */
 abstract class BleepException(
     val message: String,
     cause: Throwable = null
@@ -46,8 +52,44 @@ object BleepException {
     def this(project: model.CrossProjectName, str: String) = this(Some(project), str)
   }
 
-  class Cause(
-      val cause: Throwable,
+  class Cause[Th <: Throwable: Not](
+      val cause: Th,
       val error: String
   ) extends BleepException(error, cause)
+
+  sealed trait Not[T]
+
+  object Not extends NotLower {
+    // clash
+    implicit def not1[BE <: BleepException]: Not[BE] = null
+    implicit def not2[BE <: BleepException]: Not[BE] = null
+  }
+
+  trait NotLower {
+    implicit def not[T <: Throwable]: Not[T] = null
+  }
+
+  /** Some parts of the codebase neatly use `Either`, but for the main parts the pattern is to throw `BleepException`. These are caught in `main`.
+    */
+  final class ExpectOps[L, R](private val e: Either[L, R]) extends AnyVal {
+    def orThrow(implicit ev: L <:< BleepException): R = e match {
+      case Left(th)     => throw ev(th)
+      case Right(value) => value
+    }
+
+    def orThrowWithError[Th <: Throwable with L](error: String)(implicit ev0: L =:= Th, ev: BleepException.Not[Th]): R = e match {
+      case Left(th)     => throw new BleepException.Cause[Th](th, error)
+      case Right(value) => value
+    }
+
+    def orThrowText(implicit ev0: L =:= String): R = e match {
+      case Left(msg)    => throw new BleepException.Text(None, msg)
+      case Right(value) => value
+    }
+
+    def orThrowTextWithContext(context: model.CrossProjectName)(implicit ev0: L =:= String): R = e match {
+      case Left(msg)    => throw new BleepException.Text(Some(context), msg)
+      case Right(value) => value
+    }
+  }
 }

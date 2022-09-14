@@ -12,10 +12,8 @@ class BuildRewriteTest extends AnyFunSuite with TripleEqualsSupport {
                  |""".stripMargin
   def rewriteTest(testName: String, preYaml: String)(f: model.Build.FileBacked => model.Build.FileBacked)(expectedYaml: String): Unit =
     test(testName) {
-      val preBuild = BuildLoader.Existing(Path.of("bleep.yaml"), Lazy(Right(prelude ++ preYaml))).buildFile.forceGet match {
-        case Left(th)     => throw th
-        case Right(value) => model.Build.FileBacked(value)
-      }
+      val existing = BuildLoader.Existing(Path.of("bleep.yaml"), Lazy(Right(prelude ++ preYaml)))
+      val preBuild = model.Build.FileBacked(existing.buildFile.forceGet.orThrow)
       val postBuild = f(preBuild)
       val postYaml = yaml.encodeShortened(postBuild.file)
       assert(postYaml === (prelude ++ expectedYaml))

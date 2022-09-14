@@ -58,9 +58,8 @@ sealed trait Build {
               sameCrossId
                 .orElse(sameScalaAndPlatform)
                 .orElse(sameScalaBinVersionAndPlatform)
-                .getOrElse(
-                  throw new BleepException.Text(crossProjectName, s"Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}")
-                )
+                .toRight(s"Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}")
+                .orThrowText
           }
         }
 
@@ -71,15 +70,14 @@ sealed trait Build {
   def transitiveDependenciesFor(name: CrossProjectName): Map[CrossProjectName, Project] = {
     val builder = Map.newBuilder[CrossProjectName, Project]
 
-    def go(depName: CrossProjectName): Unit =
-      explodedProjects.get(depName) match {
-        case Some(p) =>
-          builder += ((depName, p))
-          resolvedDependsOn(depName).foreach(go)
-
-        case None =>
-          throw new BleepException.Text(name, s"depends on non-existing project ${depName.value}")
-      }
+    def go(depName: CrossProjectName): Unit = {
+      val p = explodedProjects
+        .get(depName)
+        .toRight(s"depends on non-existing project ${depName.value}")
+        .orThrowTextWithContext(name)
+      builder += ((depName, p))
+      resolvedDependsOn(depName).foreach(go)
+    }
 
     resolvedDependsOn(name).foreach(go)
 

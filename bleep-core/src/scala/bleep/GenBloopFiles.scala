@@ -140,7 +140,7 @@ object GenBloopFiles {
       }
 
     val versionCombo: model.VersionCombo =
-      model.VersionCombo.unsafeFromExplodedProject(explodedProject, crossName)
+      model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
 
     val templateDirs =
       model.Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
@@ -148,10 +148,7 @@ object GenBloopFiles {
         model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
 
     def require[T](ot: Option[T], name: String): T =
-      ot match {
-        case Some(value) => value
-        case None        => throw new BleepException.Text(crossName, s"missing platform field `$name`")
-      }
+      ot.toRight(s"missing platform field `$name`").orThrowText
 
     val configuredPlatform: Option[Config.Platform] =
       explodedPlatform.map {
