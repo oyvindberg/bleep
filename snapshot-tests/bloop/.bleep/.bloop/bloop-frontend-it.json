@@ -1753,6 +1753,9 @@
           ]
         }
       ]
-    }
+    },
+    "tags": [
+      "integration-test"
+    ]
   }
 }
