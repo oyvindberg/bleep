@@ -143,7 +143,7 @@ object GenBloopFiles {
       model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
 
     val templateDirs =
-      model.Replacements.paths(buildPaths.buildDir, projectPaths.dir) ++
+      model.Replacements.paths(build = buildPaths.buildDir, project = projectPaths.dir) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
         model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
 
@@ -323,6 +323,16 @@ object GenBloopFiles {
         )
       }
 
+    // note: this matters for intellij when working with projects with maven layout (src/$scope/scala)
+    // intellij will combine main and test bleep projects into one intellij project and use this tag to
+    // determine main and test class path
+    val tag =
+      explodedProject.isTestProject.getOrElse(false) match {
+        case true if crossName.name.value.endsWith("-it") => bloop.config.Tag.IntegrationTest
+        case true                                         => bloop.config.Tag.Test
+        case _                                            => bloop.config.Tag.Library
+      }
+
     Config.File(
       "1.4.0",
       Config.Project(
@@ -350,7 +360,7 @@ object GenBloopFiles {
         } else None,
         platform = configuredPlatform,
         resolution = Some(resolution),
-        tags = None
+        tags = Some(List(tag))
       )
     )
   }
