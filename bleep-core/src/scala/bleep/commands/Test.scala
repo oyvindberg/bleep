@@ -4,16 +4,16 @@ package commands
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.TestParams
+import ch.epfl.scala.bsp4j.CompileParams
 
 import scala.build.bloop.BloopServer
 
 case class Test(started: Started, projects: List[model.CrossProjectName]) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
     val targets = buildTargets(started.buildPaths, projects)
-    val result = bloop.server.buildTargetTest(new TestParams(targets)).get()
-
-    // todo: failing tests causes statusCode.OK
+    // workaround for https://github.com/scalacenter/bloop/pull/1839
+    bloop.server.buildTargetCompile(new CompileParams(targets)).get()
+    val result = bloop.server.buildTargetTest(new bsp4j.TestParams(targets)).get()
 
     result.getStatusCode match {
       case bsp4j.StatusCode.OK =>

@@ -157,9 +157,13 @@ class BleepBspServer(
     logger.debug(("buildTargetScalacOptions", params.toString))
     bloopServer.buildTargetScalacOptions(params)
   }
-  override def buildTargetDebugSession(params: bsp4j.DebugSessionParams): CompletableFuture[bsp4j.DebugSessionAddress] = {
-    logger.debug(("buildTargetDebugSession", params.toString))
-    bloopServer.buildTargetDebugSession(params)
+  override def debugSessionStart(params: bsp4j.DebugSessionParams): CompletableFuture[bsp4j.DebugSessionAddress] = {
+    logger.debug(("debugSessionStart", params.toString))
+    bloopServer.debugSessionStart(params)
+  }
+  override def buildTargetOutputPaths(params: ch.epfl.scala.bsp4j.OutputPathsParams): CompletableFuture[bsp4j.OutputPathsResult] = {
+    logger.debug(("buildTargetOutputPaths", params.toString))
+    bloopServer.buildTargetOutputPaths(params)
   }
 
   private val shutdownPromise = Promise[Unit]()

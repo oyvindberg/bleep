@@ -57,13 +57,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
-      # todo: this is only needed because it makes some windows development stuff available. figure out how bleep can download it itself
-      - uses: graalvm/setup-graalvm@v1
-        if: runner.os == 'Windows'
-        with:
-          version: '22.2.0'
-          java-version: '17'
-          components: 'native-image'
+
       - uses: coursier/setup-action@v1.2.0-M3
       - uses: coursier/cache-action@v6
         with:
@@ -74,6 +68,7 @@ jobs:
 
       - name: Build native image (non-windows)
         run: |
+          bleep compile-server stop
           bleep generate-resources
           bleep native-image ${{ matrix.file_name }}
         if: runner.os != 'Windows'
@@ -84,16 +79,29 @@ jobs:
         run: ./${{ matrix.file_name }} --dev test --no-color jvm213
         if: runner.os != 'Windows'
 
-      - name: generate resources (windows)
-        # note: yaml multiline syntax doesn't seem to work (cmd only runs first command).
-        # that's why this is split in generate resources and build native image below
-        run: bleep generate-resources
-        # shell is important here. default is powershell and things do not work there
-        # see https://github.com/dirs-dev/directories-jvm/issues/49
+        # as is normal, everything involving windows is terrible.
+        # - powershell doesn't work, for one: https://github.com/dirs-dev/directories-jvm/issues/49
+        # - with `shell: cmd` only one command can be run at a time, so this is split into three
+        # - some windows development stuff needs to be available, that's what setup-graalvm accomplishes below. todo: figure out how bleep can download it itself
+      - name: Build native image 1 (windows)
+        run: bleep compile-server stop
         shell: cmd
         if: runner.os == 'Windows'
 
-      - name: Build native image (windows)
+      - name: Build native image 2 (windows)
+        run: bleep generate-resources
+        shell: cmd
+        if: runner.os == 'Windows'
+
+      - name: Build native image 3 prepare (windows)
+        uses: graalvm/setup-graalvm@v1
+        if: runner.os == 'Windows'
+        with:
+          version: '22.2.0'
+          java-version: '17'
+          components: 'native-image'
+
+      - name: Build native image 3 (windows)
         run: bleep native-image ${{ matrix.file_name }}
         shell: cmd
         if: runner.os == 'Windows'

@@ -30,9 +30,9 @@ final case class Printer(
   def pretty(json: Json): String = {
     val writer = new StreamToStringWriter
     val serializer = new Serializer(options, new Emitter(options, writer))
-    serializer.open()
-    serializer.serialize(jsonToYaml(json))
-    serializer.close()
+    serializer.emitStreamStart()
+    serializer.serializeDocument(jsonToYaml(json))
+    serializer.emitStreamEnd()
     writer.toString
   }
 

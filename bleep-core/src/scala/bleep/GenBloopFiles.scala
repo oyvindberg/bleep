@@ -360,7 +360,8 @@ object GenBloopFiles {
         } else None,
         platform = configuredPlatform,
         resolution = Some(resolution),
-        tags = Some(List(tag))
+        tags = Some(List(tag)),
+        sourceGenerators = None
       )
     )
   }
