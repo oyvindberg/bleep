@@ -12,7 +12,7 @@ object GenerateResources extends App {
   }
 
   def writeGenerated(started: Started, version: String): Unit =
-    started.build.projects.foreach {
+    started.build.explodedProjects.foreach {
       case (crossName, _) if crossName.name.value == "bleep-model" =>
         val to = started.buildPaths.generatedSourcesDir(crossName).resolve("bleep/model/BleepVersion.scala")
         started.logger.withContext(crossName).warn(s"Writing $to")
