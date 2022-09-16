@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "http4s-jetty-client-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-jetty-client-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/jetty-client/src/test/java",

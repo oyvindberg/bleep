@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-config-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/config",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-config-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/config/.jvm/src/test/java",

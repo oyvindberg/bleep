@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scripts",
-    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/scripts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/scripts",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/generated-sources/scripts",

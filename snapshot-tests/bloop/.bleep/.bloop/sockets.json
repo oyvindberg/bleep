@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "sockets",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/sockets",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/sockets/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "micro",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/benchmark-bridge/micro",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/micro",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/benchmark-bridge/micro/src/main/java",

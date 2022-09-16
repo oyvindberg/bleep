@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-h2-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-h2-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/h2/src/test/java",

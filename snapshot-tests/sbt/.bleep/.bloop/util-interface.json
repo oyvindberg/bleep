@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "util-interface",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-interface",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-interface",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-interface/src/main/java",

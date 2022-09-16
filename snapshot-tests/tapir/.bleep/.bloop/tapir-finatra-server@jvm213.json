@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-finatra-server@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-finatra-server/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/finatra-server/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-netty-server@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-netty-server/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/netty-server/src/main/java",

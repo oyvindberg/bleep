@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scripts",
-    "directory": "<BLEEP_GIT>/snapshot-tests/converter/scripts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scripts",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/converter/.bleep/generated-sources/scripts",

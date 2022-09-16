@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-native-bridge-0-4-test",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/bridges/scala-native-0.4",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-native-bridge-0-4-test",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/bridges/scala-native-0.4/src/test/java",

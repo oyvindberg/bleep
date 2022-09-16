@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scalajs",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/scalajs",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/scalajs/src/main/java",

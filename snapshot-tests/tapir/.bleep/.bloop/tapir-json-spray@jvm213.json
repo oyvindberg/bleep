@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-json-spray@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/json/sprayjson",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-json-spray/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/sprayjson/src/main/java",

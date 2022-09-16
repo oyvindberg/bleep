@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "actions-test@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/main-actions",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/actions-test/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/main-actions/src/test/java",

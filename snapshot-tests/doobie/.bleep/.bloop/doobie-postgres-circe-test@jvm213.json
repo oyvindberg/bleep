@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-postgres-circe-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-postgres-circe-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/postgres-circe/src/test/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-server-tests@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-server-tests/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/server/tests/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scalafixinternalrules@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/rules",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternalrules/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/rules/src/main/java",

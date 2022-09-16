@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-scalatest-test@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/scalatest",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-scalatest-test/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/scalatest/src/test/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-hikari@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-hikari/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/hikari/src/main/java",

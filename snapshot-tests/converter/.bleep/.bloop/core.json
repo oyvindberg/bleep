@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "core",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/core",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/core",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/core/src/main/java",

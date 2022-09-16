@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-openapi-model@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-openapi-model/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/openapi-model/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-free@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-free/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/free/src/main/java",

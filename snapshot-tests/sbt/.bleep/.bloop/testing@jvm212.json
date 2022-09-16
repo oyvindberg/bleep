@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "testing@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/testing",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/testing/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/testing/src/main/contraband-scala",

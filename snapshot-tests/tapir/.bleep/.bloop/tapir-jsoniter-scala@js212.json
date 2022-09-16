@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-jsoniter-scala@js212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-jsoniter-scala/js212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/jsoniter/src/main/java",

@@ -337,7 +337,7 @@ object GenBloopFiles {
       "1.4.0",
       Config.Project(
         name = crossName.value,
-        directory = projectPaths.dir,
+        directory = projectPaths.targetDir,
         workspaceDir = Some(buildPaths.buildDir),
         sources = projectPaths.sourcesDirs.all.toList,
         sourcesGlobs = None,

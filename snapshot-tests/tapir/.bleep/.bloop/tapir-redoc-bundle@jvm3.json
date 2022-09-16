@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-redoc-bundle@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-redoc-bundle/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/redoc-bundle/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scripts",
-    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/scripts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scripts",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/generated-sources/scripts",

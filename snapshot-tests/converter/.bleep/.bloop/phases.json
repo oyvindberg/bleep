@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "phases",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/phases",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/phases",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/phases/src/main/java",

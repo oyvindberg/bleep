@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "import-scalajs-definitions",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/import-scalajs-definitions",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/import-scalajs-definitions",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/import-scalajs-definitions/src/main/java",

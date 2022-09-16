@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-newtype@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-newtype/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/newtype/src/main/java",

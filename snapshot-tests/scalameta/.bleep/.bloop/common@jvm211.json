@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "common@jvm211",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/common",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/common/jvm211",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/common/js-jvm/src/main/scala",

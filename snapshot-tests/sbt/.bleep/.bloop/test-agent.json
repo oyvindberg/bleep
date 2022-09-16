@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "test-agent",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/testing/agent",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/test-agent",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/testing/agent/src/main/java",

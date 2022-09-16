@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-enumeratum-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-enumeratum-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/enumeratum/src/test/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloopgun-core@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloopgun-core/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/bloopgun/src/main/java",

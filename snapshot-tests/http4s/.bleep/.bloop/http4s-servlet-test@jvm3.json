@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "http4s-servlet-test@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/http4s/servlet",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/http4s-servlet-test/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/servlet/src/test/java",

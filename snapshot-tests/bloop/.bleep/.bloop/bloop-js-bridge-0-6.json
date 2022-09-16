@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-js-bridge-0-6",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/bridges/scalajs-0.6",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-js-bridge-0-6",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/bridges/scalajs-0.6/src/main/java",

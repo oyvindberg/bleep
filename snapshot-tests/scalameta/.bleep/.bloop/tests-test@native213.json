@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tests-test@native213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/tests",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/tests-test/native213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/tests/js-native/src/test/scala",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "util-cache-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/util-cache",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-cache-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/util-cache/src/test/java",

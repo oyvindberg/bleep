@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-shared",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/shared",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-shared",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/shared/src/main/java",

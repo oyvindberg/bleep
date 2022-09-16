@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "buildpress",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/buildpress",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/buildpress",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/buildpress/src/main/java",

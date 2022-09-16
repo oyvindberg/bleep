@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-launcher-core@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/launcher-core",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-launcher-core/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/launcher-core/src/main/java",

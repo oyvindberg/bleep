@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-sttp-client-test@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-sttp-client-test/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/client/sttp-client/src/test/java",

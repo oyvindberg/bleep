@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-refined@js213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/refined",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-refined/js213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/integrations/refined/src/main/java",

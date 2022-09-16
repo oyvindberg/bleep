@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "importer",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/importer",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/importer/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "sbt-openapi-codegen",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/sbt-openapi-codegen",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/sbt/sbt-openapi-codegen/src/main/java",
