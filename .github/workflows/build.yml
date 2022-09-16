@@ -33,6 +33,7 @@ jobs:
           CI: true
         run: |
           bleep generate-resources
+          bleep compile
           bleep test
 
   build-native-image:
