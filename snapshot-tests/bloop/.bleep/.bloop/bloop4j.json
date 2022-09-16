@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop4j",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/bloop4j",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop4j",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/bloop4j/src/main/java",

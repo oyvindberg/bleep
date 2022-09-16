@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "servertestproj",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/server-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/servertestproj",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/server-test/src/main/java",

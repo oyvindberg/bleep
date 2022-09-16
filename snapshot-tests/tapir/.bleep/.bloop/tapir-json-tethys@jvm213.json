@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-json-tethys@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-json-tethys/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/tethys/src/main/java",

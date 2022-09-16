@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-openapi-docs-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/openapi-docs",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-openapi-docs-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/docs/openapi-docs/src/test/java",

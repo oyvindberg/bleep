@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "testkit-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/testkit",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/testkit-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/testkit/js-jvm/src/test/scala",

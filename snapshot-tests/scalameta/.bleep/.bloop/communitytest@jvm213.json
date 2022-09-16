@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "communitytest@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/community-test",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/communitytest/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/community-test/src/main/java",

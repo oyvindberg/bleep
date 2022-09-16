@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "cli",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/cli",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/cli",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/cli/src/main/java",

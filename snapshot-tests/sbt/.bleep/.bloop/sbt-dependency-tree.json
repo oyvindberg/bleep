@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "sbt-dependency-tree",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/dependency-tree",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/sbt-dependency-tree",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/dependency-tree/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "ts",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/ts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/ts",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/ts/src/main/java",

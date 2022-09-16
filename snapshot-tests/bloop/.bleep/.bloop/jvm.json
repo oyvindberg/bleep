@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "jvm",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/benchmark-bridge",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/jvm",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/benchmark-bridge/jvm/src/main/java",

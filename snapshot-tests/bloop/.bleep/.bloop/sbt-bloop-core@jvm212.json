@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "sbt-bloop-core@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/sbt-bloop-core/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/sbt-bloop/src/main/java",

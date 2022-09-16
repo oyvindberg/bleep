@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-json-json4s-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/json/json4s",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-json-json4s-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/json/json4s/src/test/java",

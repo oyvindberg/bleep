@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "logging",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/logging",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/logging",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/logging/src/main/java",

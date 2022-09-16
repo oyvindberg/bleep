@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "gradle-bloop@jvm211",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/gradle-bloop/jvm211",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/gradle-bloop/src/main/java",

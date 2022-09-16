@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "trees@native212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/trees",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/trees/native212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/dialects/native/src/main/scala",

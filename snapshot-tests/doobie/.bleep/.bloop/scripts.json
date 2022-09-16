@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scripts",
-    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/scripts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/scripts",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/generated-sources/scripts",

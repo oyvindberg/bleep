@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "parsers@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/parsers",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/parsers/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta/parsers/js-jvm/src/main/scala",

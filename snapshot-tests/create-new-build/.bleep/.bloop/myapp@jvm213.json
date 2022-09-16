@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "myapp@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp",
+    "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/create-new-build",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-sources/myapp@jvm213",

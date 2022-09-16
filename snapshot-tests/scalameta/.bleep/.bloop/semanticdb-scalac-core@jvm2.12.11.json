@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "semanticdb-scalac-core@jvm2.12.11",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/library",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdb-scalac-core/jvm2.12.11",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/scalac/library/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bench@jvm211",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/bench/suite",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/bench/jvm211",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/bench/suite/src/main/java",

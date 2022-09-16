@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scalafixinternalinput@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/input",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/.bleep/.bloop/scalafixinternalinput/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/http4s/scalafix-internal/input/src/main/java",

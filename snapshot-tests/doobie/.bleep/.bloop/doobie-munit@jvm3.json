@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "doobie-munit@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/doobie-munit/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/munit/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "zinc-lm-integration@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/zinc-lm-integration",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/zinc-lm-integration/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/zinc-lm-integration/src/main/java",

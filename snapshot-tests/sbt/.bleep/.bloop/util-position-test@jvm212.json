@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "util-position-test@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-position",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/util-position-test/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-position/src/test/java",

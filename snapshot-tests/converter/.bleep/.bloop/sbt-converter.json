@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "sbt-converter",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/sbt-converter",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/sbt-converter/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "semanticdbintegrationmacros@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/semanticdbintegrationmacros/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/integration-macros/src/main/java",

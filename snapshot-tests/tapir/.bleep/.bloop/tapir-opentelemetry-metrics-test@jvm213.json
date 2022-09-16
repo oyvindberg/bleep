@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-opentelemetry-metrics-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-opentelemetry-metrics-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/opentelemetry-metrics/src/test/java",

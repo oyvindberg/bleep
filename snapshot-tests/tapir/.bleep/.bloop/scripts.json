@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scripts",
-    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/scripts",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/scripts",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/generated-sources/scripts",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "metac@jvm2.13.8",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/metac/jvm2.13.8",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/semanticdb/metac/src/main/java",

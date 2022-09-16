@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-prometheus-metrics-test@jvm3",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-prometheus-metrics-test/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/metrics/prometheus-metrics/src/test/java",

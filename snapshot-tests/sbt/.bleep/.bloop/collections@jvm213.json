@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "collections@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-collection",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/collections/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-collection/src/main/java",

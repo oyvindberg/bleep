@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tasks-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/tasks",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/tasks-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/tasks/src/test/java",

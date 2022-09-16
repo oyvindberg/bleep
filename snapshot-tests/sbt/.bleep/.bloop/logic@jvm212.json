@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "logic@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-logic",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/logic/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/internal/util-logic/src/main/java",

@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "maven-bloop-test",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/maven-bloop",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/maven-bloop-test",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/integrations/maven-bloop/src/test/java",

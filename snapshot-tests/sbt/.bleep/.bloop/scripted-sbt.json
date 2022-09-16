@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scripted-sbt",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/sbt/scripted-sbt-old",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/.bleep/.bloop/scripted-sbt",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/sbt/scripted-sbt-old/src/main/java",

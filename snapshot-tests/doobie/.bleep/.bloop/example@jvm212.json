@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "example@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/example",
+    "directory": "<BLEEP_GIT>/snapshot-tests/doobie/.bleep/.bloop/example/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/doobie/modules/example/src/main/java",

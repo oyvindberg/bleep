@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "scalameta-docs@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta-docs",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/.bloop/scalameta-docs/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/scalameta/scalameta-docs/src/main/java",

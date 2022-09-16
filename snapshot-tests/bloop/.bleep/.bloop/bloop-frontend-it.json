@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "bloop-frontend-it",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/bloop/frontend",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/.bloop/bloop-frontend-it",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/bloop/frontend/src/it/java",

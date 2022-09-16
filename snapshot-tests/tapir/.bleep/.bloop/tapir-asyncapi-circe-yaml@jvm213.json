@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "tapir-asyncapi-circe-yaml@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/.bleep/.bloop/tapir-asyncapi-circe-yaml/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/tapir/apispec/asyncapi-circe-yaml/src/main/java",

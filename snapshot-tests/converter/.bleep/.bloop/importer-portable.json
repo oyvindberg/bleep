@@ -2,7 +2,7 @@
   "version": "1.4.0",
   "project": {
     "name": "importer-portable",
-    "directory": "<BLEEP_GIT>/snapshot-tests-in/converter/importer-portable",
+    "directory": "<BLEEP_GIT>/snapshot-tests/converter/.bleep/.bloop/importer-portable",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests-in/converter/importer-portable/src/main/java",
