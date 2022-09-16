@@ -1,6 +1,6 @@
 package bleep.rewrites
 
-import bleep.model
+import bleep.{bleepExceptionOps, model}
 import bleep.model.{CrossProjectName, Dep}
 import bleep.rewrites.UpgradeDependencies.{ContextualDep, UpgradeLogger}
 
