@@ -25,7 +25,10 @@ sealed trait VersionCombo {
         if (scalaVersion.is3) List(scalaVersion.libraries, List(scalaJs.library3, scalaVersion.scala3JsLibrary), testLibs).flatten
         else List(scalaVersion.libraries, List(scalaJs.library), testLibs).flatten
 
-      case VersionCombo.Native(_, _) => Nil
+      case VersionCombo.Native(scalaVersion, scalaNative) =>
+        val testLibs = if (isTest) Some(scalaNative.testInterface) else None
+        val libs = if (scalaVersion.is3) scalaNative.scala3Lib else scalaNative.scalaLib
+        libs :: testLibs.toList
     }
 
   def compilerPlugin: Option[Dep]

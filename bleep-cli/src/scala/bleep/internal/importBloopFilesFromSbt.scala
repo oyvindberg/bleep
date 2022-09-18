@@ -354,7 +354,7 @@ object importBloopFilesFromSbt {
         translatedPlatform
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
-          nativeVersion = Some(model.VersionScalaNative(config.version)),
+          nativeVersion = model.VersionScalaNative(config.version),
           nativeMode = Some(conversions.linkerMode.to(config.mode)),
           nativeGc = Some(config.gc),
           nativeMainClass = mainClass

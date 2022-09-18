@@ -158,7 +158,7 @@ object Platform {
   }
 
   object Native {
-    def apply(nativeVersion: Option[VersionScalaNative], nativeMode: Option[LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
+    def apply(nativeVersion: VersionScalaNative, nativeMode: Option[LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
       new Platform(
         name = Some(PlatformId.Native),
         mainClass = nativeMainClass,
@@ -170,7 +170,7 @@ object Platform {
         jsNodeVersion = None,
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
-        nativeVersion = nativeVersion,
+        nativeVersion = Some(nativeVersion),
         nativeMode = nativeMode,
         nativeGc = nativeGc
       )

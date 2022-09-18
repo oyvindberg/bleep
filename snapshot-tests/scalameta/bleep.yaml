@@ -29,12 +29,10 @@ projects:
         dependencies:
         - com.thesamet.scalapb::scalapb-runtime:0.11.11
         - org.scala-lang:scala-library:${SCALA_VERSION}
-        - org.scala-native::scalalib:${PLATFORM_VERSION}
       native213:
         dependencies:
         - com.thesamet.scalapb::scalapb-runtime:0.11.11
         - org.scala-lang:scala-library:${SCALA_VERSION}
-        - org.scala-native::scalalib:${PLATFORM_VERSION}
     dependencies:
     - com.lihaoyi::sourcecode:0.3.0
     - configuration: provided
@@ -239,11 +237,6 @@ projects:
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   tests-test:
-    cross:
-      native212:
-        dependencies: org.scala-native::test-interface:${PLATFORM_VERSION}
-      native213:
-        dependencies: org.scala-native::test-interface:${PLATFORM_VERSION}
     dependsOn: tests
     extends:
     - template-common-test
