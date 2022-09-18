@@ -178,6 +178,9 @@ projects:
     - template-cross-jvm-all-js-212-213
     folder: ./../../snapshot-tests-in/tapir/serverless/aws/lambda
   tapir-aws-lambda-test:
+    dependencies:
+    - com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
+    - com.typesafe.scala-logging::scala-logging:3.9.4
     dependsOn:
     - tapir-aws-lambda
     - tapir-tests
@@ -676,7 +679,9 @@ projects:
     - template-cross-jvm-all-js-212-213
     folder: ./../../snapshot-tests-in/tapir/json/zio
   tapir-json-zio-test:
-    dependencies: org.scalatest::scalatest:3.2.10
+    dependencies:
+    - dev.zio::zio-json:0.2.0-M3
+    - org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-zio
     extends:
     - template-common-test

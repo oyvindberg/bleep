@@ -179,6 +179,13 @@ object importBloopFilesFromSbt {
     model.Build.Exploded(bleepVersion, projects, buildResolvers, jvm = None, scripts = Map.empty)
   }
 
+  object Configs {
+    val CompilerPlugin = Configuration("plugin->default(compile)")
+    val CompilerPluginScalaJsTest = Configuration("scala-js-test-plugin")
+    val It = Configuration("it")
+    val OptionalDefault = Configuration("optional(default)")
+  }
+
   def importDeps(
       logger: Logger,
       inputProject: ImportInputProjects.InputProject,
@@ -204,52 +211,71 @@ object importBloopFilesFromSbt {
       }
     }
 
-    val CompilerPluginConfig = Configuration("plugin->default(compile)")
-    val CompilerPluginScalaJsTest = Configuration("scala-js-test-plugin")
     val plugins = all.collect {
-      case dep if dep.configuration == CompilerPluginConfig || (dep.configuration == CompilerPluginScalaJsTest && inputProject.projectType.testLike) =>
+      case dep
+          if dep.configuration == Configs.CompilerPlugin || (dep.configuration == Configs.CompilerPluginScalaJsTest && inputProject.projectType.testLike) =>
         dep
           .withConfiguration(Configuration.empty)
           // always true for compiler plugins. this is really just aesthetic in the generated json file
           .mapScala(_.copy(forceJvm = false))
     }
 
-    val ItConf = Configuration("it")
+    // bleep doesn't really do configurations much in the sense ivy does it.
+    // the complete set of supported configurations are:
+    // - Configuration.empty (compile scope)
+    // - Configuration.provided
+    // - Configuration.optional
+    // test/it in particular are rewritten to Configuration.empty since the projects do not have scope
     val rewritten = all.flatMap { dep =>
-      dep.configuration match {
-        // treated specially above
-        case CompilerPluginConfig => None
-        // treated specially above
-        case CompilerPluginScalaJsTest => None
+      // more than one can be supplied
+      val configurations =
+        dep.configuration.value
+          .split(";")
+          .map(Configuration.apply)
+          .sortBy(_.value)
 
-        // main. keep for non-test projects
-        case Configuration.empty =>
-          if (inputProject.projectType.testLike) None else Some(dep)
-
-        // keep for all projects since it wont be inherited
-        case Configuration.optional | Configuration.provided =>
-          Some(dep)
-
-        // I have no idea why this is useful. lets simplify and say its main
-        case Configuration.runtime =>
-          Some(dep.withConfiguration(Configuration.empty))
-
-        case Configuration.test =>
-          // rewrite to main dependency if current project is test/it. test configuration doesn't exist after import
-          if (inputProject.projectType.testLike) Some(dep.withConfiguration(Configuration.empty))
-          // drop if it is main
-          else None
-        case ItConf =>
-          // same logic as test
-          if (inputProject.projectType == ProjectType.It) Some(dep.withConfiguration(Configuration.empty))
-          else None
-
-        // silently drop scala dependencies. we'll add them back later
-        case Configuration(scalaTool) if scalaTool.startsWith("scala-tool->") || scalaTool.startsWith("scala-doc-tool->") =>
+      configurations match {
+        // drop, treated specially above
+        case cs if cs.contains(Configs.CompilerPlugin) || cs.contains(Configs.CompilerPluginScalaJsTest) =>
+          None
+        // drop. this is a special sbt scope, and scala jars are added in another manner in bleep
+        case cs if cs.exists(c => c.value.startsWith("scala-tool") || c.value.startsWith("scala-doc-tool")) =>
           None
 
-        case Configuration(other) =>
-          ctxLogger.warn(s"dropping because unknown configuration '$other': $dep")
+        // I'm sure there is a useful difference. whatever. empty is used for main scope
+        case Array(Configuration.empty | Configuration.compile | Configuration.defaultCompile | Configuration.default) =>
+          Some(dep.withConfiguration(Configuration.empty))
+
+        // rewrite to main dependency if current project is test/it. test configuration doesn't exist after import
+        case cs if cs.contains(Configuration.test) && inputProject.projectType.testLike =>
+          Some(dep.withConfiguration(Configuration.empty))
+        // drop if project is `main` and this dependency is only tagged as `test`
+        case Array(Configuration.test) =>
+          None
+
+        // same logic for `it` as for test above
+        case cs if cs.contains(Configs.It) && inputProject.projectType == ProjectType.It =>
+          Some(dep.withConfiguration(Configuration.empty))
+        // drop if project is not `it` and this dependency is only tagged as `it`
+        case Array(Configs.It) =>
+          None
+
+        // just pick one of these, no idea what `optional;provided` is meant to mean
+        // keep the dependency for all projects since it wont be inherited
+        case cs if cs.contains(Configuration.optional) =>
+          Some(dep.withConfiguration(Configuration.optional))
+        case cs if cs.contains(Configs.OptionalDefault) =>
+          Some(dep.withConfiguration(Configuration.optional))
+
+        case cs if cs.contains(Configuration.provided) =>
+          Some(dep.withConfiguration(Configuration.provided))
+
+        // I have no idea why this is useful. lets simplify and say its main
+        case cs if cs.contains(Configuration.runtime) =>
+          Some(dep.withConfiguration(Configuration.empty))
+
+        case cs =>
+          ctxLogger.warn(s"dropping because unknown configuration '${cs.mkString(";")}': $dep")
           None
       }
     }
