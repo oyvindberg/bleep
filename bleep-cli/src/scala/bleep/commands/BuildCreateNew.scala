@@ -99,7 +99,7 @@ object BuildCreateNew {
            |
            |class AppTest extends AnyFunSuite with TypeCheckedTripleEquals {
            |  test("works") {
-           |    assert(App.greeting("a").plainText === "Hello, , a")
+           |    assert(App.greeting("a").plainText === "Hello, a")
            |  }
            |}
            |""".stripMargin
