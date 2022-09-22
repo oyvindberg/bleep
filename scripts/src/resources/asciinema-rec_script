@@ -1,0 +1,205 @@
+#!/usr/bin/env bash
+# Example:
+#                            asciinema-rec_script screencasts/staff-service-01
+#   screencast=/tmp/foo.cast asciinema-rec_script screencasts/staff-service-01
+#
+# This will run the script and record a screencast of it with inlined code & comments.
+
+set -uo pipefail
+
+REC_ARGS="${RECORD_ARGS:---idle-time-limit 1 --overwrite}"
+
+
+# Nb. these can all be overriden from the command line if you don't like the defaults..
+export PROMPT="${PROMPT:-"[32;1m❯[0m "}"
+export COMMENT="${COMMENT:-"💭 [3;1m"}"
+export ECHO="${ECHO:-"💬 [3;1m"}"
+export BEGIN_RECORDING="${BEGIN_RECORDING:-"🎥 [32;3mBegin recording - [1m"}"
+export END_RECORDING="${END_RECORDING:-"🎬 [32;3mEnd recording - [1m"}"
+export VERSION="${VERSION:-$(cat "${BASH_SOURCE[0]%/*}/../version.txt")}"
+
+
+build_augmented_script() { local script="$1"
+  comment() {
+    case $1 in
+      !*)
+        : # skip the "#!/usr/bin ..." line, as that's not a comment
+      ;;
+      *)
+        echo "${COMMENT}$(echo "${1}" | $MARKDOWN)[0m"
+      ;;
+    esac
+  }
+
+  execute() {
+    # A pause can be added between printing the shell prompt
+    PROMPT_PAUSE=${PROMPT_PAUSE:-1}
+
+    # A pause can be added between typing out characters in
+    # the command to simulate typing
+    TYPING_PAUSE=${TYPING_PAUSE:-0.001}
+
+    type_out() { local text="$1"
+      sleep "$PROMPT_PAUSE"
+      for (( i=0; i<${#text}; i++ )); do
+        printf "%s" "${text:$i:1}"
+        sleep "$TYPING_PAUSE"
+      done
+      sleep "$PROMPT_PAUSE"
+      echo "[0m"
+    }
+
+    case $1 in
+      sleep*)
+        # translate any sleep commands to our pretty 'countdown'
+        eval "${1//sleep/countdown}"
+      ;;
+      :\;echo*)
+        # translate any echo commands to our comment
+        eval "${1//echo/comment}"
+      ;;
+      :*)
+        # silently run a command
+        eval "${1/:/}"
+      ;;
+      source*)
+        # we'll use `source` to define multiline commands
+        printf "%s" "${PROMPT}"
+        type_out "$(eval "${1//source/$CAT}")"
+        eval "$1"
+      ;;
+      *)
+        printf "%s" "${PROMPT}"
+        type_out "$(echo "$1" | $CAT)"
+        eval "$1"
+      ;;
+    esac
+  }
+
+  begin_recording() {
+    echo "${BEGIN_RECORDING}${1##*/}[0m"
+  }
+
+  end_recording() {
+    echo "${END_RECORDING}${1##*/}[0m"
+    echo "(Powered by https://github.com/zechris/asciinema-rec_script ${VERSION})"
+  }
+
+  countdown() { local sleep_time=$1
+    digit() {
+      DIGITS=(0️⃣ 1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 7️⃣ 8️⃣ 9️⃣ )
+      echo "${DIGITS[$((($1 + 10) % 10))]} "
+    }
+
+    min() {
+      m0=$(((i / 60 / 10 )))
+      m1=$(((i / 60 % 10)))
+      echo "$(digit $m0)$(digit $m1)"
+    }
+
+    sec() {
+      s0=$(((i % 60 / 10)))
+      s1=$(((i % 60 % 10)))
+      echo "$(digit $s0)$(digit $s1)"
+    }
+
+    counter() { local sleep_time=$1
+      if [[ $sleep_time -gt 59 ]]; then
+        echo "$(min "$i")${COLON:-▫️ }$(sec "$i")"
+      else
+        sec "$i"
+      fi
+    }
+
+    for i in $(seq "$1" -1 1); do
+      printf "\r%s" "$(counter "$sleep_time")"
+      sleep 1
+    done
+    printf "\r           \r"
+  }
+
+  transform_lines() {
+    while IFS= read -r line; do
+      if [[ -z $line ]]; then
+        # if the $line is empty add an empty line build in an empty line
+        echo echo
+      else
+        IFS='#' read -r code comment <<LINE
+$line
+LINE
+
+        if [[ -n $comment ]]; then
+          # if there's a $comment escape it and trim leading whitespace
+          # printf 'comment %q\n' "${comment#"${comment%%[![:space:]]*}"}"
+
+          # if there's a $comment escape it and trim *one* leading space
+          # (ie. so markdown works properly)
+          printf 'comment %q\n' "${comment/ /}"
+        fi
+
+        # if there's $code wrap it in single quotes to ensure it gets executed properly
+        [[ -n $code ]] && printf 'execute %q\n' "$code"
+      fi
+    done
+  }
+
+  # Now let the meta-programming begin ...
+  echo "#!/usr/bin/env bash"
+
+  echo "export CAT='${CAT:-$(syntax_highlighter)}'"
+  echo "export MARKDOWN='${MARKDOWN:-$(markdown_highlighter)}'"
+  # shellcheck disable=SC2034
+  typeset -f comment execute begin_recording end_recording countdown
+
+  echo begin_recording "'""$script""'"
+  transform_lines < "$script"
+  echo end_recording "'""$script""'"
+}
+
+syntax_highlighter() {
+  if command -v bat &> /dev/null; then
+    echo "bat --color=always --style=${BAT_STYLE:-plain} --language=${BAT_LANGUAGE:-bash}"
+  else
+    echo cat
+  fi
+}
+
+markdown_highlighter() {
+  if command -v bat &> /dev/null; then
+    echo "bat --color=always --style=${BAT_STYLE:-plain} --language=markdown"
+  else
+    echo cat
+  fi
+}
+
+asciinema_rec() { local script="$1"; shift
+  # Create an executable script that we'll pass to asciinema as a command
+  augmented_script=$(mktemp)
+  chmod 775 "$augmented_script"
+
+  # Use some meta-programming to build an augmented version of the script
+  build_augmented_script "$script" > "$augmented_script"
+
+  asciinema rec --command "$augmented_script" "$@"
+
+  rm "$augmented_script"
+}
+
+
+export script="$1"; shift
+
+# if there's no more arguments
+if [ "$#" -eq 0 ]; then
+  # Use the $script name as the $screencast file name with a .cast extension
+  # (ie. after first removing the optional .asc extension)
+  screencast="${screencast:-${script%.asc}.cast}"
+
+  # And add some defaults
+  # shellcheck disable=SC2206
+  args=($REC_ARGS "$screencast")
+else
+  args=("$@")
+fi
+
+
+asciinema_rec "$script" --title "${title:-${script##*/}}" "${args[@]}"

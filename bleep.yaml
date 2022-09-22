@@ -104,6 +104,7 @@ projects:
     - template-scala-2.13
 scripts:
   generate-resources: scripts-init/bleep.scripts.GenerateResources
+  generate-videos: scripts/bleep.scripts.GenVideos
   native-image: scripts/bleep.scripts.GenNativeImage
   publish: scripts/bleep.scripts.Publish
   publish-local: scripts/bleep.scripts.PublishLocal
