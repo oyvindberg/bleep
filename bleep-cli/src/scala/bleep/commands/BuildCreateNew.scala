@@ -163,7 +163,7 @@ object BuildCreateNew {
       }
 
     val testProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
-      variants(s"$name-test").map { case (platformId, scala, crossName, sourceLayout) =>
+      variants("tests").map { case (platformId, scala, crossName, sourceLayout) =>
         val p = model.Project(
           `extends` = model.JsonSet.empty,
           cross = model.JsonMap.empty,

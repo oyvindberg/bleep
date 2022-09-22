@@ -1,19 +1,19 @@
 {
   "version": "1.4.0",
   "project": {
-    "name": "myapp-test@jvm213",
-    "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp-test/jvm213",
+    "name": "tests@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/tests/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/create-new-build",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-sources/myapp-test@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/jvm/src/java",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/jvm/src/scala",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/jvm/src/scala-2",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/jvm/src/scala-2.13",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/shared/src/java",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/shared/src/scala",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/shared/src/scala-2",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/shared/src/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-sources/tests@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/jvm/src/java",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/jvm/src/scala",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/jvm/src/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/jvm/src/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/shared/src/java",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/shared/src/scala",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/shared/src/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/shared/src/scala-2.13"
     ],
     "dependencies": [
       "myapp@jvm213"
@@ -42,12 +42,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.13/scalatest_2.13-3.2.13.jar",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp/jvm213/classes"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp-test/jvm213/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/tests/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/tests/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-resources/myapp-test@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/jvm/src/resources",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/myapp-test/shared/src/resources"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/generated-resources/tests@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/jvm/src/resources",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/tests/shared/src/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
@@ -101,7 +101,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/myapp-test/jvm213/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/.bleep/.bloop/tests/jvm213/inc_compile.zip",
       "setup": {
         "order": "mixed",
         "addLibraryToBootClasspath": true,

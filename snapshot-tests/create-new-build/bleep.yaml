@@ -8,7 +8,7 @@ projects:
     extends: template-cross-all
     platform:
       mainClass: com.foo.App
-  myapp-test:
+  tests:
     dependencies: org.scalatest::scalatest:3.2.13
     dependsOn: myapp
     extends: template-cross-all
