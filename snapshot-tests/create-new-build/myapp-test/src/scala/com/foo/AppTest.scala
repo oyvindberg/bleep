@@ -5,6 +5,6 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class AppTest extends AnyFunSuite with TypeCheckedTripleEquals {
   test("works") {
-    assert(App.greeting("a").plainText === "Hello, , a")
+    assert(App.greeting("a").plainText === "Hello, a")
   }
 }

@@ -53,7 +53,7 @@ case class BuildCreateNew(
   }
 
   def genAllFiles(buildPaths: BuildPaths): Map[Path, String] = {
-    val exampleFiles = new BuildCreateNew.ExampleFiles(name)
+    val exampleFiles = new BuildCreateNew.ExampleFiles(name, isCrossLayout = scalas.length > 1 || platforms.length > 1)
     val build = BuildCreateNew.genBuild(logger, exampleFiles, platforms, scalas, name, bleepVersion)
 
     val value = Map[Path, String](
@@ -67,11 +67,12 @@ case class BuildCreateNew(
 
 object BuildCreateNew {
 
-  class ExampleFiles(name: String) {
+  class ExampleFiles(name: String, isCrossLayout: Boolean) {
     val fansi = model.Dep.Scala("com.lihaoyi", "fansi", "0.3.1")
+    val shared: String = if (isCrossLayout) "shared/" else ""
 
     object main {
-      val relPath = RelPath.force(s"$name/src/scala/com/foo/App.scala")
+      val relPath = RelPath.force(s"$name/${shared}src/scala/com/foo/App.scala")
       val contents =
         s"""package com.foo
            |
@@ -90,7 +91,7 @@ object BuildCreateNew {
 
     val scalatest = model.Dep.Scala("org.scalatest", "scalatest", "3.2.13")
     object test {
-      val relPath = RelPath.force(s"$name-test/src/scala/com/foo/AppTest.scala")
+      val relPath = RelPath.force(s"$name-test/${shared}src/scala/com/foo/AppTest.scala")
       val contents =
         s"""package com.foo
            |
@@ -117,23 +118,28 @@ object BuildCreateNew {
     val defaultOpts =
       model.Options(Set(model.Options.Opt.WithArgs("-encoding", List("utf8")), model.Options.Opt.Flag("-feature"), model.Options.Opt.Flag("-unchecked")))
 
-    def variants(name: String): NonEmptyList[(model.PlatformId, model.VersionScala, model.CrossProjectName)] =
+    def variants(name: String): NonEmptyList[(model.PlatformId, model.VersionScala, model.CrossProjectName, model.SourceLayout)] =
       if (scalas.size == 1 && platforms.size == 1)
-        NonEmptyList((platforms.head, scalas.head, model.CrossProjectName(model.ProjectName(name), None)), Nil)
+        NonEmptyList((platforms.head, scalas.head, model.CrossProjectName(model.ProjectName(name), None), model.SourceLayout.Normal), Nil)
       else
         for {
           p <- platforms
           s <- scalas
-        } yield (p, s, model.CrossProjectName(model.ProjectName(name), model.CrossId.defaultFrom(Some(s), Some(p), isFull = false)))
+        } yield (
+          p,
+          s,
+          model.CrossProjectName(model.ProjectName(name), model.CrossId.defaultFrom(Some(s), Some(p), isFull = false)),
+          model.SourceLayout.CrossFull
+        )
 
     val mainProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
-      variants(name).map { case (platformId, scala, crossName) =>
+      variants(name).map { case (platformId, scala, crossName, sourceLayout) =>
         val p = model.Project(
           `extends` = model.JsonSet.empty,
           cross = model.JsonMap.empty,
           folder = None,
           dependsOn = model.JsonSet.empty,
-          `source-layout` = Some(model.SourceLayout.Normal),
+          `source-layout` = Some(sourceLayout),
           `sbt-scope` = None,
           sources = model.JsonSet.empty,
           resources = model.JsonSet.empty,
@@ -157,13 +163,13 @@ object BuildCreateNew {
       }
 
     val testProjects: NonEmptyList[(model.CrossProjectName, model.Project)] =
-      variants(s"$name-test").map { case (platformId, scala, crossName) =>
+      variants(s"$name-test").map { case (platformId, scala, crossName, sourceLayout) =>
         val p = model.Project(
           `extends` = model.JsonSet.empty,
           cross = model.JsonMap.empty,
           folder = None,
           dependsOn = model.JsonSet(model.ProjectName(name)),
-          `source-layout` = Some(model.SourceLayout.Normal),
+          `source-layout` = Some(sourceLayout),
           `sbt-scope` = None,
           sources = model.JsonSet.empty,
           resources = model.JsonSet.empty,

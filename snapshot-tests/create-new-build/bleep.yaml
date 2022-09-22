@@ -18,6 +18,7 @@ templates:
     scala:
       options: -encoding utf8 -feature -unchecked
       strict: true
+    source-layout: cross-full
   template-cross-all:
     cross:
       js213:
