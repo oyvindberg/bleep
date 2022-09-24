@@ -176,7 +176,7 @@ object importBloopFilesFromSbt {
           .toList
       )
 
-    model.Build.Exploded(bleepVersion, projects, buildResolvers, jvm = None, scripts = Map.empty)
+    model.Build.Exploded(bleepVersion.latestRelease, projects, buildResolvers, jvm = None, scripts = Map.empty)
   }
 
   object Configs {

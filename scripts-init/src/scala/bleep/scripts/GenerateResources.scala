@@ -24,7 +24,9 @@ object GenerateResources extends App {
               |
               |import io.circe.{Decoder, Encoder}
               |
-              |case class BleepVersion(value: String) extends AnyVal
+              |case class BleepVersion(value: String) extends AnyVal {
+              |  def latestRelease: BleepVersion = BleepVersion(value.split("\\\\+").head)
+              |}
               |
               |object BleepVersion {
               |  val dev = BleepVersion("dev")

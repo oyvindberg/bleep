@@ -190,7 +190,7 @@ object BuildCreateNew {
       }
 
     val explodedBuild = model.Build.Exploded(
-      bleepVersion,
+      bleepVersion.latestRelease,
       explodedProjects = (mainProjects.toList ++ testProjects.toList).toMap,
       resolvers = model.JsonList.empty,
       jvm = Some(model.Jvm.graalvm),
