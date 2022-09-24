@@ -28,7 +28,7 @@ object GeneratedFilesScript {
       val quote = "\""
       val space = " "
       val tripleQuote = quote * 3
-      val triggersTripleQuote = Set('\n', '\\', '"')
+      val triggersTripleQuote = Set('\r', '\n', '\\', '"')
       val MaxStringLiteral = 5000
       (str, indent) =>
         val cleaned = str.replace("\\", "\\\\")
@@ -45,7 +45,7 @@ object GeneratedFilesScript {
                   sep = s"\n${space * indent}$pipe",
                   end = s"$tripleQuote.stripMargin"
                 )
-            else s"$quote$cleaned$quote"
+            else s"$quote$str$quote"
           }
           .toList
 
