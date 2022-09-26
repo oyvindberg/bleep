@@ -26,13 +26,9 @@ projects:
       jvm213:
         dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
       native212:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - org.scala-lang:scala-library:${SCALA_VERSION}
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
       native213:
-        dependencies:
-        - com.thesamet.scalapb::scalapb-runtime:0.11.11
-        - org.scala-lang:scala-library:${SCALA_VERSION}
+        dependencies: com.thesamet.scalapb::scalapb-runtime:0.11.11
     dependencies:
     - com.lihaoyi::sourcecode:0.3.0
     - configuration: provided

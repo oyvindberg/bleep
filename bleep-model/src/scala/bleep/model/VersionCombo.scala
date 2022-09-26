@@ -1,6 +1,5 @@
 package bleep.model
 
-import bleep.BleepException
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 
@@ -28,7 +27,7 @@ sealed trait VersionCombo {
       case VersionCombo.Native(scalaVersion, scalaNative) =>
         val testLibs = if (isTest) Some(scalaNative.testInterface) else None
         val libs = if (scalaVersion.is3) scalaNative.scala3Lib else scalaNative.scalaLib
-        libs :: testLibs.toList
+        List(libs, scalaVersion.library) ++ testLibs.toList
     }
 
   def compilerPlugin: Option[Dep]
