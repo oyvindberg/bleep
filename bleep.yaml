@@ -26,10 +26,6 @@ projects:
       module: ch.epfl.scala::bloop-config:1.5.4
     - com.lihaoyi::fansi:0.4.0
     - exclusions:
-        org.scala-lang.modules: scala-collection-compat_2.13
-      for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-M7-34-gf519b50a3
-    - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
       module: org.scala-sbt::librarymanagement-core:1.7.1
@@ -47,6 +43,10 @@ projects:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
       module: io.get-coursier::coursier:2.1.0-M7-34-gf519b50a3
+    - exclusions:
+        org.scala-lang.modules: scala-collection-compat_2.13
+      for3Use213: true
+      module: io.get-coursier::coursier-jvm:2.1.0-M7-34-gf519b50a3
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
   bleep-tasks:

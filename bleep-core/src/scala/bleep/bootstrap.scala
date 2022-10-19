@@ -54,7 +54,7 @@ object bootstrap {
             }.toList
 
         val ec = ExecutionContext.global
-        val fetchNode = new FetchNode(pre.logger, ec)
+        val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), ec)
         val bloopFiles: GenBloopFiles.Files =
           genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, build, fetchNode)
 

@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.internal.CoursierLogger
 import bleep.logging.Logger
 import bleep.model.{CrossProjectName, Dep}
 import bleep.rewrites.{normalizeBuild, UpgradeDependencies}
@@ -26,7 +25,7 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
 
     val config = started.lazyConfig.forceGet
     val repos = CoursierResolver.coursierRepos(build.resolvers.values, config.authentications).filter(_.repr.contains("http"))
-    val fileCache = FileCache[Task]().withLogger(new CoursierLogger(started.logger))
+    val fileCache = FileCache[Task]().withLogger(new BleepCacheLogger(started.logger))
 
     val foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] = {
       implicit val ec: ExecutionContext = started.executionContext

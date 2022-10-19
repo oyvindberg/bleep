@@ -40,7 +40,7 @@ case class Started(
       logger.warn(s"Using system JVM. You should specify your wanted JVM in ${BuildLoader.BuildFileName} to get reproducible builds")
       model.Jvm(JavaHome.systemId, None)
     }
-    FetchJvm(logger, jvm, executionContext)
+    FetchJvm(new BleepCacheLogger(logger), jvm, executionContext)
   }
 
   def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =

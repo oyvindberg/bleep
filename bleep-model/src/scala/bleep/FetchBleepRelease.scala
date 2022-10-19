@@ -1,8 +1,6 @@
 package bleep
-package internal
 
-import bleep.logging.Logger
-import coursier.cache.{ArchiveCache, ArtifactError, FileCache}
+import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger, FileCache}
 import coursier.jvm.JvmIndex
 import coursier.util.{Artifact, Task}
 
@@ -24,12 +22,12 @@ object FetchBleepRelease {
       }
     } else Right(file)
 
-  def apply(wanted: model.BleepVersion, logger: Logger, executionContext: ExecutionContext): Either[BleepException, Path] =
-    apply(wanted, logger, executionContext, JvmIndex.currentArchitecture, JvmIndex.currentOs)
+  def apply(wanted: model.BleepVersion, cacheLogger: CacheLogger, executionContext: ExecutionContext): Either[BleepException, Path] =
+    apply(wanted, cacheLogger, executionContext, JvmIndex.currentArchitecture, JvmIndex.currentOs)
 
   def apply(
       wanted: model.BleepVersion,
-      logger: Logger,
+      cacheLogger: CacheLogger,
       executionContext: ExecutionContext,
       arch: Either[String, String],
       os: Either[String, String]
@@ -56,7 +54,7 @@ object FetchBleepRelease {
       case Left(msg) => Left(new BleepException.Text(msg))
       case Right(uri) =>
         val fetching: Future[Either[ArtifactError, File]] = ArchiveCache[Task]()
-          .withCache(FileCache().withLogger(new CoursierLogger(logger)))
+          .withCache(FileCache().withLogger(cacheLogger))
           .get(Artifact(uri))
           .value(executionContext)
 
