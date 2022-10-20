@@ -170,18 +170,6 @@
           ]
         },
         {
-          "organization": "org.scala-sbt",
-          "name": "test-interface",
-          "version": "1.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "test-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalacheck",
           "name": "scalacheck_2.13",
           "version": "1.15.4",
@@ -190,6 +178,18 @@
             {
               "name": "scalacheck_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.13/1.15.4/scalacheck_2.13-1.15.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "test-interface",
+          "version": "1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "test-interface",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
             }
           ]
         }

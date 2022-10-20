@@ -20,8 +20,8 @@ object GenerateResources extends BleepScript("GenerateResources") {
       |object buildinfo {
       |  /** Current version of doobie (1.0-5d0957d-SNAPSHOT). */
       |  val version = "1.0-5d0957d-SNAPSHOT"
-      |  /** Build date (Wed Jul 27 01:43:11 CEST 2022). */
-      |  val date    = new java.util.Date(1658878991026L)
+      |  /** Build date (Thu Oct 20 10:37:02 CEST 2022). */
+      |  val date    = new java.util.Date(1666255022371L)
       |}""".stripMargin
       Files.createDirectories(to.getParent)
       Files.writeString(to, content)
@@ -39,8 +39,8 @@ object GenerateResources extends BleepScript("GenerateResources") {
       |object buildinfo {
       |  /** Current version of doobie (1.0-5d0957d-SNAPSHOT). */
       |  val version = "1.0-5d0957d-SNAPSHOT"
-      |  /** Build date (Wed Jul 27 01:42:56 CEST 2022). */
-      |  val date    = new java.util.Date(1658878976475L)
+      |  /** Build date (Thu Oct 20 10:36:37 CEST 2022). */
+      |  val date    = new java.util.Date(1666254997288L)
       |}""".stripMargin
       Files.createDirectories(to.getParent)
       Files.writeString(to, content)
@@ -58,8 +58,8 @@ object GenerateResources extends BleepScript("GenerateResources") {
       |object buildinfo {
       |  /** Current version of doobie (1.0-5d0957d-SNAPSHOT). */
       |  val version = "1.0-5d0957d-SNAPSHOT"
-      |  /** Build date (Mon Aug 01 00:08:15 CEST 2022). */
-      |  val date    = new java.util.Date(1659305295056L)
+      |  /** Build date (Thu Oct 20 10:37:28 CEST 2022). */
+      |  val date    = new java.util.Date(1666255048431L)
       |}""".stripMargin
       Files.createDirectories(to.getParent)
       Files.writeString(to, content)

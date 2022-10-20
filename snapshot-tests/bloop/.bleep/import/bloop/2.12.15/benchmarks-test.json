@@ -23,7 +23,6 @@
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/backend/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/jsonConfig212JVM/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/buildpressConfig/scala-2.12/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/pl/project13/scala/sbt-jmh-extras/0.3.3/sbt-jmh-extras-0.3.3.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/openjdk/jmh/jmh-core/1.20/jmh-core-1.20.jar",
@@ -264,10 +263,10 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop",
-                    "-Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.1/sbt-1.7.1.zip/sbt/bin/sbt-launch.jar",
+                    "-Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar",
                     "-DbloopVersion=1.5.2-9-b190bd39",
                     "-DbloopRef=b190bd39",
                     "-Dgit.localdir=<BLEEP_GIT>/snapshot-tests-in/bloop"

@@ -93,23 +93,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang",
-          "name": "scala3-library_3",
-          "version": "3.1.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar"
-            },
-            {
-              "name": "scala3-library_3",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1-sources.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.lihaoyi",
           "name": "fansi_3",
           "version": "0.3.1",
@@ -127,19 +110,19 @@
           ]
         },
         {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_3",
-          "version": "0.2.8",
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.1.1",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "sourcecode_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.2.8/sourcecode_3-0.2.8.jar"
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar"
             },
             {
-              "name": "sourcecode_3",
+              "name": "scala3-library_3",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.2.8/sourcecode_3-0.2.8-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1-sources.jar"
             }
           ]
         },
@@ -157,6 +140,23 @@
               "name": "scala-library",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6-sources.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_3",
+          "version": "0.2.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sourcecode_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.2.8/sourcecode_3-0.2.8.jar"
+            },
+            {
+              "name": "sourcecode_3",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.2.8/sourcecode_3-0.2.8-sources.jar"
             }
           ]
         }

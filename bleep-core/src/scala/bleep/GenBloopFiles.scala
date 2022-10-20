@@ -11,7 +11,8 @@ import io.github.davidgregory084.{DevMode, TpolecatPlugin}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
-import scala.collection.immutable.SortedMap
+import scala.collection.immutable.{ListSet, SortedMap}
+import scala.collection.mutable
 import scala.util.Try
 
 trait GenBloopFiles {
@@ -235,7 +236,7 @@ object GenBloopFiles {
     val resolution: Config.Resolution = {
       val modules: List[Config.Module] =
         resolvedDependencies.detailedArtifacts
-          .groupBy { case (dep, _, _, _) => dep.module }
+          .groupByOrderedUnique { case (dep, _, _, _) => dep.module }
           .map { case (module, files) =>
             val (dep, _, _, _) = files.head
 
@@ -245,7 +246,7 @@ object GenBloopFiles {
               version = dep.version,
               configurations = if (dep.configuration == Configuration.empty) None else Some(dep.configuration.value),
               artifacts = files
-                .collect { case (_, pub, _, file) =>
+                .map { case (_, pub, _, file) =>
                   Config.Artifact(
                     dep.module.name.value,
                     if (pub.classifier == Classifier.empty) None else Some(pub.classifier.value),
@@ -360,8 +361,34 @@ object GenBloopFiles {
         } else None,
         platform = configuredPlatform,
         resolution = Some(resolution),
-        tags = Some(List(tag))
+        tags = Some(List(tag)),
+        sourceGenerators = None
       )
     )
+  }
+
+  // https://stackoverflow.com/questions/9594431/scala-groupby-preserving-insertion-order/9608800#9608800
+  implicit class GroupByOrderedImplicitImpl[A](val t: Iterable[A]) extends AnyVal {
+    def groupByOrderedUnique[K](f: A => K): Map[K, ListSet[A]] =
+      groupByGen(ListSet.newBuilder[A])(f)
+
+    def groupByOrdered[K](f: A => K): Map[K, List[A]] =
+      groupByGen(List.newBuilder[A])(f)
+
+    def groupByGen[K, C[_]](makeBuilder: => mutable.Builder[A, C[A]])(f: A => K): Map[K, C[A]] = {
+      val map = mutable.LinkedHashMap[K, mutable.Builder[A, C[A]]]()
+      for (i <- t) {
+        val key = f(i)
+        val builder = map.get(key) match {
+          case Some(existing) => existing
+          case None =>
+            val newBuilder = makeBuilder
+            map(key) = newBuilder
+            newBuilder
+        }
+        builder += i
+      }
+      map.map { case (k, v) => (k, v.result()) }.toMap
+    }
   }
 }

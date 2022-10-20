@@ -28,7 +28,6 @@
         "classpath": [
             "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.8/treesJS/scala-2.13/classes",
             "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.13.8/commonJS/scala-2.13/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.10.1/scalajs-library_2.13-1.10.1.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.13/1.8.0/scalajs-test-bridge_2.13-1.8.0.jar",

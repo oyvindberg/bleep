@@ -33,7 +33,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
       )
     }
   }
-
+  println("HERE")
+  absolutePaths.sortedValues.foreach(println)
   test("tapir") {
     testIn("tapir")
   }
@@ -132,7 +133,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       importer.generateBuild(inputProjects, bleepTasksVersion = model.BleepVersion("0.0.1-M14"), generatedFiles, maybeExistingBuildFile = None)
 
     // write build files, and produce an (in-memory) exploded build plus new bloop files
-    writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
+    writeAndCompareEarly(destinationPaths.buildDir, buildFiles.map { case (p, s) => (p, absolutePaths.templatize.string(s)) })
 
     val started = bootstrap
       .from(
@@ -146,13 +147,14 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[Path, String] =
-      GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
+      GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles)
 
-    val allFiles: Map[Path, String] =
+    val allFiles: Map[Path, String] = (
       buildFiles ++
         generatedBloopFiles ++
         importedBloopFiles.map { case (p, s, _) => (p, s) } ++
         sbtExportFiles.map { case (p, s, _) => (p, s) } ++ Map(generatedFilesJsonFile -> generatedFiles.asJson.noSpaces)
+    ).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
 
     // further property checks to see that we haven't made any illegal rewrites
     assertSameIshBloopFiles(inputProjects, started)

@@ -18,7 +18,6 @@
         ],
         "classpath": [
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/jsonConfig212JS/scala-2.12/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.6.0/scalajs-library_2.12-1.6.0.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.6.0/scalajs-test-bridge_2.12-1.6.0.jar",

@@ -111,6 +111,18 @@
       "modules": [
         {
           "organization": "com.lihaoyi",
+          "name": "fansi_2.12",
+          "version": "0.2.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fansi_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.14/fansi_2.12-0.2.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
           "name": "sourcecode_2.12",
           "version": "0.2.7",
           "configurations": "default",
@@ -130,18 +142,6 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "fansi_2.12",
-          "version": "0.2.14",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "fansi_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.14/fansi_2.12-0.2.14.jar"
             }
           ]
         }

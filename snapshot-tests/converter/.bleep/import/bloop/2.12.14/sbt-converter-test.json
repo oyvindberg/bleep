@@ -99,7 +99,7 @@
             "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.53.Final/netty-common-4.1.53.Final.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.53.Final/netty-buffer-4.1.53.Final.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.53.Final/netty-handler-4.1.53.Final.jar",
-            "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.53.Final/netty-transport-native-epoll-4.1.53.Final-linux-x86_64.jar",
+            "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.53.Final/netty-transport-native-epoll-4.1.53.Final-<MASKED_OS>-x86_64.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/netty/netty-reactive-streams-http/2.0.4/netty-reactive-streams-http-2.0.4.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_2.12/1.5.5/util-relation_2.12-1.5.5.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/completion_2.12/1.5.5/completion_2.12-1.5.5.jar",
@@ -296,7 +296,7 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/converter"
                 ]
