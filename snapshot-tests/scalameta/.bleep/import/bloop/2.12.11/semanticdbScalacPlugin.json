@@ -22,7 +22,6 @@
             "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.11/parsersJVM/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.11/treesJVM/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/scalameta/.bleep/import/bloop/2.12.11/commonJVM/scala-2.12/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.11/scala-library-2.12.11.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.11/scala-compiler-2.12.11.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.12.11/scalap-2.12.11.jar",
@@ -123,7 +122,7 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/scalameta"
                 ]

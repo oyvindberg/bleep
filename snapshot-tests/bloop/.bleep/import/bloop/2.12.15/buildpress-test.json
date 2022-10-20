@@ -22,7 +22,6 @@
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/bloopgun/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/bloopShared/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/buildpressConfig/scala-2.12/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/case-app_2.12/2.0.6/case-app_2.12-2.0.6.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0.jar",
@@ -205,7 +204,7 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
                 ]

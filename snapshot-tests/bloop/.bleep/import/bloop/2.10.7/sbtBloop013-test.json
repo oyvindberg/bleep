@@ -19,7 +19,6 @@
         "classpath": [
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.10.7/sbtBloop013/scala-2.10/sbt-0.13/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.10.7/jsonConfig210JVM/scala-2.10/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/sbt/0.13.18/jars/sbt.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.10.7/scala-library-2.10.7.jar",
             "<COURSIER>/https/repo.typesafe.com/typesafe/ivy-releases/org.scala-sbt/main/0.13.18/jars/main.jar",
@@ -179,7 +178,7 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop"
                 ]

@@ -23,6 +23,7 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
         (CoursierPaths.archiveCacheDirectory().toString, "<COURSIER_ARC>"),
         (System.getProperty("user.dir"), "<BLEEP_GIT>"),
         (System.getProperty("user.home"), "<HOME>"),
+        (System.getProperty("java.home"), "<JAVA_HOME>"),
         ("darwin", "<MASKED_OS>"),
         ("linux", "<MASKED_OS>"),
         ("windows", "<MASKED_OS>"),

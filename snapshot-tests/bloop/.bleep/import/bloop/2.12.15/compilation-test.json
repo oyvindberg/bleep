@@ -140,12 +140,12 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop/benchmark-bridge/compilation",
                     "-DscalaVersion=2.12.15",
                     "-DscalaRef=v2.12.15",
-                    "-Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.1/sbt-1.7.1.zip/sbt/bin/sbt-launch.jar",
+                    "-Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar",
                     "-Dgit.localdir=."
                 ]
             },

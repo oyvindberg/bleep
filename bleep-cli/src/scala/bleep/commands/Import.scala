@@ -196,6 +196,9 @@ case class Import(
       "JAVA_HOME" -> sys.env.get("JAVA_HOME")
     ).collect { case (k, Some(v)) => (k, v) }
 
+    val sbt =
+      List("sbt") ++ sys.env.get("JAVA_HOME").toList.flatMap(home => List("-java-home", home))
+
     FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
 
     logger.info("Will call sbt multiple times to retrieve information about the existing build. Grab some popcorn as it may take a while!")
@@ -207,7 +210,7 @@ case class Import(
       val output = cli(
         action = "sbt discover projects",
         cwd = sbtBuildDir,
-        cmd = List("sbt"),
+        cmd = sbt,
         logger = logger,
         env = sbtEnvs,
         stdIn = sbtCommands(List("projects"))
@@ -244,7 +247,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
             cli(
               "sbt discover cross projects",
               sbtBuildDir,
-              List("sbt"),
+              sbt,
               logger,
               env = sbtEnvs,
               stdIn = sbtCommands(cmds)
@@ -287,7 +290,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
         cli(
           action = "sbt export",
           cwd = sbtBuildDir,
-          cmd = List("sbt"),
+          cmd = sbt,
           logger = logger,
           stdIn = sbtCommands(cmds),
           env = sbtEnvs

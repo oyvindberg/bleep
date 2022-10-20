@@ -22,7 +22,6 @@
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/bloopShared/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/backend/scala-2.12/classes",
             "<BLEEP_GIT>/snapshot-tests/bloop/.bleep/import/bloop/2.12.15/jsonConfig212JVM/scala-2.12/classes",
-            "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/lib/tools.jar",
             "<HOME>/.sbt/boot/scala-2.12.15/lib/scala-library.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-macros_2.12/2.4.0/jsoniter-scala-macros_2.12-2.4.0.jar",
             "<COURSIER>/https/repo1.maven.org/maven2/org/scalaz/scalaz-core_2.12/7.2.20/scalaz-core_2.12-7.2.20.jar",
@@ -254,7 +253,7 @@
         "platform": {
             "name": "jvm",
             "config": {
-                "home": "<COURSIER_ARC>/https/github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u292-b10/OpenJDK8U-jdk_x64_mac_hotspot_8u292b10.tar.gz/jdk8u292-b10/Contents/Home/jre",
+                "home": "<JAVA_HOME>",
                 "options": [
                     "-Duser.dir=<BLEEP_GIT>/snapshot-tests-in/bloop/frontend",
                     "-Xmx3g",

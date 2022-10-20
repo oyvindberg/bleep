@@ -90,7 +90,7 @@
       "config": {
         "options": [
           "-Dgit.localdir=.",
-          "-Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.1/sbt-1.7.1.zip/sbt/bin/sbt-launch.jar",
+          "-Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar",
           "-DscalaRef=v2.12.15",
           "-DscalaVersion=2.12.15",
           "-Duser.dir=<BLEEP_GIT>/snapshot-tests/bloop",

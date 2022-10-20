@@ -146,13 +146,14 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
     val generatedBloopFiles: Map[Path, String] =
-      GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
+      GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles)
 
-    val allFiles: Map[Path, String] =
+    val allFiles: Map[Path, String] = (
       buildFiles ++
         generatedBloopFiles ++
         importedBloopFiles.map { case (p, s, _) => (p, s) } ++
         sbtExportFiles.map { case (p, s, _) => (p, s) } ++ Map(generatedFilesJsonFile -> generatedFiles.asJson.noSpaces)
+    ).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
 
     // further property checks to see that we haven't made any illegal rewrites
     assertSameIshBloopFiles(inputProjects, started)
