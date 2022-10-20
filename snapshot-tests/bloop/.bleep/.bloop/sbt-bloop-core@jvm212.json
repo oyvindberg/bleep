@@ -170,18 +170,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-sbt",
-          "name": "sbt",
-          "version": "1.3.3",
-          "configurations": "provided",
-          "artifacts": [
-            {
-              "name": "sbt",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.3.3/sbt-1.3.3.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.12",
           "version": "2.4.0",
@@ -202,6 +190,18 @@
             {
               "name": "scala-library",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "sbt",
+          "version": "1.3.3",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "sbt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.3.3/sbt-1.3.3.jar"
             }
           ]
         }
