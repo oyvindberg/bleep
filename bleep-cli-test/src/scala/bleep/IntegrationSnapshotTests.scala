@@ -33,7 +33,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
       )
     }
   }
-
+  println("HERE")
+  absolutePaths.sortedValues.foreach(println)
   test("tapir") {
     testIn("tapir")
   }
