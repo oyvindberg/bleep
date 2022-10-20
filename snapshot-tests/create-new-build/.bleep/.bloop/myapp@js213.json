@@ -118,6 +118,23 @@
     "resolution": {
       "modules": [
         {
+          "organization": "com.lihaoyi",
+          "name": "fansi_sjs1_2.13",
+          "version": "0.3.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fansi_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_2.13/0.3.1/fansi_sjs1_2.13-0.3.1.jar"
+            },
+            {
+              "name": "fansi_sjs1_2.13",
+              "classifier": "sources",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_2.13/0.3.1/fansi_sjs1_2.13-0.3.1-sources.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.9.0",
@@ -131,23 +148,6 @@
               "name": "scalajs-library_2.13",
               "classifier": "sources",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0-sources.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "sourcecode_sjs1_2.13",
-          "version": "0.2.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "sourcecode_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.2.8/sourcecode_sjs1_2.13-0.2.8.jar"
-            },
-            {
-              "name": "sourcecode_sjs1_2.13",
-              "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.2.8/sourcecode_sjs1_2.13-0.2.8-sources.jar"
             }
           ]
         },
@@ -170,18 +170,18 @@
         },
         {
           "organization": "com.lihaoyi",
-          "name": "fansi_sjs1_2.13",
-          "version": "0.3.1",
+          "name": "sourcecode_sjs1_2.13",
+          "version": "0.2.8",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "fansi_sjs1_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_2.13/0.3.1/fansi_sjs1_2.13-0.3.1.jar"
+              "name": "sourcecode_sjs1_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.2.8/sourcecode_sjs1_2.13-0.2.8.jar"
             },
             {
-              "name": "fansi_sjs1_2.13",
+              "name": "sourcecode_sjs1_2.13",
               "classifier": "sources",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_2.13/0.3.1/fansi_sjs1_2.13-0.3.1-sources.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_2.13/0.2.8/sourcecode_sjs1_2.13-0.2.8-sources.jar"
             }
           ]
         }
