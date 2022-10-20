@@ -133,7 +133,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       importer.generateBuild(inputProjects, bleepTasksVersion = model.BleepVersion("0.0.1-M14"), generatedFiles, maybeExistingBuildFile = None)
 
     // write build files, and produce an (in-memory) exploded build plus new bloop files
-    writeAndCompareEarly(destinationPaths.buildDir, buildFiles)
+    writeAndCompareEarly(destinationPaths.buildDir, buildFiles.map { case (p, s) => (p, absolutePaths.templatize.string(s)) })
 
     val started = bootstrap
       .from(
