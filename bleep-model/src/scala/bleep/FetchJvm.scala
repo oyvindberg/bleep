@@ -1,8 +1,6 @@
 package bleep
 
-import bleep.internal.CoursierLogger
-import bleep.logging.Logger
-import coursier.cache.{ArchiveCache, FileCache}
+import coursier.cache.{ArchiveCache, CacheLogger, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.Task
 
@@ -11,7 +9,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
 object FetchJvm {
-  def apply(logger: Logger, jvm: model.Jvm, ec: ExecutionContext): Path = {
+  def apply(cacheLogger: CacheLogger, jvm: model.Jvm, ec: ExecutionContext): Path = {
     val architecture = JvmIndex.defaultOs() match {
       case "darwin" =>
         import scala.sys.process._
@@ -19,14 +17,13 @@ object FetchJvm {
         if (uname.contains("arm64")) "arm64" else JvmIndex.defaultArchitecture()
       case _ => JvmIndex.defaultArchitecture()
     }
-    val fileCache = FileCache[Task]().withLogger(new CoursierLogger(logger))
+    val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val archiveCache = ArchiveCache[Task]().withCache(fileCache)
     val jvmCache = JvmCache()
       .withArchiveCache(archiveCache)
       .withIndex(jvm.index.getOrElse(JvmIndex.coursierIndexUrl))
       .withArchitecture(architecture)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)
-    logger.withContext(javaBin).debug(s"Resolved JVM ${jvm.name}")
     javaBin
   }
 }

@@ -1,10 +1,10 @@
-package bleep.internal
+package bleep
 
 import bleep.logging.Logger
 import coursier.cache.CacheLogger
 import coursier.util.Artifact
 
-class CoursierLogger(logger: Logger) extends CacheLogger {
+class BleepCacheLogger(logger: Logger) extends CacheLogger {
   override def downloadingArtifact(url: String, artifact: Artifact): Unit =
     logger.withContext(url).info("downloading")
 

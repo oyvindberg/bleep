@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.codecs._
-import bleep.internal.{CoursierLogger, FileUtils}
+import bleep.internal.FileUtils
 import bleep.logging.Logger
 import coursier.Fetch
 import coursier.cache.{ArtifactError, FileCache}
@@ -69,7 +69,7 @@ object CoursierResolver {
       wantedBleepVersion: Option[model.BleepVersion]
   ): CoursierResolver = {
     val params = Params(downloadSources, authentications, repos)
-    val direct = new Direct(new CoursierLogger(logger), params)
+    val direct = new Direct(new BleepCacheLogger(logger), params)
     val cached = new Cached(logger, direct, cacheIn)
     new TemplatedVersions(cached, wantedBleepVersion)
   }
@@ -135,7 +135,7 @@ object CoursierResolver {
         IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
     }
 
-  private class Direct(val logger: CoursierLogger, val params: Params) extends CoursierResolver {
+  private class Direct(val logger: BleepCacheLogger, val params: Params) extends CoursierResolver {
 
     val fileCache = FileCache[Task]().withLogger(logger)
 

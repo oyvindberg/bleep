@@ -2,7 +2,7 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.internal.{fatal, FetchBleepRelease, Os}
+import bleep.internal.{fatal, Os}
 import bleep.logging._
 import cats.data.NonEmptyList
 import cats.syntax.apply._
@@ -233,7 +233,8 @@ object Main {
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
           case Right(wantedVersion) =>
             logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepYaml}")
-            FetchBleepRelease(wantedVersion, logger, ExecutionContext.global) match {
+            val cacheLogger = new BleepCacheLogger(logger)
+            FetchBleepRelease(wantedVersion, cacheLogger, ExecutionContext.global) match {
               case Left(buildException) =>
                 fatal("", logger, buildException)
               case Right(binaryPath) if JvmIndex.currentOs.contains("windows") =>
