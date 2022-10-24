@@ -108,7 +108,7 @@ object Import {
     }
   }
   object ScalaVersionOutput {
-    def parse(lines: Array[String]): ScalaVersionOutput = {
+    def parse(lines: Array[String], onlyOneProject: Option[String]): ScalaVersionOutput = {
       val scalaVersionsBuilder = mutable.Map.empty[model.VersionScala, mutable.Set[String]]
       val crossVersionsBuilder = mutable.Map.empty[model.VersionScala, mutable.Set[String]]
 
@@ -116,21 +116,36 @@ object Import {
       while (i < lines.length) {
         val line = lines(i)
 
-        def words = line.split("\\s")
-
-        def projectName = words(words.length - 3) // third last, before `/` and `binaryJVMProjects` above
-
-        if (line.contains("ProjectRef")) ()
-        else if (line.endsWith(" / scalaVersion")) {
-          val nextLine = lines(i + 1)
+        def handleScalaVersion(projectName: String) = {
+          i = i + 1
+          val nextLine = lines(i)
           val scalaVersion = model.VersionScala(nextLine.split("\\s").last)
           scalaVersionsBuilder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
-        } else if (line.endsWith(" / crossScalaVersions")) {
-          val nextLine = lines(i + 1)
+        }
+
+        def handleCrossScalaVersions(projectName: String) = {
+          i = i + 1
+          val nextLine = lines(i)
           val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
           versions.map { scalaVersion =>
             crossVersionsBuilder.getOrElseUpdate(model.VersionScala(scalaVersion), mutable.Set.empty).add(projectName)
           }
+        }
+
+        (line.split("\\s").toList, onlyOneProject) match {
+          // short form, if there is only one project
+          case (List(_, "scalaVersion"), Some(projectName)) =>
+            handleScalaVersion(projectName)
+          // normal form
+          case (List(_, projectName, "/", "scalaVersion"), None) =>
+            handleScalaVersion(projectName)
+          // short form
+          case (List(_, "crossScalaVersions"), Some(projectName)) =>
+            handleCrossScalaVersions(projectName)
+          // normal form
+          case (List(_, projectName, "/", "crossScalaVersions"), None) =>
+            handleCrossScalaVersions(projectName)
+          case other => println(other)
         }
 
         i += 1
@@ -252,8 +267,11 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
               env = sbtEnvs,
               stdIn = sbtCommands(cmds)
             )
-
-          val result = Import.ScalaVersionOutput.parse(output.stdout)
+          val onlyOneProject = projectNames match {
+            case one :: Nil => Some(one)
+            case Nil        => None
+          }
+          val result = Import.ScalaVersionOutput.parse(output.stdout, onlyOneProject)
 
           result.combined
             .foldLeft(logger) { case (logger, (scala, projects)) => logger.withContext(scala.scalaVersion, projects.size) }
