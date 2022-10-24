@@ -1,7 +1,7 @@
 package bleep
 package scripts
 
-import bleep.internal.FileUtils
+import bleep.internal.{jvmOrSystem, FileUtils}
 import bleep.logging.Logger
 import bleep.tasks._
 
@@ -97,7 +97,7 @@ object GenVideos extends BleepScript("GenVideos") {
 
   override def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val project = started.bloopProjects(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None))
-    val ni = new NativeImagePlugin(project, started.logger, nativeImageJvm = started.build.jvm.getOrElse(model.Jvm.graalvm))
+    val ni = new NativeImagePlugin(project, started.logger, nativeImageJvm = jvmOrSystem(started))
 
     val nativeImageBleep = if (FileUtils.exists(ni.nativeImageOutput)) {
       started.logger.info(s"Using native-image at ${ni.nativeImageOutput}")

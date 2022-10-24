@@ -2,6 +2,7 @@ package bleep
 package bsp
 
 import bleep.Lazy
+import bleep.internal.jvmOrSystem
 import bleep.rewrites.BuildRewrite
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
@@ -39,15 +40,23 @@ object BspImpl {
       val bloopRifleConfig = {
         val lazyResolver = Lazy {
           CoursierResolver(
-            build.resolvers.values,
-            pre.logger,
+            repos = build.resolvers.values,
+            logger = pre.logger,
             downloadSources = false,
-            pre.userPaths.coursierCacheDir,
-            bleepConfig.authentications,
-            Some(build.$version)
+            cacheIn = pre.userPaths.coursierCacheDir,
+            authentications = bleepConfig.authentications,
+            wantedBleepVersion = Some(build.$version)
           )
         }
-        SetupBloopRifle(bleepConfig, pre.logger, pre.userPaths, lazyResolver, bleepRifleLogger, ExecutionContext.fromExecutor(threads.prepareBuildExecutor))
+        SetupBloopRifle(
+          compileServerMode = bleepConfig.compileServerMode,
+          jvm = jvmOrSystem(build.jvm, pre.logger),
+          logger = pre.logger,
+          userPaths = pre.userPaths,
+          resolver = lazyResolver,
+          bleepRifleLogger = bleepRifleLogger,
+          executionContext = ExecutionContext.fromExecutor(threads.prepareBuildExecutor)
+        )
       }
 
       val workspaceDir = pre.buildPaths.bleepBloopDir.getParent

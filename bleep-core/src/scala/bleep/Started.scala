@@ -1,9 +1,9 @@
 package bleep
 
+import bleep.internal.jvmOrSystem
 import bleep.logging.Logger
 import bleep.rewrites.BuildRewrite
 import bloop.config.Config
-import coursier.jvm.JavaHome
 
 import java.nio.file.Path
 import scala.collection.immutable.SortedMap
@@ -36,10 +36,7 @@ case class Started(
     bloopProjects.values.toList
 
   lazy val jvmCommand: Path = {
-    val jvm = build.jvm.getOrElse {
-      logger.warn(s"Using system JVM. You should specify your wanted JVM in ${BuildLoader.BuildFileName} to get reproducible builds")
-      model.Jvm(JavaHome.systemId, None)
-    }
+    val jvm = jvmOrSystem(build, logger)
     FetchJvm(new BleepCacheLogger(logger), jvm, executionContext)
   }
 

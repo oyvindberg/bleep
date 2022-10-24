@@ -3,6 +3,7 @@ package bsp
 
 import bleep.internal.FileUtils
 import bleep.logging.Logger
+import bleep.model.CompileServerMode
 import coursier.parse.ModuleParser
 
 import java.io.File
@@ -14,19 +15,19 @@ import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
   def apply(
-      bleepConfig: model.BleepConfig,
+      compileServerMode: CompileServerMode,
+      jvm: model.Jvm,
       logger: Logger,
       userPaths: UserPaths,
       resolver: Lazy[CoursierResolver],
       bleepRifleLogger: BleepRifleLogger,
       executionContext: ExecutionContext
   ): BloopRifleConfig = {
-    val jvm = BleepConfigOps.jvmOrSetDefault(logger, userPaths, bleepConfig)
     val resolvedJvm = FetchJvm(new BleepCacheLogger(logger), jvm, executionContext)
 
     BloopRifleConfig
       .default(
-        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, bleepConfig.compileServerMode)),
+        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, compileServerMode, jvm)),
         bloopClassPath(resolver),
         FileUtils.TempDir.toFile
       )
@@ -37,18 +38,18 @@ object SetupBloopRifle {
       )
   }
 
-  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] = {
-    val modString = BloopRifleConfig.defaultModule
-    ModuleParser
-      .module(modString, BloopRifleConfig.defaultScalaVersion)
-      .left
-      .map(msg => new BleepException.ModuleFormatError(modString, msg))
-      .flatMap { mod =>
-        val dep = model.Dep.Java(mod.organization.value, mod.name.value, bloopVersion)
-        val res = resolver.forceGet.force(Set(dep), model.VersionCombo.Java, "installing bloop")
-        Right((res.jarFiles, true))
-      }
-  }
+  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] =
+    ModuleParser.module(BloopRifleConfig.defaultModule, BloopRifleConfig.defaultScalaVersion) match {
+      case Left(msg) => Left(new BleepException.ModuleFormatError(BloopRifleConfig.defaultModule, msg))
+      case Right(mod) =>
+        val dep = model.Dep.JavaDependency(mod.organization, mod.name, bloopVersion)
+        resolver.forceGet.resolve(Set(dep), model.VersionCombo.Java) match {
+          case Left(coursierError) =>
+            Left(new BleepException.ResolveError(coursierError, "installing bloop"))
+          case Right(value) =>
+            Right((value.jarFiles, true))
+        }
+    }
 
   private def socketDirectory(userPaths: UserPaths, socketId: String): Path = {
     val dir = userPaths.bspSocketDir
@@ -78,8 +79,9 @@ object SetupBloopRifle {
     }
     dir
   }
+  val SharedPrefix = "shared-for-jvm"
 
-  def bspSocketFile(userPaths: UserPaths, mode: model.CompileServerMode): Path = {
+  def bspSocketFile(userPaths: UserPaths, mode: model.CompileServerMode, jvm: model.Jvm): Path = {
     val somewhatRandomIdentifier = Try(ProcessHandle.current.pid) match {
       case Failure(_) =>
         val r = new Random
@@ -90,7 +92,7 @@ object SetupBloopRifle {
     val socketName: String =
       mode match {
         case model.CompileServerMode.NewEachInvocation => somewhatRandomIdentifier
-        case model.CompileServerMode.Shared            => "shared"
+        case model.CompileServerMode.Shared            => s"$SharedPrefix-${jvm.name}"
       }
 
     val socket: Path =
