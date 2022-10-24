@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.BspClientDisplayProgress
+import bleep.internal.{jvmOrSystem, BspClientDisplayProgress}
 import ch.epfl.scala.bsp4j
 
 import java.util
@@ -29,13 +29,23 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
 
     bleepConfig.compileServerMode match {
       case model.CompileServerMode.NewEachInvocation =>
-        started.logger.warn("TIP: run `bleep compile-server start` so you'll get a warm/fast compile server")
+        started.logger.warn("TIP: run `bleep compile-server auto-shutdown-disable` so you'll get a warm/fast compile server")
       case model.CompileServerMode.Shared => ()
     }
 
+    val bloopJvm = jvmOrSystem(started)
+
     val bleepRifleLogger = new BleepRifleLogger(started.logger)
     val bloopRifleConfig: BloopRifleConfig =
-      SetupBloopRifle(bleepConfig, started.logger, started.prebootstrapped.userPaths, started.resolver, bleepRifleLogger, started.executionContext)
+      SetupBloopRifle(
+        bleepConfig.compileServerMode,
+        bloopJvm,
+        started.logger,
+        started.prebootstrapped.userPaths,
+        started.resolver,
+        bleepRifleLogger,
+        started.executionContext
+      )
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
 

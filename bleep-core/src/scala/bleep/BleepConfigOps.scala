@@ -37,15 +37,4 @@ object BleepConfigOps {
         if (config0 != config) store(logger, userPaths, config)
         config
     }
-
-  def jvmOrSetDefault(logger: Logger, userPaths: UserPaths, bleepConfig: model.BleepConfig): model.Jvm =
-    bleepConfig.compileServerJvm match {
-      case Some(jvm) => jvm
-      case None =>
-        val defaultJvm = model.Jvm.graalvm
-        val newConfig = bleepConfig.copy(compileServerJvm = Some(defaultJvm))
-        logger.warn(s"Defaulting bleep config to use $defaultJvm for compile server")
-        store(logger, userPaths, newConfig)
-        defaultJvm
-    }
 }

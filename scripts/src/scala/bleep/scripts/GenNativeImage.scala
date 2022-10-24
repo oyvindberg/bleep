@@ -1,6 +1,8 @@
 package bleep
 package scripts
 
+import bleep.internal.jvmOrSystem
+import bleep.logging.Logger
 import bleep.tasks._
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
@@ -8,6 +10,10 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProjects(projectName)
     commands.compile(List(projectName))
+    val nativeImageJvm = jvmOrSystem(started.build, logger = Logger.DevNull) match {
+      case chosen if chosen.name.startsWith("graalvm-") => chosen
+      case _                                            => model.Jvm.graalvm
+    }
 
     val plugin = new NativeImagePlugin(
       project,
@@ -20,7 +26,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         --initialize-at-build-time=scala.Symbol
         --initialize-at-build-time=scala.Symbol$
         --native-image-info""".split("\n").map(_.trim),
-      nativeImageJvm = started.build.jvm.getOrElse(model.Jvm.graalvm),
+      nativeImageJvm = nativeImageJvm,
       env = List(
         ("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false")
       )

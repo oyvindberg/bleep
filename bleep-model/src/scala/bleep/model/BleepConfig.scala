@@ -5,14 +5,12 @@ import io.circe.{Decoder, Encoder}
 
 case class BleepConfig(
     compileServerMode: CompileServerMode,
-    compileServerJvm: Option[Jvm],
     authentications: Option[Authentications]
 )
 
 object BleepConfig {
   val default = BleepConfig(
     compileServerMode = CompileServerMode.Shared,
-    compileServerJvm = None,
     authentications = None
   )
 

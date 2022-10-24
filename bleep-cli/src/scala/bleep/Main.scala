@@ -168,12 +168,18 @@ object Main {
       "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
     )(
       List(
-        Opts.subcommand("start", "will start a shared bloop compile server and leave it running")(Opts {
-          commands.CompileServerStart(logger, userPaths, lazyResolver)
+        Opts.subcommand(
+          "auto-shutdown-disable",
+          "leave compile servers running between bleep invocations. this gets much better performance at the cost of memory"
+        )(Opts {
+          commands.CompileServerSetMode(logger, userPaths, lazyResolver, model.CompileServerMode.Shared)
         }),
-        Opts.subcommand("stop", "will stop a shared bloop compile server (if any) and will make bleep start temporary servers until you call start again")(
+        Opts.subcommand("auto-shutdown-enable", "shuts down compile server after between bleep invocation. this is slower, but conserves memory")(Opts {
+          commands.CompileServerSetMode(logger, userPaths, lazyResolver, model.CompileServerMode.NewEachInvocation)
+        }),
+        Opts.subcommand("stop-all", "will stop all shared bloop compile servers")(
           Opts {
-            commands.CompileServerStop(logger, userPaths, lazyResolver)
+            commands.CompileServerStopAll(logger, userPaths, lazyResolver)
           }
         )
       ).foldK
