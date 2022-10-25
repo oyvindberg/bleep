@@ -71,7 +71,7 @@ class BspClientDisplayProgress(
     val jsonLogger = new jsonEvents.JsonConsumer(logger.withOptContext("originId", Option(params.getOriginId)))
     io.circe.parser.decode[jsonEvents.JsonEvent](params.getMessage) match {
       case Left(_) =>
-        jsonLogger.underlying.withPath("stdout").info(params.getMessage)
+        jsonLogger.underlying.info(params.getMessage)
       case Right(logEvent) =>
         jsonLogger.log(logEvent)
     }
