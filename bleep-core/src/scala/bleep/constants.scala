@@ -7,7 +7,7 @@ import java.nio.file.Path
 
 object constants {
   val Node = "18.4.0"
-
+  val BleepChildProcess = "BLEEP_CHILD_PROCESS"
   private val ivyLocalUri =
     URI.create(LocalRepositories.ivy2Local.pattern.chunks.head.string)
 

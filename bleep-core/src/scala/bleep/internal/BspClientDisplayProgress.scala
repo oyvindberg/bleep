@@ -1,6 +1,6 @@
 package bleep.internal
 
-import bleep.logging.{LogLevel, Logger}
+import bleep.logging.{jsonEvents, LogLevel, Logger}
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
 import fansi.{Bold, Str}
@@ -67,8 +67,15 @@ class BspClientDisplayProgress(
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
     logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
 
-  override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
+  override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
+    val jsonLogger = new jsonEvents.JsonConsumer(logger.withOptContext("originId", Option(params.getOriginId)))
+    io.circe.parser.decode[jsonEvents.JsonEvent](params.getMessage) match {
+      case Left(_) =>
+        jsonLogger.underlying.withPath("stdout").info(params.getMessage)
+      case Right(logEvent) =>
+        jsonLogger.log(logEvent)
+    }
+  }
 
   def logLevelFor(messageType: MessageType): LogLevel =
     messageType match {
@@ -89,6 +96,7 @@ class BspClientDisplayProgress(
       active(id) = Some(params)
       render()
     }
+
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
     extract(params.getData).foreach { id =>
       active.remove(id)

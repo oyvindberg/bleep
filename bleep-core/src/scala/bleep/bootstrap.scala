@@ -10,7 +10,13 @@ import scala.util.{Failure, Success, Try}
 
 object bootstrap {
   def forScript(scriptName: String)(f: (Started, Commands) => Unit): Unit = {
-    val logger = logging.stdout(LogPatterns.interface(Instant.now, Some(scriptName), noColor = false)).untyped
+    val logAsJson = sys.env.contains(constants.BleepChildProcess)
+
+    val logger = {
+      val base = if (logAsJson) logging.stdoutJson() else logging.stdout(LogPatterns.interface(Instant.now, noColor = false))
+      base.untyped.withPath(scriptName)
+    }
+
     val buildLoader = BuildLoader.find(Os.cwd)
     val buildPaths = BuildPaths(Os.cwd, buildLoader, Mode.Normal)
     val maybeStarted = for {

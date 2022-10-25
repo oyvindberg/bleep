@@ -33,7 +33,7 @@ case class Run(
     maybeMain.flatMap { main =>
       val params = new RunParams(buildTarget(started.buildPaths, project))
       val mainClass = new ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
-      val envs = sys.env.map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
+      val envs = sys.env.updated(constants.BleepChildProcess, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
       mainClass.setEnvironmentVariables(envs)
       params.setData(mainClass)
       params.setDataKind("scala-main-class")

@@ -35,7 +35,10 @@ object cli {
   )(implicit l: Line, f: File, e: Enclosing): WrittenLines = {
     val builder = Process(cmd, cwd = Some(cwd.toFile), env: _*)
     val output = Array.newBuilder[WrittenLine]
-    val actionPrefix = if (action.isEmpty) "" else s"$action: "
+    val logger0 = action match {
+      case ""     => logger
+      case action => logger.withPath(action)
+    }
 
     val processIO = new ProcessIO(
       writeInput = os =>
@@ -48,11 +51,11 @@ object cli {
         },
       processOutput = BasicIO.processFully { line =>
         output += WrittenLine.StdOut(line)
-        logger.info(actionPrefix + line)(implicitly, l, f, e)
+        logger0.info(line)(implicitly, l, f, e)
       },
       processError = BasicIO.processFully { line =>
         output += WrittenLine.StdErr(line)
-        logger.warn(actionPrefix + line)(implicitly, l, f, e)
+        logger0.warn(line)(implicitly, l, f, e)
       },
       daemonizeThreads = false
     )
@@ -62,7 +65,7 @@ object cli {
     exitCode match {
       case 0 => WrittenLines(output.result())
       case n =>
-        logger.debug(s"Failed command with error code $n: ${cmd.mkString(" ")}")
+        logger0.debug(s"Failed command with error code $n: ${cmd.mkString(" ")}")
         throw new BleepException.Text(s"Failed external command '$action'")
     }
   }

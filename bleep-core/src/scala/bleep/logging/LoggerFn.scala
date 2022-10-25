@@ -43,7 +43,7 @@ object LoggerFn {
     @inline def error[T: Formatter](t: => Text[T], th: Throwable)(implicit l: Line, f: File, e: Enclosing): Unit =
       apply(LogLevel.error, t, Some(th))
 
-    @inline def and(other: LoggerFn): LoggerFn =
+    def and(other: LoggerFn): LoggerFn =
       new LoggerFn {
         override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
           fn.log(text, throwable, metadata)
