@@ -354,7 +354,7 @@ object Main {
               else {
                 // and to logfile, without any filtering
                 val logFileResource: TypedLoggerResource[BufferedWriter] =
-                  logging.path(buildPaths.logFile, LogPatterns.logFile)
+                  logging.path(buildPaths.logFile, LogPatterns.logFile).map(_.flushing)
 
                 LoggerResource.pure(stdout).zipWith(logFileResource).untyped
               }
