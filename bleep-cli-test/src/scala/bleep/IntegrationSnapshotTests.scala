@@ -3,7 +3,6 @@ package bleep
 import bleep.commands.Import
 import bleep.commands.Import.Options
 import bleep.internal.{findGeneratedFiles, FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile}
-import bleep.rewrites.{keepSelectedProjects, BuildRewrite}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import coursier.paths.CoursierPaths
@@ -12,10 +11,11 @@ import io.circe.syntax.EncoderOps
 import org.scalatest.Assertion
 
 import java.nio.file.{Files, Path, Paths}
+import java.time.Instant
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class IntegrationSnapshotTests extends SnapshotTest {
-  val logger = logging.stdout(LogPatterns.logFile).untyped
+  val logger = logging.stdout(LogPatterns.interface(Instant.now, false)).untyped
   val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
   object testResolver extends CoursierResolver.Factory {
     override def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver = {
@@ -262,7 +262,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
           }
         }
         if (added.restJars.nonEmpty || removed.restJars.nonEmpty) {
-          System.err.println(s"${crossProjectName.value}: Added ${render(added.restJars)} to classPath, Removed ${render(removed.restJars)} from classPath")
+          started.logger.warn(s"${crossProjectName.value}: Added ${render(added.restJars)} to classPath, Removed ${render(removed.restJars)} from classPath")
         }
     }
     succeed
