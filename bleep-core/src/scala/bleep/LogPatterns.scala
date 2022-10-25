@@ -4,7 +4,7 @@ import bleep.logging._
 import fansi.{Color, EscapeAttr, Str}
 import sourcecode.Text
 
-import java.io.{File, PrintWriter, StringWriter}
+import java.io.File
 import java.time.{Duration, Instant}
 
 object LogPatterns {
@@ -35,15 +35,8 @@ object LogPatterns {
   @inline def subtleColor: EscapeAttr =
     Color.Full(102)
 
-  def formatThrowable(th: Throwable): String = {
-    val sw = new StringWriter()
-    val pw = new PrintWriter(sw)
-    th.printStackTrace(pw)
-    sw.toString
-  }
-
-  case class interface(t0: Instant, scriptName: Option[String], noColor: Boolean) extends Pattern {
-    override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx): Str = {
+  case class interface(t0: Instant, noColor: Boolean) extends Pattern {
+    override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx, path: List[String]): Str = {
       val Color = colorFor(m.logLevel)
       val Subtle = subtleColor
 
@@ -52,7 +45,10 @@ object LogPatterns {
         List(
           emojiFor(m.logLevel),
           " ",
-          Color(scriptName.fold("")(name => s"$name: ")),
+          path match {
+            case Nil      => ""
+            case nonEmpty => Color(nonEmpty.reverse.mkString("", " / ", ": "))
+          },
           Color(Formatter(t.value)),
           " ",
           Subtle(Formatter(ctx.updated("t", Str(s"$millis ms")))),
@@ -67,7 +63,7 @@ object LogPatterns {
   }
 
   object logFile extends Pattern {
-    override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx): Str =
+    override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx, path: List[String]): Str =
       List(
         prefixFor(m.logLevel),
         " ",
@@ -77,6 +73,10 @@ object LogPatterns {
         ":",
         Formatter(m.line.value).plainText,
         " ",
+        path match {
+          case Nil      => ""
+          case nonEmpty => nonEmpty.reverse.mkString("", " / ", ": ")
+        },
         Formatter(t.value).plainText,
         " ",
         Formatter(ctx).plainText,

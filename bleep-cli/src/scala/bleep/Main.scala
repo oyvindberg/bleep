@@ -329,13 +329,16 @@ object Main {
         }
 
       case args =>
+        val logAsJson = sys.env.contains(constants.BleepChildProcess)
         val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
 
-        val stdout: TypedLogger[PrintStream] = {
-          val pattern = LogPatterns.interface(Instant.now, None, noColor = commonOpts.noColor)
-          logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
-        }
+        val stdout: TypedLogger[PrintStream] =
+          if (logAsJson) logging.stdoutJson()
+          else {
+            val pattern = LogPatterns.interface(Instant.now, noColor = commonOpts.noColor)
+            logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
+          }
         val buildLoader = BuildLoader.find(cwd)
         val userPaths = UserPaths.fromAppDirs
         maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)
@@ -346,13 +349,15 @@ object Main {
             run(stdout.untyped, noBuildOpts(stdout.untyped, cwd), restArgs)
 
           case Right(existing) =>
-            val loggerResource: LoggerResource = {
-              // and to logfile, without any filtering
-              val logFileResource: TypedLoggerResource[BufferedWriter] =
-                logging.path(buildPaths.logFile, LogPatterns.logFile)
+            val loggerResource: LoggerResource =
+              if (logAsJson) LoggerResource.pure(stdout.untyped)
+              else {
+                // and to logfile, without any filtering
+                val logFileResource: TypedLoggerResource[BufferedWriter] =
+                  logging.path(buildPaths.logFile, LogPatterns.logFile)
 
-              LoggerResource.pure(stdout).zipWith(logFileResource).untyped
-            }
+                LoggerResource.pure(stdout).zipWith(logFileResource).untyped
+              }
 
             loggerResource.use { logger =>
               val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)

@@ -80,7 +80,7 @@ class TemplateTest extends SnapshotTest {
       ignoreWhenInferringTemplates: Set[model.ProjectName] = Set.empty
   ): model.BuildFile = {
     val pre = model.Build.Exploded(model.BleepVersion.dev, projects, model.JsonList.empty, None, Map.empty)
-    val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, None, noColor = false)).withContext(testName).untyped
+    val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, noColor = false)).withContext(testName).untyped
     val buildFile = templatesInfer(new BleepTemplateLogger(logger), pre, ignoreWhenInferringTemplates)
     writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> buildFile.asJson.foldWith(ShortenAndSortJson(Nil)).spaces2))
 
