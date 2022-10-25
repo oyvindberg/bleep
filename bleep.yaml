@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M16
+$version: 0.0.1-M17
 jvm:
   name: graalvm-java17:22.2.0
 projects:
