@@ -108,6 +108,7 @@ scripts:
   native-image: scripts/bleep.scripts.GenNativeImage
   publish: scripts/bleep.scripts.Publish
   publish-local: scripts/bleep.scripts.PublishLocal
+  it: scripts/bleep.scripts.It
 templates:
   template-common:
     platform:
