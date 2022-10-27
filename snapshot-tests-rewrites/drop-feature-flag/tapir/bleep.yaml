@@ -39,7 +39,7 @@ projects:
     platform:
       name: jvm
     scala:
-      version: 3.1.0
+      version: 3.2.0
   sttp-mock-server:
     dependencies:
     - io.circe::circe-core:0.14.1
