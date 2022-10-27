@@ -92,7 +92,10 @@ object SetupBloopRifle {
     val socketName: String =
       mode match {
         case model.CompileServerMode.NewEachInvocation => somewhatRandomIdentifier
-        case model.CompileServerMode.Shared            => s"$SharedPrefix-${jvm.name}"
+        case model.CompileServerMode.Shared            =>
+          // windows does not accept colon in path names
+          val str = jvm.name.replace(':', '_')
+          s"$SharedPrefix-$str"
       }
 
     val socket: Path =
