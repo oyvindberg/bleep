@@ -15,7 +15,7 @@ object bootstrap {
 
     val logger = {
       val base = if (logAsJson) logging.stdoutJson() else logging.stdout(LogPatterns.interface(Instant.now, noColor = false))
-      base.untyped.withPath(scriptName)
+      base.untyped.withPath(s"[script $scriptName]")
     }
 
     val buildLoader = BuildLoader.find(Os.cwd)
