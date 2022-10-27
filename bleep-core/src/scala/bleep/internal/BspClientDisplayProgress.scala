@@ -4,7 +4,7 @@ import bleep.logging.{jsonEvents, LogLevel, Logger}
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
 import fansi.{Bold, Str}
-
+import io.circe.parser.decode
 import scala.collection.mutable
 
 // a bsp client which will display compilation diagnostics and progress to a logger
@@ -68,12 +68,10 @@ class BspClientDisplayProgress(
     logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
-    val jsonLogger = new jsonEvents.JsonConsumer(logger.withOptContext("originId", Option(params.getOriginId)))
-    io.circe.parser.decode[jsonEvents.JsonEvent](params.getMessage) match {
-      case Left(_) =>
-        jsonLogger.underlying.info(params.getMessage)
-      case Right(logEvent) =>
-        jsonLogger.log(logEvent)
+    val logger0 = logger.withOptContext("originId", Option(params.getOriginId))
+    decode[jsonEvents.JsonEvent](params.getMessage) match {
+      case Left(_)          => logger0.info(params.getMessage)
+      case Right(jsonEvent) => jsonEvent.logTo(logger0)
     }
   }
 

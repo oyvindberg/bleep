@@ -331,7 +331,7 @@ object Main {
         }
 
       case args =>
-        val logAsJson = sys.env.contains(constants.BleepChildProcess)
+        val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
         val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
 

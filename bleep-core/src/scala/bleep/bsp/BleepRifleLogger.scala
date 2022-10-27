@@ -9,12 +9,11 @@ import scala.build.blooprifle.BloopRifleLogger
 class BleepRifleLogger(logger: Logger) extends BloopRifleLogger {
   val bloopLogger = logger.withPath("bloop")
   val bloopRifleLogger = logger.withPath("bloop-rifle")
-  val jsonConsumer = new jsonEvents.JsonConsumer(logger)
 
   override def info(msg: => String): Unit =
     io.circe.parser.decode[jsonEvents.JsonEvent](msg) match {
       case Left(_)          => bloopRifleLogger.info(msg)
-      case Right(jsonEvent) => jsonConsumer.log(jsonEvent)
+      case Right(jsonEvent) => jsonEvent.logTo(logger)
     }
 
   override def debug(msg: => String, throwable: Throwable): Unit =
