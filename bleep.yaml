@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M17
+$version: 0.0.1-M18
 jvm:
   name: graalvm-java17:22.2.0
 projects:
@@ -38,15 +38,15 @@ projects:
     - io.circe::circe-core:0.14.2
     - io.circe::circe-generic:0.14.2
     - io.circe::circe-parser:0.14.2
-    - io.circe::circe-yaml:0.14.1
-    - exclusions:
-        org.scala-sbt: util-logging_2.13
-      for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-M7-34-gf519b50a3
+    - io.circe::circe-yaml:0.14.2
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-M7-34-gf519b50a3
+      module: io.get-coursier::coursier-jvm:2.1.0-M7-39-gb8f3d7532
+    - exclusions:
+        org.scala-sbt: util-logging_2.13
+      for3Use213: true
+      module: io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
   bleep-tasks:
@@ -105,10 +105,10 @@ projects:
 scripts:
   generate-resources: scripts-init/bleep.scripts.GenerateResources
   generate-videos: scripts/bleep.scripts.GenVideos
+  it: scripts/bleep.scripts.It
   native-image: scripts/bleep.scripts.GenNativeImage
   publish: scripts/bleep.scripts.Publish
   publish-local: scripts/bleep.scripts.PublishLocal
-  it: scripts/bleep.scripts.It
 templates:
   template-common:
     platform:
