@@ -65,7 +65,12 @@ object cli {
     exitCode match {
       case 0 => WrittenLines(output.result())
       case n =>
-        logger0.debug(s"Failed command with error code $n: ${cmd.mkString(" ")}")
+        logger0
+          .withContext(action)
+          .withContext(cwd)
+          .withContext(cmd)
+          .withContext(env)
+          .debug(s"Failed external command with error code $n")
         throw new BleepException.Text(s"Failed external command '$action'")
     }
   }
