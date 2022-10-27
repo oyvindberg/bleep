@@ -371,7 +371,7 @@ object Main {
     }
 
   def run(logger: Logger, opts: Opts[BleepCommand], restArgs: List[String]): Unit =
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current})")(opts).parse(restArgs, sys.env) match {
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)
         System.exit(1)
