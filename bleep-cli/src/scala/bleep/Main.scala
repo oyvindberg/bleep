@@ -32,9 +32,7 @@ object Main {
     val scalaVersion = "scala version"
   }
 
-  def noBuildOpts(logger: Logger, cwd: Path): Opts[BleepCommand] = {
-    val buildLoader = BuildLoader.inDirectory(cwd)
-    val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
+  def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepCommand] = {
     val userPaths = UserPaths.fromAppDirs
     val resolver =
       BleepConfigOps
@@ -42,7 +40,7 @@ object Main {
         .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.coursierCacheDir, bleepConfig.authentications, None))
 
     CommonOpts.opts *> List(
-      Opts.subcommand("build", "rewrite build")(newCommand(logger, cwd)),
+      Opts.subcommand("build", "rewrite build")(newCommand(logger, buildPaths.cwd)),
       setupIdeCmd(buildPaths, logger, None),
       importCmd(buildLoader, buildPaths, logger),
       compileServerCmd(logger, userPaths, resolver)
@@ -268,19 +266,21 @@ object Main {
         // we can not log to stdout when completing. logger should be used sparingly
         val logger = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn).untyped
         val buildLoader = BuildLoader.find(cwd)
-        val userPaths = UserPaths.fromAppDirs
         maybeRunWithDifferentVersion(_args, buildLoader, logger, commonOpts)
 
+        val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
+
         val completions = buildLoader match {
-          case BuildLoader.NonExisting(_) =>
+          case noBuild: BuildLoader.NonExisting =>
             val completer = new Completer({
               case metavars.platformName => model.PlatformId.All.map(_.value)
               case metavars.scalaVersion => possibleScalaVersions.keys.toList
               case _                     => Nil
             })
-            completer.completeOpts(restArgs)(noBuildOpts(logger, cwd))
+            completer.completeOpts(restArgs)(noBuildOpts(logger, buildPaths, noBuild))
           case existing: BuildLoader.Existing =>
-            val pre = Prebootstrapped(logger, userPaths, BuildPaths(cwd, buildLoader, Mode.Normal), existing)
+            val userPaths = UserPaths.fromAppDirs
+            val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
 
             val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
@@ -342,26 +342,27 @@ object Main {
             logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
           }
         val buildLoader = BuildLoader.find(cwd)
-        val userPaths = UserPaths.fromAppDirs
         maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)
 
+        def stdoutAndFileLogging(buildPaths: BuildPaths): LoggerResource =
+          if (logAsJson) LoggerResource.pure(stdout.untyped)
+          else {
+            // and to logfile, without any filtering
+            val logFileResource: TypedLoggerResource[BufferedWriter] =
+              logging.path(buildPaths.logFile, LogPatterns.logFile).map(_.flushing)
+
+            LoggerResource.pure(stdout).zipWith(logFileResource).untyped
+          }
+
         val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
-        buildLoader.existing match {
-          case Left(_) =>
-            run(stdout.untyped, noBuildOpts(stdout.untyped, cwd), restArgs)
-
-          case Right(existing) =>
-            val loggerResource: LoggerResource =
-              if (logAsJson) LoggerResource.pure(stdout.untyped)
-              else {
-                // and to logfile, without any filtering
-                val logFileResource: TypedLoggerResource[BufferedWriter] =
-                  logging.path(buildPaths.logFile, LogPatterns.logFile).map(_.flushing)
-
-                LoggerResource.pure(stdout).zipWith(logFileResource).untyped
-              }
-
-            loggerResource.use { logger =>
+        buildLoader match {
+          case noBuild: BuildLoader.NonExisting =>
+            stdoutAndFileLogging(buildPaths).use { logger =>
+              run(logger, noBuildOpts(stdout.untyped, buildPaths, noBuild), restArgs)
+            }
+          case existing: BuildLoader.Existing =>
+            stdoutAndFileLogging(buildPaths).use { logger =>
+              val userPaths = UserPaths.fromAppDirs
               val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
               val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
               bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
