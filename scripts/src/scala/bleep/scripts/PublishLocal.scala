@@ -22,13 +22,15 @@ object PublishLocal extends BleepScript("PublishLocal") {
       )
 
     bundledProjects.foreach { case (projectName, Deployable(asDependency, files)) =>
-      FileSync.syncBytes(
+      val synced = FileSync.syncBytes(
         constants.ivy2Path,
         files.all,
         deleteUnknowns = FileSync.DeleteUnknowns.No,
         soft = false
       )
-      started.logger.withContext("dep", asDependency.module.repr).withContext(projectName).info("Written")
+      val ctxLogger = started.logger.withContext(projectName)
+      synced.foreach { case (path, _) => ctxLogger.debug(path) }
+      ctxLogger.withContext("dep", asDependency.module.repr).withContext("version", dynVer.version).info("Written")
     }
   }
 }

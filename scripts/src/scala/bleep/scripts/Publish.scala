@@ -70,6 +70,9 @@ object Publish extends BleepScript("Publish") {
     val bundleFiles: Map[RelPath, Array[Byte]] =
       bundledProjects.flatMap { case (_, Deployable(_, files)) => files.all }
 
+    bundleFiles.foreach { case (path, bytes) =>
+      started.logger.withContext(path)(_.asString).withContext(bytes.length).debug("will publish")
+    }
     ciRelease.ciRelease(bundleFiles)
   }
 }
