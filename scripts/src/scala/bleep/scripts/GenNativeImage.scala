@@ -27,9 +27,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         --initialize-at-build-time=scala.Symbol$
         --native-image-info""".split("\n").map(_.trim),
       nativeImageJvm = nativeImageJvm,
-      env = List(
-        ("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false")
-      )
+      env = sys.env.toList ++ List(("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false"))
     ) {
       override val nativeImageOutput = args.headOption match {
         case Some(relPath) =>

@@ -51,7 +51,14 @@ object cli {
       stdIn: StdIn = StdIn.No,
       env: List[(String, String)] = Nil
   ): WrittenLines = {
-    val builder = Process(cmd, cwd = Some(cwd.toFile), env: _*)
+    val process = Process {
+      val builder = new java.lang.ProcessBuilder(cmd: _*)
+      builder.directory(cwd.toFile)
+      builder.environment().clear()
+      env.foreach { case (k, v) => builder.environment.put(k, v) }
+      builder
+    }
+
     val output = Array.newBuilder[WrittenLine]
 
     val cliLogger0 = cliLogger.withAction(s"[subprocess: $action]")
@@ -77,7 +84,7 @@ object cli {
       daemonizeThreads = false
     )
 
-    val exitCode = builder.run(processIO).exitValue()
+    val exitCode = process.run(processIO).exitValue()
 
     exitCode match {
       case 0 => WrittenLines(output.result())
