@@ -88,11 +88,16 @@ jobs:
         # - with `shell: cmd` only one command can be run at a time, so this is split into three
         # - some windows development stuff needs to be available, that's what setup-graalvm accomplishes below. todo: figure out how bleep can download it itself
       - name: Build native image 1 (windows)
+        run: bleep compile-server auto-shutdown-enable
+        shell: cmd
+        if: runner.os == 'Windows'
+
+      - name: Build native image 2 (windows)
         run: bleep generate-resources
         shell: cmd
         if: runner.os == 'Windows'
 
-      - name: Build native image 2 prepare (windows)
+      - name: Build native image 3 prepare (windows)
         uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
@@ -100,13 +105,8 @@ jobs:
           java-version: '17'
           components: 'native-image'
 
-      - name: Build native image 2 (windows)
+      - name: Build native image 3 (windows)
         run: bleep native-image ${{ matrix.file_name }}
-        shell: cmd
-        if: runner.os == 'Windows'
-
-      - name: stop bloop (windows)
-        run: bleep compile-server stop-all
         shell: cmd
         if: runner.os == 'Windows'
 
