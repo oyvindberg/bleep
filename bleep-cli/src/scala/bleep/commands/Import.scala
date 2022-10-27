@@ -144,7 +144,7 @@ object Import {
           // normal form
           case (List(_, projectName, "/", "crossScalaVersions"), None) =>
             handleCrossScalaVersions(projectName)
-          case other => println(other)
+          case _ => ()
         }
 
         i += 1
