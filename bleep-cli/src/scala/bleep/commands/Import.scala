@@ -269,7 +269,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
             )
           val onlyOneProject = projectNames match {
             case one :: Nil => Some(one)
-            case Nil        => None
+            case _          => None
           }
           val result = Import.ScalaVersionOutput.parse(output.stdout, onlyOneProject)
 
