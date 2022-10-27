@@ -5,7 +5,7 @@ import io.circe.{Decoder, Encoder}
 import java.nio.file.Path
 
 case class RelPath(segments: List[String]) {
-  override def toString: String = segments.mkString("/")
+  def asString: String = segments.mkString("/")
 
   def /(str: String): RelPath = new RelPath(segments :+ str)
 
@@ -20,6 +20,8 @@ case class RelPath(segments: List[String]) {
       case init :+ last => new RelPath(init :+ f(last))
       case _            => this
     }
+
+  override def toString: String = asString
 }
 
 object RelPath {
