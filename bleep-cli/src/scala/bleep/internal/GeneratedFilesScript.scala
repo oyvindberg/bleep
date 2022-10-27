@@ -31,7 +31,7 @@ object GeneratedFilesScript {
       val triggersTripleQuote = Set('\r', '\n', '\\', '"')
       val MaxStringLiteral = 5000
       (str, indent) =>
-        val cleaned = str.replace("\\", "\\\\")
+        val cleaned = str.replace("\\", "\\\\\\\\")
         val groups = cleaned
           .grouped(MaxStringLiteral)
           .map { str =>
