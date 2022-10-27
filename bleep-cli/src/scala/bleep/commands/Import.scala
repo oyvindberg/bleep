@@ -349,7 +349,15 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
       case Some((className, scriptSource)) =>
         // todo: find a project and use same scala config
         val scalaVersion =
-          normalizedBuild.explodedProjects.values.flatMap(_.scala.flatMap(_.version)).maxByOption(_.scalaVersion).orElse(Some(model.VersionScala.Scala3))
+          normalizedBuild.explodedProjects.values
+            .flatMap(_.scala.flatMap(_.version))
+            .maxByOption(_.scalaVersion)
+            // avoid picking scala 3 versions lower than what is used to compile the bleep artifacts
+            .filter {
+              case x if x.is3 && x.scalaVersion < model.VersionScala.Scala3.scalaVersion => false
+              case _                                                                     => true
+            }
+            .orElse(Some(model.VersionScala.Scala3))
 
         val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
         val scriptsProject = model.Project(

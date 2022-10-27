@@ -49,5 +49,5 @@ object VersionScala {
 
   val Scala212 = VersionScala("2.12.15")
   val Scala213 = VersionScala("2.13.6")
-  val Scala3 = VersionScala("3.1.1")
+  val Scala3 = VersionScala("3.2.0")
 }
