@@ -26,6 +26,7 @@ object GenerateResources extends App {
               |
               |case class BleepVersion(value: String) extends AnyVal {
               |  def latestRelease: BleepVersion = BleepVersion(value.split("\\\\+").head)
+              |  def isDevelopment: Boolean = latestRelease.value != value
               |}
               |
               |object BleepVersion {

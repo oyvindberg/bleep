@@ -235,6 +235,8 @@ object Main {
       case existing: BuildLoader.Existing =>
         existing.wantedVersion.forceGet match {
           case Right(wantedVersion) if model.BleepVersion.current == wantedVersion || wantedVersion == model.BleepVersion.dev => ()
+          case Right(wantedVersion) if model.BleepVersion.current.isDevelopment =>
+            logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you're running a snapshot")
           case Right(wantedVersion) if opts.dev =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
           case Right(wantedVersion) =>
