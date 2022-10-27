@@ -10,7 +10,7 @@ import scala.collection.mutable
 // a bsp client which will display compilation diagnostics and progress to a logger
 object BspClientDisplayProgress {
   def apply(logger: Logger): BspClientDisplayProgress =
-    new BspClientDisplayProgress(logger, mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty)
+    new BspClientDisplayProgress(logger.withPath("BSP"), mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty)
 }
 
 class BspClientDisplayProgress(
