@@ -14,7 +14,7 @@ import com.monovore.decline.Opts
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.StreamConverters.StreamHasToScala
 
 object Import {
   case class Options(
@@ -42,13 +42,12 @@ object Import {
   val opts: Opts[Options] =
     (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript).mapN(Options.apply)
 
-  def findGeneratedJsonFiles(under: Path): Iterable[Path] =
+  def findGeneratedJsonFiles(under: Path): List[Path] =
     Files
       .list(under)
       .filter(Files.isDirectory(_))
       .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
-      .toList
-      .asScala
+      .toScala(List)
 
   def parseProjectsOutput(lines: Array[String]): Map[Path, List[String]] = {
     var currentPath = Option.empty[Path]
