@@ -47,7 +47,7 @@ object LogPatterns {
           " ",
           path match {
             case Nil      => ""
-            case nonEmpty => Color(nonEmpty.reverse.mkString("", " / ", ": "))
+            case nonEmpty => Subtle(nonEmpty.reverse.mkString("", " / ", ": "))
           },
           Color(Formatter(t.value)),
           " ",
