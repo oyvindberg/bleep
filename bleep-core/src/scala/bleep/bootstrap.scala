@@ -2,6 +2,7 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.internal.{fatal, Os}
+import bleep.logging.jsonEvents
 import bleep.rewrites.BuildRewrite
 
 import java.time.Instant
@@ -10,7 +11,7 @@ import scala.util.{Failure, Success, Try}
 
 object bootstrap {
   def forScript(scriptName: String)(f: (Started, Commands) => Unit): Unit = {
-    val logAsJson = sys.env.contains(constants.BleepChildProcess)
+    val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
 
     val logger = {
       val base = if (logAsJson) logging.stdoutJson() else logging.stdout(LogPatterns.interface(Instant.now, noColor = false))

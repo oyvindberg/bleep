@@ -2,7 +2,7 @@ package bleep
 package scripts
 
 import bleep.internal.{jvmOrSystem, FileUtils}
-import bleep.logging.Logger
+import bleep.logging.{jsonEvents, Logger}
 import bleep.tasks._
 
 import java.nio.file.attribute.PosixFilePermissions
@@ -163,7 +163,7 @@ object GenVideos extends BleepScript("GenVideos") {
       RelPath.relativeTo(workDir, outputFile).toString // this somehow needs to be relative
     )
 
-    cli("asciinema-rec_script", workDir, cmd, logger, env = env)
+    cli("asciinema-rec_script", workDir, cmd, cliLogger = cli.CliLogger(logger), env = env)
 
     val bytes = Files.readAllBytes(outputFile)
     FileUtils.deleteDirectory(workDir)

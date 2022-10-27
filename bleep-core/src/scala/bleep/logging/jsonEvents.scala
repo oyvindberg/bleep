@@ -10,9 +10,26 @@ import java.time.Instant
 import scala.util.control.NoStackTrace
 
 object jsonEvents {
+  /* Use this environment variable to communicate to subprocesses that parent accepts json events */
+  val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
 
   /** Meant for transferring log events between processes */
-  case class JsonEvent(sourceCode: String, formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String])
+  case class JsonEvent(sourceCode: String, formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String]) {
+
+    /** For use in calling program, which receives json events
+      */
+    def logTo(logger0: Logger): Unit = {
+      val logger1 = path.foldRight(logger0) { case (fragment, acc) => acc.withPath(fragment) }
+      val logger2 = ctx.foldRight(logger1) { case ((k, v), acc) => acc.withContext(k, v) }
+
+      logger2(
+        metadata.logLevel,
+        Text(formatted, sourceCode),
+        throwable.map(DeserializedThrowable.apply),
+        metadata.instant
+      )(Formatter.StrFormatter, metadata.line, metadata.file, metadata.enclosing)
+    }
+  }
 
   object JsonEvent {
     implicit val strCodec: Codec[Str] =
@@ -50,22 +67,6 @@ object jsonEvents {
 
     override def withPath(fragment: String): TypedLogger[U] =
       new JsonProducer[U](underlying, context, fragment :: path)
-  }
-
-  /** For use in calling program, which receives json events
-    */
-  final class JsonConsumer(val underlying: Logger) {
-    def log(logEvent: JsonEvent): Unit = {
-      val underlying1 = logEvent.path.foldRight(underlying) { case (fragment, acc) => acc.withPath(fragment) }
-      val underlying2 = logEvent.ctx.foldRight(underlying1) { case ((k, v), acc) => acc.withContext(k, v) }
-
-      underlying2(
-        logEvent.metadata.logLevel,
-        Text(logEvent.formatted, logEvent.sourceCode),
-        logEvent.throwable.map(DeserializedThrowable.apply),
-        logEvent.metadata.instant
-      )(Formatter.StrFormatter, logEvent.metadata.line, logEvent.metadata.file, logEvent.metadata.enclosing)
-    }
   }
 
   case class DeserializedThrowable(th: Th) extends Throwable with NoStackTrace {

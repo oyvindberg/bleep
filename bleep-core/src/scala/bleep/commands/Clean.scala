@@ -24,7 +24,7 @@ case class Clean(started: Started, projects: List[model.CrossProjectName]) exten
           action = "clean files",
           cwd = FileUtils.TempDir,
           cmd = List(List("rm", "-Rf"), outDirectories.map(_.toString)).flatten,
-          logger = started.logger
+          cliLogger = cli.CliLogger(started.logger)
         )
         outDirectories.foreach(directory => started.logger.info(s"Deleted $directory"))
       }

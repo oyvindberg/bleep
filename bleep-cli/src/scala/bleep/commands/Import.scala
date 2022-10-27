@@ -225,7 +225,7 @@ case class Import(
         action = "sbt discover projects",
         cwd = sbtBuildDir,
         cmd = sbt,
-        logger = logger,
+        cliLogger = cli.CliLogger(logger),
         env = sbtEnvs,
         stdIn = sbtCommands(List("projects"))
       )
@@ -262,7 +262,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
               "sbt discover cross projects",
               sbtBuildDir,
               sbt,
-              logger,
+              cliLogger = cli.CliLogger(logger),
               env = sbtEnvs,
               stdIn = sbtCommands(cmds)
             )
@@ -308,7 +308,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
           action = "sbt export",
           cwd = sbtBuildDir,
           cmd = sbt,
-          logger = logger,
+          cliLogger = cli.CliLogger(logger),
           stdIn = sbtCommands(cmds),
           env = sbtEnvs
         )

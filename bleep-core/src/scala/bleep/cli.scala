@@ -1,6 +1,7 @@
 package bleep
 
-import bleep.logging.Logger
+import bleep.logging.{jsonEvents, Logger}
+import io.circe.parser.decode
 import sourcecode.{Enclosing, File, Line}
 
 import java.nio.file.Path
@@ -25,21 +26,35 @@ object cli {
     case class Provided(data: Array[Byte]) extends StdIn
   }
 
+  case class CliLogger(logger: Logger)(implicit l: Line, f: File, e: Enclosing) {
+    def apply(writtenLine: WrittenLine): Unit =
+      writtenLine match {
+        case WrittenLine.StdErr(line) =>
+          logger.warn(line)(implicitly, l, f, e)
+        case WrittenLine.StdOut(line) =>
+          val maybeJsonEvent = if (line.startsWith("{")) decode[jsonEvents.JsonEvent](line).toOption else None
+          maybeJsonEvent match {
+            case None            => logger.info(line)(implicitly, l, f, e)
+            case Some(jsonEvent) => jsonEvent.logTo(logger)
+          }
+      }
+
+    def withAction(action: String): CliLogger =
+      CliLogger(logger.withPath(action))
+  }
+
   def apply(
       action: String,
       cwd: Path,
       cmd: List[String],
-      logger: Logger,
+      cliLogger: CliLogger,
       stdIn: StdIn = StdIn.No,
       env: List[(String, String)] = Nil
-  )(implicit l: Line, f: File, e: Enclosing): WrittenLines = {
+  ): WrittenLines = {
     val builder = Process(cmd, cwd = Some(cwd.toFile), env: _*)
     val output = Array.newBuilder[WrittenLine]
-    val logger0 = action match {
-      case ""     => logger
-      case action => logger.withPath(action)
-    }
 
+    val cliLogger0 = cliLogger.withAction(s"[subprocess: $action]")
     val processIO = new ProcessIO(
       writeInput = os =>
         stdIn match {
@@ -50,12 +65,14 @@ object cli {
             os.close()
         },
       processOutput = BasicIO.processFully { line =>
-        output += WrittenLine.StdOut(line)
-        logger0.info(line)(implicitly, l, f, e)
+        val stdOut = WrittenLine.StdOut(line)
+        output += stdOut
+        cliLogger0(stdOut)
       },
       processError = BasicIO.processFully { line =>
-        output += WrittenLine.StdErr(line)
-        logger0.warn(line)(implicitly, l, f, e)
+        val stdErr = WrittenLine.StdErr(line)
+        output += stdErr
+        cliLogger0(stdErr)
       },
       daemonizeThreads = false
     )
@@ -65,7 +82,7 @@ object cli {
     exitCode match {
       case 0 => WrittenLines(output.result())
       case n =>
-        logger0
+        cliLogger0.logger
           .withContext(action)
           .withContext(cwd)
           .withContext(cmd)
