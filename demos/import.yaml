@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M16
+$version: 0.0.1-M18
 projects:
   zio-http:
     cross:
@@ -8,7 +8,7 @@ projects:
     dependencies:
     - dev.zio::zio-schema-json:0.2.1
     - dev.zio::zio-schema:0.2.1
-    - dev.zio::zio-streams:2.0.2
+    - dev.zio::zio-streams:2.0.2+108-f5c52bec-SNAPSHOT
     - module: io.netty.incubator:netty-incubator-transport-native-io_uring:0.0.15.Final
       publication:
         classifier: linux-x86_64
@@ -49,8 +49,8 @@ projects:
     - template-cross-all
   zio-http-benchmarks:
     dependencies:
-    - com.softwaremill.sttp.tapir::tapir-http4s-server:1.1.0
-    - com.softwaremill.sttp.tapir::tapir-json-circe:1.1.0
+    - com.softwaremill.sttp.tapir::tapir-http4s-server:1.1.1
+    - com.softwaremill.sttp.tapir::tapir-json-circe:1.1.1
     - org.openjdk.jmh:jmh-core:1.32
     - org.openjdk.jmh:jmh-generator-bytecode:1.32
     - org.openjdk.jmh:jmh-generator-reflection:1.32
@@ -74,7 +74,7 @@ projects:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-    dependencies: dev.zio::zio:2.0.2
+    dependencies: dev.zio::zio:2.0.2+108-f5c52bec-SNAPSHOT
     extends:
     - template-common-main
     - template-cross-all
@@ -99,6 +99,18 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ./zio-http
+  zio-http-testkit:
+    dependsOn: zio-http
+    extends:
+    - template-common-main
+    - template-cross-all
+  zio-http-testkit-test:
+    dependsOn: zio-http-testkit
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ./zio-http-testkit
+resolvers: https://oss.sonatype.org/content/repositories/snapshots
 templates:
   template-common:
     platform:
@@ -111,8 +123,8 @@ templates:
     sbt-scope: main
   template-common-test:
     dependencies:
-    - dev.zio::zio-test-sbt:2.0.2
-    - dev.zio::zio-test:2.0.2
+    - dev.zio::zio-test-sbt:2.0.2+108-f5c52bec-SNAPSHOT
+    - dev.zio::zio-test:2.0.2+108-f5c52bec-SNAPSHOT
     extends: template-common
     isTestProject: true
     sbt-scope: test
@@ -127,13 +139,14 @@ templates:
         extends: template-scala-3
   template-scala-2:
     scala:
-      options: -Wconf:cat=unused:info -Xcheckinit -Xfatal-warnings -Xlint:adapted-args
-        -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation -Xlint:doc-detached
-        -Xlint:inaccessible -Xlint:missing-interpolator -Xlint:nullary-unit -Xlint:option-implicit
-        -Xlint:package-object-classes -Xlint:poly-implicit-overload -Xlint:private-shadow
-        -Xlint:stars-align -Xlint:type-parameter-shadow -Ybackend-parallelism 8 -Ycache-macro-class-loader:last-modified
-        -Ycache-plugin-class-loader:last-modified -Yrangepos -encoding utf-8 -explaintypes
-        -language:existentials -language:higherKinds -opt:l:inline
+      options: -Wconf:cat=unused:info -Xcheckinit -Xfatal-warnings -Xlint:-infer-any
+        -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
+        -Xlint:doc-detached -Xlint:inaccessible -Xlint:missing-interpolator -Xlint:nullary-unit
+        -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -Ybackend-parallelism
+        8 -Ycache-macro-class-loader:last-modified -Ycache-plugin-class-loader:last-modified
+        -Yrangepos -encoding utf-8 -explaintypes -language:existentials -language:higherKinds
+        -opt:l:inline
   template-scala-2.12:
     extends: template-scala-2
     scala:
@@ -144,9 +157,9 @@ templates:
     extends: template-scala-2
     scala:
       options: -Wdead-code -Wextra-implicit -Wmacros:after -Wnumeric-widen -Woctal-literal
-        -Wunused:imports -Wunused:locals -Wunused:patvars -Wunused:privates -Wvalue-discard
-        -Xlint:eta-sam -Xlint:eta-zero -Xlint:implicit-not-found -Xlint:nonlocal-return
-        -Xlint:serial -Xlint:valpattern -Ywarn-unused:imports
+        -Wunused:locals -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:eta-sam
+        -Xlint:eta-zero -Xlint:implicit-not-found -Xlint:nonlocal-return -Xlint:serial
+        -Xlint:valpattern
       version: 2.13.8
   template-scala-3:
     scala:

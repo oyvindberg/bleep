@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M16
+$version: 0.0.1-M18
 jvm:
   name: graalvm-java17:22.2.0
 projects:
@@ -19,8 +19,8 @@ templates:
       name: native
       nativeGc: immix
       nativeMode: debug
-      nativeVersion: 0.4.3
+      nativeVersion: 0.4.7
     scala:
       options: -encoding utf8 -feature -unchecked
       strict: true
-      version: 3.1.1
+      version: 3.2.0
