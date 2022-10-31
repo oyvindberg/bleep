@@ -1,5 +1,7 @@
 package bleep
 
+import bleep.commands.PublishLocalOptions
+
 class Commands(started: Started) {
   private def force(cmd: BleepCommand): Unit =
     cmd.run().orThrow
@@ -18,4 +20,7 @@ class Commands(started: Started) {
 
   def script(name: model.ScriptName, args: List[String]): Unit =
     force(commands.Script(started, name, args))
+
+  def publishLocal(options: PublishLocalOptions): Unit =
+    force(commands.PublishLocal(started, options))
 }

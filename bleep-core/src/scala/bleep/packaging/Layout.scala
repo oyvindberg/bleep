@@ -1,6 +1,6 @@
-package bleep.tasks.publishing
+package bleep
+package packaging
 
-import bleep.RelPath
 import coursier.core.Dependency
 
 trait Layout[F, V] {

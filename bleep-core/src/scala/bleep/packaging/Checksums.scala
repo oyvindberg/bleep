@@ -1,6 +1,6 @@
-package bleep.tasks.publishing
+package bleep
+package packaging
 
-import bleep.RelPath
 import java.security.MessageDigest
 
 // note: adapted from https://github.com/apache/ant-ivy/blob/master/src/java/org/apache/ivy/util/ChecksumHelper.java
