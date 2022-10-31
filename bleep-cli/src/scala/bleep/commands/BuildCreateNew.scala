@@ -27,9 +27,9 @@ case class BuildCreateNew(
   def generate(buildPaths: BuildPaths): Either[BleepException, (Started, Map[Path, String])] = {
     val allFiles = genAllFiles(buildPaths)
 
-    val syncedFiles = FileSync.syncPaths(cwd, allFiles, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = true)
-
-    syncedFiles.foreach { case (path, synced) => logger.info(s"Wrote $path ($synced)") }
+    FileSync
+      .syncPaths(cwd, allFiles, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = true)
+      .log(logger, "Wrote build files")
 
     val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepYamlFile))
     val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)

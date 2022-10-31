@@ -56,12 +56,14 @@ object GenVideos extends BleepScript("GenVideos") {
     val generated: Map[RelPath, String] =
       Await.result(Future.sequence(generating), Duration.Inf).toMap
 
-    FileSync.syncStrings(
-      started.buildPaths.buildDir / "docs" / "videos",
-      generated,
-      deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = None),
-      soft = true
-    )
+    FileSync
+      .syncStrings(
+        started.buildPaths.buildDir / "docs" / "videos",
+        generated,
+        deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = None),
+        soft = true
+      )
+      .log(started.logger, "wrote videos")
   }
 
   def genVideo(demo: Demo, env: List[(String, String)], logger: Logger): String = {

@@ -5,10 +5,8 @@ import bleep.BleepException
 import bleep.bsp.BspCommandFailed
 import bleep.logging.jsonEvents
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.{RunParams, ScalaMainClass, ScalaMainClassesParams, ScalaMainClassesResult}
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
-import java.util
 import scala.build.bloop.BloopServer
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -28,12 +26,12 @@ case class Run(
         case Some(mainClass) => Right(mainClass)
         case None =>
           started.logger.info("No main class specified in build or command line. discovering...")
-          discoverMain(bloop)
+          discoverMain(bloop, project)
       }
 
     maybeMain.flatMap { main =>
-      val params = new RunParams(buildTarget(started.buildPaths, project))
-      val mainClass = new ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
+      val params = new bsp4j.RunParams(buildTarget(started.buildPaths, project))
+      val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
       val envs = sys.env.updated(jsonEvents.CallerProcessAcceptsJsonEvents, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
       mainClass.setEnvironmentVariables(envs)
       params.setData(mainClass)
@@ -63,29 +61,4 @@ case class Run(
       }
     }
   }
-
-  def discoverMain(bloop: BloopServer): Either[BleepException, String] = {
-    val req = new ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](buildTarget(started.buildPaths, project)))
-    started.logger.debug(req.toString)
-
-    val res: ScalaMainClassesResult =
-      bloop.server.buildTargetScalaMainClasses(req).get()
-
-    started.logger.debug(res.toString)
-
-    res.getItems.asScala.flatMap(_.getClasses.asScala).map(_.getClassName).toList match {
-      case Nil       => Left(Run.NoMain())
-      case List(one) => Right(one)
-      case many      => Left(Run.AmbiguousMain(many))
-    }
-  }
-}
-
-object Run {
-  case class AmbiguousMain(mainClasses: Seq[String])
-      extends BleepException(
-        s"Discovered more than one main class, so you need to specify which one you want with `--class ...`. ${mainClasses.map(fansi.Color.Magenta(_)).mkString("\n", "\n, ", "\n")}"
-      )
-
-  case class NoMain() extends BleepException(s"No main class found. Specify which one you want with `--class ...`")
 }

@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
+import bleep.packaging.{CoordinatesFor, PackagedLibrary, PublishLayout, packageLibraries}
 
 import java.nio.file.Path
 import scala.build.bloop.BloopServer
@@ -20,17 +20,15 @@ case class PublishLocal(started: Started, options: PublishLocalOptions) extends 
           publishLayout = options.publishLayout
         )
 
-      packagedLibraries.foreach { case (projectName, PackagedLibrary(asDependency, files)) =>
-        val synced = FileSync.syncBytes(
-          options.to.getOrElse(constants.ivy2Path),
-          files.all,
-          deleteUnknowns = FileSync.DeleteUnknowns.No,
-          soft = false
-        )
-
-        val ctxLogger = started.logger.withContext(projectName)
-        synced.foreach { case (path, _) => ctxLogger.debug(path) }
-        ctxLogger.withContext("dep", asDependency.module.repr).withContext("version", options.version).info("Wrote")
+      packagedLibraries.foreach { case (projectName, PackagedLibrary(_, files)) =>
+        FileSync
+          .syncBytes(
+            options.to.getOrElse(constants.ivy2Path),
+            files.all,
+            deleteUnknowns = FileSync.DeleteUnknowns.No,
+            soft = false
+          )
+          .log(started.logger.withContext(projectName), "Published locally")
       }
       ()
     }
