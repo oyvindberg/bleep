@@ -2,8 +2,10 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
+import bleep.commands.PublishLocalOptions
 import bleep.internal.{fatal, Os}
 import bleep.logging._
+import bleep.packaging.PublishLayout
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._
@@ -145,7 +147,25 @@ object Main {
             testProjectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           importCmd(started.prebootstrapped.existingBuild, started.buildPaths, started.logger),
-          compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths, started.resolver)
+          compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths, started.resolver),
+          Opts.subcommand("publish-local", "publishes your project locally") {
+            (
+              Opts.option[String]("groupId", "organization you will publish under"),
+              Opts.option[String]("version", "version you will publish"),
+              Opts.option[Path]("to", s"specify a folder other than ${constants.ivy2Path}").orNone,
+              Opts.flag("maven-layout", "publish with maven layout instead of ivy").orFalse,
+              projectNames
+            ).mapN { case (groupId, version, to, mavenLayout, projects) =>
+              val options = PublishLocalOptions(
+                groupId = groupId,
+                version = version,
+                to = to,
+                projects,
+                publishLayout = if (mavenLayout) PublishLayout.Maven() else PublishLayout.Ivy
+              )
+              commands.PublishLocal(started, options)
+            }
+          }
         ),
         started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(

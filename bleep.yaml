@@ -79,11 +79,6 @@ projects:
     - ./../liberated/sbt-pgp/gpg-library/src/main/scala
     - ./../liberated/sbt-pgp/sbt-pgp/src/main/scala
     - ./../liberated/sbt-sonatype/src/main/scala
-  bleep-tasks-publishing-test:
-    dependsOn: bleep-tasks-publishing
-    extends:
-    - template-common-test
-    - template-cross-jvm-212-213
   bleep-test-harness:
     dependencies: org.scalatest::scalatest:3.3.0-SNAP3
     dependsOn: bleep-core
@@ -106,9 +101,9 @@ scripts:
   generate-resources: scripts-init/bleep.scripts.GenerateResources
   generate-videos: scripts/bleep.scripts.GenVideos
   it: scripts/bleep.scripts.It
+  my-publish-local: scripts/bleep.scripts.PublishLocal
   native-image: scripts/bleep.scripts.GenNativeImage
   publish: scripts/bleep.scripts.Publish
-  publish-local: scripts/bleep.scripts.PublishLocal
 templates:
   template-common:
     platform:

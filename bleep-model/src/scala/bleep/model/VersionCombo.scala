@@ -14,7 +14,7 @@ sealed trait VersionCombo {
     case _                 => None
   }
 
-  def libraries(isTest: Boolean): Seq[Dep] =
+  def libraries(isTest: Boolean): List[Dep] =
     this match {
       case VersionCombo.Java              => Nil
       case VersionCombo.Jvm(scalaVersion) => scalaVersion.libraries

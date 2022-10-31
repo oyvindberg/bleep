@@ -2,6 +2,7 @@ package bleep
 package scripts
 
 import bleep.RelPath
+import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 import bleep.tasks.publishing._
 import coursier.Info
 import nosbt.InteractionService
@@ -23,7 +24,7 @@ object Publish extends BleepScript("Publish") {
     val sonatype = new Sonatype(
       logger = started.logger,
       sonatypeBundleDirectory = started.buildPaths.dotBleepDir / "sonatype-bundle",
-      sonatypeProfileName = "build.bleep",
+      sonatypeProfileName = groupId,
       bundleName = "bleep",
       version = dynVer.version,
       sonatypeCredentialHost = Sonatype.sonatype01
@@ -59,20 +60,20 @@ object Publish extends BleepScript("Publish") {
       )
     )
 
-    val bundledProjects: SortedMap[model.CrossProjectName, Deployable] =
-      fileBundle(
+    val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
+      packageLibraries(
         started,
-        asDep = (crossName, _) => model.Dep.Scala(org = groupId, name = crossName.name.value, version = dynVer.version),
+        coordinatesFor = CoordinatesFor.Default(groupId = groupId, version = dynVer.version),
         shouldInclude = projectsToPublish.include,
-        bundleLayout = fileBundle.BundleLayout.Maven(info)
+        publishLayout = PublishLayout.Maven(info)
       )
 
-    val bundleFiles: Map[RelPath, Array[Byte]] =
-      bundledProjects.flatMap { case (_, Deployable(_, files)) => files.all }
+    val files: Map[RelPath, Array[Byte]] =
+      packagedLibraries.flatMap { case (_, PackagedLibrary(_, files)) => files.all }
 
-    bundleFiles.foreach { case (path, bytes) =>
+    files.foreach { case (path, bytes) =>
       started.logger.withContext(path)(_.asString).withContext(bytes.length).debug("will publish")
     }
-    ciRelease.ciRelease(bundleFiles)
+    ciRelease.ciRelease(files)
   }
 }

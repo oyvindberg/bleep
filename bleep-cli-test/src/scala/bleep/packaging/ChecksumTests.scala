@@ -1,4 +1,4 @@
-package bleep.tasks.publishing
+package bleep.packaging
 
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite

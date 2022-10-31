@@ -1,4 +1,4 @@
-package bleep.tasks.publishing
+package bleep.packaging
 
 import bleep.PathOps
 import bleep.testing.SnapshotTest
