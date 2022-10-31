@@ -2,7 +2,7 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.commands.PublishLocalOptions
+import bleep.commands.{DistOptions, PublishLocalOptions}
 import bleep.internal.{fatal, Os}
 import bleep.logging._
 import bleep.packaging.PublishLayout
@@ -74,6 +74,13 @@ object Main {
         .orNone
         .map(started.chosenTestProjects)
 
+    val mainClass = Opts
+      .option[String](
+        "class",
+        "explicitly override main class. If not set, bleep will first look in the build file, then fall back to looking into compiled class files"
+      )
+      .orNone
+
     lazy val ret: Opts[BleepCommand] = {
       val allCommands = List(
         List[Opts[BleepCommand]](
@@ -125,12 +132,7 @@ object Main {
           Opts.subcommand("run", "run project")(
             (
               projectName,
-              Opts
-                .option[String](
-                  "class",
-                  "explicitly override main class. If not set, bleep will first look in the build file, then fall back to looking into compiled class files"
-                )
-                .orNone,
+              mainClass,
               Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty)
             ).mapN { case (projectName, mainClass, arguments) =>
               commands.Run(started, projectName, mainClass, arguments)
@@ -164,6 +166,20 @@ object Main {
                 publishLayout = if (mavenLayout) PublishLayout.Maven() else PublishLayout.Ivy
               )
               commands.PublishLocal(started, options)
+            }
+          },
+          Opts.subcommand("dist", "creates a folder with a runnable distribution") {
+            (
+              projectName,
+              mainClass,
+              Opts.argument[Path]("path").orNone
+            ).mapN { case (projectName, mainClass, overridePath) =>
+              val options = DistOptions(
+                projectName,
+                overrideMain = mainClass,
+                overridePath = overridePath
+              )
+              commands.Dist(started, options)
             }
           }
         ),

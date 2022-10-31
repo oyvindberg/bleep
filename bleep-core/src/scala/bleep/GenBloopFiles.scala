@@ -65,19 +65,15 @@ object GenBloopFiles {
 
       val fileMap = encodedFiles(buildPaths, bloopFiles).updated(buildPaths.digestFile, currentHash)
 
-      val synced = FileSync.syncPaths(
-        folder = buildPaths.bleepBloopDir,
-        fileMap = fileMap,
-        deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
-        soft = true
-      )
+      FileSync
+        .syncPaths(
+          folder = buildPaths.bleepBloopDir,
+          fileMap = fileMap,
+          deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
+          soft = true
+        )
+        .log(logger, "wrote bloop files")
 
-      val syncDetails = synced
-        .groupBy { case (_, synced) => synced }
-        .map { case (synced, files) => s"$synced: (${files.size})" }
-        .mkString(", ")
-
-      logger.warn(s"Wrote ${bloopFiles.size} files to ${buildPaths.bleepBloopDir}: $syncDetails")
       bloopFiles
     }
   }

@@ -1,6 +1,8 @@
 package bleep
 
 import bleep.internal.FileUtils
+import bleep.logging.Logger
+import sourcecode.{Enclosing, File, Line}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
@@ -17,6 +19,21 @@ object FileSync {
     case object Unchanged extends Synced
 
     case object Deleted extends Synced
+
+    implicit class SyncedOps(private val synced: Map[Path, Synced]) extends AnyVal {
+      def log(logger: Logger, msg: String)(implicit l: Line, f: File, e: Enclosing): Unit = {
+        synced.foreach { case (path, synced) =>
+          logger.withContext("change", synced.toString).debug(path)
+        }
+
+        val summary = synced.toArray
+          .groupBy { case (_, synced) => synced }
+          .map { case (synced, files) => s"$synced: ${files.length}" }
+          .mkString(", ")
+
+        logger.withContext(summary).info(msg)
+      }
+    }
   }
 
   sealed trait DeleteUnknowns
@@ -29,7 +46,7 @@ object FileSync {
 
   def syncPaths(folder: Path, fileMap: Map[Path, String], deleteUnknowns: DeleteUnknowns, soft: Boolean): Map[Path, Synced] = {
     val fileRelMap = fileMap.map { case (path, content) =>
-      require(path.startsWith(folder), s"${path} not within $folder")
+      require(path.startsWith(folder), s"$path not within $folder")
       RelPath.relativeTo(folder, path) -> content
     }
     syncStrings(folder, fileRelMap, deleteUnknowns, soft)
@@ -90,5 +107,4 @@ object FileSync {
       FileUtils.writeBytes(path, newContent)
       Synced.New
     }
-
 }

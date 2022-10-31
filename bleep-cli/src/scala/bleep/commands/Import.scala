@@ -192,7 +192,9 @@ case class Import(
       existingBuild
     ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
 
-    FileSync.syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = false)
+    FileSync
+      .syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = false)
+      .log(logger, "Wrote build files")
 
     Right(())
   }
