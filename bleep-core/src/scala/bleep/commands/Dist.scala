@@ -6,13 +6,15 @@ import bleep.packaging.dist
 import java.nio.file.Path
 import scala.build.bloop.BloopServer
 
-case class DistOptions(
-    project: model.CrossProjectName,
-    overrideMain: Option[String],
-    overridePath: Option[Path]
-)
+object Dist {
+  case class Options(
+      project: model.CrossProjectName,
+      overrideMain: Option[String],
+      overridePath: Option[Path]
+  )
+}
 
-case class Dist(started: Started, options: DistOptions) extends BleepCommandRemote(started) {
+case class Dist(started: Started, options: Dist.Options) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
     for {
       _ <- Compile(started, List(options.project)).runWithServer(bloop)

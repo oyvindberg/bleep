@@ -1,15 +1,28 @@
 package bleep
 package commands
 
-import bleep.packaging.{CoordinatesFor, PackagedLibrary, PublishLayout, packageLibraries}
+import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 
 import java.nio.file.Path
 import scala.build.bloop.BloopServer
 import scala.collection.immutable.SortedMap
 
-case class PublishLocalOptions(groupId: String, version: String, to: Option[Path], projects: List[model.CrossProjectName], publishLayout: PublishLayout)
+object PublishLocal {
+  sealed trait PublishTarget {
+    val path: Path
+    val publishLayout: PublishLayout
+  }
 
-case class PublishLocal(started: Started, options: PublishLocalOptions) extends BleepCommandRemote(started) {
+  case object LocalIvy extends PublishTarget {
+    override val path: Path = constants.ivy2Path
+    override val publishLayout: PublishLayout = PublishLayout.Ivy
+  }
+  case class Custom(path: Path, publishLayout: PublishLayout) extends PublishTarget
+
+  case class Options(groupId: String, version: String, publishTarget: PublishLocal.PublishTarget, projects: List[model.CrossProjectName])
+}
+
+case class PublishLocal(started: Started, options: PublishLocal.Options) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
     Compile(started, options.projects).runWithServer(bloop).map { case () =>
       val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
@@ -17,13 +30,13 @@ case class PublishLocal(started: Started, options: PublishLocalOptions) extends 
           started,
           coordinatesFor = CoordinatesFor.Default(groupId = options.groupId, version = options.version),
           shouldInclude = options.projects.toSet,
-          publishLayout = options.publishLayout
+          publishLayout = options.publishTarget.publishLayout
         )
 
       packagedLibraries.foreach { case (projectName, PackagedLibrary(_, files)) =>
         FileSync
           .syncBytes(
-            options.to.getOrElse(constants.ivy2Path),
+            options.publishTarget.path,
             files.all,
             deleteUnknowns = FileSync.DeleteUnknowns.No,
             soft = false
