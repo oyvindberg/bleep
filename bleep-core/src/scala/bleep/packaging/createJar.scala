@@ -9,7 +9,8 @@ import java.util.jar.{Attributes, JarEntry, JarOutputStream, Manifest}
 import scala.collection.mutable
 
 object createJar {
-  private val epochTime = FileTime.fromMillis(0)
+  // sbt/sbt#6254
+  private val epochTime = FileTime.fromMillis(1262304000000L)
 
   def apply(fromFolders: Iterable[Path], projectName: Option[model.CrossProjectName] = None, mainClass: Option[String] = None): Array[Byte] = {
     val manifest = createManifest(projectName, mainClass)
