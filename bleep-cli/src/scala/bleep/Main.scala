@@ -187,6 +187,11 @@ object Main {
               )
               commands.Dist(started, options)
             }
+          },
+          Opts.subcommand("fmt", "runs scalafmt") {
+            Opts.flag("check", "ensure that all files are already formatted").orFalse.map { check =>
+              new commands.Scalafmt(started, check)
+            }
           }
         ),
         started.build.scripts.map { case (scriptName, _) =>
