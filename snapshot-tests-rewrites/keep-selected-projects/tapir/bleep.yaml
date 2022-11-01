@@ -1046,8 +1046,6 @@ templates:
     extends:
     - template-js
     - template-scala-3
-    scala:
-      options: -scalajs
   template-scala-3-jvm:
     extends:
     - template-jvm

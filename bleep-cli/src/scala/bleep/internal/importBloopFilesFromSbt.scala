@@ -366,8 +366,9 @@ object importBloopFilesFromSbt {
       s: Config.Scala
   ): model.Scala = {
     val options = parseOptionsDropSemanticDb(s.options, Some(replacements))
+    val filteredOptions = options.removeAll(versionCombo.compilerOptions)
 
-    val notCompilerPlugins = options.values.filter {
+    val notCompilerPlugins = filteredOptions.values.filter {
       case model.Options.Opt.Flag(name) if name.startsWith(constants.ScalaPluginPrefix) => false
       case _                                                                            => true
     }

@@ -833,7 +833,7 @@ templates:
     - template-js
     - template-scala-3
     scala:
-      options: -scalajs -scalajs-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/
+      options: -scalajs-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/
   template-scala-3-jvm:
     extends:
     - template-jvm

@@ -62,6 +62,7 @@
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-scalajs",
         "-unchecked"
       ],
       "jars": [
