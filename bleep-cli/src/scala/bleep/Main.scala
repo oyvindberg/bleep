@@ -2,7 +2,6 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
-import bleep.commands.{DistOptions, PublishLocalOptions}
 import bleep.internal.{fatal, Os}
 import bleep.logging._
 import bleep.packaging.PublishLayout
@@ -158,12 +157,19 @@ object Main {
               Opts.flag("maven-layout", "publish with maven layout instead of ivy").orFalse,
               projectNames
             ).mapN { case (groupId, version, to, mavenLayout, projects) =>
-              val options = PublishLocalOptions(
+              val publishTarget = to match {
+                case Some(path) =>
+                  val publishLayout = if (mavenLayout) PublishLayout.Maven() else PublishLayout.Ivy
+                  commands.PublishLocal.Custom(path, publishLayout)
+                case None =>
+                  if (mavenLayout) throw new BleepException.Text("cannot provide --maven-layout without specifying --to")
+                  else commands.PublishLocal.LocalIvy
+              }
+              val options = commands.PublishLocal.Options(
                 groupId = groupId,
                 version = version,
-                to = to,
-                projects,
-                publishLayout = if (mavenLayout) PublishLayout.Maven() else PublishLayout.Ivy
+                publishTarget = publishTarget,
+                projects
               )
               commands.PublishLocal(started, options)
             }
@@ -174,7 +180,7 @@ object Main {
               mainClass,
               Opts.argument[Path]("path").orNone
             ).mapN { case (projectName, mainClass, overridePath) =>
-              val options = DistOptions(
+              val options = commands.Dist.Options(
                 projectName,
                 overrideMain = mainClass,
                 overridePath = overridePath

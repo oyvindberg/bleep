@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.commands.PublishLocalOptions
+import bleep.commands.PublishLocal
 
 class Commands(started: Started) {
   private def force(cmd: BleepCommand): Unit =
@@ -21,6 +21,6 @@ class Commands(started: Started) {
   def script(name: model.ScriptName, args: List[String]): Unit =
     force(commands.Script(started, name, args))
 
-  def publishLocal(options: PublishLocalOptions): Unit =
+  def publishLocal(options: PublishLocal.Options): Unit =
     force(commands.PublishLocal(started, options))
 }
