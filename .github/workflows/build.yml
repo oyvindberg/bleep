@@ -80,7 +80,6 @@ jobs:
           CI: true
         run: |
           ./${{ matrix.file_name }} --dev test --no-color jvm213
-          ./${{ matrix.file_name }} --dev it ./${{ matrix.file_name }}
         if: runner.os != 'Windows'
 
         # as is normal, everything involving windows is terrible.
