@@ -30,14 +30,16 @@ sealed trait VersionCombo {
         List(libs, scalaVersion.library) ++ testLibs.toList
     }
 
-  def compilerPlugin: Option[Dep]
+  val compilerPlugin: Option[Dep]
+  val compilerOptions: Options
 }
 
 object VersionCombo {
   implicit val codec: Codec[VersionCombo] = deriveCodec
 
   case object Java extends VersionCombo {
-    override def compilerPlugin: Option[Dep] = None
+    override val compilerPlugin: Option[Dep] = None
+    override val compilerOptions: Options = Options.empty
   }
 
   sealed trait Scala extends VersionCombo {
@@ -46,15 +48,25 @@ object VersionCombo {
   }
 
   case class Jvm(scalaVersion: VersionScala) extends Scala {
-    override def compilerPlugin: Option[Dep] = None
+    override val compilerPlugin: Option[Dep] = None
+    override val compilerOptions: Options = Options.empty
   }
+
   case class Js(scalaVersion: VersionScala, scalaJsVersion: VersionScalaJs) extends Scala {
-    override def compilerPlugin: Option[Dep] =
+    override val compilerPlugin: Option[Dep] =
       if (scalaVersion.is3) None else Some(scalaJsVersion.compilerPlugin)
+
+    override val compilerOptions: Options =
+      if (scalaVersion.is3) Options.parse(List("-scalajs"), None)
+      else Options.empty
   }
+
   case class Native(scalaVersion: VersionScala, scalaNative: VersionScalaNative) extends Scala {
-    override def compilerPlugin: Option[Dep] =
+    override val compilerPlugin: Option[Dep] =
       Some(scalaNative.compilerPlugin)
+
+    override val compilerOptions: Options =
+      Options.empty
   }
 
   def fromExplodedScalaAndPlatform(maybeScala: Option[VersionScala], maybePlatform: Option[Platform]): Either[String, VersionCombo] =
