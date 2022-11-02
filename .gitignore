@@ -6,3 +6,4 @@ target
 /.bleep
 /.bloop
 /project/.bloop
+sbt-build

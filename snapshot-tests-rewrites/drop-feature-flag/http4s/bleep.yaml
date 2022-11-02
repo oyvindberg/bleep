@@ -12,7 +12,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/async-http-client
+    folder: ./../sbt-build/async-http-client
   http4s-async-http-client-test:
     dependsOn:
     - http4s-async-http-client
@@ -20,7 +20,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/async-http-client
+    folder: ./../sbt-build/async-http-client
   http4s-bench:
     dependencies:
     - io.circe::circe-parser:0.15.0-M1
@@ -33,7 +33,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/bench
+    folder: ./../sbt-build/bench
   http4s-blaze-client:
     dependsOn:
     - http4s-blaze-core
@@ -41,7 +41,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/blaze-client
+    folder: ./../sbt-build/blaze-client
   http4s-blaze-client-test:
     dependsOn:
     - http4s-blaze-client
@@ -50,14 +50,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/blaze-client
+    folder: ./../sbt-build/blaze-client
   http4s-blaze-core:
     dependencies: org.http4s::blaze-http:0.15.3
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/blaze-core
+    folder: ./../sbt-build/blaze-core
   http4s-blaze-core-test:
     dependsOn:
     - http4s-blaze-core
@@ -65,7 +65,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/blaze-core
+    folder: ./../sbt-build/blaze-core
   http4s-blaze-server:
     dependsOn:
     - http4s-blaze-core
@@ -73,7 +73,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/blaze-server
+    folder: ./../sbt-build/blaze-server
   http4s-blaze-server-test:
     dependsOn:
     - http4s-blaze-core-test
@@ -82,14 +82,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/blaze-server
+    folder: ./../sbt-build/blaze-server
   http4s-boopickle:
     dependencies: io.suzaku::boopickle:1.4.0
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/boopickle
+    folder: ./../sbt-build/boopickle
     source-layout: cross-pure
   http4s-boopickle-test:
     dependsOn:
@@ -98,7 +98,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/boopickle
+    folder: ./../sbt-build/boopickle
     source-layout: cross-pure
   http4s-circe:
     dependencies:
@@ -108,7 +108,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/circe
+    folder: ./../sbt-build/circe
     source-layout: cross-pure
   http4s-circe-test:
     dependencies: io.circe::circe-testing:0.15.0-M1
@@ -118,14 +118,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/circe
+    folder: ./../sbt-build/circe
     source-layout: cross-pure
   http4s-client:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/client
+    folder: ./../sbt-build/client
     source-layout: cross-full
   http4s-client-test:
     cross:
@@ -149,7 +149,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/client
+    folder: ./../sbt-build/client
     source-layout: cross-full
   http4s-core:
     cross:
@@ -187,7 +187,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/core
+    folder: ./../sbt-build/core
     source-layout: cross-full
   http4s-core-test:
     cross:
@@ -204,7 +204,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/core
+    folder: ./../sbt-build/core
     source-layout: cross-full
   http4s-dropwizard-metrics:
     dependencies:
@@ -214,7 +214,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/dropwizard-metrics
+    folder: ./../sbt-build/dropwizard-metrics
   http4s-dropwizard-metrics-test:
     dependsOn:
     - http4s-client
@@ -225,13 +225,13 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/dropwizard-metrics
+    folder: ./../sbt-build/dropwizard-metrics
   http4s-dsl:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/dsl
+    folder: ./../sbt-build/dsl
     source-layout: cross-pure
   http4s-dsl-test:
     dependsOn:
@@ -240,7 +240,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/dsl
+    folder: ./../sbt-build/dsl
     source-layout: cross-pure
   http4s-ember-client:
     cross:
@@ -259,7 +259,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/ember-client
+    folder: ./../sbt-build/ember-client
     source-layout: cross-full
   http4s-ember-client-test:
     dependsOn:
@@ -269,7 +269,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/ember-client
+    folder: ./../sbt-build/ember-client
     source-layout: cross-full
   http4s-ember-core:
     cross:
@@ -286,7 +286,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/ember-core
+    folder: ./../sbt-build/ember-core
     source-layout: cross-full
   http4s-ember-core-test:
     dependencies: org.typelevel::log4cats-testing:2.2.0
@@ -296,7 +296,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/ember-core
+    folder: ./../sbt-build/ember-core
     source-layout: cross-full
   http4s-ember-server:
     cross:
@@ -314,7 +314,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/ember-server
+    folder: ./../sbt-build/ember-server
     source-layout: cross-full
   http4s-ember-server-test:
     cross:
@@ -334,7 +334,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/ember-server
+    folder: ./../sbt-build/ember-server
     source-layout: cross-full
   http4s-examples:
     dependencies:
@@ -349,7 +349,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples
+    folder: ./../sbt-build/examples
   http4s-examples-blaze:
     dependsOn:
     - http4s-blaze-client
@@ -358,7 +358,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples/blaze
+    folder: ./../sbt-build/examples/blaze
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
   http4s-examples-docker:
@@ -368,7 +368,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples/docker
+    folder: ./../sbt-build/examples/docker
   http4s-examples-ember:
     dependsOn:
     - http4s-ember-client
@@ -377,7 +377,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples/ember
+    folder: ./../sbt-build/examples/ember
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
   http4s-examples-ember-client-h2:
@@ -387,7 +387,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all
-    folder: ./../../snapshot-tests-in/http4s/examples/ember-client-h2
+    folder: ./../sbt-build/examples/ember-client-h2
   http4s-examples-ember-server-h2:
     dependsOn:
     - http4s-dsl
@@ -395,7 +395,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-js-all
-    folder: ./../../snapshot-tests-in/http4s/examples/ember-server-h2
+    folder: ./../sbt-build/examples/ember-server-h2
   http4s-examples-jetty:
     dependsOn:
     - http4s-examples
@@ -403,7 +403,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples/jetty
+    folder: ./../sbt-build/examples/jetty
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
   http4s-examples-tomcat:
@@ -413,7 +413,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples/tomcat
+    folder: ./../sbt-build/examples/tomcat
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
   http4s-examples-war:
@@ -426,7 +426,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/examples/war
+    folder: ./../sbt-build/examples/war
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
   http4s-jawn:
@@ -437,7 +437,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/jawn
+    folder: ./../sbt-build/jawn
     source-layout: cross-pure
   http4s-jawn-test:
     dependsOn:
@@ -446,7 +446,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/jawn
+    folder: ./../sbt-build/jawn
     source-layout: cross-pure
   http4s-jetty-client:
     dependencies:
@@ -457,7 +457,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/jetty-client
+    folder: ./../sbt-build/jetty-client
   http4s-jetty-client-test:
     dependsOn:
     - http4s-client-test
@@ -465,7 +465,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/jetty-client
+    folder: ./../sbt-build/jetty-client
   http4s-jetty-server:
     dependencies:
     - org.eclipse.jetty.http2:http2-server:9.4.45.v20220203
@@ -476,7 +476,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/jetty-server
+    folder: ./../sbt-build/jetty-server
   http4s-jetty-server-test:
     dependsOn:
     - http4s-dsl-test
@@ -485,7 +485,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/jetty-server
+    folder: ./../sbt-build/jetty-server
   http4s-laws:
     dependencies:
     - com.comcast::ip4s-test-kit:3.1.2
@@ -501,14 +501,14 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/laws
+    folder: ./../sbt-build/laws
     source-layout: cross-pure
   http4s-node-serverless:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-js-all
-    folder: ./../../snapshot-tests-in/http4s/node-serverless
+    folder: ./../sbt-build/node-serverless
   http4s-okhttp-client:
     dependencies:
     - com.squareup.okhttp3:okhttp:4.9.3
@@ -517,7 +517,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/okhttp-client
+    folder: ./../sbt-build/okhttp-client
   http4s-okhttp-client-test:
     dependsOn:
     - http4s-client-test
@@ -525,7 +525,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/okhttp-client
+    folder: ./../sbt-build/okhttp-client
   http4s-play-json:
     dependencies:
       for3Use213: true
@@ -534,7 +534,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/play-json
+    folder: ./../sbt-build/play-json
   http4s-play-json-test:
     dependsOn:
     - http4s-jawn-test
@@ -542,7 +542,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/play-json
+    folder: ./../sbt-build/play-json
   http4s-prometheus-metrics:
     dependencies:
     - io.prometheus:simpleclient:0.15.0
@@ -552,7 +552,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/prometheus-metrics
+    folder: ./../sbt-build/prometheus-metrics
   http4s-prometheus-metrics-test:
     dependsOn:
     - http4s-client
@@ -563,14 +563,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/prometheus-metrics
+    folder: ./../sbt-build/prometheus-metrics
   http4s-scala-xml:
     dependencies: org.scala-lang.modules::scala-xml:2.0.1
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scala-xml
+    folder: ./../sbt-build/scala-xml
   http4s-scala-xml-test:
     dependsOn:
     - http4s-scala-xml
@@ -578,14 +578,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scala-xml
+    folder: ./../sbt-build/scala-xml
   http4s-scalatags:
     dependencies: com.lihaoyi::scalatags:0.11.1
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalatags
+    folder: ./../sbt-build/scalatags
   http4s-scalatags-test:
     dependsOn:
     - http4s-scalatags
@@ -593,13 +593,13 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalatags
+    folder: ./../sbt-build/scalatags
   http4s-server:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/server
+    folder: ./../sbt-build/server
     source-layout: cross-full
   http4s-server-test:
     dependsOn:
@@ -609,7 +609,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/server
+    folder: ./../sbt-build/server
     source-layout: cross-full
   http4s-servlet:
     dependencies:
@@ -619,7 +619,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/servlet
+    folder: ./../sbt-build/servlet
   http4s-servlet-test:
     dependencies:
     - configuration: provided
@@ -633,13 +633,13 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/servlet
+    folder: ./../sbt-build/servlet
   http4s-testing:
     dependsOn: http4s-laws
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/testing
+    folder: ./../sbt-build/testing
     source-layout: cross-full
   http4s-testing-test:
     cross:
@@ -658,14 +658,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/testing
+    folder: ./../sbt-build/testing
     source-layout: cross-full
   http4s-tests:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/tests
+    folder: ./../sbt-build/tests
     source-layout: cross-full
   http4s-tests-test:
     dependsOn:
@@ -674,7 +674,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/http4s/tests
+    folder: ./../sbt-build/tests
     source-layout: cross-full
   http4s-tomcat-server:
     dependencies:
@@ -685,7 +685,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/tomcat-server
+    folder: ./../sbt-build/tomcat-server
   http4s-tomcat-server-test:
     dependsOn:
     - http4s-servlet-test
@@ -693,7 +693,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/tomcat-server
+    folder: ./../sbt-build/tomcat-server
   http4s-twirl:
     dependencies:
       for3Use213: true
@@ -702,7 +702,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/twirl
+    folder: ./../sbt-build/twirl
   http4s-twirl-test:
     dependsOn:
     - http4s-testing-test
@@ -710,19 +710,19 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/twirl
+    folder: ./../sbt-build/twirl
   scalafixinternalinput:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/input
+    folder: ./../sbt-build/scalafix-internal/input
   scalafixinternaloutput:
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/output
+    folder: ./../sbt-build/scalafix-internal/output
   scalafixinternalrules:
     cross:
       jvm213:
@@ -730,7 +730,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/rules
+    folder: ./../sbt-build/scalafix-internal/rules
   scalafixinternaltests:
     cross:
       jvm3:
@@ -740,7 +740,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
+    folder: ./../sbt-build/scalafix-internal/tests
   scalafixinternaltests-test:
     cross:
       jvm213:
@@ -752,7 +752,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-all
-    folder: ./../../snapshot-tests-in/http4s/scalafix-internal/tests
+    folder: ./../sbt-build/scalafix-internal/tests
   scripts:
     dependencies: build.bleep::bleep-tasks:0.0.1-M14
     platform:

@@ -1,16 +1,21 @@
-package bleep.testing
+package bleep
+package testing
 
-import bleep.{model, FileSync}
+import bleep.internal.FileUtils
+import bleep.logging.Logger
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
 import java.nio.file.{Files, Path, Paths}
+import java.time.Instant
 import scala.util.Properties
 
 trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val enforceUpToDate: Boolean =
+  val logger0 = logging.stdout(LogPatterns.interface(Instant.now, noColor = false)).untyped
+
+  val isCi: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt
 
   val outFolder: Path =
@@ -33,43 +38,17 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
       )
     )
 
-  def writeAndCompare(in: Path, fileMap: Map[Path, String]): Assertion =
-    if (Properties.isWin) pending // let's deal with this later
-    else {
-      if (enforceUpToDate) {
-        fileMap.foreach { case (path, contents) =>
-          if (Files.exists(path)) {
-            val existingContents = Files.readString(path)
-            assert(existingContents === contents, path)
-          } else {
-            fail(s"Expected path $path to exist")
-          }
-        }
-        succeed
-      } else {
-        FileSync.syncPaths(in, fileMap, deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = None), soft = true)
-        pending
-      }
-    }
+  def writeAndCompare(in: Path, fileMap: Map[Path, String], logger: Logger): Assertion = {
+    FileSync.syncPaths(in, fileMap, deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = None), soft = true)
 
-  // copy/paste above. this won't throw a pending test result exception on success
-  // also won't delete unknown files
-  def writeAndCompareEarly(in: Path, fileMap: Map[Path, String]): Assertion =
+    var from = in
+    while (!Files.isDirectory(from))
+      from = from.getParent
+
     if (Properties.isWin) succeed // let's deal with this later
-    else {
-      if (enforceUpToDate) {
-        fileMap.foreach { case (path, contents) =>
-          if (Files.exists(path)) {
-            val existingContents = Files.readString(path)
-            assert(existingContents === contents)
-          } else {
-            fail(s"Expected path $path to exist")
-          }
-        }
-        succeed
-      } else {
-        FileSync.syncPaths(in, fileMap, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = true)
-        succeed
-      }
-    }
+    else if (isCi) {
+      cli("git diff", from, List("/usr/bin/git", "diff", "--exit-code", in.toString), cli.CliLogger(logger), env = List(("PATH", sys.env("PATH"))))
+      succeed
+    } else succeed
+  }
 }

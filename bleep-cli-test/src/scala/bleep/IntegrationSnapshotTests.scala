@@ -2,174 +2,157 @@ package bleep
 
 import bleep.commands.Import
 import bleep.commands.Import.Options
-import bleep.internal.{findGeneratedFiles, FileUtils, GeneratedFile, ImportInputProjects, ReadSbtExportFile}
+import bleep.internal.{FileUtils, ImportInputData}
 import bleep.testing.SnapshotTest
 import bloop.config.Config
-import coursier.paths.CoursierPaths
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 import org.scalatest.Assertion
 
-import java.nio.file.{Files, Path, Paths}
-import java.time.Instant
+import java.nio.charset.StandardCharsets
+import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class IntegrationSnapshotTests extends SnapshotTest {
-  val logger = logging.stdout(LogPatterns.interface(Instant.now, false)).untyped
-  val inFolder = Paths.get("snapshot-tests-in").toAbsolutePath
-  object testResolver extends CoursierResolver.Factory {
-    override def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver = {
-      val cachePath =
-        if (enforceUpToDate) CoursierPaths.cacheDirectory().toPath / "sneaky-bleep-cache"
-        else pre.userPaths.coursierCacheDir
-
-      CoursierResolver(
-        repos = buildFile.resolvers.values,
-        logger = logger,
-        downloadSources = false,
-        cacheIn = cachePath,
-        authentications = None,
-        wantedBleepVersion = None
-      )
-    }
-  }
-
   absolutePaths.sortedValues.foreach(println)
+
   test("tapir") {
-    testIn("tapir")
+    testIn("tapir", "https://github.com/softwaremill/tapir.git", "9057697")
   }
 
   test("doobie") {
-    testIn("doobie")
+    testIn("doobie", "https://github.com/tpolecat/doobie.git", "5d0957d")
   }
 
   test("http4s") {
-    testIn("http4s")
+    testIn("http4s", "https://github.com/http4s/http4s.git", "bc06627")
   }
 
   test("bloop") {
-    // todo: cache result of looking up existing sources in a json file as well
-    cli(action = "git submodule init", cwd = inFolder / "bloop", cmd = List("git", "submodule", "init"), cliLogger = cli.CliLogger(logger))
-    cli("git submodule update", inFolder / "bloop", List("git", "submodule", "update"), cliLogger = cli.CliLogger(logger))
-    testIn("bloop")
+    testIn("bloop", "https://github.com/scalacenter/bloop.git", "b190bd3")
   }
 
   test("sbt") {
-    testIn("sbt")
+    testIn("sbt", "https://github.com/sbt/sbt.git", "1f29c90")
   }
 
   test("scalameta") {
-    testIn("scalameta")
+    testIn("scalameta", "https://github.com/scalameta/scalameta.git", "e2cba51")
   }
 
   test("converter") {
-    testIn("converter")
+    testIn("converter", "https://github.com/ScalablyTyped/Converter.git", "715edaf")
   }
 
-  def testIn(project: String): Assertion = {
-    val sbtBuildDir = inFolder / project
-    val buildLoader = BuildLoader.inDirectory(outFolder / project)
-    val destinationPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)
-    val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
-    val importer = commands.Import(existingBuild = None, sbtBuildDir, destinationPaths, logger, importerOptions, model.BleepVersion.dev)
+  def testIn(project: String, repo: String, sha: String): Assertion = {
+    val logger = logger0.withPath(project)
+    val testFolder = outFolder / project
+    val sbtBuildDir = testFolder / "sbt-build"
+    val inputDataPath = testFolder / "input.json.gz"
+    val importedPath = testFolder / "imported"
+    val bootstrappedPath = testFolder / "bootstrapped"
 
-    // if this directory exists, assume it has all files in good condition, but with paths not filled in
-    if (!Files.exists(destinationPaths.bleepImportDir)) {
-      // if not, generate all bloop and dependency files
-      importer.generateBloopAndDependencyFiles()
-
-      // remove machine-specific paths inside bloop files files
-      Import.findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir).foreach { bloopFilePath =>
-        val contents = Files.readString(bloopFilePath)
-        val templatedContents = absolutePaths.templatize.string(contents)
-        FileUtils.writeString(bloopFilePath, templatedContents)
-      }
-    }
-
-    val sbtExportFiles = Import.findGeneratedJsonFiles(destinationPaths.bleepImportSbtExportDir).map { path =>
-      val contents = Files.readString(path)
-      (path, contents, ReadSbtExportFile.parse(path, contents))
-    }
-
-    val importedBloopFiles: Iterable[(Path, String, Config.File)] =
-      Import
-        .findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir)
-        .map { bloopFilePath =>
-          val originalContents = Files.readString(bloopFilePath)
-          val importedBloopFile = {
-            val templatedContents = absolutePaths.fill.string(originalContents)
-            GenBloopFiles.parseBloopFile(templatedContents)
-          }
-          (bloopFilePath, originalContents, importedBloopFile)
+    val inputData: ImportInputData =
+      if (!Files.exists(inputDataPath)) {
+        val cliLogger = cli.CliLogger(logger)
+        if (!Files.exists(sbtBuildDir)) {
+          Files.createDirectories(testFolder)
+          cli(action = "git clone", cwd = testFolder, cmd = List("git", "clone", repo, sbtBuildDir.getFileName.toString), cliLogger)
+        } else {
+          cli(action = "git fetch", cwd = sbtBuildDir, cmd = List("git", "fetch"), cliLogger)
         }
+        cli(action = "git reset", cwd = sbtBuildDir, cmd = List("git", "reset", "--hard", sha), cliLogger)
+        // fix OOM for sbt build
+        Files.writeString(
+          sbtBuildDir / "build.sbt",
+          Files.readString(sbtBuildDir / "build.sbt").split("\n").filterNot(_.contains("scalafmtOnCompile := ")).mkString("\n")
+        )
+        cli(action = "git submodule init", cwd = sbtBuildDir, cmd = List("git", "submodule", "init"), cliLogger)
+        cli(action = "git submodule update", sbtBuildDir, List("git", "submodule", "update"), cliLogger)
 
-    // cache contents of all generated files in a json file which is checked in.
-    // these files will be machine and time dependent, but it's fine. just thread the content through, and update when sbt imports are refreshed
-    val generatedFilesJsonFile = destinationPaths.buildDir / "generated-files.json"
-    val generatedFilesCached: Option[Map[model.CrossProjectName, Vector[GeneratedFile]]] = {
-      val jsonFile = generatedFilesJsonFile
+        val sbtBuildLoader = BuildLoader.inDirectory(sbtBuildDir)
+        val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, BuildPaths.Mode.Normal)
+        Import.runSbtExport(logger, sbtBuildDir, sbtDestinationPaths)
 
-      if (FileUtils.exists(jsonFile))
-        decode[Map[model.CrossProjectName, Vector[GeneratedFile]]](Files.readString(jsonFile))
-          .map(Some.apply)
-          .orThrowWithError(s"Couldn't decode $jsonFile")
-      else None
-    }
-
-    val inputProjects = ImportInputProjects(
-      importedBloopFiles.map { case (_, _, file) => file },
-      sbtExportFiles.map { case (_, _, sbtExportFile) => sbtExportFile },
-      forceInclude = generatedFilesCached match {
-        case Some(map) => map.keySet
-        case None      => Set.empty
+        val inputData = ImportInputData.collectFromFileSystem(sbtDestinationPaths)
+        FileUtils.writeGzippedBytes(
+          inputDataPath,
+          inputData
+            // remove machine-specific paths inside bloop files files
+            .replace(absolutePaths.templatize, rewriteGeneratedFiles = true)
+            .asJson
+            .spaces2
+            .getBytes(StandardCharsets.UTF_8)
+        )
+        inputData
+      } else {
+        decode[ImportInputData](new String(FileUtils.readGzippedBytes(inputDataPath), StandardCharsets.UTF_8)) match {
+          case Left(circeError) => throw new BleepException.InvalidJson(inputDataPath, circeError)
+          case Right(inputData) => inputData.replace(absolutePaths.fill, rewriteGeneratedFiles = false)
+        }
       }
-    )
-    val generatedFiles = generatedFilesCached.getOrElse {
-      findGeneratedFiles(inputProjects)
-    }
+
+    val importedBuildLoader = BuildLoader.inDirectory(importedPath)
+    val importedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, importedBuildLoader, BuildPaths.Mode.Normal)
+    val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
-      importer.generateBuild(inputProjects, bleepTasksVersion = model.BleepVersion("0.0.1-M14"), generatedFiles, maybeExistingBuildFile = None)
-
-    // write build files, and produce an (in-memory) exploded build plus new bloop files
-    writeAndCompareEarly(destinationPaths.buildDir, buildFiles.map { case (p, s) => (p, absolutePaths.templatize.string(s)) })
-
-    val started = bootstrap
-      .from(
-        Prebootstrapped(destinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
-        GenBloopFiles.InMemory,
-        rewrites = Nil,
-        Lazy(model.BleepConfig.default),
-        testResolver
+      Import.generateBuild(
+        sbtBuildDir,
+        importedDestinationPaths,
+        logger,
+        importerOptions,
+        model.BleepVersion.dev,
+        inputData,
+        bleepTasksVersion = model.BleepVersion("0.0.1-M14"),
+        skipGeneratedResourcesScript = false,
+        maybeExistingBuildFile = None
       )
-      .orThrow
 
-    // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
-    val generatedBloopFiles: Map[Path, String] =
-      GenBloopFiles.encodedFiles(destinationPaths, started.bloopFiles)
+    writeAndCompare(
+      importedDestinationPaths.buildDir,
+      buildFiles.map { case (p, s) => (p, absolutePaths.templatize.string(s)) },
+      logger
+    )
 
-    val allFiles: Map[Path, String] = (
-      buildFiles ++
-        generatedBloopFiles ++
-        importedBloopFiles.map { case (p, s, _) => (p, s) } ++
-        sbtExportFiles.map { case (p, s, _) => (p, s) } ++ Map(generatedFilesJsonFile -> generatedFiles.asJson.noSpaces)
-    ).map { case (p, s) => (p, absolutePaths.templatize.string(s)) }
+    val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), BuildPaths.Mode.Normal)
+    val existingImportedBuildLoader = BuildLoader.Existing(importedBuildLoader.bleepYaml)
 
-    // further property checks to see that we haven't made any illegal rewrites
-    assertSameIshBloopFiles(inputProjects, started)
+    TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
+      val started = bootstrap
+        .from(
+          Prebootstrapped(bootstrappedDestinationPaths, logger, existingImportedBuildLoader),
+          GenBloopFiles.InMemory,
+          rewrites = Nil,
+          Lazy(model.BleepConfig.default),
+          testResolver
+        )
+        .orThrow
 
-    // flush templated bloop files to disk if local, compare to checked in if test is running in CI
-    // note, keep last. locally it "succeeds" with a `pending`
-    writeAndCompare(destinationPaths.buildDir, allFiles)
+      // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
+      val generatedBloopFiles: Map[Path, String] =
+        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.bloopFiles)
+
+      // further property checks to see that we haven't made any illegal rewrites
+      assertSameIshBloopFiles(inputData, started)
+
+      // flush templated bloop files to disk if local, compare to checked in if test is running in CI
+      // note, keep last. locally it "succeeds" with a `pending`
+      writeAndCompare(
+        bootstrappedPath,
+        generatedBloopFiles.map { case (p, s) => (p, absolutePaths.templatize.string(s)) },
+        logger
+      )
+    }
   }
 
   // compare some key properties before and after import
-  def assertSameIshBloopFiles(inputProjects: ImportInputProjects, started: Started): Assertion = {
+  def assertSameIshBloopFiles(inputProjects: ImportInputData, started: Started): Assertion = {
     started.bloopProjects.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
       case (crossProjectName, output) =>
-        val input = inputProjects.values(crossProjectName).bloopFile.project
+        val input = inputProjects.projects(crossProjectName).bloopFile.project
 
         // todo: this needs further work,
         //      assert(
@@ -180,7 +163,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         // scalacOptions are the same, modulo ordering, duplicates, target directory and semanticdb
         def patchedOptions(project: Config.Project, targetDir: Path): List[String] = {
           val replacements = model.Replacements.targetDir(targetDir) ++
-            model.Replacements.ofReplacements(List(("snapshot-tests-in", "snapshot-tests")))
+            model.Replacements.ofReplacements(List(("sbt-build", "bootstrapped")))
           val original = project.scala.map(_.options).getOrElse(Nil)
           model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
             case opt if opt.toString.contains("semanticdb") => Nil

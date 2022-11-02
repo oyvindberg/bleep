@@ -15,7 +15,8 @@ case class BuildCreateNew(
     platforms: NonEmptyList[model.PlatformId],
     scalas: NonEmptyList[model.VersionScala],
     name: String,
-    bleepVersion: model.BleepVersion
+    bleepVersion: model.BleepVersion,
+    coursierResolver: CoursierResolver.Factory
 ) extends BleepCommand {
 
   override def run(): Either[BleepException, Unit] = {
@@ -34,7 +35,7 @@ case class BuildCreateNew(
     val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepYamlFile))
     val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
-    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) map { started =>
+    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, coursierResolver) map { started =>
       val projects = started.bloopProjectsList
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct

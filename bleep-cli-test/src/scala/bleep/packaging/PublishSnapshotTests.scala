@@ -5,8 +5,9 @@ import bleep.testing.SnapshotTest
 import coursier.core._
 
 class PublishSnapshotTests extends SnapshotTest {
-
   test("maven") {
+    val logger = logger0.withPath("maven")
+
     val self = Dependency(Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty), "1.0.0")
     val deps = List(
       Dependency(Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty), "1.0.0")
@@ -23,6 +24,10 @@ class PublishSnapshotTests extends SnapshotTest {
     )
     val path = outFolder / "publish" / "pom.xml"
     val string = new String(GenLayout.fromXml(GenLayout.pomFile(self, deps, info)))
-    writeAndCompare(path, Map(path -> string))
+    writeAndCompare(
+      path,
+      Map(path -> string),
+      logger
+    )
   }
 }

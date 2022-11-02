@@ -1,7 +1,7 @@
 package bleep
 package internal
 
-import bleep.internal.ImportInputProjects.ProjectType
+import bleep.internal.ImportInputData.ProjectType
 import bleep.logging.Logger
 import bleep.{model, RelPath}
 import bloop.config.Config
@@ -30,11 +30,11 @@ object importBloopFilesFromSbt {
       logger: Logger,
       sbtBuildDir: Path,
       destinationPaths: BuildPaths,
-      inputProjects: ImportInputProjects,
+      inputProjects: ImportInputData,
       bleepVersion: model.BleepVersion
   ): model.Build.Exploded = {
 
-    val projects = inputProjects.values.map { case (crossName, inputProject) =>
+    val projects = inputProjects.projects.map { case (crossName, inputProject) =>
       val bloopProject = inputProject.bloopFile.project
 
       val projectType = inputProject.projectType
@@ -166,7 +166,7 @@ object importBloopFilesFromSbt {
 
     val buildResolvers: model.JsonList[model.Repository] =
       model.JsonList(
-        inputProjects.values.values.toArray
+        inputProjects.projects.values.toArray
           .flatMap(inputProject => inputProject.bloopFile.project.resolution)
           .flatMap(_.modules)
           .distinct
@@ -188,7 +188,7 @@ object importBloopFilesFromSbt {
 
   def importDeps(
       logger: Logger,
-      inputProject: ImportInputProjects.InputProject,
+      inputProject: ImportInputData.InputProject,
       crossName: model.CrossProjectName,
       platformName: Option[model.PlatformId],
       providedDeps: Seq[model.Dep],

@@ -1,0 +1,98 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "semanticdbintegration@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegration/jvm212",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/semanticdbintegration@jvm212",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/scala-2.12"
+    ],
+    "dependencies": [
+      "semanticdbintegrationmacros@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegrationmacros/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegration/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegration/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/semanticdbintegration@jvm212",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.16",
+      "options": [
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.16/2.1.1/paradise_2.12.16-2.1.1.jar",
+        "-Yrangepos",
+        "-Ywarn-unused-import",
+        "-deprecation",
+        "-feature",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegration/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "-parameters"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

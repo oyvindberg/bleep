@@ -10,7 +10,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/scalameta/bench/suite
+    folder: ./../sbt-build/bench/suite
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   common:
@@ -24,7 +24,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/scalameta/common
+    folder: ./../sbt-build/scalameta/common
     resources:
     - ./../../semanticdb/semanticdb
     - ./../../semanticdb/semanticdb/semanticdb.proto
@@ -36,7 +36,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/scalameta/community-test
+    folder: ./../sbt-build/community-test
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   communitytest-test:
@@ -44,13 +44,13 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/scalameta/community-test
+    folder: ./../sbt-build/community-test
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   metac:
     dependsOn: semanticdb-scalac
     extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
-    folder: ./../../snapshot-tests-in/scalameta/semanticdb/metac
+    folder: ./../sbt-build/semanticdb/metac
   parsers:
     dependencies:
     - configuration: provided
@@ -61,7 +61,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/scalameta/parsers
+    folder: ./../sbt-build/scalameta/parsers
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
     - ./${PLATFORM}/src/${SCOPE}/protobuf
@@ -82,7 +82,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/scalameta/scalameta
+    folder: ./../sbt-build/scalameta/scalameta
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
     - ./${PLATFORM}/src/${SCOPE}/protobuf
@@ -98,7 +98,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../../snapshot-tests-in/scalameta/scalameta-docs
+    folder: ./../sbt-build/scalameta-docs
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   scripts:
@@ -110,12 +110,12 @@ projects:
   semanticdb-scalac:
     dependsOn: semanticdb-scalac-core
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
-    folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/plugin
+    folder: ./../sbt-build/semanticdb/scalac/plugin
   semanticdb-scalac-core:
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: scalameta
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
-    folder: ./../../snapshot-tests-in/scalameta/semanticdb/scalac/library
+    folder: ./../sbt-build/semanticdb/scalac/library
   semanticdbintegration:
     cross:
       jvm213:
@@ -125,7 +125,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/scalameta/semanticdb/integration
+    folder: ./../sbt-build/semanticdb/integration
     java:
       options: -parameters
     resources: ./src/${SCOPE}/protobuf
@@ -139,7 +139,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/scalameta/semanticdb/integration-macros
+    folder: ./../sbt-build/semanticdb/integration-macros
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   testkit:
@@ -155,7 +155,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/scalameta/testkit
+    folder: ./../sbt-build/scalameta/testkit
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   testkit-test:
@@ -164,7 +164,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/scalameta/scalameta/testkit
+    folder: ./../sbt-build/scalameta/testkit
     resources:
     - ./${PLATFORM}-native/src/${SCOPE}/resources
     - ./${PLATFORM}/src/${SCOPE}/protobuf
@@ -189,7 +189,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/tests
+    folder: ./../sbt-build/tests
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   tests-test:
@@ -197,7 +197,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/tests
+    folder: ./../sbt-build/tests
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   trees:
@@ -211,7 +211,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213-native-all-js-all
-    folder: ./../../snapshot-tests-in/scalameta/scalameta/trees
+    folder: ./../sbt-build/scalameta/trees
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources:
     - ./${PLATFORM}/src/${SCOPE}/protobuf

@@ -17,7 +17,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main-actions
+    folder: ./../sbt-build/main-actions
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -33,7 +33,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main-actions
+    folder: ./../sbt-build/main-actions
   collections:
     cross:
       jvm213:
@@ -43,7 +43,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-collection
+    folder: ./../sbt-build/internal/util-collection
     resources:
     - ./../../LICENSE
     - ./NOTICE
@@ -61,7 +61,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-collection
+    folder: ./../sbt-build/internal/util-collection
   command:
     dependencies:
     - org.scala-sbt::librarymanagement-core:1.7.0
@@ -76,7 +76,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main-command
+    folder: ./../sbt-build/main-command
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -94,7 +94,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main-command
+    folder: ./../sbt-build/main-command
     scala:
       options: -Ywarn-unused:-locals,-explicits,-privates
   completion:
@@ -107,7 +107,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-complete
+    folder: ./../sbt-build/internal/util-complete
     resources:
     - ./../../LICENSE
     - ./NOTICE
@@ -125,14 +125,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-complete
+    folder: ./../sbt-build/internal/util-complete
   core-macros:
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: collections
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/core-macros
+    folder: ./../sbt-build/core-macros
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -144,7 +144,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-logic
+    folder: ./../sbt-build/internal/util-logic
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -160,7 +160,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-logic
+    folder: ./../sbt-build/internal/util-logic
   main:
     cross:
       jvm213:
@@ -180,7 +180,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main
+    folder: ./../sbt-build/main
     resources:
     - ./../LICENSE
     - ./NOTICE
@@ -196,7 +196,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main-settings
+    folder: ./../sbt-build/main-settings
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -212,7 +212,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main-settings
+    folder: ./../sbt-build/main-settings
   main-test:
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
@@ -224,14 +224,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/main
+    folder: ./../sbt-build/main
   protocol:
     dependencies: org.scala-sbt.ipcsocket:ipcsocket:1.5.0
     dependsOn: util-logging
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/protocol
+    folder: ./../sbt-build/protocol
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -246,7 +246,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/run
+    folder: ./../sbt-build/run
     resources:
     - ./../LICENSE
     - ./../licenses/LICENSE_Apache
@@ -267,7 +267,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/run
+    folder: ./../sbt-build/run
     scala:
       options: -Ywarn-unused:-locals,-explicits,-privates
   sbt-client:
@@ -278,12 +278,12 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/client
+    folder: ./../sbt-build/client
   scripted-plugin:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/scripted-plugin
+    folder: ./../sbt-build/scripted-plugin
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -302,7 +302,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/tasks-standard
+    folder: ./../sbt-build/tasks-standard
     resources:
     - ./../LICENSE
     - ./NOTICE
@@ -316,7 +316,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/tasks-standard
+    folder: ./../sbt-build/tasks-standard
   tasks:
     dependsOn:
     - collections
@@ -324,7 +324,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/tasks
+    folder: ./../sbt-build/tasks
     resources:
     - ./../LICENSE
     - ./NOTICE
@@ -342,13 +342,13 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/tasks
+    folder: ./../sbt-build/tasks
   test-agent:
     dependencies: org.scala-sbt:test-interface:1.0
     extends:
     - template-common-main
     - template-scala-2.12
-    folder: ./../../snapshot-tests-in/sbt/testing/agent
+    folder: ./../sbt-build/testing/agent
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
   testing:
@@ -362,7 +362,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/testing
+    folder: ./../sbt-build/testing
     resources:
     - ./../LICENSE
     - ./NOTICE
@@ -380,7 +380,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/util-cache
+    folder: ./../sbt-build/util-cache
     resources:
     - ./../LICENSE
     - ./NOTICE
@@ -393,12 +393,12 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/util-cache
+    folder: ./../sbt-build/util-cache
   util-control:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-control
+    folder: ./../sbt-build/internal/util-control
     resources:
     - ./../../LICENSE
     - ./NOTICE
@@ -409,7 +409,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12
-    folder: ./../../snapshot-tests-in/sbt/internal/util-interface
+    folder: ./../sbt-build/internal/util-interface
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -432,7 +432,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-logging
+    folder: ./../sbt-build/internal/util-logging
     resources:
     - ./../../LICENSE
     - ./NOTICE
@@ -448,13 +448,13 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-logging
+    folder: ./../sbt-build/internal/util-logging
   util-position:
     dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-position
+    folder: ./../sbt-build/internal/util-position
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -466,14 +466,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-position
+    folder: ./../sbt-build/internal/util-position
     scala:
       options: -language:experimental.macros
   util-relation:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-relation
+    folder: ./../sbt-build/internal/util-relation
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -484,14 +484,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-relation
+    folder: ./../sbt-build/internal/util-relation
   util-scripted:
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn: util-logging
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/internal/util-scripted
+    folder: ./../sbt-build/internal/util-scripted
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -501,7 +501,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/util-tracking
+    folder: ./../sbt-build/util-tracking
     resources:
     - ./../LICENSE
     - ./NOTICE
@@ -514,7 +514,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/util-tracking
+    folder: ./../sbt-build/util-tracking
   zinc-lm-integration:
     dependencies:
     - org.scala-sbt::librarymanagement-core:1.7.0
@@ -523,7 +523,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/zinc-lm-integration
+    folder: ./../sbt-build/zinc-lm-integration
     resources: ./NOTICE
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
@@ -540,7 +540,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/sbt/zinc-lm-integration
+    folder: ./../sbt-build/zinc-lm-integration
 scripts:
   generate-resources: scripts/scripts.GenerateResources
 templates:

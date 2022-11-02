@@ -37,27 +37,16 @@ object BspImpl {
       val build = pre.existingBuild.buildFile.forceGet.orThrow
       val bleepRifleLogger = new BleepRifleLogger(pre.logger)
 
-      val bloopRifleConfig = {
-        val lazyResolver = Lazy {
-          CoursierResolver(
-            repos = build.resolvers.values,
-            logger = pre.logger,
-            downloadSources = false,
-            cacheIn = pre.userPaths.coursierCacheDir,
-            authentications = bleepConfig.authentications,
-            wantedBleepVersion = Some(build.$version)
-          )
-        }
+      val bloopRifleConfig =
         SetupBloopRifle(
           compileServerMode = bleepConfig.compileServerMode,
           jvm = jvmOrSystem(build.jvm, pre.logger),
           logger = pre.logger,
           userPaths = pre.userPaths,
-          resolver = lazyResolver,
+          resolver = Lazy(CoursierResolver.Factory.default(pre, bleepConfig, build)),
           bleepRifleLogger = bleepRifleLogger,
           executionContext = ExecutionContext.fromExecutor(threads.prepareBuildExecutor)
         )
-      }
 
       val workspaceDir = pre.buildPaths.bleepBloopDir.getParent
 
@@ -78,7 +67,7 @@ object BspImpl {
             ).flatten
 
             pre.fresh.flatMap { pre =>
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig))
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig), CoursierResolver.Factory.default)
             }
           }
 

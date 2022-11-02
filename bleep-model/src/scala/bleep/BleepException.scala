@@ -32,7 +32,7 @@ object BleepException {
   class ResolveError(
       cause: CoursierError,
       context: String
-  ) extends BleepException(s"Error resolving dependencies for $context", cause)
+  ) extends BleepException(s"Error resolving dependencies for $context: ${cause.getMessage}", cause)
 
   class ArtifactResolveError(
       cause: ArtifactError,

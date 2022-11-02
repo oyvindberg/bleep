@@ -12,7 +12,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.blooprifle.internal.Operations
 import scala.jdk.StreamConverters.StreamHasToScala
 
-case class CompileServerStopAll(logger: Logger, userPaths: UserPaths, lazyResolver: Lazy[CoursierResolver]) extends BleepCommand {
+case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
     val socketDirs: List[Path] =
       if (FileUtils.exists(userPaths.bspSocketDir))

@@ -1,8 +1,8 @@
-package bleep.model
+package bleep
+package model
 
 import bleep.internal.ShortenAndSortJson
 import bleep.internal.codecs._
-import bleep.{model, BleepException}
 import coursier.core._
 import io.circe.syntax._
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
@@ -150,13 +150,13 @@ object Dep {
     override def withVersion(version: String): Dep.ScalaDependency = copy(version = version)
     override def withTransitive(value: Boolean): Dep.ScalaDependency = copy(transitive = value)
 
-    def moduleName(combo: model.VersionCombo.Scala): ModuleName = {
+    def moduleName(combo: VersionCombo.Scala): ModuleName = {
       val platformSuffix: String =
         combo match {
-          case _ if forceJvm                             => ""
-          case model.VersionCombo.Jvm(_)                 => ""
-          case model.VersionCombo.Js(_, scalaJsVersion)  => s"_sjs${scalaJsVersion.scalaJsBinVersion}"
-          case model.VersionCombo.Native(_, scalaNative) => s"_native${scalaNative.scalaNativeBinVersion}"
+          case _ if forceJvm                       => ""
+          case VersionCombo.Jvm(_)                 => ""
+          case VersionCombo.Js(_, scalaJsVersion)  => s"_sjs${scalaJsVersion.scalaJsBinVersion}"
+          case VersionCombo.Native(_, scalaNative) => s"_native${scalaNative.scalaNativeBinVersion}"
         }
 
       val scalaSuffix: String =

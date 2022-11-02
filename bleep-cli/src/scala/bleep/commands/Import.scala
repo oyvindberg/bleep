@@ -3,7 +3,6 @@ package commands
 
 import bleep.RelPath
 import bleep.cli.StdIn
-import bleep.commands.Import.findGeneratedJsonFiles
 import bleep.internal._
 import bleep.logging.Logger
 import bleep.rewrites.{normalizeBuild, Defaults}
@@ -14,7 +13,43 @@ import com.monovore.decline.Opts
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
-import scala.jdk.StreamConverters.StreamHasToScala
+
+case class Import(
+    existingBuild: Option[model.BuildFile],
+    sbtBuildDir: Path,
+    destinationPaths: BuildPaths,
+    logger: Logger,
+    options: Import.Options,
+    bleepVersion: model.BleepVersion
+) extends BleepCommand {
+  override def run(): Either[BleepException, Unit] = {
+    if (!options.skipSbt) {
+      Import.runSbtExport(logger, sbtBuildDir, destinationPaths)
+    }
+
+    val inputData = ImportInputData.collectFromFileSystem(destinationPaths)
+
+    val generatedBuildFiles = Import
+      .generateBuild(
+        sbtBuildDir = sbtBuildDir,
+        destinationPaths = destinationPaths,
+        logger = logger,
+        options = options,
+        bleepVersion = bleepVersion,
+        inputData = inputData,
+        bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
+        skipGeneratedResourcesScript = options.skipGeneratedResourcesScript,
+        maybeExistingBuildFile = existingBuild
+      )
+      .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
+
+    FileSync
+      .syncStrings(destinationPaths.buildDir, generatedBuildFiles, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = false)
+      .log(logger, "Wrote build files")
+
+    Right(())
+  }
+}
 
 object Import {
   case class Options(
@@ -41,13 +76,6 @@ object Import {
 
   val opts: Opts[Options] =
     (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript).mapN(Options.apply)
-
-  def findGeneratedJsonFiles(under: Path): List[Path] =
-    Files
-      .list(under)
-      .filter(Files.isDirectory(_))
-      .flatMap(dir => Files.list(dir).filter(x => Files.isRegularFile(x) && x.getFileName.toString.endsWith(".json")))
-      .toScala(List)
 
   def parseProjectsOutput(lines: Array[String]): Map[Path, List[String]] = {
     var currentPath = Option.empty[Path]
@@ -159,54 +187,15 @@ object Import {
       new ScalaVersionOutput(scalaVersions, crossVersions)
     }
   }
-}
-
-// pardon the very imperative interface of the class with indirect flow through files. let's refactor later
-case class Import(
-    existingBuild: Option[model.BuildFile],
-    sbtBuildDir: Path,
-    destinationPaths: BuildPaths,
-    logger: Logger,
-    options: Import.Options,
-    bleepVersion: model.BleepVersion
-) extends BleepCommand {
-  override def run(): Either[BleepException, Unit] = {
-    if (!options.skipSbt) {
-      generateBloopAndDependencyFiles()
-    }
-
-    val bloopFiles = findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir).map(GenBloopFiles.readAndParseBloopFile)
-    val sbtExportFiles = findGeneratedJsonFiles(destinationPaths.bleepImportSbtExportDir).map { path =>
-      val contents = Files.readString(path)
-      ReadSbtExportFile.parse(path, contents)
-    }
-    val inputProjects = ImportInputProjects(bloopFiles, sbtExportFiles, forceInclude = Set.empty)
-
-    val generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]] =
-      if (options.skipGeneratedResourcesScript) Map.empty else findGeneratedFiles(inputProjects)
-
-    val files = generateBuild(
-      inputProjects,
-      bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
-      generatedFiles,
-      existingBuild
-    ).map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
-
-    FileSync
-      .syncStrings(destinationPaths.buildDir, files, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = false)
-      .log(logger, "Wrote build files")
-
-    Right(())
-  }
-
-  def sbtCommands(cmds: Iterable[String]) =
-    StdIn.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
 
   /** I know, launching sbt three plus times is incredibly slow.
     *
     * I'm sure it's possible to do the same thing from within sbt and only launch it first, but you know. it's not at all easy.
     */
-  def generateBloopAndDependencyFiles(): Unit = {
+  def runSbtExport(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths): Unit = {
+    def sbtCommands(cmds: Iterable[String]) =
+      StdIn.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
+
     val sbtEnvs = List(
       "SBT_OPTS" -> Some("-Xmx4096M"),
       "JAVA_HOME" -> sys.env.get("JAVA_HOME")
@@ -319,13 +308,18 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
   }
 
   def generateBuild(
-      inputProjects: ImportInputProjects,
+      sbtBuildDir: Path,
+      destinationPaths: BuildPaths,
+      logger: Logger,
+      options: Import.Options,
+      bleepVersion: model.BleepVersion,
+      inputData: ImportInputData,
       bleepTasksVersion: model.BleepVersion,
-      generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]],
+      skipGeneratedResourcesScript: Boolean,
       maybeExistingBuildFile: Option[model.BuildFile]
   ): Map[Path, String] = {
 
-    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, inputProjects, bleepVersion)
+    val build0 = importBloopFilesFromSbt(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion)
     val normalizedBuild = normalizeBuild(build0)
 
     val buildFile = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates)
@@ -346,56 +340,55 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
 
     logger.info(s"Imported ${build0.explodedProjects.size} cross targets for ${buildFile1.projects.value.size} projects")
 
-    GeneratedFilesScript(generatedFiles) match {
-      case Some((className, scriptSource)) =>
-        // todo: find a project and use same scala config
-        val scalaVersion =
-          normalizedBuild.explodedProjects.values
-            .flatMap(_.scala.flatMap(_.version))
-            .maxByOption(_.scalaVersion)
-            // avoid picking scala 3 versions lower than what is used to compile the bleep artifacts
-            .filter {
-              case x if x.is3 && x.scalaVersion < model.VersionScala.Scala3.scalaVersion => false
-              case _                                                                     => true
-            }
-            .orElse(Some(model.VersionScala.Scala3))
+    if (options.skipGeneratedResourcesScript) {
+      Map(
+        destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1)
+      )
+    } else {
+      val (className, scriptSource) = GeneratedFilesScript(inputData.generatedFiles) // todo: find a project and use same scala config
+      val scalaVersion =
+        normalizedBuild.explodedProjects.values
+          .flatMap(_.scala.flatMap(_.version))
+          .maxByOption(_.scalaVersion)
+          // avoid picking scala 3 versions lower than what is used to compile the bleep artifacts
+          .filter {
+            case x if x.is3 && x.scalaVersion < model.VersionScala.Scala3.scalaVersion => false
+            case _                                                                     => true
+          }
+          .orElse(Some(model.VersionScala.Scala3))
 
-        val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
-        val scriptsProject = model.Project(
-          `extends` = model.JsonSet.empty,
-          cross = model.JsonMap.empty,
-          folder = None,
-          dependsOn = model.JsonSet.empty,
-          `source-layout` = None,
-          `sbt-scope` = None,
-          sources = model.JsonSet.empty,
-          resources = model.JsonSet.empty,
-          dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-tasks", bleepTasksVersion.value)),
-          java = None,
-          scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
-          platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
-          isTestProject = None,
-          testFrameworks = model.JsonSet.empty
-        )
+      val scriptProjectName = model.CrossProjectName(model.ProjectName("scripts"), None)
+      val scriptsProject = model.Project(
+        `extends` = model.JsonSet.empty,
+        cross = model.JsonMap.empty,
+        folder = None,
+        dependsOn = model.JsonSet.empty,
+        `source-layout` = None,
+        `sbt-scope` = None,
+        sources = model.JsonSet.empty,
+        resources = model.JsonSet.empty,
+        dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-tasks", bleepTasksVersion.value)),
+        java = None,
+        scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
+        platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
+        isTestProject = None,
+        testFrameworks = model.JsonSet.empty
+      )
 
-        val buildWithScript = buildFile1.copy(
-          projects = buildFile1.projects.updated(scriptProjectName.name, scriptsProject),
-          scripts = buildFile1.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef(scriptProjectName, className))))
-        )
+      val buildWithScript = buildFile1.copy(
+        projects = buildFile1.projects.updated(scriptProjectName.name, scriptsProject),
+        scripts = buildFile1.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef(scriptProjectName, className))))
+      )
 
-        val scriptPath = destinationPaths.project(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"
-        logger
-          .withContext(scriptPath)
-          .warn("Created a makeshift script to copy generated resources from sbt directories. You'll need to edit this file and make it generate your files")
+      val scriptPath = destinationPaths.project(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"
+      logger
+        .withContext(scriptPath)
+        .warn("Created a makeshift script to copy generated resources from sbt directories. You'll need to edit this file and make it generate your files")
 
-        Map(
-          scriptPath -> scriptSource,
-          destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildWithScript)
-        )
-      case None =>
-        Map(
-          destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildFile1)
-        )
+      Map(
+        scriptPath -> scriptSource,
+        destinationPaths.bleepYamlFile -> yaml.encodeShortened(buildWithScript)
+      )
     }
   }
 }
