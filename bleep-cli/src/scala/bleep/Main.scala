@@ -41,10 +41,10 @@ object Main {
         .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.coursierCacheDir, bleepConfig.authentications, None))
 
     CommonOpts.opts *> List(
-      Opts.subcommand("build", "rewrite build")(newCommand(logger, buildPaths.cwd)),
-      setupIdeCmd(buildPaths, logger, None),
+      Opts.subcommand("build", "create new build")(newCommand(logger, buildPaths.cwd)),
       importCmd(buildLoader, buildPaths, logger),
-      compileServerCmd(logger, userPaths, resolver)
+      compileServerCmd(logger, userPaths, resolver),
+      installTabCompletions(logger)
     ).foldK
   }
 
@@ -149,6 +149,7 @@ object Main {
           ),
           importCmd(started.prebootstrapped.existingBuild, started.buildPaths, started.logger),
           compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths, started.resolver),
+          installTabCompletions(started.prebootstrapped.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
@@ -237,6 +238,11 @@ object Main {
 
         commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
       }
+    )
+
+  def installTabCompletions(logger: Logger): Opts[BleepCommand] =
+    Opts.subcommand("install-tab-completions-bash", "Install tab completions for bash")(
+      Opts(commands.InstallTabCompletions(logger))
     )
 
   def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Iterable[model.CrossProjectName]]]): Opts[BleepCommand] = {
