@@ -1,8 +1,6 @@
 package bleep.model
 
 import bleep.RelPath
-import io.circe.{Json, JsonNumber, JsonObject}
-import io.circe.Json.Folder
 
 import java.io.File
 import java.nio.file.Path

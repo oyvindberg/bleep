@@ -2,13 +2,12 @@ package bleep
 
 import bleep.CoursierResolver.Cached
 import bleep.internal.FileUtils
-import coursier.cache.CacheDefaults
 import coursier.error.CoursierError
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
 
 import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Path}
+import java.nio.file.Path
 import scala.collection.immutable.SortedSet
 import scala.collection.mutable
 

@@ -1,7 +1,6 @@
 package bleep
 package testing
 
-import bleep.internal.FileUtils
 import bleep.logging.Logger
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport

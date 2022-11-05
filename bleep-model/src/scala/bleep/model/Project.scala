@@ -1,9 +1,9 @@
 package bleep.model
 
 import bleep.RelPath
-import io.circe.{Decoder, Encoder}
-import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import bleep.internal.compat.OptionCompatOps
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 case class Project(
     `extends`: JsonSet[TemplateId],

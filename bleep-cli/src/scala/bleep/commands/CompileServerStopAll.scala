@@ -1,10 +1,10 @@
 package bleep
 package commands
 
+import bleep.BleepException
 import bleep.bsp.{BleepRifleLogger, SetupBloopRifle}
 import bleep.internal.FileUtils
 import bleep.logging.Logger
-import bleep.{BleepException, Lazy}
 
 import java.io.OutputStream
 import java.nio.file.{Files, Path}

@@ -5,6 +5,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
 import fansi.{Bold, Str}
 import io.circe.parser.decode
+
 import scala.collection.mutable
 
 // a bsp client which will display compilation diagnostics and progress to a logger

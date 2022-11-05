@@ -1,7 +1,7 @@
 package bleep.model
 
-import io.circe.{Decoder, Encoder}
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 case class Jvm(name: String, index: Option[String])
 

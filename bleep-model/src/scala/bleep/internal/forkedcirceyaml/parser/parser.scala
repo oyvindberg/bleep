@@ -2,15 +2,16 @@ package bleep.internal.forkedcirceyaml
 
 import cats.syntax.either._
 import io.circe._
-import java.io.{Reader, StringReader}
-import java.util.Optional
+import org.snakeyaml.engine.v2.api.LoadSettings
 import org.snakeyaml.engine.v2.composer.Composer
 import org.snakeyaml.engine.v2.constructor.StandardConstructor
 import org.snakeyaml.engine.v2.nodes._
 import org.snakeyaml.engine.v2.parser.ParserImpl
 import org.snakeyaml.engine.v2.scanner.StreamReader
+
+import java.io.{Reader, StringReader}
+import java.util.Optional
 import scala.collection.JavaConverters._
-import org.snakeyaml.engine.v2.api.LoadSettings
 
 package object parser {
 
