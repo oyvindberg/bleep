@@ -11,7 +11,7 @@ projects:
     folder: ./../sbt-build/benchmarks
     platform:
       jvmOptions: -DbloopRef=1.5.2-9-b190bd39-20221105-0119 -DbloopVersion=1.5.2-9-b190bd39-20221105-0119
-        -Dgit.localdir=${BUILD_DIR} -Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
+        -Dgit.localdir=${BUILD_DIR} -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
     resources:
     - ./../LICENSE.md
     - ./../NOTICE.md
@@ -496,7 +496,7 @@ projects:
     - template-scala-2.12-jvm
     folder: ./../sbt-build/benchmark-bridge/compilation
     platform:
-      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
+      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
         -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${BUILD_DIR}/benchmark-bridge
     sources: ./src/${SCOPE}/scalac
   gradle-bloop:
@@ -589,7 +589,7 @@ projects:
     - template-scala-2.12-jvm
     folder: ./../sbt-build/benchmark-bridge
     platform:
-      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
+      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
         -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${PROJECT_DIR}
     source-layout: cross-full
   maven-bloop:
@@ -634,7 +634,7 @@ projects:
     - template-scala-2.12-jvm
     folder: ./../sbt-build/benchmark-bridge/micro
     platform:
-      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=<COURSIER_ARC>/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
+      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
         -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${BUILD_DIR}/benchmark-bridge
   sbt-bloop-core:
     cross:

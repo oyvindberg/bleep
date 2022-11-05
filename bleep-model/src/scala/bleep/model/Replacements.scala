@@ -1,6 +1,8 @@
-package bleep.model
+package bleep
+package model
 
-import bleep.RelPath
+import coursier.cache.CacheDefaults
+import coursier.paths.CoursierPaths
 
 import java.io.File
 import java.nio.file.Path
@@ -90,6 +92,10 @@ object Replacements {
     val ScalaVersion = "${SCALA_VERSION}"
     val Scope = "${SCOPE}"
     val TargetDir = "${TARGET_DIR}"
+    val HomeDir = "${HOME_DIR}"
+    val TempDir = "${TEMP_DIR}"
+    val CoursierCacheDir = "${COURSIER_CACHE_DIR}"
+    val CoursierArcCacheDir = "${COURSIER_ARC_CACHE_DIR}"
   }
 
   def ofReplacements(map: List[(String, String)]): Replacements =
@@ -104,7 +110,11 @@ object Replacements {
     ofReplacements(
       List(
         project.toString -> known.ProjectDir,
-        build.toString -> known.BuildDir
+        build.toString -> known.BuildDir,
+        System.getProperty("java.io.tmpdir") -> known.TempDir,
+        System.getProperty("user.home") -> known.HomeDir,
+        CacheDefaults.location.toString -> known.CoursierCacheDir,
+        CoursierPaths.archiveCacheDirectory.toString -> known.CoursierArcCacheDir
       )
     )
 
