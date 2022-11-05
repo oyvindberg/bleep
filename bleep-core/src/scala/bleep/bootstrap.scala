@@ -23,7 +23,7 @@ object bootstrap {
     val maybeStarted = for {
       existingBuild <- buildLoader.existing
       pre = Prebootstrapped(buildPaths, logger, existingBuild)
-      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfigOps.lazyForceLoad(pre.userPaths))
+      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfigOps.lazyForceLoad(pre.userPaths), CoursierResolver.Factory.default)
     } yield started
 
     maybeStarted match {
@@ -42,7 +42,7 @@ object bootstrap {
       genBloopFiles: GenBloopFiles,
       rewrites: List[BuildRewrite],
       lazyConfig: Lazy[model.BleepConfig],
-      resolver: CoursierResolver.Factory = CoursierResolver.Factory.default
+      resolver: CoursierResolver.Factory
   ): Either[BleepException, Started] = {
     val t0 = System.currentTimeMillis()
 

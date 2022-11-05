@@ -5,7 +5,7 @@ projects:
     dependencies: com.github.scopt::scopt:4.0.1
     dependsOn: importer
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/cli
+    folder: ./../sbt-build/cli
   core:
     dependencies:
     - com.lihaoyi::ammonite-ops:2.4.0
@@ -14,29 +14,29 @@ projects:
     - org.scalablytyped.circe013::circe-generic:0.13.0-shaded-2
     - org.scalablytyped.circe013::circe-jackson29:0.13.0-shaded-2
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/core
+    folder: ./../sbt-build/core
   import-scalajs-definitions:
     dependencies: org.scala-lang:scalap:${SCALA_VERSION}
     dependsOn: importer
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/import-scalajs-definitions
+    folder: ./../sbt-build/import-scalajs-definitions
   importer:
     dependencies: ch.epfl.scala::bloop-frontend:1.4.11
     dependsOn: importer-portable
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/importer
+    folder: ./../sbt-build/importer
   importer-portable:
     dependsOn:
     - phases
     - scalajs
     - ts
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/importer-portable
+    folder: ./../sbt-build/importer-portable
   importer-test:
     dependencies: org.scalatest::scalatest:3.2.9
     dependsOn: importer
     extends: template-common
-    folder: ./../../snapshot-tests-in/converter/importer
+    folder: ./../sbt-build/importer
     isTestProject: true
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -46,13 +46,13 @@ projects:
     - com.lihaoyi::fansi:0.2.14
     - com.lihaoyi::sourcecode:0.2.7
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/logging
+    folder: ./../sbt-build/logging
   phases:
     dependsOn:
     - core
     - logging
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/phases
+    folder: ./../sbt-build/phases
   sbt-converter:
     dependencies:
     - isSbtPlugin: true
@@ -62,7 +62,7 @@ projects:
     - software.amazon.awssdk:s3:2.15.28
     dependsOn: importer-portable
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/sbt-converter
+    folder: ./../sbt-build/sbt-converter
     scala:
       options: -Wconf:cat=unused-nowarn:s
     sources: ./src/${SCOPE}/scala-sbt-1.0
@@ -72,7 +72,7 @@ projects:
     - core
     - logging
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/scalajs
+    folder: ./../sbt-build/scalajs
   scripts:
     dependencies: build.bleep::bleep-tasks:0.0.1-M14
     platform:
@@ -85,7 +85,7 @@ projects:
     - core
     - logging
     extends: template-common-main
-    folder: ./../../snapshot-tests-in/converter/ts
+    folder: ./../sbt-build/ts
 resolvers:
   type: ivy
   uri: https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/

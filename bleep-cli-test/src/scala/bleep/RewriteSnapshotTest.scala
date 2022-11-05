@@ -32,21 +32,23 @@ class RewriteSnapshotTest extends SnapshotTest {
     Files
       .list(inFolder)
       .filter(Files.isDirectory(_))
-      .map(BuildLoader.inDirectory)
+      .map(testFolder => BuildLoader.inDirectory(testFolder / "imported"))
       .iterator()
       .asScala
       .collect { case x: BuildLoader.Existing => x }
       .toList
 
   def mkTest(rewrite: BuildRewrite, existingBuild: BuildLoader.Existing) = {
-    val buildName = existingBuild.bleepYaml.getParent.getFileName.toString
+    val buildName = existingBuild.bleepYaml.getParent.getParent.getFileName.toString
 
-    test(s"rewrite ${rewrite.name} for $buildName") {
+    val testName = s"rewrite ${rewrite.name} for $buildName"
+    test(testName) {
+      val logger = logger0.withPath(testName)
       val build = model.Build.FileBacked(existingBuild.buildFile.forceGet.orThrow)
       val rewritten = rewrite(build)
       val destinationPath = outFolder / rewrite.name / buildName / s"bleep.yaml"
       val rewrittenYamlString = yaml.encodeShortened(rewritten.file)
-      writeAndCompare(destinationPath, Map(destinationPath -> rewrittenYamlString))
+      writeAndCompare(destinationPath, Map(destinationPath -> rewrittenYamlString), logger)
     }
   }
 

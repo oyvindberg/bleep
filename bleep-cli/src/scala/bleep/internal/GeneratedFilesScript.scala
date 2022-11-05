@@ -100,21 +100,19 @@ object GeneratedFilesScript {
     }
   }
 
-  def apply(generatedFiles: Map[bleep.model.CrossProjectName, Vector[GeneratedFile]]): Option[(String, String)] =
-    if (generatedFiles.isEmpty) None
-    else {
+  def apply(generatedFiles: Map[bleep.model.CrossProjectName, Vector[GeneratedFile]]): (String, String) = {
 
-      val byFile: Map[GeneratedFile, Vector[model.CrossProjectName]] =
-        generatedFiles.toVector.flatMap { case (crossName, files) => files.map(file => file -> crossName) }.groupMap(_._1)(_._2)
+    val byFile: Map[GeneratedFile, Vector[model.CrossProjectName]] =
+      generatedFiles.toVector.flatMap { case (crossName, files) => files.map(file => file -> crossName) }.groupMap(_._1)(_._2)
 
-      // important for snapshot tests
-      val sorted = byFile.toVector.sortBy(x => (x._2.head.value, x._1.toRelPath))
+    // important for snapshot tests
+    val sorted = byFile.toVector.sortBy(x => (x._2.head.value, x._1.toRelPath))
 
-      val copies = sorted.map { case (file, forProjects) =>
-        def dir =
-          if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"
+    val copies = sorted.map { case (file, forProjects) =>
+      def dir =
+        if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"
 
-        s"""
+      s"""
     ${Repr.str(forProjects, 6)}.foreach { crossName =>
       val to = started.buildPaths.$dir(crossName).resolve(${Repr.str(file.toRelPath.toString, 8)})
       started.logger.withContext(crossName).warn(s"Writing $$to")
@@ -123,9 +121,9 @@ object GeneratedFilesScript {
       Files.writeString(to, content)
     }
 """
-      }
+    }
 
-      val script = s"""
+    val script = s"""
 package scripts
 
 import bleep.{BleepScript, Commands, Started}
@@ -140,6 +138,6 @@ object GenerateResources extends BleepScript("GenerateResources") {
   }
 }"""
 
-      Some(("scripts.GenerateResources", script))
-    }
+    ("scripts.GenerateResources", script)
+  }
 }

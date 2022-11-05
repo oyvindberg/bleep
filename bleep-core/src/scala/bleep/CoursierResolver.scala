@@ -1,10 +1,10 @@
 package bleep
 
 import bleep.internal.codecs._
-import bleep.internal.FileUtils
+import bleep.internal.{FileUtils, ShortenAndSortJson}
 import bleep.logging.Logger
 import coursier.Fetch
-import coursier.cache.{ArtifactError, FileCache}
+import coursier.cache.{ArtifactError, CacheDefaults, FileCache}
 import coursier.core._
 import coursier.error.{CoursierError, FetchError, ResolutionError}
 import coursier.ivy.IvyRepository
@@ -16,11 +16,15 @@ import io.circe.syntax._
 
 import java.io.File
 import java.nio.file.{Files, Path}
+import scala.collection.immutable.SortedSet
 
 trait CoursierResolver {
   val params: CoursierResolver.Params
 
-  def resolve(deps: Set[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result]
+  def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result]
+
+  final def resolve(deps: Iterable[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
+    resolve(SortedSet.empty[model.Dep] ++ deps, versionCombo)
 
   final def force(deps: Set[model.Dep], versionCombo: model.VersionCombo, context: String): CoursierResolver.Result =
     resolve(deps, versionCombo) match {
@@ -31,15 +35,21 @@ trait CoursierResolver {
 
 object CoursierResolver {
   case class Params(
+      overrideCacheFolder: Option[File],
       downloadSources: Boolean,
       authentications: Option[model.Authentications],
       repos: List[model.Repository]
   )
   object Params {
     implicit val codec: Codec[Params] =
-      Codec.forProduct3[Params, Boolean, Option[model.Authentications], List[model.Repository]]("downloadSources", "authentications", "repos")(
+      Codec.forProduct4[Params, Option[File], Boolean, Option[model.Authentications], List[model.Repository]](
+        "overrideCacheFolder",
+        "downloadSources",
+        "authentications",
+        "repos"
+      )(
         Params.apply
-      )(x => (x.downloadSources, x.authentications, x.repos))
+      )(x => (x.overrideCacheFolder, x.downloadSources, x.authentications, x.repos))
   }
 
   trait Factory {
@@ -50,12 +60,12 @@ object CoursierResolver {
     object default extends Factory {
       def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver =
         CoursierResolver(
-          buildFile.resolvers.values,
-          pre.logger,
+          repos = buildFile.resolvers.values,
+          logger = pre.logger,
           downloadSources = true,
-          pre.userPaths.coursierCacheDir,
-          config.authentications,
-          Some(buildFile.$version)
+          resolveCachePath = pre.userPaths.resolveCachePath,
+          authentications = config.authentications,
+          wantedBleepVersion = Some(buildFile.$version)
         )
     }
   }
@@ -64,13 +74,14 @@ object CoursierResolver {
       repos: List[model.Repository],
       logger: Logger,
       downloadSources: Boolean,
-      cacheIn: Path,
+      resolveCachePath: Path,
       authentications: Option[model.Authentications],
-      wantedBleepVersion: Option[model.BleepVersion]
+      wantedBleepVersion: Option[model.BleepVersion],
+      overrideCacheFolder: Option[File] = None
   ): CoursierResolver = {
-    val params = Params(downloadSources, authentications, repos)
+    val params = Params(overrideCacheFolder, downloadSources, authentications, repos)
     val direct = new Direct(new BleepCacheLogger(logger), params)
-    val cached = new Cached(logger, direct, cacheIn)
+    val cached = new Cached(logger, direct, resolveCachePath)
     new TemplatedVersions(cached, wantedBleepVersion)
   }
 
@@ -135,17 +146,17 @@ object CoursierResolver {
         IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
     }
 
-  private class Direct(val logger: BleepCacheLogger, val params: Params) extends CoursierResolver {
+  class Direct(val logger: BleepCacheLogger, val params: Params) extends CoursierResolver {
 
-    val fileCache = FileCache[Task]().withLogger(logger)
+    val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(logger)
 
-    override def resolve(deps: Set[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] = {
+    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
         Fetch[Task](fileCache)
           .withRepositories(coursierRepos(params.repos, params.authentications))
-          .withDependencies(deps.toList.sorted.map(_.asDependency(versionCombo).orThrowText))
+          .withDependencies(deps.toList.map(_.asDependency(versionCombo).orThrowText))
           .withResolutionParams(
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)
@@ -168,13 +179,14 @@ object CoursierResolver {
     }
   }
 
-  private class Cached(logger: Logger, underlying: Direct, in: Path) extends CoursierResolver {
+  // this is a performance cache, the real cache is the coursier folder
+  private class Cached(logger: Logger, underlying: CoursierResolver, in: Path) extends CoursierResolver {
     override val params = underlying.params
-    override def resolve(deps: Set[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
+    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
       if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo)
       else {
-        val request = Cached.Request(underlying.fileCache.location, deps.toList.sortBy(_.toString()), underlying.params, versionCombo)
-        val digest = request.asJson.noSpaces.hashCode // both `noSpaces` and `String.hashCode` should hopefully be stable
+        val request = Cached.Request(deps, underlying.params, versionCombo)
+        val digest = request.asJson.foldWith(ShortenAndSortJson(Nil)).noSpaces.hashCode // should hopefully be stable
         val cachePath = in / s"$digest.json"
 
         val cachedResult: Option[Result] =
@@ -184,6 +196,7 @@ object CoursierResolver {
               case Right(Cached.Both(`request`, result)) if result.files.forall(_.exists()) =>
                 Some(result)
               case _ =>
+                logger.warn(s"coursier cache collision. deleting")
                 Files.delete(cachePath)
                 None
             }
@@ -193,8 +206,8 @@ object CoursierResolver {
           case Some(value) => Right(value)
           case None =>
             val depNames = deps.map(_.baseModuleName.value)
-            val ctxLogger = logger.withContext(cachePath).withContext(depNames)
-            ctxLogger.debug(s"coursier cache miss")
+            val ctxLogger = logger.withContext(cachePath).withContext(depNames).withContext(versionCombo.toString)
+            ctxLogger.debug(s"coursier cache miss: $deps, $versionCombo")
             underlying.resolve(deps, versionCombo).map {
               case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
                 ctxLogger.info("Not caching because result is changing")
@@ -207,14 +220,14 @@ object CoursierResolver {
       }
   }
 
-  private object Cached {
-    case class Request(cacheLocation: File, wanted: List[model.Dep], params: Params, versionCombo: model.VersionCombo)
+  object Cached {
+    case class Request(wanted: SortedSet[model.Dep], params: Params, versionCombo: model.VersionCombo)
 
     object Request {
 
       implicit val codec: Codec[Request] =
-        Codec.forProduct4[Request, File, List[model.Dep], Params, model.VersionCombo]("cacheLocation", "wanted", "params", "forceScalaVersion")(Request.apply)(
-          x => (x.cacheLocation, x.wanted, x.params, x.versionCombo)
+        Codec.forProduct3[Request, SortedSet[model.Dep], Params, model.VersionCombo]("wanted", "params", "forceScalaVersion")(Request.apply)(x =>
+          (x.wanted, x.params, x.versionCombo)
         )
     }
 
@@ -226,7 +239,7 @@ object CoursierResolver {
 
   class TemplatedVersions(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
     override val params = outer.params
-    override def resolve(deps: Set[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, Result] = {
+    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, Result] = {
       val replacements = model.Replacements.versions(maybeWantedBleepVersion, versionCombo, includeEpoch = true, includeBinVersion = true)
       val rewrittenDeps = deps.map(replacements.fill.dep)
       outer.resolve(rewrittenDeps, versionCombo)

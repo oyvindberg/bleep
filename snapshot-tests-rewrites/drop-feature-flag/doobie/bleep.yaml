@@ -10,7 +10,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/bench
+    folder: ./../sbt-build/modules/bench
     scala:
       options: -Xfatal-warnings
   doobie-core:
@@ -28,7 +28,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/core
+    folder: ./../sbt-build/modules/core
     scala:
       options: -Xfatal-warnings -Yno-predef
   doobie-core-test:
@@ -40,7 +40,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/core
+    folder: ./../sbt-build/modules/core
     scala:
       options: -Yno-predef
   doobie-free:
@@ -58,7 +58,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/free
+    folder: ./../sbt-build/modules/free
     scala:
       options: -Yno-predef
   doobie-h2:
@@ -67,7 +67,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/h2
+    folder: ./../sbt-build/modules/h2
   doobie-h2-circe:
     dependencies:
     - io.circe::circe-core:0.14.1
@@ -76,7 +76,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
+    folder: ./../sbt-build/modules/h2-circe
     scala:
       options: -Xfatal-warnings
   doobie-h2-circe-test:
@@ -87,7 +87,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/h2-circe
+    folder: ./../sbt-build/modules/h2-circe
   doobie-h2-test:
     dependsOn:
     - doobie-core-test
@@ -95,7 +95,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/h2
+    folder: ./../sbt-build/modules/h2
   doobie-hikari:
     dependencies:
     - exclusions:
@@ -106,7 +106,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/hikari
+    folder: ./../sbt-build/modules/hikari
     scala:
       options: -Xfatal-warnings
   doobie-hikari-test:
@@ -121,14 +121,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/hikari
+    folder: ./../sbt-build/modules/hikari
   doobie-munit:
     dependencies: org.scalameta::munit:0.7.29
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/munit
+    folder: ./../sbt-build/modules/munit
     scala:
       options: -Xfatal-warnings
   doobie-munit-test:
@@ -140,7 +140,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/munit
+    folder: ./../sbt-build/modules/munit
   doobie-postgres:
     dependencies:
     - co.fs2::fs2-io:3.2.4
@@ -151,7 +151,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres
+    folder: ./../sbt-build/modules/postgres
   doobie-postgres-circe:
     dependencies:
     - io.circe::circe-core:0.14.1
@@ -160,7 +160,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
+    folder: ./../sbt-build/modules/postgres-circe
     scala:
       options: -Xfatal-warnings
   doobie-postgres-circe-test:
@@ -171,7 +171,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres-circe
+    folder: ./../sbt-build/modules/postgres-circe
   doobie-postgres-test:
     dependencies:
       configuration: provided
@@ -182,14 +182,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/postgres
+    folder: ./../sbt-build/modules/postgres
   doobie-refined:
     dependencies: eu.timepit::refined:0.9.28
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/refined
+    folder: ./../sbt-build/modules/refined
     scala:
       options: -Xfatal-warnings
   doobie-refined-test:
@@ -201,14 +201,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/refined
+    folder: ./../sbt-build/modules/refined
   doobie-scalatest:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
+    folder: ./../sbt-build/modules/scalatest
     scala:
       options: -Xfatal-warnings
   doobie-scalatest-test:
@@ -220,7 +220,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/scalatest
+    folder: ./../sbt-build/modules/scalatest
   doobie-specs2:
     cross:
       jvm212:
@@ -231,7 +231,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/specs2
+    folder: ./../sbt-build/modules/specs2
     scala:
       options: -Xfatal-warnings
   doobie-specs2-test:
@@ -250,7 +250,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/specs2
+    folder: ./../sbt-build/modules/specs2
   example:
     dependsOn:
     - doobie-h2
@@ -261,7 +261,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/example
+    folder: ./../sbt-build/modules/example
     scala:
       options: -Xfatal-warnings
   example-test:
@@ -272,7 +272,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../../snapshot-tests-in/doobie/modules/example
+    folder: ./../sbt-build/modules/example
   scripts:
     dependencies: build.bleep::bleep-tasks:0.0.1-M14
     platform:

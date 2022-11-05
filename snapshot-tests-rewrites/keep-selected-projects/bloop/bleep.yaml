@@ -30,7 +30,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../../snapshot-tests-in/bloop/launcher-core
+    folder: ./../sbt-build/launcher-core
     resources:
     - ./../LICENSE.md
     - ./../NOTICE.md
@@ -47,7 +47,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../../snapshot-tests-in/bloop/bloopgun
+    folder: ./../sbt-build/bloopgun
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     resources:
@@ -75,7 +75,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../../snapshot-tests-in/bloop/integrations/gradle-bloop
+    folder: ./../sbt-build/integrations/gradle-bloop
     resources:
     - ./../../LICENSE.md
     - ./../../NOTICE.md
@@ -95,7 +95,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.13-jvm
-    folder: ./../../snapshot-tests-in/bloop/integrations/maven-bloop
+    folder: ./../sbt-build/integrations/maven-bloop
     resources:
     - ./../../LICENSE.md
     - ./../../NOTICE.md
@@ -111,7 +111,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.13-jvm
-    folder: ./../../snapshot-tests-in/bloop/integrations/maven-bloop
+    folder: ./../sbt-build/integrations/maven-bloop
     sbt-scope: test
   scripts:
     dependencies: build.bleep::bleep-tasks:0.0.1-M14
@@ -126,7 +126,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../../snapshot-tests-in/bloop/sockets
+    folder: ./../sbt-build/sockets
     java:
       options: -source 1.8 -target 1.8
     resources:
@@ -154,7 +154,7 @@ templates:
         dependencies:
           configuration: provided
           module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-        folder: ./../../snapshot-tests-in/bloop/config
+        folder: ./../sbt-build/config
         source-layout: cross-pure
     extends:
     - template-cross-jvm-210-212
@@ -170,7 +170,7 @@ templates:
     dependencies:
       configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-    folder: ./../../snapshot-tests-in/bloop/config
+    folder: ./../sbt-build/config
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false

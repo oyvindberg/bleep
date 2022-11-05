@@ -13,6 +13,7 @@ import java.nio.file.{Files, Path, Paths}
 import java.time.Instant
 
 class TemplateTest extends SnapshotTest {
+
   override val outFolder = Paths.get("snapshot-tests").resolve("templates").toAbsolutePath
   val scala = model.Scala(Some(model.VersionScala.Scala213), model.Options.empty, None, model.JsonSet.empty, None)
   val a = noCross("a")
@@ -82,7 +83,11 @@ class TemplateTest extends SnapshotTest {
     val pre = model.Build.Exploded(model.BleepVersion.dev, projects, model.JsonList.empty, None, Map.empty)
     val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, noColor = false)).withContext(testName).untyped
     val buildFile = templatesInfer(new BleepTemplateLogger(logger), pre, ignoreWhenInferringTemplates)
-    writeAndCompareEarly(outFolder.resolve(testName), Map(outFolder.resolve(testName) -> buildFile.asJson.foldWith(ShortenAndSortJson(Nil)).spaces2))
+    writeAndCompare(
+      outFolder.resolve(testName),
+      Map(outFolder.resolve(testName) -> buildFile.asJson.foldWith(ShortenAndSortJson(Nil)).spaces2),
+      logger0.withPath(testName)
+    )
 
     // complain if we have done illegal rewrites during templating
     val post = model.Build.FileBacked(buildFile).dropBuildFile.dropTemplates

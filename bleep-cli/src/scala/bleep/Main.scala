@@ -33,20 +33,13 @@ object Main {
     val scalaVersion = "scala version"
   }
 
-  def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepCommand] = {
-    val userPaths = UserPaths.fromAppDirs
-    val resolver =
-      BleepConfigOps
-        .lazyForceLoad(userPaths)
-        .map(bleepConfig => CoursierResolver(Nil, logger, downloadSources = false, cacheIn = userPaths.coursierCacheDir, bleepConfig.authentications, None))
-
+  def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting, userPaths: UserPaths): Opts[BleepCommand] =
     CommonOpts.opts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, buildPaths.cwd)),
       importCmd(buildLoader, buildPaths, logger),
-      compileServerCmd(logger, userPaths, resolver),
+      compileServerCmd(logger, userPaths),
       installTabCompletions(logger)
     ).foldK
-  }
 
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
@@ -148,7 +141,7 @@ object Main {
             testProjectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           importCmd(started.prebootstrapped.existingBuild, started.buildPaths, started.logger),
-          compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths, started.resolver),
+          compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths),
           installTabCompletions(started.prebootstrapped.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
@@ -208,7 +201,7 @@ object Main {
     ret
   }
 
-  def compileServerCmd(logger: Logger, userPaths: UserPaths, lazyResolver: Lazy[CoursierResolver]): Opts[BleepCommand] =
+  def compileServerCmd(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
     Opts.subcommand(
       "compile-server",
       "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
@@ -218,14 +211,14 @@ object Main {
           "auto-shutdown-disable",
           "leave compile servers running between bleep invocations. this gets much better performance at the cost of memory"
         )(Opts {
-          commands.CompileServerSetMode(logger, userPaths, lazyResolver, model.CompileServerMode.Shared)
+          commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.Shared)
         }),
         Opts.subcommand("auto-shutdown-enable", "shuts down compile server after between bleep invocation. this is slower, but conserves memory")(Opts {
-          commands.CompileServerSetMode(logger, userPaths, lazyResolver, model.CompileServerMode.NewEachInvocation)
+          commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
         }),
         Opts.subcommand("stop-all", "will stop all shared bloop compile servers")(
           Opts {
-            commands.CompileServerStopAll(logger, userPaths, lazyResolver)
+            commands.CompileServerStopAll(logger, userPaths)
           }
         )
       ).foldK
@@ -269,7 +262,9 @@ object Main {
           .options("scala", "specify scala version(s)", "s", metavars.scalaVersion)(Argument.fromMap(metavars.scalaVersion, possibleScalaVersions))
           .withDefault(NonEmptyList.of(model.VersionScala.Scala3)),
         Opts.argument[String]("wanted project name")
-      ).mapN { case (platforms, scalas, name) => commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.BleepVersion.current) }
+      ).mapN { case (platforms, scalas, name) =>
+        commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.BleepVersion.current, CoursierResolver.Factory.default)
+      }
     )
 
   // there is a flag to change build directory. we need to intercept that very early
@@ -308,7 +303,9 @@ object Main {
         }
     }
 
-  def main(_args: Array[String]): Unit =
+  def main(_args: Array[String]): Unit = {
+    val userPaths = UserPaths.fromAppDirs
+
     _args.toList match {
       case "_complete" :: compLine :: compCword :: compPoint :: _ =>
         val args = Completer.bashToArgs(compLine, compCword.toInt, compPoint.toInt)
@@ -330,14 +327,13 @@ object Main {
               case metavars.scalaVersion => possibleScalaVersions.keys.toList
               case _                     => Nil
             })
-            completer.completeOpts(restArgs)(noBuildOpts(logger, buildPaths, noBuild))
+            completer.completeOpts(restArgs)(noBuildOpts(logger, buildPaths, noBuild, userPaths))
           case existing: BuildLoader.Existing =>
-            val userPaths = UserPaths.fromAppDirs
             val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
 
             val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default) match {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
@@ -361,7 +357,6 @@ object Main {
         val cwd = cwdFor(commonOpts)
         val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
         val buildLoader = BuildLoader.find(cwd)
-        val userPaths = UserPaths.fromAppDirs
         maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped, commonOpts)
 
         val buildPaths = BuildPaths(cwd, buildLoader, Mode.BSP)
@@ -411,20 +406,20 @@ object Main {
         buildLoader match {
           case noBuild: BuildLoader.NonExisting =>
             stdoutAndFileLogging(buildPaths).use { logger =>
-              run(logger, noBuildOpts(stdout.untyped, buildPaths, noBuild), restArgs)
+              run(logger, noBuildOpts(stdout.untyped, buildPaths, noBuild, userPaths), restArgs)
             }
           case existing: BuildLoader.Existing =>
             stdoutAndFileLogging(buildPaths).use { logger =>
-              val userPaths = UserPaths.fromAppDirs
               val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
               val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig) match {
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)
                 case Right(started) => run(logger, hasBuildOpts(started), restArgs)
               }
             }
         }
     }
+  }
 
   def run(logger: Logger, opts: Opts[BleepCommand], restArgs: List[String]): Unit =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {

@@ -1,0 +1,416 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "completion@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/completion/jvm212",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/completion@jvm212",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete/src/main/scala-2.12"
+    ],
+    "dependencies": [
+      "collections@jvm212",
+      "core-macros@jvm212",
+      "util-control@jvm212",
+      "util-interface",
+      "util-logging@jvm212",
+      "util-position@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/0.9.1/shaded-jawn-parser_2.12-0.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.9.1/sjson-new-core_2.12-0.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.9.1/sjson-new-scalajson_2.12-0.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.19.0/jline-builtins-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-style/3.19.0/jline-style-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jansi/3.19.0/jline-terminal-jansi-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.7.0/io_2.12-1.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493.jar",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/collections/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/core-macros/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/util-control/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/util-interface/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/util-logging/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/util-position/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/completion/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/completion/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/completion@jvm212",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.16",
+      "options": [
+        "-Wconf:cat=unused-nowarn:s",
+        "-Xelide-below",
+        "0",
+        "-Xfatal-warnings",
+        "-Xfuture",
+        "-Xlint",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.16/0.13.2/kind-projector_2.12.16-0.13.2.jar",
+        "-Yno-adapted-args",
+        "-Yrangepos",
+        "-Ywarn-dead-code",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused-import",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-language:postfixOps",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/completion/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        "-Xlint",
+        "-Xlint:-serial",
+        "-source",
+        "1.8",
+        "-target",
+        "1.8"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-complete"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-core_2.12",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sjson-new-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.9.1/sjson-new-core_2.12-0.9.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "shaded-scalajson_2.12",
+          "version": "1.0.0-M4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shaded-scalajson_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lmax",
+          "name": "disruptor",
+          "version": "3.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "disruptor",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.swoval",
+          "name": "file-tree-views",
+          "version": "2.1.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "file-tree-views",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-api",
+          "version": "2.17.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "log4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-style",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline-style",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-style/3.19.0/jline-style-3.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-terminal-jansi",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline-terminal-jansi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jansi/3.19.0/jline-terminal-jansi-3.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna",
+          "version": "5.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt",
+          "name": "io_2.12",
+          "version": "1.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "io_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.7.0/io_2.12-1.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-terminal-jna",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline-terminal-jna",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-reader",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline-reader",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-terminal",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline-terminal",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-sbt.jline",
+          "name": "jline",
+          "version": "2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.fusesource.jansi",
+          "name": "jansi",
+          "version": "2.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jansi",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.12.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-scalajson_2.12",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sjson-new-scalajson_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.9.1/sjson-new-scalajson_2.12-0.9.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "net.java.dev.jna",
+          "name": "jna-platform",
+          "version": "5.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jna-platform",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.logging.log4j",
+          "name": "log4j-core",
+          "version": "2.17.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "log4j-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "shaded-jawn-parser_2.12",
+          "version": "0.9.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "shaded-jawn-parser_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/0.9.1/shaded-jawn-parser_2.12-0.9.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "1.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.jline",
+          "name": "jline-builtins",
+          "version": "3.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jline-builtins",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.19.0/jline-builtins-3.19.0.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

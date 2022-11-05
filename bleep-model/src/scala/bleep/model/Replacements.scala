@@ -1,18 +1,74 @@
 package bleep.model
 
 import bleep.RelPath
+import io.circe.{Json, JsonNumber, JsonObject}
+import io.circe.Json.Folder
 
+import java.io.File
 import java.nio.file.Path
 
 // unfortunately we'll need to handle absolute paths in scalacOptions
 class Replacements private (val sortedValues: List[(String, String)]) {
   def ++(other: Replacements): Replacements = Replacements.ofReplacements(sortedValues ++ other.sortedValues)
 
+  object templatize extends Replacements.Replacer {
+    // only infer templates on word and/or symbol boundary
+    override def string(_str: String): String = {
+      var str = _str
+      var i = 0
+      while (i < sortedValues.length) {
+        val (from, to) = sortedValues(i)
+        var last = 0
+        while (last < str.length)
+          str.indexOf(from, last) match {
+            case -1 => last = str.length
+            case n =>
+              val before = str.substring(0, n)
+              val after = str.substring(n + from.length)
+
+              def beforeEndsWithSpecial = before.lastOption.exists(!_.isLetterOrDigit)
+
+              def afterStartsWithSpecial = after.headOption.exists(!_.isLetterOrDigit)
+
+              def beforeOk = before.isEmpty || beforeEndsWithSpecial
+
+              def afterOk = after.isEmpty || afterStartsWithSpecial
+
+              val doReplacement = beforeOk && afterOk
+              if (doReplacement) {
+                str = before + to + after
+                last = n + to.length
+              } else {
+                last = last + 1
+              }
+          }
+        i += 1
+      }
+      str
+    }
+  }
+
+  object fill extends Replacements.Replacer {
+    val replacements = sortedValues.map { case (ref, absPath) => (absPath, ref) }
+
+    // unconditionally replace template strings with the real values
+    override def string(str: String): String =
+      replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
+  }
+}
+
+object Replacements {
+  @FunctionalInterface
   trait Replacer {
     def string(str: String): String
 
     def relPath(relPath: RelPath): RelPath =
       new RelPath(relPath.segments.map(string))
+
+    def path(path: Path): Path =
+      Path.of(string(path.toString))
+    def file(file: File): File =
+      new File(string(file.toString))
 
     def dep(dep: Dep): Dep = dep.withVersion(string(dep.version))
 
@@ -23,45 +79,6 @@ class Replacements private (val sortedValues: List[(String, String)]) {
       })
   }
 
-  object templatize extends Replacer {
-    // only infer templates on word and/or symbol boundary
-    override def string(_str: String): String = {
-      var str = _str
-      var i = 0
-      while (i < sortedValues.length) {
-        val (from, to) = sortedValues(i)
-        str.indexOf(from) match {
-          case -1 => ()
-          case n =>
-            val before = str.substring(0, n)
-            val after = str.substring(n + from.length)
-            val beforeEndsWithSpecial = before.lastOption.exists(!_.isLetterOrDigit)
-            val afterStartsWithSpecial = after.headOption.exists(!_.isLetterOrDigit)
-            val beforeOk = before.isEmpty || beforeEndsWithSpecial
-            val afterOk = after.isEmpty || afterStartsWithSpecial
-            val doReplacement = beforeOk && afterOk
-            if (doReplacement) {
-              str = before + to + after
-              // neutralize increment below - run replacement again
-              i -= 1
-            }
-        }
-        i += 1
-      }
-      str
-    }
-  }
-
-  object fill extends Replacer {
-    val replacements = sortedValues.map { case (ref, absPath) => (absPath, ref) }
-
-    // unconditionally replace template strings with the real values
-    override def string(str: String): String =
-      replacements.foldLeft(str) { case (acc, (from, to)) => acc.replace(from, to) }
-  }
-}
-
-object Replacements {
   val empty: Replacements = ofReplacements(Nil)
 
   object known {
