@@ -18,7 +18,7 @@ object BuildShow {
       Right(())
     }
   }
-  case class Exploded(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
+  case class Exploded(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommand {
     override def run(): Either[BleepException, Unit] = {
       projects.foreach { crossProjectName =>
         val p0 = started.build.explodedProjects(crossProjectName)
@@ -32,7 +32,7 @@ object BuildShow {
     }
   }
 
-  case class Bloop(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
+  case class Bloop(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommand {
     override def run(): Either[BleepException, Unit] = {
       projects.foreach { crossProjectName =>
         val f = started.bloopFiles(crossProjectName).forceGet

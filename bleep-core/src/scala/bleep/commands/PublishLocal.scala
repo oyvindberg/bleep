@@ -24,7 +24,7 @@ object PublishLocal {
 
 case class PublishLocal(started: Started, options: PublishLocal.Options) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
-    Compile(started, options.projects).runWithServer(bloop).map { case () =>
+    Compile(started, options.projects.toArray).runWithServer(bloop).map { case () =>
       val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
         packageLibraries(
           started,

@@ -51,14 +51,23 @@ object bootstrap {
         val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, buildFile))
         val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
 
-        val activeProjects: List[model.CrossProjectName] =
-          if (pre.buildPaths.cwd == pre.buildPaths.buildDir) build.explodedProjects.keys.toList
-          else
-            build.explodedProjects.flatMap { case (crossProjectName, p) =>
-              val folder = pre.buildPaths.buildDir / p.folder.getOrElse(RelPath.force(crossProjectName.name.value))
-              if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
-              else None
-            }.toList
+        val activeProjects: Option[Array[model.CrossProjectName]] =
+          if (pre.buildPaths.cwd == pre.buildPaths.buildDir) None
+          else {
+            val chosen =
+              build.explodedProjects.flatMap { case (crossProjectName, p) =>
+                val folder = pre.buildPaths.project(crossProjectName, p).dir
+                if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
+                else None
+              }.toArray
+
+            if (chosen.length != build.explodedProjects.size) {
+              pre.logger.info(
+                s"${chosen.length} of ${build.explodedProjects.size} projects active from ${pre.buildPaths.cwd}. run `bleep projects` to see which"
+              )
+            }
+            Some(chosen).filter(_.nonEmpty)
+          }
 
         val ec = ExecutionContext.global
         val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), ec)

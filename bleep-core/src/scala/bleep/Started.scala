@@ -14,7 +14,7 @@ case class Started(
     rewrites: List[BuildRewrite],
     build: model.Build,
     bloopFiles: GenBloopFiles.Files,
-    activeProjectsFromPath: List[model.CrossProjectName],
+    activeProjectsFromPath: Option[Array[model.CrossProjectName]],
     lazyConfig: Lazy[model.BleepConfig],
     resolver: Lazy[CoursierResolver],
     executionContext: ExecutionContext
@@ -40,16 +40,16 @@ case class Started(
     FetchJvm(new BleepCacheLogger(logger), jvm, executionContext)
   }
 
-  def chosenProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
+  def chosenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     maybeFromCommandLine match {
       case Some(fromCommandLine) => fromCommandLine.sorted
       case None =>
         activeProjectsFromPath match {
-          case Nil      => build.explodedProjects.keys.toList.sorted
-          case nonEmpty => nonEmpty
+          case None           => build.explodedProjects.keys.toArray.sorted
+          case Some(nonEmpty) => nonEmpty
         }
     }
 
-  def chosenTestProjects(maybeFromCommandLine: Option[List[model.CrossProjectName]]): List[model.CrossProjectName] =
+  def chosenTestProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     chosenProjects(maybeFromCommandLine).filter(projectName => build.explodedProjects(projectName).isTestProject.getOrElse(false))
 }

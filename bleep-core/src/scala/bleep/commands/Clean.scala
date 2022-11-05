@@ -7,9 +7,9 @@ import bleep.internal.FileUtils
 import java.nio.file.{Files, Path}
 import scala.util.Properties
 
-case class Clean(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
+case class Clean(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
-    val outDirectories: List[Path] =
+    val outDirectories: Array[Path] =
       projects.map(projectName => started.bloopFiles(projectName).forceGet.project.out).filter(Files.exists(_))
 
     Right {
@@ -23,7 +23,7 @@ case class Clean(started: Started, projects: List[model.CrossProjectName]) exten
         cli(
           action = "clean files",
           cwd = FileUtils.TempDir,
-          cmd = List(List("rm", "-Rf"), outDirectories.map(_.toString)).flatten,
+          cmd = List(Array("rm", "-Rf"), outDirectories.map(_.toString)).flatten,
           cliLogger = cli.CliLogger(started.logger)
         )
         outDirectories.foreach(directory => started.logger.info(s"Deleted $directory"))

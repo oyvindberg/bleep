@@ -5,9 +5,9 @@ import bleep.internal.FileUtils
 
 import java.nio.file.{Files, Path}
 
-case class BuildCreateDirectories(started: Started, projects: List[model.CrossProjectName]) extends BleepCommand {
+case class BuildCreateDirectories(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
-    val dirsWithProject: Map[Path, List[model.CrossProjectName]] =
+    val dirsWithProject: Map[Path, Array[model.CrossProjectName]] =
       projects
         .flatMap { crossName =>
           val paths = started.projectPaths(crossName)

@@ -65,7 +65,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
         buildClient.failed match {
           case empty if empty.isEmpty => Right(())
           case failed =>
-            Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toList, BspCommandFailed.NoDetails))
+            Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toArray, BspCommandFailed.NoDetails))
         }
       }
     finally

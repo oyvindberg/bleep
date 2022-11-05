@@ -8,7 +8,7 @@ import ch.epfl.scala.bsp4j.CompileParams
 
 import scala.build.bloop.BloopServer
 
-case class Test(started: Started, projects: List[model.CrossProjectName]) extends BleepCommandRemote(started) {
+case class Test(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(started) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
     val targets = buildTargets(started.buildPaths, projects)
     // workaround for https://github.com/scalacenter/bloop/pull/1839

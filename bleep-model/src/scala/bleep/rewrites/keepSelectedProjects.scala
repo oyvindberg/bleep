@@ -13,8 +13,8 @@ case class keepSelectedProjects(selectedProjectGlobs: List[String]) extends Buil
     b.result()
   }
   protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] = {
-    val globs = new model.ProjectGlobs(Nil, oldBuild.explodedProjects)
-    val selectedProjectNames = selectedProjectGlobs.flatMap(str => globs.projectNameMap.getOrElse(str, Nil))
+    val globs = new model.ProjectGlobs(None, oldBuild.explodedProjects)
+    val selectedProjectNames = selectedProjectGlobs.flatMap(str => globs.projectNameMap.getOrElse(str, Array.empty[model.CrossProjectName]))
     val withTransitive = selectedPlusTransitiveDeps(selectedProjectNames, oldBuild)
 
     val chosen = oldBuild.explodedProjects.filter { case (name, _) => withTransitive(name) }

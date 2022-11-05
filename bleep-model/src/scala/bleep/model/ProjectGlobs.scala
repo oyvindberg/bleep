@@ -2,13 +2,13 @@ package bleep.model
 
 /** Represents named groups of projects based on scala version and platforms
   */
-class ProjectGlobs(activeProjectsFromPath: List[CrossProjectName], explodedProjects: Map[CrossProjectName, Project]) {
-  def projectCompletions(projects: Iterable[CrossProjectName]): Map[String, Iterable[CrossProjectName]] = {
-    val crossNames: Map[String, Iterable[CrossProjectName]] =
-      projects.map(projectName => projectName.value -> List(projectName)).toMap
-    val projectNames: Map[String, Iterable[CrossProjectName]] =
+class ProjectGlobs(activeProjectsFromPath: Option[Array[CrossProjectName]], explodedProjects: Map[CrossProjectName, Project]) {
+  def projectCompletions(projects: Array[CrossProjectName]): Map[String, Array[CrossProjectName]] = {
+    val crossNames: Map[String, Array[CrossProjectName]] =
+      projects.map(projectName => projectName.value -> Array(projectName)).toMap
+    val projectNames: Map[String, Array[CrossProjectName]] =
       projects.groupBy { case CrossProjectName(name, _) => name.value }
-    val crossIds: Map[String, Iterable[CrossProjectName]] =
+    val crossIds: Map[String, Array[CrossProjectName]] =
       projects
         .groupBy { case name @ CrossProjectName(_, crossId) =>
           crossId.orElse {
@@ -28,20 +28,20 @@ class ProjectGlobs(activeProjectsFromPath: List[CrossProjectName], explodedProje
   def exactProjectMap: Map[String, CrossProjectName] =
     explodedProjects.map { case (crossName, _) => crossName.value -> crossName }
 
-  def projectNameMap: Map[String, Iterable[CrossProjectName]] = {
-    val projects: Iterable[CrossProjectName] =
+  def projectNameMap: Map[String, Array[CrossProjectName]] = {
+    val projects: Array[CrossProjectName] =
       activeProjectsFromPath match {
-        case Nil      => explodedProjects.keys
-        case nonEmpty => nonEmpty
+        case None           => explodedProjects.keys.toArray
+        case Some(nonEmpty) => nonEmpty
       }
     projectCompletions(projects)
   }
 
-  def testProjectNameMap: Map[String, Iterable[CrossProjectName]] = {
-    val projects: Iterable[CrossProjectName] =
+  def testProjectNameMap: Map[String, Array[CrossProjectName]] = {
+    val projects: Array[CrossProjectName] =
       activeProjectsFromPath match {
-        case Nil      => explodedProjects.keys
-        case nonEmpty => nonEmpty
+        case None           => explodedProjects.keys.toArray
+        case Some(nonEmpty) => nonEmpty
       }
 
     val testProjects = projects.filter(projectName => explodedProjects(projectName).isTestProject.getOrElse(false))
@@ -52,8 +52,8 @@ class ProjectGlobs(activeProjectsFromPath: List[CrossProjectName], explodedProje
   def projectNamesNoCrossMap: Map[String, ProjectName] = {
     val projects: Iterable[CrossProjectName] =
       activeProjectsFromPath match {
-        case Nil      => explodedProjects.keys
-        case nonEmpty => nonEmpty
+        case None           => explodedProjects.keys
+        case Some(nonEmpty) => nonEmpty
       }
     projects.map(p => (p.name.value, p.name)).toMap
   }

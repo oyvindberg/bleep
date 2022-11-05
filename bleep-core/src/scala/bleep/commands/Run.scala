@@ -39,7 +39,7 @@ case class Run(
       started.logger.debug(params.toString)
 
       def failed(reason: BspCommandFailed.Reason) =
-        Left(new BspCommandFailed("Run", List(project), reason))
+        Left(new BspCommandFailed("Run", Array(project), reason))
 
       Try(bloop.server.buildTargetRun(params).get().getStatusCode) match {
         case Success(bsp4j.StatusCode.OK) => Right(started.logger.info("Run succeeded"))

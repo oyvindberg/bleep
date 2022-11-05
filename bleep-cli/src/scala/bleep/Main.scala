@@ -49,20 +49,20 @@ object Main {
       Opts
         .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
 
-    val projectNames: Opts[List[model.CrossProjectName]] =
+    val projectNames: Opts[Array[model.CrossProjectName]] =
       Opts
         .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
-        .map(_.toList.flatten)
+        .map(_.toList.toArray.flatten)
         .orNone
         .map(started.chosenProjects)
 
     val projectName: Opts[model.CrossProjectName] =
       Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
 
-    val testProjectNames: Opts[List[model.CrossProjectName]] =
+    val testProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
         .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(started.globs.testProjectNameMap)))
-        .map(_.toList.flatten)
+        .map(_.toList.toArray.flatten)
         .orNone
         .map(started.chosenTestProjects)
 
@@ -163,7 +163,7 @@ object Main {
                 groupId = groupId,
                 version = version,
                 publishTarget = publishTarget,
-                projects
+                projects.toList
               )
               commands.PublishLocal(started, options)
             }
@@ -238,7 +238,7 @@ object Main {
       Opts(commands.InstallTabCompletions(logger))
     )
 
-  def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Iterable[model.CrossProjectName]]]): Opts[BleepCommand] = {
+  def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Array[model.CrossProjectName]]]): Opts[BleepCommand] = {
     val projectNamesNoExpand: Opts[Option[List[String]]] =
       Opts
         .arguments(metavars.projectName)(argumentFrom(metavars.projectName, projectNameMap.map(_.map { case (s, _) => (s, s) })))
