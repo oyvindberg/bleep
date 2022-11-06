@@ -15,9 +15,18 @@ import java.io.{BufferedWriter, PrintStream}
 import java.nio.file.{Path, Paths}
 import java.time.Instant
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Properties, Success, Try}
 
 object Main {
+  private def isGraalvmNativeImage: Boolean =
+    sys.props.contains("org.graalvm.nativeimage.imagecode")
+
+  if (Properties.isWin && isGraalvmNativeImage)
+    // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
+    // The DLL loaded by LoadWindowsLibrary is statically linke/d in
+    // the Scala CLI native image, no need to manually load it.
+    coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
+
   val stringArgs: Opts[List[String]] =
     Opts.arguments[String]().orNone.map(args => args.fold(List.empty[String])(_.toList))
 
