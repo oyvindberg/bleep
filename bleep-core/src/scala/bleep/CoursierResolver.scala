@@ -58,31 +58,20 @@ object CoursierResolver {
 
   object Factory {
     object default extends Factory {
-      def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver =
-        CoursierResolver(
-          repos = buildFile.resolvers.values,
-          logger = pre.logger,
-          downloadSources = true,
-          resolveCachePath = pre.userPaths.resolveCachePath,
-          authentications = config.authentications,
-          wantedBleepVersion = Some(buildFile.$version)
-        )
-    }
-  }
+      def apply(pre: Prebootstrapped, config: model.BleepConfig, buildFile: model.BuildFile): CoursierResolver = {
+        lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
 
-  def apply(
-      repos: List[model.Repository],
-      logger: Logger,
-      downloadSources: Boolean,
-      resolveCachePath: Path,
-      authentications: Option[model.Authentications],
-      wantedBleepVersion: Option[model.BleepVersion],
-      overrideCacheFolder: Option[File] = None
-  ): CoursierResolver = {
-    val params = Params(overrideCacheFolder, downloadSources, authentications, repos)
-    val direct = new Direct(new BleepCacheLogger(logger), params)
-    val cached = new Cached(logger, direct, resolveCachePath)
-    new TemplatedVersions(cached, wantedBleepVersion)
+        val resolvers = buildFile.resolvers.values.map {
+          case model.Repository.Maven(name, uri)   => model.Repository.Maven(name, replacements.fill.uri(uri))
+          case model.Repository.Folder(name, path) => model.Repository.Folder(name, replacements.fill.path(path))
+          case model.Repository.Ivy(name, uri)     => model.Repository.Ivy(name, replacements.fill.uri(uri))
+        }
+        val params = Params(None, downloadSources = true, config.authentications, resolvers)
+        val direct = new Direct(new BleepCacheLogger(pre.logger), params)
+        val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCachePath)
+        new TemplatedVersions(cached, Some(buildFile.$version))
+      }
+    }
   }
 
   // this is a simplified version of the original `Fetch.Result` with a json codec
@@ -149,14 +138,16 @@ object CoursierResolver {
   class Direct(val logger: BleepCacheLogger, val params: Params) extends CoursierResolver {
 
     val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(logger)
+    val repos = coursierRepos(params.repos, params.authentications)
 
     override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] = {
       def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
+        val coursierDependencies = deps.toList.map(_.asDependency(versionCombo).orThrowText)
 
         Fetch[Task](fileCache)
-          .withRepositories(coursierRepos(params.repos, params.authentications))
-          .withDependencies(deps.toList.map(_.asDependency(versionCombo).orThrowText))
+          .withRepositories(repos)
+          .withDependencies(coursierDependencies)
           .withResolutionParams(
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)

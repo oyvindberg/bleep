@@ -27,10 +27,12 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode, wan
     val maybePlatformVersion = p.platform.flatMap(p => p.jsVersion.map(_.scalaJsVersion).orElse(p.nativeVersion.map(_.scalaNativeVersion)))
 
     val targetDir = bleepBloopDir / crossName.name.value / crossName.crossId.fold("")(_.value)
-    val replacements = model.Replacements.paths(dir, buildDir) ++
-      model.Replacements.targetDir(targetDir) ++
-      model.Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
-      model.Replacements.versions(wantedBleepVersion, scalaVersion, maybePlatformId, maybePlatformVersion, includeEpoch = true, includeBinVersion = true)
+    val replacements =
+      model.Replacements.paths(buildDir) ++
+        model.Replacements.projectPaths(dir) ++
+        model.Replacements.targetDir(targetDir) ++
+        model.Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
+        model.Replacements.versions(wantedBleepVersion, scalaVersion, maybePlatformId, maybePlatformVersion, includeEpoch = true, includeBinVersion = true)
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout

@@ -140,7 +140,8 @@ object GenBloopFiles {
       model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
 
     val templateDirs =
-      model.Replacements.paths(build = buildPaths.buildDir, project = projectPaths.dir) ++
+      model.Replacements.paths(build = buildPaths.buildDir) ++
+        model.Replacements.projectPaths(project = projectPaths.dir) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
         model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
 

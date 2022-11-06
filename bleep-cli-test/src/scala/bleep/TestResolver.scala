@@ -61,11 +61,19 @@ object TestResolver {
     }
 
     val factory: CoursierResolver.Factory = { (pre, _, buildFile) =>
+      lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
+
+      val resolvers = buildFile.resolvers.values.map {
+        case model.Repository.Maven(name, uri)   => model.Repository.Maven(name, replacements.fill.uri(uri))
+        case model.Repository.Folder(name, path) => model.Repository.Folder(name, replacements.fill.path(path))
+        case model.Repository.Ivy(name, uri)     => model.Repository.Ivy(name, replacements.fill.uri(uri))
+      }
+
       val params = CoursierResolver.Params(
         overrideCacheFolder = None,
         downloadSources = false,
         authentications = None,
-        repos = buildFile.resolvers.values
+        repos = resolvers
       )
       val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(new BleepCacheLogger(pre.logger), params)
       val cached = new TestResolver(underlying, inMemoryCache)

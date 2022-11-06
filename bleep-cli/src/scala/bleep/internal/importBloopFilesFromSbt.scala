@@ -72,7 +72,8 @@ object importBloopFilesFromSbt {
       val originalTarget = findOriginalTargetDir.force(crossName, bloopProject)
 
       val replacements =
-        model.Replacements.paths(sbtBuildDir, directory) ++
+        model.Replacements.paths(sbtBuildDir) ++
+          model.Replacements.projectPaths(directory) ++
           model.Replacements.targetDir(originalTarget) ++
           model.Replacements.scope(projectType.sbtScope)
 

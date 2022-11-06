@@ -5,6 +5,7 @@ import coursier.cache.CacheDefaults
 import coursier.paths.CoursierPaths
 
 import java.io.File
+import java.net.URI
 import java.nio.file.Path
 
 // unfortunately we'll need to handle absolute paths in scalacOptions
@@ -69,6 +70,8 @@ object Replacements {
       Path.of(string(path.toString))
     def file(file: File): File =
       new File(string(file.toString))
+    def uri(uri: URI): URI =
+      new URI(string(uri.toString))
 
     def dep(dep: Dep): Dep = dep.withVersion(string(dep.version))
 
@@ -106,10 +109,9 @@ object Replacements {
       List(target.toString -> known.TargetDir)
     )
 
-  def paths(build: Path, project: Path): Replacements =
+  def paths(build: Path): Replacements =
     ofReplacements(
       List(
-        project.toString -> known.ProjectDir,
         build.toString -> known.BuildDir,
         System.getProperty("java.io.tmpdir") -> known.TempDir,
         System.getProperty("user.home") -> known.HomeDir,
@@ -117,6 +119,9 @@ object Replacements {
         CoursierPaths.archiveCacheDirectory.toString -> known.CoursierArcCacheDir
       )
     )
+
+  def projectPaths(project: Path): Replacements =
+    ofReplacements(List(project.toString -> known.ProjectDir))
 
   def scope(scope: String): Replacements =
     ofReplacements(List(scope -> known.Scope))
