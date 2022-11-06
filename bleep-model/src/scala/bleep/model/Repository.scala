@@ -37,7 +37,7 @@ object Repository {
           res <- tpe match {
             case Some("ivy")   => c.downField("uri").as[URI].map(uri => Ivy(name, uri))
             case Some("maven") => c.downField("uri").as[URI].map(uri => Maven(name, uri))
-            case Some("path")  => c.downField("path").as[URI].map(pathStr => Folder(name, Path.of(pathStr)))
+            case Some("path")  => c.downField("path").as[String].map(path => Folder(name, Path.of(path)))
             case _             => Left(DecodingFailure("expected 'type'", c.history))
           }
         } yield res
