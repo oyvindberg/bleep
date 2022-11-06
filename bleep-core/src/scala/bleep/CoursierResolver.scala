@@ -207,7 +207,7 @@ object CoursierResolver {
           case None =>
             val depNames = deps.map(_.baseModuleName.value)
             val ctxLogger = logger.withContext(cachePath).withContext(depNames).withContext(versionCombo.toString)
-            ctxLogger.debug(s"coursier cache miss: $deps, $versionCombo")
+            ctxLogger.debug(s"coursier cache miss")
             underlying.resolve(deps, versionCombo).map {
               case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
                 ctxLogger.info("Not caching because result is changing")
