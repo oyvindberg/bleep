@@ -3,7 +3,7 @@ package scripts
 
 import bleep.internal.jvmOrSystem
 import bleep.logging.Logger
-import bleep.tasks._
+import sbtnativeimage.NativeImagePlugin
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
