@@ -99,6 +99,9 @@ object Main {
               Opts.subcommand("create-directories", "create all source and resource folders for project(s)")(
                 projectNames.map(names => commands.BuildCreateDirectories(started, names))
               ),
+              Opts.subcommand("normalize", "normalize build (deduplicate, sort, etc)")(
+                Opts(commands.BuildNormalize(started))
+              ),
               Opts.subcommand("templates-reapply", "apply existing templates again")(
                 Opts(commands.BuildReapplyTemplates(started))
               ),
