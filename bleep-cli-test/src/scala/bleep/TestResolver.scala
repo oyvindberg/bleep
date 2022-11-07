@@ -64,9 +64,9 @@ object TestResolver {
       lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
 
       val resolvers = buildFile.resolvers.values.map {
-        case model.Repository.Maven(name, uri)   => model.Repository.Maven(name, replacements.fill.uri(uri))
-        case model.Repository.Folder(name, path) => model.Repository.Folder(name, replacements.fill.path(path))
-        case model.Repository.Ivy(name, uri)     => model.Repository.Ivy(name, replacements.fill.uri(uri))
+        case model.Repository.Maven(name, uri)        => model.Repository.Maven(name, replacements.fill.uri(uri))
+        case model.Repository.MavenFolder(name, path) => model.Repository.MavenFolder(name, replacements.fill.path(path))
+        case model.Repository.Ivy(name, uri)          => model.Repository.Ivy(name, replacements.fill.uri(uri))
       }
 
       val params = CoursierResolver.Params(

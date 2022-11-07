@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.model.Repository
 import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 
 import java.nio.file.Path
@@ -17,7 +18,11 @@ object PublishLocal {
     override val path: Path = constants.ivy2Path
     override val publishLayout: PublishLayout = PublishLayout.Ivy
   }
-  case class Custom(path: Path, publishLayout: PublishLayout) extends PublishTarget
+
+  case class CustomMaven(mavenRepo: model.Repository.MavenFolder) extends PublishTarget {
+    val path = mavenRepo.path
+    override val publishLayout: PublishLayout = PublishLayout.Maven()
+  }
 
   case class Options(groupId: String, version: String, publishTarget: PublishLocal.PublishTarget, projects: List[model.CrossProjectName])
 }

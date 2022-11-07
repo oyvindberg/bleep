@@ -165,17 +165,12 @@ object Main {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
               Opts.option[String]("version", "version you will publish"),
-              Opts.option[Path]("to", s"specify a folder other than ${constants.ivy2Path}").orNone,
-              Opts.flag("maven-layout", "publish with maven layout instead of ivy").orFalse,
+              Opts.option[Path]("to", s"publish to a maven repository at given path").orNone,
               projectNames
-            ).mapN { case (groupId, version, to, mavenLayout, projects) =>
+            ).mapN { case (groupId, version, to, projects) =>
               val publishTarget = to match {
-                case Some(path) =>
-                  val publishLayout = if (mavenLayout) PublishLayout.Maven() else PublishLayout.Ivy
-                  commands.PublishLocal.Custom(path, publishLayout)
-                case None =>
-                  if (mavenLayout) throw new BleepException.Text("cannot provide --maven-layout without specifying --to")
-                  else commands.PublishLocal.LocalIvy
+                case Some(path) => commands.PublishLocal.CustomMaven(model.Repository.MavenFolder(name = None, path))
+                case None       => commands.PublishLocal.LocalIvy
               }
               val options = commands.PublishLocal.Options(
                 groupId = groupId,

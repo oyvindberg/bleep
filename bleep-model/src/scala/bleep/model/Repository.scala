@@ -11,18 +11,19 @@ sealed trait Repository
 object Repository {
   case class Maven(name: Option[String], uri: URI) extends Repository
 
-  case class Folder(name: Option[String], path: Path) extends Repository
+  case class MavenFolder(name: Option[String], path: Path) extends Repository
 
   case class Ivy(name: Option[String], uri: URI) extends Repository
 
   implicit val repoEncoder: Encoder[Repository] =
     Encoder.instance {
-      case Repository.Maven(None, uri)         => uri.asJson
-      case Repository.Maven(Some(name), uri)   => Json.obj("type" -> "maven".asJson, "uri" -> uri.asJson, "name" -> name.asJson)
-      case Repository.Ivy(None, uri)           => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
-      case Repository.Ivy(Some(name), uri)     => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson, "name" -> name.asJson)
-      case Repository.Folder(None, path)       => Json.obj("type" -> "path".asJson, "path" -> Json.fromString(path.toString))
-      case Repository.Folder(Some(name), path) => Json.obj("type" -> "path".asJson, "path" -> Json.fromString(path.toString), "name" -> name.asJson)
+      case Repository.Maven(None, uri)        => uri.asJson
+      case Repository.Maven(Some(name), uri)  => Json.obj("type" -> "maven".asJson, "uri" -> uri.asJson, "name" -> name.asJson)
+      case Repository.Ivy(None, uri)          => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson)
+      case Repository.Ivy(Some(name), uri)    => Json.obj("type" -> "ivy".asJson, "uri" -> uri.asJson, "name" -> name.asJson)
+      case Repository.MavenFolder(None, path) => Json.obj("type" -> "maven-folder".asJson, "path" -> Json.fromString(path.toString))
+      case Repository.MavenFolder(Some(name), path) =>
+        Json.obj("type" -> "maven-folder".asJson, "path" -> Json.fromString(path.toString), "name" -> name.asJson)
     }
 
   implicit val repoDecoder: Decoder[Repository] = {
@@ -35,10 +36,10 @@ object Repository {
           name <- c.downField("name").as[Option[String]]
           tpe <- c.downField("type").as[Option[String]]
           res <- tpe match {
-            case Some("ivy")   => c.downField("uri").as[URI].map(uri => Ivy(name, uri))
-            case Some("maven") => c.downField("uri").as[URI].map(uri => Maven(name, uri))
-            case Some("path")  => c.downField("path").as[String].map(path => Folder(name, Path.of(path)))
-            case _             => Left(DecodingFailure("expected 'type'", c.history))
+            case Some("ivy")          => c.downField("uri").as[URI].map(uri => Ivy(name, uri))
+            case Some("maven")        => c.downField("uri").as[URI].map(uri => Maven(name, uri))
+            case Some("maven-folder") => c.downField("path").as[String].map(path => MavenFolder(name, Path.of(path)))
+            case _                    => Left(DecodingFailure("expected 'type'", c.history))
           }
         } yield res
       }

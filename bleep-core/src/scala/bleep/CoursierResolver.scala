@@ -62,9 +62,9 @@ object CoursierResolver {
         lazy val replacements = model.Replacements.paths(pre.buildPaths.buildDir)
 
         val resolvers = buildFile.resolvers.values.map {
-          case model.Repository.Maven(name, uri)   => model.Repository.Maven(name, replacements.fill.uri(uri))
-          case model.Repository.Folder(name, path) => model.Repository.Folder(name, replacements.fill.path(path))
-          case model.Repository.Ivy(name, uri)     => model.Repository.Ivy(name, replacements.fill.uri(uri))
+          case model.Repository.Maven(name, uri)        => model.Repository.Maven(name, replacements.fill.uri(uri))
+          case model.Repository.MavenFolder(name, path) => model.Repository.MavenFolder(name, replacements.fill.path(path))
+          case model.Repository.Ivy(name, uri)          => model.Repository.Ivy(name, replacements.fill.uri(uri))
         }
         val params = Params(None, downloadSources = true, config.authentications, resolvers)
         val direct = new Direct(new BleepCacheLogger(pre.logger), params)
@@ -126,8 +126,7 @@ object CoursierResolver {
 
   def coursierRepos(repos: List[model.Repository], authentications: Option[model.Authentications]): List[Repository] =
     (repos ++ constants.DefaultRepos).map {
-      case bleep.model.Repository.Folder(_, path) =>
-        // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
+      case bleep.model.Repository.MavenFolder(_, path) =>
         MavenRepository(path.toUri.toString)
       case bleep.model.Repository.Maven(_, uri) =>
         MavenRepository(uri.toString).withAuthentication(authentications.flatMap(_.configs.get(uri)))
