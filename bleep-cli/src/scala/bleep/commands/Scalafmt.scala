@@ -4,7 +4,7 @@ package commands
 import bleep.cli.CliLogger
 import bleep.internal.FileUtils
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import scala.jdk.StreamConverters.StreamHasToScala
 
 object Scalafmt {
@@ -39,10 +39,24 @@ class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
 
     started.logger.withContext(path).debug("Using scalafmt")
 
+    val sourcesDirs: Set[Path] =
+      started.build.explodedProjects.keys
+        .flatMap { crossName =>
+          val sourcesDirs = started.projectPaths(crossName).sourcesDirs
+          sourcesDirs.fromSourceLayout ++ sourcesDirs.fromJson.values
+        }
+        .toSet
+        .filter(Files.exists(_))
+
+    val cmd =
+      List(path.toString, "-c", ".scalafmt.conf", "--non-interactive") ++
+        (if (check) List("--test") else Nil) ++
+        sourcesDirs.map(_.toString)
+
     cli(
       "scalafmt",
       started.buildPaths.cwd,
-      List(path.toString, "-c", ".scalafmt.conf") ++ (if (check) List("--check") else Nil),
+      cmd,
       CliLogger(started.logger)
     )
     Right(())
