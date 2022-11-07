@@ -3,7 +3,7 @@ package scripts
 
 import bleep.internal.{jvmOrSystem, FileUtils}
 import bleep.logging.Logger
-import bleep.tasks._
+import sbtnativeimage.NativeImagePlugin
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.Duration

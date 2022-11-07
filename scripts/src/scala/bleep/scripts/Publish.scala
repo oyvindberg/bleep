@@ -3,9 +3,12 @@ package scripts
 
 import bleep.RelPath
 import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
-import bleep.tasks.publishing._
+import com.geirsson.CiReleasePlugin
+import com.jsuereth.sbtpgp.PgpPlugin
 import coursier.Info
 import nosbt.InteractionService
+import sbtdynver.DynVerPlugin
+import xerial.sbt.Sonatype
 
 import scala.collection.immutable.SortedMap
 

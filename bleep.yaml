@@ -49,46 +49,61 @@ projects:
       module: io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
-  bleep-tasks:
+  bleep-plugin-ci-release:
+    dependsOn:
+    - bleep-plugin-dynver
+    - bleep-plugin-pgp
+    - bleep-plugin-sonatype
+    extends: template-cross-jvm-212-213
+    sources: ./../liberated/sbt-ci-release/plugin/src/main/scala
+  bleep-plugin-dynver:
     dependsOn: bleep-core
     extends: template-cross-all
-    resources: ./../liberated/sbt-native-image/plugin/src/main/resources
-    sources: ./../liberated/sbt-native-image/plugin/src/main/scala
-  bleep-tasks-mdoc:
+    sources:
+    - ./../liberated/sbt-dynver/dynver/src/main/scala
+    - ./../liberated/sbt-dynver/sbtdynver/src/main/scala
+  bleep-plugin-git-versioning:
+    dependencies: se.sawano.java:alphanumeric-comparator:1.4.1
+    dependsOn: bleep-core
+    extends: template-cross-all
+    sources: ./../liberated/sbt-git-versioning/src/main/scala
+  bleep-plugin-mdoc:
     dependencies: org.jsoup:jsoup:1.15.3
-    dependsOn: bleep-tasks
+    dependsOn: bleep-plugin-nosbt
     extends: template-cross-all
     sources: ./../liberated/mdoc/mdoc-sbt/src/main/scala
-  bleep-tasks-publishing:
+  bleep-plugin-native-image:
+    dependsOn: bleep-core
+    extends: template-cross-all
+    sources: ./../liberated/sbt-native-image/plugin/src/main/scala
+  bleep-plugin-nosbt:
+    dependsOn: bleep-core
+    extends: template-cross-all
+  bleep-plugin-pgp:
     dependencies:
     - com.eed3si9n::gigahorse-okhttp:0.7.0
     - org.bouncycastle:bcpg-jdk15on:1.70
     - org.scala-lang.modules::scala-parser-combinators:2.1.1
-    - org.sonatype.spice.zapper:spice-zapper:1.3
-    - org.wvlet.airframe::airframe-http:22.4.2
-    - se.sawano.java:alphanumeric-comparator:1.4.1
-    dependsOn: bleep-tasks
-    extends:
-    - template-common
-    - template-cross-jvm-212-213
+    dependsOn: bleep-plugin-nosbt
+    extends: template-cross-all
     sources:
-    - ./../liberated/sbt-ci-release/plugin/src/main/scala
-    - ./../liberated/sbt-dynver/dynver/src/main/scala
-    - ./../liberated/sbt-dynver/sbtdynver/src/main/scala
-    - ./../liberated/sbt-git-versioning/src/main/scala
     - ./../liberated/sbt-pgp/gpg-library/src/main/scala
     - ./../liberated/sbt-pgp/sbt-pgp/src/main/scala
-    - ./../liberated/sbt-sonatype/src/main/scala
+  bleep-plugin-sonatype:
+    dependencies:
+    - org.sonatype.spice.zapper:spice-zapper:1.3
+    - org.wvlet.airframe::airframe-http:22.4.2
+    dependsOn: bleep-plugin-nosbt
+    extends: template-cross-jvm-212-213
+    sources: ./../liberated/sbt-sonatype/src/main/scala
   bleep-test-harness:
     dependencies: org.scalatest::scalatest:3.3.0-SNAP3
     dependsOn: bleep-core
-    extends:
-    - template-common
-    - template-cross-jvm-212-213
+    extends: template-cross-jvm-212-213
   scripts:
     dependsOn:
-    - bleep-tasks-mdoc
-    - bleep-tasks-publishing
+    - bleep-plugin-ci-release
+    - bleep-plugin-native-image
     extends:
     - template-common
     - template-scala-2.13
@@ -119,15 +134,14 @@ templates:
     cross:
       jvm3:
         extends: template-scala-3
-    extends:
-    - template-common
-    - template-cross-jvm-212-213
+    extends: template-cross-jvm-212-213
   template-cross-jvm-212-213:
     cross:
       jvm212:
         extends: template-scala-2.12
       jvm213:
         extends: template-scala-2.13
+    extends: template-common
   template-scala-2.12:
     scala:
       strict: true

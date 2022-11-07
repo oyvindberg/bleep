@@ -57,7 +57,7 @@ sealed trait Build {
               sameCrossId
                 .orElse(sameScalaAndPlatform)
                 .orElse(sameScalaBinVersionAndPlatform)
-                .toRight(s"Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}")
+                .toRight(s"$crossProjectName: Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}")
                 .orThrowText
           }
         }

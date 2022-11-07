@@ -1,7 +1,7 @@
 package bleep.scripts
 
 import bleep._
-import bleep.tasks.publishing._
+import sbtdynver.DynVerPlugin
 
 object PublishLocal extends BleepScript("PublishLocal") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
