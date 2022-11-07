@@ -2,7 +2,7 @@ package bleep
 
 import bleep.BuildPaths.Mode
 import bleep.internal.{fatal, Os}
-import bleep.logging.jsonEvents
+import bleep.logging.{jsonEvents, LogLevel}
 import bleep.rewrites.BuildRewrite
 
 import java.time.Instant
@@ -10,12 +10,17 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object bootstrap {
-  def forScript(scriptName: String)(f: (Started, Commands) => Unit): Unit = {
+  def forScript(scriptName: String, commonOpts: CommonOpts)(f: (Started, Commands) => Unit): Unit = {
     val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
 
     val logger = {
-      val base = if (logAsJson) logging.stdoutJson() else logging.stdout(LogPatterns.interface(Instant.now, noColor = false))
-      base.untyped.withPath(s"[script $scriptName]")
+      val logger0 =
+        if (logAsJson) logging.stdoutJson()
+        else logging.stdout(LogPatterns.interface(Instant.now, noColor = commonOpts.noColor), disableProgress = commonOpts.noBspProgress)
+
+      val logger1 = logger0.withPath(s"[script $scriptName]")
+      val logger2 = if (commonOpts.debug) logger1 else logger1.minLogLevel(LogLevel.info)
+      logger2.untyped
     }
 
     val buildLoader = BuildLoader.find(Os.cwd)

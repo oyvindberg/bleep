@@ -81,12 +81,12 @@ class TemplateTest extends SnapshotTest {
       ignoreWhenInferringTemplates: Set[model.ProjectName] = Set.empty
   ): model.BuildFile = {
     val pre = model.Build.Exploded(model.BleepVersion.dev, projects, model.JsonList.empty, None, Map.empty)
-    val logger = bleep.logging.stdout(LogPatterns.interface(Instant.now, noColor = false)).withContext(testName).untyped
+    val logger = logger0.withContext(testName).untyped
     val buildFile = templatesInfer(new BleepTemplateLogger(logger), pre, ignoreWhenInferringTemplates)
     writeAndCompare(
       outFolder.resolve(testName),
       Map(outFolder.resolve(testName) -> buildFile.asJson.foldWith(ShortenAndSortJson(Nil)).spaces2),
-      logger0.withPath(testName)
+      logger
     )
 
     // complain if we have done illegal rewrites during templating

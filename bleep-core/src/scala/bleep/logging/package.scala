@@ -14,11 +14,11 @@ package object logging {
 
   private[logging] val emptyContext: Ctx = Map.empty
 
-  def stdout(pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
-    new TypedLogger.ConsoleLogger(System.out, pattern, ctx, Nil)
+  def stdout(pattern: Pattern, disableProgress: Boolean, ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
+    new TypedLogger.ConsoleLogger(System.out, pattern, ctx, Nil, disableProgress)
 
   def stderr(pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
-    new TypedLogger.ConsoleLogger(System.err, pattern, ctx, Nil)
+    new TypedLogger.ConsoleLogger(System.err, pattern, ctx, Nil, disableProgress = true)
 
   def stdoutJson(ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
     new jsonEvents.JsonProducer(System.out, ctx, Nil)

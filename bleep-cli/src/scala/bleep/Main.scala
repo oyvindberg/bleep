@@ -42,8 +42,17 @@ object Main {
     val scalaVersion = "scala version"
   }
 
+  val commonOpts: Opts[CommonOpts] =
+    (
+      Opts.flag("no-color", "enable CI-friendly output").orFalse,
+      Opts.flag("debug", "enable more output").orFalse,
+      Opts.option[String]("directory", "enable more output", "d").orNone,
+      Opts.flag("dev", "use the current bleep binary and don't launch the one specified in bleep.yaml").orFalse,
+      Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse
+    ).mapN(CommonOpts.apply)
+
   def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting, userPaths: UserPaths): Opts[BleepCommand] =
-    CommonOpts.opts *> List(
+    commonOpts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, buildPaths.cwd)),
       importCmd(buildLoader, buildPaths, logger),
       compileServerCmd(logger, userPaths),
@@ -204,7 +213,7 @@ object Main {
         }
       )
 
-      CommonOpts.opts *> allCommands.flatten.foldK
+      commonOpts *> allCommands.flatten.foldK
     }
 
     ret
@@ -396,7 +405,7 @@ object Main {
           if (logAsJson) logging.stdoutJson()
           else {
             val pattern = LogPatterns.interface(Instant.now, noColor = commonOpts.noColor)
-            logging.stdout(pattern).minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
+            logging.stdout(pattern, disableProgress = commonOpts.noBspProgress).minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
           }
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)

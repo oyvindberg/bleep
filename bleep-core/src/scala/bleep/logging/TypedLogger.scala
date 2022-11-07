@@ -80,6 +80,7 @@ object TypedLogger {
       pattern: Pattern,
       val context: Ctx,
       path: List[String],
+      disableProgress: Boolean,
       lastWasProgress: AtomicBoolean = new AtomicBoolean(false) // need to share this across instances after `withContext`
   ) extends TypedLogger[U] {
 
@@ -98,23 +99,29 @@ object TypedLogger {
     }
 
     override def withContext[T: Formatter](key: String, value: T): ConsoleLogger[U] =
-      new ConsoleLogger(underlying, pattern, context + (key -> Formatter(value)), path, lastWasProgress)
+      new ConsoleLogger(underlying, pattern, context + (key -> Formatter(value)), path, disableProgress, lastWasProgress)
 
     override def withPath(fragment: String): ConsoleLogger[U] =
-      new ConsoleLogger(underlying, pattern, context, fragment :: path, lastWasProgress)
+      new ConsoleLogger(underlying, pattern, context, fragment :: path, disableProgress, lastWasProgress)
 
-    override def progressMonitor: Option[LoggerFn] = Some(new LoggerFn {
-      override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
-        val formatted = pattern(text, throwable, metadata, context, path)
-        if (lastWasProgress.get()) {
-          underlying.append(CleanCurrentLine + formatted.render + "\r")
-          ()
-        } else {
-          underlying.append(formatted.render + "\r")
-          lastWasProgress.set(true)
+    // todo: this is only here until we have a proper thing to render UI like tui.
+    override def progressMonitor: Option[LoggerFn] =
+      if (disableProgress) None
+      else
+        Some {
+          new LoggerFn {
+            override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
+              val formatted = pattern(text, throwable, metadata, context, path)
+              if (lastWasProgress.get()) {
+                underlying.append(CleanCurrentLine + formatted.render + "\r")
+                ()
+              } else {
+                underlying.append(formatted.render + "\r")
+                lastWasProgress.set(true)
+              }
+            }
+          }
         }
-      }
-    })
   }
 
   private[logging] final class Flushing[U <: Flushable](wrapped: TypedLogger[U]) extends TypedLogger[U] {
