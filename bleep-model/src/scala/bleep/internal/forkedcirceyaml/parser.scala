@@ -13,7 +13,7 @@ import java.io.{Reader, StringReader}
 import java.util.Optional
 import scala.collection.JavaConverters._
 
-package object parser {
+object parser {
 
   val settings: LoadSettings = LoadSettings.builder.build
 
@@ -115,7 +115,7 @@ package object parser {
     if (node == null) {
       Right(Json.False)
     } else {
-      node match {
+      (node: @unchecked) match {
         case mapping: MappingNode =>
           flattener
             .flatten(mapping)

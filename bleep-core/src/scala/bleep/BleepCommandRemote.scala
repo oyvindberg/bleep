@@ -19,8 +19,8 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
     started.build.explodedProjects.keys.find(_.value == id).getOrElse(sys.error(s"Couldn't find project for $name"))
   }
 
-  def buildTargets(buildPaths: BuildPaths, projects: Seq[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
-    projects.map(p => buildTarget(buildPaths, p)).asJava
+  def buildTargets(buildPaths: BuildPaths, projects: Array[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
+    util.List.of(projects.map(p => buildTarget(buildPaths, p)): _*)
 
   def runWithServer(bloop: BloopServer): Either[BleepException, Unit]
 

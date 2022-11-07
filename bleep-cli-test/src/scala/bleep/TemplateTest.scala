@@ -10,7 +10,6 @@ import org.scalactic.{source, Prettifier}
 import org.scalatest.Assertion
 
 import java.nio.file.{Files, Path, Paths}
-import java.time.Instant
 
 class TemplateTest extends SnapshotTest {
 

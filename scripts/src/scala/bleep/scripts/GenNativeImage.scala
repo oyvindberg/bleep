@@ -18,14 +18,16 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val plugin = new NativeImagePlugin(
       project,
       started.logger,
-      nativeImageOptions = """--no-fallback
-        --enable-http
-        --enable-https
-        -H:+ReportExceptionStackTraces
-        --initialize-at-build-time=scala.runtime.Statics$VM
-        --initialize-at-build-time=scala.Symbol
-        --initialize-at-build-time=scala.Symbol$
-        --native-image-info""".split("\n").map(_.trim),
+      nativeImageOptions = List(
+        "--no-fallback",
+        "--enable-http",
+        "--enable-https",
+        "-H:+ReportExceptionStackTraces",
+        "--initialize-at-build-time=scala.runtime.Statics$VM",
+        "--initialize-at-build-time=scala.Symbol",
+        "--initialize-at-build-time=scala.Symbol$",
+        "--native-image-info"
+      ),
       nativeImageJvm = nativeImageJvm,
       env = sys.env.toList ++ List(("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false"))
     ) {

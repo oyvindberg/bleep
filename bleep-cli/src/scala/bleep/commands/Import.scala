@@ -38,7 +38,6 @@ case class Import(
         bleepVersion = bleepVersion,
         inputData = inputData,
         bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
-        skipGeneratedResourcesScript = options.skipGeneratedResourcesScript,
         maybeExistingBuildFile = existingBuild
       )
       .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }
@@ -315,7 +314,6 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
       bleepVersion: model.BleepVersion,
       inputData: ImportInputData,
       bleepTasksVersion: model.BleepVersion,
-      skipGeneratedResourcesScript: Boolean,
       maybeExistingBuildFile: Option[model.BuildFile]
   ): Map[Path, String] = {
 

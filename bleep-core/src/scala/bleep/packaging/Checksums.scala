@@ -47,9 +47,9 @@ object Checksums {
       ch = (in(i) & 0xf0).toByte // Strip off high nibble
       ch = (ch >>> 4).toByte // shift the bits down
       ch = (ch & 0x0f).toByte // must do this is high order bit is on!
-      out.append(Chars(ch.toChar)) // convert the nibble to a String Character
+      out.append(Chars(ch.toInt)) // convert the nibble to a String Character
       ch = (in(i) & 0x0f).toByte // Strip off low nibble
-      out.append(Chars(ch.toChar))
+      out.append(Chars(ch.toInt))
     }
     // CheckStyle:MagicNumber ON
     out.toString

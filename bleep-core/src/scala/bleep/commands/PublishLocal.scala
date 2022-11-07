@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.model.Repository
 import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 
 import java.nio.file.Path

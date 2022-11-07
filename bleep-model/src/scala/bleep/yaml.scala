@@ -15,6 +15,7 @@ object yaml {
   def writeShortened[T: Encoder](t: T, to: Path): Unit = {
     Files.createDirectories(to.getParent)
     Files.writeString(to, encodeShortened(t))
+    ()
   }
 
   def encodeShortened[T: Encoder](t: T): String =

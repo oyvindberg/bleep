@@ -4,7 +4,6 @@ import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
 import bleep.internal.{fatal, Os}
 import bleep.logging._
-import bleep.packaging.PublishLayout
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._

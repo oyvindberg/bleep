@@ -4,7 +4,7 @@ import io.circe.Json
 
 /** Provides helpful syntax that is not specific to the SnakeYAML implementation.
   */
-package object syntax {
+object syntax {
 
   final class YamlSyntax(val tree: Json) extends AnyVal {
     def spaces2: String = Printer.spaces2.pretty(tree)

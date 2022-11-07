@@ -45,6 +45,7 @@ object It extends BleepScript("It") {
       ),
       Duration.Inf
     )
+    ()
   }
 
   def runDemo(bleep: Path, demo: Demo, env: List[(String, String)], logger: Logger): Unit = {
@@ -63,6 +64,7 @@ object It extends BleepScript("It") {
         workDir = workDir / cd.drop("cd ".length)
       case line =>
         cli(action.getOrElse(line), workDir, cmd = line.split("\\s").toList, cliLogger = cli.CliLogger(logger), env = env)
+        ()
     }
 
     FileUtils.deleteDirectory(tempDir)
