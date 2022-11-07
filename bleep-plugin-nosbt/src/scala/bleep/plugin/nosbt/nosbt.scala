@@ -1,3 +1,5 @@
+package bleep.plugin
+
 import java.io.File
 
 package object nosbt {

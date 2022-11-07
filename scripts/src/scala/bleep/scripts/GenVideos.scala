@@ -3,7 +3,7 @@ package scripts
 
 import bleep.internal.{jvmOrSystem, FileUtils}
 import bleep.logging.{jsonEvents, Logger}
-import sbtnativeimage.NativeImagePlugin
+import bleep.plugin.nativeimage.NativeImagePlugin
 
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}

@@ -1,9 +1,9 @@
 /* sbt -- Simple Build Tool
  * Copyright 2009 Mark Harrah
  */
-package nosbt.librarymanagement.ivy
+package bleep.plugin.nosbt.librarymanagement.ivy
 
-import nosbt.io.IO
+import bleep.plugin.nosbt.io.IO
 
 import java.io.File
 import scala.collection.Seq
