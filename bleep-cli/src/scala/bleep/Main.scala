@@ -323,7 +323,7 @@ object Main {
         val (commonOpts, _) = CommonOpts.parse(compLine.split(" ").toList)
         val cwd = cwdFor(commonOpts)
         // we can not log to stdout when completing. logger should be used sparingly
-        val logger = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn).untyped
+        val logger = logging.stderr(LogPatterns.logFile).minLogLevel(LogLevel.warn).untyped
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, logger, commonOpts)
 
@@ -364,7 +364,7 @@ object Main {
       case "bsp" :: args =>
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
-        val stderr = logging.stderr(LogPatterns.logFile).filter(LogLevel.warn)
+        val stderr = logging.stderr(LogPatterns.logFile).minLogLevel(LogLevel.warn)
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped, commonOpts)
 
@@ -396,7 +396,7 @@ object Main {
           if (logAsJson) logging.stdoutJson()
           else {
             val pattern = LogPatterns.interface(Instant.now, noColor = commonOpts.noColor)
-            logging.stdout(pattern).filter(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
+            logging.stdout(pattern).minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
           }
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)

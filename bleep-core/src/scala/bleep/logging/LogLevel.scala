@@ -1,6 +1,8 @@
 package bleep.logging
 
-sealed abstract class LogLevel(val level: Int)(implicit val name: sourcecode.Name)
+sealed abstract class LogLevel(val level: Int)(implicit val name: sourcecode.Name) {
+  val bracketName = s"[${name.value}]"
+}
 
 object LogLevel {
   case object debug extends LogLevel(2)

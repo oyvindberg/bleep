@@ -10,7 +10,7 @@ import java.nio.file.Path
 
 class CreateNewSnapshotTests extends SnapshotTest {
   test("create-new-build") {
-    val logger = logger0.withPath("create-new-build").filter(LogLevel.info)
+    val logger = logger0.withPath("create-new-build")
     val testFolder = outFolder / "create-new-build"
     val buildLoader = BuildLoader.inDirectory(testFolder / "build")
     val buildPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)

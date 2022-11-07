@@ -1,7 +1,7 @@
 package bleep
 package testing
 
-import bleep.logging.Logger
+import bleep.logging.{LogLevel, Logger}
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
@@ -12,7 +12,7 @@ import java.time.Instant
 import scala.util.Properties
 
 trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val logger0 = logging.stdout(LogPatterns.interface(Instant.now, noColor = false)).untyped
+  val logger0 = logging.stdout(LogPatterns.interface(Instant.now, noColor = false)).untyped.minLogLevel(LogLevel.info)
 
   val isCi: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt

@@ -153,7 +153,7 @@ object TypedLogger {
       List(one.progressMonitor, two.progressMonitor).flatten.reduceOption(_ and _)
   }
 
-  private[logging] final class WithFilter[U](wrapped: TypedLogger[U], minLogLevel: LogLevel) extends TypedLogger[U] {
+  private[logging] final class MinLogLevel[U](wrapped: TypedLogger[U], minLogLevel: LogLevel) extends TypedLogger[U] {
     override def underlying: U = wrapped.underlying
 
     override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
@@ -161,11 +161,11 @@ object TypedLogger {
         wrapped.log(t, throwable, m)
       }
 
-    override def withContext[T: Formatter](key: String, value: T): WithFilter[U] =
-      new WithFilter[U](wrapped.withContext(key, value), minLogLevel)
+    override def withContext[T: Formatter](key: String, value: T): MinLogLevel[U] =
+      new MinLogLevel[U](wrapped.withContext(key, value), minLogLevel)
 
-    override def withPath(fragment: String): WithFilter[U] =
-      new WithFilter[U](wrapped.withPath(fragment), minLogLevel)
+    override def withPath(fragment: String): MinLogLevel[U] =
+      new MinLogLevel[U](wrapped.withPath(fragment), minLogLevel)
 
     override def progressMonitor: Option[LoggerFn] =
       wrapped.progressMonitor
@@ -215,8 +215,8 @@ object TypedLogger {
     def zipWith[UU](other: TypedLogger[UU]): TypedLogger[(U, UU)] =
       new Zipped(self, other)
 
-    def filter(minLogLevel: LogLevel): TypedLogger[U] =
-      new WithFilter(self, minLogLevel)
+    def minLogLevel(minLogLevel: LogLevel): TypedLogger[U] =
+      new MinLogLevel(self, minLogLevel)
 
     def untyped: TypedLogger[Unit] =
       new Mapped[U, Unit](self, _ => ())

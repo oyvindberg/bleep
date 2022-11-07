@@ -128,7 +128,7 @@ object CoursierResolver {
     (repos ++ constants.DefaultRepos).map {
       case bleep.model.Repository.Folder(_, path) =>
         // Repository.Folder is derived from sbt.librarymanagement.FileRepository, which can be both ivy and maven.
-        MavenRepository(path.toString)
+        MavenRepository(path.toUri.toString)
       case bleep.model.Repository.Maven(_, uri) =>
         MavenRepository(uri.toString).withAuthentication(authentications.flatMap(_.configs.get(uri)))
       case bleep.model.Repository.Ivy(_, uri) =>
