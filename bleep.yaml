@@ -12,14 +12,9 @@ projects:
     dependsOn: bleep-core
     extends:
     - template-common
-    - template-scala-2.13
+    - template-cross-new
     platform:
       mainClass: bleep.Main
-  bleep-cli-test:
-    dependsOn: bleep-cli
-    extends:
-    - template-common-test
-    - template-scala-2.13
   bleep-core:
     dependencies:
     - for3Use213: true
@@ -54,7 +49,7 @@ projects:
     - bleep-plugin-dynver
     - bleep-plugin-pgp
     - bleep-plugin-sonatype
-    extends: template-cross-jvm-212-213
+    extends: template-cross-old
     sources: ./../liberated/sbt-ci-release/plugin/src/main/scala
   bleep-plugin-dynver:
     dependsOn: bleep-core
@@ -94,16 +89,19 @@ projects:
     - org.sonatype.spice.zapper:spice-zapper:1.3
     - org.wvlet.airframe::airframe-http:22.4.2
     dependsOn: bleep-plugin-nosbt
-    extends: template-cross-jvm-212-213
+    extends: template-cross-old
     sources: ./../liberated/sbt-sonatype/src/main/scala
-  bleep-test-harness:
-    dependencies: org.scalatest::scalatest:3.3.0-SNAP3
-    dependsOn: bleep-core
-    extends: template-cross-jvm-212-213
+  bleep-tests:
+    dependencies: org.scalatest::scalatest:3.2.9
+    dependsOn: bleep-cli
+    extends:
+      - template-common
+      - template-scala-2.13
+    isTestProject: true
   scripts:
     dependsOn:
-    - bleep-plugin-mdoc
     - bleep-plugin-ci-release
+    - bleep-plugin-mdoc
     - bleep-plugin-native-image
     extends:
     - template-common
@@ -128,31 +126,27 @@ templates:
     scala:
       options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
-  template-common-test:
-    dependsOn: bleep-test-harness
-    extends: template-common
-    isTestProject: true
+      strict: true
   template-cross-all:
+    extends:
+    - template-cross-new
+    - template-cross-old
+  template-cross-new:
     cross:
+      jvm213:
+        extends: template-scala-2.13
       jvm3:
-        extends: template-scala-3
-    extends: template-cross-jvm-212-213
-  template-cross-jvm-212-213:
+        scala:
+          version: 3.2.0
+    extends: template-common
+  template-cross-old:
     cross:
       jvm212:
-        extends: template-scala-2.12
+        scala:
+          version: 2.12.15
       jvm213:
         extends: template-scala-2.13
     extends: template-common
-  template-scala-2.12:
-    scala:
-      strict: true
-      version: 2.12.15
   template-scala-2.13:
     scala:
-      strict: true
       version: 2.13.8
-  template-scala-3:
-    scala:
-      strict: true
-      version: 3.2.0

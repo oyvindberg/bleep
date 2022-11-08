@@ -12,7 +12,7 @@ import scala.jdk.StreamConverters.StreamHasToScala
 
 object It extends BleepScript("It") {
   override def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    val project = started.bloopProjects(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None))
+    val project = started.bloopProjects(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm213"))))
     val ni = new NativeImagePlugin(project, started.logger, nativeImageJvm = jvmOrSystem(started))
 
     val nativeImage = {
