@@ -8,11 +8,12 @@ import ch.epfl.scala.bsp4j
 import io.circe.Encoder
 import io.circe.syntax._
 
-import java.nio.file.Files
+import java.nio.file.{Files, Path}
 import java.util
+import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
-case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProjects: Option[List[String]]) extends BleepCommand {
+case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProjects: Option[List[String]], ec: ExecutionContext) extends BleepCommand {
   implicit def encodesUtilList[T: Encoder]: Encoder[util.List[T]] = Encoder[List[T]].contramap(_.asScala.toList)
   implicit val encoder: Encoder[bsp4j.BspConnectionDetails] =
     Encoder.forProduct5[bsp4j.BspConnectionDetails, String, util.List[String], String, String, util.List[String]](
@@ -24,10 +25,20 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
     )(x => (x.getName, x.getArgv, x.getVersion, x.getBspVersion, x.getLanguages))
 
   override def run(): Either[BleepException, Unit] = {
-    val progName = (new Argv0).get("bleep")
+    val bleepExecutablePath: Path = (new Argv0).get(null) match {
+      case null =>
+        val latestRelease = model.BleepVersion.current.latestRelease
+        logger.warn(s"couldn't determine name of Bleep executable. Setting up version ${latestRelease.value}")
+        FetchBleepRelease(latestRelease, new BleepCacheLogger(logger), ec).orThrow
+      case absolute if absolute.startsWith("/") =>
+        Path.of(absolute)
+      case relative =>
+        internal.Os.cwd / relative
+    }
+
     val details = new bsp4j.BspConnectionDetails(
       "bleep",
-      List(progName, "bsp").asJava,
+      List(bleepExecutablePath.toString, "bsp").asJava,
       model.BleepVersion.current.value,
       scala.build.blooprifle.internal.Constants.bspVersion,
       List("scala", "java").asJava

@@ -150,7 +150,7 @@ object Main {
               commands.Run(started, projectName, mainClass, arguments)
             }
           ),
-          setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap)),
+          setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap), started.executionContext),
           Opts.subcommand("clean", "clean")(
             projectNames.map(projectNames => commands.Clean(started, projectNames))
           ),
@@ -253,7 +253,12 @@ object Main {
       Opts(commands.InstallTabCompletions(logger))
     )
 
-  def setupIdeCmd(buildPaths: BuildPaths, logger: Logger, projectNameMap: Option[Map[String, Array[model.CrossProjectName]]]): Opts[BleepCommand] = {
+  def setupIdeCmd(
+      buildPaths: BuildPaths,
+      logger: Logger,
+      projectNameMap: Option[Map[String, Array[model.CrossProjectName]]],
+      ec: ExecutionContext
+  ): Opts[BleepCommand] = {
     val projectNamesNoExpand: Opts[Option[List[String]]] =
       Opts
         .arguments(metavars.projectName)(argumentFrom(metavars.projectName, projectNameMap.map(_.map { case (s, _) => (s, s) })))
@@ -261,7 +266,7 @@ object Main {
         .orNone
 
     Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
-      projectNamesNoExpand.map(projectNames => commands.SetupIde(buildPaths, logger, projectNames))
+      projectNamesNoExpand.map(projectNames => commands.SetupIde(buildPaths, logger, projectNames, ec))
     )
   }
 
