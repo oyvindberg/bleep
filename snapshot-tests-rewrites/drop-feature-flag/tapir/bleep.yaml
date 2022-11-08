@@ -35,7 +35,7 @@ projects:
       options: -Wconf:cat=unused-nowarn:s
     sources: ./src/${SCOPE}/scala-sbt-1.0
   scripts:
-    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    dependencies: build.bleep::bleep-core:0.0.1-M20
     platform:
       name: jvm
     scala:

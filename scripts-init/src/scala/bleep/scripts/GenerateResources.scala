@@ -1,12 +1,13 @@
-package bleep.scripts
+package bleep
+package scripts
 
-import bleep.Started
-import bleep.tasks.publishing.DynVerPlugin
+import bleep.{BleepScript, Started}
+import bleep.plugin.dynver.DynVerPlugin
 
 import java.nio.file.Files
 
-object GenerateResources extends App {
-  bleep.bootstrap.forScript("GenerateResources") { (started, _) =>
+object GenerateResources extends BleepScript("GenerateResources") {
+  override def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
     writeGenerated(started, dynVer.version)
   }
