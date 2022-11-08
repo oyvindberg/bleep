@@ -66,7 +66,7 @@ object bootstrap {
                 else None
               }.toArray
 
-            if (chosen.length != build.explodedProjects.size) {
+            if (chosen.length > 0 && chosen.length != build.explodedProjects.size) {
               pre.logger.info(
                 s"${chosen.length} of ${build.explodedProjects.size} projects active from ${pre.buildPaths.cwd}. run `bleep projects` to see which"
               )
