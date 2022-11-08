@@ -1,0 +1,39 @@
+# More stable builds
+
+In order to work towards stable builds, Bleep manages some software which is often just picked up from the environment,
+will typically be different between computers.
+
+## Bleep manages itself
+
+Bleep functions as a launcher for itself.
+You specify the version you want in `bleep.yaml`, and it'll automatically download and run the specified version
+
+```yaml
+$version: 0.0.1-M18
+```
+
+Note that this can be overridden by supplying `--dev` to Bleep, in that case it will run the binary you have.
+
+## Bleep manages JVMs
+
+You can (optionally) specify a JVM to use for compiling and running your project.
+
+```yaml
+jvm:
+  name: graalvm-java17:22.2.0
+```
+
+If you don't, Bleep will fallback to what is discovered through `JAVA_HOME`.
+
+## Bleep manages Node
+
+For Scala.js projects, you can also specify the version of node you want to use. It'll also be automatically downloaded and used
+```yaml
+  my-js-project:
+    platform:
+      jsNodeVersion: 18.4.0
+```
+
+## Bleep does not (yet) manage LLVM (for Scala Native)
+
+It is an open question whether it's feasible to supply a given version of LLVM.

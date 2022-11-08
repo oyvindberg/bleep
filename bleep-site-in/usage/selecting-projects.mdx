@@ -1,0 +1,64 @@
+# Selecting projects
+
+Your build may have many projects, so there is some built-in convenience to select groups of projects.
+
+Whenever you give project names to a bleep command, for instance to `bleep compile/test/publish-local`, you can provide `crossId`s instead. This will select a group of cross projects with that `crossId`.
+If you have worked with a cross-built project you will have seen names like `myproject@jvm213` - the `crossId` is the part after `@`.
+
+Note that any transitive dependencies will also be selected.
+
+These groups are discoverable because they also appear in [tab-completions](../tab-completions).
+
+## Understand which projects are chosen
+You can pass the group names to `bleep projects` to see which projects are implied by a group
+```sh
+$ bleep projects jvm213
+📗 Launching Bleep version 0.0.1-M18 as requested in /Users/oyvind/bleep/bleep.yaml [t => 11 ms]
+📗 bootstrapped in 5 ms [t => 18 ms]
+📗 bleep-cli [t => 20 ms]
+📗 bleep-cli-test [t => 20 ms]
+📗 bleep-core@jvm213 [t => 20 ms]
+📗 bleep-model@jvm213 [t => 20 ms]
+📗 bleep-tasks-mdoc@jvm213 [t => 20 ms]
+📗 bleep-tasks-publishing@jvm213 [t => 20 ms]
+📗 bleep-tasks@jvm213 [t => 20 ms]
+📗 bleep-test-harness@jvm213 [t => 20 ms]
+📗 scripts [t => 20 ms]
+📗 scripts-init [t => 20 ms]
+```
+
+## Selecting projects via subfolders
+If you have grouped your projects in subfolders, you can use the subfolders to select projects
+```sh
+$ pwd
+$HOME/pr/tapir
+$ bleep projects|wc -l
+     522
+$ cd integrations/
+$ bleep projects|wc -l
+      87
+$ bleep projects-test|wc -l
+      44
+```
+This means that running `bleep compile` in `integrations` will compile the projects contained within
+
+## Intersection of subfolders and names
+
+These two approaches compose so you can use both at the same time:
+```sh
+$ cd integrations/
+$ bleep projects jvm213|wc -l
+      19
+
+```
+## Setting up build in IDE
+
+You can also use (combinations of) project names and group names when setting up which projects
+will be made available in your IDE!
+
+<video
+    controls="true"
+    src="https://user-images.githubusercontent.com/247937/199306031-78e5d206-cd4c-427d-9a82-82fbbfc4520b.mp4"
+></video>
+
+Note: subfolder selection does not work when setting up projects in IDE

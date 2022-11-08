@@ -1,0 +1,22 @@
+# Comparison with sbt
+
+Sbt is in many respects an awesome tool, it really is. But it is the wrong tool.
+
+## It is complex
+
+The case against sbt has been made before, most eloquently by Li Haoyi in the [So, what's wrong with SBT?](https://www.lihaoyi.com/post/SowhatswrongwithSBT.html) blog post.
+
+## It is slow
+
+Even worse, it is also slow.
+- Starting a JVM is slow.
+- Starting a Scala compiler is slow
+- Compiling the build is slow
+- Evaluating the build is slow
+- Resolving dependencies is slow
+- Every plugin introduces more slowness, multiplied by number of projects
+
+## It cannot manage its own build files
+
+The build file is arbitrarily complicated scala code.
+The most common build changes like dependency updates, project renames, combining projects are manual operations.

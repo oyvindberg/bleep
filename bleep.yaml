@@ -102,6 +102,7 @@ projects:
     extends: template-cross-jvm-212-213
   scripts:
     dependsOn:
+    - bleep-plugin-mdoc
     - bleep-plugin-ci-release
     - bleep-plugin-native-image
     extends:
@@ -113,8 +114,9 @@ projects:
     - template-common
     - template-scala-2.13
 scripts:
+  generate-docs: scripts/bleep.scripts.GenDocumentation
   generate-resources: scripts-init/bleep.scripts.GenerateResources
-  generate-videos: scripts/bleep.scripts.GenVideos
+  generate-videos: scripts/bleep.scripts.GenDemoVideos
   it: scripts/bleep.scripts.It
   my-publish-local: scripts/bleep.scripts.PublishLocal
   native-image: scripts/bleep.scripts.GenNativeImage

@@ -1,0 +1,26 @@
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 0.0.1-M19
+jvm:
+  name: graalvm-java17:22.2.0
+projects:
+  mycli:
+    dependencies: com.lihaoyi::fansi:0.3.1
+    extends: template-common
+    platform:
+      mainClass: com.foo.App
+  tests:
+    dependencies: org.scalatest::scalatest:3.2.13
+    dependsOn: mycli
+    extends: template-common
+    isTestProject: true
+templates:
+  template-common:
+    platform:
+      name: native
+      nativeGc: immix
+      nativeMode: debug
+      nativeVersion: 0.4.7
+    scala:
+      options: -encoding utf8 -feature -unchecked
+      strict: true
+      version: 3.2.0

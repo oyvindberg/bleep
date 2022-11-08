@@ -1,0 +1,40 @@
+import CodeBlock from '@theme/CodeBlock';
+
+# Porting sbt plugins!
+
+There are many sbt plugins which are super useful, and we certainly don't want to lose them when using Bleep.
+
+The solution is to port them:
+- sbt plugins are `class`es
+- sbt settings are `lazy val`s
+- sbt tasks are `def`s
+- input parameters are input parameters.
+
+Have a look in the [liberated](https://github.com/oyvindberg/bleep/tree/master/liberated) folder in the github repo to see what it looks like, compared to sbt it is incredibly much easier to follow.
+
+## Example ported plugin: DynVerPlugin
+
+Look at how easy it is to follow!
+
+import DynVerPlugin from '!!raw-loader!@site/..//liberated/sbt-dynver/sbtdynver/src/main/scala/sbtdynver/DynVerPlugin.scala';
+
+<CodeBlock language="scala">
+{DynVerPlugin}
+</CodeBlock>
+
+## Limitations
+
+### Scopes
+Bleep do not have scopes, instead for instance the test scope is represented as normal projects.
+If you're porting an sbt plugin which makes heavy use of scopes, some more refactoring may be needed.
+
+### Global namespace
+Some sbt plugins mutate the global state, and this is how values are passed between plugins and sbt.
+In Bleep these values must be passed as parameters
+
+### Probably more
+...
+
+## Distribution
+
+After porting, these plugins can be (cross-) published to maven central just like any other library.
