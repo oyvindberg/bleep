@@ -1,8 +1,8 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M19
+$version: 0.0.1-M20
 projects:
   scripts:
-    dependencies: build.bleep::bleep-tasks:${BLEEP_VERSION}
+    dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
     platform:
       name: jvm
     scala:
