@@ -274,7 +274,7 @@ projects:
     - template-cross-all
     folder: ./../sbt-build/modules/example
   scripts:
-    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    dependencies: build.bleep::bleep-core:0.0.1-M20
     platform:
       name: jvm
     scala:

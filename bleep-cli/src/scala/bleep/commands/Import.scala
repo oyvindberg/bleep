@@ -365,7 +365,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
         `sbt-scope` = None,
         sources = model.JsonSet.empty,
         resources = model.JsonSet.empty,
-        dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-tasks", bleepTasksVersion.value)),
+        dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-core", bleepTasksVersion.value)),
         java = None,
         scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
         platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),

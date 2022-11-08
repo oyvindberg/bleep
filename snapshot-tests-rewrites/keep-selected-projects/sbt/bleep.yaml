@@ -289,7 +289,7 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
   scripts:
-    dependencies: build.bleep::bleep-tasks:0.0.1-M14
+    dependencies: build.bleep::bleep-core:0.0.1-M20
     platform:
       name: jvm
     scala:
