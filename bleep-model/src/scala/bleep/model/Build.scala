@@ -40,24 +40,34 @@ sealed trait Build {
             case depCrossVersions =>
               val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 
+              val thisScalaVersion = p.scala.flatMap(_.version)
+              val thisPlatformName = p.platform.flatMap(_.name)
+
               def sameScalaAndPlatform: Option[CrossProjectName] =
                 depCrossVersions.find { crossName =>
                   val depCross = explodedProjects(crossName)
-                  depCross.scala.flatMap(_.version) == p.scala.flatMap(_.version) &&
-                  depCross.platform.flatMap(_.name) == p.platform.flatMap(_.name)
+                  val thatScalaVersion = depCross.scala.flatMap(_.version)
+                  val thatPlatformName = depCross.platform.flatMap(_.name)
+                  thatScalaVersion == thisScalaVersion &&
+                  thatPlatformName == thisPlatformName
                 }
 
               def sameScalaBinVersionAndPlatform: Option[CrossProjectName] =
                 depCrossVersions.find { crossName =>
                   val depCross = explodedProjects(crossName)
-                  depCross.scala.flatMap(_.version).map(_.binVersion) == p.scala.flatMap(_.version).map(_.binVersion) &&
-                  depCross.platform.flatMap(_.name) == p.platform.flatMap(_.name)
+                  val thatBinVersion = depCross.scala.flatMap(_.version).map(_.binVersion)
+                  val thatPlatformName = depCross.platform.flatMap(_.name)
+
+                  thatBinVersion == thisScalaVersion.map(_.binVersion) &&
+                  thatPlatformName == thisPlatformName
                 }
 
               sameCrossId
                 .orElse(sameScalaAndPlatform)
                 .orElse(sameScalaBinVersionAndPlatform)
-                .toRight(s"$crossProjectName: Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}")
+                .toRight {
+                  s"$crossProjectName: Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}"
+                }
                 .orThrowText
           }
         }
