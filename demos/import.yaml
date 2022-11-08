@@ -1,6 +1,12 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M18
+$version: 0.0.1-M19
 projects:
+  scripts:
+    dependencies: build.bleep::bleep-tasks:${BLEEP_VERSION}
+    platform:
+      name: jvm
+    scala:
+      version: 3.2.0
   zio-http:
     cross:
       jvm212:
@@ -8,7 +14,7 @@ projects:
     dependencies:
     - dev.zio::zio-schema-json:0.2.1
     - dev.zio::zio-schema:0.2.1
-    - dev.zio::zio-streams:2.0.2+108-f5c52bec-SNAPSHOT
+    - dev.zio::zio-streams:2.0.3
     - module: io.netty.incubator:netty-incubator-transport-native-io_uring:0.0.15.Final
       publication:
         classifier: linux-x86_64
@@ -49,8 +55,8 @@ projects:
     - template-cross-all
   zio-http-benchmarks:
     dependencies:
-    - com.softwaremill.sttp.tapir::tapir-http4s-server:1.1.1
-    - com.softwaremill.sttp.tapir::tapir-json-circe:1.1.1
+    - com.softwaremill.sttp.tapir::tapir-http4s-server:1.1.4
+    - com.softwaremill.sttp.tapir::tapir-json-circe:1.1.4
     - org.openjdk.jmh:jmh-core:1.32
     - org.openjdk.jmh:jmh-generator-bytecode:1.32
     - org.openjdk.jmh:jmh-generator-reflection:1.32
@@ -74,7 +80,7 @@ projects:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-    dependencies: dev.zio::zio:2.0.2+108-f5c52bec-SNAPSHOT
+    dependencies: dev.zio::zio:2.0.3
     extends:
     - template-common-main
     - template-cross-all
@@ -110,7 +116,8 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ./zio-http-testkit
-resolvers: https://oss.sonatype.org/content/repositories/snapshots
+scripts:
+  generate-resources: scripts/scripts.GenerateResources
 templates:
   template-common:
     platform:
@@ -123,8 +130,8 @@ templates:
     sbt-scope: main
   template-common-test:
     dependencies:
-    - dev.zio::zio-test-sbt:2.0.2+108-f5c52bec-SNAPSHOT
-    - dev.zio::zio-test:2.0.2+108-f5c52bec-SNAPSHOT
+    - dev.zio::zio-test-sbt:2.0.3
+    - dev.zio::zio-test:2.0.3
     extends: template-common
     isTestProject: true
     sbt-scope: test
