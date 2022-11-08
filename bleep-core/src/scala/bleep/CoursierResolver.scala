@@ -155,12 +155,10 @@ object CoursierResolver {
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
           .eitherResult() match {
-          case Left(x: ResolutionError.CantDownloadModule) if remainingAttempts > 0 && x.perRepositoryErrors.exists(_.contains("concurrent download")) =>
-            go(remainingAttempts - 1)
-          case Left(x: FetchError.DownloadingArtifacts) if remainingAttempts > 0 && x.errors.exists { case (_, artifactError) =>
-                artifactError.isInstanceOf[ArtifactError.Recoverable]
-              } =>
-            go(remainingAttempts - 1)
+          case Left(coursierError) if remainingAttempts > 0 =>
+            val newRemainingAttempts = remainingAttempts - 1
+            logger.retrying(coursierError, newRemainingAttempts)
+            go(newRemainingAttempts)
           case other => other
         }
       }
