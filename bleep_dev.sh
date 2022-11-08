@@ -5,4 +5,4 @@
 # where you have checked out bleep
 bleep_git=$HOME/bleep
 
-bleep -d "${bleep_git}" run bleep-cli -- --dev -d "$(pwd)" "$@"
+bleep -d "${bleep_git}" run bleep-cli@jvm213 -- --dev -d "$(pwd)" "$@"
