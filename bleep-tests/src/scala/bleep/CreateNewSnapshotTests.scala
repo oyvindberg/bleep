@@ -28,9 +28,12 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
       writeAndCompare(buildPaths.buildDir, generatedProjectFiles, logger)
 
+      val bootstrappedPath = testFolder / "bootstrapped"
+      val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), BuildPaths.Mode.Normal)
+
       val Right(started) =
         bootstrap.from(
-          Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
+          Prebootstrapped(bootstrappedDestinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
           GenBloopFiles.InMemory,
           Nil,
           Lazy(model.BleepConfig.default),
@@ -38,13 +41,13 @@ class CreateNewSnapshotTests extends SnapshotTest {
         )
 
       val generatedBloopFiles: Map[Path, String] =
-        GenBloopFiles.encodedFiles(buildPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
+        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
 
-      val allGeneratedFiles = generatedProjectFiles ++ generatedBloopFiles
+      val allGeneratedFiles = generatedBloopFiles
 
       // flush templated bloop files to disk if local, compare to checked in if test is running in CI
       // note, keep last. locally it "succeeds" with a `pending`
-      writeAndCompare(buildPaths.buildDir, allGeneratedFiles, logger)
+      writeAndCompare(bootstrappedDestinationPaths.buildDir, allGeneratedFiles, logger)
     }
   }
 }

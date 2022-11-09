@@ -44,10 +44,18 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     while (!Files.isDirectory(from))
       from = from.getParent
 
+    GitLock.synchronized {
+      cli("git add", from, List("/usr/bin/git", "add", in.toString), cli.CliLogger(logger), env = List(("PATH", sys.env("PATH"))))
+    }
+
     if (Properties.isWin) succeed // let's deal with this later
     else if (isCi) {
-      cli("git diff", from, List("/usr/bin/git", "diff", "--exit-code", in.toString), cli.CliLogger(logger), env = List(("PATH", sys.env("PATH"))))
+      GitLock.synchronized {
+        cli("git diff", from, List("/usr/bin/git", "diff", "--exit-code", "HEAD", in.toString), cli.CliLogger(logger), env = List(("PATH", sys.env("PATH"))))
+      }
       succeed
     } else succeed
   }
 }
+
+private object GitLock
