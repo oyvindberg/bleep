@@ -1,10 +1,10 @@
 package bleep
 
-import bleep.internal.{conversions, rewriteDependentData}
+import bleep.internal.{conversions, parseBloopFile, rewriteDependentData}
 import bleep.logging.Logger
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
-import com.github.plokhotnyuk.jsoniter_scala.core.{readFromString, writeToString, WriterConfig}
+import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
 import coursier.Classifier
 import coursier.core.{Configuration, Extension}
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
@@ -53,7 +53,10 @@ object GenBloopFiles {
       logger.debug(s"${buildPaths.bleepBloopDir} up to date")
 
       val map = build.explodedProjects.map { case (crossProjectName, _) =>
-        val load = Lazy(readAndParseBloopFile(buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")))
+        val load = Lazy {
+          val json = buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")
+          parseBloopFile(Files.readString(json))
+        }
         (crossProjectName, load)
       }
       SortedMap.empty[model.CrossProjectName, Lazy[Config.File]] ++ map
@@ -77,14 +80,6 @@ object GenBloopFiles {
       bloopFiles
     }
   }
-
-  def readAndParseBloopFile(file: Path): Config.File = {
-    val contents = Files.readString(file)
-    parseBloopFile(contents)
-  }
-
-  def parseBloopFile(contents: String): Config.File =
-    readFromString(contents)(ConfigCodecs.codecFile)
 
   def encodedFiles(buildPaths: BuildPaths, files: Files): Map[Path, String] =
     files.map { case (projectName, bloopFile) =>

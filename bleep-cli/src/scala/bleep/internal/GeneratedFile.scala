@@ -1,6 +1,6 @@
-package bleep.internal
+package bleep
+package internal
 
-import bleep.RelPath
 import io.circe.Codec
 import io.circe.generic.semiauto.deriveCodec
 

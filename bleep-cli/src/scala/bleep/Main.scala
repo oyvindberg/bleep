@@ -241,7 +241,7 @@ object Main {
 
   def importCmd(buildLoader: BuildLoader, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
-      commands.Import.opts.map { opts =>
+      sbtimport.ImportOptions.opts.map { opts =>
         val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
         commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)

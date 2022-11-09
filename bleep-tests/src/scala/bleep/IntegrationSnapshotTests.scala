@@ -1,8 +1,6 @@
 package bleep
 
-import bleep.commands.Import
-import bleep.commands.Import.Options
-import bleep.internal.{FileUtils, ImportInputData}
+import bleep.internal.FileUtils
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import io.circe.parser.decode
@@ -52,7 +50,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     val importedPath = testFolder / "imported"
     val bootstrappedPath = testFolder / "bootstrapped"
 
-    val inputData: ImportInputData =
+    val inputData: sbtimport.ImportInputData =
       if (!Files.exists(inputDataPath)) {
         val cliLogger = cli.CliLogger(logger)
         if (!Files.exists(sbtBuildDir)) {
@@ -72,9 +70,9 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
         val sbtBuildLoader = BuildLoader.inDirectory(sbtBuildDir)
         val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, BuildPaths.Mode.Normal)
-        Import.runSbtExport(logger, sbtBuildDir, sbtDestinationPaths)
+        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths)
 
-        val inputData = ImportInputData.collectFromFileSystem(sbtDestinationPaths)
+        val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths)
         FileUtils.writeGzippedBytes(
           inputDataPath,
           inputData
@@ -86,7 +84,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         )
         inputData
       } else {
-        decode[ImportInputData](new String(FileUtils.readGzippedBytes(inputDataPath), StandardCharsets.UTF_8)) match {
+        decode[sbtimport.ImportInputData](new String(FileUtils.readGzippedBytes(inputDataPath), StandardCharsets.UTF_8)) match {
           case Left(circeError) => throw new BleepException.InvalidJson(inputDataPath, circeError)
           case Right(inputData) => inputData.replace(absolutePaths.fill, rewriteGeneratedFiles = false)
         }
@@ -94,11 +92,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     val importedBuildLoader = BuildLoader.inDirectory(importedPath)
     val importedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, importedBuildLoader, BuildPaths.Mode.Normal)
-    val importerOptions = Options(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
+    val importerOptions = sbtimport.ImportOptions(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
-      Import.generateBuild(
+      sbtimport.generateBuild(
         sbtBuildDir,
         importedDestinationPaths,
         logger,
@@ -147,7 +145,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   // compare some key properties before and after import
-  def assertSameIshBloopFiles(inputProjects: ImportInputData, started: Started): Assertion = {
+  def assertSameIshBloopFiles(inputProjects: sbtimport.ImportInputData, started: Started): Assertion = {
     started.bloopProjects.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
       case (crossProjectName, output) =>
@@ -170,7 +168,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
           }
         }
 
-        val originalTargetDir = internal.findOriginalTargetDir.force(crossProjectName, input)
+        val originalTargetDir = sbtimport.findOriginalTargetDir.force(crossProjectName, input)
         assert(
           patchedOptions(output, output.out) == patchedOptions(input, originalTargetDir),
           crossProjectName.value

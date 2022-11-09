@@ -4,9 +4,9 @@ import bleep.internal.codecs._
 import bleep.internal.{FileUtils, ShortenAndSortJson}
 import bleep.logging.Logger
 import coursier.Fetch
-import coursier.cache.{ArtifactError, CacheDefaults, FileCache}
+import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core._
-import coursier.error.{CoursierError, FetchError, ResolutionError}
+import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.params.ResolutionParams

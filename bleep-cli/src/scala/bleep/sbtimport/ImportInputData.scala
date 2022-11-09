@@ -1,7 +1,7 @@
 package bleep
-package internal
+package sbtimport
 
-import bleep.internal.ImportInputData.keepRelevant
+import bleep.internal.{codecs, parseBloopFile, FileUtils, GeneratedFile}
 import bloop.config.Config
 import coursier.core.Configuration
 import io.circe.Codec
@@ -13,6 +13,12 @@ import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.jdk.StreamConverters.StreamHasToScala
 
+/** Absolutely everything that the import cares about from the sbt build is dumped in this structure. It's all read up front, so the import is a pure function.
+  *
+  * It operates on strings for the most part because
+  *   - this structure is serialized into a compressed file for test
+  *   - those tests need to translate back and forth between absolute paths and machine-independent templated strings
+  */
 case class ImportInputData(
     bloopFileStrings: Vector[(Path, String)],
     sbtExportFilePaths: Vector[(Path, String)],
@@ -41,7 +47,7 @@ case class ImportInputData(
     )
 
   lazy val bloopFiles: Vector[Config.File] =
-    bloopFileStrings.map { case (_, contents) => GenBloopFiles.parseBloopFile(contents) }
+    bloopFileStrings.map { case (_, contents) => parseBloopFile(contents) }
 
   lazy val sbtExportFiles: Vector[ReadSbtExportFile.ExportedProject] =
     sbtExportFilePaths.map { case (path, contents) => ReadSbtExportFile.parse(path, contents) }
@@ -88,7 +94,7 @@ case class ImportInputData(
           }
       }
 
-    keepRelevant(cross, hasSources)
+    ImportInputData.keepRelevant(cross, hasSources)
   }
 
   lazy val byBloopName: Map[String, model.CrossProjectName] =
@@ -118,7 +124,7 @@ object ImportInputData {
     // - need to parse them here to peek into source directories and so on
     // - need to persist them as strings for tests
     val bloopFiles: Vector[Config.File] =
-      bloopFileStrings.map { case (_, contents) => GenBloopFiles.parseBloopFile(contents) }
+      bloopFileStrings.map { case (_, contents) => parseBloopFile(contents) }
 
     val sbtExportFileStrings: Vector[(Path, String)] =
       findGeneratedJsonFiles(destinationPaths.bleepImportSbtExportDir)

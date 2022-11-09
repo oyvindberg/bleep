@@ -1,13 +1,14 @@
 package bleep
-package internal
+package sbtimport
 
+import bleep.internal.IterableOps
 import bloop.config.Config
 
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
+// the bloop sbt plugin overwrites output directories, but it may be referenced in scalacOptions, and we'll need to recognize it
 object findOriginalTargetDir {
-  // the bloop sbt plugin overwrites output directories, but it may be referenced in scalacOptions, and we'll need to recognize it
   // we could compute this ourselves as well, but this was easy to write
   def apply(bloopProject: Config.Project): Option[Path] =
     bloopProject.sources.firstDefined { p =>

@@ -1,6 +1,6 @@
-package bleep.internal
+package bleep
+package sbtimport
 
-import bleep.BleepException
 import sbt.librarymanagement.syntax.ExclusionRule
 import sbt.librarymanagement.{CrossVersion, ModuleID, ScalaVersion}
 import sjsonnew.support.scalajson.unsafe.{Converter, Parser}
@@ -9,6 +9,8 @@ import sjsonnew.{Builder, JsonFormat, Unbuilder}
 import java.nio.file.Path
 import scala.util.{Failure, Success}
 
+/** copy/pasted from https://github.com/bleep-build/sbt-export-dependencies to avoid sbt dependency and to cross build
+  */
 object ReadSbtExportFile {
   def parse(path: Path, jsonStr: String): ExportedProject =
     Parser.parseFromString(jsonStr).flatMap(Converter.fromJson[ExportedProject](_)) match {
