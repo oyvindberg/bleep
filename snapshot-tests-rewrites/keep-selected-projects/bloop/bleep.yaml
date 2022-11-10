@@ -10,8 +10,8 @@ projects:
     - template-common-main
     - template-cross-all
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
   bloop-config-test:
     cross:
       jvm213:
@@ -30,10 +30,10 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/launcher-core
+    folder: ../sbt-build/launcher-core
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
   bloopgun-core:
     dependencies:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.4.0
@@ -47,12 +47,12 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/bloopgun
+    folder: ../sbt-build/bloopgun
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
   gradle-bloop:
     cross:
       jvm213:
@@ -75,10 +75,10 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../sbt-build/integrations/gradle-bloop
+    folder: ../sbt-build/integrations/gradle-bloop
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
   maven-bloop:
     dependencies:
     - module: net.alchim31.maven:scala-maven-plugin:4.5.3
@@ -95,10 +95,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.13-jvm
-    folder: ./../sbt-build/integrations/maven-bloop
+    folder: ../sbt-build/integrations/maven-bloop
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
   maven-bloop-test:
     dependencies:
     - configuration: provided
@@ -111,7 +111,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.13-jvm
-    folder: ./../sbt-build/integrations/maven-bloop
+    folder: ../sbt-build/integrations/maven-bloop
     sbt-scope: test
   scripts:
     dependencies: build.bleep::bleep-core:0.0.1-M20
@@ -126,12 +126,12 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/sockets
+    folder: ../sbt-build/sockets
     java:
       options: -source 1.8 -target 1.8
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
@@ -154,7 +154,7 @@ templates:
         dependencies:
           configuration: provided
           module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-        folder: ./../sbt-build/config
+        folder: ../sbt-build/config
         source-layout: cross-pure
     extends:
     - template-cross-jvm-210-212
@@ -170,7 +170,7 @@ templates:
     dependencies:
       configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-    folder: ./../sbt-build/config
+    folder: ../sbt-build/config
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false

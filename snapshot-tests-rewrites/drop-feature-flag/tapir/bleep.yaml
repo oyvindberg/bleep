@@ -11,7 +11,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/sbt/sbt-openapi-codegen
+    folder: ../sbt-build/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
     sources: ./src/${SCOPE}/scala-sbt-1.0
@@ -30,7 +30,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/sbt/sbt-openapi-codegen
+    folder: ../sbt-build/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
     sources: ./src/${SCOPE}/scala-sbt-1.0
@@ -49,7 +49,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/sttp-mock-server
+    folder: ../sbt-build/server/sttp-mock-server
   sttp-mock-server-test:
     dependencies: io.circe::circe-literal:0.14.1
     dependsOn:
@@ -58,7 +58,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/sttp-mock-server
+    folder: ../sbt-build/server/sttp-mock-server
   tapir-akka-http-server:
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.2.7
@@ -68,7 +68,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/akka-http-server
+    folder: ../sbt-build/server/akka-http-server
   tapir-akka-http-server-test:
     dependencies: com.softwaremill.sttp.client3::akka-http-backend:3.3.18
     dependsOn:
@@ -77,7 +77,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/akka-http-server
+    folder: ../sbt-build/server/akka-http-server
   tapir-apispec-docs:
     dependsOn:
     - tapir-apispec-model
@@ -86,13 +86,13 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/apispec-docs
+    folder: ../sbt-build/docs/apispec-docs
   tapir-apispec-model:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/apispec-model
+    folder: ../sbt-build/apispec/apispec-model
   tapir-asyncapi-circe:
     dependencies:
     - io.circe::circe-core:0.14.1
@@ -103,7 +103,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/asyncapi-circe
+    folder: ../sbt-build/apispec/asyncapi-circe
   tapir-asyncapi-circe-yaml:
     dependencies: io.circe::circe-yaml:0.14.1
     dependsOn: tapir-asyncapi-circe
@@ -111,7 +111,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/asyncapi-circe-yaml
+    folder: ../sbt-build/apispec/asyncapi-circe-yaml
   tapir-asyncapi-docs:
     dependsOn:
     - tapir-apispec-docs
@@ -119,7 +119,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/docs/asyncapi-docs
+    folder: ../sbt-build/docs/asyncapi-docs
   tapir-asyncapi-docs-test:
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.2.7
@@ -131,14 +131,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/docs/asyncapi-docs
+    folder: ../sbt-build/docs/asyncapi-docs
   tapir-asyncapi-model:
     dependsOn: tapir-apispec-model
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/asyncapi-model
+    folder: ../sbt-build/apispec/asyncapi-model
   tapir-aws-examples:
     cross:
       jvm212:
@@ -156,7 +156,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/serverless/aws/examples
+    folder: ../sbt-build/serverless/aws/examples
   tapir-aws-lambda:
     cross:
       js212:
@@ -176,7 +176,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all-js-212-213
-    folder: ./../sbt-build/serverless/aws/lambda
+    folder: ../sbt-build/serverless/aws/lambda
   tapir-aws-lambda-test:
     dependencies:
     - com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
@@ -188,7 +188,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/serverless/aws/lambda
+    folder: ../sbt-build/serverless/aws/lambda
   tapir-aws-lambda-tests:
     dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
     dependsOn:
@@ -199,13 +199,13 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/serverless/aws/lambda-tests
+    folder: ../sbt-build/serverless/aws/lambda-tests
   tapir-aws-lambda-tests-test:
     dependsOn: tapir-aws-lambda-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/serverless/aws/lambda-tests
+    folder: ../sbt-build/serverless/aws/lambda-tests
   tapir-aws-sam:
     dependencies:
     - io.circe::circe-generic:0.14.1
@@ -215,7 +215,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/serverless/aws/sam
+    folder: ../sbt-build/serverless/aws/sam
   tapir-aws-sam-test:
     dependsOn:
     - tapir-aws-sam
@@ -224,7 +224,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/serverless/aws/sam
+    folder: ../sbt-build/serverless/aws/sam
   tapir-aws-terraform:
     dependencies:
     - io.circe::circe-generic:0.14.1
@@ -235,7 +235,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/serverless/aws/terraform
+    folder: ../sbt-build/serverless/aws/terraform
   tapir-aws-terraform-test:
     dependsOn:
     - tapir-aws-terraform
@@ -243,7 +243,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/serverless/aws/terraform
+    folder: ../sbt-build/serverless/aws/terraform
   tapir-cats:
     dependencies:
     - org.typelevel::cats-core:2.7.0
@@ -252,7 +252,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../sbt-build/integrations/cats
+    folder: ../sbt-build/integrations/cats
   tapir-cats-test:
     cross:
       js212:
@@ -273,7 +273,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../sbt-build/integrations/cats
+    folder: ../sbt-build/integrations/cats
   tapir-client-tests:
     cross:
       js212:
@@ -293,7 +293,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../sbt-build/client/tests
+    folder: ../sbt-build/client/tests
   tapir-core:
     cross:
       js212:
@@ -331,7 +331,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../sbt-build/core
+    folder: ../sbt-build/core
     sources: ./src/${SCOPE}/boilerplate-gen
   tapir-core-test:
     cross:
@@ -372,7 +372,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../sbt-build/core
+    folder: ../sbt-build/core
   tapir-derevo:
     cross:
       jvm212:
@@ -389,7 +389,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/integrations/derevo
+    folder: ../sbt-build/integrations/derevo
   tapir-derevo-test:
     cross:
       jvm212:
@@ -406,14 +406,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/integrations/derevo
+    folder: ../sbt-build/integrations/derevo
   tapir-enumeratum:
     dependencies: com.beachape::enumeratum:1.7.0
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/integrations/enumeratum
+    folder: ../sbt-build/integrations/enumeratum
   tapir-enumeratum-test:
     cross:
       js212:
@@ -425,7 +425,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/integrations/enumeratum
+    folder: ../sbt-build/integrations/enumeratum
   tapir-examples:
     dependencies:
     - com.pauldijou::jwt-circe:5.0.0
@@ -454,7 +454,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.13-jvm
-    folder: ./../sbt-build/examples
+    folder: ../sbt-build/examples
   tapir-finatra-server:
     dependencies:
     - com.twitter::finatra-http:21.2.0
@@ -463,14 +463,14 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/finatra-server
+    folder: ../sbt-build/server/finatra-server
   tapir-finatra-server-cats:
     dependencies: org.typelevel::cats-effect:3.3.0
     dependsOn: tapir-finatra-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/finatra-server/finatra-server-cats
+    folder: ../sbt-build/server/finatra-server/finatra-server-cats
   tapir-finatra-server-cats-test:
     dependsOn:
     - tapir-finatra-server-cats
@@ -478,7 +478,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/finatra-server/finatra-server-cats
+    folder: ../sbt-build/server/finatra-server/finatra-server-cats
   tapir-finatra-server-test:
     dependencies:
     - module: com.twitter::finatra-http:21.2.0
@@ -521,7 +521,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/finatra-server
+    folder: ../sbt-build/server/finatra-server
   tapir-http4s-client:
     dependencies:
     - configuration: optional
@@ -532,7 +532,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/client/http4s-client
+    folder: ../sbt-build/client/http4s-client
   tapir-http4s-client-test:
     dependencies:
     - configuration: optional
@@ -545,7 +545,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/client/http4s-client
+    folder: ../sbt-build/client/http4s-client
   tapir-http4s-server:
     dependencies:
     - com.softwaremill.sttp.shared::fs2:1.2.7
@@ -555,7 +555,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/http4s-server
+    folder: ../sbt-build/server/http4s-server
   tapir-http4s-server-test:
     dependsOn:
     - tapir-http4s-server
@@ -564,7 +564,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/http4s-server
+    folder: ../sbt-build/server/http4s-server
   tapir-json-circe:
     dependencies:
     - io.circe::circe-core:0.14.1
@@ -574,7 +574,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../sbt-build/json/circe
+    folder: ../sbt-build/json/circe
   tapir-json-circe-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-circe
@@ -582,14 +582,14 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/json/circe
+    folder: ../sbt-build/json/circe
   tapir-json-json4s:
     dependencies: org.json4s::json4s-core:4.0.3
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/json/json4s
+    folder: ../sbt-build/json/json4s
   tapir-json-json4s-test:
     dependencies:
     - org.json4s::json4s-jackson:4.0.3
@@ -598,14 +598,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/json/json4s
+    folder: ../sbt-build/json/json4s
   tapir-json-play:
     dependencies: com.typesafe.play::play-json:2.9.2
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/json/playjson
+    folder: ../sbt-build/json/playjson
   tapir-json-play-test:
     cross:
       js212:
@@ -617,21 +617,21 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/json/playjson
+    folder: ../sbt-build/json/playjson
   tapir-json-spray:
     dependencies: io.spray::spray-json:1.3.6
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/json/sprayjson
+    folder: ../sbt-build/json/sprayjson
   tapir-json-spray-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-json-spray
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/json/sprayjson
+    folder: ../sbt-build/json/sprayjson
   tapir-json-tethys:
     dependencies:
     - com.tethys-json::tethys-core:0.25.0
@@ -640,7 +640,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/json/tethys
+    folder: ../sbt-build/json/tethys
   tapir-json-tethys-test:
     dependencies:
     - com.tethys-json::tethys-derivation:0.25.0
@@ -649,14 +649,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/json/tethys
+    folder: ../sbt-build/json/tethys
   tapir-json-upickle:
     dependencies: com.lihaoyi::upickle:1.4.3
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/json/upickle
+    folder: ../sbt-build/json/upickle
   tapir-json-upickle-test:
     cross:
       js212:
@@ -668,7 +668,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/json/upickle
+    folder: ../sbt-build/json/upickle
   tapir-json-zio:
     dependencies:
       forceJvm: true
@@ -677,7 +677,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-all-js-212-213
-    folder: ./../sbt-build/json/zio
+    folder: ../sbt-build/json/zio
   tapir-json-zio-test:
     dependencies:
     - dev.zio::zio-json:0.2.0-M3
@@ -687,14 +687,14 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/json/zio
+    folder: ../sbt-build/json/zio
   tapir-jsoniter-scala:
     dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.12.0
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/json/jsoniter
+    folder: ../sbt-build/json/jsoniter
   tapir-jsoniter-scala-test:
     dependencies:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.12.0
@@ -703,7 +703,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/json/jsoniter
+    folder: ../sbt-build/json/jsoniter
   tapir-netty-server:
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
@@ -717,7 +717,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/netty-server
+    folder: ../sbt-build/server/netty-server
   tapir-netty-server-test:
     dependencies:
       configuration: optional
@@ -729,7 +729,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/netty-server
+    folder: ../sbt-build/server/netty-server
   tapir-newtype:
     cross:
       js212:
@@ -749,7 +749,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/integrations/newtype
+    folder: ../sbt-build/integrations/newtype
   tapir-newtype-test:
     cross:
       js212:
@@ -769,7 +769,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/integrations/newtype
+    folder: ../sbt-build/integrations/newtype
   tapir-openapi-circe:
     dependencies:
     - io.circe::circe-core:0.14.1
@@ -780,7 +780,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/openapi-circe
+    folder: ../sbt-build/apispec/openapi-circe
   tapir-openapi-circe-yaml:
     dependencies: io.circe::circe-yaml:0.14.1
     dependsOn: tapir-openapi-circe
@@ -788,7 +788,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/openapi-circe-yaml
+    folder: ../sbt-build/apispec/openapi-circe-yaml
   tapir-openapi-docs:
     cross:
       jvm212:
@@ -802,7 +802,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/openapi-docs
+    folder: ../sbt-build/docs/openapi-docs
   tapir-openapi-docs-test:
     dependsOn:
     - tapir-openapi-circe-yaml
@@ -812,14 +812,14 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/openapi-docs
+    folder: ../sbt-build/docs/openapi-docs
   tapir-openapi-model:
     dependsOn: tapir-apispec-model
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/openapi-model
+    folder: ../sbt-build/apispec/openapi-model
   tapir-openapi-model-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn: tapir-openapi-model
@@ -827,7 +827,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/apispec/openapi-model
+    folder: ../sbt-build/apispec/openapi-model
   tapir-opentelemetry-metrics:
     dependencies:
     - io.opentelemetry:opentelemetry-api:1.9.1
@@ -837,7 +837,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/metrics/opentelemetry-metrics
+    folder: ../sbt-build/metrics/opentelemetry-metrics
   tapir-opentelemetry-metrics-test:
     dependencies: io.opentelemetry:opentelemetry-sdk-metrics:1.5.0-alpha
     dependsOn:
@@ -847,7 +847,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/metrics/opentelemetry-metrics
+    folder: ../sbt-build/metrics/opentelemetry-metrics
   tapir-play-client:
     dependencies:
     - configuration: optional
@@ -859,7 +859,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/client/play-client
+    folder: ../sbt-build/client/play-client
   tapir-play-client-test:
     dependencies:
     - configuration: optional
@@ -872,7 +872,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/client/play-client
+    folder: ../sbt-build/client/play-client
   tapir-play-server:
     dependencies:
     - com.softwaremill.sttp.shared::akka:1.2.7
@@ -883,7 +883,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/play-server
+    folder: ../sbt-build/server/play-server
   tapir-play-server-test:
     dependsOn:
     - tapir-play-server
@@ -891,7 +891,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/server/play-server
+    folder: ../sbt-build/server/play-server
   tapir-prometheus-metrics:
     dependencies: io.prometheus:simpleclient_common:0.12.0
     dependsOn: tapir-core
@@ -899,7 +899,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/metrics/prometheus-metrics
+    folder: ../sbt-build/metrics/prometheus-metrics
   tapir-prometheus-metrics-test:
     dependsOn:
     - tapir-core-test
@@ -908,14 +908,14 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/metrics/prometheus-metrics
+    folder: ../sbt-build/metrics/prometheus-metrics
   tapir-redoc:
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/redoc
+    folder: ../sbt-build/docs/redoc
   tapir-redoc-bundle:
     dependsOn:
     - tapir-openapi-circe-yaml
@@ -925,14 +925,14 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/redoc-bundle
+    folder: ../sbt-build/docs/redoc-bundle
   tapir-refined:
     dependencies: eu.timepit::refined:0.9.28
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/integrations/refined
+    folder: ../sbt-build/integrations/refined
   tapir-refined-test:
     cross:
       js212:
@@ -948,7 +948,7 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
-    folder: ./../sbt-build/integrations/refined
+    folder: ../sbt-build/integrations/refined
   tapir-server-tests:
     dependencies: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
     dependsOn: tapir-tests
@@ -956,7 +956,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/tests
+    folder: ../sbt-build/server/tests
   tapir-sttp-client:
     cross:
       jvm212:
@@ -990,7 +990,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../sbt-build/client/sttp-client
+    folder: ../sbt-build/client/sttp-client
   tapir-sttp-client-test:
     cross:
       js212:
@@ -1044,14 +1044,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-all
-    folder: ./../sbt-build/client/sttp-client
+    folder: ../sbt-build/client/sttp-client
   tapir-sttp-stub-server:
     dependsOn: tapir-sttp-client
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/sttp-stub-server
+    folder: ../sbt-build/server/sttp-stub-server
   tapir-sttp-stub-server-test:
     dependsOn:
     - tapir-server-tests
@@ -1060,7 +1060,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/sttp-stub-server
+    folder: ../sbt-build/server/sttp-stub-server
   tapir-swagger-ui:
     dependencies: org.webjars:swagger-ui:4.1.3
     dependsOn: tapir-core
@@ -1068,7 +1068,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/swagger-ui
+    folder: ../sbt-build/docs/swagger-ui
   tapir-swagger-ui-bundle:
     dependsOn:
     - tapir-openapi-circe-yaml
@@ -1078,7 +1078,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/swagger-ui-bundle
+    folder: ../sbt-build/docs/swagger-ui-bundle
   tapir-swagger-ui-bundle-test:
     dependencies: org.scalatest::scalatest:3.2.10
     dependsOn:
@@ -1089,7 +1089,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/docs/swagger-ui-bundle
+    folder: ../sbt-build/docs/swagger-ui-bundle
   tapir-tests:
     dependencies:
     - ch.qos.logback:logback-classic:1.2.7
@@ -1104,7 +1104,7 @@ projects:
     extends:
     - template-common-main
     - template-cross-all
-    folder: ./../sbt-build/tests
+    folder: ../sbt-build/tests
   tapir-vertx-server:
     dependencies:
     - configuration: optional
@@ -1117,7 +1117,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/vertx
+    folder: ../sbt-build/server/vertx
   tapir-vertx-server-test:
     dependencies:
     - configuration: optional
@@ -1132,7 +1132,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/vertx
+    folder: ../sbt-build/server/vertx
   tapir-zio:
     dependencies:
     - com.softwaremill.sttp.shared::zio:1.2.7
@@ -1143,7 +1143,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/integrations/zio
+    folder: ../sbt-build/integrations/zio
   tapir-zio-http-server:
     dependencies: io.d11::zhttp:1.0.0.0-RC17
     dependsOn: tapir-zio
@@ -1151,7 +1151,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/zio-http-server
+    folder: ../sbt-build/server/zio-http-server
   tapir-zio-http-server-test:
     dependencies: dev.zio::zio-interop-cats:3.2.9.0
     dependsOn:
@@ -1161,7 +1161,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/zio-http-server
+    folder: ../sbt-build/server/zio-http-server
   tapir-zio-http4s-server:
     dependencies: dev.zio::zio-interop-cats:3.2.9.0
     dependsOn:
@@ -1171,7 +1171,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/zio-http4s-server
+    folder: ../sbt-build/server/zio-http4s-server
   tapir-zio-http4s-server-test:
     dependsOn:
     - tapir-server-tests
@@ -1180,7 +1180,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/server/zio-http4s-server
+    folder: ../sbt-build/server/zio-http4s-server
   tapir-zio-test:
     dependencies:
     - dev.zio::zio-test-sbt:1.0.12
@@ -1190,7 +1190,7 @@ projects:
     - template-common-test
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/integrations/zio
+    folder: ../sbt-build/integrations/zio
     testFrameworks: zio.test.sbt.ZTestFramework
   testing-server:
     dependencies:
@@ -1204,7 +1204,7 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     - template-cross-jvm-all
-    folder: ./../sbt-build/client/testserver
+    folder: ../sbt-build/client/testserver
 scripts:
   generate-resources: scripts/scripts.GenerateResources
 templates:

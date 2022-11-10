@@ -8,13 +8,13 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/benchmarks
+    folder: ../sbt-build/benchmarks
     platform:
       jvmOptions: -DbloopRef=1.5.2-9-b190bd39-20221105-0119 -DbloopVersion=1.5.2-9-b190bd39-20221105-0119
         -Dgit.localdir=${BUILD_DIR} -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -41,10 +41,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/backend
+    folder: ../sbt-build/backend
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -57,7 +57,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/backend
+    folder: ../sbt-build/backend
     sbt-scope: test
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
@@ -92,8 +92,8 @@ projects:
     - template-common-main
     - template-cross-all
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
   bloop-config-test:
     cross:
       js211:
@@ -143,11 +143,11 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/docs-gen
+    folder: ../sbt-build/docs-gen
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
-    - ./../docs
+    - ../LICENSE.md
+    - ../NOTICE.md
+    - ../docs
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -165,14 +165,14 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/frontend
+    folder: ../sbt-build/frontend
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
         -Xms1g -Xmx3g
       mainClass: bloop.Cli
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -189,7 +189,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/frontend
+    folder: ../sbt-build/frontend
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
         -Xms1g -Xmx3g
@@ -208,7 +208,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/frontend
+    folder: ../sbt-build/frontend
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
         -Xms1g -Xmx3g
@@ -229,10 +229,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bridges/scalajs-0.6
+    folder: ../sbt-build/bridges/scalajs-0.6
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
@@ -251,7 +251,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bridges/scalajs-0.6
+    folder: ../sbt-build/bridges/scalajs-0.6
     sbt-scope: test
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
@@ -275,10 +275,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bridges/scalajs-1
+    folder: ../sbt-build/bridges/scalajs-1
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
@@ -303,7 +303,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bridges/scalajs-1
+    folder: ../sbt-build/bridges/scalajs-1
     sbt-scope: test
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
@@ -314,10 +314,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/launcher-test
+    folder: ../sbt-build/launcher-test
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -329,7 +329,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/launcher-test
+    folder: ../sbt-build/launcher-test
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     sbt-scope: test
@@ -351,10 +351,10 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/launcher-core
+    folder: ../sbt-build/launcher-core
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
   bloop-native-bridge-0-4:
     dependencies:
       configuration: provided
@@ -363,10 +363,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bridges/scala-native-0.4
+    folder: ../sbt-build/bridges/scala-native-0.4
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
@@ -381,7 +381,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bridges/scala-native-0.4
+    folder: ../sbt-build/bridges/scala-native-0.4
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
         -Xms1g -Xmx3g
@@ -402,10 +402,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/shared
+    folder: ../sbt-build/shared
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -416,12 +416,12 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/bloop4j
+    folder: ../sbt-build/bloop4j
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
@@ -446,12 +446,12 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ./../sbt-build/bloopgun
+    folder: ../sbt-build/bloopgun
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
   buildpress:
     dependencies: com.github.alexarchambault::case-app:2.0.6
     dependsOn:
@@ -461,12 +461,12 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/buildpress
+    folder: ../sbt-build/buildpress
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
@@ -479,10 +479,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/buildpress-config
+    folder: ../sbt-build/buildpress-config
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       compilerPlugins: org.scalamacros:::paradise:2.1.1
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
@@ -494,7 +494,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/benchmark-bridge/compilation
+    folder: ../sbt-build/benchmark-bridge/compilation
     platform:
       jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
         -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${BUILD_DIR}/benchmark-bridge
@@ -528,10 +528,10 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-211-212-213
-    folder: ./../sbt-build/integrations/gradle-bloop
+    folder: ../sbt-build/integrations/gradle-bloop
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
   gradle-bloop-test:
     dependencies:
     - configuration: provided
@@ -554,7 +554,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/integrations/gradle-bloop
+    folder: ../sbt-build/integrations/gradle-bloop
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     sbt-scope: test
@@ -579,7 +579,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/benchmark-bridge/infrastructure
+    folder: ../sbt-build/benchmark-bridge/infrastructure
     platform:
       jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
   jvm:
@@ -587,7 +587,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/benchmark-bridge
+    folder: ../sbt-build/benchmark-bridge
     platform:
       jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
         -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${PROJECT_DIR}
@@ -608,10 +608,10 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.13-jvm
-    folder: ./../sbt-build/integrations/maven-bloop
+    folder: ../sbt-build/integrations/maven-bloop
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
   maven-bloop-test:
     dependencies:
     - configuration: provided
@@ -624,7 +624,7 @@ projects:
     extends:
     - template-common-test
     - template-scala-2.13-jvm
-    folder: ./../sbt-build/integrations/maven-bloop
+    folder: ../sbt-build/integrations/maven-bloop
     sbt-scope: test
   micro:
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
@@ -632,7 +632,7 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/benchmark-bridge/micro
+    folder: ../sbt-build/benchmark-bridge/micro
     platform:
       jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.7.2/sbt-1.7.2.zip/sbt/bin/sbt-launch.jar
         -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${BUILD_DIR}/benchmark-bridge
@@ -654,10 +654,10 @@ projects:
     extends:
     - template-common-main
     - template-cross-jvm-210-212
-    folder: ./../sbt-build/integrations/sbt-bloop
+    folder: ../sbt-build/integrations/sbt-bloop
     resources:
-    - ./../../LICENSE.md
-    - ./../../NOTICE.md
+    - ../../LICENSE.md
+    - ../../NOTICE.md
   scripts:
     dependencies: build.bleep::bleep-core:0.0.1-M20
     platform:
@@ -671,12 +671,12 @@ projects:
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ./../sbt-build/sockets
+    folder: ../sbt-build/sockets
     java:
       options: -source 1.8 -target 1.8
     resources:
-    - ./../LICENSE.md
-    - ./../NOTICE.md
+    - ../LICENSE.md
+    - ../NOTICE.md
     scala:
       options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
         -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
@@ -702,7 +702,7 @@ templates:
       js213:
         extends: template-scala-2.13-js
       jvm210:
-        folder: ./../sbt-build/config
+        folder: ../sbt-build/config
         scala:
           compilerPlugins: org.scalamacros:::paradise:2.1.1
         source-layout: cross-pure
@@ -710,19 +710,19 @@ templates:
         dependencies:
           configuration: provided
           module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-        folder: ./../sbt-build/config
+        folder: ../sbt-build/config
         source-layout: cross-pure
       jvm212:
         dependencies:
           configuration: provided
           module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-        folder: ./../sbt-build/config
+        folder: ../sbt-build/config
         source-layout: cross-pure
       jvm213:
         dependencies:
           configuration: provided
           module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-        folder: ./../sbt-build/config
+        folder: ../sbt-build/config
         source-layout: cross-pure
     extends:
     - template-cross-jvm-210-212
@@ -750,7 +750,7 @@ templates:
     dependencies:
       configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.4.0
-    folder: ./../sbt-build/config
+    folder: ../sbt-build/config
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false
