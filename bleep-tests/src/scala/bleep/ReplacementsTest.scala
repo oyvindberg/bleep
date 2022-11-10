@@ -24,6 +24,13 @@ class ReplacementsTest extends AnyFunSuite with TripleEqualsSupport {
     assert(post === RelPath.force("src/a-${SCOPE}_b/scala"))
   }
 
+  test("dont template 2.13+ at the end of string") {
+    val pre = "src/main/scala-2.13+"
+    val r = model.Replacements.versions(None, Some(model.VersionScala.Scala213), None, None, false, true)
+    val post = r.templatize.string(pre)
+    assert(post === pre)
+  }
+
   test("unconditionally fills values") {
     val pre = RelPath.force(s"src/a$${SCOPE}b/scala")
     val post = mainScope.fill.relPath(pre)

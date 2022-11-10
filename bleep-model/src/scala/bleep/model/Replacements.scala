@@ -24,19 +24,33 @@ class Replacements private (val sortedValues: List[(String, String)]) {
           str.indexOf(from, last) match {
             case -1 => last = str.length
             case n =>
-              val before = str.substring(0, n)
-              val after = str.substring(n + from.length)
+              def beforeOk: Boolean =
+                if (n == 0) true
+                else {
+                  val preceding = str(n - 1)
+                  !preceding.isLetterOrDigit
+                }
 
-              def beforeEndsWithSpecial = before.lastOption.exists(!_.isLetterOrDigit)
+              val indexAfter = n + from.length
 
-              def afterStartsWithSpecial = after.headOption.exists(!_.isLetterOrDigit)
+              def afterOk: Boolean = {
+                val indexPeek = indexAfter + 1
+                if (str.length == indexAfter) true
+                else
+                  str(indexAfter) match {
+                    // don't replace if the only character after is one of these two
+                    // this avoid replacing the last part of a src/main/scala-2.13+ folder
+                    // I know it's quite hacky to put it here.
+                    case '+' | '-' => str.length != indexPeek
+                    case c         => !c.isLetterOrDigit
+                  }
 
-              def beforeOk = before.isEmpty || beforeEndsWithSpecial
-
-              def afterOk = after.isEmpty || afterStartsWithSpecial
+              }
 
               val doReplacement = beforeOk && afterOk
               if (doReplacement) {
+                val before = str.substring(0, n)
+                val after = str.substring(indexAfter)
                 str = before + to + after
                 last = n + to.length
               } else {

@@ -17,7 +17,7 @@ projects:
     cross:
       jvm213:
         dependencies: com.chuusai::shapeless:2.3.7
-        sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}+
+        sources: ./src/${SCOPE}/scala-2.13+
     dependencies: org.tpolecat::typename:1.0.0
     dependsOn: doobie-free
     extends:

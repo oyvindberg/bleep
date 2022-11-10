@@ -1028,7 +1028,7 @@ templates:
         -encoding utf8 -feature -language:existentials -language:experimental.macros
         -language:higherKinds -language:implicitConversions -unchecked
       version: 2.13.6
-    sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}+
+    sources: ./src/${SCOPE}/scala-2.13+
   template-scala-2.13-js:
     extends:
     - template-js
