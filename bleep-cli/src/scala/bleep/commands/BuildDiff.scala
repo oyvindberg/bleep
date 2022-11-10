@@ -7,7 +7,7 @@ import com.monovore.decline.Opts
 import scala.collection.immutable.SortedSet
 import scala.util.control.NonFatal
 
-case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCommand {
+case class BuildDiff(started: Started, opts: BuildDiff.Options, projects: Array[model.CrossProjectName]) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
     val revision = opts.revision.getOrElse("HEAD")
 
@@ -15,7 +15,7 @@ case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCom
       try
         Right(scala.sys.process.Process(List("git", "show", s"$revision:${BuildLoader.BuildFileName}"), started.buildPaths.buildDir.toFile).!!)
       catch {
-        case NonFatal(th) => Left(new BleepException.Cause(th, "couldn't load build"))
+        case NonFatal(th) => Left(new BleepException.Cause(th, s"couldn't load ${BuildLoader.BuildFileName}} from $revision"))
       }
     }
 
@@ -23,17 +23,18 @@ case class BuildDiff(started: Started, opts: BuildDiff.Options) extends BleepCom
       val oldProjects = model.Build.FileBacked(build).explodedProjects
       val newProjects = started.build.explodedProjects
       val allProjectNames = SortedSet.empty[model.CrossProjectName] ++ oldProjects.keys ++ newProjects.keys
-      allProjectNames.foreach { projectName =>
-        val p = s"Project ${fansi.Bold.On(projectName.value)}"
+      val filteredAllProjectNames = if (projects.isEmpty) allProjectNames else allProjectNames.intersect(projects.toSet)
+      filteredAllProjectNames.foreach { projectName =>
+        val header = s"Project ${fansi.Bold.On(projectName.value)}"
         val old = oldProjects.getOrElse(projectName, model.Project.empty)
         val new_ = newProjects.getOrElse(projectName, model.Project.empty)
         val maybeRemoved = Some(old.removeAll(new_)).filterNot(_.isEmpty).map(yaml.encodeShortened(_)).map(fansi.Color.Red(_))
         val maybeAdded = Some(new_.removeAll(old)).filterNot(_.isEmpty).map(yaml.encodeShortened(_)).map(fansi.Color.Green(_))
         (maybeRemoved, maybeAdded) match {
           case (None, None)                 => ()
-          case (Some(removed), None)        => println(s"$p: \n$removed")
-          case (None, Some(added))          => println(s"$p: \n$added")
-          case (Some(removed), Some(added)) => println(s"$p: \n$removed$added")
+          case (Some(removed), None)        => println(s"$header: \n$removed")
+          case (None, Some(added))          => println(s"$header: \n$added")
+          case (Some(removed), Some(added)) => println(s"$header: \n$removed$added")
         }
       }
       ()

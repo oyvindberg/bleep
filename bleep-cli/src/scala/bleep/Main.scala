@@ -118,7 +118,18 @@ object Main {
                 Opts(commands.BuildMoveFilesIntoBleepLayout(started))
               ),
               Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
-                commands.BuildDiff.opts.map(opts => commands.BuildDiff(started, opts))
+                List(
+                  Opts.subcommand("exploded", "show projects after applying templates")(
+                    (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
+                      commands.BuildDiff(started, opts, names)
+                    }
+                  ),
+                  Opts.subcommand("bloop", "show projects as seen by bloop")(
+                    (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
+                      commands.BuildDiffBloop(started, opts, names)
+                    }
+                  )
+                ).foldK
               ),
               Opts.subcommand("show", "show projects in their different versions.")(
                 List(
