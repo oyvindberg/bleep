@@ -98,9 +98,4 @@ object Formatter {
   implicit val FileFormatter: Formatter[File] = _.getName
   implicit val URIFormatter: Formatter[URI] = _.toString
   implicit val PathFormatter: Formatter[Path] = _.toString
-
-  implicit def ThrowableFormatter[Th <: Throwable]: Formatter[Th] = {
-    case th: Throwable if th.getMessage != null => Str.join(List(th.getClass.getName, ": ", th.getMessage))
-    case th: Throwable                          => th.getClass.getName
-  }
 }
