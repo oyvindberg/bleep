@@ -161,9 +161,17 @@ class BleepBspServer(
     logger.debug(("debugSessionStart", params.toString))
     bloopServer.debugSessionStart(params)
   }
-  override def buildTargetOutputPaths(params: ch.epfl.scala.bsp4j.OutputPathsParams): CompletableFuture[bsp4j.OutputPathsResult] = {
+  override def buildTargetOutputPaths(params: bsp4j.OutputPathsParams): CompletableFuture[bsp4j.OutputPathsResult] = {
     logger.debug(("buildTargetOutputPaths", params.toString))
     bloopServer.buildTargetOutputPaths(params)
+  }
+  override def jvmRunEnvironment(params: bsp4j.JvmRunEnvironmentParams): CompletableFuture[bsp4j.JvmRunEnvironmentResult] = {
+    logger.debug(("jvmRunEnvironment", params.toString))
+    bloopServer.jvmRunEnvironment(params)
+  }
+  override def jvmTestEnvironment(params: bsp4j.JvmTestEnvironmentParams): CompletableFuture[bsp4j.JvmTestEnvironmentResult] = {
+    logger.debug(("jvmTestEnvironment", params.toString))
+    bloopServer.jvmTestEnvironment(params)
   }
 
   private val shutdownPromise = Promise[Unit]()

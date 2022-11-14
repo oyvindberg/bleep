@@ -7,11 +7,11 @@ projects:
     dependencies:
     - com.lihaoyi::pprint:0.8.0
     - com.monovore::decline:2.3.1
-    - org.typelevel::cats-core:2.8.0
-    - org.typelevel::cats-effect:3.3.14
     - org.gnieh::diffson-circe:4.3.0
     - org.graalvm.nativeimage:svm:22.3.0
     - org.scalameta:svm-subs:101.0.0
+    - org.typelevel::cats-core:2.9.0
+    - org.typelevel::cats-effect:3.4.0
     dependsOn: bleep-core
     extends:
     - template-common
@@ -26,8 +26,8 @@ projects:
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: org.scala-sbt::librarymanagement-core:1.7.1
-    - org.virtuslab.scala-cli::bloop-rifle:0.1.16
+      module: org.scala-sbt::librarymanagement-core:1.8.0
+    - org.virtuslab.scala-cli::bloop-rifle:0.1.17
     dependsOn: bleep-model
     extends: template-cross-all
     sources: ./../liberated/sbt-tpolecat/src/main/scala
@@ -40,11 +40,11 @@ projects:
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-M7-39-gb8f3d7532
+      module: io.get-coursier::coursier-jvm:2.1.0-RC1
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-M7-39-gb8f3d7532
+      module: io.get-coursier::coursier:2.1.0-RC1
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
   bleep-plugin-ci-release:
@@ -98,8 +98,8 @@ projects:
     dependencies: org.scalatest::scalatest:3.2.9
     dependsOn: bleep-cli
     extends:
-      - template-common
-      - template-scala-2.13
+    - template-common
+    - template-scala-2.13
     isTestProject: true
   scripts:
     dependsOn:
