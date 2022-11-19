@@ -53,70 +53,71 @@ object runSbt {
     }
 
     allProjectNamesByBuild.foreach { case ( /* shadow*/ sbtBuildDir, projectNames) =>
+      // ask for all (cross) scala versions for these projects
+      val scalaVersionOutput: ScalaVersionOutput = {
+        logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
+        val cmds = projectNames.map(p => s"show $p/scalaVersion $p/crossScalaVersions")
+        logger.withContext(sbtBuildDir).debug(cmds)
+
+        val output =
+          cli(
+            "sbt discover cross projects",
+            sbtBuildDir,
+            sbt,
+            cliLogger = cli.CliLogger(logger),
+            env = sbtEnvs,
+            stdIn = sbtCommands(cmds)
+          )
+        val onlyOneProject = projectNames match {
+          case one :: Nil => Some(one)
+          case _          => None
+        }
+        val result = ScalaVersionOutput.parse(output.stdout, onlyOneProject)
+
+        result.combined
+          .foldLeft(logger) { case (logger, (scala, projects)) => logger.withContext(scala.scalaVersion, projects.size) }
+          .info("Discovered projects")
+
+        result
+      }
+
       val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
 
       FileUtils.writeString(
         tempAddBloopPlugin,
         s"""
-addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.3")
-addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
-"""
+  addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.4")
+  addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
+  """
       )
 
-      try {
-        // ask for all (cross) scala versions for these projects
-        val scalaVersionOutput: ScalaVersionOutput = {
-          logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
-          val cmds = projectNames.map(p => s"show $p/scalaVersion $p/crossScalaVersions")
-          logger.withContext(sbtBuildDir).debug(cmds)
-
-          val output =
-            cli(
-              "sbt discover cross projects",
-              sbtBuildDir,
-              sbt,
-              cliLogger = cli.CliLogger(logger),
-              env = sbtEnvs,
-              stdIn = sbtCommands(cmds)
-            )
-          val onlyOneProject = projectNames match {
-            case one :: Nil => Some(one)
-            case _          => None
-          }
-          val result = ScalaVersionOutput.parse(output.stdout, onlyOneProject)
-
-          result.combined
-            .foldLeft(logger) { case (logger, (scala, projects)) => logger.withContext(scala.scalaVersion, projects.size) }
-            .info("Discovered projects")
-
-          result
-        }
-
-        // then finally dump each of the three configurations we care about into two files each.
-        val cmds: Iterable[String] = {
-          def argsFor(scalaVersion: model.VersionScala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
+      // then finally dump each of the three configurations we care about into two files each.
+      val cmds: Iterable[String] = {
+        def argsFor(scalaVersion: model.VersionScala, projects: Set[String], switchScalaVersion: Boolean): List[String] =
+          List(
+            if (switchScalaVersion) s"++ ${scalaVersion.scalaVersion}" else "",
+            s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
+            s"""set Global / bloopConfigDir := file("${destinationPaths.bleepImportBloopDir / scalaVersion.scalaVersion}")"""
+          ) ++ projects.flatMap { p =>
             List(
-              if (switchScalaVersion) s"++ ${scalaVersion.scalaVersion}" else "",
-              s"""set ThisBuild / exportProjectsTo := file("${destinationPaths.bleepImportSbtExportDir}")""",
-              s"""set Global / bloopConfigDir := file("${destinationPaths.bleepImportBloopDir / scalaVersion.scalaVersion}")"""
-            ) ++ projects.flatMap { p =>
-              List(
-                s"$p/bloopGenerate",
-                s"$p/Test/bloopGenerate",
-                // if this configuration is not defined it seems to just return `None`
-                s"$p/IntegrationTest/bloopGenerate",
-                s"$p/exportProject",
-                s"$p/Test/exportProject",
-                s"$p/IntegrationTest/exportProject"
-              )
-            }
+              s"$p/bloopGenerate",
+              s"$p/Test/bloopGenerate",
+              // if this configuration is not defined it seems to just return `None`
+              s"$p/IntegrationTest/bloopGenerate",
+              s"$p/exportProject",
+              s"$p/Test/exportProject",
+              s"$p/IntegrationTest/exportProject"
+            )
+          }
 
-          scalaVersionOutput.scalaVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = false) } ++
-            scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) }
-        }
+        scalaVersionOutput.scalaVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = false) } ++
+          scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) }
+      }
 
-        logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
-        logger.withContext(sbtBuildDir).debug(cmds)
+      logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
+      logger.withContext(sbtBuildDir).debug(cmds)
+
+      try
         cli(
           action = "sbt export",
           cwd = sbtBuildDir,
@@ -125,7 +126,7 @@ addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
           stdIn = sbtCommands(cmds),
           env = sbtEnvs
         )
-      } finally Files.delete(tempAddBloopPlugin)
+      finally Files.delete(tempAddBloopPlugin)
     }
   }
 
