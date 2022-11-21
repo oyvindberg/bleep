@@ -36,7 +36,7 @@ projects:
     - io.circe::circe-core:0.14.2
     - io.circe::circe-generic:0.14.2
     - io.circe::circe-parser:0.14.2
-    - io.circe::circe-yaml:0.14.2
+    - io.circe::circe-yaml-v12:0.14.3-RC2
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
