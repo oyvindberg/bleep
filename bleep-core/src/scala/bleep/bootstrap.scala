@@ -19,7 +19,7 @@ object bootstrap {
         else logging.stdout(LogPatterns.interface(Instant.now, noColor = commonOpts.noColor), disableProgress = commonOpts.noBspProgress)
 
       val logger1 = logger0.withPath(s"[script $scriptName]")
-      val logger2 = if (commonOpts.debug) logger1 else logger1.minLogLevel(LogLevel.info)
+      val logger2 = if (commonOpts.debug || logAsJson) logger1 else logger1.minLogLevel(LogLevel.info)
       logger2.untyped
     }
 
