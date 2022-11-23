@@ -35,9 +35,9 @@ class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
         .collectFirst { case Array("version", version) => version }
         .getOrElse(throw new BleepException.Text(s"Couldn't naively extract scalafmt version from $configPath"))
 
-    val path = FetchScalafmt(new BleepCacheLogger(started.logger), started.executionContext, version)
+    val scalafmt = FetchScalafmt(new BleepCacheLogger(started.logger), started.executionContext, version)
 
-    started.logger.withContext(path).debug("Using scalafmt")
+    started.logger.withContext(scalafmt).debug("Using scalafmt")
 
     val sourcesDirs: Set[Path] =
       started.build.explodedProjects.keys
@@ -49,7 +49,7 @@ class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
         .filter(Files.exists(_))
 
     val cmd =
-      List(path.toString, "-c", ".scalafmt.conf", "--non-interactive") ++
+      List(scalafmt.toString, "-c", configPath.toString, "--non-interactive") ++
         (if (check) List("--test") else Nil) ++
         sourcesDirs.map(_.toString)
 
