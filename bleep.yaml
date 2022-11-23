@@ -65,6 +65,14 @@ projects:
     dependsOn: bleep-core
     extends: template-cross-all
     sources: ../liberated/sbt-git-versioning/src/main/scala
+  bleep-plugin-jni:
+    dependencies: org.ow2.asm:asm:9.4
+    dependsOn: bleep-plugin-nosbt
+    extends: template-cross-all
+    sources:
+    - ../liberated/sbt-jni/core/src/main/scala
+    - ../liberated/sbt-jni/plugin/src/main/java
+    - ../liberated/sbt-jni/plugin/src/main/scala
   bleep-plugin-mdoc:
     dependencies: org.jsoup:jsoup:1.15.3
     dependsOn: bleep-plugin-nosbt
