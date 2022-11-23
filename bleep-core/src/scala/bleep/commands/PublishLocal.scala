@@ -45,7 +45,7 @@ case class PublishLocal(started: Started, options: PublishLocal.Options) extends
             deleteUnknowns = FileSync.DeleteUnknowns.No,
             soft = false
           )
-          .log(started.logger.withContext(projectName), "Published locally")
+          .log(started.logger.withContext(projectName).withContext("version", options.version), "Published locally")
       }
       ()
     }
