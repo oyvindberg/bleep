@@ -86,16 +86,20 @@ object cli {
 
     val exitCode = process.run(processIO).exitValue()
 
+    val ctxLogger = cliLogger0.logger
+      .withContext(action)
+      .withContext(cwd)
+      .withContext(cmd)
+      .withContext(env)
+      .withContext(exitCode)
+
     exitCode match {
-      case 0 => WrittenLines(output.result())
+      case 0 =>
+        ctxLogger.debug("Command ran successfully")
+        WrittenLines(output.result())
       case n =>
-        cliLogger0.logger
-          .withContext(action)
-          .withContext(cwd)
-          .withContext(cmd)
-          .withContext(env)
-          .debug(s"Failed external command with error code $n")
-        throw new BleepException.Text(s"Failed external command '$action'")
+        ctxLogger.debug("Failed command details")
+        throw new BleepException.Text(s"Failed external command '$action' with exit code $n. See log file for exact command")
     }
   }
 }
