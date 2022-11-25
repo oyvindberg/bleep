@@ -134,19 +134,30 @@ object CoursierResolver {
         IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
     }
 
+  case class InvalidVersionCombo(message: String) extends CoursierError(message)
+
   class Direct(val logger: BleepCacheLogger, val params: Params) extends CoursierResolver {
 
     val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(logger)
     val repos = coursierRepos(params.repos, params.authentications)
 
-    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] = {
-      def go(remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
+    override def resolve(bleepDeps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] = {
+      val maybeCoursierDependencies: Either[CoursierError, List[Dependency]] =
+        bleepDeps.foldLeft[Either[CoursierError, List[Dependency]]](Right(Nil)) {
+          case (e @ Left(_), _) => e
+          case (Right(acc), bleepDep) =>
+            bleepDep.asDependency(versionCombo) match {
+              case Left(errorMessage) => Left(InvalidVersionCombo(errorMessage))
+              case Right(coursierDep) => Right(coursierDep :: acc)
+            }
+        }
+
+      def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
-        val coursierDependencies = deps.toList.map(_.asDependency(versionCombo).orThrowText)
 
         Fetch[Task](fileCache)
           .withRepositories(repos)
-          .withDependencies(coursierDependencies)
+          .withDependencies(deps)
           .withResolutionParams(
             ResolutionParams()
               .withForceScalaVersion(versionCombo.asScala.nonEmpty)
@@ -158,12 +169,15 @@ object CoursierResolver {
           case Left(coursierError) if remainingAttempts > 0 =>
             val newRemainingAttempts = remainingAttempts - 1
             logger.retrying(coursierError, newRemainingAttempts)
-            go(newRemainingAttempts)
+            go(deps, newRemainingAttempts)
           case other => other
         }
       }
 
-      go(remainingAttempts = 3).map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))
+      for {
+        deps <- maybeCoursierDependencies
+        res <- go(deps, remainingAttempts = 3)
+      } yield CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts)
     }
   }
 
