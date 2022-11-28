@@ -5,8 +5,8 @@ jvm:
 projects:
   bleep-cli:
     dependencies:
-    - com.lihaoyi::pprint:0.8.0
-    - com.monovore::decline:2.3.1
+    - com.lihaoyi::pprint:0.8.1
+    - com.monovore::decline:2.4.0
     - org.gnieh::diffson-circe:4.3.0
     - org.graalvm.nativeimage:svm:22.3.0
     - org.scalameta:svm-subs:101.0.0
@@ -21,7 +21,7 @@ projects:
   bleep-core:
     dependencies:
     - for3Use213: true
-      module: ch.epfl.scala::bloop-config:1.5.4
+      module: ch.epfl.scala::bloop-config:1.5.5
     - com.lihaoyi::fansi:0.4.0
     - exclusions:
         org.scala-sbt: util-logging_2.13
@@ -40,11 +40,11 @@ projects:
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-RC1
+      module: io.get-coursier::coursier-jvm:2.1.0-RC2
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-RC1
+      module: io.get-coursier::coursier:2.1.0-RC2
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
   bleep-plugin-ci-release:
