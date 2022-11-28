@@ -16,7 +16,7 @@ object runSbt {
     */
   def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths): Unit = {
     def sbtCommands(cmds: Iterable[String]) =
-      cli.StdIn.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
+      cli.In.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
 
     val sbtEnvs = List(
       "SBT_OPTS" -> Some("-Xmx4096M"),
@@ -38,9 +38,10 @@ object runSbt {
         action = "sbt discover projects",
         cwd = sbtBuildDir,
         cmd = sbt,
-        cliLogger = cli.CliLogger(logger),
-        env = sbtEnvs,
-        stdIn = sbtCommands(List("projects"))
+        logger = logger,
+        out = cli.Out.ViaLogger(logger),
+        in = sbtCommands(List("projects")),
+        env = sbtEnvs
       )
 
       val result = parseProjectsOutput(output.stdout)
@@ -64,9 +65,10 @@ object runSbt {
             "sbt discover cross projects",
             sbtBuildDir,
             sbt,
-            cliLogger = cli.CliLogger(logger),
-            env = sbtEnvs,
-            stdIn = sbtCommands(cmds)
+            logger = logger,
+            out = cli.Out.ViaLogger(logger),
+            in = sbtCommands(cmds),
+            env = sbtEnvs
           )
         val onlyOneProject = projectNames match {
           case one :: Nil => Some(one)
@@ -122,8 +124,9 @@ object runSbt {
           action = "sbt export",
           cwd = sbtBuildDir,
           cmd = sbt,
-          cliLogger = cli.CliLogger(logger),
-          stdIn = sbtCommands(cmds),
+          logger = logger,
+          out = cli.Out.ViaLogger(logger),
+          in = sbtCommands(cmds),
           env = sbtEnvs
         )
       finally Files.delete(tempAddBloopPlugin)

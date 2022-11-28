@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.cli.CliLogger
 import bleep.internal.FileUtils
 
 import java.nio.file.{Files, Path}
@@ -57,7 +56,8 @@ class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
       "scalafmt",
       started.buildPaths.cwd,
       cmd,
-      CliLogger(started.logger)
+      logger = started.logger,
+      out = cli.Out.ViaLogger(started.logger)
     )
     Right(())
   }
