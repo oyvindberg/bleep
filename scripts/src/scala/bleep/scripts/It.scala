@@ -63,7 +63,7 @@ object It extends BleepScript("It") {
       case cd if cd.startsWith("cd") =>
         workDir = workDir / cd.drop("cd ".length)
       case line =>
-        cli(action.getOrElse(line), workDir, cmd = line.split("\\s").toList, cliLogger = cli.CliLogger(logger), env = env)
+        cli(action.getOrElse(line), workDir, cmd = line.split("\\s").toList, logger = logger, out = cli.Out.ViaLogger(logger), env = env)
         ()
     }
 

@@ -52,21 +52,21 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     val inputData: sbtimport.ImportInputData =
       if (!Files.exists(inputDataPath)) {
-        val cliLogger = cli.CliLogger(logger)
+        val cliOut = cli.Out.ViaLogger(logger)
         if (!Files.exists(sbtBuildDir)) {
           Files.createDirectories(testFolder)
-          cli(action = "git clone", cwd = testFolder, cmd = List("git", "clone", repo, sbtBuildDir.getFileName.toString), cliLogger)
+          cli(action = "git clone", cwd = testFolder, cmd = List("git", "clone", repo, sbtBuildDir.getFileName.toString), logger = logger, out = cliOut)
         } else {
-          cli(action = "git fetch", cwd = sbtBuildDir, cmd = List("git", "fetch"), cliLogger)
+          cli(action = "git fetch", cwd = sbtBuildDir, cmd = List("git", "fetch"), logger = logger, out = cliOut)
         }
-        cli(action = "git reset", cwd = sbtBuildDir, cmd = List("git", "reset", "--hard", sha), cliLogger)
+        cli(action = "git reset", cwd = sbtBuildDir, cmd = List("git", "reset", "--hard", sha), logger = logger, out = cliOut)
         // fix OOM for sbt build
         Files.writeString(
           sbtBuildDir / "build.sbt",
           Files.readString(sbtBuildDir / "build.sbt").split("\n").filterNot(_.contains("scalafmtOnCompile := ")).mkString("\n")
         )
-        cli(action = "git submodule init", cwd = sbtBuildDir, cmd = List("git", "submodule", "init"), cliLogger)
-        cli(action = "git submodule update", sbtBuildDir, List("git", "submodule", "update"), cliLogger)
+        cli(action = "git submodule init", cwd = sbtBuildDir, cmd = List("git", "submodule", "init"), logger = logger, out = cliOut)
+        cli(action = "git submodule update", sbtBuildDir, List("git", "submodule", "update"), logger = logger, out = cliOut)
 
         val sbtBuildLoader = BuildLoader.inDirectory(sbtBuildDir)
         val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, BuildPaths.Mode.Normal)

@@ -97,7 +97,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
       RelPath.relativeTo(workDir, outputFile).toString // this somehow needs to be relative
     )
 
-    cli("asciinema-rec_script", workDir, cmd, cliLogger = cli.CliLogger(logger), env = env)
+    cli("asciinema-rec_script", workDir, cmd, logger = logger, out = cli.Out.ViaLogger(logger), env = env)
 
     val video = Files.readString(outputFile).replace(tempDir.toString, "/folder")
     val maybeYaml = demo.expectedYaml.map(yamlRelPath => Files.readString(workDir / yamlRelPath))
