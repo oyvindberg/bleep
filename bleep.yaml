@@ -30,7 +30,7 @@ projects:
     - org.virtuslab.scala-cli::bloop-rifle:0.1.17
     dependsOn: bleep-model
     extends: template-cross-all
-    sources: ./../liberated/sbt-tpolecat/src/main/scala
+    sources: ../liberated/sbt-tpolecat/src/main/scala
   bleep-model:
     dependencies:
     - io.circe::circe-core:0.14.2
@@ -53,27 +53,27 @@ projects:
     - bleep-plugin-pgp
     - bleep-plugin-sonatype
     extends: template-cross-old
-    sources: ./../liberated/sbt-ci-release/plugin/src/main/scala
+    sources: ../liberated/sbt-ci-release/plugin/src/main/scala
   bleep-plugin-dynver:
     dependsOn: bleep-core
     extends: template-cross-all
     sources:
-    - ./../liberated/sbt-dynver/dynver/src/main/scala
-    - ./../liberated/sbt-dynver/sbtdynver/src/main/scala
+    - ../liberated/sbt-dynver/dynver/src/main/scala
+    - ../liberated/sbt-dynver/sbtdynver/src/main/scala
   bleep-plugin-git-versioning:
     dependencies: se.sawano.java:alphanumeric-comparator:1.4.1
     dependsOn: bleep-core
     extends: template-cross-all
-    sources: ./../liberated/sbt-git-versioning/src/main/scala
+    sources: ../liberated/sbt-git-versioning/src/main/scala
   bleep-plugin-mdoc:
     dependencies: org.jsoup:jsoup:1.15.3
     dependsOn: bleep-plugin-nosbt
     extends: template-cross-all
-    sources: ./../liberated/mdoc/mdoc-sbt/src/main/scala
+    sources: ../liberated/mdoc/mdoc-sbt/src/main/scala
   bleep-plugin-native-image:
     dependsOn: bleep-core
     extends: template-cross-all
-    sources: ./../liberated/sbt-native-image/plugin/src/main/scala
+    sources: ../liberated/sbt-native-image/plugin/src/main/scala
   bleep-plugin-nosbt:
     dependsOn: bleep-core
     extends: template-cross-all
@@ -85,15 +85,15 @@ projects:
     dependsOn: bleep-plugin-nosbt
     extends: template-cross-all
     sources:
-    - ./../liberated/sbt-pgp/gpg-library/src/main/scala
-    - ./../liberated/sbt-pgp/sbt-pgp/src/main/scala
+    - ../liberated/sbt-pgp/gpg-library/src/main/scala
+    - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
   bleep-plugin-sonatype:
     dependencies:
     - org.sonatype.spice.zapper:spice-zapper:1.3
     - org.wvlet.airframe::airframe-http:22.4.2
     dependsOn: bleep-plugin-nosbt
     extends: template-cross-old
-    sources: ./../liberated/sbt-sonatype/src/main/scala
+    sources: ../liberated/sbt-sonatype/src/main/scala
   bleep-tests:
     dependencies: org.scalatest::scalatest:3.2.9
     dependsOn: bleep-cli
