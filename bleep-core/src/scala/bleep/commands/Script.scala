@@ -11,6 +11,6 @@ case class Script(started: Started, name: model.ScriptName, args: List[String]) 
     started.build
       .scripts(name)
       .values
-      .traverse { case model.ScriptDef(project, main) => new Run(started, project, Some(main), args = args).runWithServer(bloop) }
+      .traverse { case model.ScriptDef(project, main) => Run(started, project, Some(main), args = args, raw = false).runWithServer(bloop) }
       .map(_ => ())
 }

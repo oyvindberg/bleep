@@ -158,7 +158,7 @@ object Main {
               mainClass,
               Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty)
             ).mapN { case (projectName, mainClass, arguments) =>
-              commands.Run(started, projectName, mainClass, arguments)
+              commands.Run(started, projectName, mainClass, arguments, raw = true)
             }
           ),
           setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap), started.executionContext),
