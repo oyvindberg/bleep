@@ -12,8 +12,8 @@ class Commands(started: Started) {
   def compile(projects: List[model.CrossProjectName]): Unit =
     force(commands.Compile(started, projects.toArray))
 
-  def run(project: model.CrossProjectName, maybeOverriddenMain: Option[String] = None, args: List[String] = Nil): Unit =
-    force(commands.Run(started, project, maybeOverriddenMain, args))
+  def run(project: model.CrossProjectName, maybeOverriddenMain: Option[String] = None, args: List[String] = Nil, raw: Boolean = false): Unit =
+    force(commands.Run(started, project, maybeOverriddenMain, args, raw))
 
   def test(projects: List[model.CrossProjectName]): Unit =
     force(commands.Test(started, projects.toArray))

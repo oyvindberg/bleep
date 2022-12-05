@@ -26,24 +26,13 @@ object cli {
     case class Provided(data: Array[Byte]) extends In
   }
 
-  trait Out {
-    def apply(writtenLine: WrittenLine): Unit
-    def withAction(action: String): Out
-  }
+  sealed trait Out
 
   object Out {
-    object Raw extends Out {
-      override def apply(writtenLine: WrittenLine): Unit =
-        writtenLine match {
-          case WrittenLine.StdErr(line) => System.out.println(line)
-          case WrittenLine.StdOut(line) => System.err.println(line)
-        }
-
-      override def withAction(action: String): Raw.type = this
-    }
+    object Raw extends Out
 
     case class ViaLogger(logger: Logger)(implicit l: Line, f: File, e: Enclosing) extends Out {
-      override def apply(writtenLine: WrittenLine): Unit =
+      def apply(writtenLine: WrittenLine): Unit =
         writtenLine match {
           case WrittenLine.StdErr(line) =>
             logger.warn(line)(implicitly, l, f, e)
@@ -55,7 +44,7 @@ object cli {
             }
         }
 
-      override def withAction(action: String): ViaLogger =
+      def withAction(action: String): ViaLogger =
         ViaLogger(logger.withPath(action))
     }
   }
@@ -79,28 +68,34 @@ object cli {
 
     val output = Array.newBuilder[WrittenLine]
 
-    val out0 = out.withAction(s"[subprocess: $action]")
-    val processIO = new ProcessIO(
-      writeInput = os =>
-        in match {
-          case In.No     => ()
-          case In.Attach => BasicIO.connectToIn(os)
-          case In.Provided(data) =>
-            os.write(data)
-            os.close()
-        },
-      processOutput = BasicIO.processFully { line =>
-        val stdOut = WrittenLine.StdOut(line)
-        output += stdOut
-        out0(stdOut)
-      },
-      processError = BasicIO.processFully { line =>
-        val stdErr = WrittenLine.StdErr(line)
-        output += stdErr
-        out0(stdErr)
-      },
-      daemonizeThreads = false
-    )
+    val processIO =
+      out match {
+        case Out.Raw =>
+          BasicIO.standard(true)
+        case viaLogger0: Out.ViaLogger =>
+          val viaLogger = viaLogger0.withAction(s"[subprocess: $action]")
+          new ProcessIO(
+            writeInput = os =>
+              in match {
+                case In.No     => ()
+                case In.Attach => BasicIO.connectToIn(os)
+                case In.Provided(data) =>
+                  os.write(data)
+                  os.close()
+              },
+            processOutput = BasicIO.processFully { line =>
+              val stdOut = WrittenLine.StdOut(line)
+              output += stdOut
+              viaLogger(stdOut)
+            },
+            processError = BasicIO.processFully { line =>
+              val stdErr = WrittenLine.StdErr(line)
+              output += stdErr
+              viaLogger(stdErr)
+            },
+            daemonizeThreads = false
+          )
+      }
 
     val exitCode = process.run(processIO).exitValue()
 
