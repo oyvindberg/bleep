@@ -64,7 +64,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_sjs1_3/1.0.3/scalacheck-effect_sjs1_3-1.0.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_3/3.1.0/vault_sjs1_3-3.1.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-core/js3/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-core/js3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-laws/js3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-laws/js3/classes",

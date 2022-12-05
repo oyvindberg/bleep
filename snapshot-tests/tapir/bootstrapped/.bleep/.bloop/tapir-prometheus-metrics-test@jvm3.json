@@ -51,7 +51,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-15_3/3.2.10.0/scalacheck-1-15_3-3.2.10.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-core-test/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-core/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-prometheus-metrics/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-prometheus-metrics/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core-test@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-prometheus-metrics@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-prometheus-metrics-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-prometheus-metrics-test/jvm3/classes",

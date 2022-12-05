@@ -34,7 +34,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config/js212/classes"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config/js212/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-config@js212",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/.js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config-test/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config-test/js212/classes",

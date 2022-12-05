@@ -32,7 +32,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.11.12/scala-reflect-2.11.12.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.11/1.13.4/scalacheck_2.11-1.13.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config/jvm211/classes"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config/jvm211/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-config@jvm211",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config-test/jvm211",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config-test/jvm211/classes",

@@ -37,7 +37,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/.bloop/doobie-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/.bloop/doobie-free/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/.bloop/doobie-h2/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/.bloop/doobie-h2/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-free@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-h2@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/.bloop/doobie-h2-circe/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/.bloop/doobie-h2-circe/jvm3/classes",

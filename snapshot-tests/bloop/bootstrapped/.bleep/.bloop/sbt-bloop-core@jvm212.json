@@ -100,7 +100,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.3.1/zinc_2.12-1.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.26/slf4j-api-1.7.26.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.12/0.10.4/jawn-parser_2.12-0.10.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-config/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-config@jvm212",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/sbt-bloop-core/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/sbt-bloop-core/jvm212/classes",

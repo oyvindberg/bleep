@@ -44,7 +44,17 @@
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/logging/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/phases/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/scalajs/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/ts/classes"
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/ts/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/core",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/logging",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/phases",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/scalajs",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/ts",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/phases/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/scalajs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/ts/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/importer-portable",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/.bloop/importer-portable/classes",

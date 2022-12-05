@@ -256,7 +256,9 @@ object GenBloopFiles {
     }
 
     val classPath: model.JsonSet[Path] =
-      model.JsonSet.fromIterable(allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedRuntimeDependencies.jars)
+      model.JsonSet.fromIterable(
+        allTransitiveTranslated.values.flatMap(x => x.project.classesDir :: x.project.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars
+      )
 
     val configuredScala: Option[Config.Scala] =
       scalaVersion.map { scalaVersion =>

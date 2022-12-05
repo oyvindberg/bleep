@@ -29,7 +29,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloopgun-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/sockets/classes"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/sockets/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloopgun-core@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sockets",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/sockets/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-launcher-core/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/.bloop/bloop-launcher-core/jvm213/classes",

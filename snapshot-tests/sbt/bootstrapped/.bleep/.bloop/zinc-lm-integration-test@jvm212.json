@@ -88,7 +88,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-core_2.12/0.7.0/hedgehog-core_2.12-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-runner_2.12/0.7.0/hedgehog-runner_2.12-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-sbt_2.12/0.7.0/hedgehog-sbt_2.12-0.7.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/zinc-lm-integration/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/zinc-lm-integration/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/zinc-lm-integration@jvm212",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/zinc-lm-integration/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/zinc-lm-integration-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/zinc-lm-integration-test/jvm212/classes",

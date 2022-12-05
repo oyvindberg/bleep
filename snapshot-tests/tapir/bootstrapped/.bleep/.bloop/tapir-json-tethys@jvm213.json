@@ -28,7 +28,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-core_2.13/0.25.0/tethys-core_2.13-0.25.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/tethys-json/tethys-jackson_2.13/0.25.0/tethys-jackson_2.13-0.25.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-core/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-json-tethys/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/.bloop/tapir-json-tethys/jvm213/classes",

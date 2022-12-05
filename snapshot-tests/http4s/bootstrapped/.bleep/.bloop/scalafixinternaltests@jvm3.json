@@ -16,7 +16,9 @@
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternalrules/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternalrules/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/scalafixinternalrules@jvm3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternaltests/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternaltests/jvm3/classes",
