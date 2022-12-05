@@ -40,7 +40,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/scalameta_2.13/4.4.32/scalameta_2.13-4.4.32.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/trees_2.13/4.4.32/trees_2.13-4.4.32.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/paiges-core_2.13/0.4.2/paiges-core_2.13-0.4.2.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternalrules/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternalrules/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/scalafixinternalrules@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternaltests/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/scalafixinternaltests/jvm213/classes",

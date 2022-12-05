@@ -50,7 +50,14 @@
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-runner_2.13/0.7.0/hedgehog-runner_2.13-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-sbt_2.13/0.7.0/hedgehog-sbt_2.13-0.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/collections/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/util-position/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/util-position/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-position@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/collections-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/.bloop/collections-test/jvm213/classes",

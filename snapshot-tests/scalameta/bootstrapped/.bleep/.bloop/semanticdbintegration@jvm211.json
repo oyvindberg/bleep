@@ -17,7 +17,10 @@
     ],
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.12/scala-library-2.11.12.jar",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegrationmacros/jvm211/classes"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegrationmacros/jvm211/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/semanticdbintegrationmacros@jvm211",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegration/jvm211",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/.bloop/semanticdbintegration/jvm211/classes",

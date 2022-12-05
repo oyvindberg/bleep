@@ -42,7 +42,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_sjs1_2.13/1.0.2/literally_sjs1_2.13-1.0.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_2.13/3.1.0/vault_sjs1_2.13-3.1.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-core/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-core/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js213",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-node-serverless/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/.bloop/http4s-node-serverless/js213/classes",
