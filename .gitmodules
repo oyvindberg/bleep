@@ -38,3 +38,8 @@
 	url = git@github.com:bleep-build/sbt-tpolecat.git
     branch = main
     update = rebase
+[submodule "liberated/sbt-jni"]
+	path = liberated/sbt-jni
+	url = git@github.com:bleep-build/sbt-jni.git
+    branch = main
+    update = rebase
