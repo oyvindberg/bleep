@@ -25,16 +25,22 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
     )(x => (x.getName, x.getArgv, x.getVersion, x.getBspVersion, x.getLanguages))
 
   override def run(): Either[BleepException, Unit] = {
-    val bleepExecutablePath: Path = (new Argv0).get(null) match {
-      case null =>
+    val maybeExecutablePath = Option((new Argv0).get(null))
+      .map {
+        case absolute if absolute.startsWith("/") =>
+          Path.of(absolute)
+        case relative =>
+          internal.Os.cwd / relative
+      }
+      .filter(Files.isRegularFile(_))
+      .filter(Files.isExecutable)
+
+    val bleepExecutablePath: Path =
+      maybeExecutablePath.getOrElse {
         val latestRelease = model.BleepVersion.current.latestRelease
         logger.warn(s"couldn't determine name of Bleep executable. Setting up version ${latestRelease.value}")
         FetchBleepRelease(latestRelease, new BleepCacheLogger(logger), ec).orThrow
-      case absolute if absolute.startsWith("/") =>
-        Path.of(absolute)
-      case relative =>
-        internal.Os.cwd / relative
-    }
+      }
 
     val details = new bsp4j.BspConnectionDetails(
       "bleep",
