@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
 
 abstract class BleepCommandRemote(started: Started) extends BleepCommand {
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
-    new bsp4j.BuildTargetIdentifier(buildPaths.dotBleepModeDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
+    new bsp4j.BuildTargetIdentifier(buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
   def projectFromBuildTarget(name: bsp4j.BuildTargetIdentifier): model.CrossProjectName = {
     val id = name.getUri.split("=").last
@@ -53,8 +53,8 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
       config = bloopRifleConfig,
       clientName = "bleep",
       clientVersion = model.BleepVersion.current.value,
-      workspace = started.buildPaths.dotBleepModeDir,
-      classesDir = started.buildPaths.dotBleepModeDir / "classes",
+      workspace = started.buildPaths.buildVariantDir,
+      classesDir = started.buildPaths.buildVariantDir / "classes",
       buildClient = buildClient,
       threads = BloopThreads.create(),
       logger = bleepRifleLogger

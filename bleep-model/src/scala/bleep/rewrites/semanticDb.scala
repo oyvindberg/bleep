@@ -2,7 +2,7 @@ package bleep
 package rewrites
 
 case class semanticDb(buildPaths: BuildPaths) extends BuildRewrite {
-  override val name = "semanticdb"
+  override val name = model.BuildRewriteName("semanticdb")
 
   protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
     oldBuild.explodedProjects.map { case (name, p) => (name, apply(name, p)) }

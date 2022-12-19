@@ -12,7 +12,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
     val logger = logger0.withPath("create-new-build")
     val testFolder = outFolder / "create-new-build"
     val buildLoader = BuildLoader.inDirectory(testFolder / "build")
-    val buildPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, BuildPaths.Mode.Normal)
+    val buildPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, model.BuildVariant.Normal)
 
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
       val generatedProjectFiles: Map[Path, String] =
@@ -29,7 +29,7 @@ class CreateNewSnapshotTests extends SnapshotTest {
       writeAndCompare(buildPaths.buildDir, generatedProjectFiles, logger)
 
       val bootstrappedPath = testFolder / "bootstrapped"
-      val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), BuildPaths.Mode.Normal)
+      val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), model.BuildVariant.Normal)
 
       val Right(started) =
         bootstrap.from(

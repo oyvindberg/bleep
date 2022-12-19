@@ -21,7 +21,7 @@ case class BuildCreateNew(
 
   override def run(): Either[BleepException, Unit] = {
     val buildLoader = BuildLoader.inDirectory(cwd)
-    val buildPaths = BuildPaths(cwd, buildLoader, BuildPaths.Mode.Normal)
+    val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
     generate(buildPaths).map(_ => ())
   }
 

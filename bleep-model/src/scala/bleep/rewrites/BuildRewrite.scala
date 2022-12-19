@@ -1,7 +1,7 @@
 package bleep
 package rewrites
 
-import bleep.model.Build
+import bleep.model.{Build, BuildRewriteName}
 import bleep.templates.templatesInfer
 
 import scala.collection.immutable
@@ -12,7 +12,7 @@ import scala.collection.immutable
   * Note that results are not optimal or even good, but it's a start which hides most of the complexity in the model
   */
 trait BuildRewrite {
-  val name: String
+  val name: BuildRewriteName
 
   protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project]
 

@@ -5,7 +5,7 @@ import bleep.rewrites.UpgradeDependencies.{ContextualDep, UpgradeLogger}
 import bleep.{bleepExceptionOps, model}
 
 case class UpgradeDependencies(logger: UpgradeLogger, upgrades: Map[ContextualDep, model.Dep]) extends BuildRewrite {
-  override val name: String = "upgrade-dependencies"
+  override val name = model.BuildRewriteName("upgrade-dependencies")
 
   override protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] = {
     val newProjects = oldBuild.explodedProjects.map { case (crossName, p) =>

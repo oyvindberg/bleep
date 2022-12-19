@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.bsp.ProjectSelection
+import bleep.bsp.BspProjectSelection
 import bleep.internal.{Argv0, FileUtils}
 import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
@@ -50,7 +50,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
       List("scala", "java").asJava
     )
 
-    ProjectSelection.store(buildPaths, maybeSelectedProjects)
+    BspProjectSelection.store(buildPaths, maybeSelectedProjects)
 
     List(
       // remove other configured BSP tools

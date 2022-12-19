@@ -49,7 +49,7 @@ class BleepBspServer(
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)
       case Right(started) =>
-        val workspaceDir = started.buildPaths.dotBleepModeDir
+        val workspaceDir = started.buildPaths.buildVariantDir
 
         val initParams = new bsp4j.InitializeBuildParams(
           s"bleep / ${params.getDisplayName}",

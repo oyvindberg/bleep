@@ -48,7 +48,7 @@ object BspImpl {
           executionContext = ExecutionContext.fromExecutor(threads.prepareBuildExecutor)
         )
 
-      val workspaceDir = pre.buildPaths.bleepBloopDir.getParent
+      val workspaceDir = pre.buildPaths.buildVariantDir
 
       var bloopServer: BloopServer = null
       try {
@@ -57,7 +57,7 @@ object BspImpl {
         bspBloopServer.bloopServer = bloopServer.server
         // run on `workspaceBuildTargets` later for the side-effect of updating build
         bspBloopServer.ensureBloopUpToDate = () =>
-          ProjectSelection.load(pre.buildPaths).flatMap { maybeSelectedProjectGlobs =>
+          BspProjectSelection.load(pre.buildPaths).flatMap { maybeSelectedProjectGlobs =>
             val bspRewrites: List[BuildRewrite] = List(
 //              List(rewrites.semanticDb(pre.buildPaths)),
               maybeSelectedProjectGlobs match {

@@ -2,23 +2,27 @@ package bleep
 
 import java.nio.file.Path
 
-case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode, wantedBleepVersion: Option[model.BleepVersion]) {
+case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVariant, wantedBleepVersion: Option[model.BleepVersion]) {
   lazy val buildDir = bleepYamlFile.getParent
   lazy val bspBleepJsonFile: Path = buildDir / ".bsp" / "bleep.json"
   lazy val dotBleepDir: Path = buildDir / ".bleep"
+
   lazy val bleepImportDir: Path = dotBleepDir / "import"
   lazy val bleepImportBloopDir: Path = dotBleepDir / "import" / "bloop"
   lazy val bleepImportSbtExportDir: Path = dotBleepDir / "import" / "sbt-export"
-  lazy val dotBleepBspModeDir: Path = dotBleepDir / "bsp"
-  lazy val dotBleepModeDir: Path = mode match {
-    case BuildPaths.Mode.Normal => dotBleepDir
-    case BuildPaths.Mode.BSP    => dotBleepBspModeDir
+
+  lazy val buildVariantDir: Path = {
+    val name = variant match {
+      case model.BuildVariant.Normal       => "normal"
+      case model.BuildVariant.BSP          => "bsp"
+      case x: model.BuildVariant.Rewritten => x.rewrites.map(_.value).toList.mkString("__")
+    }
+    dotBleepDir / "builds" / name
   }
 
-  lazy val bleepBloopDir: Path = dotBleepModeDir / ".bloop"
-  lazy val digestFile: Path = bleepBloopDir / ".digest"
-  lazy val logFile: Path = dotBleepModeDir / "last.log"
-  lazy val bspProjectSelectionYamlFile: Path = dotBleepBspModeDir / "project-selection.yaml"
+  lazy val bleepBloopDir: Path = buildVariantDir / ".bloop"
+  lazy val digestFile: Path = bleepBloopDir / "bloop-digest"
+  lazy val logFile: Path = buildVariantDir / "last.log"
 
   final def project(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
@@ -66,13 +70,6 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, mode: BuildPaths.Mode, wan
 }
 
 object BuildPaths {
-  sealed trait Mode
-  object Mode {
-    case object Normal extends Mode
-    // put bloop files into a different directory for IDE use, since we add flags and select a subset of projects
-    case object BSP extends Mode
-  }
-
-  def apply(cwd: Path, buildLoader: BuildLoader, mode: BuildPaths.Mode): BuildPaths =
-    BuildPaths(cwd, buildLoader.bleepYaml, mode, buildLoader.existing.toOption.flatMap(_.wantedVersion.forceGet.toOption))
+  def apply(cwd: Path, buildLoader: BuildLoader, variant: model.BuildVariant): BuildPaths =
+    BuildPaths(cwd, buildLoader.bleepYaml, variant, buildLoader.existing.toOption.flatMap(_.wantedVersion.forceGet.toOption))
 }

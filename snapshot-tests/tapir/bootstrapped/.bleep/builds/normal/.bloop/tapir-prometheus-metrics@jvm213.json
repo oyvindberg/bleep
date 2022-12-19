@@ -1,0 +1,271 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-prometheus-metrics@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics/jvm213",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-prometheus-metrics@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/scalajvm-2.13"
+    ],
+    "dependencies": [
+      "tapir-core@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.12.0/simpleclient-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.12.0/simpleclient_common-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.12.0/simpleclient_tracer_common-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.12.0/simpleclient_tracer_otel-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.12.0/simpleclient_tracer_otel_agent-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics/jvm213/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-prometheus-metrics@jvm213",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/prometheus-metrics/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.6",
+      "options": [
+        "-Vimplicits",
+        "-Vtype-diffs",
+        "-Wconf:cat=other-match-analysis:error",
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xcheckinit",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.6/0.13.2/kind-projector_2.13.6-0.13.2.jar",
+        "-Ywarn-macros:after",
+        "-encoding",
+        "utf8",
+        "-explaintypes",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-prometheus-metrics/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ],
+      "runtimeConfig": {
+        "options": [
+          
+        ]
+      }
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.prometheus",
+          "name": "simpleclient",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simpleclient",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient/0.12.0/simpleclient-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "simpleclient_tracer_otel",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simpleclient_tracer_otel",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel/0.12.0/simpleclient_tracer_otel-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.4.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.propensive",
+          "name": "magnolia_2.13",
+          "version": "0.17.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "simpleclient_tracer_otel_agent",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simpleclient_tracer_otel_agent",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_otel_agent/0.12.0/simpleclient_tracer_otel_agent-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "simpleclient_tracer_common",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simpleclient_tracer_common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_tracer_common/0.12.0/simpleclient_tracer_common-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.prometheus",
+          "name": "simpleclient_common",
+          "version": "0.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "simpleclient_common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/prometheus/simpleclient_common/0.12.0/simpleclient_common-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.propensive",
+          "name": "mercator_2.13",
+          "version": "0.2.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "mercator_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.2.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}
