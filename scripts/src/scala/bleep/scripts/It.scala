@@ -1,7 +1,7 @@
 package bleep
 package scripts
 
-import bleep.internal.{jvmOrSystem, FileUtils}
+import bleep.internal.FileUtils
 import bleep.logging.Logger
 import bleep.plugin.nativeimage.NativeImagePlugin
 
@@ -13,7 +13,7 @@ import scala.jdk.StreamConverters.StreamHasToScala
 object It extends BleepScript("It") {
   override def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val project = started.bloopProjects(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm213"))))
-    val ni = new NativeImagePlugin(project, started.logger, nativeImageJvm = jvmOrSystem(started))
+    val ni = new NativeImagePlugin(project, started.logger, started.jvmCommand)
 
     val nativeImage = {
       val fromArgs = args.headOption.map { path =>

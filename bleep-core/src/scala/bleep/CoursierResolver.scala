@@ -68,7 +68,7 @@ object CoursierResolver {
         }
         val params = Params(None, downloadSources = true, config.authentications, resolvers)
         val direct = new Direct(new BleepCacheLogger(pre.logger), params)
-        val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCachePath)
+        val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version))
       }
     }

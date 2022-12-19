@@ -37,7 +37,7 @@ case class Started(
 
   lazy val jvmCommand: Path = {
     val jvm = jvmOrSystem(build, logger)
-    FetchJvm(new BleepCacheLogger(logger), jvm, executionContext)
+    FetchJvm(Some(userPaths.resolveJvmCacheDir), new BleepCacheLogger(logger), jvm, executionContext)
   }
 
   def chosenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =

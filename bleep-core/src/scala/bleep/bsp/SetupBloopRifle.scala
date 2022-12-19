@@ -23,7 +23,7 @@ object SetupBloopRifle {
       bleepRifleLogger: BleepRifleLogger,
       executionContext: ExecutionContext
   ): BloopRifleConfig = {
-    val resolvedJvm = FetchJvm(new BleepCacheLogger(logger), jvm, executionContext)
+    val resolvedJvm = FetchJvm(Some(userPaths.resolveJvmCacheDir), new BleepCacheLogger(logger), jvm, executionContext)
 
     BloopRifleConfig
       .default(
