@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.BuildPaths.Mode
 import bleep.internal.{fatal, Os}
 import bleep.logging.{jsonEvents, LogLevel}
 import bleep.rewrites.BuildRewrite
@@ -10,7 +9,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object bootstrap {
-  def forScript(scriptName: String, commonOpts: CommonOpts)(f: (Started, Commands) => Unit): Unit = {
+  def forScript(scriptName: String, commonOpts: CommonOpts, rewrites: List[BuildRewrite] = Nil)(f: (Started, Commands) => Unit): Unit = {
     val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
 
     val logger = {
@@ -24,11 +23,12 @@ object bootstrap {
     }
 
     val buildLoader = BuildLoader.find(Os.cwd)
-    val buildPaths = BuildPaths(Os.cwd, buildLoader, Mode.Normal)
+    val buildVariant = model.BuildVariant(rewrites.map(_.name))
+    val buildPaths = BuildPaths(Os.cwd, buildLoader, buildVariant)
     val maybeStarted = for {
       existingBuild <- buildLoader.existing
       pre = Prebootstrapped(buildPaths, logger, existingBuild)
-      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, BleepConfigOps.lazyForceLoad(pre.userPaths), CoursierResolver.Factory.default)
+      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites, BleepConfigOps.lazyForceLoad(pre.userPaths), CoursierResolver.Factory.default)
     } yield started
 
     maybeStarted match {

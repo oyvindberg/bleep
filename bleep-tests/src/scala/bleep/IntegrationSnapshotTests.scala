@@ -69,7 +69,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         cli(action = "git submodule update", sbtBuildDir, List("git", "submodule", "update"), logger = logger, out = cliOut)
 
         val sbtBuildLoader = BuildLoader.inDirectory(sbtBuildDir)
-        val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, BuildPaths.Mode.Normal)
+        val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, model.BuildVariant.Normal)
         sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths)
 
         val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths)
@@ -91,7 +91,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       }
 
     val importedBuildLoader = BuildLoader.inDirectory(importedPath)
-    val importedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, importedBuildLoader, BuildPaths.Mode.Normal)
+    val importedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, importedBuildLoader, model.BuildVariant.Normal)
     val importerOptions = sbtimport.ImportOptions(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
 
     // generate a build file and store it
@@ -113,7 +113,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
       logger
     )
 
-    val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), BuildPaths.Mode.Normal)
+    val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), model.BuildVariant.Normal)
     val existingImportedBuildLoader = BuildLoader.Existing(importedBuildLoader.bleepYaml)
 
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>

@@ -4,7 +4,7 @@ package rewrites
 /** Throw away information which is superfluous. may be needed after import or after user edits build
   */
 object normalizeBuild extends BuildRewrite {
-  override val name = "normalize-build"
+  override val name = model.BuildRewriteName("normalize-build")
 
   val Pipeline: List[BuildRewrite] =
     List(

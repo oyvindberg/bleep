@@ -2,7 +2,7 @@ package bleep
 package rewrites
 
 case class keepSelectedProjects(selectedProjectGlobs: List[String]) extends BuildRewrite {
-  override val name = "keep-selected-projects"
+  override val name = model.BuildRewriteName("keep-selected-projects")
 
   def selectedPlusTransitiveDeps(selectedProjectNames: List[model.CrossProjectName], build: model.Build): Set[model.CrossProjectName] = {
     val b = Set.newBuilder[model.CrossProjectName]

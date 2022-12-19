@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.BuildPaths.Mode
 import bleep.bsp.BspImpl
 import bleep.internal.{fatal, Os}
 import bleep.logging._
@@ -349,7 +348,7 @@ object Main {
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, logger, commonOpts)
 
-        val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
+        val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
 
         val completions = buildLoader match {
           case noBuild: BuildLoader.NonExisting =>
@@ -390,7 +389,8 @@ object Main {
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped, commonOpts)
 
-        val buildPaths = BuildPaths(cwd, buildLoader, Mode.BSP)
+        val buildVariant = model.BuildVariant.BSP
+        val buildPaths = BuildPaths(cwd, buildLoader, buildVariant)
 
         val logFileResource: TypedLoggerResource[BufferedWriter] =
           logging.path(buildPaths.logFile, LogPatterns.logFile)
@@ -433,7 +433,7 @@ object Main {
             LoggerResource.pure(stdout).zipWith(logFileResource).untyped
           }
 
-        val buildPaths = BuildPaths(cwd, buildLoader, Mode.Normal)
+        val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
         buildLoader match {
           case noBuild: BuildLoader.NonExisting =>
             stdoutAndFileLogging(buildPaths).use { logger =>

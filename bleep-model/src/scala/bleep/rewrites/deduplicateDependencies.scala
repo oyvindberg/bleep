@@ -6,7 +6,7 @@ import coursier.core.Configuration
 
 /** Trims dependencies, both on libraries and on projects, which are already provided by a parent project */
 object deduplicateDependencies extends BuildRewrite {
-  override val name = "deduplicate-dependencies"
+  override val name = model.BuildRewriteName("deduplicate-dependencies")
 
   protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
     rewriteDependentData(oldBuild.explodedProjects).eager[model.Project] { (projectName, p, eval) =>

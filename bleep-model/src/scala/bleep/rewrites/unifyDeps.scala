@@ -5,7 +5,7 @@ package rewrites
   * flags up to all projects with same scala version or platform. After that, the "combine by cross" functionality will work better
   */
 object unifyDeps extends BuildRewrite {
-  override val name = "unify-deps"
+  override val name = model.BuildRewriteName("unify-deps")
 
   def findReplacements(allDeps: Iterable[model.Dep]): Map[model.Dep, model.Dep] = {
     val javaDeps = allDeps.collect { case x: model.Dep.JavaDependency => x }
