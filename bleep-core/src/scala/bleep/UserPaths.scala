@@ -6,7 +6,8 @@ import java.nio.file.Path
 
 case class UserPaths(cacheDir: Path, configDir: Path) {
   val bspSocketDir = cacheDir / "bsp-socket"
-  val resolveCachePath = cacheDir / "coursier"
+  val resolveCacheDir = cacheDir / "coursier"
+  val resolveJvmCacheDir = cacheDir / "coursier-jvms"
   val configYaml = configDir / "config.yaml"
 }
 

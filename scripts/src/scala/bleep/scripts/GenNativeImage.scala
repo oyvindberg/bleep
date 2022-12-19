@@ -1,8 +1,6 @@
 package bleep
 package scripts
 
-import bleep.internal.jvmOrSystem
-import bleep.logging.Logger
 import bleep.plugin.nativeimage.NativeImagePlugin
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
@@ -10,14 +8,11 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm213")))
     val project = started.bloopProjects(projectName)
     commands.compile(List(projectName))
-    val nativeImageJvm = jvmOrSystem(started.build, logger = Logger.DevNull) match {
-      case chosen if chosen.name.startsWith("graalvm-") => chosen
-      case _                                            => model.Jvm.graalvm
-    }
 
     val plugin = new NativeImagePlugin(
       project = project,
       logger = started.logger,
+      jvmCommand = started.jvmCommand,
       nativeImageOptions = List(
         "--no-fallback",
         "--enable-http",
@@ -28,7 +23,6 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         "--initialize-at-build-time=scala.Symbol$",
         "--native-image-info"
       ),
-      nativeImageJvm = nativeImageJvm,
       env = sys.env.toList ++ List(("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false"))
     ) {
       // allow user to pass in name of generated binary as parameter
