@@ -6,7 +6,7 @@ projects:
   bleep-cli:
     dependencies:
     - com.lihaoyi::pprint:0.8.1
-    - com.monovore::decline:2.4.0
+    - com.monovore::decline:2.4.1
     - org.gnieh::diffson-circe:4.3.0
     - org.graalvm.nativeimage:svm:22.3.0
     - org.scalameta:svm-subs:101.0.0
@@ -27,7 +27,7 @@ projects:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
       module: org.scala-sbt::librarymanagement-core:1.8.0
-    - org.virtuslab.scala-cli::bloop-rifle:0.1.17
+    - org.virtuslab.scala-cli::bloop-rifle:0.1.19
     dependsOn: bleep-model
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/src/main/scala
@@ -36,15 +36,15 @@ projects:
     - io.circe::circe-core:0.14.2
     - io.circe::circe-generic:0.14.2
     - io.circe::circe-parser:0.14.2
-    - io.circe::circe-yaml-v12:0.14.3-RC2
+    - io.circe::circe-yaml-v12:0.14.3-RC3
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-RC2
+      module: io.get-coursier::coursier-jvm:2.1.0-RC3-1
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-RC2
+      module: io.get-coursier::coursier:2.1.0-RC3-1
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
   bleep-plugin-ci-release:
