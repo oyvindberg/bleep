@@ -7,12 +7,15 @@ import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 import com.google.gson.{JsonObject, JsonPrimitive}
 
+import java.io.{PrintWriter, StringWriter}
 import java.util
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{CompletableFuture, TimeUnit}
+import java.util.function.BiFunction
 import scala.build.bloop.BuildServer
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters._
+import scala.util.Random
 
 class BleepBspServer(
     val logger: Logger,
@@ -21,6 +24,31 @@ class BleepBspServer(
     var ensureBloopUpToDate: () => Either[BleepException, Started]
 ) extends BuildServer {
   val supportedLanguages: util.List[String] = List("scala", "java").asJava
+
+  protected def onFatalError(throwable: Throwable, context: String): Nothing = {
+    val sw = new StringWriter()
+    throwable.printStackTrace(new PrintWriter(sw))
+    val message = s"Fatal error has occurred within $context. Shutting down the server:\n ${sw.toString}"
+    System.err.println(message)
+    sendToIdeClient.onBuildLogMessage(new bsp4j.LogMessageParams(bsp4j.MessageType.ERROR, message))
+
+    // wait random bit before shutting down server to reduce risk of multiple bleep instances starting bloop at the same time
+    val timeout = Random.nextInt(400)
+    TimeUnit.MILLISECONDS.sleep(100 + timeout)
+    sys.exit(1)
+  }
+
+  def fatalExceptionHandler[T](methodName: String, params: Any*): BiFunction[T, Throwable, T] =
+    (maybeValue: T, maybeException: Throwable) =>
+      maybeException match {
+        case null =>
+          maybeValue
+        case error =>
+          val methodContext = s"bloop bsp server, method: $methodName"
+          val context = if (params.isEmpty) methodContext else params.mkString(s"$methodContext, with params: ", ", ", "")
+          onFatalError(error, context)
+          throw error
+      }
 
   private def capabilities: bsp4j.BuildServerCapabilities = {
     val ret = new bsp4j.BuildServerCapabilities
@@ -40,7 +68,7 @@ class BleepBspServer(
   }
 
   override def buildInitialize(params: bsp4j.InitializeBuildParams): CompletableFuture[bsp4j.InitializeBuildResult] = {
-    logger.debug(("onBuildInitialized", params.toString))
+    logger.debug(("buildInitialize", params.toString))
 
     ensureBloopUpToDate() match {
       case Left(th) =>
@@ -76,10 +104,13 @@ class BleepBspServer(
         }
 
         logger.debug("Sending buildInitialize BSP command to Bloop")
-        bloopServer.buildInitialize(initParams).thenApply { _ =>
-          bloopServer.onBuildInitialized()
-          new bsp4j.InitializeBuildResult("bleep", model.BleepVersion.current.value, Constants.bspVersion, capabilities)
-        }
+        bloopServer
+          .buildInitialize(initParams)
+          .handle(fatalExceptionHandler("buildInitialize", initParams))
+          .thenApply { _ =>
+            bloopServer.onBuildInitialized()
+            new bsp4j.InitializeBuildResult("bleep", model.BleepVersion.current.value, Constants.bspVersion, capabilities)
+          }
     }
   }
 
@@ -90,7 +121,7 @@ class BleepBspServer(
       case Left(th) =>
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)
-      case Right(_) => bloopServer.workspaceBuildTargets()
+      case Right(_) => bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
     }
   }
 
@@ -102,76 +133,76 @@ class BleepBspServer(
   override def workspaceReload(): CompletableFuture[Object] = {
     logger.debug("workspaceReload")
     // Bloop does not support workspaceReload and Intellij calls it at the start
-    CompletableFuture.completedFuture(new Object)
+    CompletableFuture.completedFuture(new Object).handle(fatalExceptionHandler("workspaceReload"))
   }
 
   override def buildTargetCleanCache(params: bsp4j.CleanCacheParams): CompletableFuture[bsp4j.CleanCacheResult] = {
     logger.debug(("buildTargetCleanCache", params.toString))
-    bloopServer.buildTargetCleanCache(params)
+    bloopServer.buildTargetCleanCache(params).handle(fatalExceptionHandler("buildTargetCleanCache", params))
   }
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] = {
     logger.debug(("buildTargetCompile", params.toString))
-    bloopServer.buildTargetCompile(params)
+    bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
   }
   override def buildTargetDependencySources(params: bsp4j.DependencySourcesParams): CompletableFuture[bsp4j.DependencySourcesResult] = {
     logger.debug(("buildTargetDependencySources", params.toString))
-    bloopServer.buildTargetDependencySources(params)
+    bloopServer.buildTargetDependencySources(params).handle(fatalExceptionHandler("buildTargetDependencySources", params))
   }
   override def buildTargetInverseSources(params: bsp4j.InverseSourcesParams): CompletableFuture[bsp4j.InverseSourcesResult] = {
     logger.debug(("buildTargetInverseSources", params.toString))
-    bloopServer.buildTargetInverseSources(params)
+    bloopServer.buildTargetInverseSources(params).handle(fatalExceptionHandler("buildTargetInverseSources", params))
   }
   override def buildTargetResources(params: bsp4j.ResourcesParams): CompletableFuture[bsp4j.ResourcesResult] = {
     logger.debug(("buildTargetResources", params.toString))
-    bloopServer.buildTargetResources(params)
+    bloopServer.buildTargetResources(params).handle(fatalExceptionHandler("buildTargetResources", params))
   }
   override def buildTargetRun(params: bsp4j.RunParams): CompletableFuture[bsp4j.RunResult] = {
     logger.debug(("buildTargetRun", params.toString))
-    bloopServer.buildTargetRun(params)
+    bloopServer.buildTargetRun(params).handle(fatalExceptionHandler("buildTargetRun", params))
   }
   override def buildTargetSources(params: bsp4j.SourcesParams): CompletableFuture[bsp4j.SourcesResult] = {
     logger.debug(("buildTargetSources", params.toString))
-    bloopServer.buildTargetSources(params)
+    bloopServer.buildTargetSources(params).handle(fatalExceptionHandler("buildTargetSources", params))
   }
   override def buildTargetTest(params: bsp4j.TestParams): CompletableFuture[bsp4j.TestResult] = {
     logger.debug(("buildTargetTest", params.toString))
-    bloopServer.buildTargetTest(params)
+    bloopServer.buildTargetTest(params).handle(fatalExceptionHandler("buildTargetTest", params))
   }
   override def buildTargetDependencyModules(params: bsp4j.DependencyModulesParams): CompletableFuture[bsp4j.DependencyModulesResult] = {
     logger.debug(("buildTargetDependencyModules", params.toString))
-    bloopServer.buildTargetDependencyModules(params)
+    bloopServer.buildTargetDependencyModules(params).handle(fatalExceptionHandler("buildTargetDependencyModules", params))
   }
   override def buildTargetJavacOptions(params: bsp4j.JavacOptionsParams): CompletableFuture[bsp4j.JavacOptionsResult] = {
     logger.debug(("buildTargetJavacOptions", params.toString))
-    bloopServer.buildTargetJavacOptions(params)
+    bloopServer.buildTargetJavacOptions(params).handle(fatalExceptionHandler("buildTargetJavacOptions", params))
   }
   override def buildTargetScalaMainClasses(params: bsp4j.ScalaMainClassesParams): CompletableFuture[bsp4j.ScalaMainClassesResult] = {
     logger.debug(("buildTargetScalaMainClasses", params.toString))
-    bloopServer.buildTargetScalaMainClasses(params)
+    bloopServer.buildTargetScalaMainClasses(params).handle(fatalExceptionHandler("buildTargetScalaMainClasses", params))
   }
   override def buildTargetScalaTestClasses(params: bsp4j.ScalaTestClassesParams): CompletableFuture[bsp4j.ScalaTestClassesResult] = {
     logger.debug(("buildTargetScalaTestClasses", params.toString))
-    bloopServer.buildTargetScalaTestClasses(params)
+    bloopServer.buildTargetScalaTestClasses(params).handle(fatalExceptionHandler("buildTargetScalaTestClasses", params))
   }
   override def buildTargetScalacOptions(params: bsp4j.ScalacOptionsParams): CompletableFuture[bsp4j.ScalacOptionsResult] = {
     logger.debug(("buildTargetScalacOptions", params.toString))
-    bloopServer.buildTargetScalacOptions(params)
+    bloopServer.buildTargetScalacOptions(params).handle(fatalExceptionHandler("buildTargetScalacOptions", params))
   }
   override def debugSessionStart(params: bsp4j.DebugSessionParams): CompletableFuture[bsp4j.DebugSessionAddress] = {
     logger.debug(("debugSessionStart", params.toString))
-    bloopServer.debugSessionStart(params)
+    bloopServer.debugSessionStart(params).handle(fatalExceptionHandler("debugSessionStart", params))
   }
   override def buildTargetOutputPaths(params: bsp4j.OutputPathsParams): CompletableFuture[bsp4j.OutputPathsResult] = {
     logger.debug(("buildTargetOutputPaths", params.toString))
-    bloopServer.buildTargetOutputPaths(params)
+    bloopServer.buildTargetOutputPaths(params).handle(fatalExceptionHandler("buildTargetOutputPaths", params))
   }
   override def jvmRunEnvironment(params: bsp4j.JvmRunEnvironmentParams): CompletableFuture[bsp4j.JvmRunEnvironmentResult] = {
     logger.debug(("jvmRunEnvironment", params.toString))
-    bloopServer.jvmRunEnvironment(params)
+    bloopServer.jvmRunEnvironment(params).handle(fatalExceptionHandler("jvmRunEnvironment", params))
   }
   override def jvmTestEnvironment(params: bsp4j.JvmTestEnvironmentParams): CompletableFuture[bsp4j.JvmTestEnvironmentResult] = {
     logger.debug(("jvmTestEnvironment", params.toString))
-    bloopServer.jvmTestEnvironment(params)
+    bloopServer.jvmTestEnvironment(params).handle(fatalExceptionHandler("jvmTestEnvironment", params))
   }
 
   private val shutdownPromise = Promise[Unit]()
