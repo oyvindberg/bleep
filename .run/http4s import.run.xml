@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="http4s import" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="bleep.Main" />
-    <module name="bleep-cli" />
+    <module name="bleep-cli@jvm213" />
     <option name="PROGRAM_PARAMETERS" value="-d ../http4s import" />
     <method v="2">
       <option name="Make" enabled="true" />
