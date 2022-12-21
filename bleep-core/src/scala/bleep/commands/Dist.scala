@@ -14,10 +14,10 @@ object Dist {
   )
 }
 
-case class Dist(started: Started, options: Dist.Options) extends BleepCommandRemote(started) {
+case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends BleepCommandRemote(started, watch, Array(options.project)) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
     for {
-      _ <- Compile(started, Array(options.project)).runWithServer(bloop)
+      _ <- Compile(started, watch = false, Array(options.project)).runWithServer(bloop)
       mainClass <- options.overrideMain match {
         case Some(x) => Right(x)
         case None =>

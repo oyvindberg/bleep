@@ -10,7 +10,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.blooprifle.internal.Operations
 import scala.jdk.CollectionConverters._
 
-abstract class BleepCommandRemote(started: Started) extends BleepCommand {
+abstract class BleepCommandRemote(started: Started, watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommand {
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
     new bsp4j.BuildTargetIdentifier(buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
@@ -46,6 +46,7 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
         bleepRifleLogger,
         started.executionContext
       )
+
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
 
@@ -61,13 +62,27 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
     )
 
     try
-      runWithServer(server).flatMap { case () =>
-        buildClient.failed match {
-          case empty if empty.isEmpty => Right(())
-          case failed =>
-            Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toArray, BspCommandFailed.NoDetails))
+      if (watch) {
+        runWithServer(server)
+
+        FileWatching.projects(started, projects) { projects =>
+          val patchedCmd = this match {
+            case x: BleepCommandRemote.OnlyChanged => x.onlyChangedProjects(projects)
+            case other                             => other
+          }
+
+          patchedCmd.runWithServer(server)
         }
-      }
+        Right(())
+
+      } else
+        runWithServer(server).flatMap { case () =>
+          buildClient.failed match {
+            case empty if empty.isEmpty => Right(())
+            case failed =>
+              Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toArray, BspCommandFailed.NoDetails))
+          }
+        }
     finally
       bleepConfig.compileServerMode match {
         case model.CompileServerMode.NewEachInvocation =>
@@ -97,6 +112,11 @@ abstract class BleepCommandRemote(started: Started) extends BleepCommand {
 }
 
 object BleepCommandRemote {
+  trait OnlyChanged {
+    self: BleepCommandRemote =>
+    def onlyChangedProjects(isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
+  }
+
   case class AmbiguousMain(mainClasses: Seq[String])
       extends BleepException(
         s"Discovered more than one main class, so you need to specify which one you want with `--class ...`. ${mainClasses.map(fansi.Color.Magenta(_)).mkString("\n", "\n, ", "\n")}"

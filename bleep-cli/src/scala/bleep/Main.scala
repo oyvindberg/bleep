@@ -89,6 +89,8 @@ object Main {
       )
       .orNone
 
+    val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
+
     lazy val ret: Opts[BleepCommand] = {
       val allCommands = List(
         List[Opts[BleepCommand]](
@@ -146,18 +148,21 @@ object Main {
             ).foldK
           ),
           Opts.subcommand("compile", "compile projects")(
-            projectNames.map(projectNames => commands.Compile(started, projectNames))
+            (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(started, watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
-            testProjectNames.map(projectNames => commands.Test(started, projectNames))
+            (watch, testProjectNames).mapN { case (watch, projectNames) =>
+              commands.Test(started, watch, projectNames)
+            }
           ),
           Opts.subcommand("run", "run project")(
             (
               projectName,
               mainClass,
-              Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty)
-            ).mapN { case (projectName, mainClass, arguments) =>
-              commands.Run(started, projectName, mainClass, arguments, raw = true)
+              Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty),
+              watch
+            ).mapN { case (projectName, mainClass, arguments, watch) =>
+              commands.Run(started, projectName, mainClass, arguments, raw = true, watch = watch)
             }
           ),
           setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap), started.executionContext),
@@ -178,8 +183,9 @@ object Main {
               Opts.option[String]("groupId", "organization you will publish under"),
               Opts.option[String]("version", "version you will publish"),
               Opts.option[Path]("to", s"publish to a maven repository at given path").orNone,
-              projectNames
-            ).mapN { case (groupId, version, to, projects) =>
+              projectNames,
+              watch
+            ).mapN { case (groupId, version, to, projects, watch) =>
               val publishTarget = to match {
                 case Some(path) => commands.PublishLocal.CustomMaven(model.Repository.MavenFolder(name = None, path))
                 case None       => commands.PublishLocal.LocalIvy
@@ -188,23 +194,24 @@ object Main {
                 groupId = groupId,
                 version = version,
                 publishTarget = publishTarget,
-                projects.toList
+                projects
               )
-              commands.PublishLocal(started, options)
+              commands.PublishLocal(started, watch, options)
             }
           },
           Opts.subcommand("dist", "creates a folder with a runnable distribution") {
             (
               projectName,
               mainClass,
-              Opts.argument[Path]("path").orNone
-            ).mapN { case (projectName, mainClass, overridePath) =>
+              Opts.argument[Path]("path").orNone,
+              watch
+            ).mapN { case (projectName, mainClass, overridePath, watch) =>
               val options = commands.Dist.Options(
                 projectName,
                 overrideMain = mainClass,
                 overridePath = overridePath
               )
-              commands.Dist(started, options)
+              commands.Dist(started, watch, options)
             }
           },
           Opts.subcommand("fmt", "runs scalafmt") {
@@ -215,7 +222,7 @@ object Main {
         ),
         started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
-            stringArgs.map(args => commands.Script(started, scriptName, args))
+            (watch, stringArgs).mapN { case (watch, args) => commands.Script(started, scriptName, args, watch) }
           )
         }
       )

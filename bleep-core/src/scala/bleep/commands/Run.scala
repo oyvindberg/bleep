@@ -10,6 +10,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.io.File
 import java.util.concurrent.ExecutionException
+import scala.annotation.tailrec
 import scala.build.bloop.BloopServer
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -22,8 +23,9 @@ case class Run(
     project: model.CrossProjectName,
     maybeOverriddenMain: Option[String],
     args: List[String],
-    raw: Boolean
-) extends BleepCommandRemote(started) {
+    raw: Boolean,
+    watch: Boolean
+) extends BleepCommandRemote(started, watch, projects = Array(project)) {
   override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverriddenMain.orElse(started.build.explodedProjects(project).platform.flatMap(_.mainClass))
@@ -48,7 +50,7 @@ case class Run(
   }
 
   def rawRun(bloop: BloopServer, main: String): Either[BleepException, Unit] =
-    Compile(started, Array(project)).runWithServer(bloop).map { case () =>
+    Compile(started, watch = false, Array(project)).runWithServer(bloop).map { case () =>
       val bloopProject = started.bloopProjects(project)
       val cp = fixedClasspath(bloopProject)
       cli(
@@ -86,6 +88,7 @@ case class Run(
       case Success(bsp4j.StatusCode.OK) => Right(started.logger.info("Run succeeded"))
       case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
       case Failure(exception) =>
+        @tailrec
         def findResponseError(th: Throwable): Option[ResponseError] =
           th match {
             case x: ExecutionException =>
