@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     timeout-minutes: 15
+    # need to be newer than `ubuntu-20.04` because of scalafmt native binary
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
@@ -46,7 +47,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-20.04
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
           - os: macos-latest
@@ -74,10 +75,11 @@ jobs:
 
       - name: Build native image (non-windows)
         # stop compile server after build since the new version may use a newer version of bloop
+        # migration: the cs launch things are to launch bleep on the JVM in order to produce a release with lower version of glibc
         run: |
-          bleep generate-resources
-          bleep native-image ${{ matrix.file_name }}
-          bleep compile-server stop-all
+          cs launch build.bleep::bleep-cli:0.0.1-M22 -M bleep.Main -- --dev generate-resources
+          cs launch build.bleep::bleep-cli:0.0.1-M22 -M bleep.Main -- --dev native-image ${{ matrix.file_name }}
+          cs launch build.bleep::bleep-cli:0.0.1-M22 -M bleep.Main -- --dev compile-server stop-all
 
         if: runner.os != 'Windows'
 
@@ -143,7 +145,7 @@ jobs:
 
   release:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     needs: [ build, build-native-image ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
@@ -164,7 +166,7 @@ jobs:
         run: find artifacts
       - name: Release
         run: |
-          chmod +x ./artifacts/bleep-x86_64-pc-linux/bleep 
+          chmod +x ./artifacts/bleep-x86_64-pc-linux/bleep
           ./artifacts/bleep-x86_64-pc-linux/bleep --dev generate-resources
           ./artifacts/bleep-x86_64-pc-linux/bleep --dev publish
         env:
