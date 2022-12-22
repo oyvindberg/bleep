@@ -20,6 +20,9 @@ object FileWatching {
     case object Never extends StopWhen {
       override def shouldContinue(): Boolean = true
     }
+    case object Immediately extends StopWhen {
+      override def shouldContinue(): Boolean = false
+    }
   }
 
   def apply[K](logger: Logger, mapping: Map[Path, Seq[K]])(onChange: Set[K] => Unit): TypedWatcher[K] = {

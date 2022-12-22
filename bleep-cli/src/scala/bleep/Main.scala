@@ -385,6 +385,11 @@ object Main {
 
         completions.value.foreach(c => println(c.value))
 
+      case "selftest" :: Nil =>
+        // checks that JNI libraries are successfully loaded
+        FileWatching(Logger.DevNull, Map(Os.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        println("OK")
+
       case "bsp" :: args =>
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
