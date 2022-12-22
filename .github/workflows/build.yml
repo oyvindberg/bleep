@@ -65,6 +65,7 @@ jobs:
       - uses: coursier/setup-action@v1.2.0-M3
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          jvm: graalvm-java17:22.3.0
       - uses: coursier/cache-action@v6
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
