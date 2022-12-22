@@ -12,6 +12,13 @@ object Scalafmt {
       |maxColumn = 160
       |runner.dialect = scala213
       |""".stripMargin
+
+  def getVersion(configStr: String): Option[String] =
+    configStr
+      .lines()
+      .map(_.split("=").map(_.trim))
+      .toScala(List)
+      .collectFirst { case Array("version", version) => version.stripPrefix("\"").stripSuffix("\"") }
 }
 class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
@@ -26,13 +33,9 @@ class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
         Scalafmt.defaultConfig
       }
 
-    val version =
-      configStr
-        .lines()
-        .map(_.trim.split("="))
-        .toScala(List)
-        .collectFirst { case Array("version", version) => version }
-        .getOrElse(throw new BleepException.Text(s"Couldn't naively extract scalafmt version from $configPath"))
+    val version = Scalafmt
+      .getVersion(configStr)
+      .getOrElse(throw new BleepException.Text(s"Couldn't naively extract scalafmt version from $configPath"))
 
     val scalafmt = FetchScalafmt(new BleepCacheLogger(started.logger), started.executionContext, version)
 
