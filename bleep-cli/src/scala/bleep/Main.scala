@@ -321,7 +321,7 @@ object Main {
             FetchBleepRelease(wantedVersion, cacheLogger, ExecutionContext.global) match {
               case Left(buildException) =>
                 fatal("", logger, buildException)
-              case Right(binaryPath) if JvmIndex.currentOs.contains("windows") =>
+              case Right(binaryPath) if JvmIndex.currentOs.contains("windows") || !isGraalvmNativeImage =>
                 val status = scala.sys.process.Process(binaryPath.toString :: args.toList, Os.cwd.toFile, sys.env.toSeq: _*).!<
                 sys.exit(status)
               case Right(path) =>
