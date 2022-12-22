@@ -26,16 +26,16 @@ object PublishLocal {
   case class Options(groupId: String, version: String, publishTarget: PublishLocal.PublishTarget, projects: Array[model.CrossProjectName])
 }
 
-case class PublishLocal(started: Started, watch: Boolean, options: PublishLocal.Options)
-    extends BleepCommandRemote(started, watch, options.projects)
-    with BleepCommandRemote.OnlyChanged {
-  override def onlyChangedProjects(isChanged: model.CrossProjectName => Boolean): PublishLocal = {
+case class PublishLocal(watch: Boolean, options: PublishLocal.Options) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = options.projects
+
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): PublishLocal = {
     val ps = options.projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
     copy(options = options.copy(projects = ps))
   }
 
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
-    Compile(started, watch = false, options.projects).runWithServer(bloop).map { case () =>
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
+    Compile(watch = false, options.projects).runWithServer(started, bloop).map { case () =>
       val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
         packageLibraries(
           started,

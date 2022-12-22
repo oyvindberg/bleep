@@ -12,7 +12,7 @@ case class Import(
     logger: Logger,
     options: sbtimport.ImportOptions,
     bleepVersion: model.BleepVersion
-) extends BleepCommand {
+) extends BleepNoBuildCommand {
   override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
       sbtimport.runSbt(logger, sbtBuildDir, destinationPaths)

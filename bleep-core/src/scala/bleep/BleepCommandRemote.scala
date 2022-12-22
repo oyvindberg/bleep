@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.{jvmOrSystem, BspClientDisplayProgress}
+import bleep.internal.{fatal, jvmOrSystem, BspClientDisplayProgress}
 import ch.epfl.scala.bsp4j
 
 import java.util
@@ -10,11 +10,13 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.blooprifle.internal.Operations
 import scala.jdk.CollectionConverters._
 
-abstract class BleepCommandRemote(started: Started, watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommand {
+abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
+  def chosenProjects(started: Started): Array[model.CrossProjectName]
+
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
     new bsp4j.BuildTargetIdentifier(buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
 
-  def projectFromBuildTarget(name: bsp4j.BuildTargetIdentifier): model.CrossProjectName = {
+  def projectFromBuildTarget(started: Started)(name: bsp4j.BuildTargetIdentifier): model.CrossProjectName = {
     val id = name.getUri.split("=").last
     started.build.explodedProjects.keys.find(_.value == id).getOrElse(sys.error(s"Couldn't find project for $name"))
   }
@@ -22,9 +24,9 @@ abstract class BleepCommandRemote(started: Started, watch: Boolean, projects: Ar
   def buildTargets(buildPaths: BuildPaths, projects: Array[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
     util.List.of(projects.map(p => buildTarget(buildPaths, p)): _*)
 
-  def runWithServer(bloop: BloopServer): Either[BleepException, Unit]
+  def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit]
 
-  override final def run(): Either[BleepException, Unit] = {
+  override final def run(started: Started): Either[BleepException, Unit] = {
     val bleepConfig = started.lazyConfig.forceGet
 
     bleepConfig.compileServerMode match {
@@ -63,24 +65,44 @@ abstract class BleepCommandRemote(started: Started, watch: Boolean, projects: Ar
 
     try
       if (watch) {
-        runWithServer(server)
+        // run once initially
+        runWithServer(started, server)
 
-        FileWatching.projects(started, projects) { projects =>
+        var currentStarted = started
+
+        val codeWatcher = BleepFileWatching.projects(currentStarted, chosenProjects(currentStarted)) { changedProjects =>
           val patchedCmd = this match {
-            case x: BleepCommandRemote.OnlyChanged => x.onlyChangedProjects(projects)
+            case x: BleepCommandRemote.OnlyChanged => x.onlyChangedProjects(currentStarted, changedProjects)
             case other                             => other
           }
 
-          patchedCmd.runWithServer(server)
+          patchedCmd.runWithServer(currentStarted, server)
+          ()
         }
+
+        val buildWatcher = BleepFileWatching.build(started.logger, started.prebootstrapped.existingBuild) { case () =>
+          started.reloaded match {
+            case Left(bleepException) =>
+              fatal.log("build changed, but it didn't work :(", started.logger, bleepException)
+              codeWatcher.updateMapping(Map.empty)
+            case Right(newStarted) =>
+              currentStarted = newStarted
+              codeWatcher.updateMapping(BleepFileWatching.projectPathsMapping(currentStarted, chosenProjects(currentStarted)))
+          }
+        }
+
+        started.logger.info("Running in watch mode")
+
+        codeWatcher.combine(buildWatcher).run(FileWatching.StopWhen.OnStdInput)
+
         Right(())
 
       } else
-        runWithServer(server).flatMap { case () =>
+        runWithServer(started, server).flatMap { case () =>
           buildClient.failed match {
             case empty if empty.isEmpty => Right(())
             case failed =>
-              Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget).toArray, BspCommandFailed.NoDetails))
+              Left(new BspCommandFailed("Failed", failed.map(projectFromBuildTarget(started)).toArray, BspCommandFailed.NoDetails))
           }
         }
     finally
@@ -94,7 +116,7 @@ abstract class BleepCommandRemote(started: Started, watch: Boolean, projects: Ar
       }
   }
 
-  def discoverMain(bloop: BloopServer, project: model.CrossProjectName): Either[BleepException, String] = {
+  def discoverMain(started: Started, bloop: BloopServer, project: model.CrossProjectName): Either[BleepException, String] = {
     val req = new bsp4j.ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](buildTarget(started.buildPaths, project)))
     started.logger.debug(req.toString)
 
@@ -114,7 +136,7 @@ abstract class BleepCommandRemote(started: Started, watch: Boolean, projects: Ar
 object BleepCommandRemote {
   trait OnlyChanged {
     self: BleepCommandRemote =>
-    def onlyChangedProjects(isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
+    def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
   }
 
   case class AmbiguousMain(mainClasses: Seq[String])

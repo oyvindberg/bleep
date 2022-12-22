@@ -6,6 +6,11 @@ import bleep.logging.Logger
 
 object fatal {
   def apply(context: String, logger: Logger, throwable: Throwable): Nothing = {
+    log(context, logger, throwable)
+    sys.exit(1)
+  }
+
+  def log(context: String, logger: Logger, throwable: Throwable): Unit =
     throwable match {
       case buildException: BleepException =>
         logger.debug(context, buildException)
@@ -13,7 +18,4 @@ object fatal {
       case unexpected =>
         logger.error(context, unexpected)
     }
-    sys.exit(1)
-  }
-
 }

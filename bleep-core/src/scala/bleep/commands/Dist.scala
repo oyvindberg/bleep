@@ -14,16 +14,18 @@ object Dist {
   )
 }
 
-case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends BleepCommandRemote(started, watch, Array(options.project)) {
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
+case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends BleepCommandRemote(watch) {
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = Array(options.project)
+
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
     for {
-      _ <- Compile(started, watch = false, Array(options.project)).runWithServer(bloop)
+      _ <- Compile(watch = false, Array(options.project)).runWithServer(started, bloop)
       mainClass <- options.overrideMain match {
         case Some(x) => Right(x)
         case None =>
           started.build.explodedProjects(options.project).platform.flatMap(_.mainClass) match {
             case Some(x) => Right(x)
-            case None    => discoverMain(bloop, options.project)
+            case None    => discoverMain(started, bloop, options.project)
           }
       }
     } yield {

@@ -49,7 +49,7 @@ object Main {
       Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse
     ).mapN(CommonOpts.apply)
 
-  def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting, userPaths: UserPaths): Opts[BleepCommand] =
+  def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting, userPaths: UserPaths): Opts[BleepNoBuildCommand] =
     commonOpts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, buildPaths.cwd)),
       importCmd(buildLoader, buildPaths, logger),
@@ -60,7 +60,7 @@ object Main {
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
     Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
 
-  def hasBuildOpts(started: Started): Opts[BleepCommand] = {
+  def hasBuildOpts(started: Started): Opts[BleepBuildCommand] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
         .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
@@ -91,43 +91,42 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
-    lazy val ret: Opts[BleepCommand] = {
+    lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
-        List[Opts[BleepCommand]](
+        List[Opts[BleepBuildCommand]](
           Opts.subcommand("build", "rewrite build")(
             List(
-              newCommand(started.logger, started.buildPaths.cwd),
               Opts.subcommand("create-directories", "create all source and resource folders for project(s)")(
-                projectNames.map(names => commands.BuildCreateDirectories(started, names))
+                projectNames.map(names => commands.BuildCreateDirectories(names))
               ),
               Opts.subcommand("normalize", "normalize build (deduplicate, sort, etc)")(
-                Opts(commands.BuildNormalize(started))
+                Opts(commands.BuildNormalize)
               ),
               Opts.subcommand("templates-reapply", "apply existing templates again")(
-                Opts(commands.BuildReapplyTemplates(started))
+                Opts(commands.BuildReapplyTemplates)
               ),
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
-                Opts(commands.BuildReinferTemplates(started, Set.empty))
+                Opts(commands.BuildReinferTemplates(Set.empty))
               ),
               Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
-                Opts(commands.BuildUpdateDeps(started))
+                Opts(commands.BuildUpdateDeps)
               ),
               Opts.subcommand(
                 "move-files-into-bleep-layout",
                 "move source files around from sbt file layout to bleep layout. Your build will no longer have any `sbt-scope` or `folder` set."
               )(
-                Opts(commands.BuildMoveFilesIntoBleepLayout(started))
+                Opts(commands.BuildMoveFilesIntoBleepLayout)
               ),
               Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
                 List(
                   Opts.subcommand("exploded", "show projects after applying templates")(
                     (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
-                      commands.BuildDiff(started, opts, names)
+                      commands.BuildDiff(opts, names)
                     }
                   ),
                   Opts.subcommand("bloop", "show projects as seen by bloop")(
                     (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
-                      commands.BuildDiffBloop(started, opts, names)
+                      commands.BuildDiffBloop(opts, names)
                     }
                   )
                 ).foldK
@@ -135,24 +134,24 @@ object Main {
               Opts.subcommand("show", "show projects in their different versions.")(
                 List(
                   Opts.subcommand("short", "the projects as you wrote it in YAML")(
-                    projectNamesNoCross.map(names => commands.BuildShow.Short(started, names))
+                    projectNamesNoCross.map(commands.BuildShow.Short.apply)
                   ),
                   Opts.subcommand("exploded", "the cross projects as you wrote it in YAML after templates have been applied")(
-                    projectNames.map(names => commands.BuildShow.Exploded(started, names))
+                    projectNames.map(commands.BuildShow.Exploded.apply)
                   ),
                   Opts.subcommand("bloop", "the cross projects as they appear to bloop, that is with all absolute paths and so on")(
-                    projectNames.map(names => commands.BuildShow.Bloop(started, names))
+                    projectNames.map(commands.BuildShow.Bloop.apply)
                   )
                 ).foldK
               )
             ).foldK
           ),
           Opts.subcommand("compile", "compile projects")(
-            (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(started, watch, projectNames) }
+            (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
             (watch, testProjectNames).mapN { case (watch, projectNames) =>
-              commands.Test(started, watch, projectNames)
+              commands.Test(watch, projectNames)
             }
           ),
           Opts.subcommand("run", "run project")(
@@ -162,20 +161,19 @@ object Main {
               Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty),
               watch
             ).mapN { case (projectName, mainClass, arguments, watch) =>
-              commands.Run(started, projectName, mainClass, arguments, raw = true, watch = watch)
+              commands.Run(projectName, mainClass, arguments, raw = true, watch = watch)
             }
           ),
           setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap), started.executionContext),
           Opts.subcommand("clean", "clean")(
-            projectNames.map(projectNames => commands.Clean(started, projectNames))
+            projectNames.map(projectNames => commands.Clean(projectNames))
           ),
           Opts.subcommand("projects", "show projects under current directory")(
-            projectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
+            projectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
-            testProjectNames.map(projectNames => () => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
+            testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
-          importCmd(started.prebootstrapped.existingBuild, started.buildPaths, started.logger),
           compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths),
           installTabCompletions(started.prebootstrapped.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
@@ -196,7 +194,7 @@ object Main {
                 publishTarget = publishTarget,
                 projects
               )
-              commands.PublishLocal(started, watch, options)
+              commands.PublishLocal(watch, options)
             }
           },
           Opts.subcommand("dist", "creates a folder with a runnable distribution") {
@@ -215,14 +213,12 @@ object Main {
             }
           },
           Opts.subcommand("fmt", "runs scalafmt") {
-            Opts.flag("check", "ensure that all files are already formatted").orFalse.map { check =>
-              new commands.Scalafmt(started, check)
-            }
+            Opts.flag("check", "ensure that all files are already formatted").orFalse.map(commands.Scalafmt.apply)
           }
         ),
         started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
-            (watch, stringArgs).mapN { case (watch, args) => commands.Script(started, scriptName, args, watch) }
+            (watch, stringArgs).mapN { case (watch, args) => commands.Script(scriptName, args, watch) }
           )
         }
       )
@@ -256,7 +252,7 @@ object Main {
       ).foldK
     )
 
-  def importCmd(buildLoader: BuildLoader, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
+  def importCmd(buildLoader: BuildLoader, buildPaths: BuildPaths, logger: Logger): Opts[BleepNoBuildCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
       sbtimport.ImportOptions.opts.map { opts =>
         val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
@@ -287,7 +283,7 @@ object Main {
     )
   }
 
-  def newCommand(logger: Logger, cwd: Path): Opts[BleepCommand] =
+  def newCommand(logger: Logger, cwd: Path): Opts[BleepNoBuildCommand] =
     Opts.subcommand("new", "create new build in current directory")(
       (
         Opts
@@ -370,7 +366,7 @@ object Main {
 
             val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default) match {
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default, ExecutionContext.global) match {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
@@ -450,16 +446,28 @@ object Main {
             stdoutAndFileLogging(buildPaths).use { logger =>
               val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
               val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default) match {
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default, ExecutionContext.global) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)
-                case Right(started) => run(logger, hasBuildOpts(started), restArgs)
+                case Right(started) => run(logger, hasBuildOpts(started), started, restArgs)
               }
             }
         }
     }
   }
 
-  def run(logger: Logger, opts: Opts[BleepCommand], restArgs: List[String]): Unit =
+  def run(logger: Logger, opts: Opts[BleepBuildCommand], started: Started, restArgs: List[String]): Unit =
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
+      case Left(help) =>
+        System.err.println(help)
+        System.exit(1)
+      case Right(cmd) =>
+        Try(cmd.run(started)) match {
+          case Failure(th)       => fatal("command failed", logger, th)
+          case Success(Left(th)) => fatal("command failed", logger, th)
+          case Success(Right(_)) => ()
+        }
+    }
+  def run(logger: Logger, opts: Opts[BleepNoBuildCommand], restArgs: List[String]): Unit =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)

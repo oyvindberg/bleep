@@ -19,14 +19,15 @@ import scala.util.{Failure, Success, Try}
   *   use raw stdin and stdout and avoid the logger
   */
 case class Run(
-    started: Started,
     project: model.CrossProjectName,
     maybeOverriddenMain: Option[String],
     args: List[String],
     raw: Boolean,
     watch: Boolean
-) extends BleepCommandRemote(started, watch, projects = Array(project)) {
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
+) extends BleepCommandRemote(watch) {
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = Array(project)
+
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverriddenMain.orElse(started.build.explodedProjects(project).platform.flatMap(_.mainClass))
 
@@ -35,22 +36,22 @@ case class Run(
         case Some(mainClass) => Right(mainClass)
         case None =>
           started.logger.info("No main class specified in build or command line. discovering...")
-          discoverMain(bloop, project)
+          discoverMain(started, bloop, project)
       }
 
     maybeMain.flatMap { main =>
       // we could definitely run js/native projects in "raw" mode as well, it just needs to be implemented
       started.build.explodedProjects(project).platform.flatMap(_.name) match {
         case Some(model.PlatformId.Jvm) | None if raw =>
-          rawRun(bloop, main)
+          rawRun(started, bloop, main)
         case _ =>
-          bspRun(bloop, main)
+          bspRun(started, bloop, main)
       }
     }
   }
 
-  def rawRun(bloop: BloopServer, main: String): Either[BleepException, Unit] =
-    Compile(started, watch = false, Array(project)).runWithServer(bloop).map { case () =>
+  def rawRun(started: Started, bloop: BloopServer, main: String): Either[BleepException, Unit] =
+    Compile(watch = false, Array(project)).runWithServer(started, bloop).map { case () =>
       val bloopProject = started.bloopProjects(project)
       val cp = fixedClasspath(bloopProject)
       cli(
@@ -70,9 +71,10 @@ case class Run(
         in = cli.In.Attach,
         env = sys.env.toList
       )
+      ()
     }
 
-  def bspRun(bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
+  def bspRun(started: Started, bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
     val params = new bsp4j.RunParams(buildTarget(started.buildPaths, project))
     val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
     val envs = sys.env.updated(jsonEvents.CallerProcessAcceptsJsonEvents, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava

@@ -28,7 +28,14 @@ object bootstrap {
     val maybeStarted = for {
       existingBuild <- buildLoader.existing
       pre = Prebootstrapped(buildPaths, logger, existingBuild)
-      started <- from(pre, GenBloopFiles.SyncToDisk, rewrites, BleepConfigOps.lazyForceLoad(pre.userPaths), CoursierResolver.Factory.default)
+      started <- from(
+        pre,
+        GenBloopFiles.SyncToDisk,
+        rewrites,
+        BleepConfigOps.lazyForceLoad(pre.userPaths),
+        CoursierResolver.Factory.default,
+        ExecutionContext.global
+      )
     } yield started
 
     maybeStarted match {
@@ -47,7 +54,8 @@ object bootstrap {
       genBloopFiles: GenBloopFiles,
       rewrites: List[BuildRewrite],
       lazyConfig: Lazy[model.BleepConfig],
-      resolver: CoursierResolver.Factory
+      resolver: CoursierResolver.Factory,
+      executionContext: ExecutionContext
   ): Either[BleepException, Started] = {
     val t0 = System.currentTimeMillis()
 
@@ -74,8 +82,7 @@ object bootstrap {
             Some(chosen).filter(_.nonEmpty)
           }
 
-        val ec = ExecutionContext.global
-        val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), ec)
+        val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), executionContext)
         val bloopFiles: GenBloopFiles.Files =
           genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, build, fetchNode)
 
@@ -90,7 +97,7 @@ object bootstrap {
           activeProjectsFromPath = activeProjects,
           lazyConfig = lazyConfig,
           resolver = lazyResolver,
-          executionContext = ec
+          executionContext = executionContext
         )
       }
     catch {

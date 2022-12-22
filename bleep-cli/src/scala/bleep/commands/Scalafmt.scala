@@ -20,8 +20,8 @@ object Scalafmt {
       .toScala(List)
       .collectFirst { case Array("version", version) => version.stripPrefix("\"").stripSuffix("\"") }
 }
-class Scalafmt(started: Started, check: Boolean) extends BleepCommand {
-  override def run(): Either[BleepException, Unit] = {
+case class Scalafmt(check: Boolean) extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] = {
     val configPath = started.buildPaths.buildDir / ".scalafmt.conf"
 
     val configStr: String =

@@ -3,14 +3,14 @@ package bleep
 import bleep.commands.PublishLocal
 
 class Commands(started: Started) {
-  private def force(cmd: BleepCommand): Unit =
-    cmd.run().orThrow
+  private def force(cmd: BleepBuildCommand): Unit =
+    cmd.run(started).orThrow
 
   def clean(projects: List[model.CrossProjectName]): Unit =
-    force(commands.Clean(started, projects.toArray))
+    force(commands.Clean(projects.toArray))
 
   def compile(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(commands.Compile(started, watch, projects.toArray))
+    force(commands.Compile(watch, projects.toArray))
 
   def run(
       project: model.CrossProjectName,
@@ -19,14 +19,14 @@ class Commands(started: Started) {
       raw: Boolean = false,
       watch: Boolean = false
   ): Unit =
-    force(commands.Run(started, project, maybeOverriddenMain, args, raw, watch))
+    force(commands.Run(project, maybeOverriddenMain, args, raw, watch))
 
   def test(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(commands.Test(started, watch, projects.toArray))
+    force(commands.Test(watch, projects.toArray))
 
   def script(name: model.ScriptName, args: List[String], watch: Boolean = false): Unit =
-    force(commands.Script(started, name, args, watch))
+    force(commands.Script(name, args, watch))
 
   def publishLocal(options: PublishLocal.Options, watch: Boolean = false): Unit =
-    force(commands.PublishLocal(started, watch, options))
+    force(commands.PublishLocal(watch, options))
 }

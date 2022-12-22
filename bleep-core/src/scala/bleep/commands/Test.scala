@@ -7,16 +7,16 @@ import ch.epfl.scala.bsp4j
 
 import scala.build.bloop.BloopServer
 
-case class Test(started: Started, watch: Boolean, projects: Array[model.CrossProjectName])
-    extends BleepCommandRemote(started, watch, projects)
-    with BleepCommandRemote.OnlyChanged {
+case class Test(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
 
-  override def onlyChangedProjects(isChanged: model.CrossProjectName => Boolean): BleepCommandRemote = {
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = projects
+
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote = {
     val ps = projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
     copy(projects = ps)
   }
 
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
     val targets = buildTargets(started.buildPaths, projects)
     val result = bloop.server.buildTargetTest(new bsp4j.TestParams(targets)).get()
 

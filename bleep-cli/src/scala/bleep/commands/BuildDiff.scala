@@ -7,8 +7,8 @@ import com.monovore.decline.Opts
 import scala.collection.immutable.SortedSet
 import scala.util.control.NonFatal
 
-case class BuildDiff(started: Started, opts: BuildDiff.Options, projects: Array[model.CrossProjectName]) extends BleepCommand {
-  override def run(): Either[BleepException, Unit] = {
+case class BuildDiff(opts: BuildDiff.Options, projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] = {
     val revision = opts.revision.getOrElse("HEAD")
 
     val oldBuildStr: Lazy[Either[BleepException, String]] = Lazy {
