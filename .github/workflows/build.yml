@@ -106,6 +106,7 @@ jobs:
         uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           version: '22.3.0'
           java-version: '17'
           components: 'native-image'
@@ -126,6 +127,7 @@ jobs:
       - name: Temporarily save package
         uses: actions/upload-artifact@v2
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.file_name }}
           retention-days: 1
