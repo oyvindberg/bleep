@@ -106,7 +106,7 @@ jobs:
         uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           version: '22.3.0'
           java-version: '17'
           components: 'native-image'
