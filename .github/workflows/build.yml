@@ -15,10 +15,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: coursier/setup-action@v1.2.0-M3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: coursier/cache-action@v6
         with:
           extraFiles: bleep.yaml
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install bleep stable
         run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep --verbose
@@ -55,10 +59,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: coursier/setup-action@v1.2.0-M3
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: coursier/cache-action@v6
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           extraFiles: bleep.yaml
 
       - name: Install bleep stable
@@ -131,11 +139,15 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: recursive
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - id: get_version
         uses: battila7/get-version-action@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts
         uses: actions/download-artifact@v3
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           path: artifacts
       - name: Display structure of downloaded files
         run: find artifacts
@@ -156,6 +168,7 @@ jobs:
       - name: Upload-to-release
         uses: softprops/action-gh-release@v1
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
           name: "${{ steps.get_version.outputs.version-without-v }}"
           prerelease: true
           generate_release_notes: true
