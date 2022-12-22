@@ -9,6 +9,7 @@ import org.scalatest.Assertion
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
+import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class IntegrationSnapshotTests extends SnapshotTest {
@@ -123,7 +124,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
           GenBloopFiles.InMemory,
           rewrites = Nil,
           Lazy(model.BleepConfig.default),
-          testResolver
+          testResolver,
+          ExecutionContext.global
         )
         .orThrow
 

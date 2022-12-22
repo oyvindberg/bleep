@@ -3,24 +3,30 @@ package bleep
 import bleep.commands.PublishLocal
 
 class Commands(started: Started) {
-  private def force(cmd: BleepCommand): Unit =
-    cmd.run().orThrow
+  private def force(cmd: BleepBuildCommand): Unit =
+    cmd.run(started).orThrow
 
   def clean(projects: List[model.CrossProjectName]): Unit =
-    force(commands.Clean(started, projects.toArray))
+    force(commands.Clean(projects.toArray))
 
-  def compile(projects: List[model.CrossProjectName]): Unit =
-    force(commands.Compile(started, projects.toArray))
+  def compile(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
+    force(commands.Compile(watch, projects.toArray))
 
-  def run(project: model.CrossProjectName, maybeOverriddenMain: Option[String] = None, args: List[String] = Nil, raw: Boolean = false): Unit =
-    force(commands.Run(started, project, maybeOverriddenMain, args, raw))
+  def run(
+      project: model.CrossProjectName,
+      maybeOverriddenMain: Option[String] = None,
+      args: List[String] = Nil,
+      raw: Boolean = false,
+      watch: Boolean = false
+  ): Unit =
+    force(commands.Run(project, maybeOverriddenMain, args, raw, watch))
 
-  def test(projects: List[model.CrossProjectName]): Unit =
-    force(commands.Test(started, projects.toArray))
+  def test(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
+    force(commands.Test(watch, projects.toArray))
 
-  def script(name: model.ScriptName, args: List[String]): Unit =
-    force(commands.Script(started, name, args))
+  def script(name: model.ScriptName, args: List[String], watch: Boolean = false): Unit =
+    force(commands.Script(name, args, watch))
 
-  def publishLocal(options: PublishLocal.Options): Unit =
-    force(commands.PublishLocal(started, options))
+  def publishLocal(options: PublishLocal.Options, watch: Boolean = false): Unit =
+    force(commands.PublishLocal(watch, options))
 }

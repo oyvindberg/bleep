@@ -6,6 +6,7 @@ import bleep.testing.SnapshotTest
 import cats.data.NonEmptyList
 
 import java.nio.file.Path
+import scala.concurrent.ExecutionContext
 
 class CreateNewSnapshotTests extends SnapshotTest {
   test("create-new-build") {
@@ -37,7 +38,8 @@ class CreateNewSnapshotTests extends SnapshotTest {
           GenBloopFiles.InMemory,
           Nil,
           Lazy(model.BleepConfig.default),
-          testResolver
+          testResolver,
+          ExecutionContext.global
         )
 
       val generatedBloopFiles: Map[Path, String] =

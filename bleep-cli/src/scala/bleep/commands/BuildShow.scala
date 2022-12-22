@@ -6,8 +6,8 @@ import bloop.config.ConfigCodecs
 import cats.data.NonEmptyList
 
 object BuildShow {
-  case class Short(started: Started, projects: NonEmptyList[model.ProjectName]) extends BleepCommand {
-    override def run(): Either[BleepException, Unit] = {
+  case class Short(projects: NonEmptyList[model.ProjectName]) extends BleepBuildCommand {
+    override def run(started: Started): Either[BleepException, Unit] = {
       val build = started.build.requireFileBacked("command build show short")
       projects.toList.foreach { projectName =>
         val p = build.file.projects.value(projectName)
@@ -18,8 +18,8 @@ object BuildShow {
       Right(())
     }
   }
-  case class Exploded(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommand {
-    override def run(): Either[BleepException, Unit] = {
+  case class Exploded(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+    override def run(started: Started): Either[BleepException, Unit] = {
       projects.foreach { crossProjectName =>
         val p0 = started.build.explodedProjects(crossProjectName)
         // we don't currently do these cleanups to be able to go back to short version
@@ -32,8 +32,8 @@ object BuildShow {
     }
   }
 
-  case class Bloop(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommand {
-    override def run(): Either[BleepException, Unit] = {
+  case class Bloop(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+    override def run(started: Started): Either[BleepException, Unit] = {
       projects.foreach { crossProjectName =>
         val f = started.bloopFiles(crossProjectName).forceGet
         println(fansi.Color.Red(crossProjectName.value))

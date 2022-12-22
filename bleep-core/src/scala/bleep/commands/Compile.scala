@@ -7,9 +7,18 @@ import ch.epfl.scala.bsp4j
 
 import scala.build.bloop.BloopServer
 
-case class Compile(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(started) {
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
+case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
+
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = projects
+
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): Compile = {
+    val ps = projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
+    copy(projects = ps)
+  }
+
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
     val targets = buildTargets(started.buildPaths, projects)
+
     val result = bloop.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get()
 
     result.getStatusCode match {
@@ -17,4 +26,5 @@ case class Compile(started: Started, projects: Array[model.CrossProjectName]) ex
       case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))
     }
   }
+
 }

@@ -5,7 +5,7 @@ import bleep.logging.Logger
 /** At this point we assert that we *have* a build. it's not necessarily loaded yet
   */
 case class Prebootstrapped(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, existingBuild: BuildLoader.Existing) {
-  def fresh: Either[BleepException, Prebootstrapped] =
+  def reloaded: Either[BleepException, Prebootstrapped] =
     BuildLoader
       .inDirectory(existingBuild.buildDirectory)
       .existing

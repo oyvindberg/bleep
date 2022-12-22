@@ -10,16 +10,14 @@ import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.sys.process.Process
 
-case class BuildMoveFilesIntoBleepLayout(started: Started) extends BleepCommand {
-  override def run(): Either[BleepException, Unit] = {
+object BuildMoveFilesIntoBleepLayout extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] = {
     val build = started.build.requireFileBacked(ctx = "command move-files-into-bleep-layout")
-    val (rewrittenBuild, filesToMove) = BuildMoveFilesIntoBleepLayout.newBuildAndFilesToMove(build, started.buildPaths)
-    BuildMoveFilesIntoBleepLayout.commit(started.logger, started.buildPaths, filesToMove, rewrittenBuild.file)
+    val (rewrittenBuild, filesToMove) = newBuildAndFilesToMove(build, started.buildPaths)
+    commit(started.logger, started.buildPaths, filesToMove, rewrittenBuild.file)
     Right(())
   }
-}
 
-object BuildMoveFilesIntoBleepLayout {
   def newBuildAndFilesToMove(build: model.Build.FileBacked, buildPaths: BuildPaths): (model.Build.FileBacked, SortedMap[Path, Path]) = {
 
     val moves = collection.mutable.Map.empty[Path, Path]

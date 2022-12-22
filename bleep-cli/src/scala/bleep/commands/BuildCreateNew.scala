@@ -8,6 +8,7 @@ import bleep.{constants, model, BleepException}
 import cats.data.NonEmptyList
 
 import java.nio.file.{Files, Path}
+import scala.concurrent.ExecutionContext
 
 case class BuildCreateNew(
     logger: Logger,
@@ -17,7 +18,7 @@ case class BuildCreateNew(
     name: String,
     bleepVersion: model.BleepVersion,
     coursierResolver: CoursierResolver.Factory
-) extends BleepCommand {
+) extends BleepNoBuildCommand {
 
   override def run(): Either[BleepException, Unit] = {
     val buildLoader = BuildLoader.inDirectory(cwd)
@@ -35,7 +36,7 @@ case class BuildCreateNew(
     val pre = Prebootstrapped(buildPaths, logger, BuildLoader.Existing(buildPaths.bleepYamlFile))
     val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
 
-    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, coursierResolver) map { started =>
+    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, coursierResolver, ExecutionContext.global) map { started =>
       val projects = started.bloopProjectsList
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct

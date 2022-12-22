@@ -14,14 +14,14 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
 
-case class BuildUpdateDeps(started: Started) extends BleepCommand {
-  override def run(): Either[BleepException, Unit] = {
+case object BuildUpdateDeps extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] = {
     val build = started.build.requireFileBacked("command update-deps")
     // a bleep dependency may be instantiated into several different coursier dependencies
     // depending on which scala versions and platforms are plugging in
     // collect all instantiations into this structure
     val allDeps: Map[UpgradeDependencies.ContextualDep, Dependency] =
-      BuildUpdateDeps.instantiateAllDependencies(build)
+      instantiateAllDependencies(build)
 
     val config = started.lazyConfig.forceGet
     val repos = CoursierResolver.coursierRepos(build.resolvers.values, config.authentications).filter(_.repr.contains("http"))
@@ -29,7 +29,7 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
 
     val foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] = {
       implicit val ec: ExecutionContext = started.executionContext
-      Await.result(BuildUpdateDeps.fetchAllVersions(fileCache, repos, allDeps), Duration.Inf)
+      Await.result(fetchAllVersions(fileCache, repos, allDeps), Duration.Inf)
     }
 
     val upgrades: Map[UpgradeDependencies.ContextualDep, model.Dep] =
@@ -39,15 +39,12 @@ case class BuildUpdateDeps(started: Started) extends BleepCommand {
         else Some(tuple -> bleepDep.withVersion(latest))
       }
 
-    val newBuild = UpgradeDependencies(new BuildUpdateDeps.UpgradeLogger(started.logger), upgrades)(build)
+    val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build)
     val newBuild1 = normalizeBuild(newBuild)
     yaml.writeShortened(newBuild1.file, started.buildPaths.bleepYamlFile)
 
     Right(())
   }
-}
-
-object BuildUpdateDeps {
   class UpgradeLogger(logger: Logger) extends UpgradeDependencies.UpgradeLogger {
     override def upgraded(project: CrossProjectName, dep: Dep, newVersion: String): Unit =
       logger

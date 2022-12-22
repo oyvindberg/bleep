@@ -4,15 +4,20 @@ package commands
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.CompileParams
 
 import scala.build.bloop.BloopServer
 
-case class Test(started: Started, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(started) {
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] = {
+case class Test(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
+
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = projects
+
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote = {
+    val ps = projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
+    copy(projects = ps)
+  }
+
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
     val targets = buildTargets(started.buildPaths, projects)
-    // workaround for https://github.com/scalacenter/bloop/pull/1839
-    bloop.server.buildTargetCompile(new CompileParams(targets)).get()
     val result = bloop.server.buildTargetTest(new bsp4j.TestParams(targets)).get()
 
     result.getStatusCode match {

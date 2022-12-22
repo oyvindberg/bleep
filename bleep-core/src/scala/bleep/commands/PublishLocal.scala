@@ -19,16 +19,23 @@ object PublishLocal {
   }
 
   case class CustomMaven(mavenRepo: model.Repository.MavenFolder) extends PublishTarget {
-    val path = mavenRepo.path
+    val path: Path = mavenRepo.path
     override val publishLayout: PublishLayout = PublishLayout.Maven()
   }
 
-  case class Options(groupId: String, version: String, publishTarget: PublishLocal.PublishTarget, projects: List[model.CrossProjectName])
+  case class Options(groupId: String, version: String, publishTarget: PublishLocal.PublishTarget, projects: Array[model.CrossProjectName])
 }
 
-case class PublishLocal(started: Started, options: PublishLocal.Options) extends BleepCommandRemote(started) {
-  override def runWithServer(bloop: BloopServer): Either[BleepException, Unit] =
-    Compile(started, options.projects.toArray).runWithServer(bloop).map { case () =>
+case class PublishLocal(watch: Boolean, options: PublishLocal.Options) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
+  override def chosenProjects(started: Started): Array[model.CrossProjectName] = options.projects
+
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): PublishLocal = {
+    val ps = options.projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
+    copy(options = options.copy(projects = ps))
+  }
+
+  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
+    Compile(watch = false, options.projects).runWithServer(started, bloop).map { case () =>
       val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
         packageLibraries(
           started,

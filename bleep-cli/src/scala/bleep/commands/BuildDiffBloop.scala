@@ -18,11 +18,11 @@ import io.circe._
 import scala.collection.immutable.SortedSet
 import scala.util.control.NonFatal
 
-case class BuildDiffBloop(started: Started, opts: BuildDiff.Options, projects: Array[model.CrossProjectName]) extends BleepCommand {
+case class BuildDiffBloop(opts: BuildDiff.Options, projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
   implicit val lcs: Patience[Json] = new Patience
   implicit val showStr: Show[Str] = _.toString()
 
-  override def run(): Either[BleepException, Unit] = {
+  override def run(started: Started): Either[BleepException, Unit] = {
     val revision = opts.revision.getOrElse("HEAD")
 
     val oldBuildStr: Lazy[Either[BleepException, String]] = Lazy {
@@ -44,7 +44,8 @@ case class BuildDiffBloop(started: Started, opts: BuildDiff.Options, projects: A
         genBloopFiles = GenBloopFiles.InMemory,
         rewrites = Nil,
         lazyConfig = started.lazyConfig,
-        resolver = (_, _, _) => started.resolver.forceGet
+        resolver = (_, _, _) => started.resolver.forceGet,
+        executionContext = started.executionContext
       )
       .orThrow
 

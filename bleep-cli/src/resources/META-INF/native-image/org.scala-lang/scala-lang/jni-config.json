@@ -1,0 +1,25 @@
+[
+  {
+    "name": "com.swoval.files.apple.FileEvent",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": [
+          "java.lang.String",
+          "int"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "com.swoval.files.apple.FileEventMonitorImpl$WrappedConsumer",
+    "methods": [
+      {
+        "name": "accept",
+        "parameterTypes": [
+          "java.lang.Object"
+        ]
+      }
+    ]
+  }
+]

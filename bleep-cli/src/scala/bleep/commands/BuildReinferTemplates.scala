@@ -5,8 +5,8 @@ import bleep.internal.BleepTemplateLogger
 import bleep.rewrites.{normalizeBuild, Defaults}
 import bleep.templates.templatesInfer
 
-case class BuildReinferTemplates(started: Started, ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepCommand {
-  override def run(): Either[BleepException, Unit] = {
+case class BuildReinferTemplates(ignoreWhenInferringTemplates: Set[model.ProjectName]) extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] = {
     // require that the build is from file, which means it may have templates
     val build0 = started.build.requireFileBacked(ctx = "command templates-generate-new")
 

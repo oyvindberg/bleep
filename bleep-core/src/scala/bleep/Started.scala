@@ -52,4 +52,16 @@ case class Started(
 
   def chosenTestProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     chosenProjects(maybeFromCommandLine).filter(projectName => build.explodedProjects(projectName).isTestProject.getOrElse(false))
+
+  def reloaded: Either[BleepException, Started] =
+    prebootstrapped.reloaded.flatMap { pre =>
+      bootstrap.from(
+        pre,
+        GenBloopFiles.SyncToDisk,
+        rewrites,
+        BleepConfigOps.lazyForceLoad(pre.userPaths),
+        CoursierResolver.Factory.default,
+        executionContext
+      )
+    }
 }
