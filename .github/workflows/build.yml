@@ -18,12 +18,9 @@ jobs:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: coursier/setup-action@v1.2.0-M3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: coursier/cache-action@v6
         with:
           extraFiles: bleep.yaml
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install bleep stable
         run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep --verbose
@@ -64,11 +61,9 @@ jobs:
 
       - uses: coursier/setup-action@v1.2.0-M3
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
           jvm: graalvm-java17:22.3.0
       - uses: coursier/cache-action@v6
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
           extraFiles: bleep.yaml
 
       - name: Install bleep stable
