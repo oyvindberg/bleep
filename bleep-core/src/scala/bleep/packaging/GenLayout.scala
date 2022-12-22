@@ -12,9 +12,10 @@ object GenLayout {
   def ivy(
       self: Dependency,
       projectPaths: ProjectPaths,
-      deps: List[Dependency]
+      deps: List[Dependency],
+      mainClass: Option[String]
   ): IvyLayout[RelPath, Array[Byte]] = {
-    val m = maven(self, projectPaths, deps, Info.empty)
+    val m = maven(self, projectPaths, deps, Info.empty, mainClass)
     IvyLayout(
       self = self,
       jarFile = m.jarFile._2,
@@ -25,10 +26,10 @@ object GenLayout {
     )
   }
 
-  def maven(self: Dependency, projectPaths: ProjectPaths, deps: List[Dependency], info: Info): MavenLayout[RelPath, Array[Byte]] =
+  def maven(self: Dependency, projectPaths: ProjectPaths, deps: List[Dependency], info: Info, mainClass: Option[String]): MavenLayout[RelPath, Array[Byte]] =
     MavenLayout(
       self = self,
-      jarFile = createJar(Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all),
+      jarFile = createJar(Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all, mainClass = mainClass),
       sourceFile = createJar(projectPaths.sourcesDirs.all),
       pomFile = fromXml(pomFile(self, deps, info)),
       // javadoc should never have existed.

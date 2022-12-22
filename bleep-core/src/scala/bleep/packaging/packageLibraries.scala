@@ -24,11 +24,12 @@ object packageLibraries {
         ).flatten
 
       val self: Dependency = coordinatesFor(projectName, project).asDependency(versionCombo).orThrowTextWithContext(projectName)
+      val mainClass = project.platform.flatMap(_.mainClass)
 
       val files =
         publishLayout match {
-          case PublishLayout.Maven(info) => GenLayout.maven(self, started.projectPaths(projectName), deps, info)
-          case PublishLayout.Ivy         => GenLayout.ivy(self, started.projectPaths(projectName), deps)
+          case PublishLayout.Maven(info) => GenLayout.maven(self, started.projectPaths(projectName), deps, info, mainClass)
+          case PublishLayout.Ivy         => GenLayout.ivy(self, started.projectPaths(projectName), deps, mainClass)
         }
 
       PackagedLibrary(self, files)
