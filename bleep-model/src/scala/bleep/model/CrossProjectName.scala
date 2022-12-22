@@ -18,16 +18,17 @@ object CrossProjectName {
     Decoder.instance(c =>
       for {
         str <- c.as[String]
-        crossName <- keyDecodes(str).toRight(DecodingFailure(s"more than one '@' encountered in CrossProjectName $str", c.history))
+        crossName <- fromString(str).toRight(DecodingFailure(s"more than one '@' encountered in CrossProjectName $str", c.history))
       } yield crossName
     )
   implicit val encodes: Encoder[CrossProjectName] = Encoder[String].contramap(_.value)
   implicit val keyEncodes: KeyEncoder[CrossProjectName] = KeyEncoder[String].contramap(_.value)
-  implicit val keyDecodes: KeyDecoder[CrossProjectName] = KeyDecoder.instance(str =>
+  implicit val keyDecodes: KeyDecoder[CrossProjectName] = KeyDecoder.instance(fromString)
+
+  def fromString(str: String): Option[CrossProjectName] =
     str.split("@") match {
       case Array(name)          => Some(CrossProjectName(ProjectName(name), None))
       case Array(name, crossId) => Some(CrossProjectName(ProjectName(name), Some(CrossId(crossId))))
       case _                    => None
     }
-  )
 }
