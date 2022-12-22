@@ -677,7 +677,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/scalafix-internal/tests
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common:
     java:

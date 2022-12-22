@@ -78,7 +78,7 @@ object generateBuild {
 
       val buildWithScript = buildFile1.copy(
         projects = buildFile1.projects.updated(scriptProjectName.name, scriptsProject),
-        scripts = buildFile1.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef(scriptProjectName, className))))
+        scripts = buildFile1.scripts.updated(model.ScriptName("generate-resources"), model.JsonList(List(model.ScriptDef.Main(scriptProjectName, className))))
       )
 
       val scriptPath = destinationPaths.project(scriptProjectName, scriptsProject).dir / "src/scala/scripts/GenerateResources.scala"

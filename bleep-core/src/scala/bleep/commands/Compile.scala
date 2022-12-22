@@ -9,7 +9,7 @@ import scala.build.bloop.BloopServer
 
 case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
 
-  override def chosenProjects(started: Started): Array[model.CrossProjectName] = projects
+  override def watchableProjects(started: Started): Array[model.CrossProjectName] = projects
 
   override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): Compile = {
     val ps = projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))

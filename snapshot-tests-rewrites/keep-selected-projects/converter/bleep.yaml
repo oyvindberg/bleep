@@ -5,7 +5,9 @@ resolvers:
   type: ivy
   uri: https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common:
     platform:

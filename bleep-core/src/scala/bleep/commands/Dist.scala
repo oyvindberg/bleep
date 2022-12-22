@@ -15,7 +15,7 @@ object Dist {
 }
 
 case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends BleepCommandRemote(watch) {
-  override def chosenProjects(started: Started): Array[model.CrossProjectName] = Array(options.project)
+  override def watchableProjects(started: Started): Array[model.CrossProjectName] = Array(options.project)
 
   override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
     for {

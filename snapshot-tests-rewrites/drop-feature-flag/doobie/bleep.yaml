@@ -280,7 +280,9 @@ projects:
     scala:
       version: 3.2.0
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common:
     platform:

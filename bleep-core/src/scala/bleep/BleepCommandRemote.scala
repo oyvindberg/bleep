@@ -11,7 +11,7 @@ import scala.build.blooprifle.internal.Operations
 import scala.jdk.CollectionConverters._
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
-  def chosenProjects(started: Started): Array[model.CrossProjectName]
+  def watchableProjects(started: Started): Array[model.CrossProjectName]
 
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
     new bsp4j.BuildTargetIdentifier(buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
@@ -70,7 +70,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
 
         var currentStarted = started
 
-        val codeWatcher = BleepFileWatching.projects(currentStarted, chosenProjects(currentStarted)) { changedProjects =>
+        val codeWatcher = BleepFileWatching.projects(currentStarted, watchableProjects(currentStarted)) { changedProjects =>
           val patchedCmd = this match {
             case x: BleepCommandRemote.OnlyChanged => x.onlyChangedProjects(currentStarted, changedProjects)
             case other                             => other
@@ -87,7 +87,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
               codeWatcher.updateMapping(Map.empty)
             case Right(newStarted) =>
               currentStarted = newStarted
-              codeWatcher.updateMapping(BleepFileWatching.projectPathsMapping(currentStarted, chosenProjects(currentStarted)))
+              codeWatcher.updateMapping(BleepFileWatching.projectPathsMapping(currentStarted, watchableProjects(currentStarted)))
           }
         }
 

@@ -27,7 +27,7 @@ object PublishLocal {
 }
 
 case class PublishLocal(watch: Boolean, options: PublishLocal.Options) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
-  override def chosenProjects(started: Started): Array[model.CrossProjectName] = options.projects
+  override def watchableProjects(started: Started): Array[model.CrossProjectName] = options.projects
 
   override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): PublishLocal = {
     val ps = options.projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
