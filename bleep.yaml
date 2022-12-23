@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M22
+$version: 0.0.1-M23
 jvm:
   name: graalvm-java17:22.3.0
 projects:
@@ -125,13 +125,27 @@ projects:
     - template-common
     - template-scala-2.13
 scripts:
-  generate-docs: scripts/bleep.scripts.GenDocumentation
-  generate-resources: scripts-init/bleep.scripts.GenerateResources
-  generate-videos: scripts/bleep.scripts.GenDemoVideos
-  it: scripts/bleep.scripts.It
-  my-publish-local: scripts/bleep.scripts.PublishLocal
-  native-image: scripts/bleep.scripts.GenNativeImage
-  publish: scripts/bleep.scripts.Publish
+  generate-docs:
+    main: bleep.scripts.GenDocumentation
+    project: scripts
+  generate-resources:
+    main: bleep.scripts.GenerateResources
+    project: scripts-init
+  generate-videos:
+    main: bleep.scripts.GenDemoVideos
+    project: scripts
+  it:
+    main: bleep.scripts.It
+    project: scripts
+  my-publish-local:
+    main: bleep.scripts.PublishLocal
+    project: scripts
+  native-image:
+    main: bleep.scripts.GenNativeImage
+    project: scripts
+  publish:
+    main: bleep.scripts.Publish
+    project: scripts
 templates:
   template-common:
     platform:
