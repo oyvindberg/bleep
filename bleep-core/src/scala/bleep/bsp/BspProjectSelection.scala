@@ -6,7 +6,7 @@ import bleep.internal.FileUtils
 import java.nio.file.{Files, Path}
 
 object BspProjectSelection {
-  def file(buildPaths: BuildPaths): Path = buildPaths.buildVariantDir / "project-selection.yaml"
+  def file(buildPaths: BuildPaths): Path = buildPaths.buildsDir / "bsp" / "project-selection.yaml"
 
   def store(buildPaths: BuildPaths, maybeSelectedProjectGlobs: Option[List[String]]): Unit =
     maybeSelectedProjectGlobs match {

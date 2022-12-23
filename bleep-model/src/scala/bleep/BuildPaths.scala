@@ -11,13 +11,15 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   lazy val bleepImportBloopDir: Path = dotBleepDir / "import" / "bloop"
   lazy val bleepImportSbtExportDir: Path = dotBleepDir / "import" / "sbt-export"
 
+  lazy val buildsDir = dotBleepDir / "builds"
+
   lazy val buildVariantDir: Path = {
     val name = variant match {
       case model.BuildVariant.Normal       => "normal"
       case model.BuildVariant.BSP          => "bsp"
       case x: model.BuildVariant.Rewritten => x.rewrites.map(_.value).toList.mkString("__")
     }
-    dotBleepDir / "builds" / name
+    buildsDir / name
   }
 
   lazy val bleepBloopDir: Path = buildVariantDir / ".bloop"
