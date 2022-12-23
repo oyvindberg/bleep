@@ -231,7 +231,9 @@ projects:
     - ../tokens/shared/src/${SCOPE}/scala
     - ../tokens/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common:
     scala:

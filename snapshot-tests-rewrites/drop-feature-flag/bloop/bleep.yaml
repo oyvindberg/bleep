@@ -686,7 +686,9 @@ resolvers:
 - type: ivy
   uri: https://repo.typesafe.com/typesafe/ivy-releases/
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common-main:
     sbt-scope: main

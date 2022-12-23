@@ -1206,7 +1206,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/client/testserver
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common:
     scala:

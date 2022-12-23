@@ -25,7 +25,7 @@ case class Run(
     raw: Boolean,
     watch: Boolean
 ) extends BleepCommandRemote(watch) {
-  override def chosenProjects(started: Started): Array[model.CrossProjectName] = Array(project)
+  override def watchableProjects(started: Started): Array[model.CrossProjectName] = Array(project)
 
   override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =

@@ -261,7 +261,9 @@ projects:
     - template-cross-all
     folder: ../sbt-build/modules/example
 scripts:
-  generate-resources: scripts/scripts.GenerateResources
+  generate-resources:
+    main: scripts.GenerateResources
+    project: scripts
 templates:
   template-common:
     platform:
