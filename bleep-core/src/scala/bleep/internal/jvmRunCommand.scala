@@ -8,28 +8,29 @@ import java.nio.file.Path
 
 object jvmRunCommand {
   def apply(
-      started: Started,
+      bloopProject: Config.Project,
+      resolvedJvm: Lazy[ResolvedJvm],
       project: model.CrossProjectName,
       overrideMainClass: Option[String],
       args: List[String]
-  ): Either[BleepException, List[String]] = {
-    val bloopProject = started.bloopProjects(project)
+  ): Either[BleepException, List[String]] =
     bloopProject.platform match {
       case Some(jvm: Config.Platform.Jvm) =>
         val cp = fixedClasspath(bloopProject)
         overrideMainClass.orElse(bloopProject.platform.flatMap(_.mainClass)) match {
           case Some(main) =>
             val jvmOptions = jvm.runtimeConfig.getOrElse(jvm.config).options
-            Right(cmd(started.jvmCommand, jvmOptions, cp, main, args))
+            Right(cmd(resolvedJvm.forceGet, jvmOptions, cp, main, args))
           case None => Left(new BleepException.Text(project, "No main found"))
         }
       case _ => Left(new BleepException.Text(project, "This codepath can only run JVM projects"))
     }
-  }
 
-  def cmd(jvmCommand: Path, jvmOptions: List[String], cp: List[Path], main: String, args: List[String]): List[String] =
+  def cmd(resolvedJvm: ResolvedJvm, jvmOptions: List[String], cp: List[Path], main: String, args: List[String]): List[String] =
+    List(resolvedJvm.javaBin.toString) ++ cmdArgs(jvmOptions, cp, main, args)
+
+  def cmdArgs(jvmOptions: List[String], cp: List[Path], main: String, args: List[String]): List[String] =
     List[List[String]](
-      List(jvmCommand.toString),
       jvmOptions,
       List("-classpath", cp.mkString(File.pathSeparator), main),
       args

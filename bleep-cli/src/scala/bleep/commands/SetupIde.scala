@@ -2,13 +2,12 @@ package bleep
 package commands
 
 import bleep.bsp.BspProjectSelection
-import bleep.internal.{jvmRunCommand, Argv0, FileUtils}
+import bleep.internal.FileUtils
 import ch.epfl.scala.bsp4j
-import coursier.core.{ModuleName, Organization}
 import io.circe.Encoder
 import io.circe.syntax._
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 import java.util
 import scala.jdk.CollectionConverters._
 
@@ -24,43 +23,9 @@ case class SetupIde(maybeSelectedProjects: Option[List[String]], forceJvm: Boole
     )(x => (x.getName, x.getArgv, x.getVersion, x.getBspVersion, x.getLanguages))
 
   override def run(started: Started): Either[BleepException, Unit] = {
-    val maybeExecutablePath = Option((new Argv0).get(null))
-      .map {
-        case absolute if absolute.startsWith("/") =>
-          Path.of(absolute)
-        case relative =>
-          FileUtils.cwd / relative
-      }
-      .filter(Files.isRegularFile(_))
-      .filter(Files.isExecutable)
-
-    val cmd: List[String] =
-      maybeExecutablePath match {
-        case Some(executablePath) if !forceJvm => List(executablePath.toString)
-        case _ =>
-          val latestRelease = model.BleepVersion.current.latestRelease
-          OsArch.current match {
-            case hasNativeImage: OsArch.HasNativeImage if !forceJvm =>
-              started.logger.warn(s"couldn't determine path of Bleep executable. Setting up version ${latestRelease.value} downloaded through coursier")
-              val bleepExecutablePath = FetchBleepRelease(latestRelease, new BleepCacheLogger(started.logger), started.executionContext, hasNativeImage).orThrow
-              List(bleepExecutablePath.toString)
-            case other =>
-              if (forceJvm) started.logger.info(s"Setting up BSP through a JVM as requested")
-              else started.logger.warn(s"There is no graalvm native-image for $other. Setting up BSP through a JVM")
-              val bleepCli = model.Dep.ScalaDependency(Organization("build.bleep"), ModuleName("bleep-cli"), latestRelease.value, fullCrossVersion = false)
-              val resolved = started.resolver
-                .force(
-                  Set(bleepCli),
-                  model.VersionCombo.Jvm(model.VersionScala.Scala213),
-                  s"resolving bleep ${latestRelease.value} from maven central"
-                )
-              jvmRunCommand.cmd(started.jvmCommand, Nil, resolved.jars, "bleep.Main", Nil)
-          }
-      }
-
     val details = new bsp4j.BspConnectionDetails(
       "bleep",
-      (cmd ++ List("bsp")).asJava,
+      (started.bleepExecutable.forceGet.whole ++ List("bsp")).asJava,
       model.BleepVersion.current.value,
       scala.build.blooprifle.internal.Constants.bspVersion,
       List("scala", "java").asJava

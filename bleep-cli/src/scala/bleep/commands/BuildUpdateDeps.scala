@@ -25,7 +25,7 @@ case object BuildUpdateDeps extends BleepBuildCommand {
       instantiateAllDependencies(build)
 
     val repos = CoursierResolver.coursierRepos(build.resolvers.values, started.config.authentications).filter(_.repr.contains("http"))
-    val fileCache = FileCache[Task]().withLogger(new BleepCacheLogger(started.logger))
+    val fileCache = FileCache[Task]().withLogger(started.pre.cacheLogger)
 
     val foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] = {
       implicit val ec: ExecutionContext = started.executionContext

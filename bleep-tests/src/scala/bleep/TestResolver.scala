@@ -75,7 +75,7 @@ object TestResolver {
         authentications = None,
         repos = resolvers
       )
-      val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(new BleepCacheLogger(pre.logger), params)
+      val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.cacheLogger, params)
       val cached = new TestResolver(underlying, inMemoryCache)
       new CoursierResolver.TemplatedVersions(cached, maybeWantedBleepVersion = None)
     }

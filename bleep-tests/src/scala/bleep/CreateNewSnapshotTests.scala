@@ -34,15 +34,9 @@ class CreateNewSnapshotTests extends SnapshotTest {
       val bootstrappedPath = testFolder / "bootstrapped"
       val bootstrappedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, BuildLoader.inDirectory(bootstrappedPath), model.BuildVariant.Normal)
 
-      val Right(started) =
-        bootstrap.from(
-          Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, BuildLoader.Existing(buildLoader.bleepYaml)),
-          GenBloopFiles.InMemory,
-          Nil,
-          model.BleepConfig.default,
-          testResolver,
-          ExecutionContext.global
-        )
+      val ec = ExecutionContext.global
+      val pre = Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, BuildLoader.Existing(buildLoader.bleepYaml), ec)
+      val Right(started) = bootstrap.from(pre, GenBloopFiles.InMemory, Nil, model.BleepConfig.default, testResolver)
 
       val generatedBloopFiles: Map[Path, String] =
         GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }

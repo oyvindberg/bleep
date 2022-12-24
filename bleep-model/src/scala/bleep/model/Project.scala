@@ -96,8 +96,20 @@ case class Project(
           isTestProject,
           testFrameworks
         ) =>
-      extends_.isEmpty && cross.isEmpty && folder.isEmpty && dependsOn.isEmpty && sourceLayout.isEmpty && sbtScope.isEmpty && sources.isEmpty && resources.isEmpty && dependencies.isEmpty && java
-        .fold(true)(_.isEmpty) && scala.fold(true)(_.isEmpty) && platform.fold(true)(_.isEmpty) && isTestProject.isEmpty && testFrameworks.isEmpty
+      extends_.isEmpty &&
+      cross.isEmpty &&
+      folder.isEmpty &&
+      dependsOn.isEmpty &&
+      sourceLayout.isEmpty &&
+      sbtScope.isEmpty &&
+      sources.isEmpty &&
+      resources.isEmpty &&
+      dependencies.isEmpty &&
+      java.fold(true)(_.isEmpty) &&
+      scala.fold(true)(_.isEmpty) &&
+      platform.fold(true)(_.isEmpty) &&
+      isTestProject.isEmpty &&
+      testFrameworks.isEmpty
   }
 }
 

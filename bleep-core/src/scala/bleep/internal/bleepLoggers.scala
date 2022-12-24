@@ -11,10 +11,8 @@ object bleepLoggers {
   /* Use this environment variable to communicate to subprocesses that parent accepts json events */
   val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
 
-  lazy val logAsJson = sys.env.contains(CallerProcessAcceptsJsonEvents)
-
   def stdoutNoLogFile(bleepConfig: model.BleepConfig, commonOpts: CommonOpts): TypedLoggerResource[PrintStream] =
-    if (logAsJson) TypedLoggerResource.flushable(Loggers.printJsonStream(System.out))
+    if (commonOpts.logAsJson) TypedLoggerResource.flushable(Loggers.printJsonStream(System.out))
     else baseStdout(bleepConfig, commonOpts).map(Loggers.decodeJsonStream)
 
   def stdoutAndFileLogging(
@@ -22,7 +20,7 @@ object bleepLoggers {
       commonOpts: CommonOpts,
       buildPaths: BuildPaths
   ): TypedLoggerResource[(PrintStream, Option[BufferedWriter])] =
-    if (logAsJson) TypedLoggerResource.pure(Loggers.printJsonStream(System.out)).maybeZipWith(None)
+    if (commonOpts.logAsJson) TypedLoggerResource.pure(Loggers.printJsonStream(System.out)).maybeZipWith(None)
     else {
       baseStdout(bleepConfig, commonOpts)
         .maybeZipWith(Some(Loggers.path(buildPaths.logFile, LogPatterns.logFile)))
@@ -46,16 +44,16 @@ object bleepLoggers {
   // 2) auto-complete, when stdout is used to communicate completions
   // 3) early, right after boot if we haven't set up proper logging
 
-  lazy val stderrWarn: TypedLogger[PrintStream] =
-    if (logAsJson) Loggers.printJsonStream(System.err)
+  def stderrWarn(commonOpts: CommonOpts): TypedLogger[PrintStream] =
+    if (commonOpts.logAsJson) Loggers.printJsonStream(System.err)
     else Loggers.decodeJsonStream(Loggers.stderr(LogPatterns.logFile).minLogLevel(LogLevel.warn))
 
-  lazy val stderrAll: TypedLogger[PrintStream] =
-    if (logAsJson) Loggers.printJsonStream(System.err)
+  def stderrAll(commonOpts: CommonOpts): TypedLogger[PrintStream] =
+    if (commonOpts.logAsJson) Loggers.printJsonStream(System.err)
     else Loggers.decodeJsonStream(Loggers.stderr(LogPatterns.logFile))
 
   def stderrAndFileLogging(commonOpts: CommonOpts, buildPaths: BuildPaths): TypedLoggerResource[(PrintStream, Option[BufferedWriter])] =
-    if (logAsJson) TypedLoggerResource.pure(Loggers.printJsonStream(System.err)).maybeZipWith(None)
+    if (commonOpts.logAsJson) TypedLoggerResource.pure(Loggers.printJsonStream(System.err)).maybeZipWith(None)
     else {
       TypedLoggerResource
         .pure(Loggers.stderr(LogPatterns.logFile))

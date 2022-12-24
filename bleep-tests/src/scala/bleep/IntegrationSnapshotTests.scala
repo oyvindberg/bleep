@@ -119,16 +119,9 @@ class IntegrationSnapshotTests extends SnapshotTest {
     val existingImportedBuildLoader = BuildLoader.Existing(importedBuildLoader.bleepYaml)
 
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
-      val started = bootstrap
-        .from(
-          Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, existingImportedBuildLoader),
-          GenBloopFiles.InMemory,
-          rewrites = Nil,
-          model.BleepConfig.default,
-          testResolver,
-          ExecutionContext.global
-        )
-        .orThrow
+      val ec = ExecutionContext.global
+      val pre = Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, existingImportedBuildLoader, ec)
+      val started = bootstrap.from(pre, GenBloopFiles.InMemory, rewrites = Nil, model.BleepConfig.default, testResolver).orThrow
 
       // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
       val generatedBloopFiles: Map[Path, String] =

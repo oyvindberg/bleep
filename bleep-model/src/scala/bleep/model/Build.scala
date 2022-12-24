@@ -12,6 +12,7 @@ sealed trait Build {
   def explodedProjects: Map[CrossProjectName, Project]
   def resolvers: JsonList[Repository]
   def scripts: Map[ScriptName, JsonList[ScriptDef]]
+  def jvm: Option[Jvm]
 
   def dropBuildFile: Build.Exploded = this match {
     case build: Build.Exploded   => build
@@ -124,6 +125,7 @@ object Build {
     def $version: BleepVersion = file.$version
     def resolvers: JsonList[Repository] = file.resolvers
     def scripts: Map[ScriptName, JsonList[ScriptDef]] = file.scripts.value
+    def jvm: Option[Jvm] = file.jvm
 
     def mapBuildFile(f: BuildFile => BuildFile): Build.FileBacked =
       Build.FileBacked(f(file))

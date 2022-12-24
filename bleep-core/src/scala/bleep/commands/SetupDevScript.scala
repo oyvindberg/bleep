@@ -10,7 +10,7 @@ class SetupDevScript(started: Started, project: model.CrossProjectName, override
     OsArch.current.os match {
       case Os.Windows => throw new BleepException.Text(s"Not implemented for windows")
       case _ =>
-        val cmd = jvmRunCommand(started, project, overrideMainClass, List("$@")).orThrow.mkString(" ")
+        val cmd = jvmRunCommand(started.bloopProjects(project), started.resolvedJvm, project, overrideMainClass, List("$@")).orThrow.mkString(" ")
 
         val file =
           s"""#!/bin/sh

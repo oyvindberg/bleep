@@ -9,14 +9,18 @@ import java.nio.file.{Files, Path}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
-object FetchJvm {
-  def apply(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, jvm: model.Jvm, ec: ExecutionContext): Path = {
+case class ResolvedJvm(jvm: model.Jvm, javaBin: Path) {
+  override def toString: String = super.toString
+}
+
+case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: ExecutionContext) {
+  def apply(jvm: model.Jvm): ResolvedJvm = {
     val arch = OsArch.current.arch match {
       case Arch.Amd64 => "amd64"
       case Arch.Arm64 => "arm64"
     }
 
-    maybeCacheDir match {
+    val javaBin = maybeCacheDir match {
       case Some(cacheDir) if !Jvm.isSystem(jvm) =>
         val cacheFile = {
           val relPath = RelPath(
@@ -33,17 +37,21 @@ object FetchJvm {
         } else None
 
         found.getOrElse {
-          val fetched = doFetch(cacheLogger, jvm, ec, arch)
+          val fetched = FetchJvm.doFetch(cacheLogger, jvm, ec, arch)
           Files.createDirectories(cacheFile.getParent)
           Files.writeString(cacheFile, fetched.toString)
           fetched
         }
 
       case Some(_) | None => // No cache directory defined, or the system's jvm is used.
-        doFetch(cacheLogger, jvm, ec, arch)
+        FetchJvm.doFetch(cacheLogger, jvm, ec, arch)
     }
-  }
+    ResolvedJvm(jvm, javaBin)
 
+  }
+}
+
+object FetchJvm {
   def doFetch(cacheLogger: CacheLogger, jvm: Jvm, ec: ExecutionContext, arch: String): Path = {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val archiveCache = ArchiveCache[Task]().withCache(fileCache)

@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.internal.jvmOrSystem
 import bleep.logging.Logger
 import bleep.rewrites.BuildRewrite
 import bloop.config.Config
@@ -17,11 +16,13 @@ case class Started(
     activeProjectsFromPath: Option[Array[model.CrossProjectName]],
     config: model.BleepConfig,
     resolver: CoursierResolver,
-    executionContext: ExecutionContext
+    bleepExecutable: Lazy[BleepExecutable]
 )(reloadUsing: (Prebootstrapped, model.BleepConfig, List[BuildRewrite]) => Either[BleepException, Started]) {
   def buildPaths: BuildPaths = pre.buildPaths
   def userPaths: UserPaths = pre.userPaths
   def logger: Logger = pre.logger
+  def executionContext: ExecutionContext = pre.ec
+  def resolvedJvm: Lazy[ResolvedJvm] = pre.resolvedJvm
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
     buildPaths.project(crossName, build.explodedProjects(crossName))
@@ -35,10 +36,7 @@ case class Started(
   lazy val bloopProjectsList: List[Config.Project] =
     bloopProjects.values.toList
 
-  lazy val jvmCommand: Path = {
-    val jvm = jvmOrSystem(build, logger)
-    FetchJvm(Some(userPaths.resolveJvmCacheDir), new BleepCacheLogger(logger), jvm, executionContext)
-  }
+  lazy val jvmCommand: Path = resolvedJvm.forceGet.javaBin
 
   def chosenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     maybeFromCommandLine match {

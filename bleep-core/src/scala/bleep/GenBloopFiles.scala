@@ -1,7 +1,6 @@
 package bleep
 
-import bleep.internal.{conversions, parseBloopFile, rewriteDependentData}
-import bleep.logging.Logger
+import bleep.internal.{conversions, parseBloopFile, rewriteDependentData, ScriptShelloutCommand}
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
@@ -11,73 +10,146 @@ import io.github.davidgregory084.{DevMode, TpolecatPlugin}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
-import scala.collection.immutable.{ListSet, SortedMap}
+import scala.collection.immutable.{ListSet, SortedMap, SortedSet}
 import scala.collection.mutable
 import scala.util.Try
 
 trait GenBloopFiles {
   def apply(
-      logger: Logger,
-      buildPaths: BuildPaths,
+      prebootstrapped: Prebootstrapped,
       resolver: CoursierResolver,
       build: model.Build,
-      fetchNode: FetchNode
+      bleepExecutable: Lazy[BleepExecutable]
   ): GenBloopFiles.Files
 }
 
 object GenBloopFiles {
   type Files = SortedMap[model.CrossProjectName, Lazy[Config.File]]
 
-  val InMemory: GenBloopFiles = (_, buildPaths, resolver, build, fetchNode) =>
-    rewriteDependentData(build.explodedProjects).apply { (crossName, project, eval) =>
-      translateProject(
-        resolver,
-        buildPaths,
-        crossName,
-        project,
-        build,
-        getBloopProject = depName => eval(depName).forceGet(s"${crossName.value} => ${depName.value}"),
-        fetchNode
-      )
-    }
+  object InMemory extends GenBloopFiles {
+    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build, bleepExecutable: Lazy[BleepExecutable]): Files =
+      rewriteDependentData(build.explodedProjects).apply { (crossName, project, eval) =>
+        def get(depName: model.CrossProjectName): Config.File =
+          eval(depName).forceGet(s"${crossName.value} => ${depName.value}")
 
-  val SyncToDisk: GenBloopFiles = (logger, buildPaths, lazyResolver, build, fetchNode) => {
-    val currentHash = List(
-      build.$version,
-      build.explodedProjects.toVector.sortBy(_._1)
-    ).hashCode().toString
-
-    val oldHash = Try(Files.readString(buildPaths.digestFile, UTF_8)).toOption
-
-    if (oldHash.contains(currentHash)) {
-      logger.debug(s"${buildPaths.bleepBloopDir} up to date")
-
-      val map = build.explodedProjects.map { case (crossProjectName, _) =>
-        val load = Lazy {
-          val json = buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")
-          parseBloopFile(Files.readString(json))
-        }
-        (crossProjectName, load)
+        translateProject(pre, resolver, crossName, project, build, getBloopProject = get, bleepExecutable)
       }
-      SortedMap.empty[model.CrossProjectName, Lazy[Config.File]] ++ map
-    } else {
-      logger.warn(s"Refreshing ${buildPaths.bleepBloopDir}...")
+  }
 
-      val bloopFiles =
-        InMemory(logger, buildPaths, lazyResolver, build, fetchNode)
+  /** For integration tests we want to write builds which depend on the version of bleep you're working on, and we want to use the normal syntax (dependency
+    * with version = `${BLEEP_VERSION}`).
+    *
+    * This takes a bootstrapped build of the bleep you're working on, and replaces references to bleep dependencies with the corresponding class directories.
+    */
+  case class ReplaceBleepDependencies(bleepBuild: Lazy[Started]) extends GenBloopFiles {
+    def isBleepDep(dep: model.Dep): Boolean = dep.organization.value == "build.bleep"
 
-      val fileMap = encodedFiles(buildPaths, bloopFiles).updated(buildPaths.digestFile, currentHash)
+    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build, bleepExecutable: Lazy[BleepExecutable]): Files = {
+      val explodedBuild = build.dropBuildFile
 
-      FileSync
-        .syncPaths(
-          folder = buildPaths.bleepBloopDir,
-          fileMap = fileMap,
-          deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
-          soft = true
+      // save some state from step one to step two
+      val b = mutable.Map.empty[model.CrossProjectName, Set[model.CrossProjectName]]
+
+      // first step:
+      // rewrite projects to replace dependencies on bleep projects (if any) with just their (external) dependencies
+      val rewrittenBuild = {
+        val newProjects = explodedBuild.explodedProjects.map { case (crossName, p) =>
+          val (bleepDependencies, restDependencies) = p.dependencies.values.partition(isBleepDep)
+
+          def sameBinVersion(p1: model.Project, p2: model.Project): Boolean =
+            p1.scala.flatMap(_.version).map(_.binVersion) == p2.scala.flatMap(_.version).map(_.binVersion)
+
+          val transitiveBleepProjectNames: SortedSet[model.CrossProjectName] =
+            bleepDependencies.flatMap { bleepDep =>
+              val bleepProjectName = bleepBuild.forceGet.build
+                .explodedProjectsByName(model.ProjectName(bleepDep.baseModuleName.value))
+                .collectFirst { case (bleepProjectName, bp) if sameBinVersion(bp, p) => bleepProjectName }
+                .toRight(s"couldn't find $bleepDep in bleep build")
+                .orThrowTextWithContext(crossName)
+
+              bleepBuild.forceGet.build.resolvedDependsOn(bleepProjectName) ++ List(bleepProjectName)
+            }
+
+          if (transitiveBleepProjectNames.nonEmpty) b(crossName) = transitiveBleepProjectNames
+
+          // include all dependencies inherited from bleep projects
+          val newDeps: SortedSet[model.Dep] =
+            restDependencies ++ transitiveBleepProjectNames.view.flatMap(pn =>
+              bleepBuild.forceGet.build.explodedProjects(pn).dependencies.values.filterNot(isBleepDep)
+            )
+
+          (crossName, p.copy(dependencies = model.JsonSet(newDeps)))
+        }
+
+        explodedBuild.copy(explodedProjects = newProjects)
+      }
+
+      // ensure requested bleep projects are compiled before we run tests
+      b.values.flatten.toList.distinct match {
+        case Nil      => ()
+        case nonEmpty => new Commands(bleepBuild.forceGet).compile(nonEmpty)
+      }
+
+      rewriteDependentData(rewrittenBuild.explodedProjects).apply { (crossName, project, eval) =>
+        val bloopFile = translateProject(
+          pre,
+          resolver,
+          crossName,
+          project,
+          build,
+          getBloopProject = depName => eval(depName).forceGet(s"${crossName.value} => ${depName.value}"),
+          bleepExecutable
         )
-        .log(logger, "wrote bloop files")
 
-      bloopFiles
+        // step 2: add classpath for all (transitive) bleep dependencies from the bleep build
+        val newClassPath = b.getOrElse(crossName, Nil).toList.map(bleepBuild.forceGet.projectPaths).map(_.classes)
+        bloopFile.copy(project = bloopFile.project.copy(classpath = newClassPath ++ bloopFile.project.classpath))
+      }
+    }
+  }
+
+  val SyncToDisk: GenBloopFiles =
+    SyncToDiskWith(InMemory)
+
+  case class SyncToDiskWith(next: GenBloopFiles) extends GenBloopFiles {
+    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build, bleepExecutable: Lazy[BleepExecutable]): Files = {
+
+      val currentHash = List(
+        build.$version,
+        build.explodedProjects.toVector.sortBy(_._1)
+      ).hashCode().toString
+
+      val oldHash = Try(Files.readString(pre.buildPaths.digestFile, UTF_8)).toOption
+
+      if (oldHash.contains(currentHash)) {
+        pre.logger.debug(s"${pre.buildPaths.bleepBloopDir} up to date")
+
+        val map = build.explodedProjects.map { case (crossProjectName, _) =>
+          val load = Lazy {
+            val json = pre.buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")
+            parseBloopFile(Files.readString(json))
+          }
+          (crossProjectName, load)
+        }
+        SortedMap.empty[model.CrossProjectName, Lazy[Config.File]] ++ map
+      } else {
+        pre.logger.warn(s"Refreshing ${pre.buildPaths.bleepBloopDir}...")
+
+        val bloopFiles = next(pre, resolver, build, bleepExecutable)
+
+        val fileMap = encodedFiles(pre.buildPaths, bloopFiles).updated(pre.buildPaths.digestFile, currentHash)
+
+        FileSync
+          .syncPaths(
+            folder = pre.buildPaths.bleepBloopDir,
+            fileMap = fileMap,
+            deleteUnknowns = FileSync.DeleteUnknowns.Yes(maxDepth = Some(1)),
+            soft = true
+          )
+          .log(pre.logger, "wrote bloop files")
+
+        bloopFiles
+      }
     }
   }
 
@@ -89,17 +161,17 @@ object GenBloopFiles {
     }
 
   def translateProject(
+      pre: Prebootstrapped,
       resolver: CoursierResolver,
-      buildPaths: BuildPaths,
       crossName: model.CrossProjectName,
       explodedProject: model.Project,
       build: model.Build,
       getBloopProject: model.CrossProjectName => Config.File,
-      fetchNode: FetchNode
+      bleepExecutable: Lazy[BleepExecutable]
   ): Config.File = {
 
     val projectPaths: ProjectPaths =
-      buildPaths.project(crossName, explodedProject)
+      pre.buildPaths.project(crossName, explodedProject)
 
     val allTransitiveTranslated: Map[model.CrossProjectName, Config.File] = {
       val builder = Map.newBuilder[model.CrossProjectName, Config.File]
@@ -135,7 +207,7 @@ object GenBloopFiles {
       model.VersionCombo.fromExplodedProject(explodedProject).orThrowTextWithContext(crossName)
 
     val templateDirs =
-      model.Replacements.paths(build = buildPaths.buildDir) ++
+      model.Replacements.paths(build = pre.buildPaths.buildDir) ++
         model.Replacements.projectPaths(project = projectPaths.dir) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
         model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
@@ -154,7 +226,7 @@ object GenBloopFiles {
               emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(Config.JsConfig.empty.emitSourceMaps),
               jsdom = platform.jsJsdom,
               output = None,
-              nodePath = platform.jsNodeVersion.map(fetchNode.apply),
+              nodePath = platform.jsNodeVersion.map(pre.fetchNode.apply),
               toolchain = Nil
             ),
             platform.mainClass
@@ -333,7 +405,7 @@ object GenBloopFiles {
       Config.Project(
         name = crossName.value,
         directory = projectPaths.targetDir,
-        workspaceDir = Some(buildPaths.buildDir),
+        workspaceDir = Some(pre.buildPaths.buildDir),
         sources = projectPaths.sourcesDirs.all.toList,
         sourcesGlobs = None,
         sourceRoots = None,

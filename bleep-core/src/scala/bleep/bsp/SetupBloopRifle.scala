@@ -2,7 +2,6 @@ package bleep
 package bsp
 
 import bleep.internal.FileUtils
-import bleep.logging.Logger
 import bleep.model.CompileServerMode
 import coursier.parse.ModuleParser
 
@@ -10,34 +9,32 @@ import java.io.File
 import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
   def apply(
       compileServerMode: CompileServerMode,
-      jvm: model.Jvm,
-      logger: Logger,
+      resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,
-      bleepRifleLogger: BleepRifleLogger,
-      executionContext: ExecutionContext
+      bleepExecutable: BleepExecutable,
+      bleepRifleLogger: BleepRifleLogger
   ): BloopRifleConfig = {
-    val resolvedJvm = FetchJvm(Some(userPaths.resolveJvmCacheDir), new BleepCacheLogger(logger), jvm, executionContext)
-
-    BloopRifleConfig
+    val default = BloopRifleConfig
       .default(
-        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, compileServerMode, jvm)),
+        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, compileServerMode, resolvedJvm.jvm)),
         bloopClassPath(resolver),
         FileUtils.TempDir.toFile
       )
-      .copy(
-        javaPath = resolvedJvm.toString,
-        bspStdout = bleepRifleLogger.bloopBspStdout,
-        bspStderr = bleepRifleLogger.bloopBspStderr,
-        period = 10.millis
-      )
+
+    default.copy(
+      javaPath = resolvedJvm.javaBin.toString,
+      bspStdout = bleepRifleLogger.bloopBspStdout,
+      bspStderr = bleepRifleLogger.bloopBspStderr,
+      period = 10.millis,
+      javaOpts = default.javaOpts ++ bleepExecutable.childrenJavaOpts
+    )
   }
 
   def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] =

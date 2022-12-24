@@ -8,3 +8,4 @@ target
 /project/.bloop
 sbt-build
 bleep-site/docs
+.vscode

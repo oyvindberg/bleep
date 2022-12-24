@@ -17,8 +17,7 @@ object GenDocumentation extends BleepScript("GenDocumentation") {
       override def mdocOut: Path = started.buildPaths.buildDir / "bleep-site" / "docs"
     }
 
-    val fetchNode = new FetchNode(new BleepCacheLogger(started.logger), started.executionContext)
-    val nodeBinPath = fetchNode(constants.Node).getParent
+    val nodeBinPath = started.pre.fetchNode(constants.Node).getParent
 
     started.logger.withContext(nodeBinPath).info("Using node")
 

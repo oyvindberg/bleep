@@ -67,7 +67,7 @@ object CoursierResolver {
           case model.Repository.Ivy(name, uri)          => model.Repository.Ivy(name, replacements.fill.uri(uri))
         }
         val params = Params(None, downloadSources = true, config.authentications, resolvers)
-        val direct = new Direct(new BleepCacheLogger(pre.logger), params)
+        val direct = new Direct(pre.cacheLogger, params)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version))
       }

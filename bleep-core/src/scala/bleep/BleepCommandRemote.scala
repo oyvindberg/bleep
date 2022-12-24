@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.{fatal, jvmOrSystem, BspClientDisplayProgress}
+import bleep.internal.{fatal, BspClientDisplayProgress}
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
@@ -34,18 +34,15 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
       case model.CompileServerMode.Shared => ()
     }
 
-    val bloopJvm = jvmOrSystem(started)
-
     val bleepRifleLogger = new BleepRifleLogger(started.logger)
     val bloopRifleConfig: BloopRifleConfig =
       SetupBloopRifle(
         started.config.compileServerModeOrDefault,
-        bloopJvm,
-        started.logger,
+        started.resolvedJvm.forceGet,
         started.pre.userPaths,
         started.resolver,
-        bleepRifleLogger,
-        started.executionContext
+        started.bleepExecutable.forceGet,
+        bleepRifleLogger
       )
 
     val buildClient: BspClientDisplayProgress =

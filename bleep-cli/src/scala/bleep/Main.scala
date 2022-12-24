@@ -45,7 +45,9 @@ object Main {
       Opts.flag("debug", "enable more output").orFalse,
       Opts.option[String]("directory", "enable more output", "d").orNone,
       Opts.flag("dev", "use the current bleep binary and don't launch the one specified in bleep.yaml").orFalse,
-      Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse
+      Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
+      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse,
+      Opts.flagOption[Path]("started-by-native", "bleep internal: for running bleep scripts").orNone.map(_.flatten)
     ).mapN(CommonOpts.apply)
 
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
@@ -318,6 +320,8 @@ object Main {
       case None                             => FileUtils.cwd
     }
 
+  val ec: ExecutionContext = ExecutionContext.global
+
   def maybeRunWithDifferentVersion(args: Array[String], logger: Logger, buildLoader: BuildLoader, opts: CommonOpts): ExitCode =
     buildLoader match {
       case BuildLoader.NonExisting(_) => ExitCode.Success
@@ -332,7 +336,7 @@ object Main {
 
           OsArch.current match {
             case hasNativeImage: OsArch.HasNativeImage =>
-              FetchBleepRelease(wantedVersion, cacheLogger, ExecutionContext.global, hasNativeImage) match {
+              FetchBleepRelease(wantedVersion, cacheLogger, ec, hasNativeImage) match {
                 case Left(buildException) =>
                   fatal("couldn't download bleep release", logger, buildException)
                 case Right(binaryPath) if OsArch.current.os == Os.Windows || !isGraalvmNativeImage =>
@@ -385,7 +389,7 @@ object Main {
         val (commonOpts, _) = CommonOpts.parse(compLine.split(" ").toList)
         val cwd = cwdFor(commonOpts)
         // we can not log to stdout when completing. logger should be used sparingly
-        val stderr = bleepLoggers.stderrWarn.untyped
+        val stderr = bleepLoggers.stderrWarn(commonOpts).untyped
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts).andThen {
 
@@ -400,11 +404,11 @@ object Main {
               })
               completer.completeOpts(restArgs)(noBuildOpts(stderr, userPaths, buildPaths, noBuild))
             case existing: BuildLoader.Existing =>
-              val pre = Prebootstrapped(stderr, userPaths, buildPaths, existing)
+              val pre = Prebootstrapped(stderr, userPaths, buildPaths, existing, ec)
 
               val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                 case Left(th) =>
                   fatal("couldn't load build", stderr, th)
                   Completer.Res.NoMatch
@@ -429,7 +433,8 @@ object Main {
 
       case "selftest" :: Nil =>
         // checks that JNI libraries are successfully loaded
-        FileWatching(bleepLoggers.stderrWarn.untyped, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        val (commonOpts, _) = CommonOpts.parse(Nil)
+        FileWatching(bleepLoggers.stderrWarn(commonOpts).untyped, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         println("OK")
         ExitCode.Success
 
@@ -437,11 +442,11 @@ object Main {
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll.untyped, buildLoader, commonOpts).andThen {
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts).untyped, buildLoader, commonOpts).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.BSP)
 
           bleepLoggers.stderrAndFileLogging(commonOpts, buildPaths).untyped.use { logger =>
-            buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing)) match {
+            buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
               case Left(be) => fatal("", logger, be)
               case Right(pre) =>
                 try BspImpl.run(pre)
@@ -472,8 +477,8 @@ object Main {
               case noBuild: BuildLoader.NonExisting =>
                 run(logger, noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs)
               case existing: BuildLoader.Existing =>
-                val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
-                bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
+                val pre = Prebootstrapped(logger, userPaths, buildPaths, existing, ec)
+                bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                   case Left(th)       => fatal("Error while loading build", logger, th)
                   case Right(started) => run(logger, hasBuildOpts(started), started, restArgs)
                 }
