@@ -16,10 +16,12 @@ object bootstrap {
 
     val exitCode: ExitCode =
       bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).untyped.use { logger =>
+        val ec = ExecutionContext.global
         val maybeStarted = for {
           existingBuild <- buildLoader.existing
-          pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild)
-          started <- from(pre, GenBloopFiles.SyncToDisk, rewrites, bleepConfig, CoursierResolver.Factory.default, ExecutionContext.global)
+          pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild, ec)
+          genBloopFiles = GenBloopFiles.SyncToDisk
+          started <- from(pre, genBloopFiles, rewrites, bleepConfig, CoursierResolver.Factory.default)
         } yield started
 
         maybeStarted match {
@@ -44,17 +46,15 @@ object bootstrap {
       genBloopFiles: GenBloopFiles,
       rewrites: List[BuildRewrite],
       config: model.BleepConfig,
-      resolverFactory: CoursierResolver.Factory,
-      executionContext: ExecutionContext
+      resolverFactory: CoursierResolver.Factory
   ): Either[BleepException, Started] = {
-    val t0 = System.currentTimeMillis()
-    val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), executionContext)
-
-    def go(pre: Prebootstrapped, config: model.BleepConfig, rewrites: List[BuildRewrite]): Either[BleepException, Started] =
+    def go(pre: Prebootstrapped, config: model.BleepConfig, rewrites: List[BuildRewrite]): Either[BleepException, Started] = {
+      val t0 = System.currentTimeMillis()
       try
         pre.existingBuild.buildFile.forceGet.map { buildFile =>
           val resolver = resolverFactory(pre, config, buildFile)
           val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
+          val bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false))
 
           val activeProjects: Option[Array[model.CrossProjectName]] =
             if (pre.buildPaths.cwd == pre.buildPaths.buildDir) None
@@ -75,17 +75,18 @@ object bootstrap {
             }
 
           val bloopFiles: GenBloopFiles.Files =
-            genBloopFiles(pre.logger, pre.buildPaths, resolver, build, fetchNode)
+            genBloopFiles(pre, resolver, build, bleepExecutable)
 
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
 
-          Started(pre, rewrites, build, bloopFiles, activeProjects, config, resolver, executionContext)(reloadUsing = go)
+          Started(pre, rewrites, build, bloopFiles, activeProjects, config, resolver, bleepExecutable)(reloadUsing = go)
         }
       catch {
         case x: BleepException => Left(x)
         case th: Throwable     => Left(new BleepException.Cause(th, "couldn't initialize bleep"))
       }
+    }
 
     go(pre, config, rewrites)
   }

@@ -2,6 +2,7 @@ package bleep
 
 import bleep.logging.Logger
 import bleep.model.assertUsed
+import bloop.config.Config
 
 import java.nio.file.Path
 import scala.collection.compat._
@@ -16,7 +17,16 @@ object BleepFileWatching {
     val sourceProjectPairs: Array[(Path, model.CrossProjectName)] =
       withTransitiveDeps.flatMap { name =>
         val bloopProject = started.bloopProjects(name)
-        (bloopProject.sources ++ bloopProject.resources.getOrElse(Nil)).map(path => (path, name))
+
+        val fromSourcegen = bloopProject.sourceGenerators.toArray.flatten.flatMap(_.sourcesGlobs).flatMap {
+          case Config.SourcesGlobs(directory, None, Nil, Nil)             => Some(directory)
+          case Config.SourcesGlobs(_, None, List("glob:bleep.yaml"), Nil) => None
+          case illegal =>
+            sys.error(
+              s"implementation restriction: bleep has apparently started to use more of the `Config.SourcesGlobs` structure. This codepath also needs to support $illegal "
+            )
+        }
+        (bloopProject.sources ++ bloopProject.resources.getOrElse(Nil) ++ fromSourcegen).map(path => (path, name))
       }
 
     sourceProjectPairs.toSeq.groupMap { case (p, _) => p } { case (_, name) => name }

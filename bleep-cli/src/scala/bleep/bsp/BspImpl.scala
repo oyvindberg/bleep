@@ -1,7 +1,6 @@
 package bleep
 package bsp
 
-import bleep.internal.jvmOrSystem
 import bleep.rewrites.BuildRewrite
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
@@ -17,7 +16,6 @@ import scala.util.{Failure, Success, Try}
 
 object BspImpl {
   def run(pre: Prebootstrapped): ExitCode = {
-
     val bspBloopServer: BleepBspServer =
       new BleepBspServer(pre.logger, null, null, null)
 
@@ -35,16 +33,15 @@ object BspImpl {
       val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
       val build = pre.existingBuild.buildFile.forceGet.orThrow
       val bleepRifleLogger = new BleepRifleLogger(pre.logger)
-
+      val resolver = CoursierResolver.Factory.default(pre, config, build)
       val bloopRifleConfig =
         SetupBloopRifle(
           compileServerMode = config.compileServerModeOrDefault,
-          jvm = jvmOrSystem(build.jvm, pre.logger),
-          logger = pre.logger,
+          resolvedJvm = pre.resolvedJvm.forceGet,
           userPaths = pre.userPaths,
-          resolver = CoursierResolver.Factory.default(pre, config, build),
-          bleepRifleLogger = bleepRifleLogger,
-          executionContext = ExecutionContext.fromExecutor(threads.prepareBuildExecutor)
+          resolver = resolver,
+          bleepExecutable = BleepExecutable.getCommand(resolver, pre, forceJvm = false),
+          bleepRifleLogger = bleepRifleLogger
         )
 
       val workspaceDir = pre.buildPaths.buildVariantDir
@@ -66,7 +63,7 @@ object BspImpl {
             ).flatten
 
             pre.reloadFromDisk().flatMap { pre =>
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, config, CoursierResolver.Factory.default, ExecutionContext.global)
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, config, CoursierResolver.Factory.default)
             }
           }
 

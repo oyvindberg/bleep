@@ -1,17 +1,24 @@
 package bleep.model
 
-import io.circe.generic.semiauto.deriveCodec
+import bleep.RelPath
 import io.circe._
+import io.circe.generic.semiauto.deriveCodec
 
-sealed trait ScriptDef
+sealed trait ScriptDef {
+  lazy val asJson: Json = ScriptDef.encodes(this)
+}
 
 object ScriptDef {
-  case class Main(project: CrossProjectName, main: String) extends ScriptDef
+  // inefficient, but let's roll with it for now
+  implicit val ordering: Ordering[ScriptDef] =
+    Ordering.by(_.asJson.noSpaces)
+
+  case class Main(project: CrossProjectName, main: String, sourceGlobs: JsonSet[RelPath]) extends ScriptDef
   object Main {
     implicit val codec: Codec.AsObject[Main] = deriveCodec
   }
 
-  case class Shell(command: Option[String], `override-os`: Option[Map[Os, String]]) extends ScriptDef
+  case class Shell(command: Option[String], `override-os`: Option[Map[Os, String]], sourceGlobs: JsonSet[RelPath]) extends ScriptDef
   object Shell {
     implicit val codec: Codec.AsObject[Shell] = deriveCodec
   }
@@ -22,7 +29,7 @@ object ScriptDef {
         str.split("/") match {
           case Array(projectName, main) =>
             CrossProjectName.decodes.decodeJson(Json.fromString(projectName)).map { crossProjectName =>
-              ScriptDef.Main(crossProjectName, main)
+              ScriptDef.Main(crossProjectName, main, JsonSet.empty)
             }
 
           case _ =>

@@ -3,17 +3,26 @@ package bleep
 import bleep.internal.FileUtils
 import bleep.logging.TypedLogger.Stored
 import bleep.logging.{LogLevel, Loggers, TypedLogger}
+import bleep.model.BuildVariant
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 
 import java.nio.file.Files
 import java.time.Instant
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val userPaths = UserPaths.fromAppDirs
   val logger0 = Loggers.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).untyped.unsafeGet().minLogLevel(LogLevel.info)
+  val ec: ExecutionContextExecutor = ExecutionContext.global
+
+  val lazyBleepBuild: Lazy[Started] =
+    Lazy {
+      val existing = BuildLoader.find(FileUtils.cwd).existing.orThrow
+      val pre = Prebootstrapped(logger0, userPaths, BuildPaths(FileUtils.cwd, existing, BuildVariant.Normal), existing, ec)
+      bootstrap.from(pre, GenBloopFiles.SyncToDisk, Nil, model.BleepConfig.default, CoursierResolver.Factory.default).orThrow
+    }
 
   val prelude =
     """$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
@@ -23,39 +32,38 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       |""".stripMargin
 
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
-  def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Unit =
-    test(testName) {
-      val storingLogger = Loggers.storing()
-      val stdLogger = logger0.withContext(testName)
-      val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
+  def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Assertion = {
+    val storingLogger = Loggers.storing()
+    val stdLogger = logger0.withContext(testName)
+    val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 
-      val existingBuild = BuildLoader.Existing(testTempFolder / BuildLoader.BuildFileName, Lazy(Right(prelude ++ yaml)))
-      val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
-      FileSync.syncStrings(testTempFolder, files, FileSync.DeleteUnknowns.No, soft = false)
+    val withBuildScript = files.updated(RelPath(List(BuildLoader.BuildFileName)), prelude ++ yaml)
+    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false)
+    val existingBuild = BuildLoader.find(testTempFolder).existing.orThrow
+    val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
 
-      try {
-        val started = bootstrap
-          .from(
-            Prebootstrapped(storingLogger.untyped, userPaths, buildPaths, existingBuild),
-            GenBloopFiles.SyncToDisk,
-            Nil,
-            model.BleepConfig.default,
-            CoursierResolver.Factory.default,
-            ExecutionContext.global
-          )
-          .orThrow
-        val commands = new Commands(started)
-        val ret = f(started, commands, storingLogger)
-        FileUtils.deleteDirectory(testTempFolder)
-        ret
+    try {
+      val started = bootstrap
+        .from(
+          Prebootstrapped(storingLogger.untyped.zipWith(stdLogger).untyped, userPaths, buildPaths, existingBuild, ec),
+          GenBloopFiles.SyncToDiskWith(GenBloopFiles.ReplaceBleepDependencies(lazyBleepBuild)),
+          Nil,
+          model.BleepConfig.default,
+          CoursierResolver.Factory.default
+        )
+        .orThrow
+      val commands = new Commands(started)
+      val ret = f(started, commands, storingLogger)
+      FileUtils.deleteDirectory(testTempFolder)
+      ret
+    } finally
+      stdLogger.info(s"Ran in $testTempFolder")
+  }
 
-      } finally
-        stdLogger.info(s"Ran in $testTempFolder")
-    }
-
-  runTest(
-    "run prefer jvmRuntimeOptions",
-    """projects:
+  test("run prefer jvmRuntimeOptions") {
+    runTest(
+      "run prefer jvmRuntimeOptions",
+      """projects:
       a:
         platform:
           name: jvm
@@ -65,21 +73,23 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         scala:
           version: 3.2.1
 """,
-    Map(
-      RelPath.force("./a/src/scala/Main.scala") ->
-        """package test
+      Map(
+        RelPath.force("./a/src/scala/Main.scala") ->
+          """package test
         |object Main {
         |  def main(args: Array[String]): Unit =
         |    println("foo was: " + sys.props("foo"))
         |}""".stripMargin
-    )
-  ) { (_, commands, storingLogger) =>
-    commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-    assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 2"))
+      )
+    ) { (_, commands, storingLogger) =>
+      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
+      assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 2"))
+    }
   }
-  runTest(
-    "run fallback to jvmOptions",
-    """projects:
+  test("run fallback to jvmOptions") {
+    runTest(
+      "run fallback to jvmOptions",
+      """projects:
       a:
         platform:
           name: jvm
@@ -88,16 +98,17 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         scala:
           version: 3.2.1
 """,
-    Map(
-      RelPath.force("./a/src/scala/Main.scala") ->
-        """package test
+      Map(
+        RelPath.force("./a/src/scala/Main.scala") ->
+          """package test
         |object Main {
         |  def main(args: Array[String]): Unit =
         |    println("foo was: " + sys.props("foo"))
         |}""".stripMargin
-    )
-  ) { (_, commands, storingLogger) =>
-    commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-    assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 1"))
+      )
+    ) { (_, commands, storingLogger) =>
+      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
+      assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 1"))
+    }
   }
 }

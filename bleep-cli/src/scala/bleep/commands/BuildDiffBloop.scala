@@ -35,17 +35,17 @@ case class BuildDiffBloop(opts: BuildDiff.Options, projects: Array[model.CrossPr
 
     val oldStarted = bootstrap
       .from(
-        new Prebootstrapped(
+        Prebootstrapped(
           logger = started.logger.withPath("loading old build"),
           userPaths = started.userPaths,
           buildPaths = started.buildPaths,
-          existingBuild = BuildLoader.Existing(started.buildPaths.bleepYamlFile, oldBuildStr)
+          existingBuild = BuildLoader.Existing(started.buildPaths.bleepYamlFile, oldBuildStr),
+          ec = started.executionContext
         ),
         genBloopFiles = GenBloopFiles.InMemory,
         rewrites = Nil,
         config = started.config,
-        resolverFactory = (_, _, _) => started.resolver,
-        executionContext = started.executionContext
+        resolverFactory = (_, _, _) => started.resolver
       )
       .orThrow
 

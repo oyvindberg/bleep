@@ -2,7 +2,8 @@ package bleep
 package commands
 
 import bleep.BleepException
-import cats.syntax.traverse._
+import bleep.internal.traverseish
+import bleep.model.ScriptDef
 
 import scala.build.bloop.BloopServer
 
@@ -12,45 +13,35 @@ case class Script(name: model.ScriptName, args: List[String], watch: Boolean) ex
       .scripts(name)
       .values
       .map {
-        case model.ScriptDef.Main(project, _) => project
-        case model.ScriptDef.Shell(_, _)      => throw new BleepException.Text("cannot `--watch shell` scripts for now")
+        case model.ScriptDef.Main(project, _, _) => project
+        case model.ScriptDef.Shell(_, _, _)      => throw new BleepException.Text("cannot `--watch shell` scripts for now")
       }
       .distinct
       .toArray
 
   override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
-    started.build
-      .scripts(name)
-      .values
-      .traverse {
-        case model.ScriptDef.Main(project, main) =>
-          Run(project, Some(main), args = args, raw = false, watch = watch).runWithServer(started, bloop)
-        case model.ScriptDef.Shell(command, overridesForOs) =>
-          val bareCommand: String = overridesForOs.flatMap(_.get(OsArch.current.os)).orElse(command).getOrElse {
-            throw new BleepException.Text(s"no command found for os ${OsArch.current.os}")
-          }
+    Script.run(started, bloop, started.build.scripts(name).values, args, watch)
+}
 
-          val cmd = OsArch.current.os match {
-            case model.Os.Windows =>
-              List("cmd.exe", "/C", bareCommand)
-            case _ =>
-              val quote = '"'.toString
-              val quotedQuote = "\\\\"
-              List("bash", "-c", bareCommand.replace(quote, quotedQuote))
-          }
-          try {
-            cli(
-              action = s"script ${name.value}",
-              cwd = started.buildPaths.cwd,
-              cmd = cmd,
-              logger = started.logger,
-              out = cli.Out.ViaLogger(started.logger),
-              in = cli.In.Attach
-            )
-            Right(())
-          } catch {
-            case x: BleepException => Left(x)
-          }
-      }
-      .map(_ => ())
+object Script {
+  def run(started: Started, bloop: BloopServer, scriptDefs: Seq[ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
+    traverseish.runAll(scriptDefs) {
+      case model.ScriptDef.Main(project, main, _) =>
+        Run(project, Some(main), args = args, raw = false, watch = watch).runWithServer(started, bloop)
+      case shell @ model.ScriptDef.Shell(_, _, _) =>
+        val cmd = internal.ScriptShelloutCommand.getForShellScript(shell)
+        try {
+          cli(
+            action = "run script",
+            cwd = started.buildPaths.cwd,
+            cmd = cmd,
+            logger = started.logger,
+            out = cli.Out.ViaLogger(started.logger),
+            in = cli.In.Attach
+          )
+          Right(())
+        } catch {
+          case x: BleepException => Left(x)
+        }
+    }
 }

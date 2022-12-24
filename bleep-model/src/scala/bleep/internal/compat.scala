@@ -8,6 +8,14 @@ object compat {
     def toScalaCompat: Option[A] = if (oa.isPresent) Some(oa.get) else None
   }
 
+  implicit class JavaListCompatOps[A](private val as: java.util.List[A]) extends AnyVal {
+    def toScalaCompat: List[A] = {
+      val b = List.newBuilder[A]
+      as.forEach(a => b += a)
+      b.result()
+    }
+  }
+
   implicit class OptionCompatOps[A](private val oa: Option[A]) extends AnyVal {
     def zipCompat[A2](oa2: Option[A2]): Option[(A, A2)] =
       for {

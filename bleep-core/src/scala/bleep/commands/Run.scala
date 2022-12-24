@@ -3,7 +3,7 @@ package commands
 
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
-import bleep.internal.{bleepLoggers, jvmRunCommand}
+import bleep.internal.jvmRunCommand
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -52,7 +52,7 @@ case class Run(
       cli(
         "run",
         started.pre.buildPaths.cwd,
-        jvmRunCommand(started, project, Some(main), args).orThrow,
+        jvmRunCommand(started.bloopProjects(project), started.resolvedJvm, project, Some(main), args).orThrow,
         logger = started.logger,
         out = cli.Out.Raw,
         in = cli.In.Attach,
@@ -64,8 +64,9 @@ case class Run(
   def bspRun(started: Started, bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
     val params = new bsp4j.RunParams(buildTarget(started.buildPaths, project))
     val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
-    val envs = sys.env.updated(bleepLoggers.CallerProcessAcceptsJsonEvents, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
-    mainClass.setEnvironmentVariables(envs)
+
+    val env = sys.env ++ started.bleepExecutable.forceGet.childrenEnv
+    mainClass.setEnvironmentVariables(env.map { case (k, v) => s"$k=$v" }.toList.sorted.asJava)
     params.setData(mainClass)
     params.setDataKind("scala-main-class")
     started.logger.debug(params.toString)
@@ -74,7 +75,7 @@ case class Run(
       Left(new BspCommandFailed("Run", Array(project), reason))
 
     Try(bloop.server.buildTargetRun(params).get().getStatusCode) match {
-      case Success(bsp4j.StatusCode.OK) => Right(started.logger.info("Run succeeded"))
+      case Success(bsp4j.StatusCode.OK) => Right(started.logger.info(s"Run $main succeeded"))
       case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
       case Failure(exception) =>
         @tailrec

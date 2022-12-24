@@ -8,7 +8,6 @@ projects:
     - com.lihaoyi::pprint:0.8.1
     - com.monovore::decline:2.4.1
     - org.gnieh::diffson-circe:4.3.0
-    - org.graalvm.nativeimage:svm:22.3.0
     - org.scalameta:svm-subs:101.0.0
     - org.typelevel::cats-core:2.9.0
     - org.typelevel::cats-effect:3.4.0
@@ -23,6 +22,7 @@ projects:
     - for3Use213: true
       module: ch.epfl.scala::bloop-config:1.5.5
     - com.lihaoyi::fansi:0.4.0
+    - org.graalvm.nativeimage:svm:22.3.0
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true

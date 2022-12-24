@@ -36,7 +36,7 @@ case class Scalafmt(check: Boolean) extends BleepBuildCommand {
       .getVersion(configStr)
       .getOrElse(throw new BleepException.Text(s"Couldn't naively extract scalafmt version from $configPath"))
 
-    val scalafmt = FetchScalafmt(new BleepCacheLogger(started.logger), started.executionContext, version)
+    val scalafmt = FetchScalafmt(started.pre.cacheLogger, started.executionContext, version)
 
     started.logger.withContext(scalafmt).debug("Using scalafmt")
 

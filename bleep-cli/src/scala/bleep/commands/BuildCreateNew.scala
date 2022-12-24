@@ -34,10 +34,11 @@ case class BuildCreateNew(
       .syncPaths(cwd, allFiles, deleteUnknowns = FileSync.DeleteUnknowns.No, soft = true)
       .log(logger, "Wrote build files")
 
-    val pre = Prebootstrapped(logger, userPaths, buildPaths, BuildLoader.Existing(buildPaths.bleepYamlFile))
+    val ec = ExecutionContext.global
+    val pre = Prebootstrapped(logger, userPaths, buildPaths, BuildLoader.Existing(buildPaths.bleepYamlFile), ec)
     val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
-    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, coursierResolver, ExecutionContext.global) map { started =>
+    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, coursierResolver) map { started =>
       val projects = started.bloopProjectsList
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct
