@@ -1,0 +1,58 @@
+# Build rewrites
+
+The build itself is completely declarative, and that is enough for very, very many cases. For the few cases where you need more powers we have Build Rewrites.
+
+A build rewrite can be used in a script to boot a variant of the build which is transformed in some arbitrary manner.
+
+```scala
+trait BuildRewrite {
+  val name: BuildRewriteName
+
+  def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project]
+
+}
+```
+
+Basically it takes a fully parsed and expanded build, and lets you take the complete set of projects and rewrite them to whatever you want.
+
+For instance this build rewrite adds a scala compiler flag to all projects:
+```scala
+object AddDummyFlag extends BuildRewrite {
+      override val name = model.BuildRewriteName("add-dummy-flag")
+
+      override protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+        oldBuild.explodedProjects.map { case (crossName, p) =>
+          (crossName, p.copy(scala = p.scala.map(s => s.copy(options = s.options union model.Options.parse(List("-foo"), None)))))
+        }
+    }
+```
+
+## Using rewritten builds in a script
+
+You can write a script which uses this rewrite like this:
+
+```scala
+object GenDocumentation extends BleepScript("GenDocumentation") {
+  override val rewrites: List[BuildRewrite] = List(AddDummyFlag)
+    def run(started: Started, commands: Commands, args: List[String]): Unit = ???
+}
+```
+
+Bleep considers a build which is booted with rewrites completely separate from the normal build, you can see it in the `.bleep` directory.
+
+```
+.bleep/builds/normal # the build you're working with from the command line
+.bleep/builds/bsp # the build you're working with from IDE. This has semanticdb and a subset of all projects
+.bleep/builds/add-dummy-flag # a name derived by appending names of all applied build rewrites
+```
+
+So this is the foundation you can use to for instance add jmh flags and run benchmarking scripts. You can add Scala.js `mapSourceURI` with a reference to a given git SHA you have found. Or pretty much anything else.
+You can of course also publish and/or package your app based on one of these builds.
+
+
+## Persisting rewritten builds
+You can also write these rewritten builds back to the build file.
+As such you have for instance the infrastructure to write a script which
+1) checks out all bleep repositories in your organisation
+2) applies patches. Think for instance dependency updates
+3) pushes all the changes back into pull requests
