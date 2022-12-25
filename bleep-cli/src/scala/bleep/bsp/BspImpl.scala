@@ -8,13 +8,13 @@ import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
 import java.net.Socket
-import java.nio.file.Path
+import java.nio.file.{Files, Path}
 import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
 import scala.build.blooprifle.internal.Operations
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger}
+import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, FailedToStartServerException}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 object BspImpl {
   def run(pre: Prebootstrapped): Unit = {
@@ -123,7 +123,17 @@ object BspImpl {
   def buildServer(config: BloopRifleConfig, workspace: Path, buildClient: bsp4j.BuildClient, threads: BloopThreads, logger: BloopRifleLogger): BloopServer = {
 
     val (conn, socket, bloopInfo) =
-      BloopServer.bsp(config, workspace, threads, logger, config.period, config.timeout)
+      try BloopServer.bsp(config, workspace, threads, logger, config.period, config.timeout)
+      catch {
+        case th: FailedToStartServerException =>
+          val readLog: Option[String] =
+            config.address match {
+              case _: BloopRifleConfig.Address.Tcp           => None
+              case ds: BloopRifleConfig.Address.DomainSocket => Try(Files.readString(ds.outputPath)).toOption
+            }
+          throw BleepCommandRemote.FailedToStartBloop(th, readLog)
+
+      }
 
     logger.debug(s"Connected to Bloop via BSP at ${conn.address}")
 

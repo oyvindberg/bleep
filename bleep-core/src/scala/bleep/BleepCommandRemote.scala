@@ -4,11 +4,14 @@ import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
 import bleep.internal.{fatal, jvmOrSystem, BspClientDisplayProgress}
 import ch.epfl.scala.bsp4j
 
+import java.nio.file.Files
 import java.util
 import scala.build.bloop.{BloopServer, BloopThreads}
-import scala.build.blooprifle.BloopRifleConfig
+import scala.build.blooprifle.BloopRifleConfig.Address
+import scala.build.blooprifle.{BloopRifleConfig, FailedToStartServerException}
 import scala.build.blooprifle.internal.Operations
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
   def watchableProjects(started: Started): Array[model.CrossProjectName]
@@ -52,16 +55,27 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
 
-    val server = BloopServer.buildServer(
-      config = bloopRifleConfig,
-      clientName = "bleep",
-      clientVersion = model.BleepVersion.current.value,
-      workspace = started.buildPaths.buildVariantDir,
-      classesDir = started.buildPaths.buildVariantDir / "classes",
-      buildClient = buildClient,
-      threads = BloopThreads.create(),
-      logger = bleepRifleLogger
-    )
+    val server =
+      try
+        BloopServer.buildServer(
+          config = bloopRifleConfig,
+          clientName = "bleep",
+          clientVersion = model.BleepVersion.current.value,
+          workspace = started.buildPaths.buildVariantDir,
+          classesDir = started.buildPaths.buildVariantDir / "classes",
+          buildClient = buildClient,
+          threads = BloopThreads.create(),
+          logger = bleepRifleLogger
+        )
+      catch {
+        case th: FailedToStartServerException =>
+          val readLog: Option[String] =
+            bloopRifleConfig.address match {
+              case _: BloopRifleConfig.Address.Tcp           => None
+              case ds: BloopRifleConfig.Address.DomainSocket => Try(Files.readString(ds.outputPath)).toOption
+            }
+          throw BleepCommandRemote.FailedToStartBloop(th, readLog)
+      }
 
     try
       if (watch) {
@@ -145,5 +159,10 @@ object BleepCommandRemote {
       )
 
   case class NoMain() extends BleepException(s"No main class found. Specify which one you want with `--class ...`")
+
+  case class FailedToStartBloop(cause: FailedToStartServerException, readLog: Option[String])
+      extends BleepException(
+        readLog.foldLeft(cause.getMessage)((msg, log) => s"$msg\nRead log file:\n$log")
+      )
 
 }
