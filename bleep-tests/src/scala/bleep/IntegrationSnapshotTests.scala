@@ -214,11 +214,15 @@ class IntegrationSnapshotTests extends SnapshotTest {
           */
         case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
         object AnalyzedClassPathDiff {
+          val transitiveResources: Set[Path] =
+            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.bloopProjects(name).resources }.flatten.toSet
+
           def from(paths: Set[Path]): AnalyzedClassPathDiff = {
             val (classes, jars) = paths
               // the bloop build has this added for all projects. no idea where it comes from and what to do with it
               .filterNot(_.getFileName.toString == "tools.jar")
-              .partition(p => p.endsWith("classes") || p.endsWith("test-classes") || p.endsWith("it-classes"))
+              // drop classes and resources directories
+              .partition(p => p.endsWith("classes") || p.endsWith("test-classes") || p.endsWith("it-classes") || transitiveResources(p))
             // note that paths are difficult here, we may receive files from sbt launcher in boot folder
             val (scalaJars, restJars) = jars.partition(p => p.getFileName.toString.startsWith("scala"))
             AnalyzedClassPathDiff(classes, scalaJars, restJars)
