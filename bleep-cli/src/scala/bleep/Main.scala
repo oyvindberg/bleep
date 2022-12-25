@@ -174,8 +174,8 @@ object Main {
           Opts.subcommand("projects-test", "show test projects under current directory")(
             testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
-          compileServerCmd(started.prebootstrapped.logger, started.prebootstrapped.userPaths),
-          installTabCompletions(started.prebootstrapped.logger),
+          compileServerCmd(started.pre.logger, started.pre.userPaths),
+          installTabCompletions(started.pre.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),

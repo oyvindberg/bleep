@@ -46,7 +46,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         bleepConfig.compileServerMode,
         bloopJvm,
         started.logger,
-        started.prebootstrapped.userPaths,
+        started.pre.userPaths,
         started.resolver,
         bleepRifleLogger,
         started.executionContext
@@ -94,8 +94,8 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           ()
         }
 
-        val buildWatcher = BleepFileWatching.build(started.logger, started.prebootstrapped.existingBuild) { case () =>
-          started.reloaded match {
+        val buildWatcher = BleepFileWatching.build(started.logger, started.pre.existingBuild) { case () =>
+          started.reloadFromDisk() match {
             case Left(bleepException) =>
               fatal.log("build changed, but it didn't work :(", started.logger, bleepException)
               codeWatcher.updateMapping(Map.empty)

@@ -56,7 +56,7 @@ case class Run(
       val cp = fixedClasspath(bloopProject)
       cli(
         "run",
-        started.prebootstrapped.buildPaths.cwd,
+        started.pre.buildPaths.cwd,
         List[List[String]](
           List(started.jvmCommand.toString),
           bloopProject.java match {
@@ -76,7 +76,7 @@ case class Run(
 
   def bspRun(started: Started, bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
     val params = new bsp4j.RunParams(buildTarget(started.buildPaths, project))
-    val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.prebootstrapped.buildPaths.cwd}").asJava)
+    val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
     val envs = sys.env.updated(jsonEvents.CallerProcessAcceptsJsonEvents, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
     mainClass.setEnvironmentVariables(envs)
     params.setData(mainClass)

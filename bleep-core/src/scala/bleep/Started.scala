@@ -10,7 +10,7 @@ import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 
 case class Started(
-    prebootstrapped: Prebootstrapped,
+    pre: Prebootstrapped,
     rewrites: List[BuildRewrite],
     build: model.Build,
     bloopFiles: GenBloopFiles.Files,
@@ -18,10 +18,10 @@ case class Started(
     lazyConfig: Lazy[model.BleepConfig],
     resolver: Lazy[CoursierResolver],
     executionContext: ExecutionContext
-) {
-  def buildPaths: BuildPaths = prebootstrapped.buildPaths
-  def userPaths: UserPaths = prebootstrapped.userPaths
-  def logger: Logger = prebootstrapped.logger
+)(reloadUsing: (Prebootstrapped, Lazy[model.BleepConfig], List[BuildRewrite]) => Either[BleepException, Started]) {
+  def buildPaths: BuildPaths = pre.buildPaths
+  def userPaths: UserPaths = pre.userPaths
+  def logger: Logger = pre.logger
 
   def projectPaths(crossName: model.CrossProjectName): ProjectPaths =
     buildPaths.project(crossName, build.explodedProjects(crossName))
@@ -53,15 +53,13 @@ case class Started(
   def chosenTestProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     chosenProjects(maybeFromCommandLine).filter(projectName => build.explodedProjects(projectName).isTestProject.getOrElse(false))
 
-  def reloaded: Either[BleepException, Started] =
-    prebootstrapped.reloaded.flatMap { pre =>
-      bootstrap.from(
-        pre,
-        GenBloopFiles.SyncToDisk,
-        rewrites,
-        BleepConfigOps.lazyForceLoad(pre.userPaths),
-        CoursierResolver.Factory.default,
-        executionContext
-      )
-    }
+  def reloadFromDisk(rewrites: List[BuildRewrite]): Either[BleepException, Started] =
+    for {
+      pre <- pre.reloadFromDisk()
+      lazyConfig = BleepConfigOps.lazyForceLoad(userPaths)
+      reloaded <- reloadUsing(pre, lazyConfig, rewrites)
+    } yield reloaded
+
+  def reloadFromDisk(): Either[BleepException, Started] =
+    reloadFromDisk(rewrites)
 }

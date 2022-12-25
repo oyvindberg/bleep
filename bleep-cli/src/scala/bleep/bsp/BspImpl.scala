@@ -66,7 +66,7 @@ object BspImpl {
               }
             ).flatten
 
-            pre.reloaded.flatMap { pre =>
+            pre.reloadFromDisk().flatMap { pre =>
               bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig), CoursierResolver.Factory.default, ExecutionContext.global)
             }
           }

@@ -58,51 +58,54 @@ object bootstrap {
       executionContext: ExecutionContext
   ): Either[BleepException, Started] = {
     val t0 = System.currentTimeMillis()
+    val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), executionContext)
 
-    try
-      pre.existingBuild.buildFile.forceGet.map { buildFile =>
-        val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, buildFile))
-        val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
+    def go(pre: Prebootstrapped, lazyConfig: Lazy[model.BleepConfig], rewrites: List[BuildRewrite]): Either[BleepException, Started] =
+      try
+        pre.existingBuild.buildFile.forceGet.map { buildFile =>
+          val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, buildFile))
+          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
 
-        val activeProjects: Option[Array[model.CrossProjectName]] =
-          if (pre.buildPaths.cwd == pre.buildPaths.buildDir) None
-          else {
-            val chosen =
-              build.explodedProjects.flatMap { case (crossProjectName, p) =>
-                val folder = pre.buildPaths.project(crossProjectName, p).dir
-                if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
-                else None
-              }.toArray
+          val activeProjects: Option[Array[model.CrossProjectName]] =
+            if (pre.buildPaths.cwd == pre.buildPaths.buildDir) None
+            else {
+              val chosen =
+                build.explodedProjects.flatMap { case (crossProjectName, p) =>
+                  val folder = pre.buildPaths.project(crossProjectName, p).dir
+                  if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
+                  else None
+                }.toArray
 
-            if (chosen.length > 0 && chosen.length != build.explodedProjects.size) {
-              pre.logger.info(
-                s"${chosen.length} of ${build.explodedProjects.size} projects active from ${pre.buildPaths.cwd}. run `bleep projects` to see which"
-              )
+              if (chosen.length > 0 && chosen.length != build.explodedProjects.size) {
+                pre.logger.info(
+                  s"${chosen.length} of ${build.explodedProjects.size} projects active from ${pre.buildPaths.cwd}. run `bleep projects` to see which"
+                )
+              }
+              Some(chosen).filter(_.nonEmpty)
             }
-            Some(chosen).filter(_.nonEmpty)
-          }
 
-        val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), executionContext)
-        val bloopFiles: GenBloopFiles.Files =
-          genBloopFiles(pre.logger, pre.buildPaths, lazyResolver, build, fetchNode)
+          val bloopFiles: GenBloopFiles.Files =
+            genBloopFiles.apply(pre.logger, pre.buildPaths, lazyResolver, build, fetchNode)
 
-        val td = System.currentTimeMillis() - t0
-        pre.logger.info(s"bootstrapped in $td ms")
+          val td = System.currentTimeMillis() - t0
+          pre.logger.info(s"bootstrapped in $td ms")
 
-        Started(
-          prebootstrapped = pre,
-          rewrites = rewrites,
-          build = build,
-          bloopFiles = bloopFiles,
-          activeProjectsFromPath = activeProjects,
-          lazyConfig = lazyConfig,
-          resolver = lazyResolver,
-          executionContext = executionContext
-        )
+          Started(
+            pre = pre,
+            rewrites = rewrites,
+            build = build,
+            bloopFiles = bloopFiles,
+            activeProjectsFromPath = activeProjects,
+            lazyConfig = lazyConfig,
+            resolver = lazyResolver,
+            executionContext = executionContext
+          )(reloadUsing = go)
+        }
+      catch {
+        case x: BleepException => Left(x)
+        case th: Throwable     => Left(new BleepException.Cause(th, "couldn't initialize bleep"))
       }
-    catch {
-      case x: BleepException => Left(x)
-      case th: Throwable     => Left(new BleepException.Cause(th, "couldn't initialize bleep"))
-    }
+
+    go(pre, lazyConfig, rewrites)
   }
 }
