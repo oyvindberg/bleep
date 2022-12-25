@@ -7,10 +7,8 @@ import ch.epfl.scala.bsp4j
 import java.nio.file.Files
 import java.util
 import scala.build.bloop.{BloopServer, BloopThreads}
-import scala.build.blooprifle.BloopRifleConfig.Address
-import scala.build.blooprifle.{BloopRifleConfig, FailedToStartServerException}
 import scala.build.blooprifle.internal.Operations
-import scala.jdk.CollectionConverters._
+import scala.build.blooprifle.{BloopRifleConfig, FailedToStartServerException}
 import scala.util.Try
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
@@ -130,21 +128,6 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
       }
   }
 
-  def discoverMain(started: Started, bloop: BloopServer, project: model.CrossProjectName): Either[BleepException, String] = {
-    val req = new bsp4j.ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](buildTarget(started.buildPaths, project)))
-    started.logger.debug(req.toString)
-
-    val res: bsp4j.ScalaMainClassesResult =
-      bloop.server.buildTargetScalaMainClasses(req).get()
-
-    started.logger.debug(res.toString)
-
-    res.getItems.asScala.flatMap(_.getClasses.asScala).map(_.getClassName).toList match {
-      case Nil       => Left(BleepCommandRemote.NoMain())
-      case List(one) => Right(one)
-      case many      => Left(BleepCommandRemote.AmbiguousMain(many))
-    }
-  }
 }
 
 object BleepCommandRemote {
@@ -152,13 +135,6 @@ object BleepCommandRemote {
     self: BleepCommandRemote =>
     def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
   }
-
-  case class AmbiguousMain(mainClasses: Seq[String])
-      extends BleepException(
-        s"Discovered more than one main class, so you need to specify which one you want with `--class ...`. ${mainClasses.map(fansi.Color.Magenta(_)).mkString("\n", "\n, ", "\n")}"
-      )
-
-  case class NoMain() extends BleepException(s"No main class found. Specify which one you want with `--class ...`")
 
   case class FailedToStartBloop(cause: FailedToStartServerException, readLog: Option[String])
       extends BleepException(

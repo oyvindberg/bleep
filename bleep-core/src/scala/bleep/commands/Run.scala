@@ -36,7 +36,7 @@ case class Run(
         case Some(mainClass) => Right(mainClass)
         case None =>
           started.logger.info("No main class specified in build or command line. discovering...")
-          discoverMain(started, bloop, project)
+          discoverMain(started.logger, bloop, buildTarget(started.buildPaths, project))
       }
 
     maybeMain.flatMap { main =>
