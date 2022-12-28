@@ -7,6 +7,8 @@ import bleep.logging.Logger
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
+import scala.util.Try
 
 object runSbt {
 
@@ -15,6 +17,9 @@ object runSbt {
     * I'm sure it's possible to do the same thing from within sbt and only launch it first, but you know. it's not at all easy.
     */
   def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths): Unit = {
+    val fetchSbt = new FetchSbt(new BleepCacheLogger(logger), ExecutionContext.global)
+    val version = readSbtVersionFromFile(sbtBuildDir).getOrElse("1.8.0")
+    val sbtPath = fetchSbt(version)
     def sbtCommands(cmds: Iterable[String]) =
       cli.In.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
 
@@ -24,7 +29,7 @@ object runSbt {
     ).collect { case (k, Some(v)) => (k, v) }
 
     val sbt =
-      List("sbt") ++ sys.env.get("JAVA_HOME").toList.flatMap(home => List("-java-home", home))
+      List(sbtPath.toString) ++ sys.env.get("JAVA_HOME").toList.flatMap(home => List("-java-home", home))
 
     FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
 
@@ -132,6 +137,17 @@ object runSbt {
       finally Files.delete(tempAddBloopPlugin)
     }
   }
+
+  def readSbtVersionFromFile(sbtBuildDir: Path): Option[String] =
+    Try {
+      val p = sbtBuildDir / "project" / "build.properties"
+      val contents = Files.readString(p)
+      contents.linesIterator
+        .map(_.split("=").map(_.trim))
+        .collectFirst { case Array("sbt.version", version) =>
+          version
+        }
+    }.toOption.flatten
 
   def parseProjectsOutput(lines: Array[String]): Map[Path, List[String]] = {
     var currentPath = Option.empty[Path]
