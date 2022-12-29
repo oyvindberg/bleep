@@ -93,7 +93,7 @@ object BuildCreateNew {
 
     val scalatest = model.Dep.Scala("org.scalatest", "scalatest", "3.2.13")
     object test {
-      val relPath = RelPath.force(s"$name-test/${shared}src/scala/com/foo/AppTest.scala")
+      val relPath = RelPath.force(s"tests/${shared}src/scala/com/foo/AppTest.scala")
       val contents =
         s"""package com.foo
            |
