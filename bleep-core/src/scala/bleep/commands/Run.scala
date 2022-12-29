@@ -4,6 +4,7 @@ package commands
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
 import bleep.logging.jsonEvents
+import bloop.config.Config
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -54,15 +55,18 @@ case class Run(
     Compile(watch = false, Array(project)).runWithServer(started, bloop).map { case () =>
       val bloopProject = started.bloopProjects(project)
       val cp = fixedClasspath(bloopProject)
+
+      val jvmOptions = started.build.explodedProjects(project).platform match {
+        case Some(platform) => if (platform.jvmRuntimeOptions.isEmpty) platform.jvmOptions else platform.jvmRuntimeOptions
+        case None           => model.Options.empty
+      }
+
       cli(
         "run",
         started.pre.buildPaths.cwd,
         List[List[String]](
           List(started.jvmCommand.toString),
-          bloopProject.java match {
-            case Some(java) => java.options
-            case None       => Nil
-          },
+          jvmOptions.render,
           List("-classpath", cp.mkString(File.pathSeparator), main),
           args
         ).flatten,
