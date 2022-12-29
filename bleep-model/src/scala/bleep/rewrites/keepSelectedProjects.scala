@@ -1,10 +1,10 @@
 package bleep
 package rewrites
 
-case class keepSelectedProjects(selectedProjectGlobs: List[String]) extends BuildRewrite {
+case class keepSelectedProjects(selectedProjectGlobs: Array[model.ProjectGlob]) extends BuildRewrite {
   override val name = model.BuildRewriteName("keep-selected-projects")
 
-  def selectedPlusTransitiveDeps(selectedProjectNames: List[model.CrossProjectName], build: model.Build): Set[model.CrossProjectName] = {
+  def selectedPlusTransitiveDeps(selectedProjectNames: Array[model.CrossProjectName], build: model.Build): Set[model.CrossProjectName] = {
     val b = Set.newBuilder[model.CrossProjectName]
     selectedProjectNames.foreach { name =>
       b += name
@@ -14,7 +14,7 @@ case class keepSelectedProjects(selectedProjectGlobs: List[String]) extends Buil
   }
   protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] = {
     val globs = new model.ProjectGlobs(None, oldBuild.explodedProjects)
-    val selectedProjectNames = selectedProjectGlobs.flatMap(str => globs.projectNameMap.getOrElse(str, Array.empty[model.CrossProjectName]))
+    val selectedProjectNames = selectedProjectGlobs.flatMap(globs.projectNameMap.get).selection
     val withTransitive = selectedPlusTransitiveDeps(selectedProjectNames, oldBuild)
 
     val chosen = oldBuild.explodedProjects.filter { case (name, _) => withTransitive(name) }

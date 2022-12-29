@@ -40,9 +40,9 @@ case class Started(
     FetchJvm(Some(userPaths.resolveJvmCacheDir), new BleepCacheLogger(logger), jvm, executionContext)
   }
 
-  def chosenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
+  def chosenProjects(maybeFromCommandLine: Option[Array[model.ProjectSelection]]): Array[model.CrossProjectName] =
     maybeFromCommandLine match {
-      case Some(fromCommandLine) => fromCommandLine.sorted
+      case Some(fromCommandLine) => fromCommandLine.selection
       case None =>
         activeProjectsFromPath match {
           case None           => build.explodedProjects.keys.toArray.sorted
@@ -50,7 +50,7 @@ case class Started(
         }
     }
 
-  def chosenTestProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
+  def chosenTestProjects(maybeFromCommandLine: Option[Array[model.ProjectSelection]]): Array[model.CrossProjectName] =
     chosenProjects(maybeFromCommandLine).filter(projectName => build.explodedProjects(projectName).isTestProject.getOrElse(false))
 
   def reloadFromDisk(rewrites: List[BuildRewrite]): Either[BleepException, Started] =

@@ -25,7 +25,7 @@ class RewriteSnapshotTest extends SnapshotTest {
 
   val rewrites: List[BuildRewrite] = List(
     DropFeatureFlag,
-    keepSelectedProjects(List("jvm213"))
+    keepSelectedProjects(Array(model.ProjectGlob("@jvm213")))
   )
 
   private val foundBuilds: List[BuildLoader.Existing] =
