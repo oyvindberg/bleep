@@ -71,7 +71,7 @@
     },
     "RelPath": {
       "type": "string",
-      "pattern": "^\\.\\.?/.+$"
+      "pattern": "^\\.\\.?/.*$"
     },
     "Dependency": {
       "anyOf": [
