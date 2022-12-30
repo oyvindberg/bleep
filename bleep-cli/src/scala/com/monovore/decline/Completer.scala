@@ -2,13 +2,13 @@ package com.monovore.decline
 
 import com.monovore.decline.Completer._
 
-final class Completer(possibleCompletionsForMetavar: String => List[String]) {
+final class Completer(possibleCompletionsForMetavar: String => Array[String]) {
   def completeOpts[A](args: List[String])(x: Opts[A]): Res =
     x match {
       case Opts.Subcommand(command) =>
         args match {
           case Nil =>
-            Res.Found(List(Completion(command.name, nonEmpty(command.header))), 0)
+            Res.Found(Array(Completion(command.name, nonEmpty(command.header))), 0)
           case command.name :: tail =>
             var remainingArgs = tail
             var consumed = 1
@@ -23,7 +23,7 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
               }
             res.commitNonEmpty.withConsumed(consumed)
           case head :: rest if isStartOf(head, command.name) && rest.forall(_.isEmpty) =>
-            Res.Found(List(Completion(command.name, nonEmpty(command.header))), 1).commitNonEmptyIf(head.nonEmpty)
+            Res.Found(Array(Completion(command.name, nonEmpty(command.header))), 1).commitNonEmptyIf(head.nonEmpty)
           case _ => Res.NoMatch
         }
 
@@ -51,16 +51,16 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
     x match {
       case Opt.Regular(names, metavar, help, _) =>
         args match {
-          case Nil                                              => Res.Found(List(Completion(pickName(names), nonEmpty(help))), 0)
-          case head :: Nil                                      => completeName(names.map(_.toString), head, nonEmpty(help)).commitNonEmptyIf(head.nonEmpty)
+          case Nil                                              => Res.Found(Array(Completion(pickName(names), nonEmpty(help))), 0)
+          case head :: Nil                                      => completeName(names, head, nonEmpty(help)).commitNonEmptyIf(head.nonEmpty)
           case head :: tail if names.exists(_.toString == head) => completeMetaVar(tail, metavar).commitNonEmpty.increaseConsumedBy(1)
           case _                                                => Res.NoMatch
         }
 
       case Opt.Flag(names, help, _) =>
         args match {
-          case Nil         => Res.Found(List(Completion(pickName(names), Some(help).filterNot(_.isEmpty))), 0)
-          case head :: Nil => completeName(names.map(_.toString), head, nonEmpty(help)).commitNonEmptyIf(head.nonEmpty)
+          case Nil         => Res.Found(Array(Completion(pickName(names), Some(help).filterNot(_.isEmpty))), 0)
+          case head :: Nil => completeName(names, head, nonEmpty(help)).commitNonEmptyIf(head.nonEmpty)
           case _           => Res.NoMatch
         }
 
@@ -72,10 +72,10 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
   private def nonEmpty(help: String): Option[String] =
     Some(help).filterNot(_.isEmpty)
 
-  def completeName(nameStrings: List[String], arg: String, description: Option[String]): Res =
-    nameStrings.collect { case name if isStartOf(arg, name) => Completion(name, description) } match {
-      case Nil      => Res.NoMatch
-      case nonEmpty => Res.Found(nonEmpty, 1)
+  def completeName(nameStrings: List[Opts.Name], arg: String, description: Option[String]): Res =
+    nameStrings.collect { case name if isStartOf(arg, name.toString) => Completion(name.toString, description) } match {
+      case array if array.isEmpty => Res.NoMatch
+      case nonEmpty               => Res.Found(nonEmpty.toArray, 1)
     }
 
   def isStartOf(arg: String, name: String): Boolean =
@@ -87,7 +87,7 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
     if (args.forall(_.trim.isEmpty)) Res.Found(all.map(one => Completion(one, nonEmpty(metavar))), 1)
     else if (args.sizeIs == 1)
       Res.Found(all.collect { case name if name.startsWith(args.head) && args.head != name => Completion(name, nonEmpty(metavar)) }, 1)
-    else Res.Found(Nil, consumed = 1)
+    else Res.Found(Array.empty, consumed = 1)
   }
 }
 
@@ -102,7 +102,7 @@ object Completer {
   }
 
   sealed trait Res {
-    def value: List[Completion]
+    def value: Array[Completion]
 
     def withConsumed(n: Int): Res =
       this match {
@@ -139,14 +139,14 @@ object Completer {
 
   object Res {
     case object NoMatch extends Res {
-      override def value: List[Completion] = Nil
+      override def value: Array[Completion] = Array.empty
     }
 
     sealed trait Matched extends Res {
       def consumed: Int
     }
 
-    case class Commit(value: List[Completion], consumed: Int) extends Matched
-    case class Found(value: List[Completion], consumed: Int) extends Matched
+    case class Commit(value: Array[Completion], consumed: Int) extends Matched
+    case class Found(value: Array[Completion], consumed: Int) extends Matched
   }
 }

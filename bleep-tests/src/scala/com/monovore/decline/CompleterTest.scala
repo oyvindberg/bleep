@@ -11,7 +11,7 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
   case class Number(str: String)
   object Number {
     val metavar: String = "number"
-    val valids = List("one", "two", "three")
+    val valids = Array("one", "two", "three")
 
     implicit val argument: Argument[Number] =
       Argument.fromMap(metavar, valids.map(x => (x, Number(x))).toMap)
@@ -47,7 +47,7 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
 
   test("works") {
     val completer = new Completer({
-      case Project.metavar => List("common", "core", "test")
+      case Project.metavar => Array("common", "core", "test")
       case Number.metavar  => Number.valids
       case metavar         => sys.error(s"specify how to complete metavar $metavar")
     })
@@ -68,14 +68,14 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
 
     val opts = subCommands.foldK
 
-    assert(completer.completeOpts(Nil)(opts).value === List(compile, compose, testCmd))
-    assert(completer.completeOpts(List("co"))(opts).value === List(compile, compose))
-    assert(completer.completeOpts(List("te"))(opts).value === List(testCmd))
-    assert(completer.completeOpts(List("compile", "co"))(opts).value === List(common, core))
-    assert(completer.completeOpts(List("compile", "core", "te"))(opts).value === List(testProj))
-    assert(completer.completeOpts(List("compile", ""))(opts).value === List(foobar, f, bar, b, common, core, testProj))
-    assert(completer.completeOpts(List("compile", "--bar", ""))(opts).value === List(one, two, three))
-    assert(completer.completeOpts(List("compile", "--bar", "t"))(opts).value === List(two, three))
+    assert(completer.completeOpts(Nil)(opts).value === Array(compile, compose, testCmd))
+    assert(completer.completeOpts(List("co"))(opts).value === Array(compile, compose))
+    assert(completer.completeOpts(List("te"))(opts).value === Array(testCmd))
+    assert(completer.completeOpts(List("compile", "co"))(opts).value === Array(common, core))
+    assert(completer.completeOpts(List("compile", "core", "te"))(opts).value === Array(testProj))
+    assert(completer.completeOpts(List("compile", ""))(opts).value === Array(foobar, f, bar, b, common, core, testProj))
+    assert(completer.completeOpts(List("compile", "--bar", ""))(opts).value === Array(one, two, three))
+    assert(completer.completeOpts(List("compile", "--bar", "t"))(opts).value === Array(two, three))
   }
 
   test("repeated options") {
@@ -102,33 +102,33 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
       )
 
     val completer = new Completer({
-      case `platformMetavar` => platforms.keys.toList
-      case `fooMetavar`      => foos.keys.toList
-      case _                 => Nil
+      case `platformMetavar` => platforms.keys.toArray
+      case `fooMetavar`      => foos.keys.toArray
+      case _                 => Array.empty
     })
 
-    assert(completer.completeOpts(List("cmd1", "cmd2", "--p"))(opts).value === List(Completion("--platform", Some(platformHelp))))
-    assert(completer.completeOpts(List("cmd1", "cmd2", "-p"))(opts).value === Nil)
+    assert(completer.completeOpts(List("cmd1", "cmd2", "--p"))(opts).value === Array(Completion("--platform", Some(platformHelp))))
+    assert(completer.completeOpts(List("cmd1", "cmd2", "-p"))(opts).value === Array.empty[Completion])
     assert(
-      completer.completeOpts(List("cmd1", "cmd2", "-p", ""))(opts).value === List(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", ""))(opts).value === Array(
         Completion("jvm", Some(platformMetavar)),
         Completion("js", Some(platformMetavar)),
         Completion("native", Some(platformMetavar))
       )
     )
     assert(
-      completer.completeOpts(List("cmd1", "cmd2", "-p", "j"))(opts).value === List(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", "j"))(opts).value === Array(
         Completion("jvm", Some(platformMetavar)),
         Completion("js", Some(platformMetavar))
       )
     )
     assert(
-      completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-p", "n"))(opts).value === List(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-p", "n"))(opts).value === Array(
         Completion("native", Some(platformMetavar))
       )
     )
     assert(
-      completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-f", "o"))(opts).value === List(
+      completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-f", "o"))(opts).value === Array(
         Completion("one", Some(fooMetavar))
       )
     )

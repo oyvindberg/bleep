@@ -82,7 +82,7 @@ jobs:
         env:
           CI: true
         run: |
-          ./${{ matrix.file_name }} --dev test --no-color jvm213
+          ./${{ matrix.file_name }} --dev test --no-color @jvm213
           ./${{ matrix.file_name }} selftest
         if: runner.os != 'Windows'
 
@@ -119,7 +119,7 @@ jobs:
         env:
           CI: true
         # todo: fix tests on windows
-        run: .\${{ matrix.file_name }} --dev compile --no-color jvm213
+        run: .\${{ matrix.file_name }} --dev compile --no-color @jvm213
         if: runner.os == 'Windows'
 
       - name: Test binary after build 2 (windows)

@@ -3,7 +3,7 @@ package bleep
 import bleep.bsp.BspImpl
 import bleep.internal.{fatal, Os}
 import bleep.logging._
-import cats.data.NonEmptyList
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.syntax.apply._
 import cats.syntax.foldable._
 import com.monovore.decline._
@@ -12,6 +12,7 @@ import coursier.jvm.{Execve, JvmIndex}
 import java.io.{BufferedWriter, PrintStream}
 import java.nio.file.{Path, Paths}
 import java.time.Instant
+import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -57,28 +58,39 @@ object Main {
       installTabCompletions(logger)
     ).foldK
 
-  def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
-    Argument.fromMap(defmeta, nameToValue.getOrElse(Map.empty))
+  def argumentFrom[A](defmeta: String, values: SortedMap[model.ProjectGlob, A]): Argument[A] =
+    new Argument[A] {
+      override def defaultMetavar: String = defmeta
+
+      override def read(string: String): ValidatedNel[String, A] =
+        values.get(model.ProjectGlob(string)) match {
+          case Some(t) => Validated.valid(t)
+          case None =>
+            Validated.invalidNel(
+              s"Unknown value: $string. Expected one of: ${values.iterator.map { case (model.ProjectGlob(str), _) => str }.mkString(", ")}."
+            )
+        }
+    }
 
   def hasBuildOpts(started: Started): Opts[BleepBuildCommand] = {
     val projectNamesNoCross: Opts[NonEmptyList[model.ProjectName]] =
       Opts
-        .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
+        .arguments(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, started.globs.projectNamesNoCrossMap))
 
     val projectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap)))
-        .map(_.toList.toArray.flatten)
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, started.globs.projectNameMap))
+        .map(_.toList.toArray)
         .orNone
         .map(started.chosenProjects)
 
     val projectName: Opts[model.CrossProjectName] =
-      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
+      Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, started.globs.exactProjectMap))
 
     val testProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
-        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, Some(started.globs.testProjectNameMap)))
-        .map(_.toList.toArray.flatten)
+        .arguments(metavars.testProjectName)(argumentFrom(metavars.testProjectName, started.globs.testProjectNameMap))
+        .map(_.toList.toArray)
         .orNone
         .map(started.chosenTestProjects)
 
@@ -164,7 +176,7 @@ object Main {
               commands.Run(projectName, mainClass, arguments, raw = true, watch = watch)
             }
           ),
-          setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap), started.executionContext),
+          setupIdeCmd(started.buildPaths, started.logger, started.globs.projectNameMap, started.executionContext),
           Opts.subcommand("clean", "clean")(
             projectNames.map(projectNames => commands.Clean(projectNames))
           ),
@@ -282,13 +294,15 @@ object Main {
   def setupIdeCmd(
       buildPaths: BuildPaths,
       logger: Logger,
-      projectNameMap: Option[Map[String, Array[model.CrossProjectName]]],
+      projectNameMap: SortedMap[model.ProjectGlob, model.ProjectSelection],
       ec: ExecutionContext
   ): Opts[BleepCommand] = {
-    val projectNamesNoExpand: Opts[Option[List[String]]] =
+    val projectNamesNoExpand: Opts[Option[Array[model.ProjectGlob]]] =
       Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, projectNameMap.map(_.map { case (s, _) => (s, s) })))
-        .map(_.toList)
+        .arguments(metavars.projectName)(
+          argumentFrom(metavars.projectName, projectNameMap.map { case (s, _) => (s, s) })
+        )
+        .map(_.toList.toArray)
         .orNone
 
     Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
@@ -369,9 +383,9 @@ object Main {
         val completions = buildLoader match {
           case noBuild: BuildLoader.NonExisting =>
             val completer = new Completer({
-              case metavars.platformName => model.PlatformId.All.map(_.value)
-              case metavars.scalaVersion => possibleScalaVersions.keys.toList
-              case _                     => Nil
+              case metavars.platformName => model.PlatformId.All.map(_.value).toArray
+              case metavars.scalaVersion => possibleScalaVersions.keys.toArray
+              case _                     => Array.empty
             })
             completer.completeOpts(restArgs)(noBuildOpts(logger, userPaths, buildPaths, noBuild))
           case existing: BuildLoader.Existing =>
@@ -383,14 +397,19 @@ object Main {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
+                def from[V](m: SortedMap[model.ProjectGlob, V]): Array[String] = {
+                  val b = Array.newBuilder[String]
+                  m.foreach { case (glob, _) => b += glob.value }
+                  b.result()
+                }
                 val completer = new Completer({
-                  case metavars.platformName       => model.PlatformId.All.map(_.value)
-                  case metavars.scalaVersion       => possibleScalaVersions.keys.toList
-                  case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
-                  case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
-                  case metavars.projectName        => started.globs.projectNameMap.keys.toList
-                  case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
-                  case _                           => Nil
+                  case metavars.platformName       => model.PlatformId.All.map(_.value).toArray
+                  case metavars.scalaVersion       => possibleScalaVersions.keys.toArray
+                  case metavars.projectNameExact   => from(started.globs.exactProjectMap)
+                  case metavars.projectNameNoCross => from(started.globs.projectNamesNoCrossMap)
+                  case metavars.projectName        => from(started.globs.projectNameMap)
+                  case metavars.testProjectName    => from(started.globs.testProjectNameMap)
+                  case _                           => Array.empty
                 })
                 completer.completeOpts(restArgs)(hasBuildOpts(started))
             }

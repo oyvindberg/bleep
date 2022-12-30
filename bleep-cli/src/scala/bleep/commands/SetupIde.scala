@@ -13,7 +13,8 @@ import java.util
 import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
-case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProjects: Option[List[String]], ec: ExecutionContext) extends BleepCommand {
+case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProjects: Option[Array[model.ProjectGlob]], ec: ExecutionContext)
+    extends BleepCommand {
   implicit def encodesUtilList[T: Encoder]: Encoder[util.List[T]] = Encoder[List[T]].contramap(_.asScala.toList)
   implicit val encoder: Encoder[bsp4j.BspConnectionDetails] =
     Encoder.forProduct5[bsp4j.BspConnectionDetails, String, util.List[String], String, String, util.List[String]](
