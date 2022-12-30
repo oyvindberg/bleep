@@ -93,7 +93,7 @@ object runSbt {
       FileUtils.writeString(
         tempAddBloopPlugin,
         s"""
-  addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.4")
+  addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.6")
   addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.2.0")
   """
       )
