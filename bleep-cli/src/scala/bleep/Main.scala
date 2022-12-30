@@ -49,11 +49,11 @@ object Main {
       Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse
     ).mapN(CommonOpts.apply)
 
-  def noBuildOpts(logger: Logger, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting, userPaths: UserPaths): Opts[BleepNoBuildCommand] =
+  def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
     commonOpts *> List(
-      Opts.subcommand("build", "create new build")(newCommand(logger, buildPaths.cwd)),
+      Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
       importCmd(buildLoader, buildPaths, logger),
-      compileServerCmd(logger, userPaths),
+      configCommand(logger, userPaths),
       installTabCompletions(logger)
     ).foldK
 
@@ -174,7 +174,7 @@ object Main {
           Opts.subcommand("projects-test", "show test projects under current directory")(
             testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
-          compileServerCmd(started.pre.logger, started.pre.userPaths),
+          configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.pre.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
@@ -229,25 +229,38 @@ object Main {
     ret
   }
 
-  def compileServerCmd(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
-    Opts.subcommand(
-      "compile-server",
-      "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
-    )(
+  def configCommand(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
+    Opts.subcommand("config", "configure bleep here")(
       List(
+        Opts.subcommand[BleepCommand]("file", "show configuration file location")(
+          Opts(() => Right(logger.warn(s"Config file is found in ${userPaths.configYaml}")))
+        ),
+        Opts.subcommand[BleepCommand]("log-timing-enable", "enable timing info in logs")(
+          Opts(() => Right(BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(true)))))
+        ),
+        Opts.subcommand[BleepCommand]("log-timing-disable", "disable timing info in logs")(
+          Opts(() => Right(BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(false)))))
+        ),
         Opts.subcommand(
-          "auto-shutdown-disable",
-          "leave compile servers running between bleep invocations. this gets much better performance at the cost of memory"
-        )(Opts {
-          commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.Shared)
-        }),
-        Opts.subcommand("auto-shutdown-enable", "shuts down compile server after between bleep invocation. this is slower, but conserves memory")(Opts {
-          commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
-        }),
-        Opts.subcommand("stop-all", "will stop all shared bloop compile servers")(
-          Opts {
-            commands.CompileServerStopAll(logger, userPaths)
-          }
+          "compile-server",
+          "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
+        )(
+          List(
+            Opts.subcommand(
+              "auto-shutdown-disable",
+              "leave compile servers running between bleep invocations. this gets much better performance at the cost of memory"
+            )(Opts {
+              commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.Shared)
+            }),
+            Opts.subcommand("auto-shutdown-enable", "shuts down compile server after between bleep invocation. this is slower, but conserves memory")(Opts {
+              commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
+            }),
+            Opts.subcommand("stop-all", "will stop all shared bloop compile servers")(
+              Opts {
+                commands.CompileServerStopAll(logger, userPaths)
+              }
+            )
+          ).foldK
         )
       ).foldK
     )
@@ -283,7 +296,7 @@ object Main {
     )
   }
 
-  def newCommand(logger: Logger, cwd: Path): Opts[BleepNoBuildCommand] =
+  def newCommand(logger: Logger, userPaths: UserPaths, cwd: Path): Opts[BleepNoBuildCommand] =
     Opts.subcommand("new", "create new build in current directory")(
       (
         Opts
@@ -296,7 +309,7 @@ object Main {
           .withDefault(NonEmptyList.of(model.VersionScala.Scala3)),
         Opts.argument[String]("wanted project name")
       ).mapN { case (platforms, scalas, name) =>
-        commands.BuildCreateNew(logger, cwd, platforms, scalas, name, model.BleepVersion.current, CoursierResolver.Factory.default)
+        commands.BuildCreateNew(logger, userPaths, cwd, platforms, scalas, name, model.BleepVersion.current, CoursierResolver.Factory.default)
       }
     )
 
@@ -360,13 +373,13 @@ object Main {
               case metavars.scalaVersion => possibleScalaVersions.keys.toList
               case _                     => Nil
             })
-            completer.completeOpts(restArgs)(noBuildOpts(logger, buildPaths, noBuild, userPaths))
+            completer.completeOpts(restArgs)(noBuildOpts(logger, userPaths, buildPaths, noBuild))
           case existing: BuildLoader.Existing =>
             val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
 
-            val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
+            val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default, ExecutionContext.global) match {
+            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
               case Left(th) => fatal("couldn't load build", logger, th)
 
               case Right(started) =>
@@ -421,13 +434,16 @@ object Main {
         val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
         val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
+        val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
         val stdout: TypedLogger[PrintStream] =
           if (logAsJson) logging.stdoutJson()
           else {
-            val pattern = LogPatterns.interface(Instant.now, noColor = commonOpts.noColor)
+            val startRun = if (config.logTiming.getOrElse(false)) Some(Instant.now) else None
+            val pattern = LogPatterns.interface(startRun, noColor = commonOpts.noColor)
             logging.stdout(pattern, disableProgress = commonOpts.noBspProgress).minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
           }
+
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)
 
@@ -445,13 +461,12 @@ object Main {
         buildLoader match {
           case noBuild: BuildLoader.NonExisting =>
             stdoutAndFileLogging(buildPaths).use { logger =>
-              run(logger, noBuildOpts(stdout.untyped, buildPaths, noBuild, userPaths), restArgs)
+              run(logger, noBuildOpts(stdout.untyped, userPaths, buildPaths, noBuild), restArgs)
             }
           case existing: BuildLoader.Existing =>
             stdoutAndFileLogging(buildPaths).use { logger =>
               val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
-              val bleepConfig = BleepConfigOps.lazyForceLoad(pre.userPaths)
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, bleepConfig, CoursierResolver.Factory.default, ExecutionContext.global) match {
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
                 case Left(th)       => fatal("Error while loading build", logger, th)
                 case Right(started) => run(logger, hasBuildOpts(started), started, restArgs)
               }

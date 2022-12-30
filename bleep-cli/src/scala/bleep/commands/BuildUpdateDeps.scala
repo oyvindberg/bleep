@@ -23,8 +23,7 @@ case object BuildUpdateDeps extends BleepBuildCommand {
     val allDeps: Map[UpgradeDependencies.ContextualDep, Dependency] =
       instantiateAllDependencies(build)
 
-    val config = started.lazyConfig.forceGet
-    val repos = CoursierResolver.coursierRepos(build.resolvers.values, config.authentications).filter(_.repr.contains("http"))
+    val repos = CoursierResolver.coursierRepos(build.resolvers.values, started.config.authentications).filter(_.repr.contains("http"))
     val fileCache = FileCache[Task]().withLogger(new BleepCacheLogger(started.logger))
 
     val foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] = {

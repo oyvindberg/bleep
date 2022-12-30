@@ -14,11 +14,13 @@ class CreateNewSnapshotTests extends SnapshotTest {
     val testFolder = outFolder / "create-new-build"
     val buildLoader = BuildLoader.inDirectory(testFolder / "build")
     val buildPaths = BuildPaths(cwd = FileUtils.TempDir, buildLoader, model.BuildVariant.Normal)
+    val userPaths = UserPaths.fromAppDirs
 
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
       val generatedProjectFiles: Map[Path, String] =
         BuildCreateNew(
           logger,
+          userPaths,
           cwd = buildPaths.buildDir,
           platforms = NonEmptyList.of(model.PlatformId.Jvm, model.PlatformId.Js),
           scalas = NonEmptyList.of(model.VersionScala.Scala3, model.VersionScala.Scala213),
@@ -34,10 +36,10 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
       val Right(started) =
         bootstrap.from(
-          Prebootstrapped(bootstrappedDestinationPaths, logger, BuildLoader.Existing(buildLoader.bleepYaml)),
+          Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, BuildLoader.Existing(buildLoader.bleepYaml)),
           GenBloopFiles.InMemory,
           Nil,
-          Lazy(model.BleepConfig.default),
+          model.BleepConfig.default,
           testResolver,
           ExecutionContext.global
         )

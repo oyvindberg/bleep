@@ -34,7 +34,7 @@ class BleepBspServer(
 
     // wait random bit before shutting down server to reduce risk of multiple bleep instances starting bloop at the same time
     val timeout = Random.nextInt(400)
-    TimeUnit.MILLISECONDS.sleep(100 + timeout)
+    TimeUnit.MILLISECONDS.sleep(100L + timeout)
     sys.exit(1)
   }
 
@@ -47,7 +47,6 @@ class BleepBspServer(
           val methodContext = s"bloop bsp server, method: $methodName"
           val context = if (params.isEmpty) methodContext else params.mkString(s"$methodContext, with params: ", ", ", "")
           onFatalError(error, context)
-          throw error
       }
 
   private def capabilities: bsp4j.BuildServerCapabilities = {

@@ -43,8 +43,8 @@ case class BuildDiffBloop(opts: BuildDiff.Options, projects: Array[model.CrossPr
         ),
         genBloopFiles = GenBloopFiles.InMemory,
         rewrites = Nil,
-        lazyConfig = started.lazyConfig,
-        resolver = (_, _, _) => started.resolver.forceGet,
+        config = started.config,
+        resolverFactory = (_, _, _) => started.resolver,
         executionContext = started.executionContext
       )
       .orThrow

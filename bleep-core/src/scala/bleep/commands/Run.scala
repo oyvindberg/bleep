@@ -4,7 +4,6 @@ package commands
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
 import bleep.logging.jsonEvents
-import bloop.config.Config
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError

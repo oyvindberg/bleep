@@ -43,28 +43,28 @@ object LogPatterns {
       case None        => str
     }
   }
-  case class interface(t0: Instant, noColor: Boolean) extends Pattern {
-    override def apply[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx, path: List[String]): Str = {
+  case class interface(startRun: Option[Instant], noColor: Boolean) extends Pattern {
+    override def apply[T: Formatter](text: => Text[T], throwable: Option[Throwable], m: Metadata, ctx: Ctx, path: List[String]): Str = {
       val maybeColor = colorFor(m.logLevel, noColor)
       val maybeSubtleColor = subtleColor(noColor)
-      val millis = Duration.between(t0, m.instant).toMillis
+      val timing = startRun.map { t0 =>
+        val millis = Duration.between(t0, m.instant).toMillis
+        maybeSubtleColor(Str(s"($millis ms)"))
+      }
 
       Str.join(
-        List(
-          if (noColor) m.logLevel.bracketName else emojiFor(m.logLevel),
-          " ",
+        List[Option[Str]](
+          Some(if (noColor) m.logLevel.bracketName else emojiFor(m.logLevel)),
+          timing,
           path match {
-            case Nil      => ""
-            case nonEmpty => maybeSubtleColor(nonEmpty.reverse.mkString("", " / ", ": "))
+            case Nil      => None
+            case nonEmpty => Some(maybeSubtleColor(nonEmpty.reverse.mkString("", " / ", ":")))
           },
-          maybeColor(Formatter(t.value)),
-          " ",
-          maybeSubtleColor(Formatter(ctx.updated("t", Str(s"$millis ms")))),
-          throwable match {
-            case None     => ""
-            case Some(th) => maybeColor(formatThrowable(th))
-          }
-        )
+          Some(maybeColor(Formatter(text.value))),
+          if (ctx.nonEmpty) Some(maybeSubtleColor(Formatter(ctx))) else None,
+          throwable.map(th => maybeColor(formatThrowable(th)))
+        ).flatten,
+        " "
       )
     }
   }

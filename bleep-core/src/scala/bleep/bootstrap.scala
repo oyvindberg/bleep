@@ -11,11 +11,15 @@ import scala.util.{Failure, Success, Try}
 object bootstrap {
   def forScript(scriptName: String, commonOpts: CommonOpts, rewrites: List[BuildRewrite] = Nil)(f: (Started, Commands) => Unit): Unit = {
     val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
-
+    val userPaths = UserPaths.fromAppDirs
+    val bleepConfig = BleepConfigOps.loadOrDefault(userPaths).orThrow
     val logger = {
       val logger0 =
         if (logAsJson) logging.stdoutJson()
-        else logging.stdout(LogPatterns.interface(Instant.now, noColor = commonOpts.noColor), disableProgress = commonOpts.noBspProgress)
+        else {
+          val startRun = if (bleepConfig.logTiming.getOrElse(false)) Some(Instant.now) else None
+          logging.stdout(LogPatterns.interface(startRun, noColor = commonOpts.noColor), disableProgress = commonOpts.noBspProgress)
+        }
 
       val logger1 = logger0.withPath(s"[script $scriptName]")
       val logger2 = if (commonOpts.debug || logAsJson) logger1 else logger1.minLogLevel(LogLevel.info)
@@ -27,12 +31,12 @@ object bootstrap {
     val buildPaths = BuildPaths(Os.cwd, buildLoader, buildVariant)
     val maybeStarted = for {
       existingBuild <- buildLoader.existing
-      pre = Prebootstrapped(buildPaths, logger, existingBuild)
+      pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild)
       started <- from(
         pre,
         GenBloopFiles.SyncToDisk,
         rewrites,
-        BleepConfigOps.lazyForceLoad(pre.userPaths),
+        bleepConfig,
         CoursierResolver.Factory.default,
         ExecutionContext.global
       )
@@ -53,17 +57,17 @@ object bootstrap {
       pre: Prebootstrapped,
       genBloopFiles: GenBloopFiles,
       rewrites: List[BuildRewrite],
-      lazyConfig: Lazy[model.BleepConfig],
-      resolver: CoursierResolver.Factory,
+      config: model.BleepConfig,
+      resolverFactory: CoursierResolver.Factory,
       executionContext: ExecutionContext
   ): Either[BleepException, Started] = {
     val t0 = System.currentTimeMillis()
     val fetchNode = new FetchNode(new BleepCacheLogger(pre.logger), executionContext)
 
-    def go(pre: Prebootstrapped, lazyConfig: Lazy[model.BleepConfig], rewrites: List[BuildRewrite]): Either[BleepException, Started] =
+    def go(pre: Prebootstrapped, config: model.BleepConfig, rewrites: List[BuildRewrite]): Either[BleepException, Started] =
       try
         pre.existingBuild.buildFile.forceGet.map { buildFile =>
-          val lazyResolver = lazyConfig.map(bleepConfig => resolver(pre, bleepConfig, buildFile))
+          val resolver = resolverFactory(pre, config, buildFile)
           val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
 
           val activeProjects: Option[Array[model.CrossProjectName]] =
@@ -85,27 +89,18 @@ object bootstrap {
             }
 
           val bloopFiles: GenBloopFiles.Files =
-            genBloopFiles.apply(pre.logger, pre.buildPaths, lazyResolver, build, fetchNode)
+            genBloopFiles(pre.logger, pre.buildPaths, resolver, build, fetchNode)
 
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
 
-          Started(
-            pre = pre,
-            rewrites = rewrites,
-            build = build,
-            bloopFiles = bloopFiles,
-            activeProjectsFromPath = activeProjects,
-            lazyConfig = lazyConfig,
-            resolver = lazyResolver,
-            executionContext = executionContext
-          )(reloadUsing = go)
+          Started(pre, rewrites, build, bloopFiles, activeProjects, config, resolver, executionContext)(reloadUsing = go)
         }
       catch {
         case x: BleepException => Left(x)
         case th: Throwable     => Left(new BleepException.Cause(th, "couldn't initialize bleep"))
       }
 
-    go(pre, lazyConfig, rewrites)
+    go(pre, config, rewrites)
   }
 }

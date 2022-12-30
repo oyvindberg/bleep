@@ -19,7 +19,7 @@ trait GenBloopFiles {
   def apply(
       logger: Logger,
       buildPaths: BuildPaths,
-      lazyResolver: Lazy[CoursierResolver],
+      resolver: CoursierResolver,
       build: model.Build,
       fetchNode: FetchNode
   ): GenBloopFiles.Files
@@ -28,10 +28,10 @@ trait GenBloopFiles {
 object GenBloopFiles {
   type Files = SortedMap[model.CrossProjectName, Lazy[Config.File]]
 
-  val InMemory: GenBloopFiles = (_, buildPaths, lazyResolver, build, fetchNode) =>
+  val InMemory: GenBloopFiles = (_, buildPaths, resolver, build, fetchNode) =>
     rewriteDependentData(build.explodedProjects).apply { (crossName, project, eval) =>
       translateProject(
-        lazyResolver.forceGet,
+        resolver,
         buildPaths,
         crossName,
         project,

@@ -15,10 +15,10 @@ case class Started(
     build: model.Build,
     bloopFiles: GenBloopFiles.Files,
     activeProjectsFromPath: Option[Array[model.CrossProjectName]],
-    lazyConfig: Lazy[model.BleepConfig],
-    resolver: Lazy[CoursierResolver],
+    config: model.BleepConfig,
+    resolver: CoursierResolver,
     executionContext: ExecutionContext
-)(reloadUsing: (Prebootstrapped, Lazy[model.BleepConfig], List[BuildRewrite]) => Either[BleepException, Started]) {
+)(reloadUsing: (Prebootstrapped, model.BleepConfig, List[BuildRewrite]) => Either[BleepException, Started]) {
   def buildPaths: BuildPaths = pre.buildPaths
   def userPaths: UserPaths = pre.userPaths
   def logger: Logger = pre.logger
@@ -56,8 +56,8 @@ case class Started(
   def reloadFromDisk(rewrites: List[BuildRewrite]): Either[BleepException, Started] =
     for {
       pre <- pre.reloadFromDisk()
-      lazyConfig = BleepConfigOps.lazyForceLoad(userPaths)
-      reloaded <- reloadUsing(pre, lazyConfig, rewrites)
+      config <- BleepConfigOps.loadOrDefault(userPaths)
+      reloaded <- reloadUsing(pre, config, rewrites)
     } yield reloaded
 
   def reloadFromDisk(): Either[BleepException, Started] =

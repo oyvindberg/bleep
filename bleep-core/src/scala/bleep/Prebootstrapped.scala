@@ -11,10 +11,3 @@ case class Prebootstrapped(logger: Logger, userPaths: UserPaths, buildPaths: Bui
       .existing
       .map(newExisting => copy(existingBuild = newExisting))
 }
-
-object Prebootstrapped {
-  def apply(buildPaths: BuildPaths, logger: Logger, existing: BuildLoader.Existing): Prebootstrapped = {
-    val userPaths = UserPaths.fromAppDirs
-    Prebootstrapped(logger, userPaths, buildPaths, existing)
-  }
-}
