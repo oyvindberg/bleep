@@ -44,9 +44,9 @@ object RelPath {
 
   implicit val encodesRelPath: Encoder[RelPath] =
     Encoder[String].contramap {
+      case RelPath(Nil)                    => "."
       case RelPath(segments @ (".." :: _)) => segments.mkString("/")
       case RelPath(segments)               => segments.mkString("./", "/", "")
-
     }
 
   implicit val ordering: Ordering[RelPath] =
