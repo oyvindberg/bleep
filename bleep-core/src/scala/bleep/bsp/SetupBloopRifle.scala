@@ -19,7 +19,7 @@ object SetupBloopRifle {
       jvm: model.Jvm,
       logger: Logger,
       userPaths: UserPaths,
-      resolver: Lazy[CoursierResolver],
+      resolver: CoursierResolver,
       bleepRifleLogger: BleepRifleLogger,
       executionContext: ExecutionContext
   ): BloopRifleConfig = {
@@ -38,12 +38,12 @@ object SetupBloopRifle {
       )
   }
 
-  def bloopClassPath(resolver: Lazy[CoursierResolver])(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] =
+  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] =
     ModuleParser.module(BloopRifleConfig.defaultModule, BloopRifleConfig.defaultScalaVersion) match {
       case Left(msg) => Left(new BleepException.ModuleFormatError(BloopRifleConfig.defaultModule, msg))
       case Right(mod) =>
         val dep = model.Dep.JavaDependency(mod.organization, mod.name, bloopVersion)
-        resolver.forceGet.resolve(Set(dep), model.VersionCombo.Java) match {
+        resolver.resolve(Set(dep), model.VersionCombo.Java) match {
           case Left(coursierError) =>
             Left(new BleepException.ResolveError(coursierError, "installing bloop"))
           case Right(value) =>

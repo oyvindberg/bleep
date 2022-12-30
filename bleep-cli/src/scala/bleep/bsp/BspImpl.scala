@@ -33,17 +33,17 @@ object BspImpl {
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
 
-      val bleepConfig = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
+      val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
       val build = pre.existingBuild.buildFile.forceGet.orThrow
       val bleepRifleLogger = new BleepRifleLogger(pre.logger)
 
       val bloopRifleConfig =
         SetupBloopRifle(
-          compileServerMode = bleepConfig.compileServerMode,
+          compileServerMode = config.compileServerModeOrDefault,
           jvm = jvmOrSystem(build.jvm, pre.logger),
           logger = pre.logger,
           userPaths = pre.userPaths,
-          resolver = Lazy(CoursierResolver.Factory.default(pre, bleepConfig, build)),
+          resolver = CoursierResolver.Factory.default(pre, config, build),
           bleepRifleLogger = bleepRifleLogger,
           executionContext = ExecutionContext.fromExecutor(threads.prepareBuildExecutor)
         )
@@ -67,7 +67,7 @@ object BspImpl {
             ).flatten
 
             pre.reloadFromDisk().flatMap { pre =>
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, Lazy(bleepConfig), CoursierResolver.Factory.default, ExecutionContext.global)
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, config, CoursierResolver.Factory.default, ExecutionContext.global)
             }
           }
 

@@ -14,6 +14,7 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 class IntegrationSnapshotTests extends SnapshotTest {
   absolutePaths.sortedValues.foreach(println)
+  val userPaths = UserPaths.fromAppDirs
 
   test("tapir") {
     testIn("tapir", "https://github.com/softwaremill/tapir.git", "9057697")
@@ -120,10 +121,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
       val started = bootstrap
         .from(
-          Prebootstrapped(bootstrappedDestinationPaths, logger, existingImportedBuildLoader),
+          Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, existingImportedBuildLoader),
           GenBloopFiles.InMemory,
           rewrites = Nil,
-          Lazy(model.BleepConfig.default),
+          model.BleepConfig.default,
           testResolver,
           ExecutionContext.global
         )

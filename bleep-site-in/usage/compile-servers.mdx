@@ -8,14 +8,14 @@ Roughly there are two modes of operation:
 
 This is the default behaviour, but if you need to change back this is the command:
 ```
-$ bleep compile-server auto-shutdown-disable
+$ bleep config compile-server auto-shutdown-disable
 ```
 
 Note that since projects can specify the exact JVM they will be compiled with, and Bloop run the Scala compiler on the JVM it is started with, more than one compile servers may be started if necessary.
 
 If you want to stop all running Bloop servers started by Bleep, this is the command:
 ```
-$ bleep compile-server stop-all
+$ bleep config compile-server stop-all
 ```
 
 ## 2) Bleep will start a compile-server for each invocation
@@ -25,5 +25,5 @@ This is slower, but will conserve memory.
 To enable this mode run this command:
 
 ```
-$ bleep compile-server auto-shutdown-enable
+$ bleep config compile-server auto-shutdown-enable
 ```

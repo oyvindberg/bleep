@@ -4,14 +4,18 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
 case class BleepConfig(
-    compileServerMode: CompileServerMode,
-    authentications: Option[Authentications]
-)
+    compileServerMode: Option[CompileServerMode],
+    authentications: Option[Authentications],
+    logTiming: Option[Boolean]
+) {
+  def compileServerModeOrDefault: CompileServerMode = compileServerMode.getOrElse(CompileServerMode.Shared)
+}
 
 object BleepConfig {
   val default = BleepConfig(
-    compileServerMode = CompileServerMode.Shared,
-    authentications = None
+    compileServerMode = None,
+    authentications = None,
+    logTiming = None
   )
 
   implicit val decoder: Decoder[BleepConfig] = deriveDecoder

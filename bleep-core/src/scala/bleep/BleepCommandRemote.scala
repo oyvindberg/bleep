@@ -28,11 +28,9 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
   def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit]
 
   override final def run(started: Started): Either[BleepException, Unit] = {
-    val bleepConfig = started.lazyConfig.forceGet
-
-    bleepConfig.compileServerMode match {
+    started.config.compileServerModeOrDefault match {
       case model.CompileServerMode.NewEachInvocation =>
-        started.logger.warn("TIP: run `bleep compile-server auto-shutdown-disable` so you'll get a warm/fast compile server")
+        started.logger.warn("TIP: run `bleep config compile-server auto-shutdown-disable` so you'll get a warm/fast compile server")
       case model.CompileServerMode.Shared => ()
     }
 
@@ -41,7 +39,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
     val bleepRifleLogger = new BleepRifleLogger(started.logger)
     val bloopRifleConfig: BloopRifleConfig =
       SetupBloopRifle(
-        bleepConfig.compileServerMode,
+        started.config.compileServerModeOrDefault,
         bloopJvm,
         started.logger,
         started.pre.userPaths,
@@ -118,7 +116,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           }
         }
     finally
-      bleepConfig.compileServerMode match {
+      started.config.compileServerModeOrDefault match {
         case model.CompileServerMode.NewEachInvocation =>
           server.shutdown()
           Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, bleepRifleLogger)

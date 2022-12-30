@@ -12,7 +12,7 @@ import java.time.Instant
 import scala.util.Properties
 
 trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val logger0 = logging.stdout(LogPatterns.interface(Instant.now, noColor = false), disableProgress = true).untyped.minLogLevel(LogLevel.info)
+  val logger0 = logging.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).untyped.minLogLevel(LogLevel.info)
 
   val isCi: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt

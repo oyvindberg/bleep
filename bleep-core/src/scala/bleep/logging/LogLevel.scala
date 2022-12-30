@@ -1,7 +1,7 @@
 package bleep.logging
 
 sealed abstract class LogLevel(val level: Int)(implicit val name: sourcecode.Name) {
-  val bracketName = s"[${name.value}]"
+  val bracketName = s"[${name.value.padTo(5, ' ')}]"
 }
 
 object LogLevel {
