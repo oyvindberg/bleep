@@ -215,7 +215,7 @@ object CoursierResolver {
                 ctxLogger.info("Not caching because result is changing")
                 changingResult
               case result =>
-                FileUtils.writeString(cachePath, Cached.Both(request, result).asJson.noSpaces)
+                FileUtils.writeString(logger, None, cachePath, Cached.Both(request, result).asJson.noSpaces)
                 result
             }
         }

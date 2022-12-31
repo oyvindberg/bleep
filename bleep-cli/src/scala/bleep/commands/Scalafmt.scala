@@ -28,8 +28,7 @@ case class Scalafmt(check: Boolean) extends BleepBuildCommand {
       if (FileUtils.exists(configPath)) {
         Files.readString(configPath)
       } else {
-        started.logger.warn(s"Creating example scalafmt configuration at $configPath")
-        FileUtils.writeString(configPath, Scalafmt.defaultConfig)
+        FileUtils.writeString(started.logger, Some("Creating example scalafmt configuration"), configPath, Scalafmt.defaultConfig)
         Scalafmt.defaultConfig
       }
 

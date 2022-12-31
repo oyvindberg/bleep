@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import bleep.RelPath
-import bleep.internal.FileUtils
+import bleep.internal.{writeYamlLogged, FileUtils}
 import bleep.logging.Logger
 import bleep.rewrites.BuildRewrite
 
@@ -79,7 +79,6 @@ object BuildMoveFilesIntoBleepLayout extends BleepBuildCommand {
         Process(List("mv", from.toString, to.toString), buildPaths.buildDir.toFile)).!!
     }
 
-    yaml.writeShortened(rewrittenBuild, buildPaths.bleepYamlFile)
-    logger.withContext(buildPaths.bleepYamlFile).debug(s"wrote")
+    writeYamlLogged(logger, "Wrote update build", rewrittenBuild, buildPaths.bleepYamlFile)
   }
 }

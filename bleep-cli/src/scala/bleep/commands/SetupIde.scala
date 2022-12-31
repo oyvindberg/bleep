@@ -50,7 +50,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
       List("scala", "java").asJava
     )
 
-    BspProjectSelection.store(buildPaths, maybeSelectedProjects)
+    BspProjectSelection.store(logger, buildPaths, maybeSelectedProjects)
 
     List(
       // remove other configured BSP tools
@@ -81,7 +81,6 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
           }
     }
 
-    FileUtils.writeString(buildPaths.bspBleepJsonFile, details.asJson.spaces2)
-    Right(logger.info(s"Wrote file ${buildPaths.bspBleepJsonFile}"))
+    Right(FileUtils.writeString(logger, Some("writing BSP connection file"), buildPaths.bspBleepJsonFile, details.asJson.spaces2))
   }
 }

@@ -1,6 +1,8 @@
 package bleep
 package internal
 
+import bleep.logging.Logger
+
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, IOException}
 import java.nio.charset.StandardCharsets
 import java.nio.file._
@@ -33,8 +35,15 @@ object FileUtils {
     ret
   }
 
-  def writeString(path: Path, newContent: String): Unit =
+  def writeString(logger: Logger, message: Option[String], path: Path, newContent: String): Unit = {
+    Files.createDirectories(path.getParent)
     writeBytes(path, newContent.getBytes(StandardCharsets.UTF_8))
+    message match {
+      case Some(message) => logger.withContext(path).info(message)
+      case None          => logger.withContext(path).debug("wrote file")
+    }
+
+  }
 
   def deleteDirectory(dir: Path): Unit =
     if (FileUtils.exists(dir)) {

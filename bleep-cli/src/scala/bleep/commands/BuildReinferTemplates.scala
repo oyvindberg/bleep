@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.BleepTemplateLogger
+import bleep.internal.{writeYamlLogged, BleepTemplateLogger}
 import bleep.rewrites.{normalizeBuild, Defaults}
 import bleep.templates.templatesInfer
 
@@ -29,8 +29,6 @@ case class BuildReinferTemplates(ignoreWhenInferringTemplates: Set[model.Project
         started.logger.error("Project templating did illegal rewrites. Please report this as a bug")
         diffs.foreach { case (projectName, msg) => started.logger.withContext(projectName).error(msg) }
     }
-
-    yaml.writeShortened(newBuildFile, started.buildPaths.bleepYamlFile)
-    Right(())
+    Right(writeYamlLogged(started.logger, "Wrote update build", newBuildFile, started.buildPaths.bleepYamlFile))
   }
 }

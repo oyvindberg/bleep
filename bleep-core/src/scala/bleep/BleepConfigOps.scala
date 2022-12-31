@@ -1,16 +1,13 @@
 package bleep
 
-import bleep.internal.FileUtils
+import bleep.internal.{writeYamlLogged, FileUtils}
 import bleep.logging.Logger
 
 import java.nio.file.Files
 
 object BleepConfigOps {
-  def store(logger: Logger, userPaths: UserPaths, config: model.BleepConfig): Unit = {
-    yaml.writeShortened(config, userPaths.configYaml)
-
-    logger.withContext(userPaths.configYaml).debug(s"wrote")
-  }
+  def store(logger: Logger, userPaths: UserPaths, config: model.BleepConfig): Unit =
+    writeYamlLogged(logger, "Wrote update config file", config, userPaths.configYaml)
 
   def load(userPaths: UserPaths): Either[BleepException, Option[model.BleepConfig]] =
     if (FileUtils.exists(userPaths.configYaml)) {

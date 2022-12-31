@@ -17,8 +17,7 @@ case class InstallTabCompletions(logger: Logger) extends BleepCommand {
         case Some(patched) if patched == oldContents =>
           logger.warn(s"Not touching ${InstallTabCompletions.dotProfile} since it already had tab completions")
         case Some(patched) =>
-          logger.warn(s"Adding tab completions to ${InstallTabCompletions.dotProfile}")
-          Files.writeString(InstallTabCompletions.dotProfile, patched)
+          FileUtils.writeString(logger, Some("Adding tab completions"), InstallTabCompletions.dotProfile, patched)
           reloadNotice()
         case None =>
           throw new BleepException.Text(
@@ -26,8 +25,7 @@ case class InstallTabCompletions(logger: Logger) extends BleepCommand {
           )
       }
     } else {
-      logger.warn(s"Writing new ${InstallTabCompletions.dotProfile}")
-      Files.writeString(InstallTabCompletions.dotProfile, InstallTabCompletions.Section)
+      FileUtils.writeString(logger, Some("Writing new file"), InstallTabCompletions.dotProfile, InstallTabCompletions.Section)
       reloadNotice()
     }
     Right(())

@@ -91,6 +91,8 @@ object runSbt {
       val tempAddBloopPlugin = sbtBuildDir / "project" / "bleep-temp-add-bloop-plugin.sbt"
 
       FileUtils.writeString(
+        logger,
+        None,
         tempAddBloopPlugin,
         s"""
   addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.6")

@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.internal.writeYamlLogged
 import bleep.logging.Logger
 import bleep.model.{CrossProjectName, Dep}
 import bleep.rewrites.{normalizeBuild, UpgradeDependencies}
@@ -40,10 +41,9 @@ case object BuildUpdateDeps extends BleepBuildCommand {
 
     val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build)
     val newBuild1 = normalizeBuild(newBuild)
-    yaml.writeShortened(newBuild1.file, started.buildPaths.bleepYamlFile)
-
-    Right(())
+    Right(writeYamlLogged(started.logger, "Wrote update build", newBuild1.file, started.buildPaths.bleepYamlFile))
   }
+
   class UpgradeLogger(logger: Logger) extends UpgradeDependencies.UpgradeLogger {
     override def upgraded(project: CrossProjectName, dep: Dep, newVersion: String): Unit =
       logger

@@ -79,7 +79,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     logger.withContext(tempDir).debug("using temporary directory")
 
     val scriptFile = tempDir / "script"
-    FileUtils.writeString(scriptFile, demo.script(Path.of("bleep")))
+    FileUtils.writeString(logger, None, scriptFile, demo.script(Path.of("bleep")))
     Files.setPosixFilePermissions(scriptFile, Exec)
 
     val outputFile = tempDir / "output"

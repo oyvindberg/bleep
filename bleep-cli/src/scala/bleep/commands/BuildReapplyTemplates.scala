@@ -1,6 +1,7 @@
 package bleep
 package commands
 
+import bleep.internal.writeYamlLogged
 import bleep.rewrites.normalizeBuild
 import bleep.templates.templatesReapply
 
@@ -10,7 +11,6 @@ object BuildReapplyTemplates extends BleepBuildCommand {
     val build1 = normalizeBuild(build)
     val build2 = templatesReapply(build1)
     val build3 = normalizeBuild(build2)
-    yaml.writeShortened(build3.file, started.buildPaths.bleepYamlFile)
-    Right(())
+    Right(writeYamlLogged(started.logger, "Wrote update build", build3.file, started.buildPaths.bleepYamlFile))
   }
 }
