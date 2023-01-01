@@ -8,9 +8,18 @@ import java.nio.charset.StandardCharsets
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
+import scala.util.Properties
 
 object FileUtils {
   lazy val TempDir = Path.of(System.getProperty("java.io.tmpdir"))
+
+  lazy val cwd: Path = {
+    val base = Paths.get(System.getProperty("user.dir"))
+    if (Properties.isWin)
+      base.toFile.getCanonicalFile.toPath // todo: why? copied from scala-cli
+    else
+      base
+  }
 
   def writeBytes(path: Path, newContent: Array[Byte]): Unit = {
     Files.createDirectories(path.getParent)

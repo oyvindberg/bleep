@@ -11,20 +11,16 @@ import scala.concurrent.{Await, ExecutionContext}
 
 object FetchJvm {
   def apply(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, jvm: model.Jvm, ec: ExecutionContext): Path = {
-    val architecture = JvmIndex.defaultOs() match {
-      case "darwin" =>
-        // break out of amd64 jail on arm64
-        import scala.sys.process._
-        val uname = Seq("uname", "-a").!!.toLowerCase
-        if (uname.contains("arm64")) "arm64" else JvmIndex.defaultArchitecture()
-      case _ => JvmIndex.defaultArchitecture()
+    val arch = OsArch.current.arch match {
+      case Arch.Amd64 => "amd64"
+      case Arch.Arm64 => "arm64"
     }
 
     maybeCacheDir match {
       case Some(cacheDir) =>
         val cacheFile = {
           val relPath = RelPath(
-            List(Some(architecture), jvm.index, Some(jvm.name)).flatten
+            List(Some(arch), jvm.index, Some(jvm.name)).flatten
               // somewhat windows safe
               .map(_.replace(":", "_"))
           )
@@ -37,23 +33,23 @@ object FetchJvm {
         } else None
 
         found.getOrElse {
-          val fetched = doFetch(cacheLogger, jvm, ec, architecture)
+          val fetched = doFetch(cacheLogger, jvm, ec, arch)
           Files.createDirectories(cacheFile.getParent)
           Files.writeString(cacheFile, fetched.toString)
           fetched
         }
 
-      case None => doFetch(cacheLogger, jvm, ec, architecture)
+      case None => doFetch(cacheLogger, jvm, ec, arch)
     }
   }
 
-  def doFetch(cacheLogger: CacheLogger, jvm: Jvm, ec: ExecutionContext, architecture: String): Path = {
+  def doFetch(cacheLogger: CacheLogger, jvm: Jvm, ec: ExecutionContext, arch: String): Path = {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val archiveCache = ArchiveCache[Task]().withCache(fileCache)
     val jvmCache = JvmCache()
       .withArchiveCache(archiveCache)
       .withIndex(jvm.index.getOrElse(JvmIndex.coursierIndexUrl))
-      .withArchitecture(architecture)
+      .withArchitecture(arch)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)
     javaBin
   }

@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import bleep.bsp.BspProjectSelection
-import bleep.internal.{Argv0, FileUtils}
+import bleep.internal.{fatal, Argv0, FileUtils}
 import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 import io.circe.Encoder
@@ -30,7 +30,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
         case absolute if absolute.startsWith("/") =>
           Path.of(absolute)
         case relative =>
-          internal.Os.cwd / relative
+          FileUtils.cwd / relative
       }
       .filter(Files.isRegularFile(_))
       .filter(Files.isExecutable)
@@ -39,7 +39,16 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
       maybeExecutablePath.getOrElse {
         val latestRelease = model.BleepVersion.current.latestRelease
         logger.warn(s"couldn't determine name of Bleep executable. Setting up version ${latestRelease.value}")
-        FetchBleepRelease(latestRelease, new BleepCacheLogger(logger), ec).orThrow
+        OsArch.current match {
+          case hasNativeImage: OsArch.HasNativeImage =>
+            FetchBleepRelease(latestRelease, new BleepCacheLogger(logger), ec, hasNativeImage).orThrow
+          case other =>
+            fatal(
+              s"No native image available for $other, so the bleep is not able to perform setup-ide. See https://github.com/oyvindberg/bleep/issues/260 for how you can help out",
+              logger
+            )
+        }
+
       }
 
     val details = new bsp4j.BspConnectionDetails(

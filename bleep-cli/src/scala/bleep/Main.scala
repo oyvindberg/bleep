@@ -1,13 +1,14 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{fatal, Os}
+import bleep.internal.{fatal, FileUtils}
 import bleep.logging._
+import bleep.model.{BleepVersion, Os}
 import cats.data.NonEmptyList
 import cats.syntax.apply._
 import cats.syntax.foldable._
 import com.monovore.decline._
-import coursier.jvm.{Execve, JvmIndex}
+import coursier.jvm.Execve
 
 import java.io.{BufferedWriter, PrintStream}
 import java.nio.file.{Path, Paths}
@@ -317,33 +318,58 @@ object Main {
   def cwdFor(opts: CommonOpts): Path =
     opts.directory match {
       case Some(str) if str.startsWith("/") => Paths.get(str)
-      case Some(str)                        => Os.cwd / str
-      case None                             => Os.cwd
+      case Some(str)                        => FileUtils.cwd / str
+      case None                             => FileUtils.cwd
     }
 
   def maybeRunWithDifferentVersion(args: Array[String], buildLoader: BuildLoader, logger: Logger, opts: CommonOpts): Unit =
     buildLoader match {
       case BuildLoader.NonExisting(_) => ()
       case existing: BuildLoader.Existing =>
+        val correctPlatform = OsArch.current match {
+          case OsArch.MacosArm64(freedFromJail) => !freedFromJail
+          case _                                => true
+        }
+
+        def go(wantedVersion: BleepVersion): Unit = {
+          val cacheLogger = new BleepCacheLogger(logger)
+
+          OsArch.current match {
+            case hasNativeImage: OsArch.HasNativeImage =>
+              FetchBleepRelease(wantedVersion, cacheLogger, ExecutionContext.global, hasNativeImage) match {
+                case Left(buildException) =>
+                  fatal("couldn't download bleep release", logger, buildException)
+                case Right(binaryPath) if OsArch.current.os == Os.Windows || !isGraalvmNativeImage =>
+                  val status = scala.sys.process.Process(binaryPath.toString :: args.toList, FileUtils.cwd.toFile, sys.env.toSeq: _*).!<
+                  sys.exit(status)
+                case Right(path) =>
+                  Execve.execve(path.toString, path.toString +: args, sys.env.map { case (k, v) => s"$k=$v" }.toArray)
+                  sys.error("should not be reached")
+              }
+            case other =>
+              fatal(
+                s"No native image available for $other, so the bleep launcher cannot run the release requested by the build file. " +
+                  s"You can pass `--dev` to run the code you have and disregard the version wanted by the build. " +
+                  s"Otherwise see https://github.com/oyvindberg/bleep/issues/260 for how you can help out",
+                logger
+              )
+          }
+        }
+
         existing.wantedVersion.forceGet match {
-          case Right(wantedVersion) if model.BleepVersion.current == wantedVersion || wantedVersion == model.BleepVersion.dev => ()
+          case Right(wantedVersion) if (model.BleepVersion.current == wantedVersion && correctPlatform) || wantedVersion == model.BleepVersion.dev => ()
           case Right(wantedVersion) if model.BleepVersion.current.isDevelopment =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you're running a snapshot")
           case Right(wantedVersion) if opts.dev =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
+          case Right(wantedVersion) if !correctPlatform =>
+            logger.warn(
+              s"Launching Bleep version ${wantedVersion.value} for ARM64 because you ran the AMD64 build. This is probably because you're running coursier compiled for AMD64. You can either try the coursier M1 runner at https://github.com/VirtusLab/coursier-m1 , or download and install bleep manually. Note that bleep will work this way, but startup will be slower."
+            )
+            go(wantedVersion)
           case Right(wantedVersion) =>
             logger.info(s"Launching Bleep version ${wantedVersion.value} as requested in ${existing.bleepYaml}")
-            val cacheLogger = new BleepCacheLogger(logger)
-            FetchBleepRelease(wantedVersion, cacheLogger, ExecutionContext.global) match {
-              case Left(buildException) =>
-                fatal("", logger, buildException)
-              case Right(binaryPath) if JvmIndex.currentOs.contains("windows") || !isGraalvmNativeImage =>
-                val status = scala.sys.process.Process(binaryPath.toString :: args.toList, Os.cwd.toFile, sys.env.toSeq: _*).!<
-                sys.exit(status)
-              case Right(path) =>
-                Execve.execve(path.toString, path.toString +: args, sys.env.map { case (k, v) => s"$k=$v" }.toArray)
-                sys.error("should not be reached")
-            }
+            go(wantedVersion)
           case Left(throwable) =>
             fatal("Couldn't load build", logger, throwable)
         }
@@ -400,7 +426,7 @@ object Main {
 
       case "selftest" :: Nil =>
         // checks that JNI libraries are successfully loaded
-        FileWatching(Logger.DevNull, Map(Os.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        FileWatching(Logger.DevNull, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         println("OK")
 
       case "bsp" :: args =>

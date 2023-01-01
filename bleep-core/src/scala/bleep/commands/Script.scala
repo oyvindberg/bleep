@@ -3,7 +3,6 @@ package commands
 
 import bleep.BleepException
 import cats.syntax.traverse._
-import coursier.jvm.JvmIndex
 
 import scala.build.bloop.BloopServer
 
@@ -27,13 +26,12 @@ case class Script(name: model.ScriptName, args: List[String], watch: Boolean) ex
         case model.ScriptDef.Main(project, main) =>
           Run(project, Some(main), args = args, raw = false, watch = watch).runWithServer(started, bloop)
         case model.ScriptDef.Shell(command, overridesForOs) =>
-          val os = JvmIndex.defaultOs()
-          val bareCommand: String = overridesForOs.flatMap(_.get(os)).orElse(command).getOrElse {
-            throw new BleepException.Text(s"no command found for os $os")
+          val bareCommand: String = overridesForOs.flatMap(_.get(OsArch.current.os)).orElse(command).getOrElse {
+            throw new BleepException.Text(s"no command found for os ${OsArch.current.os}")
           }
 
-          val cmd = os match {
-            case "windows" =>
+          val cmd = OsArch.current.os match {
+            case model.Os.Windows =>
               List("cmd.exe", "/C", bareCommand)
             case _ =>
               val quote = '"'.toString
