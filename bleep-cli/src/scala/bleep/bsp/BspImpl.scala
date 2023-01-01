@@ -1,7 +1,6 @@
 package bleep
 package bsp
 
-import bleep.Lazy
 import bleep.internal.jvmOrSystem
 import bleep.rewrites.BuildRewrite
 import ch.epfl.scala.bsp4j

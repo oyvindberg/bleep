@@ -66,6 +66,9 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
 
       case Opt.Argument(metavar) =>
         completeMetaVar(args, metavar)
+
+      case Opt.OptionalOptArg(_, _, _, _) =>
+        sys.error("unimplemented")
     }
   }
 

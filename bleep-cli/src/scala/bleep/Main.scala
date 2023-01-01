@@ -236,10 +236,10 @@ object Main {
           Opts(() => Right(logger.warn(s"Config file is found in ${userPaths.configYaml}")))
         ),
         Opts.subcommand[BleepCommand]("log-timing-enable", "enable timing info in logs")(
-          Opts(() => Right(BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(true)))))
+          Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(true))).map(_ => ()))
         ),
         Opts.subcommand[BleepCommand]("log-timing-disable", "disable timing info in logs")(
-          Opts(() => Right(BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(false)))))
+          Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(_.copy(logTiming = Some(false))).map(_ => ()))
         ),
         Opts.subcommand(
           "compile-server",

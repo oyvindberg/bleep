@@ -1,11 +1,14 @@
 package bleep
 
 import bleep.logging.Logger
+import bleep.model.assertUsed
 
 import java.nio.file.Path
 import scala.collection.compat._
 
 object BleepFileWatching {
+  assertUsed(immutable.LazyList) // silence warning
+
   def projectPathsMapping(started: Started, projects: Array[model.CrossProjectName]): Map[Path, Seq[model.CrossProjectName]] = {
     val withTransitiveDeps: Array[model.CrossProjectName] =
       (projects ++ projects.flatMap(x => started.build.transitiveDependenciesFor(x).keys)).distinct
