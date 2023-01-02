@@ -83,12 +83,7 @@
       },
       "mainClass": [
         "com.foo.App"
-      ],
-      "runtimeConfig": {
-        "options": [
-          
-        ]
-      }
+      ]
     },
     "resolution": {
       "modules": [

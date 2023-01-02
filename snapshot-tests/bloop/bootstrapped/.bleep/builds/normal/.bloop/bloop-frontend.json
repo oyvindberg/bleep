@@ -216,12 +216,7 @@
       },
       "mainClass": [
         "bloop.Cli"
-      ],
-      "runtimeConfig": {
-        "options": [
-          
-        ]
-      }
+      ]
     },
     "resolution": {
       "modules": [
