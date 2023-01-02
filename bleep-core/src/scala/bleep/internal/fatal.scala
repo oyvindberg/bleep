@@ -10,6 +10,11 @@ object fatal {
     sys.exit(1)
   }
 
+  def apply(context: String, logger: Logger): Nothing = {
+    logger.error(context)
+    sys.exit(1)
+  }
+
   def log(context: String, logger: Logger, throwable: Throwable): Unit =
     throwable match {
       case buildException: BleepException =>

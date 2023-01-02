@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{fatal, Os}
+import bleep.internal.{fatal, FileUtils}
 import bleep.logging.{jsonEvents, LogLevel}
 import bleep.rewrites.BuildRewrite
 
@@ -26,9 +26,9 @@ object bootstrap {
       logger2.untyped
     }
 
-    val buildLoader = BuildLoader.find(Os.cwd)
+    val buildLoader = BuildLoader.find(FileUtils.cwd)
     val buildVariant = model.BuildVariant(rewrites.map(_.name))
-    val buildPaths = BuildPaths(Os.cwd, buildLoader, buildVariant)
+    val buildPaths = BuildPaths(FileUtils.cwd, buildLoader, buildVariant)
     val maybeStarted = for {
       existingBuild <- buildLoader.existing
       pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild)

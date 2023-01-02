@@ -11,7 +11,7 @@ object ScriptDef {
     implicit val codec: Codec.AsObject[Main] = deriveCodec
   }
 
-  case class Shell(command: Option[String], `override-os`: Option[Map[String, String]]) extends ScriptDef
+  case class Shell(command: Option[String], `override-os`: Option[Map[Os, String]]) extends ScriptDef
   object Shell {
     implicit val codec: Codec.AsObject[Shell] = deriveCodec
   }

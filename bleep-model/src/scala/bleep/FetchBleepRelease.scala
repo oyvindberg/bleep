@@ -1,7 +1,6 @@
 package bleep
 
 import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger, FileCache}
-import coursier.jvm.JvmIndex
 import coursier.util.{Artifact, Task}
 
 import java.io.File
@@ -22,32 +21,25 @@ object FetchBleepRelease {
       }
     } else Right(file)
 
-  def apply(wanted: model.BleepVersion, cacheLogger: CacheLogger, executionContext: ExecutionContext): Either[BleepException, Path] =
-    apply(wanted, cacheLogger, executionContext, JvmIndex.currentArchitecture, JvmIndex.currentOs)
-
   def apply(
       wanted: model.BleepVersion,
       cacheLogger: CacheLogger,
       executionContext: ExecutionContext,
-      arch: Either[String, String],
-      os: Either[String, String]
+      osArch: OsArch.HasNativeImage
   ): Either[BleepException, Path] = {
     val base = s"https://github.com/oyvindberg/bleep/releases/download/v${wanted.value}"
 
     val isOldLayout = oldLayouts(wanted)
 
     val maybeUrl: Either[String, String] =
-      (arch, os) match {
-        case (Right("amd64"), Right("darwin")) if isOldLayout  => Right(s"$base/bleep-${wanted.value}-x86-64-apple-darwin.gz")
-        case (Right("amd64"), Right("linux")) if isOldLayout   => Right(s"$base/bleep-${wanted.value}-x86-64-pc-linux.gz")
-        case (Right("amd64"), Right("windows")) if isOldLayout => Right(s"$base/bleep-${wanted.value}-x86-64-pc-win32.zip")
-        case (Right("arm64"), Right("darwin"))                 => Right(s"$base/bleep-arm64-apple-darwin.tar.gz")
-        case (Right("amd64"), Right("darwin"))                 => Right(s"$base/bleep-x86_64-apple-darwin.tar.gz")
-        case (Right("amd64"), Right("linux"))                  => Right(s"$base/bleep-x86_64-pc-linux.tar.gz")
-        case (Right("amd64"), Right("windows"))                => Right(s"$base/bleep-x86_64-pc-win32.zip")
-        case (Right(arch), Right(os))                          => Left(s"Unsupported combination of architecture $arch and os $os")
-        case (Left(unsupported), _)                            => Left(unsupported)
-        case (_, Left(unsupported))                            => Left(unsupported)
+      osArch match {
+        case OsArch.MacosAmd64 if isOldLayout   => Right(s"$base/bleep-${wanted.value}-x86-64-apple-darwin.gz")
+        case OsArch.LinuxAmd64 if isOldLayout   => Right(s"$base/bleep-${wanted.value}-x86-64-pc-linux.gz")
+        case OsArch.WindowsAmd64 if isOldLayout => Right(s"$base/bleep-${wanted.value}-x86-64-pc-win32.zip")
+        case OsArch.MacosArm64(_)               => Right(s"$base/bleep-arm64-apple-darwin.tar.gz")
+        case OsArch.MacosAmd64                  => Right(s"$base/bleep-x86_64-apple-darwin.tar.gz")
+        case OsArch.LinuxAmd64                  => Right(s"$base/bleep-x86_64-pc-linux.tar.gz")
+        case OsArch.WindowsAmd64                => Right(s"$base/bleep-x86_64-pc-win32.zip")
       }
 
     maybeUrl match {
@@ -66,8 +58,8 @@ object FetchBleepRelease {
               case Left(msg) =>
                 Left(new BleepException.Text(msg))
               case Right(executable) =>
-                JvmIndex.currentOs match {
-                  case Right("darwin" | "linux") =>
+                osArch.os match {
+                  case model.Os.Macos | model.Os.Linux =>
                     file.setExecutable(true)
                   case _ => ()
                 }
