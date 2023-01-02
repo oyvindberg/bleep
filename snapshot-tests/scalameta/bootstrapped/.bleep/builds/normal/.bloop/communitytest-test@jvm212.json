@@ -173,12 +173,7 @@
       },
       "mainClass": [
         
-      ],
-      "runtimeConfig": {
-        "options": [
-          
-        ]
-      }
+      ]
     },
     "resolution": {
       "modules": [

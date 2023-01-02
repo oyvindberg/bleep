@@ -166,7 +166,7 @@ object GenBloopFiles {
               options = templateDirs.fill.opts(platform.jvmOptions).render
             ),
             mainClass = platform.mainClass,
-            runtimeConfig = Some(Config.JvmConfig(home = None, options = templateDirs.fill.opts(platform.jvmRuntimeOptions).render)),
+            runtimeConfig = Some(Config.JvmConfig(home = None, options = templateDirs.fill.opts(platform.jvmRuntimeOptions).render)).filter(_.options.nonEmpty),
             classpath = None,
             resources = None
           )
