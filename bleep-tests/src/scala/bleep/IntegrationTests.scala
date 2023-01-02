@@ -19,6 +19,8 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val prelude =
     """$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
       |$version: dev
+      |jvm:
+      |  name: graalvm-java17:22.3.0
       |""".stripMargin
 
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
