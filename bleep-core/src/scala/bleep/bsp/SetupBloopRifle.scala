@@ -11,6 +11,7 @@ import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
@@ -34,7 +35,8 @@ object SetupBloopRifle {
       .copy(
         javaPath = resolvedJvm.toString,
         bspStdout = bleepRifleLogger.bloopBspStdout,
-        bspStderr = bleepRifleLogger.bloopBspStderr
+        bspStderr = bleepRifleLogger.bloopBspStderr,
+        period = 10.millis
       )
   }
 
