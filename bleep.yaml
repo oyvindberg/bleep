@@ -40,11 +40,11 @@ projects:
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-RC3-1
+      module: io.get-coursier::coursier-jvm:2.1.0-RC4
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-RC3-1
+      module: io.get-coursier::coursier:2.1.0-RC4
     - org.snakeyaml:snakeyaml-engine:2.5
     extends: template-cross-all
   bleep-plugin-ci-release:
