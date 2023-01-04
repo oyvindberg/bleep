@@ -17,13 +17,10 @@ jobs:
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: coursier/setup-action@v1.2.0-M3
+      - uses: bleep-build/bleep-setup-action@0.0.1
       - uses: coursier/cache-action@v6
         with:
           extraFiles: bleep.yaml
-
-      - name: Install bleep stable
-        run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep --verbose
 
       - name: Scalafmt Check
         run: bleep fmt --check
@@ -59,15 +56,11 @@ jobs:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: coursier/setup-action@v1.2.0-M3
-        with:
-          jvm: graalvm-java17:22.3.0
+      - uses: bleep-build/bleep-setup-action@0.0.1
+
       - uses: coursier/cache-action@v6
         with:
           extraFiles: bleep.yaml
-
-      - name: Install bleep stable
-        run: cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep --verbose
 
       - name: Build native image (non-windows)
         # stop compile server after build since the new version may use a newer version of bloop
