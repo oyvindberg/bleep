@@ -58,8 +58,14 @@ object cli {
       in: In = In.No,
       env: List[(String, String)] = Nil
   ): WrittenLines = {
+    // make sure we break out of x86_64 jail when running programs when possible
+    val patchedCmd = OsArch.current match {
+      case OsArch.MacosArm64(freedFromJail) if freedFromJail => List("arch", "-arch", "arm64") ++ cmd
+      case _                                                 => cmd
+    }
+
     val process = Process {
-      val builder = new java.lang.ProcessBuilder(cmd: _*)
+      val builder = new java.lang.ProcessBuilder(patchedCmd: _*)
       builder.directory(cwd.toFile)
       builder.environment().clear()
       env.foreach { case (k, v) => builder.environment.put(k, v) }
@@ -102,7 +108,7 @@ object cli {
     val ctxLogger = logger
       .withContext(action)
       .withContext(cwd)
-      .withContext(cmd)
+      .withContext("cmd", patchedCmd)
       .withContext(env)
       .withContext(exitCode)
 
