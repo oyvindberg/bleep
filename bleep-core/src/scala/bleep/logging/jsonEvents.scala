@@ -3,7 +3,7 @@ package bleep.logging
 import fansi.Str
 import io.circe.generic.semiauto
 import io.circe.{Codec, Decoder, Encoder}
-import sourcecode.{Enclosing, File, Line, Text}
+import sourcecode.{Enclosing, File, Line}
 
 import java.io.{PrintStream, PrintWriter}
 import java.time.Instant
@@ -14,7 +14,7 @@ object jsonEvents {
   val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
 
   /** Meant for transferring log events between processes */
-  case class JsonEvent(sourceCode: String, formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String]) {
+  case class JsonEvent(formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String]) {
 
     /** For use in calling program, which receives json events
       */
@@ -24,7 +24,7 @@ object jsonEvents {
 
       logger2(
         metadata.logLevel,
-        Text(formatted, sourceCode),
+        formatted,
         throwable.map(DeserializedThrowable.apply),
         metadata.instant
       )(Formatter.StrFormatter, metadata.line, metadata.file, metadata.enclosing)
@@ -45,8 +45,8 @@ object jsonEvents {
 
     implicit val codec: Codec[JsonEvent] = semiauto.deriveCodec
 
-    def from[T: Formatter](t: Text[T], throwable: Option[Throwable], metadata: Metadata, ctx: Ctx, path: List[String]): JsonEvent =
-      JsonEvent(t.source, Formatter[T](t.value), throwable.map(Th.from), metadata, ctx, path)
+    def from[T: Formatter](t: T, throwable: Option[Throwable], metadata: Metadata, ctx: Ctx, path: List[String]): JsonEvent =
+      JsonEvent(Formatter[T](t), throwable.map(Th.from), metadata, ctx, path)
   }
 
   /** For used in called program, so it outputs all log events in json
@@ -54,7 +54,7 @@ object jsonEvents {
   final class JsonProducer[U <: Appendable](val underlying: U, val context: Ctx, val path: List[String]) extends TypedLogger[U] {
     import io.circe.syntax._
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val json = JsonEvent.from(t, throwable, metadata, context, path).asJson
       underlying.append(json.noSpaces + "\n")
       ()

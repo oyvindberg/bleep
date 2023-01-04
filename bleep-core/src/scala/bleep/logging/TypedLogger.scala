@@ -42,8 +42,8 @@ object TypedLogger {
 
   private[logging] final class StoringLogger(store: Store, val ctx: Ctx, path: List[String]) extends TypedLogger[Array[Stored]] {
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit =
-      store.store(Stored(Formatter(t.value), throwable, metadata, ctx, path))
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit =
+      store.store(Stored(Formatter(t), throwable, metadata, ctx, path))
 
     override def withContext[T: Formatter](key: String, value: T): StoringLogger =
       new StoringLogger(store, ctx + (key -> Formatter(value)), path)
@@ -60,7 +60,7 @@ object TypedLogger {
   private[logging] final class AppendableLogger[U <: Appendable](val underlying: U, pattern: Pattern, val context: Ctx, val path: List[String])
       extends TypedLogger[U] { self =>
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val formatted = pattern(t, throwable, metadata, context, path)
       underlying.append(formatted.render + "\n")
       ()
@@ -86,7 +86,7 @@ object TypedLogger {
 
     val CleanCurrentLine = "\u001b[K"
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val formatted = pattern(t, throwable, metadata, context, path)
       if (lastWasProgress.get()) {
         underlying.append(CleanCurrentLine + formatted.render + "\n")
@@ -110,7 +110,7 @@ object TypedLogger {
       else
         Some {
           new LoggerFn {
-            override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
+            override def log[T: Formatter](text: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
               val formatted = pattern(text, throwable, metadata, context, path)
               if (lastWasProgress.get()) {
                 underlying.append(CleanCurrentLine + formatted.render + "\r")
@@ -127,7 +127,7 @@ object TypedLogger {
   private[logging] final class Flushing[U <: Flushable](wrapped: TypedLogger[U]) extends TypedLogger[U] {
     override def underlying: U = wrapped.underlying
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = {
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       wrapped.log(t, throwable, metadata)
       wrapped.underlying.flush()
     }
@@ -147,7 +147,7 @@ object TypedLogger {
 
     private val both = one.and(two)
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit =
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit =
       both.log(t, throwable, metadata)
 
     override def withContext[T: Formatter](key: String, value: T): Zipped[U1, U2] =
@@ -163,7 +163,7 @@ object TypedLogger {
   private[logging] final class MinLogLevel[U](wrapped: TypedLogger[U], minLogLevel: LogLevel) extends TypedLogger[U] {
     override def underlying: U = wrapped.underlying
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], m: Metadata): Unit =
       if (m.logLevel.level >= minLogLevel.level) {
         wrapped.log(t, throwable, m)
       }
@@ -181,7 +181,7 @@ object TypedLogger {
   private[logging] final class Mapped[U, UU](wrapped: TypedLogger[U], f: U => UU) extends TypedLogger[UU] {
     override def underlying: UU = f(wrapped.underlying)
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], m: Metadata): Unit =
       wrapped.log(t, throwable, m)
 
     override def withContext[T: Formatter](key: String, value: T): Mapped[U, UU] =
@@ -197,7 +197,7 @@ object TypedLogger {
   private[logging] final class Synchronized[U](wrapped: TypedLogger[U]) extends TypedLogger[U] {
     override def underlying: U = wrapped.underlying
 
-    override def log[T: Formatter](t: => Text[T], throwable: Option[Throwable], m: Metadata): Unit =
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], m: Metadata): Unit =
       this.synchronized(wrapped.log(t, throwable, m))
 
     override def withContext[T: Formatter](key: String, value: T): Synchronized[U] =
@@ -214,7 +214,7 @@ object TypedLogger {
     override def underlying: Unit = ()
     override def withContext[T: Formatter](key: String, value: T): DevNull.type = this
     override def withPath(fragment: String): DevNull.type = this
-    override def log[T: Formatter](text: => Text[T], throwable: Option[Throwable], metadata: Metadata): Unit = ()
+    override def log[T: Formatter](text: => T, throwable: Option[Throwable], metadata: Metadata): Unit = ()
     override def progressMonitor: Option[LoggerFn] = None
   }
 

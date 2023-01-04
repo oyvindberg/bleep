@@ -3,7 +3,6 @@ package bleep
 import bleep.internal.FileUtils
 import bleep.logging.{LogLevel, TypedLogger}
 import bleep.logging.TypedLogger.Stored
-import bleep.testing.SnapshotTest
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
