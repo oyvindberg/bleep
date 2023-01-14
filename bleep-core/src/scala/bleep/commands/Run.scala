@@ -3,13 +3,12 @@ package commands
 
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
+import bleep.internal.jvmRunCommand
 import bleep.logging.jsonEvents
-import bloop.config.Config
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
-import java.io.File
 import java.util.concurrent.ExecutionException
 import scala.annotation.tailrec
 import scala.build.bloop.BloopServer
@@ -41,28 +40,20 @@ case class Run(
       }
 
     maybeMain.flatMap { main =>
-      started.bloopProjects(project).platform match {
+      started.build.explodedProjects(project).platform.flatMap(_.name) match {
         // we could definitely run js/native projects in "raw" mode as well, it just needs to be implemented
-        case Some(jvm: Config.Platform.Jvm) if raw => rawRun(started, bloop, main, jvm)
-        case _                                     => bspRun(started, bloop, main)
+        case Some(model.PlatformId.Jvm) if raw => rawRun(started, bloop, main)
+        case _                                 => bspRun(started, bloop, main)
       }
     }
   }
 
-  def rawRun(started: Started, bloop: BloopServer, main: String, jvm: Config.Platform.Jvm): Either[BleepException, Unit] =
+  def rawRun(started: Started, bloop: BloopServer, main: String): Either[BleepException, Unit] =
     Compile(watch = false, Array(project)).runWithServer(started, bloop).map { case () =>
-      val bloopProject = started.bloopProjects(project)
-      val cp = fixedClasspath(bloopProject)
-
       cli(
         "run",
         started.pre.buildPaths.cwd,
-        List[List[String]](
-          List(started.jvmCommand.toString),
-          jvm.runtimeConfig.getOrElse(jvm.config).options,
-          List("-classpath", cp.mkString(File.pathSeparator), main),
-          args
-        ).flatten,
+        jvmRunCommand(started, project, Some(main), args).orThrow,
         logger = started.logger,
         out = cli.Out.Raw,
         in = cli.In.Attach,
