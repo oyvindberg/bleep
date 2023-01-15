@@ -1,7 +1,6 @@
 package bleep
 
-import bleep.logging.{jsonEvents, Logger}
-import io.circe.parser.decode
+import bleep.logging.Logger
 import sourcecode.{Enclosing, File, Line}
 
 import java.nio.file.Path
@@ -37,11 +36,7 @@ object cli {
           case WrittenLine.StdErr(line) =>
             logger.warn(line)(implicitly, l, f, e)
           case WrittenLine.StdOut(line) =>
-            val maybeJsonEvent = if (line.startsWith("{")) decode[jsonEvents.JsonEvent](line).toOption else None
-            maybeJsonEvent match {
-              case None            => logger.info(line)(implicitly, l, f, e)
-              case Some(jsonEvent) => jsonEvent.logTo(logger)
-            }
+            logger.info(line)(implicitly, l, f, e)
         }
 
       def withAction(action: String): ViaLogger =

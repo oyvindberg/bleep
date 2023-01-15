@@ -463,25 +463,30 @@ object Main {
         val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
         val stdout: TypedLogger[PrintStream] =
-          if (logAsJson) logging.stdoutJson()
+          if (logAsJson) new jsonEvents.SerializeLogEvents(System.out, context = Map.empty, Nil)
           else {
             val startRun = if (config.logTiming.getOrElse(false)) Some(Instant.now) else None
             val pattern = LogPatterns.interface(startRun, noColor = commonOpts.noColor)
-            logging.stdout(pattern, disableProgress = commonOpts.noBspProgress).minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
+            jsonEvents
+              .DeserializeLogEvents(logging.stdout(pattern, disableProgress = commonOpts.noBspProgress))
+              .minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
           }
 
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)
 
-        def stdoutAndFileLogging(buildPaths: BuildPaths): LoggerResource =
-          if (logAsJson) LoggerResource.pure(stdout.untyped)
-          else {
-            // and to logfile, without any filtering
-            val logFileResource: TypedLoggerResource[BufferedWriter] =
-              logging.path(buildPaths.logFile, LogPatterns.logFile).map(_.flushing)
+        def stdoutAndFileLogging(buildPaths: BuildPaths): LoggerResource = {
+          val base =
+            if (logAsJson) LoggerResource.pure(stdout.untyped)
+            else {
+              // and to logfile, without any filtering
+              val logFileResource: TypedLoggerResource[BufferedWriter] =
+                logging.path(buildPaths.logFile, LogPatterns.logFile).map(_.flushing)
 
-            LoggerResource.pure(stdout).zipWith(logFileResource).untyped
-          }
+              LoggerResource.pure(stdout).zipWith(logFileResource).untyped
+            }
+          base.map(jsonEvents.DeserializeLogEvents(_))
+        }
 
         val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
         buildLoader match {

@@ -15,7 +15,7 @@ object bootstrap {
     val bleepConfig = BleepConfigOps.loadOrDefault(userPaths).orThrow
     val logger = {
       val logger0 =
-        if (logAsJson) logging.stdoutJson()
+        if (logAsJson) new jsonEvents.SerializeLogEvents(System.out, context = Map.empty, Nil)
         else {
           val startRun = if (bleepConfig.logTiming.getOrElse(false)) Some(Instant.now) else None
           logging.stdout(LogPatterns.interface(startRun, noColor = commonOpts.noColor), disableProgress = commonOpts.noBspProgress)

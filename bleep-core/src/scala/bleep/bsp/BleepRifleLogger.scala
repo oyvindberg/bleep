@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.logging.{jsonEvents, Logger, LoggerFn}
+import bleep.logging.{Logger, LoggerFn}
 
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
@@ -11,10 +11,7 @@ class BleepRifleLogger(logger: Logger) extends BloopRifleLogger {
   val bloopRifleLogger = logger.withPath("bloop-rifle")
 
   override def info(msg: => String): Unit =
-    io.circe.parser.decode[jsonEvents.JsonEvent](msg) match {
-      case Left(_)          => bloopRifleLogger.info(msg)
-      case Right(jsonEvent) => jsonEvent.logTo(logger)
-    }
+    bloopRifleLogger.info(msg)
 
   override def debug(msg: => String, throwable: Throwable): Unit =
     Option(throwable) match {

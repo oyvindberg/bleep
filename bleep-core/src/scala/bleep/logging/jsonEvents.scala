@@ -2,6 +2,7 @@ package bleep.logging
 
 import fansi.Str
 import io.circe.generic.semiauto
+import io.circe.parser.decode
 import io.circe.{Codec, Decoder, Encoder}
 import sourcecode.{Enclosing, File, Line}
 
@@ -14,24 +15,9 @@ object jsonEvents {
   val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
 
   /** Meant for transferring log events between processes */
-  case class JsonEvent(formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String]) {
+  private case class JsonEvent(formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String])
 
-    /** For use in calling program, which receives json events
-      */
-    def logTo(logger0: Logger): Unit = {
-      val logger1 = path.foldRight(logger0) { case (fragment, acc) => acc.withPath(fragment) }
-      val logger2 = ctx.foldRight(logger1) { case ((k, v), acc) => acc.withContext(k, v) }
-
-      logger2(
-        metadata.logLevel,
-        formatted,
-        throwable.map(DeserializedThrowable.apply),
-        metadata.instant
-      )(Formatter.StrFormatter, metadata.line, metadata.file, metadata.enclosing)
-    }
-  }
-
-  object JsonEvent {
+  private object JsonEvent {
     implicit val strCodec: Codec[Str] =
       Codec.forProduct2[Str, Array[Char], Array[Long]]("chars", "colors") { case (chars, colors) => Str.fromArrays(chars, colors) } { str =>
         (str.getChars, str.getColors)
@@ -51,7 +37,7 @@ object jsonEvents {
 
   /** For used in called program, so it outputs all log events in json
     */
-  final class JsonProducer[U <: Appendable](val underlying: U, val context: Ctx, val path: List[String]) extends TypedLogger[U] {
+  final class SerializeLogEvents[U <: Appendable](val underlying: U, val context: Ctx, val path: List[String]) extends TypedLogger[U] {
     import io.circe.syntax._
 
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
@@ -60,13 +46,44 @@ object jsonEvents {
       ()
     }
 
-    override def withContext[T: Formatter](key: String, value: T): JsonProducer[U] =
-      new JsonProducer(underlying, context + (key -> Formatter(value)), path)
+    override def withContext[T: Formatter](key: String, value: T): SerializeLogEvents[U] =
+      new SerializeLogEvents(underlying, context + (key -> Formatter(value)), path)
 
     override def progressMonitor: Option[LoggerFn] = None
 
     override def withPath(fragment: String): TypedLogger[U] =
-      new JsonProducer[U](underlying, context, fragment :: path)
+      new SerializeLogEvents[U](underlying, context, fragment :: path)
+  }
+
+  final case class DeserializeLogEvents[U](val next: TypedLogger[U]) extends TypedLogger[U] {
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
+      val str = implicitly[Formatter[T]].apply(t)
+      if (str.plainText.startsWith("{")) {
+        decode[jsonEvents.JsonEvent](str.plainText) match {
+          case Left(_) => next.log(t, throwable, metadata)
+          case Right(jsonEvent) =>
+            val logger1 = jsonEvent.path.foldRight(next) { case (fragment, acc) => acc.withPath(fragment) }
+            val logger2 = jsonEvent.ctx.foldRight(logger1) { case ((k, v), acc) => acc.withContext(k, v) }
+
+            logger2(
+              jsonEvent.metadata.logLevel,
+              jsonEvent.formatted,
+              jsonEvent.throwable.map(DeserializedThrowable.apply),
+              jsonEvent.metadata.instant
+            )(Formatter.StrFormatter, jsonEvent.metadata.line, jsonEvent.metadata.file, jsonEvent.metadata.enclosing)
+        }
+      }
+    }
+
+    override def withContext[T: Formatter](key: String, value: T): DeserializeLogEvents[U] =
+      new DeserializeLogEvents(next.withContext(value))
+
+    override def progressMonitor: Option[LoggerFn] = None
+
+    override def withPath(fragment: String): DeserializeLogEvents[U] =
+      new DeserializeLogEvents(next.withPath(fragment))
+
+    override def underlying: U = next.underlying
   }
 
   case class DeserializedThrowable(th: Th) extends Throwable with NoStackTrace {

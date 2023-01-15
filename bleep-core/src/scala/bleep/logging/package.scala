@@ -20,9 +20,6 @@ package object logging {
   def stderr(pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
     new TypedLogger.ConsoleLogger(System.err, pattern, ctx, Nil, disableProgress = true)
 
-  def stdoutJson(ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
-    new jsonEvents.JsonProducer(System.out, ctx, Nil)
-
   def path(logFile: Path, pattern: Pattern, ctx: Ctx = emptyContext): TypedLoggerResource[BufferedWriter] =
     new TypedLoggerResource[BufferedWriter] {
       override def use[T](f: TypedLogger[BufferedWriter] => T): T = {

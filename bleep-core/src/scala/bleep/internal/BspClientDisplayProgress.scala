@@ -1,10 +1,9 @@
 package bleep.internal
 
-import bleep.logging.{jsonEvents, LogLevel, Logger}
+import bleep.logging.{LogLevel, Logger}
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
 import fansi.{Bold, Str}
-import io.circe.parser.decode
 
 import scala.collection.mutable
 
@@ -70,10 +69,7 @@ class BspClientDisplayProgress(
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
     val logger0 = logger.withOptContext("originId", Option(params.getOriginId))
-    decode[jsonEvents.JsonEvent](params.getMessage) match {
-      case Left(_)          => logger0.info(params.getMessage)
-      case Right(jsonEvent) => jsonEvent.logTo(logger0)
-    }
+    logger0.info(params.getMessage)
   }
 
   def logLevelFor(messageType: MessageType): LogLevel =
