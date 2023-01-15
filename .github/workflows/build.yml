@@ -67,7 +67,7 @@ jobs:
         run: |
           bleep generate-resources
           bleep native-image ${{ matrix.file_name }}
-          bleep compile-server stop-all
+          bleep config compile-server stop-all
 
         if: runner.os != 'Windows'
 
@@ -84,7 +84,7 @@ jobs:
         # - with `shell: cmd` only one command can be run at a time, so this is split into three
         # - some windows development stuff needs to be available, that's what setup-graalvm accomplishes below. todo: figure out how bleep can download it itself
       - name: Build native image 1 (windows)
-        run: bleep compile-server auto-shutdown-enable
+        run: bleep config compile-server auto-shutdown-enable
         shell: cmd
         if: runner.os == 'Windows'
 
