@@ -1,55 +1,41 @@
 package bleep
 
-import bleep.internal.{fatal, FileUtils}
-import bleep.logging.{jsonEvents, LogLevel}
+import bleep.internal.{bleepLoggers, fatal, FileUtils}
 import bleep.rewrites.BuildRewrite
 
-import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success, Try}
 
 object bootstrap {
   def forScript(scriptName: String, commonOpts: CommonOpts, rewrites: List[BuildRewrite] = Nil)(f: (Started, Commands) => Unit): Unit = {
-    val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
     val userPaths = UserPaths.fromAppDirs
     val bleepConfig = BleepConfigOps.loadOrDefault(userPaths).orThrow
-    val logger = {
-      val logger0 =
-        if (logAsJson) new jsonEvents.SerializeLogEvents(System.out, context = Map.empty, Nil)
-        else {
-          val startRun = if (bleepConfig.logTiming.getOrElse(false)) Some(Instant.now) else None
-          logging.stdout(LogPatterns.interface(startRun, noColor = commonOpts.noColor), disableProgress = commonOpts.noBspProgress)
-        }
-
-      val logger1 = logger0.withPath(s"[script $scriptName]")
-      val logger2 = if (commonOpts.debug || logAsJson) logger1 else logger1.minLogLevel(LogLevel.info)
-      logger2.untyped
-    }
-
     val buildLoader = BuildLoader.find(FileUtils.cwd)
     val buildVariant = model.BuildVariant(rewrites.map(_.name))
     val buildPaths = BuildPaths(FileUtils.cwd, buildLoader, buildVariant)
-    val maybeStarted = for {
-      existingBuild <- buildLoader.existing
-      pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild)
-      started <- from(
-        pre,
-        GenBloopFiles.SyncToDisk,
-        rewrites,
-        bleepConfig,
-        CoursierResolver.Factory.default,
-        ExecutionContext.global
-      )
-    } yield started
 
-    maybeStarted match {
-      case Left(buildException) =>
-        fatal("Couldn't initialize bleep", logger, buildException)
-      case Right(started) =>
-        Try(f(started, new Commands(started))) match {
-          case Failure(th) => fatal("failed :(", logger, th)
-          case Success(_)  => ()
+    val exitCode: ExitCode =
+      bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).untyped.use { logger =>
+        val maybeStarted = for {
+          existingBuild <- buildLoader.existing
+          pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild)
+          started <- from(pre, GenBloopFiles.SyncToDisk, rewrites, bleepConfig, CoursierResolver.Factory.default, ExecutionContext.global)
+        } yield started
+
+        maybeStarted match {
+          case Left(buildException) =>
+            fatal("Couldn't initialize bleep", logger, buildException)
+          case Right(started) =>
+            Try(f(started, new Commands(started))) match {
+              case Failure(th) => fatal("failed :(", logger, th)
+              case Success(_)  => ExitCode.Success
+            }
         }
+      }
+
+    exitCode match {
+      case ExitCode.Success => ()
+      case ExitCode.Failure => System.exit(exitCode.value)
     }
   }
 

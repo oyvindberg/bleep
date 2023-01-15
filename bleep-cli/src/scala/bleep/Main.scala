@@ -1,8 +1,8 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{fatal, FileUtils}
-import bleep.logging._
+import bleep.internal.{bleepLoggers, fatal, FileUtils}
+import bleep.logging.Logger
 import bleep.model.{BleepVersion, Os}
 import cats.data.NonEmptyList
 import cats.syntax.apply._
@@ -10,9 +10,7 @@ import cats.syntax.foldable._
 import com.monovore.decline._
 import coursier.jvm.Execve
 
-import java.io.{BufferedWriter, PrintStream}
 import java.nio.file.{Path, Paths}
-import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -75,6 +73,12 @@ object Main {
 
     val projectName: Opts[model.CrossProjectName] =
       Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
+
+    val projectNamesNoExpand: Opts[Option[List[String]]] =
+      Opts
+        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, Some(started.globs.projectNameMap).map(_.map { case (s, _) => (s, s) })))
+        .map(_.toList)
+        .orNone
 
     val testProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
@@ -165,7 +169,11 @@ object Main {
               commands.Run(projectName, mainClass, arguments, raw = true, watch = watch)
             }
           ),
-          setupIdeCmd(started.buildPaths, started.logger, Some(started.globs.projectNameMap), started.executionContext),
+          Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
+            (projectNamesNoExpand, Opts.flag("force-jvm", "force BSP running through JVM").orFalse).mapN { case (projectNames, forceJvm) =>
+              commands.SetupIde(projectNames, forceJvm)
+            }
+          ),
           Opts.subcommand("clean", "clean")(
             projectNames.map(projectNames => commands.Clean(projectNames))
           ),
@@ -285,23 +293,6 @@ object Main {
       Opts(commands.InstallTabCompletions(logger))
     )
 
-  def setupIdeCmd(
-      buildPaths: BuildPaths,
-      logger: Logger,
-      projectNameMap: Option[Map[String, Array[model.CrossProjectName]]],
-      ec: ExecutionContext
-  ): Opts[BleepCommand] = {
-    val projectNamesNoExpand: Opts[Option[List[String]]] =
-      Opts
-        .arguments(metavars.projectName)(argumentFrom(metavars.projectName, projectNameMap.map(_.map { case (s, _) => (s, s) })))
-        .map(_.toList)
-        .orNone
-
-    Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
-      projectNamesNoExpand.map(projectNames => commands.SetupIde(buildPaths, logger, projectNames, ec))
-    )
-  }
-
   def newCommand(logger: Logger, userPaths: UserPaths, cwd: Path): Opts[BleepNoBuildCommand] =
     Opts.subcommand("new", "create new build in current directory")(
       (
@@ -327,16 +318,16 @@ object Main {
       case None                             => FileUtils.cwd
     }
 
-  def maybeRunWithDifferentVersion(args: Array[String], buildLoader: BuildLoader, logger: Logger, opts: CommonOpts): Unit =
+  def maybeRunWithDifferentVersion(args: Array[String], logger: Logger, buildLoader: BuildLoader, opts: CommonOpts): ExitCode =
     buildLoader match {
-      case BuildLoader.NonExisting(_) => ()
+      case BuildLoader.NonExisting(_) => ExitCode.Success
       case existing: BuildLoader.Existing =>
         val correctPlatform = OsArch.current match {
           case OsArch.MacosArm64(freedFromJail) => !freedFromJail
           case _                                => true
         }
 
-        def go(wantedVersion: BleepVersion): Unit = {
+        def go(wantedVersion: BleepVersion): ExitCode = {
           val cacheLogger = new BleepCacheLogger(logger)
 
           OsArch.current match {
@@ -362,11 +353,14 @@ object Main {
         }
 
         existing.wantedVersion.forceGet match {
-          case Right(wantedVersion) if (model.BleepVersion.current == wantedVersion && correctPlatform) || wantedVersion == model.BleepVersion.dev => ()
+          case Right(wantedVersion) if (model.BleepVersion.current == wantedVersion && correctPlatform) || wantedVersion == model.BleepVersion.dev =>
+            ExitCode.Success
           case Right(wantedVersion) if model.BleepVersion.current.isDevelopment =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you're running a snapshot")
+            ExitCode.Success
           case Right(wantedVersion) if opts.dev =>
             logger.info(s"Not launching Bleep version ${wantedVersion.value} (from ${existing.bleepYaml}) because you specified --dev")
+            ExitCode.Success
           case Right(wantedVersion) if !correctPlatform =>
             logger.warn(
               s"Launching Bleep version ${wantedVersion.value} for ARM64 because you ran the AMD64 build. This is probably because you're running coursier compiled for AMD64. You can either try the coursier M1 runner at https://github.com/VirtusLab/coursier-m1 , or download and install bleep manually. Note that bleep will work this way, but startup will be slower."
@@ -383,7 +377,7 @@ object Main {
   def main(_args: Array[String]): Unit = {
     val userPaths = UserPaths.fromAppDirs
 
-    _args.toList match {
+    val exitCode: ExitCode = _args.toList match {
       case "_complete" :: compLine :: compCword :: compPoint :: _ =>
         val args = Completer.bashToArgs(compLine, compCword.toInt, compPoint.toInt)
         val (_, restArgs) = CommonOpts.parse(args)
@@ -391,148 +385,129 @@ object Main {
         val (commonOpts, _) = CommonOpts.parse(compLine.split(" ").toList)
         val cwd = cwdFor(commonOpts)
         // we can not log to stdout when completing. logger should be used sparingly
-        val logger = logging.stderr(LogPatterns.logFile).minLogLevel(LogLevel.warn).untyped
+        val stderr = bleepLoggers.stderrWarn.untyped
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, buildLoader, logger, commonOpts)
+        maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts).andThen {
 
-        val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
+          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
 
-        val completions = buildLoader match {
-          case noBuild: BuildLoader.NonExisting =>
-            val completer = new Completer({
-              case metavars.platformName => model.PlatformId.All.map(_.value)
-              case metavars.scalaVersion => possibleScalaVersions.keys.toList
-              case _                     => Nil
-            })
-            completer.completeOpts(restArgs)(noBuildOpts(logger, userPaths, buildPaths, noBuild))
-          case existing: BuildLoader.Existing =>
-            val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
+          val completions = buildLoader match {
+            case noBuild: BuildLoader.NonExisting =>
+              val completer = new Completer({
+                case metavars.platformName => model.PlatformId.All.map(_.value)
+                case metavars.scalaVersion => possibleScalaVersions.keys.toList
+                case _                     => Nil
+              })
+              completer.completeOpts(restArgs)(noBuildOpts(stderr, userPaths, buildPaths, noBuild))
+            case existing: BuildLoader.Existing =>
+              val pre = Prebootstrapped(stderr, userPaths, buildPaths, existing)
 
-            val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
+              val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
-            bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
-              case Left(th) => fatal("couldn't load build", logger, th)
+              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
+                case Left(th) =>
+                  fatal("couldn't load build", stderr, th)
+                  Completer.Res.NoMatch
 
-              case Right(started) =>
-                val completer = new Completer({
-                  case metavars.platformName       => model.PlatformId.All.map(_.value)
-                  case metavars.scalaVersion       => possibleScalaVersions.keys.toList
-                  case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
-                  case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
-                  case metavars.projectName        => started.globs.projectNameMap.keys.toList
-                  case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
-                  case _                           => Nil
-                })
-                completer.completeOpts(restArgs)(hasBuildOpts(started))
-            }
+                case Right(started) =>
+                  val completer = new Completer({
+                    case metavars.platformName       => model.PlatformId.All.map(_.value)
+                    case metavars.scalaVersion       => possibleScalaVersions.keys.toList
+                    case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
+                    case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
+                    case metavars.projectName        => started.globs.projectNameMap.keys.toList
+                    case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
+                    case _                           => Nil
+                  })
+                  completer.completeOpts(restArgs)(hasBuildOpts(started))
+              }
+          }
+
+          completions.value.foreach(c => println(c.value))
+          ExitCode.Success
         }
-
-        completions.value.foreach(c => println(c.value))
 
       case "selftest" :: Nil =>
         // checks that JNI libraries are successfully loaded
-        FileWatching(Logger.DevNull, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        FileWatching(bleepLoggers.stderrWarn.untyped, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         println("OK")
+        ExitCode.Success
 
       case "bsp" :: args =>
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
-        val stderr = logging.stderr(LogPatterns.logFile).minLogLevel(LogLevel.warn)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, buildLoader, stderr.untyped, commonOpts)
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll.untyped, buildLoader, commonOpts).andThen {
+          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.BSP)
 
-        val buildVariant = model.BuildVariant.BSP
-        val buildPaths = BuildPaths(cwd, buildLoader, buildVariant)
-
-        val logFileResource: TypedLoggerResource[BufferedWriter] =
-          logging.path(buildPaths.logFile, LogPatterns.logFile)
-
-        val logResource: LoggerResource =
-          logFileResource.map(logFile => logFile.flushing.zipWith(stderr)).untyped
-
-        logResource.use { logger =>
-          buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing)) match {
-            case Left(be) => fatal("", logger, be)
-            case Right(pre) =>
-              try BspImpl.run(pre)
-              catch {
-                case th: Throwable => fatal("uncaught error", logger, th)
-              }
+          bleepLoggers.stderrAndFileLogging(commonOpts, buildPaths).untyped.use { logger =>
+            buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing)) match {
+              case Left(be) => fatal("", logger, be)
+              case Right(pre) =>
+                try BspImpl.run(pre)
+                catch {
+                  case th: Throwable => fatal("uncaught error", logger, th)
+                }
+            }
           }
         }
 
       case args =>
-        val logAsJson = sys.env.contains(jsonEvents.CallerProcessAcceptsJsonEvents)
         val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
-        val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
-
-        val stdout: TypedLogger[PrintStream] =
-          if (logAsJson) new jsonEvents.SerializeLogEvents(System.out, context = Map.empty, Nil)
-          else {
-            val startRun = if (config.logTiming.getOrElse(false)) Some(Instant.now) else None
-            val pattern = LogPatterns.interface(startRun, noColor = commonOpts.noColor)
-            jsonEvents
-              .DeserializeLogEvents(logging.stdout(pattern, disableProgress = commonOpts.noBspProgress))
-              .minLogLevel(if (commonOpts.debug) LogLevel.debug else LogLevel.info)
-          }
 
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, buildLoader, stdout.untyped, commonOpts)
+        val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
-        def stdoutAndFileLogging(buildPaths: BuildPaths): LoggerResource = {
-          val base =
-            if (logAsJson) LoggerResource.pure(stdout.untyped)
-            else {
-              // and to logfile, without any filtering
-              val logFileResource: TypedLoggerResource[BufferedWriter] =
-                logging.path(buildPaths.logFile, LogPatterns.logFile).map(_.flushing)
-
-              LoggerResource.pure(stdout).zipWith(logFileResource).untyped
-            }
-          base.map(jsonEvents.DeserializeLogEvents(_))
+        // initialize just stdout logger first to avoid creating log file if we're just booting a new version immediately
+        val exitCode = bleepLoggers.stdoutNoLogFile(config, commonOpts).untyped.use { logger =>
+          maybeRunWithDifferentVersion(_args, logger, buildLoader, commonOpts)
         }
 
-        val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
-        buildLoader match {
-          case noBuild: BuildLoader.NonExisting =>
-            stdoutAndFileLogging(buildPaths).use { logger =>
-              run(logger, noBuildOpts(stdout.untyped, userPaths, buildPaths, noBuild), restArgs)
+        exitCode.andThen {
+          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
+
+          bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).untyped.use { logger =>
+            buildLoader match {
+              case noBuild: BuildLoader.NonExisting =>
+                run(logger, noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs)
+              case existing: BuildLoader.Existing =>
+                val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
+                bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
+                  case Left(th)       => fatal("Error while loading build", logger, th)
+                  case Right(started) => run(logger, hasBuildOpts(started), started, restArgs)
+                }
             }
-          case existing: BuildLoader.Existing =>
-            stdoutAndFileLogging(buildPaths).use { logger =>
-              val pre = Prebootstrapped(logger, userPaths, buildPaths, existing)
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default, ExecutionContext.global) match {
-                case Left(th)       => fatal("Error while loading build", logger, th)
-                case Right(started) => run(logger, hasBuildOpts(started), started, restArgs)
-              }
-            }
+          }
         }
     }
+
+    System.exit(exitCode.value)
   }
 
-  def run(logger: Logger, opts: Opts[BleepBuildCommand], started: Started, restArgs: List[String]): Unit =
+  def run(logger: Logger, opts: Opts[BleepBuildCommand], started: Started, restArgs: List[String]): ExitCode =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)
-        System.exit(1)
+        ExitCode.Failure
       case Right(cmd) =>
         Try(cmd.run(started)) match {
           case Failure(th)       => fatal("command failed", logger, th)
           case Success(Left(th)) => fatal("command failed", logger, th)
-          case Success(Right(_)) => ()
+          case Success(Right(_)) => ExitCode.Success
         }
     }
-  def run(logger: Logger, opts: Opts[BleepNoBuildCommand], restArgs: List[String]): Unit =
+
+  def run(logger: Logger, opts: Opts[BleepNoBuildCommand], restArgs: List[String]): ExitCode =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)
-        System.exit(1)
+        ExitCode.Failure
       case Right(cmd) =>
         Try(cmd.run()) match {
           case Failure(th)       => fatal("command failed", logger, th)
           case Success(Left(th)) => fatal("command failed", logger, th)
-          case Success(Right(_)) => ()
+          case Success(Right(_)) => ExitCode.Success
         }
     }
 }

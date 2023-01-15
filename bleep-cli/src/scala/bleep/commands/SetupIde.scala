@@ -2,18 +2,17 @@ package bleep
 package commands
 
 import bleep.bsp.BspProjectSelection
-import bleep.internal.{fatal, Argv0, FileUtils}
-import bleep.logging.Logger
+import bleep.internal.{jvmRunCommand, Argv0, FileUtils}
 import ch.epfl.scala.bsp4j
+import coursier.core.{ModuleName, Organization}
 import io.circe.Encoder
 import io.circe.syntax._
 
 import java.nio.file.{Files, Path}
 import java.util
-import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 
-case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProjects: Option[List[String]], ec: ExecutionContext) extends BleepCommand {
+case class SetupIde(maybeSelectedProjects: Option[List[String]], forceJvm: Boolean) extends BleepBuildCommand {
   implicit def encodesUtilList[T: Encoder]: Encoder[util.List[T]] = Encoder[List[T]].contramap(_.asScala.toList)
   implicit val encoder: Encoder[bsp4j.BspConnectionDetails] =
     Encoder.forProduct5[bsp4j.BspConnectionDetails, String, util.List[String], String, String, util.List[String]](
@@ -24,7 +23,7 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
       "languages"
     )(x => (x.getName, x.getArgv, x.getVersion, x.getBspVersion, x.getLanguages))
 
-  override def run(): Either[BleepException, Unit] = {
+  override def run(started: Started): Either[BleepException, Unit] = {
     val maybeExecutablePath = Option((new Argv0).get(null))
       .map {
         case absolute if absolute.startsWith("/") =>
@@ -35,35 +34,43 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
       .filter(Files.isRegularFile(_))
       .filter(Files.isExecutable)
 
-    val bleepExecutablePath: Path =
-      maybeExecutablePath.getOrElse {
-        val latestRelease = model.BleepVersion.current.latestRelease
-        logger.warn(s"couldn't determine name of Bleep executable. Setting up version ${latestRelease.value}")
-        OsArch.current match {
-          case hasNativeImage: OsArch.HasNativeImage =>
-            FetchBleepRelease(latestRelease, new BleepCacheLogger(logger), ec, hasNativeImage).orThrow
-          case other =>
-            fatal(
-              s"No native image available for $other, so the bleep is not able to perform setup-ide. See https://github.com/oyvindberg/bleep/issues/260 for how you can help out",
-              logger
-            )
-        }
-
+    val cmd: List[String] =
+      maybeExecutablePath match {
+        case Some(executablePath) if !forceJvm => List(executablePath.toString)
+        case _ =>
+          val latestRelease = model.BleepVersion.current.latestRelease
+          OsArch.current match {
+            case hasNativeImage: OsArch.HasNativeImage if !forceJvm =>
+              started.logger.warn(s"couldn't determine path of Bleep executable. Setting up version ${latestRelease.value} downloaded through coursier")
+              val bleepExecutablePath = FetchBleepRelease(latestRelease, new BleepCacheLogger(started.logger), started.executionContext, hasNativeImage).orThrow
+              List(bleepExecutablePath.toString)
+            case other =>
+              if (forceJvm) started.logger.info(s"Setting up BSP through a JVM as requested")
+              else started.logger.warn(s"There is no graalvm native-image for $other. Setting up BSP through a JVM")
+              val bleepCli = model.Dep.ScalaDependency(Organization("build.bleep"), ModuleName("bleep-cli"), latestRelease.value, fullCrossVersion = false)
+              val resolved = started.resolver
+                .force(
+                  Set(bleepCli),
+                  model.VersionCombo.Jvm(model.VersionScala.Scala213),
+                  s"resolving bleep ${latestRelease.value} from maven central"
+                )
+              jvmRunCommand.cmd(started.jvmCommand, Nil, resolved.jars, "bleep.Main", Nil)
+          }
       }
 
     val details = new bsp4j.BspConnectionDetails(
       "bleep",
-      List(bleepExecutablePath.toString, "bsp").asJava,
+      (cmd ++ List("bsp")).asJava,
       model.BleepVersion.current.value,
       scala.build.blooprifle.internal.Constants.bspVersion,
       List("scala", "java").asJava
     )
 
-    BspProjectSelection.store(logger, buildPaths, maybeSelectedProjects)
+    BspProjectSelection.store(started.logger, started.buildPaths, maybeSelectedProjects)
 
     List(
       // remove other configured BSP tools
-      Option(buildPaths.buildDir / ".bsp").filter(FileUtils.exists).filter { p =>
+      Option(started.buildPaths.buildDir / ".bsp").filter(FileUtils.exists).filter { p =>
         if (Files.isDirectory(p)) {
           Files.list(p).toList.asScala.toList match {
             case one :: Nil if one.getFileName.toString == "bleep.json" => false
@@ -72,24 +79,24 @@ case class SetupIde(buildPaths: BuildPaths, logger: Logger, maybeSelectedProject
         } else true
       },
       // causes intellij to always pick sbt BSP import
-      Some(buildPaths.buildDir / ".bloop").filter(FileUtils.exists),
+      Some(started.buildPaths.buildDir / ".bloop").filter(FileUtils.exists),
       // cause metals to always pick sbt BSP import
-      Some(buildPaths.buildDir / "build.sbt").filter(FileUtils.exists),
-      Some(buildPaths.buildDir / "project").filter(FileUtils.exists)
+      Some(started.buildPaths.buildDir / "build.sbt").filter(FileUtils.exists),
+      Some(started.buildPaths.buildDir / "project").filter(FileUtils.exists)
     ).flatten match {
       case Nil => ()
       case conflicts =>
         LazyList
           .from(0)
-          .map(n => buildPaths.buildDir / s"bleep-moved-files-$n")
+          .map(n => started.buildPaths.buildDir / s"bleep-moved-files-$n")
           .find(target => !FileUtils.exists(target))
           .foreach { target =>
             Files.createDirectories(target)
             conflicts.foreach(conflict => Files.move(conflict, target / conflict.getFileName.toString))
-            logger.info(s"Moved ${conflicts.mkString(", ")} into $target to avoid IDE picking wrong build tool when importing")
+            started.logger.info(s"Moved ${conflicts.mkString(", ")} into $target to avoid IDE picking wrong build tool when importing")
           }
     }
 
-    Right(FileUtils.writeString(logger, Some("writing BSP connection file"), buildPaths.bspBleepJsonFile, details.asJson.spaces2))
+    Right(FileUtils.writeString(started.logger, Some("writing BSP connection file"), started.buildPaths.bspBleepJsonFile, details.asJson.spaces2))
   }
 }
