@@ -7,6 +7,17 @@ Then run this command in your shell:
 cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep
 ```
 
+## GitHub action
+
+There is an action available to install Bleep. It picks up the wanted Bleep version from `bleep.yaml`, so make sure to run it after checkout:
+```yaml
+  - uses: actions/checkout@v2
+    with:
+      submodules: recursive
+      repo-token: ${{ secrets.GITHUB_TOKEN }}
+  - uses: bleep-build/bleep-setup-action@0.0.1
+```
+
 ## Manual installation
 
 You can download it manually from [GitHub releases](https://github.com/oyvindberg/bleep/releases) (expand "assets")
