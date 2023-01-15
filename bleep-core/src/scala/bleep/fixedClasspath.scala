@@ -1,11 +1,11 @@
 package bleep
 
-import bloop.config.{Config => b}
+import bloop.config.Config
 
 import java.nio.file.Path
 
 object fixedClasspath {
-  def apply(bloopProject: b.Project): List[Path] =
+  def apply(bloopProject: Config.Project): List[Path] =
     List(
       List(bloopProject.classesDir),
       bloopProject.resources.getOrElse(Nil),
