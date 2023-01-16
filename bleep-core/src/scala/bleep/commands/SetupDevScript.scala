@@ -13,7 +13,7 @@ class SetupDevScript(started: Started, project: model.CrossProjectName, override
         val cmd = jvmRunCommand(started, project, overrideMainClass, List("$@")).orThrow.mkString(" ")
 
         val file =
-          s"""#!/usr/bin/env bash
+          s"""#!/bin/sh
              |$cmd
              |""".stripMargin
 
