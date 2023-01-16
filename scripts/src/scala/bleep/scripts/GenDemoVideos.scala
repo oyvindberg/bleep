@@ -1,8 +1,8 @@
 package bleep
 package scripts
 
-import bleep.internal.FileUtils
-import bleep.logging.{jsonEvents, Logger}
+import bleep.internal.{bleepLoggers, FileUtils}
+import bleep.logging.Logger
 import bleep.plugin.nativeimage.NativeImagePlugin
 
 import java.nio.file.attribute.PosixFilePermissions
@@ -30,7 +30,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
     val env = sys.env
       .updated("BAT_PAGER", "")
-      .removed(jsonEvents.CallerProcessAcceptsJsonEvents)
+      .removed(bleepLoggers.CallerProcessAcceptsJsonEvents)
       .updated(
         "PATH", {
           // this whole exercise is really to make "bleep-cli" look like "bleep" in the videos

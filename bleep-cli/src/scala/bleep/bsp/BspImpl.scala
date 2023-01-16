@@ -16,7 +16,7 @@ import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}
 
 object BspImpl {
-  def run(pre: Prebootstrapped): Unit = {
+  def run(pre: Prebootstrapped): ExitCode = {
 
     val bspBloopServer: BleepBspServer =
       new BleepBspServer(pre.logger, null, null, null)
@@ -87,6 +87,7 @@ object BspImpl {
         )(es)
 
         Await.result(doneFuture, Duration.Inf)
+        ExitCode.Success
       } finally {
         if (bloopServer != null)
           bloopServer.shutdown()

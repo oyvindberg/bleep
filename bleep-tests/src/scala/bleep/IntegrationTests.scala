@@ -1,8 +1,8 @@
 package bleep
 
 import bleep.internal.FileUtils
-import bleep.logging.{LogLevel, TypedLogger}
 import bleep.logging.TypedLogger.Stored
+import bleep.logging.{LogLevel, Loggers, TypedLogger}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext
 
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val userPaths = UserPaths.fromAppDirs
-  val logger0 = logging.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).untyped.minLogLevel(LogLevel.info)
+  val logger0 = Loggers.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).untyped.unsafeGet().minLogLevel(LogLevel.info)
 
   val prelude =
     """$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
@@ -25,7 +25,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
   def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Unit =
     test(testName) {
-      val storingLogger = bleep.logging.storing()
+      val storingLogger = Loggers.storing()
       val stdLogger = logger0.withContext(testName)
       val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 

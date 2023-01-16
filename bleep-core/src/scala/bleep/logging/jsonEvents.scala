@@ -10,14 +10,12 @@ import java.io.{PrintStream, PrintWriter}
 import java.time.Instant
 import scala.util.control.NoStackTrace
 
-object jsonEvents {
-  /* Use this environment variable to communicate to subprocesses that parent accepts json events */
-  val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
+private object jsonEvents {
 
   /** Meant for transferring log events between processes */
-  private case class JsonEvent(formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String])
+  case class JsonEvent(formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String])
 
-  private object JsonEvent {
+  object JsonEvent {
     implicit val strCodec: Codec[Str] =
       Codec.forProduct2[Str, Array[Char], Array[Long]]("chars", "colors") { case (chars, colors) => Str.fromArrays(chars, colors) } { str =>
         (str.getChars, str.getColors)
@@ -55,7 +53,7 @@ object jsonEvents {
       new SerializeLogEvents[U](underlying, context, fragment :: path)
   }
 
-  final case class DeserializeLogEvents[U](val next: TypedLogger[U]) extends TypedLogger[U] {
+  final case class DeserializeLogEvents[U](next: TypedLogger[U]) extends TypedLogger[U] {
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val str = implicitly[Formatter[T]].apply(t)
       if (str.plainText.startsWith("{")) {
@@ -72,16 +70,17 @@ object jsonEvents {
               jsonEvent.metadata.instant
             )(Formatter.StrFormatter, jsonEvent.metadata.line, jsonEvent.metadata.file, jsonEvent.metadata.enclosing)
         }
-      }
+      } else
+        next.log(t, throwable, metadata)
     }
 
     override def withContext[T: Formatter](key: String, value: T): DeserializeLogEvents[U] =
-      new DeserializeLogEvents(next.withContext(value))
+      DeserializeLogEvents(next.withContext(value))
 
     override def progressMonitor: Option[LoggerFn] = None
 
     override def withPath(fragment: String): DeserializeLogEvents[U] =
-      new DeserializeLogEvents(next.withPath(fragment))
+      DeserializeLogEvents(next.withPath(fragment))
 
     override def underlying: U = next.underlying
   }

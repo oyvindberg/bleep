@@ -3,7 +3,7 @@ package bleep.logging
 import fansi.Str
 import sourcecode.Text
 
-import java.io.{Flushable, PrintStream}
+import java.io.PrintStream
 import java.util.concurrent.atomic.AtomicBoolean
 
 trait TypedLogger[Underlying] extends LoggerFn {
@@ -89,9 +89,9 @@ object TypedLogger {
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val formatted = pattern(t, throwable, metadata, context, path)
       if (lastWasProgress.get()) {
-        underlying.append(CleanCurrentLine + formatted.render + "\n")
+        underlying.println(CleanCurrentLine + formatted.render)
       } else {
-        underlying.append(formatted.render + "\n")
+        underlying.println(formatted.render)
       }
 
       lastWasProgress.set(false)
@@ -113,32 +113,15 @@ object TypedLogger {
             override def log[T: Formatter](text: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
               val formatted = pattern(text, throwable, metadata, context, path)
               if (lastWasProgress.get()) {
-                underlying.append(CleanCurrentLine + formatted.render + "\r")
+                underlying.print(CleanCurrentLine + formatted.render + "\r")
                 ()
               } else {
-                underlying.append(formatted.render + "\r")
+                underlying.print(formatted.render + "\r")
                 lastWasProgress.set(true)
               }
             }
           }
         }
-  }
-
-  private[logging] final class Flushing[U <: Flushable](wrapped: TypedLogger[U]) extends TypedLogger[U] {
-    override def underlying: U = wrapped.underlying
-
-    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
-      wrapped.log(t, throwable, metadata)
-      wrapped.underlying.flush()
-    }
-
-    override def withContext[T: Formatter](key: String, value: T): Flushing[U] =
-      new Flushing[U](wrapped.withContext(key, value))
-
-    override def withPath(fragment: String): Flushing[U] =
-      new Flushing[U](wrapped.withPath(fragment))
-
-    override def progressMonitor: Option[LoggerFn] = wrapped.progressMonitor
   }
 
   private[logging] final class Zipped[U1, U2](one: TypedLogger[U1], two: TypedLogger[U2]) extends TypedLogger[(U1, U2)] {
@@ -158,6 +141,36 @@ object TypedLogger {
 
     override def progressMonitor: Option[LoggerFn] =
       List(one.progressMonitor, two.progressMonitor).flatten.reduceOption(_ and _)
+  }
+
+  private[logging] final class MaybeZipped[U1, U2](one: TypedLogger[U1], two: Option[TypedLogger[U2]]) extends TypedLogger[(U1, Option[U2])] {
+    override def underlying: (U1, Option[U2]) =
+      (one.underlying, two.map(_.underlying))
+
+    private val both =
+      two match {
+        case Some(two) => one.and(two)
+        case None      => one
+      }
+
+    override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit =
+      both.log(t, throwable, metadata)
+
+    override def withContext[T: Formatter](key: String, value: T): MaybeZipped[U1, U2] =
+      new MaybeZipped(one.withContext(key, value), two.map(_.withContext(key, value)))
+
+    override def withPath(fragment: String): MaybeZipped[U1, U2] =
+      new MaybeZipped(one.withPath(fragment), two.map(_.withPath(fragment)))
+
+    override def progressMonitor: Option[LoggerFn] =
+      one.progressMonitor match {
+        case some @ Some(_) => some
+        case None =>
+          two match {
+            case Some(two) => two.progressMonitor
+            case None      => None
+          }
+      }
   }
 
   private[logging] final class MinLogLevel[U](wrapped: TypedLogger[U], minLogLevel: LogLevel) extends TypedLogger[U] {
@@ -222,6 +235,9 @@ object TypedLogger {
     def zipWith[UU](other: TypedLogger[UU]): TypedLogger[(U, UU)] =
       new Zipped(self, other)
 
+    def maybeZipWith[UU](other: Option[TypedLogger[UU]]): TypedLogger[(U, Option[UU])] =
+      new MaybeZipped(self, other)
+
     def minLogLevel(minLogLevel: LogLevel): TypedLogger[U] =
       new MinLogLevel(self, minLogLevel)
 
@@ -230,10 +246,5 @@ object TypedLogger {
 
     def syncAccess: TypedLogger[U] =
       new Synchronized(self)
-  }
-
-  implicit final class LoggerFlushableSyntax[U <: Flushable](private val self: TypedLogger[U]) extends AnyVal {
-    def flushing: TypedLogger[U] =
-      new Flushing[U](self)
   }
 }

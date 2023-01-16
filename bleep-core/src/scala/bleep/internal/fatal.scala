@@ -5,14 +5,14 @@ import bleep.BleepException
 import bleep.logging.Logger
 
 object fatal {
-  def apply(context: String, logger: Logger, throwable: Throwable): Nothing = {
+  def apply(context: String, logger: Logger, throwable: Throwable): ExitCode.Failure.type = {
     log(context, logger, throwable)
-    sys.exit(1)
+    ExitCode.Failure
   }
 
-  def apply(context: String, logger: Logger): Nothing = {
+  def apply(context: String, logger: Logger): ExitCode.Failure.type = {
     logger.error(context)
-    sys.exit(1)
+    ExitCode.Failure
   }
 
   def log(context: String, logger: Logger, throwable: Throwable): Unit =

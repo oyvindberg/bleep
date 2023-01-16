@@ -3,8 +3,7 @@ package commands
 
 import bleep.BleepException
 import bleep.bsp.BspCommandFailed
-import bleep.internal.jvmRunCommand
-import bleep.logging.jsonEvents
+import bleep.internal.{bleepLoggers, jvmRunCommand}
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -65,7 +64,7 @@ case class Run(
   def bspRun(started: Started, bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
     val params = new bsp4j.RunParams(buildTarget(started.buildPaths, project))
     val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
-    val envs = sys.env.updated(jsonEvents.CallerProcessAcceptsJsonEvents, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
+    val envs = sys.env.updated(bleepLoggers.CallerProcessAcceptsJsonEvents, "true").map { case (k, v) => s"$k=$v" }.toList.sorted.asJava
     mainClass.setEnvironmentVariables(envs)
     params.setData(mainClass)
     params.setDataKind("scala-main-class")
