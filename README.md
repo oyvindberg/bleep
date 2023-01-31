@@ -16,7 +16,10 @@ $ git clone --recurse-submodules https://github.com/oyvindberg/bleep.git
 See https://bleep.build/docs/installing/
 
 #### Use bleep to build bleep
-```
+```bash
+# generate files in `.bleep/` required for compilation
+$ bleep generate-resources
+# compile all projects using scala 2.13
 $ bleep compile jvm213
 ```
 
