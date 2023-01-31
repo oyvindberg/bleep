@@ -17,7 +17,7 @@ object FetchJvm {
     }
 
     maybeCacheDir match {
-      case Some(cacheDir) =>
+      case Some(cacheDir) if !Jvm.isSystem(jvm) =>
         val cacheFile = {
           val relPath = RelPath(
             List(Some(arch), jvm.index, Some(jvm.name)).flatten
@@ -39,7 +39,8 @@ object FetchJvm {
           fetched
         }
 
-      case None => doFetch(cacheLogger, jvm, ec, arch)
+      case Some(_) | None => // No cache directory defined, or the system's jvm is used.
+        doFetch(cacheLogger, jvm, ec, arch)
     }
   }
 

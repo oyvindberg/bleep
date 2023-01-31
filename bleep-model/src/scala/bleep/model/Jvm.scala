@@ -10,4 +10,6 @@ object Jvm {
   val system = Jvm("system", None)
   implicit val encodes: Encoder[Jvm] = deriveEncoder
   implicit val decodes: Decoder[Jvm] = deriveDecoder
+
+  def isSystem(jvm: Jvm): Boolean = jvm == system
 }
