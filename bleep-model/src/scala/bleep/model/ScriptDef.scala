@@ -18,11 +18,6 @@ object ScriptDef {
     implicit val codec: Codec.AsObject[Main] = deriveCodec
   }
 
-  case class Shell(command: Option[String], `override-os`: Option[Map[Os, String]], sourceGlobs: JsonSet[RelPath]) extends ScriptDef
-  object Shell {
-    implicit val codec: Codec.AsObject[Shell] = deriveCodec
-  }
-
   val fromString: Decoder[ScriptDef] =
     Decoder.instance { c =>
       c.as[String].flatMap { str =>
@@ -39,11 +34,10 @@ object ScriptDef {
     }
 
   implicit val decodes: Decoder[ScriptDef] =
-    fromString.or(Main.codec.map(x => x: ScriptDef)).or(Shell.codec.map(x => x: ScriptDef))
+    fromString.or(Main.codec.map(x => x: ScriptDef))
 
   implicit val encodes: Encoder[ScriptDef] =
-    Encoder.instance {
-      case x: Main  => Json.fromJsonObject(Main.codec.encodeObject(x))
-      case x: Shell => Json.fromJsonObject(Shell.codec.encodeObject(x))
+    Encoder.instance { case x: Main =>
+      Json.fromJsonObject(Main.codec.encodeObject(x))
     }
 }

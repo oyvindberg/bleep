@@ -12,9 +12,8 @@ case class Script(name: model.ScriptName, args: List[String], watch: Boolean) ex
     started.build
       .scripts(name)
       .values
-      .map {
-        case model.ScriptDef.Main(project, _, _) => project
-        case model.ScriptDef.Shell(_, _, _)      => throw new BleepException.Text("cannot `--watch shell` scripts for now")
+      .map { case model.ScriptDef.Main(project, _, _) =>
+        project
       }
       .distinct
       .toArray
@@ -25,23 +24,7 @@ case class Script(name: model.ScriptName, args: List[String], watch: Boolean) ex
 
 object Script {
   def run(started: Started, bloop: BloopServer, scriptDefs: Seq[ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
-    traverseish.runAll(scriptDefs) {
-      case model.ScriptDef.Main(project, main, _) =>
-        Run(project, Some(main), args = args, raw = false, watch = watch).runWithServer(started, bloop)
-      case shell @ model.ScriptDef.Shell(_, _, _) =>
-        val cmd = internal.ScriptShelloutCommand.getForShellScript(shell)
-        try {
-          cli(
-            action = "run script",
-            cwd = started.buildPaths.cwd,
-            cmd = cmd,
-            logger = started.logger,
-            out = cli.Out.ViaLogger(started.logger),
-            in = cli.In.Attach
-          )
-          Right(())
-        } catch {
-          case x: BleepException => Left(x)
-        }
+    traverseish.runAll(scriptDefs) { case model.ScriptDef.Main(project, main, _) =>
+      Run(project, Some(main), args = args, raw = false, watch = watch).runWithServer(started, bloop)
     }
 }

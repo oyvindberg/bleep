@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{conversions, parseBloopFile, rewriteDependentData, ScriptShelloutCommand}
+import bleep.internal.{conversions, parseBloopFile, rewriteDependentData}
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
@@ -428,14 +428,10 @@ object GenBloopFiles {
                     .filterNot(p => p.toString.contains("/generated-"))
                     .map(f => Config.SourcesGlobs(f, None, Nil, Nil))
                 }
-              case model.ScriptDef.Shell(_, _, _) => Nil
             },
             script match {
               case model.ScriptDef.Main(scriptProject, _, sourceGlobs) =>
                 val projectDir = pre.buildPaths.project(scriptProject, build.explodedProjects(scriptProject)).dir
-                sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, Nil, Nil))
-              case model.ScriptDef.Shell(_, _, sourceGlobs) =>
-                val projectDir = pre.buildPaths.project(crossName, explodedProject).dir
                 sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, Nil, Nil))
             }
           ).flatten.distinct
@@ -447,8 +443,6 @@ object GenBloopFiles {
             case main: model.ScriptDef.Main =>
               val x = bleepExecutable.forceGet
               x.whole ++ x.childrenArgs ++ List("run", main.project.value, "--class", main.main, "--", "--project", crossName.value)
-            case shell: model.ScriptDef.Shell =>
-              ScriptShelloutCommand.getForShellScript(shell)
           }
         )
       }

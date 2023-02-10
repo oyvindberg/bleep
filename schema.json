@@ -464,45 +464,10 @@
         "main"
       ]
     },
-    "ScriptShell": {
-      "type": "object",
-      "properties": {
-        "command": {
-          "description": "shell script to run - it can be multi-line. You can also omit this if you specify `override-os` for all relevant operating systems",
-          "type": "string"
-        },
-        "override-os": {
-          "description": "Override shell script for an os. Provide (`windows`, `darwin`, `linux` as key, and the script as value)",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "sourceGlobs": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/RelPath"
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/$defs/RelPath"
-              }
-            }
-          ]
-        }
-      },
-      "required": [
-        "type",
-        "command"
-      ]
-    },
     "Script": {
       "anyOf": [
         {
           "$ref": "#/$defs/ScriptMain"
-        },
-        {
-          "$ref": "#/$defs/ScriptShell"
         }
       ]
     }
