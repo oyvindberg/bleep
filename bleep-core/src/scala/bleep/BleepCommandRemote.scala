@@ -41,7 +41,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         started.resolvedJvm.forceGet,
         started.pre.userPaths,
         started.resolver,
-        started.bleepExecutable.forceGet,
+        started.bleepExecutable,
         bleepRifleLogger
       )
 

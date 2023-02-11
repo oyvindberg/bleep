@@ -40,7 +40,7 @@ object BspImpl {
           resolvedJvm = pre.resolvedJvm.forceGet,
           userPaths = pre.userPaths,
           resolver = resolver,
-          bleepExecutable = BleepExecutable.getCommand(resolver, pre, forceJvm = false),
+          bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false)),
           bleepRifleLogger = bleepRifleLogger
         )
 
