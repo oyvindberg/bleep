@@ -17,6 +17,7 @@ jobs:
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - uses: bleep-build/bleep-setup-action@0.0.1
       - uses: coursier/cache-action@v6
         with:
@@ -51,11 +52,11 @@ jobs:
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
+          fetch-depth: 0
       - uses: bleep-build/bleep-setup-action@0.0.1
 
       - uses: coursier/cache-action@v6
@@ -141,6 +142,7 @@ jobs:
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
       - id: get_version
         uses: battila7/get-version-action@v2
         with:
