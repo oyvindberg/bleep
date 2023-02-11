@@ -29,7 +29,6 @@ jobs:
         env:
           CI: true
         run: |
-          bleep generate-resources
           bleep compile
           bleep test
 
@@ -65,7 +64,6 @@ jobs:
       - name: Build native image (non-windows)
         # stop compile server after build since the new version may use a newer version of bloop
         run: |
-          bleep generate-resources
           bleep native-image ${{ matrix.file_name }}
           bleep config compile-server stop-all
 
@@ -89,11 +87,6 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Build native image 2 (windows)
-        run: bleep generate-resources
-        shell: cmd
-        if: runner.os == 'Windows'
-
-      - name: Build native image 3 prepare (windows)
         uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
@@ -155,7 +148,6 @@ jobs:
       - name: Release
         run: |
           chmod +x ./artifacts/bleep-x86_64-pc-linux/bleep
-          ./artifacts/bleep-x86_64-pc-linux/bleep --dev generate-resources
           ./artifacts/bleep-x86_64-pc-linux/bleep --dev publish
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
