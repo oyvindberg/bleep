@@ -5,7 +5,7 @@ import coursier.cache.shaded.dirs.ProjectDirectories
 import java.nio.file.Path
 
 case class UserPaths(cacheDir: Path, configDir: Path) {
-  val bspSocketDir = cacheDir / "bsp-socket"
+  val bspSocketDir = cacheDir / "socket"
   val resolveCacheDir = cacheDir / "coursier"
   val resolveJvmCacheDir = cacheDir / "coursier-jvms"
   val configYaml = configDir / "config.yaml"
@@ -13,7 +13,7 @@ case class UserPaths(cacheDir: Path, configDir: Path) {
 
 object UserPaths {
   def fromAppDirs: UserPaths = {
-    val dirs = ProjectDirectories.from("build", "bleep", "bleep")
+    val dirs = ProjectDirectories.from("build", null, "bleep")
     val cacheDir = Path.of(dirs.cacheDir)
     val configDir = Path.of(dirs.configDir)
 
