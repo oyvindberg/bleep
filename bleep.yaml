@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M24
+$version: 0.0.1-M25
 jvm:
   name: graalvm-java17:22.3.1
 projects:
@@ -47,6 +47,9 @@ projects:
       module: io.get-coursier::coursier:2.1.0-RC5
     - org.snakeyaml:snakeyaml-engine:2.6
     extends: template-cross-all
+    sourcegen:
+      main: bleep.scripts.GenerateResources
+      project: scripts-init
   bleep-plugin-ci-release:
     dependsOn:
     - bleep-plugin-dynver
@@ -128,9 +131,6 @@ scripts:
   generate-docs:
     main: bleep.scripts.GenDocumentation
     project: scripts
-  generate-resources:
-    main: bleep.scripts.GenerateResources
-    project: scripts-init
   generate-videos:
     main: bleep.scripts.GenDemoVideos
     project: scripts
