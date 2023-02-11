@@ -66,7 +66,14 @@ object CoursierResolver {
           case model.Repository.MavenFolder(name, path) => model.Repository.MavenFolder(name, replacements.fill.path(path))
           case model.Repository.Ivy(name, uri)          => model.Repository.Ivy(name, replacements.fill.uri(uri))
         }
-        val params = Params(None, downloadSources = true, config.authentications, resolvers)
+
+        val downloadSources = pre.buildPaths.variant match {
+          case model.BuildVariant.Normal       => false
+          case model.BuildVariant.BSP          => true
+          case model.BuildVariant.Rewritten(_) => false
+        }
+
+        val params = Params(None, downloadSources, config.authentications, resolvers)
         val direct = new Direct(pre.cacheLogger, params)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version))
