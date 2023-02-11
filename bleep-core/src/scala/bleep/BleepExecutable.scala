@@ -85,14 +85,6 @@ object BleepExecutable {
       }
     }
 
-  implicit class IndexOfOpt(haystack: List[String]) {
-    def indexOfOpt(needle: String): Option[Int] =
-      haystack.indexOf(needle) match {
-        case -1 => None
-        case n  => Some(n)
-      }
-  }
-
   def findCurrentBleep(logger: Logger): Option[BleepExecutable] = {
     def complain(msg: String, currentInfo: Option[ProcessHandle.Info] = None): None.type = {
       logger

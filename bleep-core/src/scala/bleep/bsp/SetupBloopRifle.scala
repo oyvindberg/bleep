@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.FileUtils
+import bleep.internal.{bleepLoggers, FileUtils}
 import bleep.model.CompileServerMode
 import coursier.parse.ModuleParser
 
@@ -10,6 +10,7 @@ import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
 import scala.concurrent.duration.DurationInt
+import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
@@ -18,7 +19,7 @@ object SetupBloopRifle {
       resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,
-      bleepExecutable: BleepExecutable,
+      bleepExecutable: Lazy[BleepExecutable],
       bleepRifleLogger: BleepRifleLogger
   ): BloopRifleConfig = {
     val default = BloopRifleConfig
@@ -28,12 +29,20 @@ object SetupBloopRifle {
         FileUtils.TempDir.toFile
       )
 
+    // migration from M24 => M25: M24 does not supply scripts with the necessary bleepExecutable information.
+    // we'll allow it for now
+    val childrenJavaOpts =
+      try bleepExecutable.forceGet.childrenJavaOpts
+      catch {
+        case NonFatal(_) => List(s"-D${bleepLoggers.CallerProcessAcceptsJsonEvents}=true")
+      }
+
     default.copy(
       javaPath = resolvedJvm.javaBin.toString,
       bspStdout = bleepRifleLogger.bloopBspStdout,
       bspStderr = bleepRifleLogger.bloopBspStderr,
       period = 10.millis,
-      javaOpts = default.javaOpts ++ bleepExecutable.childrenJavaOpts
+      javaOpts = default.javaOpts ++ childrenJavaOpts
     )
   }
 
