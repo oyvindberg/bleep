@@ -35,6 +35,7 @@ object Main {
     val projectName = "project name"
     val projectNameNoCross = "project name (not cross id)"
     val testProjectName = "test project name"
+    val hasSourceGenProject = "project name (with sourcegen)"
     val platformName = "platform name"
     val scalaVersion = "scala version"
   }
@@ -88,6 +89,13 @@ object Main {
         .map(_.toList.toArray.flatten)
         .orNone
         .map(started.chosenTestProjects)
+
+    val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
+      Opts
+        .arguments(metavars.hasSourceGenProject)(argumentFrom(metavars.hasSourceGenProject, Some(started.globs.hasSourceGenProjectNameMap)))
+        .map(_.toList.toArray.flatten)
+        .orNone
+        .map(started.chosenHasSourceGenProjects)
 
     val mainClass = Opts
       .option[String](
@@ -155,6 +163,9 @@ object Main {
           ),
           Opts.subcommand("compile", "compile projects")(
             (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(watch, projectNames) }
+          ),
+          Opts.subcommand("sourcegen", "run source generators for projects")(
+            (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
             (watch, testProjectNames).mapN { case (watch, projectNames) =>
