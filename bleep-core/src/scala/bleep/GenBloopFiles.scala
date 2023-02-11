@@ -400,6 +400,59 @@ object GenBloopFiles {
         case _                                            => bloop.config.Tag.Library
       }
 
+    val sourceGen: List[Config.SourceGenerator] =
+      explodedProject.sourcegen.values.toList.map { script =>
+        // Used as the way to communicate to bloop what to watch to invalidate code-generation cache.
+        // This implies that any code-generator input (say, .proto files),
+        // ought to be part of the resources of the script (or of its parents')
+        val invalidationGlobs =
+          List(
+            // Add build file to make sure bloop re-run the codegen whenever the build changes, just in case
+            List(
+              Config.SourcesGlobs(
+                pre.buildPaths.buildDir,
+                walkDepth = None,
+                includes = List(s"glob:${pre.buildPaths.bleepYamlFile.getFileName.toString}"),
+                excludes = Nil
+              )
+            ),
+            // transitive source path for the project the sourcegen script lives in
+            script match {
+              case model.ScriptDef.Main(scriptProjectName, _, _) =>
+                val withTransitive = List(scriptProjectName) ++ build.transitiveDependenciesFor(scriptProjectName).keys
+                withTransitive.flatMap { projectName =>
+                  val bloopProject = getBloopProject(projectName).project
+                  val folders = bloopProject.sources ++ bloopProject.resources.getOrElse(Nil)
+                  folders
+                    // todo: have lost information about which folders contain generated sources when working with bloop projects
+                    .filterNot(p => p.toString.contains("/generated-"))
+                    .map(f => Config.SourcesGlobs(f, None, Nil, Nil))
+                }
+              case model.ScriptDef.Shell(_, _, _) => Nil
+            },
+            script match {
+              case model.ScriptDef.Main(scriptProject, _, sourceGlobs) =>
+                val projectDir = pre.buildPaths.project(scriptProject, build.explodedProjects(scriptProject)).dir
+                sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, Nil, Nil))
+              case model.ScriptDef.Shell(_, _, sourceGlobs) =>
+                val projectDir = pre.buildPaths.project(crossName, explodedProject).dir
+                sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, Nil, Nil))
+            }
+          ).flatten.distinct
+
+        Config.SourceGenerator(
+          sourcesGlobs = invalidationGlobs,
+          outputDirectory = pre.buildPaths.generatedSourcesDir(crossName),
+          command = script match {
+            case main: model.ScriptDef.Main =>
+              val x = bleepExecutable.forceGet
+              x.whole ++ x.childrenArgs ++ List("run", main.project.value, "--class", main.main, "--", "--project", crossName.value)
+            case shell: model.ScriptDef.Shell =>
+              ScriptShelloutCommand.getForShellScript(shell)
+          }
+        )
+      }
+
     Config.File(
       "1.4.0",
       Config.Project(
@@ -428,7 +481,7 @@ object GenBloopFiles {
         platform = configuredPlatform,
         resolution = Some(resolution),
         tags = Some(List(tag)),
-        sourceGenerators = None
+        sourceGenerators = if (sourceGen.isEmpty) None else Some(sourceGen)
       )
     )
   }

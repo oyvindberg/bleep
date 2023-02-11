@@ -73,7 +73,8 @@ object generateBuild {
         scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
         platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
         isTestProject = None,
-        testFrameworks = model.JsonSet.empty
+        testFrameworks = model.JsonSet.empty,
+        sourcegen = model.JsonSet.empty
       )
 
       val buildWithScript = buildFile1.copy(

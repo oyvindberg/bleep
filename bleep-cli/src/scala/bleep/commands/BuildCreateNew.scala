@@ -161,7 +161,8 @@ object BuildCreateNew {
             }
           ),
           isTestProject = None,
-          testFrameworks = model.JsonSet.empty
+          testFrameworks = model.JsonSet.empty,
+          sourcegen = model.JsonSet.empty
         )
         (crossName, p)
       }
@@ -188,7 +189,8 @@ object BuildCreateNew {
             }
           ),
           isTestProject = Some(true),
-          testFrameworks = model.JsonSet.empty
+          testFrameworks = model.JsonSet.empty,
+          sourcegen = model.JsonSet.empty
         )
         (crossName, p)
       }

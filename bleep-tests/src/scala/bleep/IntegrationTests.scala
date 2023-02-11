@@ -111,4 +111,68 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 1"))
     }
   }
+
+  test("resource generator") {
+    val bleepYaml = """
+projects:
+  a:
+    extends: common
+    platform:
+      mainClass: test.Main
+    sourcegen: scripts/testscripts.SourceGen
+  scripts:
+    extends: common
+    dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
+templates:
+  common:
+    platform:
+      name: jvm
+    scala:
+      version: 3.2.1
+"""
+
+    val Main = """
+package test
+
+object Main {
+  def main(args: Array[String]): Unit =
+    println("result: " + testgenerated.GeneratedSource.result)
+}
+"""
+
+    val SourceGen = """
+package testscripts
+
+import bleep.*
+import java.nio.file.Files
+
+object SourceGen extends BleepCodegenScript("SourceGen") {
+  def run(started: Started, commands: Commands, crossName: model.CrossProjectName, args: List[String]): Unit = {
+    val targetFile = started.projectPaths(crossName).sourcesDirs.generated / "sourcegen" / "testgenerated" / "GeneratedSource.scala"
+    Files.createDirectories(targetFile.getParent)
+    Files.writeString(
+      targetFile,
+      "package testgenerated;\n" +
+      "\n" +
+      "object GeneratedSource {" +
+      "  val result = 100" +
+      "}"
+    )
+    started.logger.withContext(targetFile).warn("Wrote ")
+  }
+}
+"""
+
+    runTest(
+      "resource generator spike",
+      bleepYaml,
+      Map(
+        RelPath.force("./a/src/scala/test/Main.scala") -> Main,
+        RelPath.force("./scripts/src/scala/testscripts/SourceGen.scala") -> SourceGen
+      )
+    ) { (_, commands, storingLogger) =>
+      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
+      assert(storingLogger.underlying.exists(_.message.plainText == "result: 100"))
+    }
+  }
 }

@@ -51,6 +51,9 @@ case class Started(
   def chosenTestProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     chosenProjects(maybeFromCommandLine).filter(projectName => build.explodedProjects(projectName).isTestProject.getOrElse(false))
 
+  def chosenHasSourceGenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
+    chosenProjects(maybeFromCommandLine).filterNot(projectName => build.explodedProjects(projectName).sourcegen.isEmpty)
+
   def reloadFromDisk(rewrites: List[BuildRewrite]): Either[BleepException, Started] =
     for {
       pre <- pre.reloadFromDisk()

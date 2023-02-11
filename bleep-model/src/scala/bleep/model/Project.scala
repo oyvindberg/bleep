@@ -19,7 +19,8 @@ case class Project(
     scala: Option[Scala],
     platform: Option[Platform],
     isTestProject: Option[Boolean],
-    testFrameworks: JsonSet[TestFrameworkName]
+    testFrameworks: JsonSet[TestFrameworkName],
+    sourcegen: JsonSet[ScriptDef]
 ) extends SetLike[Project] {
   override def intersect(other: Project): Project =
     Project(
@@ -36,7 +37,8 @@ case class Project(
       scala = scala.zipCompat(other.scala).map { case (_1, _2) => _1.intersect(_2) },
       platform = platform.zipCompat(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
-      testFrameworks = testFrameworks.intersect(other.testFrameworks)
+      testFrameworks = testFrameworks.intersect(other.testFrameworks),
+      sourcegen = sourcegen.intersect(other.sourcegen)
     )
 
   override def removeAll(other: Project): Project =
@@ -57,7 +59,8 @@ case class Project(
         case _                      => platform
       },
       isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
-      testFrameworks = testFrameworks.removeAll(other.testFrameworks)
+      testFrameworks = testFrameworks.removeAll(other.testFrameworks),
+      sourcegen = sourcegen.removeAll(other.sourcegen)
     )
 
   override def union(other: Project): Project =
@@ -76,7 +79,8 @@ case class Project(
       // may throw
       platform = List(platform, other.platform).flatten.reduceOption(_ union _),
       isTestProject = isTestProject.orElse(other.isTestProject),
-      testFrameworks = testFrameworks.union(other.testFrameworks)
+      testFrameworks = testFrameworks.union(other.testFrameworks),
+      sourcegen = sourcegen.union(other.sourcegen)
     )
 
   override def isEmpty: Boolean = this match {
@@ -94,7 +98,8 @@ case class Project(
           scala,
           platform,
           isTestProject,
-          testFrameworks
+          testFrameworks,
+          sourceGeneratorsScripts
         ) =>
       extends_.isEmpty &&
       cross.isEmpty &&
@@ -109,7 +114,8 @@ case class Project(
       scala.fold(true)(_.isEmpty) &&
       platform.fold(true)(_.isEmpty) &&
       isTestProject.isEmpty &&
-      testFrameworks.isEmpty
+      testFrameworks.isEmpty &&
+      sourceGeneratorsScripts.isEmpty
   }
 }
 
@@ -128,7 +134,8 @@ object Project {
     scala = None,
     platform = None,
     isTestProject = None,
-    testFrameworks = JsonSet.empty
+    testFrameworks = JsonSet.empty,
+    sourcegen = JsonSet.empty
   )
 
   implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = {

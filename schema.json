@@ -382,6 +382,20 @@
             }
           ]
         },
+        "sourcegen": {
+          "description": "additional set of source directories. you should set `sbt-scope` and `source-layout` first",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Script"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Script"
+              }
+            }
+          ]
+        },
         "dependencies": {
           "oneOf": [
             {
@@ -430,6 +444,19 @@
         },
         "main": {
           "type": "string"
+        },
+        "sourceGlobs": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RelPath"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RelPath"
+              }
+            }
+          ]
         }
       },
       "required": [
@@ -449,6 +476,19 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "sourceGlobs": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/RelPath"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/RelPath"
+              }
+            }
+          ]
         }
       },
       "required": [
