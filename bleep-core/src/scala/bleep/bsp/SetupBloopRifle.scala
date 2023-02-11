@@ -78,8 +78,6 @@ object SetupBloopRifle {
     }
     dir
   }
-  val SharedPrefix = "shared-for-jvm"
-
   def bspSocketFile(userPaths: UserPaths, mode: model.CompileServerMode, jvm: model.Jvm): Path = {
     val somewhatRandomIdentifier = Try(ProcessHandle.current.pid) match {
       case Failure(_) =>
@@ -93,8 +91,7 @@ object SetupBloopRifle {
         case model.CompileServerMode.NewEachInvocation => somewhatRandomIdentifier
         case model.CompileServerMode.Shared            =>
           // windows does not accept colon in path names
-          val str = jvm.name.replace(':', '_')
-          s"$SharedPrefix-$str"
+          jvm.name.replace(':', '_')
       }
 
     val socket: Path =
