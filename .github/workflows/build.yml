@@ -99,7 +99,7 @@ jobs:
         if: runner.os == 'Windows'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          version: '22.3.0'
+          version: '22.3.1'
           java-version: '17'
           components: 'native-image'
 

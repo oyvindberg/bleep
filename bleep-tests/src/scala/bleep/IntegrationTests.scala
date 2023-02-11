@@ -28,7 +28,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     """$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
       |$version: dev
       |jvm:
-      |  name: graalvm-java17:22.3.0
+      |  name: graalvm-java17:22.3.1
       |""".stripMargin
 
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines

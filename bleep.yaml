@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: 0.0.1-M24
 jvm:
-  name: graalvm-java17:22.3.0
+  name: graalvm-java17:22.3.1
 projects:
   bleep-cli:
     dependencies:
@@ -22,30 +22,30 @@ projects:
     - for3Use213: true
       module: ch.epfl.scala::bloop-config:1.5.5
     - com.lihaoyi::fansi:0.4.0
-    - org.graalvm.nativeimage:svm:22.3.0
+    - org.graalvm.nativeimage:svm:22.3.1
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
       module: org.scala-sbt::librarymanagement-core:1.8.0
-    - org.virtuslab.scala-cli::bloop-rifle:0.1.19
+    - org.virtuslab.scala-cli::bloop-rifle:0.1.20
     dependsOn: bleep-model
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/src/main/scala
   bleep-model:
     dependencies:
-    - io.circe::circe-core:0.14.2
-    - io.circe::circe-generic:0.14.2
-    - io.circe::circe-parser:0.14.2
+    - io.circe::circe-core:0.14.4
+    - io.circe::circe-generic:0.14.4
+    - io.circe::circe-parser:0.14.4
     - io.circe::circe-yaml-v12:0.14.3-RC3
     - exclusions:
         org.scala-lang.modules: scala-collection-compat_2.13
       for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.0-RC4
+      module: io.get-coursier::coursier-jvm:2.1.0-RC5
     - exclusions:
         org.scala-sbt: util-logging_2.13
       for3Use213: true
-      module: io.get-coursier::coursier:2.1.0-RC4
-    - org.snakeyaml:snakeyaml-engine:2.5
+      module: io.get-coursier::coursier:2.1.0-RC5
+    - org.snakeyaml:snakeyaml-engine:2.6
     extends: template-cross-all
   bleep-plugin-ci-release:
     dependsOn:
@@ -89,7 +89,7 @@ projects:
     dependencies:
     - com.eed3si9n::gigahorse-okhttp:0.7.0
     - org.bouncycastle:bcpg-jdk15on:1.70
-    - org.scala-lang.modules::scala-parser-combinators:2.1.1
+    - org.scala-lang.modules::scala-parser-combinators:2.2.0
     dependsOn: bleep-plugin-nosbt
     extends: template-cross-all
     sources:
