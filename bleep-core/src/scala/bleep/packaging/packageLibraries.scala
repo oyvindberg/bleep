@@ -11,7 +11,8 @@ object packageLibraries {
       started: Started,
       coordinatesFor: CoordinatesFor,
       shouldInclude: model.CrossProjectName => Boolean,
-      publishLayout: PublishLayout
+      publishLayout: PublishLayout,
+      manifestCreator: ManifestCreator = ManifestCreator.default
   ): SortedMap[model.CrossProjectName, PackagedLibrary] =
     rewriteDependentData(started.build.explodedProjects).startFrom[PackagedLibrary](shouldInclude) { case (projectName, project, eval) =>
       val versionCombo = model.VersionCombo.fromExplodedProject(project).orThrowTextWithContext(projectName)
@@ -28,8 +29,8 @@ object packageLibraries {
 
       val files =
         publishLayout match {
-          case PublishLayout.Maven(info) => GenLayout.maven(self, started.projectPaths(projectName), deps, info, mainClass)
-          case PublishLayout.Ivy         => GenLayout.ivy(self, started.projectPaths(projectName), deps, mainClass)
+          case PublishLayout.Maven(info) => GenLayout.maven(manifestCreator, self, started.projectPaths(projectName), deps, info, mainClass)
+          case PublishLayout.Ivy         => GenLayout.ivy(manifestCreator, self, started.projectPaths(projectName), deps, mainClass)
         }
 
       PackagedLibrary(self, files)

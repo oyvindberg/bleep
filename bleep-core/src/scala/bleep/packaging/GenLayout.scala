@@ -10,12 +10,13 @@ object GenLayout {
   val p = new scala.xml.PrettyPrinter(120, 2)
 
   def ivy(
+      manifestCreator: ManifestCreator,
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
       mainClass: Option[String]
   ): IvyLayout[RelPath, Array[Byte]] = {
-    val m = maven(self, projectPaths, deps, Info.empty, mainClass)
+    val m = maven(manifestCreator, self, projectPaths, deps, Info.empty, mainClass)
     IvyLayout(
       self = self,
       jarFile = m.jarFile._2,
@@ -26,14 +27,21 @@ object GenLayout {
     )
   }
 
-  def maven(self: Dependency, projectPaths: ProjectPaths, deps: List[Dependency], info: Info, mainClass: Option[String]): MavenLayout[RelPath, Array[Byte]] =
+  def maven(
+      manifestCreator: ManifestCreator,
+      self: Dependency,
+      projectPaths: ProjectPaths,
+      deps: List[Dependency],
+      info: Info,
+      mainClass: Option[String]
+  ): MavenLayout[RelPath, Array[Byte]] =
     MavenLayout(
       self = self,
-      jarFile = createJar(Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all, mainClass = mainClass),
-      sourceFile = createJar(projectPaths.sourcesDirs.all),
+      jarFile = createJar(JarType.Jar, manifestCreator, Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all, mainClass = mainClass),
+      sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all),
       pomFile = fromXml(pomFile(self, deps, info)),
       // javadoc should never have existed.
-      docFile = createJar(Nil)
+      docFile = createJar(JarType.DocsJar, manifestCreator, Nil)
     )
 
   def fromXml(xml: Elem): Array[Byte] = {
