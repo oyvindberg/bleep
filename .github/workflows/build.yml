@@ -101,7 +101,6 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Test binary after build 1 (windows)
-        shell: cmd
         env:
           CI: true
         # todo: fix tests on windows
@@ -109,7 +108,6 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Test binary after build 2 (windows)
-        shell: cmd
         env:
           CI: true
         # todo: fix tests on windows
