@@ -14,7 +14,13 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val userPaths = UserPaths.fromAppDirs
-  val logger0 = Loggers.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).untyped.unsafeGet().minLogLevel(LogLevel.info)
+  val logger0 = Loggers.decodeJsonStream(
+    Loggers
+      .stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true)
+      .untyped
+      .unsafeGet()
+      .minLogLevel(LogLevel.info)
+  )
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
   val lazyBleepBuild: Lazy[Started] =
