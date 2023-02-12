@@ -29,20 +29,12 @@ object SetupBloopRifle {
         FileUtils.TempDir.toFile
       )
 
-    // migration from M24 => M25: M24 does not supply scripts with the necessary bleepExecutable information.
-    // we'll allow it for now
-    val childrenJavaOpts =
-      try bleepExecutable.forceGet.childrenJavaOpts
-      catch {
-        case NonFatal(_) => List(s"-D${bleepLoggers.CallerProcessAcceptsJsonEvents}=true")
-      }
-
     default.copy(
       javaPath = resolvedJvm.javaBin.toString,
       bspStdout = bleepRifleLogger.bloopBspStdout,
       bspStderr = bleepRifleLogger.bloopBspStderr,
       period = 10.millis,
-      javaOpts = default.javaOpts ++ childrenJavaOpts
+      javaOpts = default.javaOpts ++ bleepExecutable.forceGet.childrenJavaOpts
     )
   }
 
