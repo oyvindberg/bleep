@@ -11,6 +11,9 @@ import java.time.Instant
 import scala.util.control.NoStackTrace
 
 private object jsonEvents {
+  // all log events will start with this string following 0.0.1-M26.
+  // Until then we need to keep supporting the old scheme where the json event is just directly to the stream.
+  val BLEEP_JSON_EVENT = "BLEEP_JSON_EVENT:"
 
   /** Meant for transferring log events between processes */
   case class JsonEvent(formatted: Str, throwable: Option[Th], metadata: Metadata, ctx: Ctx, path: List[String])
@@ -39,8 +42,14 @@ private object jsonEvents {
     import io.circe.syntax._
 
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
-      val json = JsonEvent.from(t, throwable, metadata, context, path).asJson
-      underlying.append(json.noSpaces + "\n")
+      val jsonEvent = JsonEvent.from(t, throwable, metadata, context, path)
+      if (
+        // old scheme
+        jsonEvent.formatted.plainText.startsWith("{") ||
+        // new scheme
+        jsonEvent.formatted.plainText.startsWith(BLEEP_JSON_EVENT)
+      ) underlying.append(jsonEvent.formatted.plainText + "\n")
+      else underlying.append(jsonEvent.asJson.noSpaces + "\n")
       ()
     }
 
@@ -55,9 +64,8 @@ private object jsonEvents {
 
   final case class DeserializeLogEvents[U](next: TypedLogger[U]) extends TypedLogger[U] {
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
-      val str = implicitly[Formatter[T]].apply(t)
-      if (str.plainText.startsWith("{")) {
-        decode[jsonEvents.JsonEvent](str.plainText) match {
+      def doLog(plainText: String): Unit =
+        decode[JsonEvent](plainText) match {
           case Left(_) => next.log(t, throwable, metadata)
           case Right(jsonEvent) =>
             val logger1 = jsonEvent.path.foldRight(next) { case (fragment, acc) => acc.withPath(fragment) }
@@ -70,14 +78,19 @@ private object jsonEvents {
               jsonEvent.metadata.instant
             )(Formatter.StrFormatter, jsonEvent.metadata.line, jsonEvent.metadata.file, jsonEvent.metadata.enclosing)
         }
-      } else
-        next.log(t, throwable, metadata)
+
+      val str = implicitly[Formatter[T]].apply(t)
+      // old scheme
+      if (str.plainText.startsWith("{")) doLog(str.plainText)
+      // new scheme
+      else if (str.plainText.startsWith(BLEEP_JSON_EVENT)) doLog(str.plainText.drop(BLEEP_JSON_EVENT.length))
+      else next.log(t, throwable, metadata)
     }
 
     override def withContext[T: Formatter](key: String, value: T): DeserializeLogEvents[U] =
       DeserializeLogEvents(next.withContext(value))
 
-    override def progressMonitor: Option[LoggerFn] = None
+    override def progressMonitor: Option[LoggerFn] = next.progressMonitor
 
     override def withPath(fragment: String): DeserializeLogEvents[U] =
       DeserializeLogEvents(next.withPath(fragment))
