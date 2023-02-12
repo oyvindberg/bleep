@@ -13,7 +13,7 @@ case class UserPaths(cacheDir: Path, configDir: Path) {
 
 object UserPaths {
   def fromAppDirs: UserPaths = {
-    val dirs = ProjectDirectories.from("build", null, "bleep")
+    val dirs = ProjectDirectories.from(null, "build", "bleep")
     val cacheDir = Path.of(dirs.cacheDir)
     val configDir = Path.of(dirs.configDir)
 
