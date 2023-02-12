@@ -26,7 +26,13 @@ object dist {
           started.build.transitiveDependenciesFor(crossName).foreach { case (crossName, _) => eval(crossName).forceGet }
 
           val projectPaths = started.buildPaths.project(crossName, p)
-          createJar(projectPaths.resourcesDirs.all + projectPaths.classes, Some(crossName), p.platform.flatMap(_.mainClass))
+          createJar(
+            JarType.Jar,
+            ManifestCreator.default,
+            projectPaths.resourcesDirs.all + projectPaths.classes,
+            Some(crossName),
+            p.platform.flatMap(_.mainClass)
+          )
         }
         .map { case (crossName, bytes) => (RelPath.force(s"lib/${crossName.value}.jar"), bytes) }
 
