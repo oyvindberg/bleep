@@ -1,7 +1,6 @@
 package bleep
 package bsp
 
-import bleep.BleepException
 import bleep.internal.throwableMessages
 import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
@@ -21,7 +20,7 @@ class BleepBspServer(
     val logger: Logger,
     var sendToIdeClient: bsp4j.BuildClient,
     var bloopServer: BuildServer,
-    var ensureBloopUpToDate: () => Either[BleepException, Started]
+    var buildChangeTracker: BuildChangeTracker
 ) extends BuildServer {
   val supportedLanguages: util.List[String] = List("scala", "java").asJava
 
@@ -69,7 +68,7 @@ class BleepBspServer(
   override def buildInitialize(params: bsp4j.InitializeBuildParams): CompletableFuture[bsp4j.InitializeBuildResult] = {
     logger.debug(("buildInitialize", params.toString))
 
-    ensureBloopUpToDate() match {
+    buildChangeTracker.ensureBloopUpToDate() match {
       case Left(th) =>
         sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, throwableMessages(th).mkString(": ")))
 
@@ -116,7 +115,7 @@ class BleepBspServer(
   override def workspaceBuildTargets(): CompletableFuture[bsp4j.WorkspaceBuildTargetsResult] = {
     logger.debug("workspaceBuildTargets")
 
-    ensureBloopUpToDate() match {
+    buildChangeTracker.ensureBloopUpToDate() match {
       case Left(th) =>
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)
@@ -141,7 +140,9 @@ class BleepBspServer(
   }
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] = {
     logger.debug(("buildTargetCompile", params.toString))
-    bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
+    buildChangeTracker {
+      bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
+    }
   }
   override def buildTargetDependencySources(params: bsp4j.DependencySourcesParams): CompletableFuture[bsp4j.DependencySourcesResult] = {
     logger.debug(("buildTargetDependencySources", params.toString))

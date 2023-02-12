@@ -1,7 +1,6 @@
 package bleep
 package bsp
 
-import bleep.rewrites.BuildRewrite
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
@@ -52,20 +51,7 @@ object BspImpl {
         bspBloopServer.sendToIdeClient = launcher.getRemoteProxy
         bspBloopServer.bloopServer = bloopServer.server
         // run on `workspaceBuildTargets` later for the side-effect of updating build
-        bspBloopServer.ensureBloopUpToDate = () =>
-          BspProjectSelection.load(pre.buildPaths).flatMap { maybeSelectedProjectGlobs =>
-            val bspRewrites: List[BuildRewrite] = List(
-//              List(rewrites.semanticDb(pre.buildPaths)),
-              maybeSelectedProjectGlobs match {
-                case Some(selectedProjectGlobs) => List(rewrites.keepSelectedProjects(selectedProjectGlobs))
-                case None                       => Nil
-              }
-            ).flatten
-
-            pre.reloadFromDisk().flatMap { pre =>
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, config, CoursierResolver.Factory.default)
-            }
-          }
+        bspBloopServer.buildChangeTracker = BuildChangeTracker.make(pre, localClient)
 
         pre.logger.info {
           val hasConsole = System.console() != null
