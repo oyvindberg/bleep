@@ -44,6 +44,23 @@ object BspImpl {
         )
 
       val workspaceDir = pre.buildPaths.buildVariantDir
+      val buildChangeTracker = BuildChangeTracker.make(pre, localClient)
+      // Adding a file watcher that will update bloop config on the fly and
+      // notify the BSP client of changes
+      threads.prepareBuildExecutor.submit {
+        new Runnable {
+          def run(): Unit =
+            BleepFileWatching
+              .build(pre.logger, pre.existingBuild) { () =>
+                pre.logger.info("Refreshing bloop config")
+                buildChangeTracker.ensureBloopUpToDate() match {
+                  case Left(value) => pre.logger.error("Could not update bloop config", value)
+                  case Right(_)    => pre.logger.info("Updated bloop config")
+                }
+              }
+              .run(FileWatching.StopWhen.Never, 100)
+        }
+      }
 
       var bloopServer: BloopServer = null
       try {
@@ -51,7 +68,7 @@ object BspImpl {
         bspBloopServer.sendToIdeClient = launcher.getRemoteProxy
         bspBloopServer.bloopServer = bloopServer.server
         // run on `workspaceBuildTargets` later for the side-effect of updating build
-        bspBloopServer.buildChangeTracker = BuildChangeTracker.make(pre, localClient)
+        bspBloopServer.buildChangeTracker = buildChangeTracker
 
         pre.logger.info {
           val hasConsole = System.console() != null
