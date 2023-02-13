@@ -119,7 +119,14 @@ class BleepBspServer(
       case Left(th) =>
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)
-      case Right(_) => bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
+      case Right(_) =>
+        val fut = bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
+        fut.thenApply { x =>
+          x.getTargets().asScala.foreach { bt =>
+            logger.info("URI : " + bt.getId().getUri())
+          }
+          x
+        }
     }
   }
 
@@ -140,9 +147,9 @@ class BleepBspServer(
   }
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] = {
     logger.debug(("buildTargetCompile", params.toString))
-    buildChangeTracker {
-      bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
-    }
+    // buildChangeTracker {
+    bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
+    // }
   }
   override def buildTargetDependencySources(params: bsp4j.DependencySourcesParams): CompletableFuture[bsp4j.DependencySourcesResult] = {
     logger.debug(("buildTargetDependencySources", params.toString))

@@ -17,11 +17,11 @@ case class Prebootstrapped(
   val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
   val fetchNode = new FetchNode(cacheLogger, ec)
 
-  private val currentHash = FileHash(existingBuild.bleepYaml)
+  private val lastKnownHash = FileHash(existingBuild.bleepYaml)
 
   def isOutdated(): Boolean = {
     val newHash = FileHash(existingBuild.bleepYaml)
-    currentHash != newHash
+    lastKnownHash != newHash
   }
 
   val resolvedJvm: Lazy[ResolvedJvm] =
