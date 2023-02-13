@@ -29,7 +29,7 @@ object bootstrap {
             fatal("Couldn't initialize bleep", logger, buildException)
           case Right(started) =>
             Try(f(started, new Commands(started))) match {
-              case Failure(th) => fatal("failed :(", logger, th)
+              case Failure(th) => fatal(s"Failed to run script: `$scriptName`.", logger, th)
               case Success(_)  => ExitCode.Success
             }
         }
