@@ -505,7 +505,7 @@ object Main {
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)
-        ExitCode.Failure
+        if (help.errors.isEmpty) ExitCode.Success else ExitCode.Failure
       case Right(cmd) =>
         Try(cmd.run(started)) match {
           case Failure(th)       => fatal("command failed", logger, th)
