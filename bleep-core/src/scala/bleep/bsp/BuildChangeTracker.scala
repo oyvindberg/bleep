@@ -17,6 +17,7 @@ import ch.epfl.scala.bsp4j.BuildClient
 import bloop.config.Config
 import scala.collection.SortedMap
 import bleep.model.CrossProjectName
+import bleep.bleepExceptionOps
 
 trait BuildChangeTracker {
   def ensureBloopUpToDate(): Either[BleepException, Started]
