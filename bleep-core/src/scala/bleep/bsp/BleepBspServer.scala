@@ -120,13 +120,7 @@ class BleepBspServer(
         logger.error("couldn't refresh build", th)
         CompletableFuture.failedFuture(th)
       case Right(_) =>
-        val fut = bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
-        fut.thenApply { x =>
-          x.getTargets().asScala.foreach { bt =>
-            logger.info("URI : " + bt.getId().getUri())
-          }
-          x
-        }
+        bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
     }
   }
 
