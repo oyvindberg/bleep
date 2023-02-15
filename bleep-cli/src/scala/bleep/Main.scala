@@ -516,6 +516,9 @@ object Main {
 
   def run(logger: Logger, opts: Opts[BleepNoBuildCommand], restArgs: List[String]): ExitCode =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
+      case Left(help @ Help(Nil, _, _, _)) =>
+        System.err.println(help)
+        ExitCode.Success
       case Left(help) =>
         System.err.println(help)
         ExitCode.Failure
