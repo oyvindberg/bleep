@@ -502,31 +502,38 @@ object Main {
   }
 
   def run(logger: Logger, opts: Opts[BleepBuildCommand], started: Started, restArgs: List[String]): ExitCode =
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
-      case Left(help) =>
-        System.err.println(help)
-        if (help.errors.isEmpty) ExitCode.Success else ExitCode.Failure
-      case Right(cmd) =>
-        Try(cmd.run(started)) match {
-          case Failure(th)       => fatal("command failed", logger, th)
-          case Success(Left(th)) => fatal("command failed", logger, th)
-          case Success(Right(_)) => ExitCode.Success
-        }
-    }
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts)
+      .parse(restArgs, sys.env)
+      .fold(
+        handleHelp,
+        cmd =>
+          Try(cmd.run(started)) match {
+            case Failure(th)       => fatal("command failed", logger, th)
+            case Success(Left(th)) => fatal("command failed", logger, th)
+            case Success(Right(_)) => ExitCode.Success
+          }
+      )
 
   def run(logger: Logger, opts: Opts[BleepNoBuildCommand], restArgs: List[String]): ExitCode =
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
-      case Left(help @ Help(Nil, _, _, _)) =>
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts)
+      .parse(restArgs, sys.env)
+      .fold(
+        handleHelp,
+        cmd =>
+          Try(cmd.run()) match {
+            case Failure(th)       => fatal("command failed", logger, th)
+            case Success(Left(th)) => fatal("command failed", logger, th)
+            case Success(Right(_)) => ExitCode.Success
+          }
+      )
+
+  private def handleHelp(help: Help): ExitCode =
+    help.errors match {
+      case Nil =>
         System.err.println(help)
         ExitCode.Success
-      case Left(help) =>
+      case _ => // should we print the errors?
         System.err.println(help)
         ExitCode.Failure
-      case Right(cmd) =>
-        Try(cmd.run()) match {
-          case Failure(th)       => fatal("command failed", logger, th)
-          case Success(Left(th)) => fatal("command failed", logger, th)
-          case Success(Right(_)) => ExitCode.Success
-        }
     }
 }
