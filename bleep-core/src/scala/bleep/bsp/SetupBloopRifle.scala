@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.{bleepLoggers, FileUtils}
+import bleep.internal.FileUtils
 import bleep.model.CompileServerMode
 import coursier.parse.ModuleParser
 
@@ -10,7 +10,6 @@ import java.nio.file._
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
 import scala.concurrent.duration.DurationInt
-import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
