@@ -28,7 +28,13 @@ object BuildChangeTracker {
   def make(pre: Prebootstrapped, buildClient: BuildClient): BuildChangeTracker =
     new Impl(new AtomicReference[State](load(pre)), buildClient)
 
-  case class State(pre: Prebootstrapped, maybeStarted: Either[BleepException, Started], bloopProjects: SortedMap[CrossProjectName, Config.Project])
+  case class State(pre: Prebootstrapped, maybeStarted: Either[BleepException, Started]) {
+    val bloopProjects: SortedMap[CrossProjectName, Config.Project] =
+      maybeStarted match {
+        case Left(_) => SortedMap.empty
+        case Right(started) => started.bloopProjects
+      }
+  }
   private class Impl(atomicState: AtomicReference[State], buildClient: BuildClient) extends BuildChangeTracker {
 
     def ensureBloopUpToDate(): Either[BleepException, Started] =
@@ -61,8 +67,8 @@ object BuildChangeTracker {
       }
     }
     maybeStarted match {
-      case Left(e)                  => State(pre, Left(e), SortedMap.empty)
-      case Right((newPre, started)) => State(newPre, Right(started), started.bloopProjects)
+      case Left(e)                  => State(pre, Left(e))
+      case Right((newPre, started)) => State(newPre, Right(started))
     }
   }
 
