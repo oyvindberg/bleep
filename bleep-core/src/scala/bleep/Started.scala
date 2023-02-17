@@ -54,13 +54,20 @@ case class Started(
   def chosenHasSourceGenProjects(maybeFromCommandLine: Option[Array[model.CrossProjectName]]): Array[model.CrossProjectName] =
     chosenProjects(maybeFromCommandLine).filterNot(projectName => build.explodedProjects(projectName).sourcegen.isEmpty)
 
-  def reloadFromDisk(rewrites: List[BuildRewrite]): Either[BleepException, Started] =
+  /** Will only reload if there are changes, as indicated in the `Option`
+    */
+  def reloadFromDisk(newRewrites: List[BuildRewrite]): Either[BleepException, Option[Started]] =
     for {
-      pre <- pre.reloadFromDisk()
-      config <- BleepConfigOps.loadOrDefault(userPaths)
-      reloaded <- reloadUsing(pre, config, rewrites)
-    } yield reloaded
+      maybeChangedPre <- pre.reloadFromDisk()
+      newConfig <- BleepConfigOps.loadOrDefault(userPaths)
+      configChanged = newConfig != config
+      rewritesChanged = newRewrites != rewrites
+      maybeReloaded <-
+        if (maybeChangedPre.nonEmpty || configChanged || rewritesChanged)
+          reloadUsing(maybeChangedPre.getOrElse(pre), newConfig, newRewrites).map(Some.apply)
+        else Right(None)
+    } yield maybeReloaded
 
-  def reloadFromDisk(): Either[BleepException, Started] =
+  def reloadFromDisk(): Either[BleepException, Option[Started]] =
     reloadFromDisk(rewrites)
 }

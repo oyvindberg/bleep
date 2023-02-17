@@ -81,7 +81,9 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
             case Left(bleepException) =>
               fatal.log("build changed, but it didn't work :(", started.logger, bleepException)
               codeWatcher.updateMapping(Map.empty)
-            case Right(newStarted) =>
+            case Right(None) =>
+              ()
+            case Right(Some(newStarted)) =>
               currentStarted = newStarted
               codeWatcher.updateMapping(BleepFileWatching.projectPathsMapping(currentStarted, watchableProjects(currentStarted)))
           }

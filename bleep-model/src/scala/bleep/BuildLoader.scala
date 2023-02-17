@@ -9,6 +9,9 @@ sealed trait BuildLoader {
   def bleepYaml: Path
   def buildDirectory: Path = bleepYaml.getParent
   def existing: Either[BleepException, BuildLoader.Existing]
+
+  def reloadFromDisk(): BuildLoader =
+    BuildLoader.fromBleepYaml(bleepYaml)
 }
 
 object BuildLoader {
@@ -57,13 +60,11 @@ object BuildLoader {
       }
   }
 
-  def inDirectory(dir: Path): BuildLoader = {
-    val file = dir.resolve(BuildFileName)
-    if (file.toFile.exists())
-      BuildLoader.Existing(file)
-    else
-      BuildLoader.NonExisting(file)
-  }
+  def inDirectory(dir: Path): BuildLoader =
+    fromBleepYaml(dir.resolve(BuildFileName))
+
+  def fromBleepYaml(file: Path): BuildLoader =
+    if (file.toFile.exists()) BuildLoader.Existing(file) else BuildLoader.NonExisting(file)
 
   def find(cwd: Path): BuildLoader = {
     // keep looking up until we find build file
