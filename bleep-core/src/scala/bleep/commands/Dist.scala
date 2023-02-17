@@ -25,7 +25,7 @@ case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends
         case None =>
           started.build.explodedProjects(options.project).platform.flatMap(_.mainClass) match {
             case Some(x) => Right(x)
-            case None    => discoverMain(started.logger, bloop, buildTarget(started.buildPaths, options.project))
+            case None    => discoverMain(started.logger, bloop, BleepCommandRemote.buildTarget(started.buildPaths, options.project))
           }
       }
     } yield {

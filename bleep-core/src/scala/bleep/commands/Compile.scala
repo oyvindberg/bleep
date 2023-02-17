@@ -17,7 +17,7 @@ case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) exte
   }
 
   override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
-    val targets = buildTargets(started.buildPaths, projects)
+    val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
 
     val result = bloop.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get()
 

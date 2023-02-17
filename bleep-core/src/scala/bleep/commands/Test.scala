@@ -17,7 +17,7 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName]) extends
   }
 
   override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
-    val targets = buildTargets(started.buildPaths, projects)
+    val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
     val result = bloop.server.buildTargetTest(new bsp4j.TestParams(targets)).get()
 
     result.getStatusCode match {

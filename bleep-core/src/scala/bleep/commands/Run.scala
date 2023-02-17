@@ -35,7 +35,7 @@ case class Run(
         case Some(mainClass) => Right(mainClass)
         case None =>
           started.logger.info("No main class specified in build or command line. discovering...")
-          discoverMain(started.logger, bloop, buildTarget(started.buildPaths, project))
+          discoverMain(started.logger, bloop, BleepCommandRemote.buildTarget(started.buildPaths, project))
       }
 
     maybeMain.flatMap { main =>
@@ -62,7 +62,7 @@ case class Run(
     }
 
   def bspRun(started: Started, bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
-    val params = new bsp4j.RunParams(buildTarget(started.buildPaths, project))
+    val params = new bsp4j.RunParams(BleepCommandRemote.buildTarget(started.buildPaths, project))
     val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
 
     val env = sys.env ++ started.bleepExecutable.forceGet.childrenEnv
