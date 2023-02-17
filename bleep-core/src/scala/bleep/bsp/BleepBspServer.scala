@@ -80,7 +80,7 @@ class BleepBspServer(
 
         val initParams = new bsp4j.InitializeBuildParams(
           s"bleep / ${params.getDisplayName}",
-          s"${model.BleepVersion.current} / ${params.getVersion}",
+          s"${model.BleepVersion.current.value} / ${params.getVersion}",
           Constants.bspVersion,
           workspaceDir.toUri.toASCIIString,
           new bsp4j.BuildClientCapabilities(supportedLanguages)
