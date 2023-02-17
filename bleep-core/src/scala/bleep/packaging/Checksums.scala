@@ -2,9 +2,22 @@ package bleep
 package packaging
 
 import java.security.MessageDigest
+import java.util
 
 // note: adapted from https://github.com/apache/ant-ivy/blob/master/src/java/org/apache/ivy/util/ChecksumHelper.java
 object Checksums {
+
+  case class Digest(bytes: Array[Byte]) {
+    lazy val hexString: String = byteArrayToHexString(bytes)
+
+    override def hashCode(): Int =
+      util.Arrays.hashCode(bytes)
+
+    override def equals(obj: Any): Boolean = obj match {
+      case x: Digest => util.Arrays.equals(bytes, x.bytes)
+      case _         => false
+    }
+  }
 
   sealed abstract class Algorithm(val name: String)
   object Algorithm {
@@ -14,18 +27,15 @@ object Checksums {
 
   def apply(files: Map[RelPath, Array[Byte]], algorithms: List[Algorithm]): Map[RelPath, Array[Byte]] =
     files.flatMap { case in @ (relPath, content) =>
-      val res = algorithms.map(alg => relPath.withLast(_ + "." + alg.name) -> computeAsString(content, alg).getBytes)
+      val res = algorithms.map(alg => relPath.withLast(_ + "." + alg.name) -> compute(content, alg).hexString.getBytes)
       Map(in) ++ res
     }
 
-  def computeAsString(content: Array[Byte], algorithm: Algorithm): String =
-    byteArrayToHexString(compute(content, algorithm))
-
-  def compute(content: Array[Byte], algorithm: Algorithm): Array[Byte] = {
+  def compute(content: Array[Byte], algorithm: Algorithm): Digest = {
     val md = MessageDigest.getInstance(algorithm.name)
     md.reset()
     md.update(content)
-    md.digest
+    Digest(md.digest)
   }
 
   // byte to hex string converter
