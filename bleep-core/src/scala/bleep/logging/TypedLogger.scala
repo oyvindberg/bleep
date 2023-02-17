@@ -3,7 +3,7 @@ package bleep.logging
 import fansi.Str
 import sourcecode.Text
 
-import java.io.PrintStream
+import java.io.{PrintStream, Writer}
 import java.util.concurrent.atomic.AtomicBoolean
 
 trait TypedLogger[Underlying] extends LoggerFn {
@@ -57,22 +57,25 @@ object TypedLogger {
     override def progressMonitor: Option[LoggerFn] = None
   }
 
-  private[logging] final class AppendableLogger[U <: Appendable](val underlying: U, pattern: Pattern, val context: Ctx, val path: List[String])
+  private[logging] final class WriterLogger[U <: Writer](val underlying: U, flush: Boolean, pattern: Pattern, val context: Ctx, val path: List[String])
       extends TypedLogger[U] { self =>
 
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val formatted = pattern(t, throwable, metadata, context, path)
       underlying.append(formatted.render + "\n")
+      if (flush) {
+        underlying.flush()
+      }
       ()
     }
 
-    override def withContext[T: Formatter](key: String, value: T): AppendableLogger[U] =
-      new AppendableLogger(underlying, pattern, context + (key -> Formatter(value)), path)
+    override def withContext[T: Formatter](key: String, value: T): WriterLogger[U] =
+      new WriterLogger(underlying, flush, pattern, context + (key -> Formatter(value)), path)
 
     override def progressMonitor: Option[LoggerFn] = None
 
-    override def withPath(fragment: String): AppendableLogger[U] =
-      new AppendableLogger(underlying, pattern, context, fragment :: path)
+    override def withPath(fragment: String): WriterLogger[U] =
+      new WriterLogger(underlying, flush, pattern, context, fragment :: path)
   }
 
   private[logging] final class ConsoleLogger[U <: PrintStream](

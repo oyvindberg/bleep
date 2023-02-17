@@ -1,6 +1,6 @@
 package bleep.logging
 
-import java.io.{BufferedWriter, Flushable, PrintStream, StringWriter}
+import java.io.{BufferedWriter, Flushable, PrintStream, Writer}
 import java.nio.file.{Files, Path, StandardOpenOption}
 
 object Loggers {
@@ -16,20 +16,17 @@ object Loggers {
   def stderr(pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[PrintStream] =
     new TypedLogger.ConsoleLogger(System.err, pattern, ctx, Nil, disableProgress = true)
 
-  // this is a resource since we absolutely should flush it before we exit
+  // this is a resource since we absolutely should close/flush it before we exit
   def path(logFile: Path, pattern: Pattern, ctx: Ctx = emptyContext): TypedLoggerResource[BufferedWriter] =
     TypedLoggerResource.autoCloseable {
       Files.createDirectories(logFile.getParent)
-      val writer = Files.newBufferedWriter(logFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
-      appendable(writer, pattern, ctx)
+      val w = Files.newBufferedWriter(logFile, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+      writer(w, flush = true, pattern, ctx)
     }
 
   // wrap in TypedLoggerResource if you need it flushed/closed
-  def appendable[A <: Appendable](appendable: A, pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[A] =
-    new TypedLogger.AppendableLogger(appendable, pattern, ctx, Nil)
-
-  def stringWriter(pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[StringWriter] =
-    appendable(new StringWriter, pattern, ctx)
+  def writer[A <: Writer](writer: A, flush: Boolean, pattern: Pattern, ctx: Ctx = emptyContext): TypedLogger[A] =
+    new TypedLogger.WriterLogger(writer, flush, pattern, ctx, Nil)
 
   def storing(ctx: Ctx = emptyContext): TypedLogger[Array[TypedLogger.Stored]] =
     new TypedLogger.StoringLogger(new TypedLogger.Store, ctx, Nil)
