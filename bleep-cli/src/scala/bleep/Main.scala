@@ -486,12 +486,12 @@ object Main {
           bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).untyped.use { logger =>
             buildLoader match {
               case noBuild: BuildLoader.NonExisting =>
-                run(logger, noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs)
+                run(logger, restArgs, noBuildOpts(logger, userPaths, buildPaths, noBuild))
               case existing: BuildLoader.Existing =>
                 val pre = Prebootstrapped(logger, userPaths, buildPaths, existing, ec)
                 bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                   case Left(th)       => fatal("Error while loading build", logger, th)
-                  case Right(started) => run(logger, hasBuildOpts(started), started, restArgs)
+                  case Right(started) => run(logger, restArgs, hasBuildOpts(started), started)
                 }
             }
           }
@@ -501,39 +501,25 @@ object Main {
     System.exit(exitCode.value)
   }
 
-  def run(logger: Logger, opts: Opts[BleepBuildCommand], started: Started, restArgs: List[String]): ExitCode =
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts)
-      .parse(restArgs, sys.env)
-      .fold(
-        handleHelp,
-        cmd =>
-          Try(cmd.run(started)) match {
-            case Failure(th)       => fatal("command failed", logger, th)
-            case Success(Left(th)) => fatal("command failed", logger, th)
-            case Success(Right(_)) => ExitCode.Success
-          }
-      )
+  def run(logger: Logger, restArgs: List[String], opts: Opts[BleepBuildCommand], started: Started): ExitCode =
+    run[BleepBuildCommand](logger, restArgs, opts, cmd => Try(cmd.run(started)))
 
-  def run(logger: Logger, opts: Opts[BleepNoBuildCommand], restArgs: List[String]): ExitCode =
-    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts)
-      .parse(restArgs, sys.env)
-      .fold(
-        handleHelp,
-        cmd =>
-          Try(cmd.run()) match {
-            case Failure(th)       => fatal("command failed", logger, th)
-            case Success(Left(th)) => fatal("command failed", logger, th)
-            case Success(Right(_)) => ExitCode.Success
-          }
-      )
+  def run(logger: Logger, restArgs: List[String], opts: Opts[BleepNoBuildCommand]): ExitCode =
+    run[BleepNoBuildCommand](logger, restArgs, opts, cmd => Try(cmd.run()))
 
-  private def handleHelp(help: Help): ExitCode =
-    help.errors match {
-      case Nil =>
+  private def run[Cmd](logger: Logger, restArgs: List[String], opts: Opts[Cmd], runCommand: Cmd => Try[Either[BleepException, Unit]]): ExitCode =
+    Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
+      case Left(help) =>
         System.err.println(help)
-        ExitCode.Success
-      case _ => // should we print the errors?
-        System.err.println(help)
-        ExitCode.Failure
+        help.errors match {
+          case List() => ExitCode.Success
+          case _      => ExitCode.Failure
+        }
+      case Right(cmd) =>
+        runCommand(cmd) match {
+          case Failure(th)       => fatal("command failed", logger, th)
+          case Success(Left(th)) => fatal("command failed", logger, th)
+          case Success(Right(_)) => ExitCode.Success
+        }
     }
 }
