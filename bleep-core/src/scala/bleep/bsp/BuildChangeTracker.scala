@@ -2,7 +2,7 @@ package bleep
 package bsp
 
 import bloop.config.Config
-import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.bsp4j
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.SortedMap
@@ -13,7 +13,7 @@ trait BuildChangeTracker {
 }
 
 object BuildChangeTracker {
-  def make(pre: Prebootstrapped, buildClient: BuildClient): BuildChangeTracker =
+  def make(pre: Prebootstrapped, buildClient: bsp4j.BuildClient): BuildChangeTracker =
     new Impl(new AtomicReference[State](State(pre, load(pre))), buildClient)
 
   case class State(pre: Prebootstrapped, maybeStarted: Either[BleepException, Started]) {
@@ -24,7 +24,7 @@ object BuildChangeTracker {
       }
   }
 
-  private class Impl(atomicState: AtomicReference[State], buildClient: BuildClient) extends BuildChangeTracker {
+  private class Impl(atomicState: AtomicReference[State], buildClient: bsp4j.BuildClient) extends BuildChangeTracker {
     def ensureBloopUpToDate(): Either[BleepException, Started] =
       atomicState.updateAndGet { currentState =>
         currentState.pre.reloadFromDisk() match {
@@ -54,28 +54,28 @@ object BuildChangeTracker {
       started <- bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, config, CoursierResolver.Factory.default)
     } yield started
 
-  private def id(proj: Config.Project): BuildTargetIdentifier = {
+  private def id(proj: Config.Project): bsp4j.BuildTargetIdentifier = {
     val id = proj.directory.toUri.toASCIIString.stripSuffix("/") + "/?id=" + proj.name
     // Applying the same format as bloop. There might be a better way to do this.
     val amended = id.replace("file:///", "file:/")
-    new BuildTargetIdentifier(amended)
+    new bsp4j.BuildTargetIdentifier(amended)
   }
 
-  private def computeBuildTargetChanges(before: State, after: State): DidChangeBuildTarget = {
+  private def computeBuildTargetChanges(before: State, after: State): bsp4j.DidChangeBuildTarget = {
     val changedAndDeleted = before.bloopProjects.flatMap { case (cross, beforeProj) =>
       after.bloopProjects.get(cross) match {
         case Some(afterProj) if beforeProj == afterProj =>
           None
         case Some(_) =>
           Some {
-            val event = new BuildTargetEvent(id(beforeProj))
-            event.setKind(BuildTargetEventKind.CHANGED)
+            val event = new bsp4j.BuildTargetEvent(id(beforeProj))
+            event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
             event
           }
         case None =>
           Some {
-            val event = new BuildTargetEvent(id(beforeProj))
-            event.setKind(BuildTargetEventKind.DELETED)
+            val event = new bsp4j.BuildTargetEvent(id(beforeProj))
+            event.setKind(bsp4j.BuildTargetEventKind.DELETED)
             event
           }
       }
@@ -84,13 +84,13 @@ object BuildChangeTracker {
       before.bloopProjects.get(cross) match {
         case None =>
           Some {
-            val event = new BuildTargetEvent(id(afterProj))
-            event.setKind(BuildTargetEventKind.CREATED)
+            val event = new bsp4j.BuildTargetEvent(id(afterProj))
+            event.setKind(bsp4j.BuildTargetEventKind.CREATED)
             event
           }
         case _ => None
       }
     }
-    new DidChangeBuildTarget((added ++ changedAndDeleted).toList.asJava)
+    new bsp4j.DidChangeBuildTarget((added ++ changedAndDeleted).toList.asJava)
   }
 }
