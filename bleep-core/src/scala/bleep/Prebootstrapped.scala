@@ -17,13 +17,6 @@ case class Prebootstrapped(
   val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
   val fetchNode = new FetchNode(cacheLogger, ec)
 
-  private val lastKnownHash = FileHash(existingBuild.bleepYaml)
-
-  def isOutdated(): Boolean = {
-    val newHash = FileHash(existingBuild.bleepYaml)
-    lastKnownHash != newHash
-  }
-
   val resolvedJvm: Lazy[ResolvedJvm] =
     existingBuild.buildFile.map { maybeBuild =>
       val jvm = maybeBuild.orThrow.jvm.getOrElse {
@@ -35,9 +28,12 @@ case class Prebootstrapped(
       fetchJvm(jvm)
     }
 
-  def reloadFromDisk(): Either[BleepException, Prebootstrapped] =
-    BuildLoader
-      .inDirectory(existingBuild.buildDirectory)
-      .existing
-      .map(newExisting => copy(existingBuild = newExisting))
+  /** Will only reload if there are changes in the json structure, as indicated in the `Option`
+    */
+  def reloadFromDisk(): Either[BleepException, Option[Prebootstrapped]] =
+    for {
+      oldJson <- existingBuild.json.forceGet
+      reloaded <- existingBuild.reloadFromDisk().existing
+      newJson <- reloaded.json.forceGet
+    } yield if (oldJson == newJson) None else Some(copy(existingBuild = reloaded))
 }
