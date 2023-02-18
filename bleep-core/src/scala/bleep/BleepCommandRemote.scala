@@ -127,8 +127,12 @@ object BleepCommandRemote {
         readLog.foldLeft(cause.getMessage)((msg, log) => s"$msg\nRead log file:\n$log")
       )
 
-  def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier =
-    new bsp4j.BuildTargetIdentifier(buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value)
+  def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier = {
+    val id = buildPaths.buildVariantDir.toFile.toURI.toASCIIString.stripSuffix("/") + "/?id=" + name.value
+    // Applying the same format as bloop. There might be a better way to do this.
+    val amended = id.replace("file:///", "file:/")
+    new bsp4j.BuildTargetIdentifier(amended)
+  }
 
   def projectFromBuildTarget(started: Started)(name: bsp4j.BuildTargetIdentifier): model.CrossProjectName = {
     val id = name.getUri.split("=").last
