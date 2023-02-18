@@ -486,12 +486,12 @@ object Main {
           bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).untyped.use { logger =>
             buildLoader match {
               case noBuild: BuildLoader.NonExisting =>
-                run(logger, restArgs, noBuildOpts(logger, userPaths, buildPaths, noBuild))
+                run(noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs, logger)(_.run())
               case existing: BuildLoader.Existing =>
                 val pre = Prebootstrapped(logger, userPaths, buildPaths, existing, ec)
                 bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                   case Left(th)       => fatal("Error while loading build", logger, th)
-                  case Right(started) => run(logger, restArgs, hasBuildOpts(started), started)
+                  case Right(started) => run(hasBuildOpts(started), restArgs, logger)(_.run(started))
                 }
             }
           }
@@ -501,13 +501,7 @@ object Main {
     System.exit(exitCode.value)
   }
 
-  def run(logger: Logger, restArgs: List[String], opts: Opts[BleepBuildCommand], started: Started): ExitCode =
-    run[BleepBuildCommand](logger, restArgs, opts, cmd => Try(cmd.run(started)))
-
-  def run(logger: Logger, restArgs: List[String], opts: Opts[BleepNoBuildCommand]): ExitCode =
-    run[BleepNoBuildCommand](logger, restArgs, opts, cmd => Try(cmd.run()))
-
-  private def run[Cmd](logger: Logger, restArgs: List[String], opts: Opts[Cmd], runCommand: Cmd => Try[Either[BleepException, Unit]]): ExitCode =
+  private def run[Cmd](opts: Opts[Cmd], restArgs: List[String], logger: Logger)(runCommand: Cmd => Either[BleepException, Unit]): ExitCode =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
         System.err.println(help)
@@ -516,10 +510,10 @@ object Main {
           case _      => ExitCode.Failure
         }
       case Right(cmd) =>
-        runCommand(cmd) match {
-          case Failure(th)       => fatal("command failed", logger, th)
-          case Success(Left(th)) => fatal("command failed", logger, th)
-          case Success(Right(_)) => ExitCode.Success
+        Try(runCommand(cmd)) match {
+          case Failure(th)        => fatal("command failed unexpectedly", logger, th) // This really shouldn't happen
+          case Success(Left(th))  => fatal("command failed", logger, th)
+          case Success(Right(())) => ExitCode.Success
         }
     }
 }
