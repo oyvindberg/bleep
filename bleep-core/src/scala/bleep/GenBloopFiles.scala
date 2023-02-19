@@ -426,13 +426,13 @@ object GenBloopFiles {
                   folders
                     // todo: have lost information about which folders contain generated sources when working with bloop projects
                     .filterNot(p => p.toString.contains("/generated-"))
-                    .map(f => Config.SourcesGlobs(f, None, Nil, Nil))
+                    .map(f => Config.SourcesGlobs(f, None, List("glob:**"), Nil))
                 }
             },
             script match {
               case model.ScriptDef.Main(scriptProject, _, sourceGlobs) =>
                 val projectDir = pre.buildPaths.project(scriptProject, build.explodedProjects(scriptProject)).dir
-                sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, Nil, Nil))
+                sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, List("glob:**"), Nil))
             }
           ).flatten.distinct
 

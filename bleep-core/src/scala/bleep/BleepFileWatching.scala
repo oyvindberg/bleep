@@ -19,7 +19,7 @@ object BleepFileWatching {
         val bloopProject = started.bloopProjects(name)
 
         val fromSourcegen = bloopProject.sourceGenerators.toArray.flatten.flatMap(_.sourcesGlobs).flatMap {
-          case Config.SourcesGlobs(directory, None, Nil, Nil)             => Some(directory)
+          case Config.SourcesGlobs(directory, None, List("glob:**"), Nil) => Some(directory)
           case Config.SourcesGlobs(_, None, List("glob:bleep.yaml"), Nil) => None
           case illegal =>
             sys.error(
