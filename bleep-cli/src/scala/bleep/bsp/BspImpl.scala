@@ -1,6 +1,7 @@
 package bleep
 package bsp
 
+import bleep.internal.fatal
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc
 
@@ -54,8 +55,8 @@ object BspImpl {
               .build(pre.logger, pre.existingBuild) { () =>
                 pre.logger.info("Detecting changed build")
                 buildChangeTracker.ensureBloopUpToDate() match {
-                  case Left(value) => pre.logger.error("Could not reload build", value)
-                  case Right(_)    => pre.logger.info("Loaded changed build")
+                  case Left(th) => fatal.log("Could not reload build", pre.logger, th)
+                  case Right(_) => pre.logger.info("Loaded changed build")
                 }
               }
               .run(FileWatching.StopWhen.Never, 100)

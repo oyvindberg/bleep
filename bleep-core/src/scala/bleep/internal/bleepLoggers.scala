@@ -52,11 +52,22 @@ object bleepLoggers {
     if (commonOpts.logAsJson) Loggers.printJsonStream(System.err)
     else Loggers.decodeJsonStream(Loggers.stderr(LogPatterns.logFile))
 
-  def stderrAndFileLogging(commonOpts: CommonOpts, buildPaths: BuildPaths): TypedLoggerResource[(PrintStream, Option[BufferedWriter])] =
+  def stderrAndFileLogging(
+      bleepConfig: BleepConfig,
+      commonOpts: CommonOpts,
+      buildPaths: BuildPaths
+  ): TypedLoggerResource[(PrintStream, Option[BufferedWriter])] =
     if (commonOpts.logAsJson) TypedLoggerResource.pure(Loggers.printJsonStream(System.err)).maybeZipWith(None)
     else {
       TypedLoggerResource
-        .pure(Loggers.stderr(LogPatterns.logFile))
+        .pure(
+          Loggers.stderr(
+            LogPatterns.interface(
+              startRun = if (bleepConfig.logTiming.getOrElse(false)) Some(Instant.now) else None,
+              noColor = commonOpts.noColor
+            )
+          )
+        )
         .map(l => if (commonOpts.debug) l else l.minLogLevel(LogLevel.info))
         .maybeZipWith(Some(Loggers.path(buildPaths.logFile, LogPatterns.logFile)))
         // it's an optimization to perform this before both loggers so we don't need to do it twice

@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.internal.throwableMessages
 import bleep.logging.Logger
 import coursier.cache.CacheLogger
 import coursier.error.CoursierError
@@ -7,7 +8,7 @@ import coursier.util.Artifact
 
 class BleepCacheLogger(logger: Logger) extends CacheLogger {
   def retrying(err: CoursierError, retriesLeft: Int): Unit =
-    logger.withContext(retriesLeft).info("Resolving dependencies failed. Retrying", err)
+    logger.withContext(retriesLeft).info(s"Resolving dependencies failed. Retrying. Error: ${throwableMessages(err).mkString(": ")}")
 
   override def downloadingArtifact(url: String, artifact: Artifact): Unit =
     logger.withContext(url).info("downloading")
