@@ -455,8 +455,9 @@ object Main {
         val buildLoader = BuildLoader.find(cwd)
         maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts).untyped, buildLoader, commonOpts).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.BSP)
+          val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
-          bleepLoggers.stderrAndFileLogging(commonOpts, buildPaths).untyped.use { logger =>
+          bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).untyped.use { logger =>
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
               case Left(be) => fatal("", logger, be)
               case Right(pre) =>
