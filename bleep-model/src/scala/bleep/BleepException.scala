@@ -22,7 +22,7 @@ object BleepException {
   class TargetFolderNotDetermined(projectName: model.CrossProjectName)
       extends BleepException(s"Couldn't determine original output directory of project ${projectName.name}")
 
-  class InvalidJson(file: Path, e: Throwable) extends BleepException(s"Couldn't parse json file $file", e)
+  class InvalidJson(file: Path, e: Throwable) extends BleepException(s"Couldn't parse json/yaml file $file", e)
 
   class ModuleFormatError(
       val moduleString: String,
