@@ -26,6 +26,7 @@ object BspImpl {
         .setOutput(System.out)
         .setRemoteInterface(classOf[bsp4j.BuildClient])
         .setLocalService(bspBloopServer)
+        .setExceptionHandler(new ExceptionHandler(pre.logger))
         .create()
 
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))

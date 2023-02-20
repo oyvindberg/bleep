@@ -19,7 +19,7 @@ object fatal {
     throwable match {
       case buildException: BleepException =>
         logger.debug(context, buildException)
-        logger.error(throwableMessages(buildException).mkString(": "))
+        logger.error(s"$context: ${throwableMessages(buildException).mkString(": ")}")
       case unexpected =>
         logger.error(context, unexpected)
     }
