@@ -10,6 +10,7 @@ import scala.jdk.CollectionConverters._
 
 trait BuildChangeTracker {
   def ensureBloopUpToDate(): Either[BleepException, Started]
+  def currentBuildError: Option[BleepException]
 }
 
 object BuildChangeTracker {
@@ -40,6 +41,8 @@ object BuildChangeTracker {
             newState
         }
       }.maybeStarted
+
+    override def currentBuildError: Option[BleepException] = atomicState.get().maybeStarted.left.toOption
   }
 
   private def load(pre: Prebootstrapped): Either[BleepException, Started] =
