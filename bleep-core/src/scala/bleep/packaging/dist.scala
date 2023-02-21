@@ -23,7 +23,7 @@ object dist {
       rewriteDependentData(started.build.explodedProjects)
         .startFrom[Array[Byte]](Set(crossName)) { case (crossName, p, eval) =>
           // evaluate dependencies for side effect, the evaluation will be picked up in `startFrom`
-          started.build.transitiveDependenciesFor(crossName).foreach { case (crossName, _) => eval(crossName).forceGet }
+          started.build.resolvedDependsOn(crossName).foreach(crossName => eval(crossName).forceGet)
 
           val projectPaths = started.buildPaths.project(crossName, p)
           createJar(

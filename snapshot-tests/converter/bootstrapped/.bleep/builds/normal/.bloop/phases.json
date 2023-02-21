@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-sources/phases",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/phases/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/phases/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/phases/src/main/scala-2",
@@ -37,15 +36,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/logging/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/core",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/logging",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/phases",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/phases/src/main/resources"
     ],
     "scala": {

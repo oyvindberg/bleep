@@ -15,24 +15,19 @@ import scala.collection.mutable
 import scala.util.Try
 
 trait GenBloopFiles {
-  def apply(
-      prebootstrapped: Prebootstrapped,
-      resolver: CoursierResolver,
-      build: model.Build,
-      bleepExecutable: Lazy[BleepExecutable]
-  ): GenBloopFiles.Files
+  def apply(prebootstrapped: Prebootstrapped, resolver: CoursierResolver, build: model.Build): GenBloopFiles.Files
 }
 
 object GenBloopFiles {
   type Files = SortedMap[model.CrossProjectName, Lazy[Config.File]]
 
   object InMemory extends GenBloopFiles {
-    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build, bleepExecutable: Lazy[BleepExecutable]): Files =
+    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build): Files =
       rewriteDependentData(build.explodedProjects).apply { (crossName, project, eval) =>
         def get(depName: model.CrossProjectName): Config.File =
           eval(depName).forceGet(s"${crossName.value} => ${depName.value}")
 
-        translateProject(pre, resolver, crossName, project, build, getBloopProject = get, bleepExecutable)
+        translateProject(pre, resolver, crossName, project, build, getBloopProject = get)
       }
   }
 
@@ -44,7 +39,7 @@ object GenBloopFiles {
   case class ReplaceBleepDependencies(bleepBuild: Lazy[Started]) extends GenBloopFiles {
     def isBleepDep(dep: model.Dep): Boolean = dep.organization.value == "build.bleep"
 
-    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build, bleepExecutable: Lazy[BleepExecutable]): Files = {
+    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build): Files = {
       val explodedBuild = build.dropBuildFile
 
       // save some state from step one to step two
@@ -97,8 +92,7 @@ object GenBloopFiles {
           crossName,
           project,
           build,
-          getBloopProject = depName => eval(depName).forceGet(s"${crossName.value} => ${depName.value}"),
-          bleepExecutable
+          getBloopProject = depName => eval(depName).forceGet(s"${crossName.value} => ${depName.value}")
         )
 
         // step 2: add classpath for all (transitive) bleep dependencies from the bleep build
@@ -112,7 +106,7 @@ object GenBloopFiles {
     SyncToDiskWith(InMemory)
 
   case class SyncToDiskWith(next: GenBloopFiles) extends GenBloopFiles {
-    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build, bleepExecutable: Lazy[BleepExecutable]): Files = {
+    override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build): Files = {
 
       val currentHash = List(
         build.$version,
@@ -126,7 +120,7 @@ object GenBloopFiles {
 
         val map = build.explodedProjects.map { case (crossProjectName, _) =>
           val load = Lazy {
-            val json = pre.buildPaths.bleepBloopDir.resolve(crossProjectName.value + ".json")
+            val json = pre.buildPaths.bloopFile(crossProjectName)
             parseBloopFile(Files.readString(json))
           }
           (crossProjectName, load)
@@ -135,7 +129,7 @@ object GenBloopFiles {
       } else {
         pre.logger.warn(s"Refreshing ${pre.buildPaths.bleepBloopDir}...")
 
-        val bloopFiles = next(pre, resolver, build, bleepExecutable)
+        val bloopFiles = next(pre, resolver, build)
 
         val fileMap = encodedFiles(pre.buildPaths, bloopFiles).updated(pre.buildPaths.digestFile, currentHash)
 
@@ -156,7 +150,7 @@ object GenBloopFiles {
   def encodedFiles(buildPaths: BuildPaths, files: Files): Map[Path, String] =
     files.map { case (projectName, bloopFile) =>
       val string = writeToString(bloopFile.forceGet, WriterConfig.withIndentionStep(2))(ConfigCodecs.codecFile)
-      val file = buildPaths.bleepBloopDir / (projectName.value + ".json")
+      val file = buildPaths.bloopFile(projectName)
       (file, string)
     }
 
@@ -166,8 +160,7 @@ object GenBloopFiles {
       crossName: model.CrossProjectName,
       explodedProject: model.Project,
       build: model.Build,
-      getBloopProject: model.CrossProjectName => Config.File,
-      bleepExecutable: Lazy[BleepExecutable]
+      getBloopProject: model.CrossProjectName => Config.File
   ): Config.File = {
 
     val projectPaths: ProjectPaths =
@@ -400,53 +393,6 @@ object GenBloopFiles {
         case _                                            => bloop.config.Tag.Library
       }
 
-    val sourceGen: List[Config.SourceGenerator] =
-      explodedProject.sourcegen.values.toList.map { script =>
-        // Used as the way to communicate to bloop what to watch to invalidate code-generation cache.
-        // This implies that any code-generator input (say, .proto files),
-        // ought to be part of the resources of the script (or of its parents')
-        val invalidationGlobs =
-          List(
-            // Add build file to make sure bloop re-run the codegen whenever the build changes, just in case
-            List(
-              Config.SourcesGlobs(
-                pre.buildPaths.buildDir,
-                walkDepth = None,
-                includes = List(s"glob:${pre.buildPaths.bleepYamlFile.getFileName.toString}"),
-                excludes = Nil
-              )
-            ),
-            // transitive source path for the project the sourcegen script lives in
-            script match {
-              case model.ScriptDef.Main(scriptProjectName, _, _) =>
-                val withTransitive = List(scriptProjectName) ++ build.transitiveDependenciesFor(scriptProjectName).keys
-                withTransitive.flatMap { projectName =>
-                  val bloopProject = getBloopProject(projectName).project
-                  val folders = bloopProject.sources ++ bloopProject.resources.getOrElse(Nil)
-                  folders
-                    // todo: have lost information about which folders contain generated sources when working with bloop projects
-                    .filterNot(p => p.toString.contains("/generated-"))
-                    .map(f => Config.SourcesGlobs(f, None, List("glob:**"), Nil))
-                }
-            },
-            script match {
-              case model.ScriptDef.Main(scriptProject, _, sourceGlobs) =>
-                val projectDir = pre.buildPaths.project(scriptProject, build.explodedProjects(scriptProject)).dir
-                sourceGlobs.values.toList.map(relPath => Config.SourcesGlobs(projectDir / relPath, None, List("glob:**"), Nil))
-            }
-          ).flatten.distinct
-
-        Config.SourceGenerator(
-          sourcesGlobs = invalidationGlobs,
-          outputDirectory = pre.buildPaths.generatedSourcesDir(crossName),
-          command = script match {
-            case main: model.ScriptDef.Main =>
-              val x = bleepExecutable.forceGet
-              x.whole ++ x.childrenArgs ++ List("run", main.project.value, "--class", main.main, "--", "--project", crossName.value)
-          }
-        )
-      }
-
     Config.File(
       "1.4.0",
       Config.Project(
@@ -475,7 +421,7 @@ object GenBloopFiles {
         platform = configuredPlatform,
         resolution = Some(resolution),
         tags = Some(List(tag)),
-        sourceGenerators = if (sourceGen.isEmpty) None else Some(sourceGen)
+        sourceGenerators = None
       )
     )
   }

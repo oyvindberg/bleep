@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-client-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-http4s-client-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/http4s-client/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/http4s-client/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/http4s-client/src/test/scala-2",
@@ -96,12 +95,6 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-client/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-cats@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-client-tests@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-http4s-client@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-json-circe@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-tests@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/http4s-client/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/tests/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
@@ -112,7 +105,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-client-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-client-test/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-http4s-client-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/http4s-client/src/test/resources"
     ],
     "scala": {

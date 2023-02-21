@@ -1,16 +1,15 @@
 package bleep
 package commands
 
-import bleep.BleepException
 import bleep.bsp.BspCommandFailed
-import bleep.internal.jvmRunCommand
+import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.util.concurrent.ExecutionException
 import scala.annotation.tailrec
-import scala.build.bloop.BloopServer
+import scala.build.bloop.BuildServer
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
 
@@ -24,9 +23,10 @@ case class Run(
     raw: Boolean,
     watch: Boolean
 ) extends BleepCommandRemote(watch) {
-  override def watchableProjects(started: Started): Array[model.CrossProjectName] = Array(project)
+  override def watchableProjects(started: Started): TransitiveProjects =
+    TransitiveProjects(started.build, Array(project))
 
-  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
+  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverriddenMain.orElse(started.build.explodedProjects(project).platform.flatMap(_.mainClass))
 
@@ -47,7 +47,7 @@ case class Run(
     }
   }
 
-  def rawRun(started: Started, bloop: BloopServer, main: String): Either[BleepException, Unit] =
+  def rawRun(started: Started, bloop: BuildServer, main: String): Either[BleepException, Unit] =
     Compile(watch = false, Array(project)).runWithServer(started, bloop).map { case () =>
       cli(
         "run",
@@ -61,37 +61,38 @@ case class Run(
       ()
     }
 
-  def bspRun(started: Started, bloop: BloopServer, main: String): Either[BspCommandFailed, Unit] = {
-    val params = new bsp4j.RunParams(BleepCommandRemote.buildTarget(started.buildPaths, project))
-    val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
+  def bspRun(started: Started, bloop: BuildServer, main: String): Either[BleepException, Unit] =
+    DoSourceGen(started, bloop, watchableProjects(started)).flatMap { case () =>
+      val params = new bsp4j.RunParams(BleepCommandRemote.buildTarget(started.buildPaths, project))
+      val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
 
-    val env = sys.env ++ started.bleepExecutable.forceGet.childrenEnv
-    mainClass.setEnvironmentVariables(env.map { case (k, v) => s"$k=$v" }.toList.sorted.asJava)
-    params.setData(mainClass)
-    params.setDataKind("scala-main-class")
-    started.logger.debug(params.toString)
+      val env = sys.env.updated(bleepLoggers.CallerProcessAcceptsJsonEvents, "true")
+      mainClass.setEnvironmentVariables(env.map { case (k, v) => s"$k=$v" }.toList.sorted.asJava)
+      params.setData(mainClass)
+      params.setDataKind("scala-main-class")
+      started.logger.debug(params.toString)
 
-    def failed(reason: BspCommandFailed.Reason) =
-      Left(new BspCommandFailed("Run", Array(project), reason))
+      def failed(reason: BspCommandFailed.Reason) =
+        Left(new BspCommandFailed("Run", Array(project), reason))
 
-    Try(bloop.server.buildTargetRun(params).get().getStatusCode) match {
-      case Success(bsp4j.StatusCode.OK) => Right(started.logger.info(s"Run $main succeeded"))
-      case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
-      case Failure(exception) =>
-        @tailrec
-        def findResponseError(th: Throwable): Option[ResponseError] =
-          th match {
-            case x: ExecutionException =>
-              findResponseError(x.getCause)
-            case x: ResponseErrorException =>
-              Option(x.getResponseError)
-            case _ => None
+      Try(bloop.buildTargetRun(params).get().getStatusCode) match {
+        case Success(bsp4j.StatusCode.OK) => Right(started.logger.info(s"Run $main succeeded"))
+        case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
+        case Failure(exception) =>
+          @tailrec
+          def findResponseError(th: Throwable): Option[ResponseError] =
+            th match {
+              case x: ExecutionException =>
+                findResponseError(x.getCause)
+              case x: ResponseErrorException =>
+                Option(x.getResponseError)
+              case _ => None
+            }
+
+          findResponseError(exception) match {
+            case Some(responseError) => failed(BspCommandFailed.FoundResponseError(responseError))
+            case None                => failed(BspCommandFailed.FailedWithException(exception))
           }
-
-        findResponseError(exception) match {
-          case Some(responseError) => failed(BspCommandFailed.FoundResponseError(responseError))
-          case None                => failed(BspCommandFailed.FailedWithException(exception))
-        }
+      }
     }
-  }
 }

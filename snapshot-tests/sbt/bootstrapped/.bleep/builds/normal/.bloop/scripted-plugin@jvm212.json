@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/scripted-plugin/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/scripted-plugin@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/scripted-plugin/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/scripted-plugin/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/scripted-plugin/src/main/scala-2",
@@ -20,7 +19,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/scripted-plugin/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/scripted-plugin/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/scripted-plugin@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/scripted-plugin/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/scripted-plugin/src/main/resources"
     ],

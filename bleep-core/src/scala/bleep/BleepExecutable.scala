@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.compat._
-import bleep.internal.{bleepLoggers, jvmRunCommand, propsOrEnv}
+import bleep.internal.jvmRunCommand
 import bleep.logging.Logger
 import coursier.core.{ModuleName, Organization}
 
@@ -12,40 +12,9 @@ sealed trait BleepExecutable {
   def command: Path
   def args: List[String]
   def whole: List[String] = command.toString +: args
-
-  // arguments we'll pass down to child bleep processes
-  final def childrenArgs: List[String] = {
-    val b = List.newBuilder[String]
-    b += "--log-as-json"
-    this match {
-      case binary: BleepExecutable.Binary => b += s"--started-by-native=${binary.command}"
-      case _ =>
-        ()
-    }
-    b.result()
-  }
-
-  // environment varaiables we'll pass down to child processes
-  final def childrenEnv: Map[String, String] = {
-    val b = Map.newBuilder[String, String]
-    b += ((bleepLoggers.CallerProcessAcceptsJsonEvents, "true"))
-    this match {
-      case binary: BleepExecutable.Binary =>
-        b += ((BleepExecutable.BLEEP_STARTED_BY_NATIVE, binary.command.toString))
-      case _ =>
-        ()
-    }
-    b.result()
-  }
-
-  // system properties we'll pass down to child processes
-  final def childrenJavaOpts: List[String] =
-    childrenEnv.toList.map { case (k, v) => s"-D$k=$v" }
 }
 
 object BleepExecutable {
-  val BLEEP_STARTED_BY_NATIVE = "BLEEP_STARTED_BY_NATIVE"
-
   private val BleepMain = "bleep.Main"
 
   sealed trait Binary extends BleepExecutable {
@@ -93,17 +62,7 @@ object BleepExecutable {
       None
     }
 
-    val fromEnv: Option[InheritedBinary] =
-      propsOrEnv(BLEEP_STARTED_BY_NATIVE).flatMap { commandString =>
-        val command = Path.of(commandString)
-        if (Files.exists(command)) Some(InheritedBinary(command))
-        else
-          complain {
-            s"was passed $BLEEP_STARTED_BY_NATIVE = $commandString but it didn't exist"
-          }
-      }
-
-    val ret = fromEnv.orElse {
+    val ret = {
       val currentInfo: ProcessHandle.Info = ProcessHandle.current.info()
 
       currentInfo.command().toScalaCompat.flatMap { commandString =>

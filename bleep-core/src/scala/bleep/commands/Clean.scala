@@ -10,7 +10,12 @@ import scala.util.Properties
 case class Clean(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
     val outDirectories: Array[Path] =
-      projects.map(projectName => started.bloopFiles(projectName).forceGet.project.out).filter(Files.exists(_))
+      projects
+        .flatMap { projectName =>
+          val paths = started.projectPaths(projectName)
+          List(paths.targetDir) ++ paths.sourcesDirs.generated.values ++ paths.resourcesDirs.generated.values
+        }
+        .filter(Files.exists(_))
 
     Right {
       if (Properties.isWin) {

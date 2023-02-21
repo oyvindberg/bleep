@@ -1,30 +1,29 @@
 package bleep
 package commands
 
-import bleep.BleepException
 import bleep.bsp.BspCommandFailed
+import bleep.internal.{DoSourceGen, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 
-import scala.build.bloop.BloopServer
+import scala.build.bloop.BuildServer
 
 case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
 
-  override def watchableProjects(started: Started): Array[model.CrossProjectName] = projects
+  override def watchableProjects(started: Started): TransitiveProjects =
+    TransitiveProjects(started.build, projects)
 
-  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): Compile = {
-    val ps = projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
-    copy(projects = ps)
-  }
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): Compile =
+    copy(projects = watchableProjects(started).transitiveFilter(isChanged).direct)
 
-  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] = {
-    val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
+  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] =
+    DoSourceGen(started, bloop, watchableProjects(started)).flatMap { _ =>
+      val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
 
-    val result = bloop.server.buildTargetCompile(new bsp4j.CompileParams(targets)).get()
+      val result = bloop.buildTargetCompile(new bsp4j.CompileParams(targets)).get()
 
-    result.getStatusCode match {
-      case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
-      case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))
+      result.getStatusCode match {
+        case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
+        case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))
+      }
     }
-  }
-
 }

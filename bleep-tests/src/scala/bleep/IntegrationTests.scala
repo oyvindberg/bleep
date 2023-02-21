@@ -153,18 +153,20 @@ import bleep.*
 import java.nio.file.Files
 
 object SourceGen extends BleepCodegenScript("SourceGen") {
-  def run(started: Started, commands: Commands, crossName: model.CrossProjectName, args: List[String]): Unit = {
-    val targetFile = started.projectPaths(crossName).sourcesDirs.generated / "sourcegen" / "testgenerated" / "GeneratedSource.scala"
-    Files.createDirectories(targetFile.getParent)
-    Files.writeString(
-      targetFile,
-      "package testgenerated;\n" +
-      "\n" +
-      "object GeneratedSource {" +
-      "  val result = 100" +
-      "}"
-    )
-    started.logger.withContext(targetFile).warn("Wrote ")
+  def run(started: Started, commands: Commands, targets: List[Target], args: List[String]): Unit = {
+    targets.foreach { target =>
+      val targetFile = target.sources / "testgenerated" / "GeneratedSource.scala"
+      Files.createDirectories(targetFile.getParent)
+      Files.writeString(
+        targetFile,
+        "package testgenerated;\n" +
+        "\n" +
+        "object GeneratedSource {" +
+        "  val result = 100" +
+        "}"
+      )
+      started.logger.withContext(targetFile).warn("Wrote ")
+    }
   }
 }
 """

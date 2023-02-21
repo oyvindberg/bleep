@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-sources/myapp@jvm213",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/jvm/src/java",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/jvm/src/scala",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/jvm/src/scala-2",
@@ -26,7 +25,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-resources/myapp@jvm213",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/jvm/src/resources",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
     ],

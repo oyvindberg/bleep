@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/micro",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/micro",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/benchmark-bridge/micro/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/benchmark-bridge/micro/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/benchmark-bridge/micro/src/main/scala-2",
@@ -49,13 +48,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.24/slf4j-api-1.7.24.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/pl/project13/scala/sbt-jmh-extras/0.3.3/sbt-jmh-extras-0.3.3.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/infrastructure/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/infrastructure",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/benchmark-bridge/infrastructure/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/micro",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/micro/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/micro",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/benchmark-bridge/micro/src/main/resources"
     ],
     "scala": {

@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-sources/doobie-free@jvm3",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/scala-3"
@@ -30,7 +29,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-free@jvm3",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources"
     ],
     "scala": {

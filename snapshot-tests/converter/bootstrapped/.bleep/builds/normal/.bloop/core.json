@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-sources/core",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/scala-2",
@@ -37,7 +36,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/core",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources"
     ],
     "scala": {

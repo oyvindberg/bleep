@@ -1,10 +1,11 @@
 package bleep
 package commands
 
+import bleep.internal.TransitiveProjects
 import bleep.packaging.dist
 
 import java.nio.file.Path
-import scala.build.bloop.BloopServer
+import scala.build.bloop.BuildServer
 
 object Dist {
   case class Options(
@@ -15,9 +16,10 @@ object Dist {
 }
 
 case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends BleepCommandRemote(watch) {
-  override def watchableProjects(started: Started): Array[model.CrossProjectName] = Array(options.project)
+  override def watchableProjects(started: Started): TransitiveProjects =
+    TransitiveProjects(started.build, Array(options.project))
 
-  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
+  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] =
     for {
       _ <- Compile(watch = false, Array(options.project)).runWithServer(started, bloop)
       mainClass <- options.overrideMain match {

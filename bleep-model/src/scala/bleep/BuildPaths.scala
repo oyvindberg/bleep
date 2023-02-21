@@ -26,6 +26,8 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
   lazy val digestFile: Path = bleepBloopDir / "bloop-digest"
   lazy val logFile: Path = buildVariantDir / "last.log"
 
+  def bloopFile(projectName: model.CrossProjectName): Path = bleepBloopDir / (projectName.value + ".json")
+
   final def project(crossName: model.CrossProjectName, p: model.Project): ProjectPaths = {
     val dir = buildDir / p.folder.getOrElse(RelPath.force(crossName.name.value))
     val scalaVersion: Option[model.VersionScala] = p.scala.flatMap(_.version)
@@ -48,27 +50,25 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
     val sources = {
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
       val fromJson = p.sources.values.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
-      val generated = generatedSourcesDir(crossName)
+      val generated = p.sourcegen.values.iterator.map(sourceGen => (sourceGen, generatedSourcesDir(crossName, sourceGen.folderName))).toMap
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
     val resources = {
       val fromSourceLayout = sourceLayout.resources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
-      val fromJson = p.resources.values.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
-      val generated = generatedResourcesDir(crossName)
+      val fromJson = p.resources.values.iterator.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
+      val generated = p.sourcegen.values.iterator.map(sourceGen => (sourceGen, generatedResourcesDir(crossName, sourceGen.folderName))).toMap
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated)
     }
 
-    ProjectPaths(
-      dir = dir,
-      targetDir = targetDir,
-      sourcesDirs = sources,
-      resourcesDirs = resources
-    )
+    ProjectPaths(dir = dir, targetDir = targetDir, sourcesDirs = sources, resourcesDirs = resources)
   }
 
-  def generatedSourcesDir(crossName: model.CrossProjectName): Path = dotBleepDir / "generated-sources" / crossName.value
-  def generatedResourcesDir(crossName: model.CrossProjectName): Path = dotBleepDir / "generated-resources" / crossName.value
+  def generatedSourcesDir(crossName: model.CrossProjectName, folderName: String): Path =
+    dotBleepDir / "generated-sources" / crossName.value / folderName
+
+  def generatedResourcesDir(crossName: model.CrossProjectName, folderName: String): Path =
+    dotBleepDir / "generated-resources" / crossName.value / folderName
 }
 
 object BuildPaths {

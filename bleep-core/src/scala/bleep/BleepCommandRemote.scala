@@ -1,20 +1,20 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.{fatal, BspClientDisplayProgress}
+import bleep.internal.{fatal, BspClientDisplayProgress, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
 import java.util
-import scala.build.bloop.{BloopServer, BloopThreads}
+import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
 import scala.build.blooprifle.internal.Operations
 import scala.build.blooprifle.{BloopRifleConfig, FailedToStartServerException}
 import scala.util.Try
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
-  def watchableProjects(started: Started): Array[model.CrossProjectName]
+  def watchableProjects(started: Started): TransitiveProjects
 
-  def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit]
+  def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit]
 
   override final def run(started: Started): Either[BleepException, Unit] = {
     started.config.compileServerModeOrDefault match {
@@ -30,7 +30,6 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         started.resolvedJvm.forceGet,
         started.pre.userPaths,
         started.resolver,
-        started.bleepExecutable,
         bleepRifleLogger
       )
 
@@ -62,7 +61,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
     try
       if (watch) {
         // run once initially
-        runWithServer(started, server)
+        runWithServer(started, server.server)
 
         var currentStarted = started
 
@@ -72,7 +71,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
             case other                             => other
           }
 
-          patchedCmd.runWithServer(currentStarted, server)
+          patchedCmd.runWithServer(currentStarted, server.server)
           ()
         }
 
@@ -94,15 +93,17 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         codeWatcher.combine(buildWatcher).run(FileWatching.StopWhen.OnStdInput)
 
         Right(())
-
-      } else
-        runWithServer(started, server).flatMap { case () =>
-          buildClient.failed match {
+      } else {
+        for {
+          _ <- runWithServer(started, server.server)
+          res <- buildClient.failed match {
             case empty if empty.isEmpty => Right(())
             case failed =>
-              Left(new BspCommandFailed("Failed", failed.map(BleepCommandRemote.projectFromBuildTarget(started)).toArray, BspCommandFailed.NoDetails))
+              val projects = failed.map(BleepCommandRemote.projectFromBuildTarget(started)).toArray
+              Left(new BspCommandFailed("Failed", projects, BspCommandFailed.NoDetails))
           }
-        }
+        } yield res
+      }
     finally
       started.config.compileServerModeOrDefault match {
         case model.CompileServerMode.NewEachInvocation =>

@@ -75,7 +75,7 @@ object bootstrap {
             }
 
           val bloopFiles: GenBloopFiles.Files =
-            genBloopFiles(pre, resolver, build, bleepExecutable)
+            genBloopFiles(pre, resolver, build)
 
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")

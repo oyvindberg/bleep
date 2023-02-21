@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.throwableMessages
+import bleep.internal.{throwableMessages, DoSourceGen, TransitiveProjects}
 import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 import com.google.gson.{JsonObject, JsonPrimitive}
@@ -25,6 +25,7 @@ class BleepBspServer(
   val supportedLanguages: util.List[String] = List("scala", "java").asJava
 
   var isMetals = true
+  var initialized = false
 
   def fail(msg: String, th: Throwable): Nothing = {
     logger.debug(msg, th)
@@ -58,15 +59,20 @@ class BleepBspServer(
   def enter(name: String, args: Any*): Unit = {
     logger.debug(s"$name(${args.mkString(", ")})")
 
-    buildChangeTracker.currentBuildError match {
-      case Some(_) =>
+    buildChangeTracker.current match {
+      case Left(_) =>
         // try to reload and see if we can salvage the broken build situation
         buildChangeTracker.ensureBloopUpToDate() match {
           case Left(bleepException) => fail("Bleep is not able to load your build", bleepException)
           case Right(_)             => ()
         }
 
-      case None => ()
+      case Right(started) =>
+        if (initialized)
+          DoSourceGen(started, bloopServer, TransitiveProjects.all(started.build)) match {
+            case Left(bleepException) => fail("Bleep was not able to run source generators", bleepException)
+            case Right(())            => ()
+          }
     }
   }
 
@@ -146,6 +152,7 @@ class BleepBspServer(
   }
 
   override def onBuildInitialized(): Unit = {
+    initialized = true
     enter("onBuildInitialized")
     ()
   }

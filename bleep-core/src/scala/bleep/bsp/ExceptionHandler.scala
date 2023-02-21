@@ -2,7 +2,7 @@ package bleep
 package bsp
 
 import bleep.logging.Logger
-import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
+import org.eclipse.lsp4j.jsonrpc.{MessageIssueException, ResponseErrorException}
 import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
 
 import java.io.{ByteArrayOutputStream, PrintWriter}
@@ -14,7 +14,15 @@ class ExceptionHandler(logger: Logger) extends Function[Throwable, ResponseError
   override def apply(th: Throwable): ResponseError =
     ExceptionHandler.look(classOf[ResponseErrorException])(th) match {
       case Some(found) => found.getResponseError
-      case None        => default(th)
+      case None =>
+        ExceptionHandler.look(classOf[MessageIssueException])(th) match {
+          case Some(mie) =>
+            // parse and propagate? it has a similar shape as `ResponseError`
+            logger.warn(s"Got error from bloop. getMessage: ${mie.getMessage}, getRpcMessage: ${mie.getRpcMessage}")
+          case None =>
+        }
+        default(th)
+
     }
 
   def default(th: Throwable): ResponseError = {

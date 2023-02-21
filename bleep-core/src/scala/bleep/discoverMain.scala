@@ -4,16 +4,16 @@ import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 
 import java.util
-import scala.build.bloop.BloopServer
+import scala.build.bloop.BuildServer
 import scala.jdk.CollectionConverters._
 
 object discoverMain {
-  def apply(logger: Logger, bloop: BloopServer, inProject: bsp4j.BuildTargetIdentifier): Either[BleepException, String] = {
+  def apply(logger: Logger, bloop: BuildServer, inProject: bsp4j.BuildTargetIdentifier): Either[BleepException, String] = {
     val req = new bsp4j.ScalaMainClassesParams(util.List.of[bsp4j.BuildTargetIdentifier](inProject))
     logger.debug(req.toString)
 
     val res: bsp4j.ScalaMainClassesResult =
-      bloop.server.buildTargetScalaMainClasses(req).get()
+      bloop.buildTargetScalaMainClasses(req).get()
 
     logger.debug(res.toString)
 

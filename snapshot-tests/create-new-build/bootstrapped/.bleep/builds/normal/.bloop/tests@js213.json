@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-sources/tests@js213",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/js/src/java",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/js/src/scala",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/js/src/scala-2",
@@ -41,14 +40,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_2.13/3.2.13/scalatest-wordspec_sjs1_2.13-3.2.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_2.13/3.2.13/scalatest_sjs1_2.13-3.2.13.jar",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-resources/myapp@js213",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/js/src/resources",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-resources/tests@js213",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/js/src/resources",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/shared/src/resources"
     ],

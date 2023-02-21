@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server-test/js213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-server-test@js213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js/src/test/scala-2",
@@ -81,12 +80,6 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing-test/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-dsl@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-laws@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-server@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-testing-test@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-testing@js213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.js/src/main/resources",
@@ -103,7 +96,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server-test/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server-test/js213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-server-test@js213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/shared/src/test/resources"
     ],

@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdbintegrationmacros/jvm211",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/semanticdbintegrationmacros@jvm211",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/scala",
@@ -22,7 +21,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdbintegrationmacros/jvm211",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdbintegrationmacros/jvm211/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/semanticdbintegrationmacros@jvm211",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/resources"
     ],

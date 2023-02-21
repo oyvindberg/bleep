@@ -3,16 +3,13 @@ package bleep
 import bleep.internal.bleepLoggers.CallerProcessAcceptsJsonEvents
 import bleep.internal.propsOrEnv
 
-import java.nio.file.Path
-
 case class CommonOpts(
     noColor: Boolean,
     debug: Boolean,
     directory: Option[String],
     dev: Boolean,
     noBspProgress: Boolean,
-    logAsJson: Boolean,
-    startedByNative: Option[Path]
+    logAsJson: Boolean
 )
 
 object CommonOpts {
@@ -25,16 +22,14 @@ object CommonOpts {
     var dev = false
     var noBspProgress = false
     var logAsJson = propsOrEnv(CallerProcessAcceptsJsonEvents).nonEmpty
-    var startedByNative = propsOrEnv(BleepExecutable.BLEEP_STARTED_BY_NATIVE)
     var idx = 0
     while (idx < args.length) {
       args(idx) match {
-        case "--no-color"                             => noColor = true
-        case "--debug"                                => debug = true
-        case "--dev"                                  => dev = true
-        case "--no-bsp-progress"                      => noBspProgress = true
-        case "--log-as-json"                          => logAsJson = true
-        case x if x.startsWith("--started-by-native") => startedByNative = x.split("=").lastOption
+        case "--no-color"        => noColor = true
+        case "--debug"           => debug = true
+        case "--dev"             => dev = true
+        case "--no-bsp-progress" => noBspProgress = true
+        case "--log-as-json"     => logAsJson = true
         case "-d" | "--directory" if args.isDefinedAt(idx + 1) =>
           directory = Some(args(idx + 1))
           idx += 1
@@ -47,6 +42,6 @@ object CommonOpts {
       idx += 1
     }
 
-    (CommonOpts(noColor, debug, directory, dev, noBspProgress, logAsJson, startedByNative.map(Path.of(_))), keepArgs.result())
+    (CommonOpts(noColor, debug, directory, dev, noBspProgress, logAsJson), keepArgs.result())
   }
 }

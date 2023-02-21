@@ -1,8 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.FileUtils
-import bleep.internal.jvmRunCommand
+import bleep.internal.{jvmRunCommand, FileUtils}
 import bleep.model.Os
 
 class SetupDevScript(started: Started, project: model.CrossProjectName, overrideMainClass: Option[String]) extends BleepCommand {
