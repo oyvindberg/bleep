@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm210",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/sbt-bloop-core@jvm210",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala-2",
@@ -79,7 +78,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/machinist_2.10/0.6.2/machinist_2.10-0.6.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.10/1.1.1/macro-compat_2.10-1.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-config/jvm210/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-config@jvm210",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/.jvm/src/main/resources",
@@ -88,7 +86,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm210",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm210/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sbt-bloop-core@jvm210",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/resources"

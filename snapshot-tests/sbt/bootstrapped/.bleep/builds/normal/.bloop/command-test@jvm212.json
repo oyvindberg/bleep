@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/command-test/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/command-test@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/main-command/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/main-command/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/main-command/src/test/scala-2",
@@ -114,15 +113,6 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-logging/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/command@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/completion@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/core-macros@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/protocol@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-control@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-interface",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-logging@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-position@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/src/main/resources",
@@ -146,7 +136,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/command-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/command-test/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/command-test@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/main-command/src/test/resources"
     ],
     "scala": {

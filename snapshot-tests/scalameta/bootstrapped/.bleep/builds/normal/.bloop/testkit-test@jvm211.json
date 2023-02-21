@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit-test/jvm211",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/testkit-test@jvm211",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/test/scala-2.11",
@@ -55,11 +54,6 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm211/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@jvm211",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/parsers@jvm211",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/scalameta@jvm211",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/testkit@jvm211",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/trees@jvm211",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm/src/main/resources",
@@ -91,7 +85,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit-test/jvm211",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit-test/jvm211/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/testkit-test@jvm211",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm-native/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm/src/test/protobuf",

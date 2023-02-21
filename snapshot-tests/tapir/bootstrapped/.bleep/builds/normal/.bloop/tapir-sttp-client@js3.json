@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-sttp-client@js3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/scala-3",
@@ -30,13 +29,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.0/scala3-library_sjs1_3-3.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@js3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-sttp-client@js3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/resources"
     ],
     "scala": {

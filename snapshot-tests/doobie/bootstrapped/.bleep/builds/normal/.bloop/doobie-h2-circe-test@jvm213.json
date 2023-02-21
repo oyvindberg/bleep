@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-sources/doobie-h2-circe-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/test/scala-2",
@@ -52,10 +51,6 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-free@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-h2-circe@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-h2@jvm213",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/main/resources",
@@ -64,7 +59,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe-test/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-h2-circe-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/test/resources"
     ],
     "scala": {

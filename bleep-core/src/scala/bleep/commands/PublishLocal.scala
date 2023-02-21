@@ -1,10 +1,11 @@
 package bleep
 package commands
 
+import bleep.internal.TransitiveProjects
 import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 
 import java.nio.file.Path
-import scala.build.bloop.BloopServer
+import scala.build.bloop.BuildServer
 import scala.collection.immutable.SortedMap
 
 object PublishLocal {
@@ -27,14 +28,13 @@ object PublishLocal {
 }
 
 case class PublishLocal(watch: Boolean, options: PublishLocal.Options) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
-  override def watchableProjects(started: Started): Array[model.CrossProjectName] = options.projects
+  override def watchableProjects(started: Started): TransitiveProjects =
+    TransitiveProjects(started.build, options.projects)
 
-  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): PublishLocal = {
-    val ps = options.projects.filter(p => isChanged(p) || started.build.transitiveDependenciesFor(p).keys.exists(isChanged))
-    copy(options = options.copy(projects = ps))
-  }
+  override def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): PublishLocal =
+    copy(options = options.copy(projects = watchableProjects(started).transitiveFilter(isChanged).direct))
 
-  override def runWithServer(started: Started, bloop: BloopServer): Either[BleepException, Unit] =
+  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] =
     Compile(watch = false, options.projects).runWithServer(started, bloop).map { case () =>
       val packagedLibraries: SortedMap[model.CrossProjectName, PackagedLibrary] =
         packageLibraries(

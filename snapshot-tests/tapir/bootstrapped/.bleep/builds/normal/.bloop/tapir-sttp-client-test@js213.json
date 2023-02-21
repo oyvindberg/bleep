@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client-test/js213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-sttp-client-test@js213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/test/scala-2",
@@ -108,12 +107,6 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-cats@js213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-client-tests@js213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@js213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-json-circe@js213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-sttp-client@js213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-tests@js213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/tests/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
@@ -124,7 +117,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client-test/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client-test/js213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-sttp-client-test@js213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/test/resources"
     ],
     "scala": {

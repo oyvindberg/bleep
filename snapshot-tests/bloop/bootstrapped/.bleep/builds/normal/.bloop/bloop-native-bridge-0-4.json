@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-native-bridge-0-4",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/bloop-native-bridge-0-4",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bridges/scala-native-0.4/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bridges/scala-native-0.4/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bridges/scala-native-0.4/src/main/scala-2",
@@ -144,11 +143,6 @@
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-frontend/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sockets/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-backend",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-config@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-frontend",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-shared",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sockets",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/backend/src/main/resources",
@@ -161,7 +155,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-native-bridge-0-4",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-native-bridge-0-4/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-native-bridge-0-4",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bridges/scala-native-0.4/src/main/resources"

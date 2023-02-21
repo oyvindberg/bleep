@@ -6,6 +6,7 @@ import io.circe.generic.semiauto.deriveCodec
 
 sealed trait ScriptDef {
   lazy val asJson: Json = ScriptDef.encodes(this)
+  def folderName: String
 }
 
 object ScriptDef {
@@ -13,7 +14,10 @@ object ScriptDef {
   implicit val ordering: Ordering[ScriptDef] =
     Ordering.by(_.asJson.noSpaces)
 
-  case class Main(project: CrossProjectName, main: String, sourceGlobs: JsonSet[RelPath]) extends ScriptDef
+  case class Main(project: CrossProjectName, main: String, sourceGlobs: JsonSet[RelPath]) extends ScriptDef {
+    def folderName: String = main
+  }
+
   object Main {
     implicit val codec: Codec.AsObject[Main] = deriveCodec
   }

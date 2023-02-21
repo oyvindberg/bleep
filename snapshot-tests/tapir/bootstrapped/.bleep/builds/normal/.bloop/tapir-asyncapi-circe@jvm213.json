@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-circe/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-asyncapi-circe@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/asyncapi-circe/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/asyncapi-circe/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/asyncapi-circe/src/main/scala-2",
@@ -33,15 +32,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-apispec-model/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-model/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-apispec-model@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-asyncapi-model@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/apispec-model/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/asyncapi-model/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-circe/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-circe/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-asyncapi-circe@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/asyncapi-circe/src/main/resources"
     ],
     "scala": {

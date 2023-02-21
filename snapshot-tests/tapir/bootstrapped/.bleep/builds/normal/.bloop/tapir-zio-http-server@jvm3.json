@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-zio-http-server@jvm3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http-server/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http-server/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http-server/src/main/scala-3",
@@ -34,15 +33,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm3",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-zio@jvm3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server/jvm3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-zio-http-server@jvm3",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http-server/src/main/resources"
     ],
     "scala": {

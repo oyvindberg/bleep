@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/native213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/parsers@native213",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-native/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-native/src/main/scala-2.13",
@@ -56,8 +55,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_native0.4_2.13/2.3.1/fastparse-v2_native0.4_2.13-2.3.1.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/native213/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@native213",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/trees@native213",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/resources",
@@ -74,7 +71,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/native213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/native213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/parsers@native213",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/native/src/main/protobuf",

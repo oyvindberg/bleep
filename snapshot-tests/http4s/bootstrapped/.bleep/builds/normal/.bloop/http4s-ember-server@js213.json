@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/js213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-ember-server@js213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js/src/main/scala-2",
@@ -54,9 +53,6 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-core@js213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-server@js213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js/src/main/resources",
@@ -67,7 +63,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/js213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-server@js213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/shared/src/main/resources"
     ],

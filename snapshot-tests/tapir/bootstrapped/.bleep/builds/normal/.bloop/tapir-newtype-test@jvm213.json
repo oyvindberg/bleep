@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-newtype-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-newtype-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/test/scala-2",
@@ -47,15 +46,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-newtype/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-newtype@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-newtype-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-newtype-test/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-newtype-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/test/resources"
     ],
     "scala": {

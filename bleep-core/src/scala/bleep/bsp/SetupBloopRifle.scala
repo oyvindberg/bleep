@@ -18,7 +18,6 @@ object SetupBloopRifle {
       resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,
-      bleepExecutable: Lazy[BleepExecutable],
       bleepRifleLogger: BleepRifleLogger
   ): BloopRifleConfig = {
     val default = BloopRifleConfig
@@ -33,7 +32,7 @@ object SetupBloopRifle {
       bspStdout = bleepRifleLogger.bloopBspStdout,
       bspStderr = bleepRifleLogger.bloopBspStderr,
       period = 10.millis,
-      javaOpts = default.javaOpts ++ bleepExecutable.forceGet.childrenJavaOpts
+      javaOpts = default.javaOpts
     )
   }
 

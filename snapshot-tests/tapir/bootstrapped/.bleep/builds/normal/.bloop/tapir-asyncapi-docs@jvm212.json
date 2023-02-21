@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-docs/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-asyncapi-docs@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/asyncapi-docs/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/asyncapi-docs/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/asyncapi-docs/src/main/scala-2",
@@ -32,10 +31,6 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-apispec-model/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-model/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-apispec-docs@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-apispec-model@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-asyncapi-model@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/apispec-model/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/asyncapi-model/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
@@ -44,7 +39,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-docs/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-asyncapi-docs/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-asyncapi-docs@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/asyncapi-docs/src/main/resources"
     ],
     "scala": {

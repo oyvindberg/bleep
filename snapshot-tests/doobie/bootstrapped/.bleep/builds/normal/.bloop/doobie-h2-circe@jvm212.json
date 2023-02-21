@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-sources/doobie-h2-circe@jvm212",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/main/scala-2",
@@ -40,9 +39,6 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-free@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-h2@jvm212",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2/src/main/resources"
@@ -50,7 +46,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-h2-circe@jvm212",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/main/resources"
     ],
     "scala": {

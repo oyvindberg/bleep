@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http4s-server/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-zio-http4s-server@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http4s-server/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http4s-server/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http4s-server/src/main/scala-2",
@@ -64,10 +63,6 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-server/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-cats@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-http4s-server@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-zio@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/resources",
@@ -76,7 +71,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http4s-server/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http4s-server/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-zio-http4s-server@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http4s-server/src/main/resources"
     ],
     "scala": {

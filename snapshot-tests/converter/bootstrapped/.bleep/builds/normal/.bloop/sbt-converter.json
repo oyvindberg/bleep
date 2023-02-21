@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/sbt-converter",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-sources/sbt-converter",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/scala-2",
@@ -178,12 +177,6 @@
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/scalajs/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/core",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/importer-portable",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/logging",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/phases",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/scalajs",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/ts",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer-portable/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources",
@@ -194,7 +187,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/sbt-converter",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/sbt-converter/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/sbt-converter",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/sbt-converter/src/main/resources"
     ],
     "scala": {

@@ -47,8 +47,7 @@ object Main {
       Opts.option[String]("directory", "enable more output", "d").orNone,
       Opts.flag("dev", "use the current bleep binary and don't launch the one specified in bleep.yaml").orFalse,
       Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
-      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse,
-      Opts.flagOption[Path]("started-by-native", "bleep internal: for running bleep scripts").orNone.map(_.flatten)
+      Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse
     ).mapN(CommonOpts.apply)
 
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =

@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-bench/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-bench@jvm3",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/bench/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/bench/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/bench/src/main/scala-3"
@@ -55,10 +54,6 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-circe@jvm3",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-core@jvm3",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-jawn@jvm3",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
@@ -71,7 +66,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-bench/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-bench/jvm3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-bench@jvm3",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/bench/src/main/resources"
     ],
     "scala": {

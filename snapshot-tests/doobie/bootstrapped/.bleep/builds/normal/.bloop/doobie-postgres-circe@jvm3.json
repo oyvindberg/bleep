@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres-circe/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-sources/doobie-postgres-circe@jvm3",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres-circe/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres-circe/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres-circe/src/main/scala-3"
@@ -42,9 +41,6 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm3",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-free@jvm3",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-postgres@jvm3",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres/src/main/resources"
@@ -52,7 +48,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres-circe/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres-circe/jvm3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-postgres-circe@jvm3",
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres-circe/src/main/resources"
     ],
     "scala": {

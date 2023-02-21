@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-launcher-core/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/bloop-launcher-core@jvm212",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/launcher-core/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/launcher-core/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/launcher-core/src/main/scala-2",
@@ -30,8 +29,6 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloopgun-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sockets/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloopgun-core@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sockets",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/resources",
@@ -40,7 +37,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-launcher-core/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-launcher-core/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-launcher-core@jvm212",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/launcher-core/src/main/resources"

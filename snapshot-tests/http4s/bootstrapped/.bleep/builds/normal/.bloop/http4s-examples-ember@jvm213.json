@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-examples-ember/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-examples-ember@jvm213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/examples/ember/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/examples/ember/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/examples/ember/src/main/scala-2",
@@ -75,18 +74,6 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scala-xml/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-circe@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-client@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-dropwizard-metrics@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-dsl@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-client@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-server@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-examples@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-jawn@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-scala-xml@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-server@jvm213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm/src/main/resources",
@@ -112,7 +99,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-examples-ember/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-examples-ember/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-examples-ember@jvm213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/examples/ember/src/main/resources"
     ],
     "scala": {

@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-sources/tests@jvm3",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/jvm/src/java",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/jvm/src/scala",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/jvm/src/scala-3",
@@ -39,14 +38,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.13/scalatest-wordspec_3-3.2.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.13/scalatest_3-3.2.13.jar",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-resources/myapp@jvm3",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/jvm/src/resources",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm3/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/generated-resources/tests@jvm3",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/jvm/src/resources",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/shared/src/resources"
     ],

@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-ember-core-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/test/scala-2",
@@ -73,11 +72,6 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing-test/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-core@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-laws@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-testing-test@jvm213",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-testing@jvm213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/main/resources",
@@ -92,7 +86,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/jvm213/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-ember-core-test@jvm213",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/resources"
     ],

@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks-test/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/tasks-test@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/tasks/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/tasks/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/tasks/src/test/scala-2",
@@ -54,10 +53,6 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-control/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/tasks@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-control@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/util-position@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",
@@ -71,7 +66,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks-test/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/tasks-test@jvm212",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/tasks/src/test/resources"
     ],
     "scala": {

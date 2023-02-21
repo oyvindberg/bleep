@@ -28,4 +28,9 @@ object compat {
     def maxOptionCompat[B >: A](implicit ord: Ordering[B]): Option[A] =
       if (as.isEmpty) None else Some(as.max(ord))
   }
+
+  implicit class IteratorCompatOps[A](private val as: Array[A]) extends AnyVal {
+    def maxByOptionCompat[B](f: A => B)(implicit cmp: Ordering[B]): Option[A] =
+      if (as.isEmpty) None else Some(as.maxBy(f))
+  }
 }

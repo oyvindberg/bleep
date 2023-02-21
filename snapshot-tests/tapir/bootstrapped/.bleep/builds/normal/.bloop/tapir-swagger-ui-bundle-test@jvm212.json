@@ -5,7 +5,6 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle-test/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-swagger-ui-bundle-test@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui-bundle/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui-bundle/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui-bundle/src/test/scala-2",
@@ -106,19 +105,6 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-apispec-docs@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-apispec-model@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-cats@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-core@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-enumeratum@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-http4s-server@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-openapi-circe-yaml@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-openapi-circe@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-openapi-docs@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-openapi-model@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-sttp-client@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-swagger-ui-bundle@jvm212",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-swagger-ui@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/apispec-model/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/openapi-circe-yaml/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/openapi-circe/src/main/resources",
@@ -136,7 +122,6 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle-test/jvm212/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-swagger-ui-bundle-test@jvm212",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui-bundle/src/test/resources"
     ],
     "scala": {
