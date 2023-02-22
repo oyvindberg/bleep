@@ -141,9 +141,7 @@ class BleepBspServer(
   }
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] = {
     logger.debug(("buildTargetCompile", params.toString))
-    // buildChangeTracker {
     bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
-    // }
   }
   override def buildTargetDependencySources(params: bsp4j.DependencySourcesParams): CompletableFuture[bsp4j.DependencySourcesResult] = {
     logger.debug(("buildTargetDependencySources", params.toString))
