@@ -52,10 +52,10 @@ object BspImpl {
           def run(): Unit =
             BleepFileWatching
               .build(pre.logger, pre.existingBuild) { () =>
-                pre.logger.info("Refreshing bloop config")
+                pre.logger.info("Detecting changed build")
                 buildChangeTracker.ensureBloopUpToDate() match {
-                  case Left(value) => pre.logger.error("Could not update bloop config", value)
-                  case Right(_)    => pre.logger.info("Updated bloop config")
+                  case Left(value) => pre.logger.error("Could not reload build", value)
+                  case Right(_)    => pre.logger.info("Loaded changed build")
                 }
               }
               .run(FileWatching.StopWhen.Never, 100)
