@@ -408,11 +408,11 @@ object Main {
 
           val completions = buildLoader match {
             case noBuild: BuildLoader.NonExisting =>
-              val completer = new Completer({
+              val completer = new Completer {
                 case metavars.platformName => model.PlatformId.All.map(_.value)
                 case metavars.scalaVersion => possibleScalaVersions.keys.toList
                 case _                     => Nil
-              })
+              }
               completer.completeOpts(restArgs)(noBuildOpts(stderr, userPaths, buildPaths, noBuild))
             case existing: BuildLoader.Existing =>
               val pre = Prebootstrapped(stderr, userPaths, buildPaths, existing, ec)
@@ -425,7 +425,7 @@ object Main {
                   Completer.Res.NoMatch
 
                 case Right(started) =>
-                  val completer = new Completer({
+                  val completer = new Completer {
                     case metavars.platformName       => model.PlatformId.All.map(_.value)
                     case metavars.scalaVersion       => possibleScalaVersions.keys.toList
                     case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
@@ -433,7 +433,7 @@ object Main {
                     case metavars.projectName        => started.globs.projectNameMap.keys.toList
                     case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
                     case _                           => Nil
-                  })
+                  }
                   completer.completeOpts(restArgs)(hasBuildOpts(started))
               }
           }

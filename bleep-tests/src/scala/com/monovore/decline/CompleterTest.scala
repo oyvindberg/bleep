@@ -46,11 +46,11 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
   )
 
   test("works") {
-    val completer = new Completer({
+    val completer = new Completer {
       case Project.metavar => List("common", "core", "test")
       case Number.metavar  => Number.valids
       case metavar         => sys.error(s"specify how to complete metavar $metavar")
-    })
+    }
 
     val compile = Completion("compile", Some(compileHelp))
     val compose = Completion("compose", None)
@@ -101,11 +101,11 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
         )
       )
 
-    val completer = new Completer({
+    val completer = new Completer {
       case `platformMetavar` => platforms.keys.toList
       case `fooMetavar`      => foos.keys.toList
       case _                 => Nil
-    })
+    }
 
     assert(completer.completeOpts(List("cmd1", "cmd2", "--p"))(opts).value === List(Completion("--platform", Some(platformHelp))))
     assert(completer.completeOpts(List("cmd1", "cmd2", "-p"))(opts).value === Nil)
