@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/sbt-openapi-codegen/scripts.GenerateForSbtOpenapiCodegen",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/sbt/sbt-openapi-codegen/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/sbt/sbt-openapi-codegen/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/sbt/sbt-openapi-codegen/src/main/scala-2",
@@ -117,6 +118,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/sbt-openapi-codegen/scripts.GenerateForSbtOpenapiCodegen",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/sbt/sbt-openapi-codegen/src/main/resources"
     ],
     "scala": {

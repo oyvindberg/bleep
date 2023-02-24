@@ -1,6 +1,8 @@
 package bleep
 package internal
 
+import scala.collection.immutable.SortedSet
+
 object GeneratedFilesScript {
   @FunctionalInterface
   trait Repr[T] {
@@ -85,9 +87,8 @@ object GeneratedFilesScript {
       map.map(str(_, indent + 2)).mkString(s"Map($space", s",$space", s"$space)")
     }
 
-    implicit def vector[T: Repr]: Repr[Vector[T]] = { case (vector, indent) =>
-      val space = "\n" + (" " * indent)
-      vector.map(Repr[T].str(_, indent + 2)).mkString(s"Vector($space", s",$space  ", ")")
+    implicit def set[T: Repr]: Repr[Set[T]] = { case (set, indent) =>
+      set.map(Repr[T].str(_, indent + 2)).mkString("Set(", ", ", ")")
     }
 
     implicit def relPath: Repr[RelPath] = { case (relPath, indent) =>
@@ -99,44 +100,57 @@ object GeneratedFilesScript {
     }
   }
 
-  def apply(generatedFiles: Map[bleep.model.CrossProjectName, Vector[GeneratedFile]]): (String, String) = {
+  case class ImportedGeneratorScript(pkgs: List[String], className: String, contents: String) {
+    def qname = (pkgs :+ className).mkString(".")
+  }
 
-    val byFile: Map[GeneratedFile, Vector[model.CrossProjectName]] =
-      generatedFiles.toVector.flatMap { case (crossName, files) => files.map(file => file -> crossName) }.groupMap(_._1)(_._2)
+  def titleCase(str: String) = {
+    def go(str: String) = str.head.toTitleCase.toString + str.drop(1)
+    str.split("[-_]").map(go).mkString("")
+  }
 
-    // important for snapshot tests
-    val sorted = byFile.toVector.sortBy(x => (x._2.head.value, x._1.toRelPath))
+  def apply(pkgs: List[String], generatedFiles: Map[model.CrossProjectName, Vector[GeneratedFile]]): Map[model.ProjectName, ImportedGeneratorScript] =
+    generatedFiles
+      .filter { case (_, files) => files.nonEmpty }
+      .groupBy { case (model.CrossProjectName(name, _), _) => name }
+      .map { case (projectName, filesByCross: Map[model.CrossProjectName, Vector[GeneratedFile]]) =>
+        val className = s"GenerateFor${titleCase(projectName.value)}"
+        val allFiles: Vector[GeneratedFile] =
+          filesByCross.flatMap { case (_, files) => files }.toVector.distinct.sorted
 
-    val copies = sorted.map { case (file, forProjects) =>
-      def dir =
-        if (file.isResource) "generatedResourcesDir" else "generatedSourcesDir"
+        val copies = allFiles.map { file =>
+          val projectsWithFile: SortedSet[model.CrossProjectName] =
+            SortedSet.empty[model.CrossProjectName] ++ filesByCross.collect { case (crossName, files) if files.contains(file) => crossName }
 
-      s"""
-    ${Repr.str(forProjects, 6)}.foreach { crossName =>
-      val to = started.buildPaths.$dir(crossName).resolve(${Repr.str(file.toRelPath.toString, 8)})
-      started.logger.withContext(crossName).warn(s"Writing $$to")
-      val content = ${Repr.str(file.contents, 6)}
-      Files.createDirectories(to.getParent)
-      Files.writeString(to, content)
+          def dir = if (file.isResource) "resources" else "sources"
+
+          s"""
+    targets.foreach { target =>
+      if (${Repr.str(projectsWithFile.map(_.value).toSet, 6)}.contains(target.project.value)) {
+        val to = target.$dir.resolve(${Repr.str(file.toRelPath.toString, 8)})
+        started.logger.withContext(target.project).warn(s"Writing $$to")
+        val content = ${Repr.str(file.contents, 6)}
+        Files.createDirectories(to.getParent)
+        Files.writeString(to, content)
+      }
     }
 """
-    }
+        }
 
-    val script = s"""
-package scripts
+        val script =
+          s"""
+package ${pkgs.mkString(".")}
 
-import bleep.{BleepScript, Commands, Started}
+import bleep.{BleepCodegenScript, Commands, Started}
 
 import java.nio.file.Files
 
-object GenerateResources extends BleepScript("GenerateResources") {
-  def run(started: Started, commands: Commands, args: List[String]): Unit = {
+object $className extends BleepCodegenScript("$className") {
+  override def run(started: Started, commands: Commands, targets: List[Target], args: List[String]): Unit = {
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
-
-    ${copies.mkString("\n\n")}
+${copies.mkString("\n\n")}
   }
 }"""
-
-    ("scripts.GenerateResources", script)
-  }
+        (projectName, ImportedGeneratorScript(pkgs, className, script))
+      }
 }

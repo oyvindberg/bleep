@@ -170,6 +170,9 @@ projects:
     - template-cross-all
     folder: ../sbt-build/core
     source-layout: cross-full
+    sourcegen:
+      main: scripts.GenerateForHttp4sCore
+      project: scripts
   http4s-core-test:
     cross:
       jvm213:
@@ -187,6 +190,9 @@ projects:
     - template-cross-jvm-all
     folder: ../sbt-build/core
     source-layout: cross-full
+    sourcegen:
+      main: scripts.GenerateForHttp4sCoreTest
+      project: scripts
   http4s-dropwizard-metrics:
     dependencies:
     - io.dropwizard.metrics:metrics-core:4.2.8
@@ -223,6 +229,9 @@ projects:
     - template-cross-all
     folder: ../sbt-build/dsl
     source-layout: cross-pure
+    sourcegen:
+      main: scripts.GenerateForHttp4sDslTest
+      project: scripts
   http4s-ember-client:
     cross:
       jvm213:
@@ -548,6 +557,9 @@ projects:
     - template-cross-all
     folder: ../sbt-build/server
     source-layout: cross-full
+    sourcegen:
+      main: scripts.GenerateForHttp4sServerTest
+      project: scripts
   http4s-servlet:
     dependencies:
       configuration: provided
@@ -641,6 +653,9 @@ projects:
     - template-common-test
     - template-cross-jvm-all
     folder: ../sbt-build/twirl
+    sourcegen:
+      main: scripts.GenerateForHttp4sTwirlTest
+      project: scripts
   scalafixinternalinput:
     dependsOn: http4s-core
     extends:
@@ -676,10 +691,15 @@ projects:
     - template-common-test
     - template-cross-jvm-all
     folder: ../sbt-build/scalafix-internal/tests
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
+    sourcegen:
+      main: scripts.GenerateForScalafixinternaltestsTest
+      project: scripts
+  scripts:
+    dependencies: build.bleep::bleep-core:0.0.1-M20
+    platform:
+      name: jvm
+    scala:
+      version: 3.2.0
 templates:
   template-common:
     java:

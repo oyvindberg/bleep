@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/collections@jvm212/scripts.GenerateForCollections",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/scala-2",
@@ -27,6 +28,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm212/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212/scripts.GenerateForCollections",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources"

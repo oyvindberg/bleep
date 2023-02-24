@@ -58,6 +58,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.1.0/vault_3-3.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/.jvm/src/main/resources",

@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests-test/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/scalafixinternaltests-test@jvm3/scripts.GenerateForScalafixinternaltestsTest",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/tests/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/tests/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/tests/src/test/scala-3"
@@ -24,6 +25,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests-test/jvm3/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/scalafixinternaltests-test@jvm3/scripts.GenerateForScalafixinternaltestsTest",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/tests/src/test/resources"
     ],
     "scala": {

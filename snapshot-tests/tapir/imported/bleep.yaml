@@ -14,6 +14,9 @@ projects:
     folder: ../sbt-build/sbt/sbt-openapi-codegen
     scala:
       options: -Wconf:cat=unused-nowarn:s
+    sourcegen:
+      main: scripts.GenerateForSbtOpenapiCodegen
+      project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-openapi-codegen-test:
     dependencies:
@@ -1205,10 +1208,6 @@ projects:
     - template-cross-jvm-212-213
     - template-cross-jvm-all
     folder: ../sbt-build/client/testserver
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
 templates:
   template-common:
     scala:

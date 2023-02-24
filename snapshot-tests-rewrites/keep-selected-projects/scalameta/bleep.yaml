@@ -12,6 +12,9 @@ projects:
     - template-cross-jvm-211-212-213
     folder: ../sbt-build/bench/suite
     resources: ./src/${SCOPE}/protobuf
+    sourcegen:
+      main: scripts.GenerateForBench
+      project: scripts
     sources: ./src/${SCOPE}/protobuf
   common:
     cross:
@@ -29,6 +32,9 @@ projects:
     - ../../semanticdb/semanticdb
     - ../../semanticdb/semanticdb/semanticdb.proto
     - ../../semanticdb/semanticdb/semanticidx.proto
+    sourcegen:
+      main: scripts.GenerateForCommon
+      project: scripts
     sources: ../../semanticdb/semanticdb
   communitytest:
     dependencies: org.scalameta::munit:0.7.29
@@ -100,6 +106,9 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/scalameta-docs
     resources: ./src/${SCOPE}/protobuf
+    sourcegen:
+      main: scripts.GenerateForScalametaDocs
+      project: scripts
     sources: ./src/${SCOPE}/protobuf
   scripts:
     dependencies: build.bleep::bleep-core:0.0.1-M20
@@ -191,6 +200,9 @@ projects:
     - template-cross-jvm-211-212-213-native-all-js-all
     folder: ../sbt-build/tests
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
+    sourcegen:
+      main: scripts.GenerateForTests
+      project: scripts
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   tests-test:
     dependsOn: tests
@@ -230,10 +242,6 @@ projects:
     - ../tokens/${PLATFORM}/src/${SCOPE}/scala
     - ../tokens/shared/src/${SCOPE}/scala
     - ../tokens/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
 templates:
   template-common:
     scala:

@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/gradle-bloop-test",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/gradle-bloop-test/scripts.GenerateForGradleBloopTest",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/gradle-bloop/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/gradle-bloop/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/gradle-bloop/src/test/scala-2",
@@ -249,6 +250,9 @@
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/gradle-bloop/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sockets/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-backend/scripts.GenerateForBloopBackend",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-frontend-test/scripts.GenerateForBloopFrontendTest",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-frontend/scripts.GenerateForBloopFrontend",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/backend/src/main/resources",
@@ -266,6 +270,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/gradle-bloop-test",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/gradle-bloop-test/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/gradle-bloop-test/scripts.GenerateForGradleBloopTest",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/gradle-bloop/src/test/resources"
     ],
     "scala": {

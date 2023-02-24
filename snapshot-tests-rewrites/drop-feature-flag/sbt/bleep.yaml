@@ -50,6 +50,9 @@ projects:
     scala:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -language:existentials -language:postfixOps
+    sourcegen:
+      main: scripts.GenerateForCollections
+      project: scripts
   collections-test:
     dependencies:
     - com.eed3si9n.verify::verify:1.0.0
@@ -306,6 +309,9 @@ projects:
       compilerPlugins: org.typelevel:::kind-projector:0.13.2
       options: -Wconf:cat=unused-nowarn:s -Xelide-below 0 -Xsource:3 -language:existentials
         -language:postfixOps
+    sourcegen:
+      main: scripts.GenerateForSbtDependencyTree
+      project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   sbt-test:
     dependencies:
@@ -635,10 +641,6 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/zinc-lm-integration
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
 templates:
   template-common:
     java:

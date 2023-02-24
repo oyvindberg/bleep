@@ -957,10 +957,6 @@ projects:
     - template-common-main
     - template-cross-jvm-212-213
     folder: ../sbt-build/client/testserver
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
 templates:
   template-common:
     scala:

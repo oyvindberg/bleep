@@ -62,6 +62,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.4_2.13/0.4.5/windowslib_native0.4_2.13-0.4.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_native0.4_2.13/2.3.1/fastparse-v2_native0.4_2.13-2.3.1.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/native213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@native213/scripts.GenerateForCommon",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/resources",

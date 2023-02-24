@@ -26,6 +26,9 @@ projects:
     folder: ../sbt-build/modules/core
     scala:
       options: -Xfatal-warnings -Yno-predef
+    sourcegen:
+      main: scripts.GenerateForDoobieCore
+      project: scripts
   doobie-core-test:
     dependencies:
     - com.h2database:h2:1.4.200
@@ -260,10 +263,12 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/example
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
+  scripts:
+    dependencies: build.bleep::bleep-core:0.0.1-M20
+    platform:
+      name: jvm
+    scala:
+      version: 3.2.0
 templates:
   template-common:
     platform:

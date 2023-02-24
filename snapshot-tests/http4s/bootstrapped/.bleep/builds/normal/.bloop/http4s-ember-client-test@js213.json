@@ -97,6 +97,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing-test/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js213/scripts.GenerateForHttp4sCore",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/js/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/js/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/shared/src/main/resources",
