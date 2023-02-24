@@ -54,6 +54,7 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-control/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm213/scripts.GenerateForCollections",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",

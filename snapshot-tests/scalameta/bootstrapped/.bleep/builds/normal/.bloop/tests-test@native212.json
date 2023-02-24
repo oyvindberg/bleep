@@ -59,6 +59,8 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit/native212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests/native212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/native212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@native212/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/tests@native212/scripts.GenerateForTests",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/native/src/main/resources",

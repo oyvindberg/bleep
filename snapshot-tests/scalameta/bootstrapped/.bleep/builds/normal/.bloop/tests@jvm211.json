@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm211",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/tests@jvm211/scripts.GenerateForTests",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-jvm/src/main/scala-2.11",
@@ -72,6 +73,7 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdbintegrationmacros/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm211/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@jvm211/scripts.GenerateForCommon",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm/src/main/resources",
@@ -113,6 +115,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm211",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm211/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/tests@jvm211/scripts.GenerateForTests",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm/src/main/protobuf",

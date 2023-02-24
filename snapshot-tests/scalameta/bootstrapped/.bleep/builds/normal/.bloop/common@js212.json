@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/js212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-sources/common@js212/scripts.GenerateForCommon",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/scala-2.12",
@@ -37,6 +38,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/js212/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@js212/scripts.GenerateForCommon",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/resources",

@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl-test/jvm3",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-sources/http4s-dsl-test@jvm3/scripts.GenerateForHttp4sDslTest",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/java",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/scala-3",
@@ -68,6 +69,7 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing-test/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-testing/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/main/resources",
@@ -82,6 +84,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl-test/jvm3/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-dsl-test@jvm3/scripts.GenerateForHttp4sDslTest",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/test/resources"
     ],

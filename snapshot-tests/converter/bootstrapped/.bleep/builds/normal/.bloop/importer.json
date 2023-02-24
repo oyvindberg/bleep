@@ -161,6 +161,7 @@
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/scalajs/classes",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/generated-resources/importer-portable/scripts.GenerateForImporterPortable",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer-portable/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources",

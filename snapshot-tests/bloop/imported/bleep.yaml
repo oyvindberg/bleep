@@ -19,6 +19,9 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
+    sourcegen:
+      main: scripts.GenerateForBenchmarks
+      project: scripts
   bloop-backend:
     dependencies:
     - ch.epfl.scala:com-microsoft-java-debug-core:0.21.0+1-7f1080f1
@@ -49,6 +52,9 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
+    sourcegen:
+      main: scripts.GenerateForBloopBackend
+      project: scripts
   bloop-backend-test:
     dependencies:
     - com.github.sbt:junit-interface:0.13.3
@@ -152,6 +158,9 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
+    sourcegen:
+      main: scripts.GenerateForBloopDocs
+      project: scripts
   bloop-frontend:
     dependencies:
     - ch.epfl.scala::scala-debug-adapter:2.2.0
@@ -177,6 +186,9 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
+    sourcegen:
+      main: scripts.GenerateForBloopFrontend
+      project: scripts
   bloop-frontend-it:
     dependencies:
     - configuration: provided
@@ -217,6 +229,9 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
+    sourcegen:
+      main: scripts.GenerateForBloopFrontendTest
+      project: scripts
   bloop-js-bridge-0-6:
     dependencies:
     - configuration: provided
@@ -452,6 +467,9 @@ projects:
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
+    sourcegen:
+      main: scripts.GenerateForBloopgunCore
+      project: scripts
   buildpress:
     dependencies: com.github.alexarchambault::case-app:2.0.6
     dependsOn:
@@ -562,6 +580,9 @@ projects:
       options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
         -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -feature -language:existentials
         -language:higherKinds -language:implicitConversions -unchecked
+    sourcegen:
+      main: scripts.GenerateForGradleBloopTest
+      project: scripts
   infrastructure:
     dependencies:
     - ch.qos.logback:logback-classic:1.2.1
@@ -612,6 +633,9 @@ projects:
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
+    sourcegen:
+      main: scripts.GenerateForMavenBloop
+      project: scripts
   maven-bloop-test:
     dependencies:
     - configuration: provided
@@ -658,6 +682,9 @@ projects:
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
+    sourcegen:
+      main: scripts.GenerateForSbtBloopCore
+      project: scripts
   scripts:
     dependencies: build.bleep::bleep-core:0.0.1-M20
     platform:
@@ -686,10 +713,6 @@ resolvers:
 - https://maven.google.com
 - type: ivy
   uri: https://repo.typesafe.com/typesafe/ivy-releases/
-scripts:
-  generate-resources:
-    main: scripts.GenerateResources
-    project: scripts
 templates:
   template-common-main:
     sbt-scope: main

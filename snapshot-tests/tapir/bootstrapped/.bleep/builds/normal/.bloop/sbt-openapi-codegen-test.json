@@ -146,6 +146,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sbt-openapi-codegen/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/sbt-openapi-codegen/scripts.GenerateForSbtOpenapiCodegen",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/sbt/sbt-openapi-codegen/src/main/resources"

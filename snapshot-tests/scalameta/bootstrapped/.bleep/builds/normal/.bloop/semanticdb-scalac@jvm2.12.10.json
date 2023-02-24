@@ -37,6 +37,7 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-scalac-core/jvm2.12.10/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@jvm212/scripts.GenerateForCommon",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm/src/main/resources",

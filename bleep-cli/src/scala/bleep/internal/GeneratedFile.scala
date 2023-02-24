@@ -13,5 +13,6 @@ import io.circe.generic.semiauto.deriveCodec
 case class GeneratedFile(isResource: Boolean, contents: String, toRelPath: RelPath)
 
 object GeneratedFile {
+  implicit val ordering: Ordering[GeneratedFile] = Ordering.by(x => (x.isResource, x.toRelPath))
   implicit val codec: Codec.AsObject[GeneratedFile] = deriveCodec[GeneratedFile]
 }

@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/sbt-dependency-tree",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-sources/sbt-dependency-tree/scripts.GenerateForSbtDependencyTree",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/scala-2",
@@ -145,6 +146,7 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-relation/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-tracking/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/zinc-lm-integration/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212/scripts.GenerateForCollections",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/src/main/resources",
@@ -198,6 +200,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/sbt-dependency-tree",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/sbt-dependency-tree/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/sbt-dependency-tree/scripts.GenerateForSbtDependencyTree",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/NOTICE",
       "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/dependency-tree/src/main/resources"
     ],

@@ -5,6 +5,7 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloopgun-core/jvm213",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/bloopgun-core@jvm213/scripts.GenerateForBloopgunCore",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/scala-2",
@@ -34,6 +35,7 @@
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloopgun-core/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloopgun-core/jvm213/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloopgun-core@jvm213/scripts.GenerateForBloopgunCore",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/resources"
