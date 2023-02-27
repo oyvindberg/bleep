@@ -26,7 +26,7 @@ object BuildChangeTracker {
           case Left(err) =>
             State(currentState.pre, Left(err))
           case Right(None) =>
-            currentState.pre.logger.info(s"Build changed superficially, not reloading")
+            currentState.pre.logger.debug(s"Build changed superficially, not reloading")
             currentState
           case Right(Some(newPre)) =>
             val newState = State(newPre, load(newPre))
