@@ -21,6 +21,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
     }
     buildsDir / name
   }
+  lazy val projectSelectionYaml = buildVariantDir / "project-selection.yaml"
 
   lazy val bleepBloopDir: Path = buildVariantDir / ".bloop"
   lazy val digestFile: Path = bleepBloopDir / "bloop-digest"

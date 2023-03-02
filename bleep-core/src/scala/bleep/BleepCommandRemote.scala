@@ -75,7 +75,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           ()
         }
 
-        val buildWatcher = BleepFileWatching.build(started.logger, started.pre.existingBuild) { case () =>
+        val buildWatcher = BleepFileWatching.build(started.pre) { case () =>
           started.reloadFromDisk() match {
             case Left(bleepException) =>
               fatal.log("build changed, but it didn't work :(", started.logger, bleepException)
