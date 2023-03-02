@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.internal.TransitiveProjects
-import bleep.logging.Logger
 
 import java.nio.file.Path
 import scala.collection.compat._
@@ -27,6 +26,12 @@ object BleepFileWatching {
   ): FileWatching.TypedWatcher[model.CrossProjectName] =
     FileWatching(started.logger, projectPathsMapping(started, projects))(onChange)
 
-  def build(logger: Logger, existingBuild: BuildLoader.Existing)(onChange: () => Unit): FileWatching.Watcher =
-    FileWatching(logger, Map(existingBuild.bleepYaml -> List(())))(_ => onChange())
+  def build(pre: Prebootstrapped)(onChange: () => Unit): FileWatching.Watcher = {
+    val files = List(
+      pre.existingBuild.bleepYaml,
+      pre.userPaths.configYaml,
+      pre.buildPaths.projectSelectionYaml
+    )
+    FileWatching(pre.logger, files.map(f => (f, List(()))).toMap)(_ => onChange())
+  }
 }
