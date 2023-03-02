@@ -1,6 +1,7 @@
 package bleep
 package bsp
 
+import bleep.rewrites.{keepSelectedProjects, BuildRewrite}
 import bloop.config.Config
 import ch.epfl.scala.bsp4j
 
@@ -14,55 +15,90 @@ trait BuildChangeTracker {
 }
 
 object BuildChangeTracker {
-  def make(pre: Prebootstrapped, buildClient: bsp4j.BuildClient): BuildChangeTracker =
-    new Impl(new AtomicReference[State](State(pre, load(pre))), buildClient)
+  def make(bleepConfig: model.BleepConfig, pre: Prebootstrapped, buildClient: bsp4j.BuildClient): BuildChangeTracker = {
+    val initialState: State =
+      rewriteFor(pre.buildPaths).flatMap(bspRewrites => load(bleepConfig, pre, bspRewrites)) match {
+        case Left(th)       => State.No(bleepConfig, pre, th)
+        case Right(started) => State.Yes(started)
+      }
 
-  case class State(pre: Prebootstrapped, maybeStarted: Either[BleepException, Started])
+    new Impl(new AtomicReference[State](initialState), buildClient)
+  }
+
+  // an `Either` with enough state to bootstrap again after it failed
+  sealed trait State {
+    def pre: Prebootstrapped
+    def bleepConfig: model.BleepConfig
+
+    def toEither: Either[BleepException, Started] =
+      this match {
+        case State.Yes(started)             => Right(started)
+        case State.No(_, _, bleepException) => Left(bleepException)
+      }
+  }
+
+  object State {
+    case class Yes(started: Started) extends State {
+      override def pre: Prebootstrapped = started.pre
+      override def bleepConfig: model.BleepConfig = started.config
+    }
+
+    case class No(bleepConfig: model.BleepConfig, pre: Prebootstrapped, bleepException: BleepException) extends State
+  }
 
   private class Impl(atomicState: AtomicReference[State], buildClient: bsp4j.BuildClient) extends BuildChangeTracker {
     def ensureBloopUpToDate(): Either[BleepException, Started] =
       atomicState.updateAndGet { currentState =>
-        currentState.pre.reloadFromDisk() match {
-          case Left(err) =>
-            State(currentState.pre, Left(err))
+        val reloaded: Either[BleepException, Option[Started]] =
+          rewriteFor(currentState.pre.buildPaths).flatMap { buildRewrites =>
+            currentState match {
+              case State.No(bleepConfig, pre, _) =>
+                load(bleepConfig, pre, buildRewrites).map(Some.apply)
+              case State.Yes(started) =>
+                started.reloadFromDisk(buildRewrites)
+            }
+          }
+
+        val newState = reloaded match {
+          case Left(bleepException) =>
+            State.No(currentState.bleepConfig, currentState.pre, bleepException)
           case Right(None) =>
             currentState.pre.logger.debug(s"Build changed superficially, not reloading")
             currentState
-          case Right(Some(newPre)) =>
-            val newState = State(newPre, load(newPre))
+          case Right(Some(newStarted)) =>
+            val newState = State.Yes(newStarted)
             computeBuildTargetChanges(currentState, newState) match {
               case Some(changes) =>
-                newPre.logger.info(s"Notifying IDE of ${changes.getChanges.size} changes in build targets")
-                newPre.logger.debug(changes.toString)
+                newStarted.logger.info(s"Notifying IDE of ${changes.getChanges.size} changes in build targets")
+                newStarted.logger.debug(changes.toString)
                 buildClient.onBuildTargetDidChange(changes)
               case None =>
                 ()
             }
             newState
         }
-      }.maybeStarted
+        newState
+      }.toEither
 
-    override def current: Either[BleepException, Started] = atomicState.get().maybeStarted
+    override def current: Either[BleepException, Started] = atomicState.get().toEither
   }
 
-  private def load(pre: Prebootstrapped): Either[BleepException, Started] =
-    for {
-      config <- BleepConfigOps.loadOrDefault(pre.userPaths)
-      projectSelection <- BspProjectSelection.load(pre.buildPaths)
-      bspRewrites = projectSelection match {
-        case Some(selectedProjectGlobs) => List(rewrites.keepSelectedProjects(selectedProjectGlobs))
-        case None                       => Nil
-      }
-      started <- bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, config, CoursierResolver.Factory.default)
-    } yield started
+  def rewriteFor(buildPaths: BuildPaths): Either[BleepException, List[BuildRewrite]] =
+    BspProjectSelection.load(buildPaths).map {
+      case Some(selectedProjectGlobs) => List(keepSelectedProjects(selectedProjectGlobs))
+      case None                       => Nil
+    }
+
+  private def load(bleepConfig: model.BleepConfig, pre: Prebootstrapped, bspRewrites: List[BuildRewrite]): Either[BleepException, Started] =
+    bootstrap.from(pre, GenBloopFiles.SyncToDisk, bspRewrites, bleepConfig, CoursierResolver.Factory.default)
 
   private def computeBuildTargetChanges(before: State, after: State): Option[bsp4j.DidChangeBuildTarget] = {
     implicit val ordering: Ordering[bsp4j.BuildTargetIdentifier] = Ordering.by(_.getUri)
 
     def projectsFor(s: State): SortedMap[bsp4j.BuildTargetIdentifier, Config.Project] =
-      s.maybeStarted match {
-        case Left(_)        => SortedMap.empty
-        case Right(started) => started.bloopProjects.map { case (crossName, p) => BleepCommandRemote.buildTarget(started.buildPaths, crossName) -> p }
+      s match {
+        case State.No(_, _, _)  => SortedMap.empty
+        case State.Yes(started) => started.bloopProjects.map { case (crossName, p) => BleepCommandRemote.buildTarget(started.buildPaths, crossName) -> p }
       }
 
     val beforeProjects = projectsFor(before)

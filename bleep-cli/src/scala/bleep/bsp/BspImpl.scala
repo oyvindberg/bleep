@@ -45,7 +45,7 @@ object BspImpl {
         )
 
       val workspaceDir = pre.buildPaths.buildVariantDir
-      val buildChangeTracker = BuildChangeTracker.make(pre, localClient)
+      val buildChangeTracker = BuildChangeTracker.make(config, pre, localClient)
       // Adding a file watcher that will update bloop config on the fly and
       // notify the BSP client of changes
       threads.prepareBuildExecutor.submit {
