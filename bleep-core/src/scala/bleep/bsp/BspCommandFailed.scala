@@ -4,7 +4,7 @@ import bleep.{model, BleepException}
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
-class BspCommandFailed(what: String, projects: Array[model.CrossProjectName], reason: BspCommandFailed.Reason)
+case class BspCommandFailed(what: String, projects: Array[model.CrossProjectName], reason: BspCommandFailed.Reason)
     extends BleepException(s"$what ${projects.map(_.value).mkString(", ")} ${reason.str}", reason.throwable.orNull)
 
 object BspCommandFailed {

@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.internal.Throwables
 import bleep.logging._
 import fansi.{Color, EscapeAttr, Str}
 import sourcecode.Text
@@ -62,7 +63,7 @@ object LogPatterns {
           },
           Some(maybeColor(Formatter(text.value))),
           if (ctx.nonEmpty) Some(maybeSubtleColor(Formatter(ctx))) else None,
-          throwable.map(th => maybeColor(formatThrowable(th)))
+          throwable.map(th => maybeColor(Throwables.asString(th)))
         ).flatten,
         " "
       )
@@ -89,7 +90,7 @@ object LogPatterns {
         Formatter(ctx).plainText,
         throwable match {
           case None     => ""
-          case Some(th) => formatThrowable(th)
+          case Some(th) => Throwables.asString(th)
         }
       ).mkString("")
   }

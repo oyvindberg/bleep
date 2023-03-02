@@ -2,13 +2,10 @@ package bleep
 package commands
 
 import bleep.bsp.BspCommandFailed
-import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, TransitiveProjects}
+import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, Throwables, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
-import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
-import java.util.concurrent.ExecutionException
-import scala.annotation.tailrec
 import scala.build.bloop.BuildServer
 import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success, Try}
@@ -78,20 +75,10 @@ case class Run(
       Try(bloop.buildTargetRun(params).get().getStatusCode) match {
         case Success(bsp4j.StatusCode.OK) => Right(started.logger.info(s"Run $main succeeded"))
         case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
-        case Failure(exception) =>
-          @tailrec
-          def findResponseError(th: Throwable): Option[ResponseError] =
-            th match {
-              case x: ExecutionException =>
-                findResponseError(x.getCause)
-              case x: ResponseErrorException =>
-                Option(x.getResponseError)
-              case _ => None
-            }
-
-          findResponseError(exception) match {
-            case Some(responseError) => failed(BspCommandFailed.FoundResponseError(responseError))
-            case None                => failed(BspCommandFailed.FailedWithException(exception))
+        case Failure(th) =>
+          Throwables.tryExtract(classOf[ResponseErrorException])(th) match {
+            case Some(roe) => failed(BspCommandFailed.FoundResponseError(roe.getResponseError))
+            case None      => failed(BspCommandFailed.FailedWithException(th))
           }
       }
     }

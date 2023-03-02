@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.{throwableMessages, DoSourceGen, TransitiveProjects}
+import bleep.internal.{DoSourceGen, Throwables, TransitiveProjects}
 import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 import com.google.gson.{JsonObject, JsonPrimitive}
@@ -29,12 +29,12 @@ class BleepBspServer(
 
   def fail(msg: String, th: Throwable): Nothing = {
     logger.debug(msg, th)
-    logger.warn(s"$msg: ${throwableMessages(th).mkString(": ")}")
+    logger.warn(s"$msg: ${Throwables.messagesFrom(th).mkString(": ")}")
     if (isMetals) {
       sys.exit(1)
     }
     throw new ResponseErrorException(
-      new ResponseError(ResponseErrorCode.UnknownErrorCode, s"$msg: ${throwableMessages(th).mkString(": ")}", null)
+      new ResponseError(ResponseErrorCode.UnknownErrorCode, s"$msg: ${Throwables.messagesFrom(th).mkString(": ")}", null)
     )
   }
 
@@ -44,7 +44,7 @@ class BleepBspServer(
         case null =>
           maybeValue
         case error =>
-          ExceptionHandler.look(classOf[java.net.SocketException])(error) match {
+          Throwables.tryExtract(classOf[java.net.SocketException])(error) match {
             case Some(socketException) =>
               buildShutdown() // don't wait for this
               fail("Lost contact with bloop server. initializing shutdown", socketException)
