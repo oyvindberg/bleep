@@ -28,7 +28,4 @@ package object internal {
       None
     }
   }
-
-  def throwableMessages(th: Throwable): List[String] =
-    th.getMessage :: Option(th.getCause).toList.flatMap(throwableMessages)
 }

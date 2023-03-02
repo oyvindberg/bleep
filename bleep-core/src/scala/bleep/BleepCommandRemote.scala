@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.{fatal, BspClientDisplayProgress, TransitiveProjects}
+import bleep.internal.{fatal, BspClientDisplayProgress, Throwables, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
@@ -71,14 +71,17 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
             case other                             => other
           }
 
-          patchedCmd.runWithServer(currentStarted, server.server)
+          patchedCmd.runWithServer(currentStarted, server.server) match {
+            case Left(bleepException) => currentStarted.logger.error(Throwables.messagesFrom(bleepException).mkString(": "))
+            case Right(())            => ()
+          }
           ()
         }
 
         val buildWatcher = BleepFileWatching.build(started.pre) { case () =>
           started.reloadFromDisk() match {
             case Left(bleepException) =>
-              fatal.log("build changed, but it didn't work :(", started.logger, bleepException)
+              Throwables.log("build changed, but it didn't work :(", started.logger, bleepException)
               codeWatcher.updateMapping(Map.empty)
             case Right(None) =>
               ()

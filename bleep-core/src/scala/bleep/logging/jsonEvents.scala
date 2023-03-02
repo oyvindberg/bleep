@@ -1,5 +1,6 @@
 package bleep.logging
 
+import bleep.internal.Throwables
 import fansi.Str
 import io.circe.generic.semiauto
 import io.circe.parser.decode
@@ -117,7 +118,7 @@ private object jsonEvents {
         className = th.getClass.getName,
         message = Option(th.getMessage),
         cause = Option(th.getCause).map(from),
-        stackTrace = formatThrowable(th),
+        stackTrace = Throwables.asString(th),
         suppressed = th.getSuppressed.map(from)
       )
   }
