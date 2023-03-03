@@ -56,7 +56,7 @@ object Main {
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
       importCmd(buildLoader, buildPaths, logger),
       configCommand(logger, userPaths),
-      installTabCompletions(logger)
+      installTabCompletions(userPaths, logger)
     ).foldK
 
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
@@ -197,7 +197,7 @@ object Main {
             testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
           ),
           configCommand(started.pre.logger, started.pre.userPaths),
-          installTabCompletions(started.pre.logger),
+          installTabCompletions(started.userPaths, started.pre.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
@@ -301,10 +301,15 @@ object Main {
       }
     )
 
-  def installTabCompletions(logger: Logger): Opts[BleepCommand] =
-    Opts.subcommand("install-tab-completions-bash", "Install tab completions for bash")(
-      Opts(commands.InstallTabCompletions(logger))
-    )
+  def installTabCompletions(userPaths: UserPaths, logger: Logger): Opts[BleepCommand] =
+    List(
+      Opts.subcommand("install-tab-completions-bash", "Install tab completions for bash")(
+        Opts(commands.InstallBashTabCompletions(logger))
+      ),
+      Opts.subcommand("install-tab-completions-zsh", "Install tab completions for zsh")(
+        Opts(commands.InstallZshTabCompletions(userPaths, logger))
+      )
+    ).foldK
 
   def newCommand(logger: Logger, userPaths: UserPaths, cwd: Path): Opts[BleepNoBuildCommand] =
     Opts.subcommand("new", "create new build in current directory")(
@@ -393,51 +398,22 @@ object Main {
     val userPaths = UserPaths.fromAppDirs
 
     val exitCode: ExitCode = _args.toList match {
+      case "_complete-zsh" :: current :: words =>
+        // accept -d after completion point
+        val (commonOpts, _) = CommonOpts.parse(words)
+
+        val newWords = words.drop(1 /* arg0 */ ).padTo(current.toInt - 1, "")
+        withCompletions(_args, userPaths, commonOpts, newWords) { completions =>
+          println(Zsh.print(completions.value))
+          ExitCode.Success
+        }
+
       case "_complete" :: compLine :: compCword :: compPoint :: _ =>
         val args = Completer.bashToArgs(compLine, compCword.toInt, compPoint.toInt)
-        val (_, restArgs) = CommonOpts.parse(args)
         // accept -d after completion point
         val (commonOpts, _) = CommonOpts.parse(compLine.split(" ").toList)
-        val cwd = cwdFor(commonOpts)
-        // we can not log to stdout when completing. logger should be used sparingly
-        val stderr = bleepLoggers.stderrWarn(commonOpts).untyped
-        val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts).andThen {
 
-          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
-
-          val completions = buildLoader match {
-            case noBuild: BuildLoader.NonExisting =>
-              val completer = new Completer({
-                case metavars.platformName => model.PlatformId.All.map(_.value)
-                case metavars.scalaVersion => possibleScalaVersions.keys.toList
-                case _                     => Nil
-              })
-              completer.completeOpts(restArgs)(noBuildOpts(stderr, userPaths, buildPaths, noBuild))
-            case existing: BuildLoader.Existing =>
-              val pre = Prebootstrapped(stderr, userPaths, buildPaths, existing, ec)
-
-              val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
-
-              bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
-                case Left(th) =>
-                  fatal("couldn't load build", stderr, th)
-                  Completer.Res.NoMatch
-
-                case Right(started) =>
-                  val completer = new Completer({
-                    case metavars.platformName       => model.PlatformId.All.map(_.value)
-                    case metavars.scalaVersion       => possibleScalaVersions.keys.toList
-                    case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
-                    case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
-                    case metavars.projectName        => started.globs.projectNameMap.keys.toList
-                    case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
-                    case _                           => Nil
-                  })
-                  completer.completeOpts(restArgs)(hasBuildOpts(started))
-              }
-          }
-
+        withCompletions(_args, userPaths, commonOpts, args) { completions =>
           completions.value.foreach(c => println(c.value))
           ExitCode.Success
         }
@@ -500,6 +476,51 @@ object Main {
     }
 
     System.exit(exitCode.value)
+  }
+
+  def withCompletions(_args: Array[String], userPaths: UserPaths, commonOpts: CommonOpts, args: List[String])(f: Completer.Res => ExitCode): ExitCode = {
+    val (_, restArgs) = CommonOpts.parse(args)
+    val cwd = cwdFor(commonOpts)
+    // we can not log to stdout when completing. logger should be used sparingly
+    val stderr = bleepLoggers.stderrWarn(commonOpts).untyped
+    val buildLoader = BuildLoader.find(cwd)
+    maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts).andThen {
+
+      val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
+
+      val completions = buildLoader match {
+        case noBuild: BuildLoader.NonExisting =>
+          val completer = new Completer({
+            case metavars.platformName => model.PlatformId.All.map(_.value)
+            case metavars.scalaVersion => possibleScalaVersions.keys.toList
+            case _                     => Nil
+          })
+          completer.completeOpts(restArgs)(noBuildOpts(stderr, userPaths, buildPaths, noBuild))
+        case existing: BuildLoader.Existing =>
+          val pre = Prebootstrapped(stderr, userPaths, buildPaths, existing, ec)
+
+          val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
+
+          bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
+            case Left(th) =>
+              fatal("couldn't load build", stderr, th)
+              Completer.Res.NoMatch
+
+            case Right(started) =>
+              val completer = new Completer({
+                case metavars.platformName       => model.PlatformId.All.map(_.value)
+                case metavars.scalaVersion       => possibleScalaVersions.keys.toList
+                case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
+                case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
+                case metavars.projectName        => started.globs.projectNameMap.keys.toList
+                case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
+                case _                           => Nil
+              })
+              completer.completeOpts(restArgs)(hasBuildOpts(started))
+          }
+      }
+      f(completions)
+    }
   }
 
   private def run[Cmd](opts: Opts[Cmd], restArgs: List[String], logger: Logger)(runCommand: Cmd => Either[BleepException, Unit]): ExitCode =
