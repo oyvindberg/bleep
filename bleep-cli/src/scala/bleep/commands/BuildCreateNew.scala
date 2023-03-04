@@ -39,7 +39,7 @@ case class BuildCreateNew(
     val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
     bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, coursierResolver) map { started =>
-      val projects = started.bloopProjectsList
+      val projects = started.bloopFiles.values.toList.map(_.forceGet.project)
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct
       val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct

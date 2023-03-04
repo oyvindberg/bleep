@@ -17,7 +17,7 @@ object dist {
   def apply(started: Started, crossName: model.CrossProjectName, programs: List[Program], overridePath: Option[Path]): Unit = {
     val project = started.build.explodedProjects(crossName)
     val projectPaths = started.buildPaths.project(crossName, project)
-    val bloopProject = started.bloopProjects(crossName)
+    val bloopProject = started.bloopFiles(crossName).forceGet.project
 
     val fromBuild: SortedMap[RelPath, Array[Byte]] =
       rewriteDependentData(started.build.explodedProjects)

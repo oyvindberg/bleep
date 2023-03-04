@@ -49,8 +49,8 @@ case class BuildDiffBloop(opts: BuildDiff.Options, projects: Array[model.CrossPr
       )
       .orThrow
 
-    val oldProjects = oldStarted.bloopProjects
-    val newProjects = started.bloopProjects
+    val oldProjects = oldStarted.bloopFiles
+    val newProjects = started.bloopFiles
     val allProjectNames = SortedSet.empty[model.CrossProjectName] ++ oldProjects.keys ++ newProjects.keys
     val filteredAllProjectNames = if (projects.isEmpty) allProjectNames else allProjectNames.intersect(projects.toSet)
 
@@ -83,8 +83,8 @@ case class BuildDiffBloop(opts: BuildDiff.Options, projects: Array[model.CrossPr
     Right(())
   }
 
-  def circeJsonFor(p: Config.Project): Json =
-    io.circe.parser.parse(writeToString(p)(ConfigCodecs.codecProject)).orThrowWithError("couldn't parse bloop json")
+  def circeJsonFor(f: Lazy[Config.File]): Json =
+    io.circe.parser.parse(writeToString(f.forceGet.project)(ConfigCodecs.codecProject)).orThrowWithError("couldn't parse bloop json")
 
   def render(op: Operation[Json]): Option[Str] =
     op match {

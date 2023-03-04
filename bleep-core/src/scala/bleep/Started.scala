@@ -5,7 +5,6 @@ import bleep.rewrites.BuildRewrite
 import bloop.config.Config
 
 import java.nio.file.Path
-import scala.collection.immutable.SortedMap
 import scala.concurrent.ExecutionContext
 
 case class Started(
@@ -30,11 +29,8 @@ case class Started(
   lazy val globs: model.ProjectGlobs =
     new model.ProjectGlobs(activeProjectsFromPath, build.explodedProjects)
 
-  lazy val bloopProjects: SortedMap[model.CrossProjectName, Config.Project] =
-    bloopFiles.map { case (name, lazyProject) => (name, lazyProject.forceGet.project) }
-
-  lazy val bloopProjectsList: List[Config.Project] =
-    bloopProjects.values.toList
+  def bloopProject(crossName: model.CrossProjectName): Config.Project =
+    bloopFiles(crossName).forceGet.project
 
   lazy val jvmCommand: Path = resolvedJvm.forceGet.javaBin
 
