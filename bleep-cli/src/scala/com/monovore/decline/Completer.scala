@@ -2,6 +2,8 @@ package com.monovore.decline
 
 import com.monovore.decline.Completer._
 
+import scala.util.hashing.MurmurHash3
+
 final class Completer(possibleCompletionsForMetavar: String => List[String]) {
   def completeOpts[A](args: List[String])(x: Opts[A]): Res =
     x match {
@@ -152,4 +154,55 @@ object Completer {
     case class Commit(value: List[Completion], consumed: Int) extends Matched
     case class Found(value: List[Completion], consumed: Int) extends Matched
   }
+}
+
+object Zsh {
+  def hash(content: Iterator[String]): String = {
+    val hash = MurmurHash3.arrayHash(content.toArray)
+    if (hash < 0) (hash * -1).toString
+    else hash.toString
+  }
+
+  def escape(input: String): String =
+    input
+      .replace("'", "\\'")
+      .replace("`", "\\`")
+      .replace("|", "\\|")
+      .linesIterator
+      .take(1)
+      .toList
+      .headOption
+      .getOrElse("")
+
+  def defs(item: Completion): Seq[String] = {
+    val (options, arguments) = List(item.value).partition(_.startsWith("-"))
+    val optionsOutput =
+      if (options.isEmpty) Nil
+      else {
+        val desc = item.description.map(desc => ":" + escape(desc)).getOrElse("")
+        options.map(opt => "\"" + opt + desc + "\"")
+      }
+    val argumentsOutput =
+      if (arguments.isEmpty) Nil
+      else {
+        val desc = item.description.map(desc => ":" + escape(desc)).getOrElse("")
+        arguments.map("'" + _.replace(":", "\\:") + desc + "'")
+      }
+    optionsOutput ++ argumentsOutput
+  }
+
+  def render(commands: Seq[String]): String =
+    if (commands.isEmpty) "_files" + System.lineSeparator()
+    else {
+      val id = hash(commands.iterator)
+      s"""local -a args$id
+         |args$id=(
+         |${commands.mkString(System.lineSeparator())}
+         |)
+         |_describe command args$id
+         |""".stripMargin
+    }
+
+  def print(items: Seq[Completion]): String =
+    render(items.flatMap(defs(_)))
 }
