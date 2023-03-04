@@ -142,9 +142,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
   // compare some key properties before and after import
   def assertSameIshBloopFiles(inputProjects: sbtimport.ImportInputData, started: Started): Assertion = {
-    started.bloopProjects.foreach {
+    started.bloopFiles.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
-      case (crossProjectName, output) =>
+      case (crossProjectName, lazyOutputFile) =>
+        val output = lazyOutputFile.forceGet.project
         val input = inputProjects.projects(crossProjectName).bloopFile.project
 
         // todo: this needs further work,
@@ -209,7 +210,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
         object AnalyzedClassPathDiff {
           val transitiveResources: Set[Path] =
-            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.bloopProjects(name).resources }.flatten.toSet
+            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.bloopProject(name).resources }.flatten.toSet
 
           def from(paths: Set[Path]): AnalyzedClassPathDiff = {
             val (classes, jars) = paths

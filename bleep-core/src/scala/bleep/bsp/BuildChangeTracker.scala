@@ -95,10 +95,10 @@ object BuildChangeTracker {
   private def computeBuildTargetChanges(before: State, after: State): Option[bsp4j.DidChangeBuildTarget] = {
     implicit val ordering: Ordering[bsp4j.BuildTargetIdentifier] = Ordering.by(_.getUri)
 
-    def projectsFor(s: State): SortedMap[bsp4j.BuildTargetIdentifier, Config.Project] =
+    def projectsFor(s: State): SortedMap[bsp4j.BuildTargetIdentifier, Lazy[Config.File]] =
       s match {
         case State.No(_, _, _)  => SortedMap.empty
-        case State.Yes(started) => started.bloopProjects.map { case (crossName, p) => BleepCommandRemote.buildTarget(started.buildPaths, crossName) -> p }
+        case State.Yes(started) => started.bloopFiles.map { case (crossName, p) => BleepCommandRemote.buildTarget(started.buildPaths, crossName) -> p }
       }
 
     val beforeProjects = projectsFor(before)
@@ -113,7 +113,7 @@ object BuildChangeTracker {
     val changes: List[bsp4j.BuildTargetEvent] =
       (beforeProjects.keySet ++ afterProjects.keySet).toList.flatMap { id =>
         (beforeProjects.get(id), afterProjects.get(id)) match {
-          case (Some(before), Some(after)) => if (before == after) None else event(id, bsp4j.BuildTargetEventKind.CHANGED)
+          case (Some(before), Some(after)) => if (before.forceGet == after.forceGet) None else event(id, bsp4j.BuildTargetEventKind.CHANGED)
           case (None, Some(_))             => event(id, bsp4j.BuildTargetEventKind.CREATED)
           case (Some(_), None)             => event(id, bsp4j.BuildTargetEventKind.DELETED)
           case (None, None)                => None

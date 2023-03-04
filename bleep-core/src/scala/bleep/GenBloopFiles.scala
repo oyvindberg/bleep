@@ -117,15 +117,7 @@ object GenBloopFiles {
 
       if (oldHash.contains(currentHash)) {
         pre.logger.debug(s"${pre.buildPaths.bleepBloopDir} up to date")
-
-        val map = build.explodedProjects.map { case (crossProjectName, _) =>
-          val load = Lazy {
-            val json = pre.buildPaths.bloopFile(crossProjectName)
-            parseBloopFile(Files.readString(json))
-          }
-          (crossProjectName, load)
-        }
-        SortedMap.empty[model.CrossProjectName, Lazy[Config.File]] ++ map
+        next(pre, resolver, build)
       } else {
         pre.logger.warn(s"Refreshing ${pre.buildPaths.bleepBloopDir}...")
 

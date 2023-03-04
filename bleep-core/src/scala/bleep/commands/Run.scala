@@ -49,7 +49,7 @@ case class Run(
       cli(
         "run",
         started.pre.buildPaths.cwd,
-        jvmRunCommand(started.bloopProjects(project), started.resolvedJvm, project, Some(main), args).orThrow,
+        jvmRunCommand(started.bloopProject(project), started.resolvedJvm, project, Some(main), args).orThrow,
         logger = started.logger,
         out = cli.Out.Raw,
         in = cli.In.Attach,
