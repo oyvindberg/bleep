@@ -30,7 +30,7 @@ object BleepFileWatching {
     val files = List(
       pre.existingBuild.bleepYaml,
       pre.userPaths.configYaml,
-      pre.buildPaths.projectSelectionYaml
+      pre.buildPaths.bspProjectSelectionYaml
     )
     FileWatching(pre.logger, files.map(f => (f, List(()))).toMap)(_ => onChange())
   }
