@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{conversions, parseBloopFile, rewriteDependentData}
+import bleep.internal.{conversions, rewriteDependentData}
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}

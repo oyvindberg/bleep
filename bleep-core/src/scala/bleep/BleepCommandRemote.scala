@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.{fatal, BspClientDisplayProgress, Throwables, TransitiveProjects}
+import bleep.internal.{BspClientDisplayProgress, Throwables, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
@@ -78,7 +78,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           ()
         }
 
-        val buildWatcher = BleepFileWatching.build(started.pre) { case () =>
+        val buildWatcher = BleepFileWatching.build(started.pre) { _ =>
           started.reloadFromDisk() match {
             case Left(bleepException) =>
               Throwables.log("build changed, but it didn't work :(", started.logger, bleepException)
