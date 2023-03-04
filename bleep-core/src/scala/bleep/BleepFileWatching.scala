@@ -26,12 +26,13 @@ object BleepFileWatching {
   ): FileWatching.TypedWatcher[model.CrossProjectName] =
     FileWatching(started.logger, projectPathsMapping(started, projects))(onChange)
 
-  def build(pre: Prebootstrapped)(onChange: () => Unit): FileWatching.Watcher = {
-    val files = List(
-      pre.existingBuild.bleepYaml,
-      pre.userPaths.configYaml,
-      pre.buildPaths.bspProjectSelectionYaml
-    )
-    FileWatching(pre.logger, files.map(f => (f, List(()))).toMap)(_ => onChange())
-  }
+  def build(pre: Prebootstrapped)(onChange: Set[String] => Unit): FileWatching.Watcher =
+    FileWatching(
+      pre.logger,
+      mapping = Map(
+        pre.existingBuild.bleepYaml -> List("bleep build"),
+        pre.userPaths.configYaml -> List("bleep config"),
+        pre.buildPaths.bspProjectSelectionYaml -> List("project selection in IDE")
+      )
+    )(onChange)
 }
