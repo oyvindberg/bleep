@@ -11,6 +11,14 @@ import scala.collection.mutable
 object BspClientDisplayProgress {
   def apply(logger: Logger): BspClientDisplayProgress =
     new BspClientDisplayProgress(logger.withPath("BSP"), mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty)
+
+  def logLevelFor(messageType: MessageType): LogLevel =
+    messageType match {
+      case bsp4j.MessageType.ERROR       => LogLevel.error
+      case bsp4j.MessageType.WARNING     => LogLevel.warn
+      case bsp4j.MessageType.INFORMATION => LogLevel.info
+      case bsp4j.MessageType.LOG         => LogLevel.info
+    }
 }
 
 class BspClientDisplayProgress(
@@ -65,20 +73,10 @@ class BspClientDisplayProgress(
     Bold.On(Str(buildTargetId.getUri.split("=").last))
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(logLevelFor(params.getType), params.getMessage)
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
 
-  override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
-    val logger0 = logger.withOptContext("originId", Option(params.getOriginId))
-    logger0.info(params.getMessage)
-  }
-
-  def logLevelFor(messageType: MessageType): LogLevel =
-    messageType match {
-      case bsp4j.MessageType.ERROR       => LogLevel.error
-      case bsp4j.MessageType.WARNING     => LogLevel.warn
-      case bsp4j.MessageType.INFORMATION => LogLevel.info
-      case bsp4j.MessageType.LOG         => LogLevel.info
-    }
+  override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
 
   override def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit =
     extract(params.getData).foreach { id =>

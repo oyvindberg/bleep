@@ -29,7 +29,7 @@ object BspImpl {
         .setExceptionHandler(new ExceptionHandler(pre.logger))
         .create()
 
-      val localClient = new BspForwardClient(Some(launcher.getRemoteProxy))
+      val localClient = new BspForwardClient(Some(launcher.getRemoteProxy), pre.logger)
 
       val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
       val build = pre.existingBuild.buildFile.forceGet.orThrow
