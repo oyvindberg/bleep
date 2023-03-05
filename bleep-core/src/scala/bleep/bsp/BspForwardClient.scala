@@ -1,14 +1,16 @@
 package bleep.bsp
 
+import bleep.internal.BspClientDisplayProgress
+import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 
-class BspForwardClient(var forwardToOpt: Option[bsp4j.BuildClient]) extends bsp4j.BuildClient {
+class BspForwardClient(var forwardToOpt: Option[bsp4j.BuildClient], logger: Logger) extends bsp4j.BuildClient {
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    forwardToOpt.foreach(_.onBuildLogMessage(params))
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
   override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit =
     forwardToOpt.foreach(_.onBuildPublishDiagnostics(params))
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    forwardToOpt.foreach(_.onBuildShowMessage(params))
+    logger.withOptContext("originId", Option(params.getOriginId)).apply(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit =
     forwardToOpt.foreach(_.onBuildTargetDidChange(params))
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
