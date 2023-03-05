@@ -6,6 +6,7 @@ import bleep.internal.compat.IteratorCompatOps
 
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
+import java.time.{Duration, Instant}
 import scala.build.bloop.BuildServer
 import scala.collection.compat._
 import scala.collection.mutable
@@ -15,7 +16,10 @@ import scala.math.Ordering.Implicits.infixOrderingOps
 object DoSourceGen {
   model.assertUsed(BuildFrom) // avoid warning while supporting 2.12
 
-  case class PathWithLastModified(path: Path, lastModified: FileTime)
+  case class PathWithLastModified(path: Path, lastModified: FileTime) {
+    def asString(now: Instant): String =
+      s"$path (last modified ${Duration.between(lastModified.toInstant, now)} ago)"
+  }
 
   // if we have more than one, and one appears in the dependencies of the other, run scripts in correct order
   case class TopologicalOrdering(build: model.Build) extends Ordering[model.ScriptDef] {
@@ -77,28 +81,30 @@ object DoSourceGen {
 
       allFilesFor(all).maxByOptionCompat(_.lastModified)
     }
-
+    val now = Instant.now()
     val toRun: List[(model.ScriptDef, Iterable[model.CrossProjectName])] =
-      sortedScriptsWithPath.flatMap { case (script, scriptPaths) =>
+      sortedScriptsWithPath.flatMap { case (script: model.ScriptDef.Main, scriptPaths) =>
         mostRecent(scriptPaths.allInputs) match {
           case Some(mostRecentInput) =>
             val filtered: Iterable[model.CrossProjectName] =
               scriptPaths.forProjectsAndInputs.flatMap { case (projectName, outputsForProject) =>
+                def describe = s"source generator `${script.main}` for project ${projectName.value}"
                 mostRecent(outputsForProject) match {
                   case Some(mostRecentOutput) =>
                     if (mostRecentOutput.lastModified < mostRecentInput.lastModified) {
                       started.logger.info(
-                        s"Running source generator $script for ${projectName.value} because most recent input $mostRecentInput is newer than most recent output $mostRecentOutput"
+                        s"Running $describe because most recent input ${mostRecentInput.asString(now)} is newer than most recent output ${mostRecentOutput.asString(now)}"
                       )
                       Some(projectName)
                     } else {
                       started.logger.debug(
-                        s"Not Running source generator $script for ${projectName.value} because most recent input $mostRecentInput is not newer than most recent output $mostRecentOutput"
+                        s"Not Running $describe because most recent input ${mostRecentInput
+                            .asString(now)} is not newer than most recent output ${mostRecentOutput.asString(now)}"
                       )
                       Nil
                     }
                   case None =>
-                    started.logger.info(s"Running source generator $script for ${projectName.value} because output didn't exist")
+                    started.logger.info(s"Running $describe because output didn't exist")
                     Some(projectName)
                 }
               }
