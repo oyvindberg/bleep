@@ -24,7 +24,8 @@ case class InstallZshTabCompletions(userPaths: UserPaths, logger: Logger) extend
          |}
          |""".stripMargin
 
-    val completionScriptDest = userPaths.configDir / "zsh" / s"_$programName"
+    val completionScriptDir = userPaths.configDir / "zsh"
+    val completionScriptDest = completionScriptDir / s"_$programName"
 
     logger.info(s"Writing $completionScriptDest")
     FileSync.softWriteBytes(completionScriptDest, completionScript.getBytes(StandardCharsets.UTF_8))
@@ -32,7 +33,7 @@ case class InstallZshTabCompletions(userPaths: UserPaths, logger: Logger) extend
     val zshRc = Option(System.getenv("ZDOTDIR")).map(Path.of(_)).getOrElse(FileUtils.Home) / ".zshrc"
 
     PatchRcFile(None, logger, zshRc)(
-      s"""fpath=("$completionScriptDest" $$fpath)
+      s"""fpath=("$completionScriptDir" $$fpath)
          |compinit
          |""".stripMargin
     )
