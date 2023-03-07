@@ -9,6 +9,7 @@ import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
+import scala.collection.immutable.SortedSet
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Properties, Random, Success, Try}
 
@@ -41,7 +42,7 @@ object SetupBloopRifle {
       case Left(msg) => Left(new BleepException.ModuleFormatError(BloopRifleConfig.defaultModule, msg))
       case Right(mod) =>
         val dep = model.Dep.JavaDependency(mod.organization, mod.name, bloopVersion)
-        resolver.resolve(Set(dep), model.VersionCombo.Java) match {
+        resolver.resolve(Set(dep), model.VersionCombo.Java, libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme]) match {
           case Left(coursierError) =>
             Left(new BleepException.ResolveError(coursierError, "installing bloop"))
           case Right(value) =>

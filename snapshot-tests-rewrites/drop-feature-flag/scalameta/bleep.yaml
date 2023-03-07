@@ -2,6 +2,10 @@ $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
   bench:
+    cross:
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
     dependencies:
     - org.openjdk.jmh:jmh-core:1.32
     - org.openjdk.jmh:jmh-generator-bytecode:1.32
@@ -49,6 +53,10 @@ projects:
       project: scripts
     sources: ../../semanticdb/semanticdb
   communitytest:
+    cross:
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
     dependencies: org.scalameta::munit:0.7.29
     dependsOn: scalameta
     extends:
@@ -58,6 +66,10 @@ projects:
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   communitytest-test:
+    cross:
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
     dependsOn: communitytest
     extends:
     - template-common-test
@@ -66,10 +78,22 @@ projects:
     resources: ./src/${SCOPE}/protobuf
     sources: ./src/${SCOPE}/protobuf
   metac:
+    cross:
+      jvm2.11.12: {}
+      jvm2.12.16: {}
+      jvm2.13.8: {}
     dependsOn: semanticdb-scalac
     extends: template-cross-jvm-2.11.12-2.12.16-2.13.8
     folder: ../sbt-build/semanticdb/metac
   parsers:
+    cross:
+      js212: {}
+      js213: {}
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
+      native212: {}
+      native213: {}
     dependencies:
     - configuration: provided
       module: org.scala-lang:scala-compiler:${SCALA_VERSION}
@@ -91,6 +115,8 @@ projects:
     - ../transversers/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
   scalameta:
     cross:
+      js212: {}
+      js213: {}
       jvm211:
         sources:
         - ../../semanticdb/metacp
@@ -103,6 +129,8 @@ projects:
         sources:
         - ../../semanticdb/metacp
         - ../../semanticdb/symtab
+      native212: {}
+      native213: {}
     dependencies: org.scala-lang:scalap:${SCALA_VERSION}
     dependsOn: parsers
     extends:
@@ -119,6 +147,9 @@ projects:
     - ../contrib/shared/src/${SCOPE}/scala
     - ../contrib/shared/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
   scalameta-docs:
+    cross:
+      jvm212: {}
+      jvm213: {}
     dependencies: org.scalameta::mdoc:2.3.2
     dependsOn: scalameta
     extends:
@@ -137,10 +168,50 @@ projects:
     scala:
       version: 2.13.8
   semanticdb-scalac:
+    cross:
+      jvm2.11.12: {}
+      jvm2.12.10: {}
+      jvm2.12.11: {}
+      jvm2.12.12: {}
+      jvm2.12.13: {}
+      jvm2.12.14: {}
+      jvm2.12.15: {}
+      jvm2.12.16: {}
+      jvm2.12.8: {}
+      jvm2.12.9: {}
+      jvm2.13.0: {}
+      jvm2.13.1: {}
+      jvm2.13.2: {}
+      jvm2.13.3: {}
+      jvm2.13.4: {}
+      jvm2.13.5: {}
+      jvm2.13.6: {}
+      jvm2.13.7: {}
+      jvm2.13.8: {}
     dependsOn: semanticdb-scalac-core
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
     folder: ../sbt-build/semanticdb/scalac/plugin
   semanticdb-scalac-core:
+    cross:
+      jvm2.11.12: {}
+      jvm2.12.10: {}
+      jvm2.12.11: {}
+      jvm2.12.12: {}
+      jvm2.12.13: {}
+      jvm2.12.14: {}
+      jvm2.12.15: {}
+      jvm2.12.16: {}
+      jvm2.12.8: {}
+      jvm2.12.9: {}
+      jvm2.13.0: {}
+      jvm2.13.1: {}
+      jvm2.13.2: {}
+      jvm2.13.3: {}
+      jvm2.13.4: {}
+      jvm2.13.5: {}
+      jvm2.13.6: {}
+      jvm2.13.7: {}
+      jvm2.13.8: {}
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: scalameta
     extends: template-cross-jvm-2.11.12-2.12.10-2.12.11-2.12.12-2.12.13-2.12.14-2.12.15-2.12.16-2.12.8-2.12.9-2.13.0-2.13.1-2.13.2-2.13.3-2.13.4-2.13.5-2.13.6-2.13.7-2.13.8
@@ -168,6 +239,10 @@ projects:
       options: -Yrangepos -deprecation
     sources: ./src/${SCOPE}/protobuf
   semanticdbintegrationmacros:
+    cross:
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
     dependencies:
       configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
@@ -179,6 +254,8 @@ projects:
     sources: ./src/${SCOPE}/protobuf
   testkit:
     cross:
+      js212: {}
+      js213: {}
       jvm211:
         dependencies: org.rauschig:jarchivelib:1.2.0
       jvm212:
@@ -187,6 +264,8 @@ projects:
         dependencies:
         - org.rauschig:jarchivelib:1.2.0
         - org.scala-lang.modules::scala-parallel-collections:1.0.4
+      native212: {}
+      native213: {}
     dependencies:
     - com.lihaoyi::geny:0.7.1
     - org.scalameta::munit:0.7.29
@@ -198,6 +277,10 @@ projects:
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   testkit-test:
+    cross:
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
     dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
     dependsOn: testkit
     extends:
@@ -219,6 +302,8 @@ projects:
     - ./js-${PLATFORM}/src/${SCOPE}/scala-2
   tests:
     cross:
+      js212: {}
+      js213: {}
       jvm211:
         dependencies: io.get-coursier::coursier:2.0.0-RC5-6
         dependsOn:
@@ -234,6 +319,8 @@ projects:
         dependsOn:
         - metac
         - semanticdbintegration
+      native212: {}
+      native213: {}
     dependsOn: testkit
     extends:
     - template-common-main
@@ -245,6 +332,14 @@ projects:
       project: scripts
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   tests-test:
+    cross:
+      js212: {}
+      js213: {}
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
+      native212: {}
+      native213: {}
     dependsOn: tests
     extends:
     - template-common-test
@@ -253,6 +348,14 @@ projects:
     resources: ./${PLATFORM}/src/${SCOPE}/protobuf
     sources: ./${PLATFORM}/src/${SCOPE}/protobuf
   trees:
+    cross:
+      js212: {}
+      js213: {}
+      jvm211: {}
+      jvm212: {}
+      jvm213: {}
+      native212: {}
+      native213: {}
     dependencies:
     - configuration: provided
       module: org.scala-lang:scala-compiler:${SCALA_VERSION}

@@ -4,7 +4,6 @@ package commands
 import bleep.internal.BleepTemplateLogger
 import bleep.logging.Logger
 import bleep.templates.templatesInfer
-import bleep.{constants, model, BleepException}
 import cats.data.NonEmptyList
 
 import java.nio.file.{Files, Path}
@@ -162,7 +161,8 @@ object BuildCreateNew {
           ),
           isTestProject = None,
           testFrameworks = model.JsonSet.empty,
-          sourcegen = model.JsonSet.empty
+          sourcegen = model.JsonSet.empty,
+          libraryVersionSchemes = model.JsonSet.empty
         )
         (crossName, p)
       }
@@ -190,7 +190,8 @@ object BuildCreateNew {
           ),
           isTestProject = Some(true),
           testFrameworks = model.JsonSet.empty,
-          sourcegen = model.JsonSet.empty
+          sourcegen = model.JsonSet.empty,
+          libraryVersionSchemes = model.JsonSet.empty
         )
         (crossName, p)
       }

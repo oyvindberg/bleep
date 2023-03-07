@@ -1,9 +1,9 @@
 package bleep
 
+import bleep.depcheck.CheckEvictions
 import bleep.internal.codecs.*
 import bleep.internal.{FileUtils, ShortenAndSortJson}
 import bleep.logging.Logger
-import coursier.Fetch
 import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core.*
 import coursier.error.CoursierError
@@ -11,6 +11,7 @@ import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.params.ResolutionParams
 import coursier.util.{Artifact, Task}
+import coursier.{Artifacts, Fetch, Resolution}
 import io.circe.*
 import io.circe.syntax.*
 
@@ -21,13 +22,33 @@ import scala.collection.immutable.SortedSet
 trait CoursierResolver {
   val params: CoursierResolver.Params
 
-  def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result]
+  // uncached, raw result from coursier
+  def direct(
+      deps: SortedSet[model.Dep],
+      versionCombo: model.VersionCombo,
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+  ): Either[CoursierError, Fetch.Result]
 
-  final def resolve(deps: Iterable[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
-    resolve(SortedSet.empty[model.Dep] ++ deps, versionCombo)
+  def resolve(
+      deps: SortedSet[model.Dep],
+      versionCombo: model.VersionCombo,
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+  ): Either[CoursierError, CoursierResolver.Result]
 
-  final def force(deps: Set[model.Dep], versionCombo: model.VersionCombo, context: String): CoursierResolver.Result =
-    resolve(deps, versionCombo) match {
+  final def resolve(
+      deps: Iterable[model.Dep],
+      versionCombo: model.VersionCombo,
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+  ): Either[CoursierError, CoursierResolver.Result] =
+    resolve(SortedSet.empty[model.Dep] ++ deps, versionCombo, libraryVersionSchemes)
+
+  final def force(
+      deps: Set[model.Dep],
+      versionCombo: model.VersionCombo,
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+      context: String
+  ): CoursierResolver.Result =
+    resolve(deps, versionCombo, libraryVersionSchemes) match {
       case Left(err)    => throw new BleepException.ResolveError(err, context)
       case Right(value) => value
     }
@@ -74,7 +95,7 @@ object CoursierResolver {
         }
 
         val params = Params(None, downloadSources, config.authentications, resolvers)
-        val direct = new Direct(pre.cacheLogger, params)
+        val direct = new Direct(pre.logger, pre.cacheLogger, params)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version))
       }
@@ -143,26 +164,24 @@ object CoursierResolver {
 
   case class InvalidVersionCombo(message: String) extends CoursierError(message)
 
-  class Direct(val logger: BleepCacheLogger, val params: Params) extends CoursierResolver {
+  class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params) extends CoursierResolver {
 
-    val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(logger)
+    val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
     val repos = coursierRepos(params.repos, params.authentications)
 
-    override def resolve(bleepDeps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] = {
+    override def direct(
+        bleepDeps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, Fetch.Result] = {
       val maybeCoursierDependencies: Either[CoursierError, List[Dependency]] =
-        bleepDeps.foldLeft[Either[CoursierError, List[Dependency]]](Right(Nil)) {
-          case (e @ Left(_), _) => e
-          case (Right(acc), bleepDep) =>
-            bleepDep.asDependency(versionCombo) match {
-              case Left(errorMessage) => Left(InvalidVersionCombo(errorMessage))
-              case Right(coursierDep) => Right(coursierDep :: acc)
-            }
-        }
+        asCoursierDeps(bleepDeps, versionCombo)
 
       def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
         Fetch[Task](fileCache)
+          .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
           .withRepositories(repos)
           .withDependencies(deps)
           .withResolutionParams(
@@ -175,7 +194,7 @@ object CoursierResolver {
           .eitherResult() match {
           case Left(coursierError) if remainingAttempts > 0 =>
             val newRemainingAttempts = remainingAttempts - 1
-            logger.retrying(coursierError, newRemainingAttempts)
+            cacheLogger.retrying(coursierError, newRemainingAttempts)
             go(deps, newRemainingAttempts)
           case other => other
         }
@@ -184,17 +203,40 @@ object CoursierResolver {
       for {
         deps <- maybeCoursierDependencies
         res <- go(deps, remainingAttempts = 3)
-      } yield CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts)
+        _ <- CheckEvictions(versionCombo, deps, libraryVersionSchemes.toList, res, logger)
+      } yield res
     }
+
+    override def resolve(
+        bleepDeps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, CoursierResolver.Result] =
+      direct(bleepDeps, versionCombo, libraryVersionSchemes)
+        .map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))
   }
+
+  def asCoursierDeps(bleepDeps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, List[Dependency]] =
+    bleepDeps.foldLeft[Either[CoursierError, List[Dependency]]](Right(Nil)) {
+      case (e @ Left(_), _) => e
+      case (Right(acc), bleepDep) =>
+        bleepDep.asDependency(versionCombo) match {
+          case Left(errorMessage) => Left(InvalidVersionCombo(errorMessage))
+          case Right(coursierDep) => Right(coursierDep :: acc)
+        }
+    }
 
   // this is a performance cache, the real cache is the coursier folder
   private class Cached(logger: Logger, underlying: CoursierResolver, in: Path) extends CoursierResolver {
     override val params = underlying.params
-    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
-      if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo)
+    override def resolve(
+        deps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, CoursierResolver.Result] =
+      if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes)
       else {
-        val request = Cached.Request(deps, underlying.params, versionCombo)
+        val request = Cached.Request(deps, underlying.params, versionCombo, libraryVersionSchemes)
         val digest = request.asJson.foldWith(ShortenAndSortJson(Nil)).noSpaces.hashCode // should hopefully be stable
         val cachePath = in / s"$digest.json"
 
@@ -217,7 +259,7 @@ object CoursierResolver {
             val depNames = deps.map(_.baseModuleName.value)
             val ctxLogger = logger.withContext(cachePath).withContext(depNames).withContext(versionCombo.toString)
             ctxLogger.debug(s"coursier cache miss")
-            underlying.resolve(deps, versionCombo).map {
+            underlying.resolve(deps, versionCombo, libraryVersionSchemes).map {
               case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
                 ctxLogger.info("Not caching because result is changing")
                 changingResult
@@ -227,17 +269,32 @@ object CoursierResolver {
             }
         }
       }
+
+    override def direct(
+        deps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, Fetch.Result] =
+      underlying.direct(deps, versionCombo, libraryVersionSchemes)
   }
 
   object Cached {
-    case class Request(wanted: SortedSet[model.Dep], params: Params, versionCombo: model.VersionCombo)
+    case class Request(
+        wanted: SortedSet[model.Dep],
+        params: Params,
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    )
 
     object Request {
 
       implicit val codec: Codec[Request] =
-        Codec.forProduct3[Request, SortedSet[model.Dep], Params, model.VersionCombo]("wanted", "params", "forceScalaVersion")(Request.apply)(x =>
-          (x.wanted, x.params, x.versionCombo)
-        )
+        Codec.forProduct4[Request, SortedSet[model.Dep], Params, model.VersionCombo, SortedSet[model.LibraryVersionScheme]](
+          "wanted",
+          "params",
+          "forceScalaVersion",
+          "libraryVersionSchemes"
+        )(Request.apply)(x => (x.wanted, x.params, x.versionCombo, x.libraryVersionSchemes))
     }
 
     case class Both(request: Request, result: Result)
@@ -246,12 +303,26 @@ object CoursierResolver {
     }
   }
 
-  class TemplatedVersions(outer: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
-    override val params = outer.params
-    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, Result] = {
+  class TemplatedVersions(underlying: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
+    override val params = underlying.params
+    override def resolve(
+        deps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, Result] =
+      underlying.resolve(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes)
+
+    override def direct(
+        deps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, Fetch.Result] =
+      underlying.direct(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes)
+
+    def rewriteDeps(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): SortedSet[model.Dep] = {
       val replacements = model.Replacements.versions(maybeWantedBleepVersion, versionCombo, includeEpoch = true, includeBinVersion = true)
       val rewrittenDeps = deps.map(replacements.fill.dep)
-      outer.resolve(rewrittenDeps, versionCombo)
+      rewrittenDeps
     }
   }
 }

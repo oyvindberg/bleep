@@ -264,7 +264,7 @@ object GenBloopFiles {
       val filteredInherited = inherited.filterNot(providedOrOptional)
 
       val deps = explodedProject.dependencies.values ++ (filteredInherited ++ fromPlatform)
-      val normal = resolver.force(deps, versionCombo, crossName.value)
+      val normal = resolver.force(deps, versionCombo, explodedProject.libraryVersionSchemes.values, crossName.value)
 
       val runtime =
         if (explodedProject.dependencies.values.exists(providedOrOptional) || inherited.size != filteredInherited.size) {
@@ -276,7 +276,7 @@ object GenBloopFiles {
             optionalsFromProject.map(_.withConfiguration(Configuration.empty))
 
           val deps = (filteredInherited ++ restFromProject ++ noLongerOptionalsFromProject ++ fromPlatform).toSet
-          resolver.force(deps, versionCombo, crossName.value)
+          resolver.force(deps, versionCombo, explodedProject.libraryVersionSchemes.values, crossName.value)
         } else normal
 
       (normal, runtime)
@@ -322,7 +322,7 @@ object GenBloopFiles {
         val compiler = scalaVersion.compiler.mapScala(_.copy(forceJvm = true)).asJava(versionCombo).getOrElse(sys.error("unexpected"))
 
         val resolvedScalaCompiler: List[Path] =
-          resolver.force(Set(compiler), versionCombo = versionCombo, crossName.value).jars
+          resolver.force(Set(compiler), versionCombo = versionCombo, libraryVersionSchemes = SortedSet.empty, crossName.value).jars
 
         val setup = {
           val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
@@ -343,7 +343,7 @@ object GenBloopFiles {
 
           val jars: Seq[Path] =
             resolver
-              .force(deps, versionCombo, crossName.value)
+              .force(deps, versionCombo, explodedProject.libraryVersionSchemes.values, crossName.value)
               .fullDetailedArtifacts
               .collect { case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath }
 
