@@ -77,7 +77,8 @@ object generateBuild {
           platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
           isTestProject = None,
           testFrameworks = model.JsonSet.empty,
-          sourcegen = model.JsonSet.empty
+          sourcegen = model.JsonSet.empty,
+          libraryVersionSchemes = model.JsonSet.empty
         )
 
         val buildWithScript = buildFile1.copy(

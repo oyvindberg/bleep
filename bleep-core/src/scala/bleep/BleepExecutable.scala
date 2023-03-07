@@ -7,6 +7,7 @@ import coursier.core.{ModuleName, Organization}
 
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Path}
+import scala.collection.immutable.SortedSet
 
 sealed trait BleepExecutable {
   def command: Path
@@ -44,7 +45,8 @@ object BleepExecutable {
           val resolvedBleep = resolver.force(
             Set(bleepCliDep),
             model.VersionCombo.Jvm(model.VersionScala.Scala213),
-            s"resolving bleep ${latestRelease.value} from maven central"
+            libraryVersionSchemes = SortedSet.empty,
+            context = s"resolving bleep ${latestRelease.value} from maven central"
           )
 
           DownloadedJava(

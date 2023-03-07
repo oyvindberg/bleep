@@ -157,6 +157,9 @@ object Main {
                     projectNames.map(commands.BuildShow.Bloop.apply)
                   )
                 ).foldK
+              ),
+              Opts.subcommand("evicted", "show eviction warnings for project")(
+                projectNames.map(projectNames => commands.Evicted(projectNames))
               )
             ).foldK
           ),

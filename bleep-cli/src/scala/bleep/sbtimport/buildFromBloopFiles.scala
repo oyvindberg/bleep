@@ -162,7 +162,8 @@ object buildFromBloopFiles {
         `sbt-scope` = Some(projectType.sbtScope),
         isTestProject = if (projectType.testLike) Some(true) else None,
         testFrameworks = testFrameworks,
-        sourcegen = model.JsonSet.empty // TODO can we do better ?
+        sourcegen = model.JsonSet.empty,
+        libraryVersionSchemes = model.JsonSet.empty
       )
     }
 

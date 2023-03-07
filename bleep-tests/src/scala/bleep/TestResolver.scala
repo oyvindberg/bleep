@@ -2,6 +2,7 @@ package bleep
 
 import bleep.CoursierResolver.Cached
 import bleep.internal.FileUtils
+import coursier.Fetch
 import coursier.error.CoursierError
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
@@ -16,15 +17,19 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
     extends CoursierResolver {
   override val params = underlying.params
 
-  override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
-    if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo)
+  override def resolve(
+      deps: SortedSet[model.Dep],
+      versionCombo: model.VersionCombo,
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+  ): Either[CoursierError, CoursierResolver.Result] =
+    if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes)
     else {
-      val request = CoursierResolver.Cached.Request(deps, underlying.params, versionCombo)
+      val request = CoursierResolver.Cached.Request(deps, underlying.params, versionCombo, libraryVersionSchemes)
 
       inMemoryCache.get(request) match {
         case Some(value) => Right(value)
         case None =>
-          underlying.resolve(deps, versionCombo).map {
+          underlying.resolve(deps, versionCombo, libraryVersionSchemes).map {
             case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
               sys.error("tests are not allowed to use changing artifacts as it will be too slow")
             case result =>
@@ -33,12 +38,33 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
           }
       }
     }
+
+  override def direct(
+      deps: SortedSet[model.Dep],
+      versionCombo: model.VersionCombo,
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+  ): Either[CoursierError, Fetch.Result] =
+    underlying.direct(deps, versionCombo, libraryVersionSchemes)
 }
 
 object TestResolver {
   case class NoDownloadInCI(params: CoursierResolver.Params) extends CoursierResolver {
-    override def resolve(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, CoursierResolver.Result] =
-      Left(new CoursierError("tried to download dependencies in CI. This is because the resolve cache is not filled properly") {})
+    private def complain =
+      new CoursierError("tried to download dependencies in CI. This is because the resolve cache is not filled properly") {}
+
+    override def resolve(
+        deps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, CoursierResolver.Result] =
+      Left(complain)
+
+    override def direct(
+        deps: SortedSet[model.Dep],
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Either[CoursierError, Fetch.Result] =
+      Left(complain)
   }
 
   def withFactory[T](isCi: Boolean, cacheFolder: Path, replacements: model.Replacements)(f: CoursierResolver.Factory => T): T = {
@@ -75,7 +101,7 @@ object TestResolver {
         authentications = None,
         repos = resolvers
       )
-      val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.cacheLogger, params)
+      val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.logger, pre.cacheLogger, params)
       val cached = new TestResolver(underlying, inMemoryCache)
       new CoursierResolver.TemplatedVersions(cached, maybeWantedBleepVersion = None)
     }
