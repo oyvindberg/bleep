@@ -70,6 +70,8 @@ object Demo {
          |
          |cd zio-http
          |
+         |git checkout v2.0.0-RC11>/dev/null
+         |
          |# import into bleep. note that this is a one-time, slow step
          |$bleep import
          |
@@ -77,7 +79,7 @@ object Demo {
          |$bleep projects
          |
          |# run tests for one scala 3 module
-         |$bleep test zio-http-logging-test@jvm3
+         |$bleep test zhttp-logging-test@jvm3
          |""".stripMargin
   }
 

@@ -1,76 +1,65 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M20
+$version: 0.0.1-M26
 projects:
+  example:
+    dependencies: com.github.jwt-scala::jwt-core:9.1.0
+    dependsOn: zhttp
+    extends:
+    - template-common-main
+    - template-cross-all
   scripts:
     dependencies: build.bleep::bleep-core:${BLEEP_VERSION}
     platform:
       name: jvm
     scala:
       version: 3.2.0
-  zio-http:
+  zhttp:
     cross:
       jvm212:
         dependencies: org.scala-lang.modules::scala-collection-compat:2.8.1
     dependencies:
-    - dev.zio::zio-schema-json:0.2.1
-    - dev.zio::zio-schema:0.2.1
-    - dev.zio::zio-streams:2.0.3
-    - module: io.netty.incubator:netty-incubator-transport-native-io_uring:0.0.15.Final
+    - dev.zio::zio-streams:2.0.1
+    - dev.zio::zio:2.0.1
+    - module: io.netty.incubator:netty-incubator-transport-native-io_uring:0.0.14.Final
       publication:
         classifier: linux-x86_64
         ext: jar
         name: netty-incubator-transport-native-io_uring
         type: jar
-    - io.netty:netty-codec-http:4.1.82.Final
-    - io.netty:netty-handler-proxy:4.1.82.Final
-    - io.netty:netty-transport-native-epoll:4.1.82.Final
-    - module: io.netty:netty-transport-native-epoll:4.1.82.Final
+    - io.netty:netty-codec-http:4.1.80.Final
+    - io.netty:netty-handler-proxy:4.1.80.Final
+    - io.netty:netty-transport-native-epoll:4.1.80.Final
+    - module: io.netty:netty-transport-native-epoll:4.1.80.Final
       publication:
         classifier: linux-aarch_64
         ext: jar
         name: netty-transport-native-epoll
         type: jar
-    - module: io.netty:netty-transport-native-epoll:4.1.82.Final
+    - module: io.netty:netty-transport-native-epoll:4.1.80.Final
       publication:
         classifier: linux-x86_64
         ext: jar
         name: netty-transport-native-epoll
         type: jar
-    - io.netty:netty-transport-native-kqueue:4.1.82.Final
-    - module: io.netty:netty-transport-native-kqueue:4.1.82.Final
+    - io.netty:netty-transport-native-kqueue:4.1.80.Final
+    - module: io.netty:netty-transport-native-kqueue:4.1.80.Final
       publication:
         classifier: osx-aarch_64
         ext: jar
         name: netty-transport-native-kqueue
         type: jar
-    - module: io.netty:netty-transport-native-kqueue:4.1.82.Final
+    - module: io.netty:netty-transport-native-kqueue:4.1.80.Final
       publication:
         classifier: osx-x86_64
         ext: jar
         name: netty-transport-native-kqueue
         type: jar
-    dependsOn: zio-http-logging
+    dependsOn: zhttp-logging
     extends:
     - template-common-main
     - template-cross-all
-  zio-http-benchmarks:
-    dependencies:
-    - com.softwaremill.sttp.tapir::tapir-http4s-server:1.1.4
-    - com.softwaremill.sttp.tapir::tapir-json-circe:1.1.4
-    - org.openjdk.jmh:jmh-core:1.32
-    - org.openjdk.jmh:jmh-generator-bytecode:1.32
-    - org.openjdk.jmh:jmh-generator-reflection:1.32
-    dependsOn: zio-http
-    extends:
-    - template-common-main
-    - template-cross-all
-  zio-http-example:
-    dependencies: com.github.jwt-scala::jwt-core:9.1.1
-    dependsOn: zio-http
-    extends:
-    - template-common-main
-    - template-cross-all
-  zio-http-logging:
+    folder: ./zio-http
+  zhttp-logging:
     cross:
       jvm212:
         dependencies:
@@ -80,11 +69,11 @@ projects:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-    dependencies: dev.zio::zio:2.0.3
     extends:
     - template-common-main
     - template-cross-all
-  zio-http-logging-test:
+    folder: ./zio-http-logging
+  zhttp-logging-test:
     cross:
       jvm212:
         dependencies:
@@ -94,34 +83,31 @@ projects:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-    dependsOn: zio-http-logging
+    dependsOn: zhttp-logging
     extends:
     - template-common-test
     - template-cross-all
     folder: ./zio-http-logging
-  zio-http-test:
-    dependsOn: zio-http
+  zhttp-test:
+    dependsOn: zhttp
     extends:
     - template-common-test
     - template-cross-all
     folder: ./zio-http
-  zio-http-testkit:
-    dependsOn: zio-http
+  zhttpbenchmarks:
+    dependencies:
+    - org.openjdk.jmh:jmh-core:1.32
+    - org.openjdk.jmh:jmh-generator-bytecode:1.32
+    - org.openjdk.jmh:jmh-generator-reflection:1.32
+    dependsOn: zhttp
     extends:
     - template-common-main
     - template-cross-all
-  zio-http-testkit-test:
-    dependsOn: zio-http-testkit
-    extends:
-    - template-common-test
-    - template-cross-all
-    folder: ./zio-http-testkit
-scripts:
-  generate-resources: scripts/scripts.GenerateResources
+    folder: ./zio-http-benchmarks
 templates:
   template-common:
     platform:
-      jvmOptions: -DZIOHttpLogLevel=INFO -Dio.netty.leakDetectionLevel=paranoid -Duser.dir=${PROJECT_DIR}
+      jvmOptions: -DZHttpLogLevel=INFO -Dio.netty.leakDetectionLevel=paranoid -Duser.dir=${PROJECT_DIR}
       name: jvm
     scala:
       options: -deprecation -encoding UTF-8 -feature -language:postfixOps -unchecked
@@ -130,8 +116,8 @@ templates:
     sbt-scope: main
   template-common-test:
     dependencies:
-    - dev.zio::zio-test-sbt:2.0.3
-    - dev.zio::zio-test:2.0.3
+    - dev.zio::zio-test-sbt:2.0.1
+    - dev.zio::zio-test:2.0.1
     extends: template-common
     isTestProject: true
     sbt-scope: test
@@ -146,29 +132,27 @@ templates:
         extends: template-scala-3
   template-scala-2:
     scala:
-      options: -Wconf:cat=unused:info -Xcheckinit -Xfatal-warnings -Xlint:-infer-any
-        -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
-        -Xlint:doc-detached -Xlint:inaccessible -Xlint:missing-interpolator -Xlint:nullary-unit
-        -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+      options: -Xcheckinit -Xfatal-warnings -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
+        -Xlint:deprecation -Xlint:doc-detached -Xlint:inaccessible -Xlint:missing-interpolator
+        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
         -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -Ybackend-parallelism
         8 -Ycache-macro-class-loader:last-modified -Ycache-plugin-class-loader:last-modified
         -Yrangepos -encoding utf-8 -explaintypes -language:existentials -language:higherKinds
-        -opt:l:inline
   template-scala-2.12:
     extends: template-scala-2
     scala:
-      options: -Xlint:_,-missing-interpolator,-type-parameter-shadow,-infer-any -Ywarn-macros:after
+      options: -Xlint:_,-missing-interpolator,-type-parameter-shadow -Ywarn-macros:after
         -Ywarn-numeric-widen -Ywarn-unused:-implicits
       version: 2.12.16
   template-scala-2.13:
     extends: template-scala-2
     scala:
       options: -Wdead-code -Wextra-implicit -Wmacros:after -Wnumeric-widen -Woctal-literal
-        -Wunused:locals -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:eta-sam
-        -Xlint:eta-zero -Xlint:implicit-not-found -Xlint:nonlocal-return -Xlint:serial
-        -Xlint:valpattern
+        -Wunused:imports -Wunused:locals -Wunused:patvars -Wunused:privates -Wvalue-discard
+        -Xlint:eta-sam -Xlint:eta-zero -Xlint:implicit-not-found -Xlint:nonlocal-return
+        -Xlint:serial -Xlint:valpattern
       version: 2.13.8
   template-scala-3:
     scala:
       options: -source:3.0-migration
-      version: 3.2.0
+      version: 3.1.3
