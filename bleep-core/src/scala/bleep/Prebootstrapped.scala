@@ -21,7 +21,7 @@ case class Prebootstrapped(
     existingBuild.buildFile.map { maybeBuild =>
       val jvm = maybeBuild.orThrow.jvm.getOrElse {
         logger.warn(
-          s"You build uses the default system JVM, which can change outside the build. for stable builds over time, let bleep manage your chosen JVM by adding it to ${BuildLoader.BuildFileName}"
+          s"Your build uses the default system JVM, which can change outside the build. For stable builds over time, let bleep manage your chosen JVM by adding it to ${BuildLoader.BuildFileName}"
         )
         model.Jvm.system
       }
