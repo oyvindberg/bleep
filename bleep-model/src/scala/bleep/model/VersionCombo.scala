@@ -1,7 +1,7 @@
 package bleep.model
 
-import io.circe.Codec
-import io.circe.generic.semiauto.deriveCodec
+import io.circe.*
+import io.circe.syntax.*
 
 /** Encodes legal combinations of scala versions and platform versions */
 sealed trait VersionCombo {
@@ -35,7 +35,39 @@ sealed trait VersionCombo {
 }
 
 object VersionCombo {
-  implicit val codec: Codec[VersionCombo] = deriveCodec
+
+  implicit val encoder: Encoder[VersionCombo] =
+    Encoder.instance {
+      case Java =>
+        Json.obj("Java" -> Json.Null)
+      case Jvm(scalaVersion) =>
+        Json.obj("Jvm" := Json.obj("scalaVersion" := scalaVersion))
+      case Js(scalaVersion, scalaJsVersion) =>
+        Json.obj("Js" := Json.obj("scalaVersion" := scalaVersion, "scalaJsVersion" := scalaJsVersion))
+      case Native(scalaVersion, scalaNative) =>
+        Json.obj("Native" := Json.obj("scalaVersion" := scalaVersion, "scalaNative" := scalaNative))
+    }
+
+  implicit val decoder: Decoder[VersionCombo] =
+    (c: HCursor) =>
+      c.keys.flatMap(_.headOption) match {
+        case Some("Java") =>
+          Right(Java)
+        case Some("Jvm") =>
+          c.downField("Jvm").downField("scalaVersion").as[VersionScala].map(Jvm.apply)
+        case Some("Js") =>
+          for {
+            scalaVersion <- c.downField("Js").downField("scalaVersion").as[VersionScala]
+            scalaJsVersion <- c.downField("Js").downField("scalaJsVersion").as[VersionScalaJs]
+          } yield Js(scalaVersion, scalaJsVersion)
+        case Some("Native") =>
+          for {
+            scalaVersion <- c.downField("Native").downField("scalaVersion").as[VersionScala]
+            scalaNative <- c.downField("Native").downField("scalaNative").as[VersionScalaNative]
+          } yield Native(scalaVersion, scalaNative)
+        case _ =>
+          Left(DecodingFailure("expected object with one of `Java`, `Jvm`, `Js` or `Native` keys", c.history))
+      }
 
   case object Java extends VersionCombo {
     override val compilerPlugin: Option[Dep] = None
