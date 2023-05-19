@@ -31,6 +31,12 @@ export default function Home() {
       title={`Hello from ${siteConfig.title}`}
       description="Description will go into a meta tag in <head />"
     >
+      <div className="mainContainer" dangerouslySetInnerHTML={{
+        // disable front page. this is how we make the redirect work with the server side rendering
+        __html: "<script> window.location.href = 'docs';</script>"
+      }}>
+      </div>
+
       <HomepageHeader />
       <main>
         <HomepageFeatures />
