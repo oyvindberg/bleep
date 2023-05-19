@@ -7,7 +7,7 @@ import ch.epfl.scala.bsp4j
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.collection.SortedMap
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 trait BuildChangeTracker {
   def ensureBloopUpToDate(): Either[BleepException, Started]

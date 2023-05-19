@@ -13,7 +13,7 @@ import java.util.function.BiFunction
 import scala.build.bloop.BuildServer
 import scala.build.blooprifle.internal.Constants
 import scala.concurrent.{Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Random
 
 class BleepBspServer(

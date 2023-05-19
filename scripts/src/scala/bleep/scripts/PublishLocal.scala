@@ -1,6 +1,6 @@
 package bleep.scripts
 
-import bleep._
+import bleep.*
 import bleep.plugin.dynver.DynVerPlugin
 
 object PublishLocal extends BleepScript("PublishLocal") {

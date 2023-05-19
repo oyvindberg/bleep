@@ -5,7 +5,7 @@ import bleep.internal.{codecs, parseBloopFile, FileUtils, GeneratedFile}
 import bloop.config.Config
 import coursier.core.Configuration
 import io.circe.Codec
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.*
 import sbt.librarymanagement.CrossVersion
 
 import java.nio.file.{Files, Path}
@@ -111,7 +111,7 @@ case class ImportInputData(
 }
 
 object ImportInputData {
-  import codecs._
+  import codecs.*
   model.assertUsed(codecPath)
   implicit val codec: Codec.AsObject[ImportInputData] = deriveCodec
 

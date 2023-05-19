@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.compat._
+import bleep.internal.compat.*
 import bleep.internal.jvmRunCommand
 import bleep.logging.Logger
 import coursier.core.{ModuleName, Organization}

@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp4j
 
 import java.util
 import scala.build.bloop.BuildServer
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object discoverMain {
   def apply(logger: Logger, bloop: BuildServer, inProject: bsp4j.BuildTargetIdentifier): Either[BleepException, String] = {

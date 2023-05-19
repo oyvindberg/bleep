@@ -3,7 +3,7 @@ package bleep
 import bleep.internal.TransitiveProjects
 
 import java.nio.file.Path
-import scala.collection.compat._
+import scala.collection.compat.*
 
 object BleepFileWatching {
   model.assertUsed(immutable.LazyList) // silence warning

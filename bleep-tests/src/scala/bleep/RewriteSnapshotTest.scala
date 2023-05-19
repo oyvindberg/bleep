@@ -4,7 +4,7 @@ import bleep.rewrites.{keepSelectedProjects, BuildRewrite}
 import bleep.testing.SnapshotTest
 
 import java.nio.file.{Files, Path}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class RewriteSnapshotTest extends SnapshotTest {
   // todo: yes, this means that this test has a dependency upon the other tests. find a better way

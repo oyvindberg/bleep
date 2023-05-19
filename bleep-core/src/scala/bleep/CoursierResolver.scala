@@ -1,18 +1,18 @@
 package bleep
 
-import bleep.internal.codecs._
+import bleep.internal.codecs.*
 import bleep.internal.{FileUtils, ShortenAndSortJson}
 import bleep.logging.Logger
 import coursier.Fetch
 import coursier.cache.{CacheDefaults, FileCache}
-import coursier.core._
+import coursier.core.*
 import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.params.ResolutionParams
 import coursier.util.{Artifact, Task}
-import io.circe._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.syntax.*
 
 import java.io.File
 import java.nio.file.{Files, Path}

@@ -1,6 +1,6 @@
 package bleep.model
 
-import io.circe._
+import io.circe.*
 
 case class CrossProjectName(name: ProjectName, crossId: Option[CrossId]) {
   val value: String =

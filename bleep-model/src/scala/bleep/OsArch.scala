@@ -23,7 +23,7 @@ object OsArch {
     if (sys.env.contains("BLEEP_ALLOW_AMD64")) false
     else {
       // todo: can we discover this without running a process?
-      import scala.sys.process._
+      import scala.sys.process.*
       val uname = Seq("uname", "-a").!!.toLowerCase
       uname.contains("arm64")
     }

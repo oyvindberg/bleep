@@ -1,7 +1,7 @@
 package bleep.model
 
 import bleep.RelPath
-import io.circe._
+import io.circe.*
 import io.circe.generic.semiauto.deriveCodec
 
 sealed trait ScriptDef {

@@ -158,13 +158,15 @@ templates:
     cross:
       jvm212:
         scala:
+          options: -Xsource:3
           version: 2.12.15
     extends: template-cross-new
   template-cross-new:
     cross:
       jvm213:
         scala:
-          version: 2.13.8
+          options: -Xsource:3
+          version: 2.13.10
       jvm3:
         extends: template-scala-3
     extends: template-common

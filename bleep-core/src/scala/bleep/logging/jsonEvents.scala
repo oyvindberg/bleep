@@ -40,7 +40,7 @@ private object jsonEvents {
   /** For used in called program, so it outputs all log events in json
     */
   final class SerializeLogEvents[U <: Appendable](val underlying: U, val context: Ctx, val path: List[String]) extends TypedLogger[U] {
-    import io.circe.syntax._
+    import io.circe.syntax.*
 
     override def log[T: Formatter](t: => T, throwable: Option[Throwable], metadata: Metadata): Unit = {
       val jsonEvent = JsonEvent.from(t, throwable, metadata, context, path)

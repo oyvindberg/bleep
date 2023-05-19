@@ -8,9 +8,9 @@ import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
 import java.time.{Duration, Instant}
 import scala.build.bloop.BuildServer
-import scala.collection.compat._
+import scala.collection.compat.*
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 object DoSourceGen {

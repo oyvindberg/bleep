@@ -5,11 +5,11 @@ import bleep.bsp.BspProjectSelection
 import bleep.internal.FileUtils
 import ch.epfl.scala.bsp4j
 import io.circe.Encoder
-import io.circe.syntax._
+import io.circe.syntax.*
 
 import java.nio.file.Files
 import java.util
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 case class SetupIde(maybeSelectedProjects: Option[List[String]], forceJvm: Boolean) extends BleepBuildCommand {
   implicit def encodesUtilList[T: Encoder]: Encoder[util.List[T]] = Encoder[List[T]].contramap(_.asScala.toList)

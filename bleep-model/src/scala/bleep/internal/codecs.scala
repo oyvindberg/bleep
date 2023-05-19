@@ -1,7 +1,7 @@
 package bleep.internal
 
-import coursier.core._
-import io.circe._
+import coursier.core.*
+import io.circe.*
 
 import java.io.File
 import java.net.URI

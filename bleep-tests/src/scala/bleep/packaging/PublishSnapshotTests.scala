@@ -2,7 +2,7 @@ package bleep.packaging
 
 import bleep.PathOps
 import bleep.testing.SnapshotTest
-import coursier.core._
+import coursier.core.*
 
 class PublishSnapshotTests extends SnapshotTest {
   test("maven") {

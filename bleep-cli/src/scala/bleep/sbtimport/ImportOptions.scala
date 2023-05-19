@@ -1,7 +1,7 @@
 package bleep
 package sbtimport
 
-import cats.syntax.apply._
+import cats.syntax.apply.*
 import com.monovore.decline.Opts
 
 case class ImportOptions(

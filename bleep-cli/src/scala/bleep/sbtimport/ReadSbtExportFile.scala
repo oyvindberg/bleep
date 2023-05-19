@@ -30,7 +30,7 @@ object ReadSbtExportFile {
   )
 
   object ExportedProject {
-    import sbt.librarymanagement.LibraryManagementCodec._
+    import sbt.librarymanagement.LibraryManagementCodec.*
 
     implicit val format: JsonFormat[ExportedProject] = new JsonFormat[ExportedProject] {
       override def read[J](jsOpt: Option[J], unbuilder: Unbuilder[J]): ExportedProject =

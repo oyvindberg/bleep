@@ -1,6 +1,6 @@
 package com.monovore.decline
 
-import com.monovore.decline.Completer._
+import com.monovore.decline.Completer.*
 
 import scala.util.hashing.MurmurHash3
 

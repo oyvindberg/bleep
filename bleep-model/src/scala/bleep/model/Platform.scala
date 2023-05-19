@@ -1,6 +1,6 @@
 package bleep.model
 
-import io.circe._
+import io.circe.*
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 case class Platform(

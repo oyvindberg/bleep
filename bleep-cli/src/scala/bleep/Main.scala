@@ -5,9 +5,9 @@ import bleep.internal.{bleepLoggers, fatal, FileUtils}
 import bleep.logging.Logger
 import bleep.model.{BleepVersion, Os}
 import cats.data.NonEmptyList
-import cats.syntax.apply._
-import cats.syntax.foldable._
-import com.monovore.decline._
+import cats.syntax.apply.*
+import cats.syntax.foldable.*
+import com.monovore.decline.*
 import coursier.jvm.Execve
 
 import java.nio.file.{Path, Paths}

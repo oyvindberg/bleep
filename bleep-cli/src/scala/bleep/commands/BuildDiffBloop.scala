@@ -4,16 +4,16 @@ package commands
 import bleep.{BuildLoader, Lazy}
 import bloop.config.{Config, ConfigCodecs}
 import cats.Show
-import cats.syntax.show._
+import cats.syntax.show.*
 import com.github.plokhotnyuk.jsoniter_scala.core.writeToString
-import diffson._
+import diffson.*
 import diffson.circe.jsonyCirce
-import diffson.jsonpatch._
+import diffson.jsonpatch.*
 import diffson.jsonpatch.lcsdiff.remembering.JsonDiffDiff
 import diffson.lcs.Patience
 import fansi.Color.{Green, Red}
 import fansi.Str
-import io.circe._
+import io.circe.*
 
 import scala.collection.immutable.SortedSet
 import scala.util.control.NonFatal

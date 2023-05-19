@@ -5,7 +5,7 @@ import bleep.logging.Logger
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, IOException}
 import java.nio.charset.StandardCharsets
-import java.nio.file._
+import java.nio.file.*
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.zip.{GZIPInputStream, GZIPOutputStream}
 import scala.util.Properties

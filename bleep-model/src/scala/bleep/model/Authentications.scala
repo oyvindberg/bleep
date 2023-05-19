@@ -2,7 +2,7 @@ package bleep
 package model
 
 import coursier.core.Authentication
-import io.circe._
+import io.circe.*
 
 import java.net.URI
 

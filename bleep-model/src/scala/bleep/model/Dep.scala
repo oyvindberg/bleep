@@ -2,9 +2,9 @@ package bleep
 package model
 
 import bleep.internal.ShortenAndSortJson
-import bleep.internal.codecs._
-import coursier.core._
-import io.circe.syntax._
+import bleep.internal.codecs.*
+import coursier.core.*
+import io.circe.syntax.*
 import io.circe.{Decoder, DecodingFailure, Encoder, Json}
 
 sealed trait Dep {

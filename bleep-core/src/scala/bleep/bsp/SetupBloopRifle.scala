@@ -6,7 +6,7 @@ import bleep.model.CompileServerMode
 import coursier.parse.ModuleParser
 
 import java.io.File
-import java.nio.file._
+import java.nio.file.*
 import java.nio.file.attribute.PosixFilePermission
 import scala.build.blooprifle.BloopRifleConfig
 import scala.concurrent.duration.DurationInt

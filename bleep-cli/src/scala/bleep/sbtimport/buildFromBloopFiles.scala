@@ -477,7 +477,7 @@ object buildFromBloopFiles {
           jsJsdom = config.jsdom,
           jsNodeVersion = config.nodePath
             .map { nodePath =>
-              import scala.sys.process._
+              import scala.sys.process.*
               List(nodePath.toString, "--version").!!.drop(1) // initial v
             }
             .orElse(Some(constants.Node)),

@@ -1,8 +1,8 @@
 package com.monovore.decline
 
 import cats.data.{NonEmptyList, Validated}
-import cats.syntax.apply._
-import cats.syntax.foldable._
+import cats.syntax.apply.*
+import cats.syntax.foldable.*
 import com.monovore.decline.Completer.Completion
 import org.scalactic.TypeCheckedTripleEquals
 import org.scalatest.funsuite.AnyFunSuite
