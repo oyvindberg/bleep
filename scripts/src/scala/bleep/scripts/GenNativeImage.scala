@@ -5,7 +5,7 @@ import bleep.plugin.nativeimage.NativeImagePlugin
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm3")))
+    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm213")))
     val project = started.bloopProject(projectName)
     commands.compile(List(projectName))
 
