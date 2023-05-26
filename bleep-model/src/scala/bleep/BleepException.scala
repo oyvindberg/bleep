@@ -15,6 +15,7 @@ abstract class BleepException(
     val message: String,
     cause: Throwable = null
 ) extends Exception(message, cause)
+    with Serializable
 
 object BleepException {
   class BuildNotFound(cwd: Path) extends BleepException(s"Couldn't find ${BuildLoader.BuildFileName} in directories in or above $cwd")

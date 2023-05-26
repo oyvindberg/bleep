@@ -13,7 +13,7 @@
       "scalafixinternalrules@jvm3"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternalrules/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/resources"
@@ -85,6 +85,18 @@
       "modules": [
         {
           "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.1.1",
           "configurations": "default",
@@ -92,18 +104,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
             }
           ]
         }
