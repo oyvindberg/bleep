@@ -15,7 +15,7 @@
       "tapir-apispec-model@jvm3"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-apispec-model/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/apispec/apispec-model/src/main/resources"
@@ -88,6 +88,18 @@
       "modules": [
         {
           "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.1.0",
           "configurations": "default",
@@ -95,18 +107,6 @@
             {
               "name": "scala3-library_3",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
             }
           ]
         }

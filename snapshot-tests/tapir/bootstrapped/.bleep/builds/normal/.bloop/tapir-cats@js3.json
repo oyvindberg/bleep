@@ -26,8 +26,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_3/1.0.0/scala-js-macrotask-executor_sjs1_3-1.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_3/2.0.0/scalajs-dom_sjs1_3-2.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.8.0/scalajs-library_2.13-1.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.0.0/scala3-library_3-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.1.0/scala3-library_sjs1_3-3.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_3/2.7.0/cats-core_sjs1_3-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_sjs1_3/3.3.0/cats-effect-kernel_sjs1_3-3.3.0.jar",
@@ -126,12 +126,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
-          "version": "3.0.0",
+          "version": "3.1.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.0.0/scala3-library_3-3.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar"
             }
           ]
         },
@@ -210,12 +210,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.6",
+          "version": "2.13.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
             }
           ]
         },

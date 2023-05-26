@@ -22,7 +22,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/postgresql/postgresql/42.3.2/postgresql-42.3.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_3/2.6.0/scala-collection-compat_3-2.6.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.1/scala3-library_3-3.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.30/scodec-bits_3-1.1.30.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
@@ -169,12 +169,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.6",
+          "version": "2.13.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
             }
           ]
         },

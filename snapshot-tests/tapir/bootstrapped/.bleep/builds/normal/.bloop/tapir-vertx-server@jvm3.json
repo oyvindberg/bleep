@@ -47,7 +47,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-core/4.2.1/vertx-core-4.2.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web-common/4.2.1/vertx-web-common-4.2.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web/4.2.1/vertx-web-4.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.1.0/scala3-library_3-3.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_3/1.1.29/scodec-bits_3-1.1.29.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.6.1/cats-core_3-2.6.1.jar",
@@ -465,12 +465,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.6",
+          "version": "2.13.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
             }
           ]
         },

@@ -18,9 +18,10 @@
     "classpath": [
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_sjs1_3/0.3.1/fansi_sjs1_3-0.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_sjs1_3/0.2.8/sourcecode_sjs1_3-0.2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.2.0/scala3-library_sjs1_3-3.2.0.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.13.1/scalajs-javalib-1.13.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.13.1/scalajs-library_2.13-1.13.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.3.0/scala3-library_sjs1_3-3.3.0.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js3/classes",
@@ -31,7 +32,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala3-compiler_3",
-      "version": "3.2.0",
+      "version": "3.3.0",
       "options": [
         "-Ykind-projector",
         "-deprecation",
@@ -45,16 +46,16 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.2.0/scala3-compiler_3-3.2.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.2.0/scala3-interfaces-3.2.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.0/scala3-library_3-3.2.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.2.0/tasty-core_3-3.2.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.3.0-scala-1/scala-asm-9.3.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.0/scala3-compiler_3-3.3.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.0/scala3-interfaces-3.3.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.0/scala3-library_3-3.3.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.0/tasty-core_3-3.3.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.4.0-scala-1/scala-asm-9.4.0-scala-1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.3.5/compiler-interface-1.3.5.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
@@ -77,7 +78,7 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "1.9.0",
+        "version": "1.13.1",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,
@@ -93,26 +94,38 @@
     "resolution": {
       "modules": [
         {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.13.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.13.1/scalajs-javalib-1.13.1.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.8",
+          "version": "2.13.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala3-library_sjs1_3",
-          "version": "3.2.0",
+          "version": "3.3.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_sjs1_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.2.0/scala3-library_sjs1_3-3.2.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_sjs1_3/3.3.0/scala3-library_sjs1_3-3.3.0.jar"
             }
           ]
         },
@@ -131,12 +144,12 @@
         {
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
-          "version": "1.9.0",
+          "version": "1.13.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.9.0/scalajs-library_2.13-1.9.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.13.1/scalajs-library_2.13-1.13.1.jar"
             }
           ]
         },

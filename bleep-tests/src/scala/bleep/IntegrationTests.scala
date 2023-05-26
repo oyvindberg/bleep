@@ -77,7 +77,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
           jvmOptions: -Dfoo=1
           mainClass: test.Main
         scala:
-          version: 3.2.1
+          version: 3.3.0
 """,
       Map(
         RelPath.force("./a/src/scala/Main.scala") ->
@@ -102,7 +102,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
           jvmOptions: -Dfoo=1
           mainClass: test.Main
         scala:
-          version: 3.2.1
+          version: 3.3.0
 """,
       Map(
         RelPath.force("./a/src/scala/Main.scala") ->
@@ -134,7 +134,7 @@ templates:
     platform:
       name: jvm
     scala:
-      version: 3.2.1
+      version: 3.3.0
 """
 
     val Main = """
