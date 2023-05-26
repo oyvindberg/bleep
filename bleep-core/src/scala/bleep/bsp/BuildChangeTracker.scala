@@ -53,12 +53,12 @@ object BuildChangeTracker {
           rewriteFor(currentState.pre.buildPaths).flatMap { buildRewrites =>
             currentState match {
               case State.No(bleepConfig, pre, _) =>
-                load(bleepConfig, pre, buildRewrites).map(Some.apply)
+                pre.reloadFromDisk().flatMap(newPre => load(bleepConfig, newPre.getOrElse(pre), buildRewrites).map(Some.apply))
+
               case State.Yes(started) =>
                 started.reloadFromDisk(buildRewrites)
             }
           }
-
         val newState = reloaded match {
           case Left(bleepException) =>
             State.No(currentState.bleepConfig, currentState.pre, bleepException)
@@ -66,17 +66,18 @@ object BuildChangeTracker {
             currentState.pre.logger.debug(s"Build changed superficially, not reloading")
             currentState
           case Right(Some(newStarted)) =>
-            val newState = State.Yes(newStarted)
-            computeBuildTargetChanges(currentState, newState) match {
-              case Some(changes) =>
-                newStarted.logger.info(s"Notifying IDE of ${changes.getChanges.size} changes in build targets")
-                newStarted.logger.debug(changes.toString)
-                buildClient.onBuildTargetDidChange(changes)
-              case None =>
-                ()
-            }
-            newState
+            State.Yes(newStarted)
         }
+
+        computeBuildTargetChanges(currentState, newState) match {
+          case Some(changes) =>
+            newState.pre.logger.info(s"Notifying IDE of ${changes.getChanges.size} changes in build targets")
+            newState.pre.logger.debug(changes.toString)
+            buildClient.onBuildTargetDidChange(changes)
+          case None =>
+            ()
+        }
+
         newState
       }.toEither
 

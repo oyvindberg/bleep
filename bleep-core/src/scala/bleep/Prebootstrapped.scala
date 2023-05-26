@@ -18,14 +18,17 @@ case class Prebootstrapped(
   val fetchNode = new FetchNode(cacheLogger, ec)
 
   val resolvedJvm: Lazy[ResolvedJvm] =
-    existingBuild.buildFile.map { maybeBuild =>
-      val jvm = maybeBuild.orThrow.jvm.getOrElse {
-        logger.warn(
-          s"Your build uses the default system JVM, which can change outside the build. For stable builds over time, let bleep manage your chosen JVM by adding it to ${BuildLoader.BuildFileName}"
-        )
-        model.Jvm.system
-      }
-      fetchJvm(jvm)
+    existingBuild.buildFile.map {
+      case Left(_) =>
+        fetchJvm(model.Jvm.system)
+      case Right(build) =>
+        val jvm = build.jvm.getOrElse {
+          logger.warn(
+            s"Your build uses the default system JVM, which can change outside the build. For stable builds over time, let bleep manage your chosen JVM by adding it to ${BuildLoader.BuildFileName}"
+          )
+          model.Jvm.system
+        }
+        fetchJvm(jvm)
     }
 
   /** Will only reload if there are changes in the json structure, as indicated in the `Option`

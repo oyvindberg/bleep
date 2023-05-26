@@ -1,12 +1,14 @@
 package bleep
 package bsp
 
-import bleep.internal.Throwables
+import bleep.internal.{DoSourceGen, Throwables, TransitiveProjects}
 import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
+import ch.epfl.scala.bsp4j.CompileResult
 import com.google.gson.{JsonObject, JsonPrimitive}
+import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
+import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
 
-import java.io.{PrintWriter, StringWriter}
 import java.util
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util.function.BiFunction
@@ -24,12 +26,19 @@ class BleepBspServer(
 ) extends BuildServer {
   val supportedLanguages: util.List[String] = List("scala", "java").asJava
 
+  def warn(msg: String, th: Throwable): Unit = {
+    val message = s"$msg: ${Throwables.messagesFrom(th).mkString(": ")}"
+    sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, message))
+    logger.warn(msg, th)
+  }
+  def error(msg: String, th: Throwable): Unit = {
+    val message = s"$msg: ${Throwables.messagesFrom(th).mkString(": ")}"
+    sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, message))
+    logger.error(msg, th)
+  }
+
   protected def onFatalError(throwable: Throwable, context: String): Nothing = {
-    val sw = new StringWriter()
-    throwable.printStackTrace(new PrintWriter(sw))
-    val message = s"Fatal error has occurred within $context. Shutting down the server:\n ${sw.toString}"
-    System.err.println(message)
-    sendToIdeClient.onBuildLogMessage(new bsp4j.LogMessageParams(bsp4j.MessageType.ERROR, message))
+    error(s"Fatal error has occurred within $context. Shutting down the server", throwable)
 
     // wait random bit before shutting down server to reduce risk of multiple bleep instances starting bloop at the same time
     val timeout = Random.nextInt(400)
@@ -70,10 +79,10 @@ class BleepBspServer(
 
     buildChangeTracker.ensureBloopUpToDate() match {
       case Left(th) =>
-        sendToIdeClient.onBuildShowMessage(new bsp4j.ShowMessageParams(bsp4j.MessageType.ERROR, Throwables.messagesFrom(th).mkString(": ")))
-
-        logger.error("couldn't refresh build", th)
-        CompletableFuture.failedFuture(th)
+        warn("couldn't refresh the build", th)
+        CompletableFuture.failedFuture(
+          new ResponseErrorException(new ResponseError(ResponseErrorCode.serverErrorEnd, "couldn't refresh the build", new Object))
+        )
       case Right(started) =>
         val workspaceDir = started.buildPaths.buildVariantDir
 
@@ -115,10 +124,12 @@ class BleepBspServer(
   override def workspaceBuildTargets(): CompletableFuture[bsp4j.WorkspaceBuildTargetsResult] = {
     logger.debug("workspaceBuildTargets")
 
-    buildChangeTracker.ensureBloopUpToDate() match {
+    scala.util.Try(buildChangeTracker.ensureBloopUpToDate()).toEither.flatMap(identity) match {
       case Left(th) =>
-        logger.error("couldn't refresh build", th)
-        CompletableFuture.failedFuture(th)
+        warn("Couldn't refresh the build", th)
+        CompletableFuture.failedFuture(
+          new ResponseErrorException(new ResponseError(ResponseErrorCode.serverErrorEnd, "couldn't refresh the build", new Object))
+        )
       case Right(_) =>
         bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
     }
@@ -139,10 +150,33 @@ class BleepBspServer(
     logger.debug(("buildTargetCleanCache", params.toString))
     bloopServer.buildTargetCleanCache(params).handle(fatalExceptionHandler("buildTargetCleanCache", params))
   }
+
   override def buildTargetCompile(params: bsp4j.CompileParams): CompletableFuture[bsp4j.CompileResult] = {
     logger.debug(("buildTargetCompile", params.toString))
-    bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
+
+    val maybeStarted = buildChangeTracker.current match {
+      // try to reload and see if we can salvage the broken build situation
+      case Left(_)       => buildChangeTracker.ensureBloopUpToDate()
+      case ok @ Right(_) => ok
+    }
+
+    maybeStarted match {
+      case Left(bleepException) =>
+        warn(s"bleep was not able to refresh the build", bleepException)
+        CompletableFuture.completedFuture[CompileResult](new CompileResult(bsp4j.StatusCode.ERROR))
+      case Right(started) =>
+        val projects = params.getTargets.asScala.toArray.map(BleepCommandRemote.projectFromBuildTarget(started))
+
+        DoSourceGen(started, bloopServer, TransitiveProjects(started.build, projects)) match {
+          case Left(bleepException) =>
+            warn(s"Bleep was not able to run source generators", bleepException)
+            CompletableFuture.completedFuture(new CompileResult(bsp4j.StatusCode.ERROR))
+          case Right(()) =>
+            bloopServer.buildTargetCompile(params).handle(fatalExceptionHandler("buildTargetCompile", params))
+        }
+    }
   }
+
   override def buildTargetDependencySources(params: bsp4j.DependencySourcesParams): CompletableFuture[bsp4j.DependencySourcesResult] = {
     logger.debug(("buildTargetDependencySources", params.toString))
     bloopServer.buildTargetDependencySources(params).handle(fatalExceptionHandler("buildTargetDependencySources", params))
