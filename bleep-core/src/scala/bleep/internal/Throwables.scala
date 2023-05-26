@@ -2,6 +2,7 @@ package bleep
 package internal
 
 import bleep.logging.Logger
+import sourcecode.{Enclosing, File, Line}
 
 import java.io.{PrintWriter, StringWriter}
 
@@ -22,7 +23,7 @@ object Throwables {
     sw.toString
   }
 
-  def log(context: String, logger: Logger, throwable: Throwable): Unit =
+  def log(context: String, logger: Logger, throwable: Throwable)(implicit l: Line, f: File, e: Enclosing): Unit =
     throwable match {
       case buildException: BleepException =>
         logger.debug(context, buildException)

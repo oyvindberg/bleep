@@ -31,7 +31,10 @@ object BspImpl {
       val localClient = new BspForwardClient(Some(launcher.getRemoteProxy), pre.logger)
 
       val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
-      val build = pre.existingBuild.buildFile.forceGet.orThrow
+
+      val build = pre.existingBuild.buildFile.forceGet.getOrElse {
+        model.BuildFile(model.$schema, model.BleepVersion.current, model.JsonMap.empty, model.JsonMap.empty, model.JsonList.empty, model.JsonMap.empty, None)
+      }
       val bleepRifleLogger = new BleepRifleLogger(pre.logger)
       val resolver = CoursierResolver.Factory.default(pre, config, build)
       val bloopRifleConfig =
