@@ -8,7 +8,7 @@ import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core.*
 import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
-import coursier.maven.MavenRepository
+import coursier.maven.{MavenRepository, SbtMavenRepository}
 import coursier.params.ResolutionParams
 import coursier.util.{Artifact, Task}
 import coursier.{Artifacts, Fetch, Resolution}
@@ -155,9 +155,9 @@ object CoursierResolver {
   def coursierRepos(repos: List[model.Repository], authentications: Option[model.Authentications]): List[Repository] =
     (repos ++ constants.DefaultRepos).map {
       case bleep.model.Repository.MavenFolder(_, path) =>
-        MavenRepository(path.toUri.toString)
+        SbtMavenRepository(path.toUri.toString)
       case bleep.model.Repository.Maven(_, uri) =>
-        MavenRepository(uri.toString).withAuthentication(authentications.flatMap(_.configs.get(uri)))
+        SbtMavenRepository(uri.toString).withAuthentication(authentications.flatMap(_.configs.get(uri)))
       case bleep.model.Repository.Ivy(_, uri) =>
         IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
     }
