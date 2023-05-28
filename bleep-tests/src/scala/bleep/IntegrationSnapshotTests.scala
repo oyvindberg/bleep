@@ -155,14 +155,17 @@ class IntegrationSnapshotTests extends SnapshotTest {
         //      )
 
         // scalacOptions are the same, modulo ordering, duplicates, target directory and semanticdb
-        def patchedOptions(project: Config.Project, targetDir: Path): List[String] = {
+        def patchedOptions(project: Config.Project, targetDir: Path): (Int, List[String]) = {
           val replacements = model.Replacements.targetDir(targetDir) ++
             model.Replacements.ofReplacements(List(("sbt-build", "bootstrapped")))
           val original = project.scala.map(_.options).getOrElse(Nil)
-          model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
+          val all = model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {
             case opt if opt.toString.contains("semanticdb") => Nil
             case opt                                        => opt.render
           }
+          // compiler plugins are also resolved by ivy in sbt, so paths are completely different
+          val (compilerPlugins, rest) = all.partition(_.startsWith(constants.ScalaPluginPrefix))
+          (compilerPlugins.length, rest)
         }
 
         val originalTargetDir = sbtimport.findOriginalTargetDir.force(crossProjectName, input)
