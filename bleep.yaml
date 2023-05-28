@@ -44,6 +44,8 @@ projects:
       module: io.get-coursier::coursier-jvm:2.1.4
     - for3Use213: true
       module: io.get-coursier::coursier:2.1.4
+    - for3Use213: true
+      module: io.get-coursier::coursier-sbt-maven-repository:2.1.4
     - org.snakeyaml:snakeyaml-engine:2.6
     extends: template-cross-all
     sourcegen:
