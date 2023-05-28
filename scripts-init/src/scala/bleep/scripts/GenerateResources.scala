@@ -9,12 +9,14 @@ import java.nio.file.Files
 object GenerateResources extends BleepCodegenScript("GenerateResources") {
   override def run(started: Started, commands: Commands, targets: List[GenerateResources.Target], args: List[String]): Unit = {
     val dynVer = new DynVerPlugin(baseDirectory = started.buildPaths.buildDir.toFile, dynverSonatypeSnapshots = true)
+
     targets.foreach { target =>
-      writeGenerated(target, started.logger, dynVer.version)
+      writeVersion(target, started.logger, dynVer.version)
+      writeJvm(target, started.logger, started.build.jvm.getOrElse(sys.error("Bleep should have a defined JVM in build file")))
     }
   }
 
-  def writeGenerated(target: Target, logger: Logger, version: String): Unit = {
+  def writeVersion(target: Target, logger: Logger, version: String): Unit = {
     val to = target.sources / "bleep/model/BleepVersion.scala"
     logger.withContext(target.project).warn(s"Writing $to")
     val content =
@@ -37,6 +39,33 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
           |  implicit val encodes: Encoder[BleepVersion] = Encoder[String].contramap(_.value)
           |  implicit val decodes: Decoder[BleepVersion] = Decoder[String].map(BleepVersion.apply)
           |}""".stripMargin
+    Files.createDirectories(to.getParent)
+    Files.writeString(to, content)
+    ()
+  }
+  def writeJvm(target: Target, logger: Logger, buildJvm: model.Jvm): Unit = {
+    val to = target.sources / "bleep/model/Jvm.scala"
+    logger.withContext(target.project).warn(s"Writing $to")
+    val content =
+      s"""|//
+          |// GENERATED FILE!
+          |//
+          |package bleep.model
+          |
+          |import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+          |import io.circe.{Decoder, Encoder}
+          |
+          |case class Jvm(name: String, index: Option[String])
+          |
+          |object Jvm {
+          |  val graalvm = Jvm("${buildJvm.name}", None)
+          |  val system = Jvm("system", None)
+          |  implicit val encodes: Encoder[Jvm] = deriveEncoder
+          |  implicit val decodes: Decoder[Jvm] = deriveDecoder
+          |
+          |  def isSystem(jvm: Jvm): Boolean = jvm == system
+          |}
+          |""".stripMargin
     Files.createDirectories(to.getParent)
     Files.writeString(to, content)
     ()
