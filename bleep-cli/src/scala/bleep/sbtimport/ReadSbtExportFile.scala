@@ -26,7 +26,8 @@ object ReadSbtExportFile {
       dependencies: Seq[ModuleID],
       autoScalaLibrary: Boolean,
       excludeDependencies: Seq[ExclusionRule],
-      crossVersion: CrossVersion
+      crossVersion: CrossVersion,
+      libraryDependencySchemes: Seq[ModuleID]
   )
 
   object ExportedProject {
@@ -42,11 +43,11 @@ object ReadSbtExportFile {
             val sbtName = unbuilder.readField[String]("sbtName")
             val scalaFullVersion = unbuilder.readField[String]("scalaFullVersion")
             val scalaBinaryVersion = unbuilder.readField[String]("scalaBinaryVersion")
-            val dependencies = unbuilder.readField[List[ModuleID]]("dependencies")
+            val dependencies = unbuilder.readField[Seq[ModuleID]]("dependencies")
             val autoScalaLibrary = unbuilder.readField[Boolean]("autoScalaLibrary")
             val excludeDependencies = unbuilder.readField[Seq[ExclusionRule]]("excludeDependencies")
             val crossVersion = unbuilder.readField[CrossVersion]("crossVersion")
-
+            val libraryDependencySchemes = unbuilder.readField[Seq[ModuleID]]("libraryDependencySchemes")
             unbuilder.endObject()
 
             ExportedProject(
@@ -57,7 +58,8 @@ object ReadSbtExportFile {
               dependencies = dependencies,
               autoScalaLibrary,
               excludeDependencies,
-              crossVersion
+              crossVersion,
+              libraryDependencySchemes
             )
           case None =>
             sjsonnew.deserializationError("expected a json value to read")
@@ -74,8 +76,10 @@ object ReadSbtExportFile {
         builder.addField("autoScalaLibrary", obj.autoScalaLibrary)
         builder.addField("excludeDependencies", obj.excludeDependencies)
         builder.addField("crossVersion", obj.crossVersion)
+        builder.addField("libraryDependencySchemes", obj.libraryDependencySchemes)
         builder.endObject()
       }
     }
   }
+
 }

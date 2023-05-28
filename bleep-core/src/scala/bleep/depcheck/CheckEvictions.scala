@@ -28,8 +28,8 @@ object CheckEvictions {
 
   def asModule(versionCombo: model.VersionCombo)(v: model.LibraryVersionScheme): ModuleID =
     ModuleID(
-      organization = v.org.value,
-      name = v.moduleName(versionCombo).orThrow.value,
+      organization = v.dep.organization.value,
+      name = v.dep.asJava(versionCombo).orThrowText.moduleName.value,
       revision = v.scheme.value
     )
 

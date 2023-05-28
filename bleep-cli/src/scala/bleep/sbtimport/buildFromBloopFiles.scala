@@ -130,7 +130,28 @@ object buildFromBloopFiles {
       val depReplacements = model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = false)
       val (compilerPlugins, dependencies) = {
         val providedDeps = versionCombo.libraries(isTest = projectType.testLike)
-        importDeps(logger, inputProject, crossName, configuredPlatform.flatMap(_.name), providedDeps, depReplacements)
+        importDeps(
+          logger,
+          inputProject.sbtExportFile.dependencies,
+          inputProject.projectType,
+          crossName,
+          configuredPlatform.flatMap(_.name),
+          providedDeps,
+          depReplacements
+        )
+      }
+
+      val libraryVersionSchemes = {
+        val (compilerPlugins, dependencies) = importDeps(
+          logger,
+          inputProject.sbtExportFile.libraryDependencySchemes,
+          inputProject.projectType,
+          crossName,
+          configuredPlatform.flatMap(_.name),
+          Nil,
+          depReplacements
+        )
+        (compilerPlugins ++ dependencies).map(dep => model.LibraryVersionScheme.from(dep).orThrowText)
       }
 
       val configuredJava: Option[model.Java] =
@@ -163,7 +184,7 @@ object buildFromBloopFiles {
         isTestProject = if (projectType.testLike) Some(true) else None,
         testFrameworks = testFrameworks,
         sourcegen = model.JsonSet.empty,
-        libraryVersionSchemes = model.JsonSet.empty
+        libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes)
       )
     }
 
@@ -187,11 +208,13 @@ object buildFromBloopFiles {
     val CompilerPluginScalaJsTest = Configuration("scala-js-test-plugin")
     val It = Configuration("it")
     val OptionalDefault = Configuration("optional(default)")
+    val CompileTime = Configuration("compile-time")
   }
 
   def importDeps(
       logger: Logger,
-      inputProject: ImportInputData.InputProject,
+      dependencies: Seq[librarymanagement.ModuleID],
+      projectType: ImportInputData.ProjectType,
       crossName: model.CrossProjectName,
       platformName: Option[model.PlatformId],
       providedDeps: Seq[model.Dep],
@@ -203,7 +226,7 @@ object buildFromBloopFiles {
 
     val ctxLogger = logger.withContext(crossName)
 
-    val all = inputProject.sbtExportFile.dependencies.flatMap { moduleId =>
+    val all = dependencies.flatMap { moduleId =>
       importModuleId(ctxLogger, moduleId, platformName) match {
         case Left(err) =>
           ctxLogger.warn(s"Couldn't import dependency $moduleId. Dropping. Reason: $err")
@@ -215,8 +238,7 @@ object buildFromBloopFiles {
     }
 
     val plugins = all.collect {
-      case dep
-          if dep.configuration == Configs.CompilerPlugin || (dep.configuration == Configs.CompilerPluginScalaJsTest && inputProject.projectType.testLike) =>
+      case dep if dep.configuration == Configs.CompilerPlugin || (dep.configuration == Configs.CompilerPluginScalaJsTest && projectType.testLike) =>
         dep
           .withConfiguration(Configuration.empty)
           // always true for compiler plugins. this is really just aesthetic in the generated json file
@@ -246,18 +268,18 @@ object buildFromBloopFiles {
           None
 
         // I'm sure there is a useful difference. whatever. empty is used for main scope
-        case Array(Configuration.empty | Configuration.compile | Configuration.defaultCompile | Configuration.default) =>
+        case Array(Configuration.empty | Configuration.compile | Configuration.defaultCompile | Configuration.default | Configs.CompileTime) =>
           Some(dep.withConfiguration(Configuration.empty))
 
         // rewrite to main dependency if current project is test/it. test configuration doesn't exist after import
-        case cs if cs.contains(Configuration.test) && inputProject.projectType.testLike =>
+        case cs if cs.contains(Configuration.test) && projectType.testLike =>
           Some(dep.withConfiguration(Configuration.empty))
         // drop if project is `main` and this dependency is only tagged as `test`
         case Array(Configuration.test) =>
           None
 
         // same logic for `it` as for test above
-        case cs if cs.contains(Configs.It) && inputProject.projectType == ImportInputData.ProjectType.It =>
+        case cs if cs.contains(Configs.It) && projectType == ImportInputData.ProjectType.It =>
           Some(dep.withConfiguration(Configuration.empty))
         // drop if project is not `it` and this dependency is only tagged as `it`
         case Array(Configs.It) =>
