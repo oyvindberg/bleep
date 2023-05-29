@@ -3,10 +3,10 @@ package sbtimport
 
 import bleep.internal.conversions
 import bleep.logging.Logger
+import bleep.nosbt.librarymanagement
 import bloop.config.Config
 import coursier.core.{Classifier, Configuration, Extension, Module, ModuleName, Organization, Publication, Type}
 import io.github.davidgregory084.{DevMode, TpolecatPlugin}
-import sbt.librarymanagement
 
 import java.net.URI
 import java.nio.file.{Path, Paths}

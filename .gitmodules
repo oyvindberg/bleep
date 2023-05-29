@@ -1,45 +1,50 @@
 [submodule "liberated/sbt-git-versioning"]
-	path = liberated/sbt-git-versioning
-	url = git@github.com:bleep-build/sbt-git-versioning.git
+    path = liberated/sbt-git-versioning
+    url = git@github.com:bleep-build/sbt-git-versioning.git
     branch = main
     update = rebase
 [submodule "liberated/sbt-native-image"]
-	path = liberated/sbt-native-image
-	url = git@github.com:bleep-build/sbt-native-image.git
+    path = liberated/sbt-native-image
+    url = git@github.com:bleep-build/sbt-native-image.git
     branch = main
     update = rebase
 [submodule "liberated/sbt-sonatype"]
-	path = liberated/sbt-sonatype
-	url = git@github.com:bleep-build/sbt-sonatype.git
+    path = liberated/sbt-sonatype
+    url = git@github.com:bleep-build/sbt-sonatype.git
     branch = master
     update = rebase
 [submodule "liberated/sbt-pgp"]
-	path = liberated/sbt-pgp
-	url = git@github.com:bleep-build/sbt-pgp.git
+    path = liberated/sbt-pgp
+    url = git@github.com:bleep-build/sbt-pgp.git
     branch = develop
     update = rebase
 [submodule "liberated/sbt-ci-release"]
-	path = liberated/sbt-ci-release
-	url = git@github.com:bleep-build/sbt-ci-release.git
+    path = liberated/sbt-ci-release
+    url = git@github.com:bleep-build/sbt-ci-release.git
     branch = main
     update = rebase
 [submodule "liberated/sbt-dynver"]
-	path = liberated/sbt-dynver
-	url = git@github.com:bleep-build/sbt-dynver.git
+    path = liberated/sbt-dynver
+    url = git@github.com:bleep-build/sbt-dynver.git
     branch = master
     update = rebase
 [submodule "liberated/mdoc"]
-	path = liberated/mdoc
-	url = git@github.com:bleep-build/mdoc.git
-	branch = main
-	update = rebase
+    path = liberated/mdoc
+    url = git@github.com:bleep-build/mdoc.git
+    branch = main
+    update = rebase
 [submodule "liberated/sbt-tpolecat"]
-	path = liberated/sbt-tpolecat
-	url = git@github.com:bleep-build/sbt-tpolecat.git
+    path = liberated/sbt-tpolecat
+    url = git@github.com:bleep-build/sbt-tpolecat.git
     branch = main
     update = rebase
 [submodule "liberated/sbt-jni"]
-	path = liberated/sbt-jni
-	url = git@github.com:bleep-build/sbt-jni.git
+    path = liberated/sbt-jni
+    url = git@github.com:bleep-build/sbt-jni.git
     branch = main
+    update = rebase
+[submodule "liberated/librarymanagement"]
+    path = liberated/librarymanagement
+    url = git@github.com:bleep-build/librarymanagement.git
+    branch = develop
     update = rebase
