@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M27
+$version: 0.0.1
 jvm:
   name: graalvm-java17:22.3.1
 projects:
@@ -21,12 +21,12 @@ projects:
     - for3Use213: true
       module: ch.epfl.scala::bloop-config:1.5.5
     - com.lihaoyi::fansi:0.4.0
+    - com.swoval:file-tree-views:2.1.10
     - org.graalvm.nativeimage:svm:22.3.1
     - org.virtuslab.scala-cli::bloop-rifle:1.0.0-RC1
-    - com.swoval:file-tree-views:2.1.10
     dependsOn:
-      - bleep-model
-      - bleep-nosbt
+    - bleep-model
+    - bleep-nosbt
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/src/main/scala
   bleep-model:
@@ -38,14 +38,24 @@ projects:
     - for3Use213: true
       module: io.get-coursier::coursier-jvm:2.1.4
     - for3Use213: true
-      module: io.get-coursier::coursier:2.1.4
-    - for3Use213: true
       module: io.get-coursier::coursier-sbt-maven-repository:2.1.4
+    - for3Use213: true
+      module: io.get-coursier::coursier:2.1.4
     - org.snakeyaml:snakeyaml-engine:2.6
     extends: template-cross-all
     sourcegen:
       main: bleep.scripts.GenerateResources
       project: scripts-init
+  bleep-nosbt:
+    dependencies:
+    - for3Use213: true
+      module: com.eed3si9n::sjson-new-scalajson:0.13.0
+    - org.scala-lang.modules::scala-xml:2.1.0
+    extends: template-cross-all
+    sources:
+    - ../liberated/librarymanagement/core/src/main/contraband-scala
+    - ../liberated/librarymanagement/core/src/main/java
+    - ../liberated/librarymanagement/core/src/main/scala
   bleep-plugin-ci-release:
     dependsOn:
     - bleep-plugin-dynver
@@ -87,16 +97,6 @@ projects:
     extends: template-cross-all
     resources: ../liberated/sbt-native-image/plugin/src/main/resources
     sources: ../liberated/sbt-native-image/plugin/src/main/scala
-  bleep-nosbt:
-    extends: template-cross-all
-    dependencies:
-      - module: com.eed3si9n::sjson-new-scalajson:0.11.0
-        for3Use213: true
-      - org.scala-lang.modules::scala-xml:2.1.0
-    sources:
-      - ../liberated/librarymanagement/core/src/main/contraband-scala
-      - ../liberated/librarymanagement/core/src/main/java
-      - ../liberated/librarymanagement/core/src/main/scala
   bleep-plugin-pgp:
     dependencies:
     - com.eed3si9n::gigahorse-okhttp:0.7.0
