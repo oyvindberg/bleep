@@ -23,44 +23,46 @@
     "classpath": [
       "<COURSIER>/https/repo.scala-sbt.org/scalasbt/sbt-plugin-releases/org.portable-scala/sbt-platform-deps/scala_2.12/sbt_1.0/1.0.0/jars/sbt-platform-deps.jar",
       "<COURSIER>/https/repo.scala-sbt.org/scalasbt/sbt-plugin-releases/org.scala-js/sbt-scalajs/scala_2.12/sbt_1.0/1.3.0/jars/sbt-scalajs.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-scalajs-bundler_2.12_1.0/0.20.0/sbt-scalajs-bundler-0.20.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-scalajs-bundler_2.12_1.0/0.21.1/sbt-scalajs-bundler-0.21.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.12/2.3.3/shapeless_2.12-2.3.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.12/0.5.0/gigahorse-core_2.12-0.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.12/0.5.0/gigahorse-okhttp_2.12-0.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_2.12/0.7.0/gigahorse-apache-http_2.12-0.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.12/0.7.0/gigahorse-core_2.12-0.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpasyncclient/0.7.0/shaded-apache-httpasyncclient-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.12/0.9.1/shaded-jawn-parser_2.12-0.9.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.12/0.9.1/sjson-new-core_2.12-0.9.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.12/0.9.1/sjson-new-murmurhash_2.12-0.9.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.12/0.9.1/sjson-new-scalajson_2.12-0.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.4/jackson-annotations-2.10.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.4/jackson-core-2.10.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.4/jackson-databind-2.10.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.8.9/jackson-datatype-jdk8-2.8.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.8.9/jackson-datatype-jsr310-2.8.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.5/jackson-annotations-2.10.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.5/jackson-core-2.10.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.5.1/jackson-databind-2.10.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.10.5/jackson-datatype-jdk8-2.10.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.10.5/jackson-datatype-jsr310-2.10.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/ben-manes/caffeine/caffeine/2.8.5/caffeine-2.8.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.4.0/error_prone_annotations-2.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/18.0/guava-18.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.1/jimfs-1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/30.1-android/guava-30.1-android.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.2/jimfs-1.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/ammonite-ops_2.12/2.4.0/ammonite-ops_2.12-2.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.14/fansi_2.12-0.2.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.4.0/fansi_2.12-0.4.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/0.6.10/geny_2.12-0.6.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_2.12/0.7.7/os-lib_2.12-0.7.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.2.7/sourcecode_2.12-0.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.3.0/sourcecode_2.12-0.3.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp-urlconnection/3.7.0/okhttp-urlconnection-3.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okhttp3/okhttp/3.14.2/okhttp-3.14.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/squareup/okio/okio/1.17.2/okio-1.17.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.6/file-tree-views-2.1.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.3.3/config-1.3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/netty/netty-reactive-streams-http/2.0.4/netty-reactive-streams-http-2.0.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/netty/netty-reactive-streams/2.0.4/netty-reactive-streams-2.0.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_2.12/2.6.7/play-functional_2.12-2.6.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_2.12/2.6.7/play-json_2.12-2.6.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.4.0/ssl-config-core_2.12-0.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_2.12/2.9.2/play-functional_2.12-2.9.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_2.12/2.9.2/play-json_2.12-2.9.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.12/0.6.1/ssl-config-core_2.12-0.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.11/commons-codec-1.11.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/commons-logging/commons-logging/1.2/commons-logging-1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/lm-coursier-shaded_2.12/2.0.8/lm-coursier-shaded_2.12-2.0.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/lm-coursier-shaded_2.12/2.0.15/lm-coursier-shaded_2.12-2.0.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.53.Final/netty-buffer-4.1.53.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.53.Final/netty-codec-http-4.1.53.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.53.Final/netty-codec-http2-4.1.53.Final.jar",
@@ -71,15 +73,15 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.53.Final/netty-transport-native-epoll-4.1.53.Final-<MASKED_OS>-x86_64.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.53.Final/netty-transport-native-unix-common-4.1.53.Final.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.53.Final/netty-transport-4.1.53.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.9.9/joda-time-2.9.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.5.0/jna-platform-5.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.5.0/jna-5.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/net/openhft/zero-allocation-hashing/0.10.1/zero-allocation-hashing-0.10.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpclient/4.5.13/httpclient-4.5.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.11.2/log4j-api-2.11.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.11.2/log4j-core-2.11.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.11.2/log4j-slf4j-impl-2.11.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.17.1/log4j-slf4j-impl-2.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.4.1/checker-qual-3.4.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-builtins/3.19.0/jline-builtins-3.19.0.jar",
@@ -95,62 +97,62 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-linker-interface_2.12/1.3.0/scalajs-linker-interface_2.12-1.3.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-logging_2.12/1.1.1/scalajs-logging_2.12-1.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-sbt-test-adapter_2.12/1.3.0/scalajs-sbt-test-adapter_2.12-1.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.4.2/scala-collection-compat_2.12-2.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.9.0/scala-collection-compat_2.12-2.9.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.14/scala-compiler-2.12.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.14/scala-reflect-2.12.14.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/actions_2.12/1.5.5/actions_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.12/1.5.5/collections_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/command_2.12/1.5.5/command_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.12/1.5.7/compiler-bridge_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.5.7/compiler-interface-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/completion_2.12/1.5.5/completion_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_2.12/1.5.5/core-macros_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.5.1/io_2.12-1.5.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ipcsocket/ipcsocket/1.3.1/ipcsocket-1.3.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-fbc4f586aeeb1591710b14eb4f41b94880dcd745/ivy-2.3.0-sbt-fbc4f586aeeb1591710b14eb4f41b94880dcd745.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/actions_2.12/1.8.2/actions_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.12/1.8.2/collections_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/command_2.12/1.8.2/command_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_2.12/1.8.0/compiler-bridge_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.8.0/compiler-interface-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/completion_2.12/1.8.2/completion_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_2.12/1.8.2/core-macros_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.8.0/io_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ipcsocket/ipcsocket/1.6.2/ipcsocket-1.6.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/ivy/ivy/2.3.0-sbt-a8f9eb5bf09d0539ea3658a2c2d4e09755b5133e/ivy-2.3.0-sbt-a8f9eb5bf09d0539ea3658a2c2d4e09755b5133e.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.3.3/launcher-interface-1.3.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.12/1.5.3/librarymanagement-core_2.12-1.5.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-ivy_2.12/1.5.3/librarymanagement-ivy_2.12-1.5.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/logic_2.12/1.5.5/logic_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main-settings_2.12/1.5.5/main-settings_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main_2.12/1.5.5/main_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/protocol_2.12/1.5.5/protocol_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/run_2.12/1.5.5/run_2.12-1.5.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.4.1/launcher-interface-1.4.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.12/1.8.0/librarymanagement-core_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-ivy_2.12/1.8.0/librarymanagement-ivy_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/logic_2.12/1.8.2/logic_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main-settings_2.12/1.8.2/main-settings_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/main_2.12/1.8.2/main_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/protocol_2.12/1.8.2/protocol_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/run_2.12/1.8.2/run_2.12-1.8.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbinary_2.12/0.5.1/sbinary_2.12-0.5.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.5.5/sbt-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/scripted-plugin_2.12/1.5.5/scripted-plugin_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/task-system_2.12/1.5.5/task-system_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/tasks_2.12/1.5.5/tasks_2.12-1.5.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.8.2/sbt-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/scripted-plugin_2.12/1.8.2/scripted-plugin_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/task-system_2.12/1.8.2/task-system_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/tasks_2.12/1.8.2/tasks_2.12-1.8.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/template-resolver/0.1/template-resolver-0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-agent/1.5.5/test-agent-1.5.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-agent/1.8.2/test-agent-1.8.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/testing_2.12/1.5.5/testing_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.12/1.5.5/util-cache_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-control_2.12/1.5.5/util-control_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.5.5/util-interface-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_2.12/1.5.5/util-logging_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.12/1.5.5/util-position_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_2.12/1.5.5/util-relation_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-tracking_2.12/1.5.5/util-tracking_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-apiinfo_2.12/1.5.7/zinc-apiinfo_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classfile_2.12/1.5.7/zinc-classfile_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_2.12/1.5.7/zinc-classpath_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile-core_2.12/1.5.7/zinc-compile-core_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile_2.12/1.5.7/zinc-compile_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-core_2.12/1.5.7/zinc-core_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-lm-integration_2.12/1.5.5/zinc-lm-integration_2.12-1.5.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist-core-assembly/1.5.7/zinc-persist-core-assembly-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_2.12/1.5.7/zinc-persist_2.12-1.5.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.5.7/zinc_2.12-1.5.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/testing_2.12/1.8.2/testing_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.12/1.8.2/util-cache_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-control_2.12/1.8.2/util-control_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.8.2/util-interface-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_2.12/1.8.2/util-logging_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.12/1.8.2/util-position_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-relation_2.12/1.8.2/util-relation_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-tracking_2.12/1.8.2/util-tracking_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-apiinfo_2.12/1.8.0/zinc-apiinfo_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classfile_2.12/1.8.0/zinc-classfile_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-classpath_2.12/1.8.0/zinc-classpath_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile-core_2.12/1.8.0/zinc-compile-core_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-compile_2.12/1.8.0/zinc-compile_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-core_2.12/1.8.0/zinc-core_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-lm-integration_2.12/1.8.2/zinc-lm-integration_2.12-1.8.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist-core-assembly/1.8.0/zinc-persist-core-assembly-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_2.12/1.8.0/zinc-persist_2.12-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.8.0/zinc_2.12-1.8.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-core_2.12/0.13.0-shaded-2/circe-core_2.12-0.13.0-shaded-2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-generic_2.12/0.13.0-shaded-2/circe-generic_2.12-0.13.0-shaded-2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-jackson29_2.12/0.13.0-shaded-2/circe-jackson29_2.12-0.13.0-shaded-2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalablytyped/circe013/circe-numbers_2.12/0.13.0-shaded-2/circe-numbers_2.12-0.13.0-shaded-2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.28/slf4j-api-1.7.28.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.1.0/cats-core_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.1.0/cats-kernel_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.0/cats-macros_2.12-2.1.0.jar",
@@ -195,10 +197,9 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.14",
+      "version": "2.12.17",
       "options": [
         "-Wconf:cat=unused-nowarn:s",
-        "-Xcheckinit",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
@@ -216,6 +217,7 @@
         "-Xlint:stars-align",
         "-Xlint:type-parameter-shadow",
         "-Xlint:unsound-match",
+        "-Xsource:3",
         "-Yno-adapted-args",
         "-Ypartial-unification",
         "-Ywarn-dead-code",
@@ -239,10 +241,10 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.14/scala-compiler-2.12.14.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.14/scala-reflect-2.12.14.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/sbt-converter/inc_compile.zip",
       "setup": {
@@ -322,14 +324,14 @@
           ]
         },
         {
-          "organization": "org.scala-js",
-          "name": "scalajs-js-envs_2.12",
-          "version": "1.1.1",
+          "organization": "software.amazon.awssdk",
+          "name": "protocol-core",
+          "version": "2.15.28",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scalajs-js-envs_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-js-envs_2.12/1.1.1/scalajs-js-envs_2.12-1.1.1.jar"
+              "name": "protocol-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/awssdk/protocol-core/2.15.28/protocol-core-2.15.28.jar"
             }
           ]
         },
@@ -348,12 +350,12 @@
         {
           "organization": "com.google.jimfs",
           "name": "jimfs",
-          "version": "1.1",
+          "version": "1.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jimfs",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.1/jimfs-1.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/jimfs/jimfs/1.2/jimfs-1.2.jar"
             }
           ]
         },
@@ -396,24 +398,24 @@
         {
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
-          "version": "2.8.9",
+          "version": "2.10.5",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.8.9/jackson-datatype-jsr310-2.8.9.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.10.5/jackson-datatype-jsr310-2.10.5.jar"
             }
           ]
         },
         {
           "organization": "org.scala-sbt",
           "name": "sbt",
-          "version": "1.5.5",
+          "version": "1.8.2",
           "configurations": "provided",
           "artifacts": [
             {
               "name": "sbt",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.5.5/sbt-1.5.5.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.8.2/sbt-1.8.2.jar"
             }
           ]
         },
@@ -432,12 +434,12 @@
         {
           "organization": "ch.epfl.scala",
           "name": "sbt-scalajs-bundler",
-          "version": "0.20.0",
+          "version": "0.21.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "sbt-scalajs-bundler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-scalajs-bundler_2.12_1.0/0.20.0/sbt-scalajs-bundler-0.20.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/sbt-scalajs-bundler_2.12_1.0/0.21.1/sbt-scalajs-bundler-0.21.1.jar"
             }
           ]
         },
@@ -462,6 +464,18 @@
             {
               "name": "scala-collection-compat_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.4.1/scala-collection-compat_2.12-2.4.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
             }
           ]
         },
@@ -516,12 +530,12 @@
         {
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
-          "version": "2.10.4",
+          "version": "2.10.5.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.4/jackson-databind-2.10.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.5.1/jackson-databind-2.10.5.1.jar"
             }
           ]
         },
@@ -552,12 +566,12 @@
         {
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jdk8",
-          "version": "2.8.9",
+          "version": "2.10.5",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jdk8",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.8.9/jackson-datatype-jdk8-2.8.9.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.10.5/jackson-datatype-jdk8-2.10.5.jar"
             }
           ]
         },
@@ -576,12 +590,12 @@
         {
           "organization": "com.google.guava",
           "name": "guava",
-          "version": "18.0",
+          "version": "30.1-android",
           "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/18.0/guava-18.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/30.1-android/guava-30.1-android.jar"
             }
           ]
         },
@@ -648,12 +662,12 @@
         {
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
-          "version": "2.10.4",
+          "version": "2.10.5",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.4/jackson-core-2.10.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.5/jackson-core-2.10.5.jar"
             }
           ]
         },
@@ -708,12 +722,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.12.14",
+          "version": "2.12.17",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.14/scala-reflect-2.12.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar"
             }
           ]
         },
@@ -732,12 +746,12 @@
         {
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
-          "version": "2.10.4",
+          "version": "2.10.5",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.4/jackson-annotations-2.10.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.5/jackson-annotations-2.10.5.jar"
             }
           ]
         },
@@ -886,6 +900,18 @@
           ]
         },
         {
+          "organization": "org.checkerframework",
+          "name": "checker-compat-qual",
+          "version": "2.5.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-compat-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-compat-qual/2.5.5/checker-compat-qual-2.5.5.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scalablytyped.circe013",
           "name": "circe-numbers_2.12",
           "version": "0.13.0-shaded-2",
@@ -912,12 +938,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.14",
+          "version": "2.12.17",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
             }
           ]
         },
@@ -936,12 +962,36 @@
         {
           "organization": "com.lihaoyi",
           "name": "fansi_2.12",
-          "version": "0.2.14",
+          "version": "0.4.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.14/fansi_2.12-0.2.14.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.4.0/fansi_2.12-0.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-js-envs_2.12",
+          "version": "1.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-js-envs_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-js-envs_2.12/1.1.1/scalajs-js-envs_2.12-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
             }
           ]
         },
@@ -960,12 +1010,12 @@
         {
           "organization": "com.typesafe.play",
           "name": "play-functional_2.12",
-          "version": "2.6.7",
+          "version": "2.9.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "play-functional_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_2.12/2.6.7/play-functional_2.12-2.6.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_2.12/2.9.2/play-functional_2.12-2.9.2.jar"
             }
           ]
         },
@@ -978,6 +1028,18 @@
             {
               "name": "cats-core_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.1.0/cats-core_2.12-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
             }
           ]
         },
@@ -1006,6 +1068,18 @@
           ]
         },
         {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
@@ -1030,30 +1104,6 @@
           ]
         },
         {
-          "organization": "joda-time",
-          "name": "joda-time",
-          "version": "2.9.9",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "joda-time",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.9.9/joda-time-2.9.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "software.amazon.awssdk",
-          "name": "protocol-core",
-          "version": "2.15.28",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "protocol-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/software/amazon/awssdk/protocol-core/2.15.28/protocol-core-2.15.28.jar"
-            }
-          ]
-        },
-        {
           "organization": "software.amazon.awssdk",
           "name": "arns",
           "version": "2.15.28",
@@ -1068,12 +1118,12 @@
         {
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
-          "version": "1.3.0",
+          "version": "2.1.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.3.0/scala-xml_2.12-1.3.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
             }
           ]
         },
@@ -1092,12 +1142,12 @@
         {
           "organization": "com.typesafe.play",
           "name": "play-json_2.12",
-          "version": "2.6.7",
+          "version": "2.9.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "play-json_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_2.12/2.6.7/play-json_2.12-2.6.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_2.12/2.9.2/play-json_2.12-2.9.2.jar"
             }
           ]
         },
@@ -1110,6 +1160,18 @@
             {
               "name": "httpcore",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpcore/4.4.13/httpcore-4.4.13.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.3.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar"
             }
           ]
         },
@@ -1152,12 +1214,12 @@
         {
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.12",
-          "version": "0.2.7",
+          "version": "0.3.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.2.7/sourcecode_2.12-0.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.3.0/sourcecode_2.12-0.3.0.jar"
             }
           ]
         },

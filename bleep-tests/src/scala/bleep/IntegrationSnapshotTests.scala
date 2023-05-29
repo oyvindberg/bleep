@@ -41,7 +41,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   test("converter") {
-    testIn("converter", "https://github.com/ScalablyTyped/Converter.git", "715edaf")
+    testIn("converter", "https://github.com/ScalablyTyped/Converter.git", "3a4686a")
   }
 
   def testIn(project: String, repo: String, sha: String, jvm: model.Jvm = model.Jvm.graalvm): Assertion = {
