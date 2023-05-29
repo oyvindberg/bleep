@@ -1,6 +1,6 @@
-package bleep.plugin.nosbt
+package bleep.nosbt
 
-import bleep.plugin.nosbt.io.IO
+import bleep.nosbt.io.IO
 
 import java.io.{BufferedInputStream, File, FileInputStream}
 

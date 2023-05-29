@@ -1,8 +1,8 @@
 package bleep
 package sbtimport
 
-import sbt.librarymanagement.syntax.ExclusionRule
-import sbt.librarymanagement.{CrossVersion, ModuleID, ScalaVersion}
+import bleep.nosbt.librarymanagement.syntax.ExclusionRule
+import bleep.nosbt.librarymanagement.{CrossVersion, ModuleID, ScalaVersion}
 import sjsonnew.support.scalajson.unsafe.{Converter, Parser}
 import sjsonnew.{Builder, JsonFormat, Unbuilder}
 
@@ -31,7 +31,7 @@ object ReadSbtExportFile {
   )
 
   object ExportedProject {
-    import sbt.librarymanagement.LibraryManagementCodec.*
+    import bleep.nosbt.librarymanagement.LibraryManagementCodec.*
 
     implicit val format: JsonFormat[ExportedProject] = new JsonFormat[ExportedProject] {
       override def read[J](jsOpt: Option[J], unbuilder: Unbuilder[J]): ExportedProject =

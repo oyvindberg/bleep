@@ -2,11 +2,11 @@ package bleep
 package sbtimport
 
 import bleep.internal.{codecs, parseBloopFile, FileUtils, GeneratedFile}
+import bleep.nosbt.librarymanagement
 import bloop.config.Config
 import coursier.core.Configuration
 import io.circe.Codec
 import io.circe.generic.semiauto.*
-import sbt.librarymanagement.CrossVersion
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.{SortedMap, SortedSet}
@@ -238,8 +238,8 @@ object ImportInputData {
       maybePlatformId = ip.bloopFile.project.platform.flatMap(p => model.PlatformId.fromName(p.name)),
       isFull = overrideIsFull.getOrElse {
         ip.sbtExportFile.crossVersion match {
-          case _: CrossVersion.Full => true
-          case _                    => false
+          case _: librarymanagement.CrossVersion.Full => true
+          case _                                      => false
         }
       }
     )

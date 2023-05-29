@@ -8,7 +8,7 @@ import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core.*
 import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
-import coursier.maven.{MavenRepository, SbtMavenRepository}
+import coursier.maven.SbtMavenRepository
 import coursier.params.ResolutionParams
 import coursier.util.{Artifact, Task}
 import coursier.{Artifacts, Fetch, Resolution}

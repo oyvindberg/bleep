@@ -1,4 +1,4 @@
-package bleep.plugin.nosbt
+package bleep.nosbt
 
 abstract class InteractionService {
 

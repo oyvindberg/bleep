@@ -1,12 +1,12 @@
 package bleep.depcheck
 
 import bleep.logging.Logger
+import bleep.nosbt.librarymanagement
 import coursier.cache.CacheUrl
 import coursier.core.{Classifier, Configuration, Extension, Publication, Type}
 import coursier.maven.MavenAttributes
 import coursier.util.Artifact
 import coursier.{Attributes, Dependency, Module, Project, Resolution}
-import sbt.librarymanagement.{Artifact => _, Configuration => _, _}
 
 import java.io.File
 import java.util.GregorianCalendar
@@ -31,8 +31,8 @@ object SbtUpdateReport {
   private def infoProperties(project: Project): Seq[(String, String)] =
     project.properties.filter(_._1.startsWith("info."))
 
-  private val moduleId = caching[(Dependency, String, Map[String, String]), ModuleID] { case (dependency, version, extraProperties) =>
-    val mod = sbt.librarymanagement.ModuleID(
+  private val moduleId = caching[(Dependency, String, Map[String, String]), librarymanagement.ModuleID] { case (dependency, version, extraProperties) =>
+    val mod = librarymanagement.ModuleID(
       dependency.module.organization.value,
       dependency.module.name.value,
       version
@@ -47,7 +47,7 @@ object SbtUpdateReport {
         dependency.minimizedExclusions
           .toVector()
           .map { case (org, name) =>
-            sbt.librarymanagement
+            librarymanagement
               .InclExclRule()
               .withOrganization(org.value)
               .withName(name.value)
@@ -56,9 +56,9 @@ object SbtUpdateReport {
       .withIsTransitive(dependency.transitive)
   }
 
-  private val artifact = caching[(Module, Map[String, String], Publication, Artifact, Seq[ClassLoader]), sbt.librarymanagement.Artifact] {
+  private val artifact = caching[(Module, Map[String, String], Publication, Artifact, Seq[ClassLoader]), librarymanagement.Artifact] {
     case (module, extraProperties, pub, artifact, classLoaders) =>
-      sbt.librarymanagement
+      librarymanagement
         .Artifact(pub.name)
         .withType(pub.`type`.value)
         .withExtension(pub.ext.value)
@@ -73,56 +73,58 @@ object SbtUpdateReport {
   }
 
   private val moduleReport =
-    caching[(Dependency, Seq[(Dependency, ProjectInfo)], Project, Seq[(Publication, Artifact, Option[File])], Seq[ClassLoader]), ModuleReport] {
-      case (dependency, dependees, project, artifacts, classLoaders) =>
-        val sbtArtifacts = artifacts.collect { case (pub, artifact0, Some(file)) =>
-          (artifact((dependency.module, infoProperties(project).toMap, pub, artifact0, classLoaders)), file)
-        }
-        val sbtMissingArtifacts = artifacts.collect { case (pub, artifact0, None) =>
-          artifact((dependency.module, infoProperties(project).toMap, pub, artifact0, classLoaders))
-        }
+    caching[
+      (Dependency, Seq[(Dependency, ProjectInfo)], Project, Seq[(Publication, Artifact, Option[File])], Seq[ClassLoader]),
+      librarymanagement.ModuleReport
+    ] { case (dependency, dependees, project, artifacts, classLoaders) =>
+      val sbtArtifacts = artifacts.collect { case (pub, artifact0, Some(file)) =>
+        (artifact((dependency.module, infoProperties(project).toMap, pub, artifact0, classLoaders)), file)
+      }
+      val sbtMissingArtifacts = artifacts.collect { case (pub, artifact0, None) =>
+        artifact((dependency.module, infoProperties(project).toMap, pub, artifact0, classLoaders))
+      }
 
-        val publicationDate = project.info.publication.map { dt =>
-          new GregorianCalendar(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-        }
+      val publicationDate = project.info.publication.map { dt =>
+        new GregorianCalendar(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+      }
 
-        val callers = dependees.distinct.map { case (dependee, dependeeProj) =>
-          Caller(
-            moduleId((dependee, dependeeProj.version, Map.empty)),
-            // FIXME Shouldn't we only keep the configurations pulling dependency?
-            dependeeProj.configs,
-            dependee.module.attributes ++ dependeeProj.properties,
-            // FIXME Set better values here
-            isForceDependency = false,
-            isChangingDependency = false,
-            isTransitiveDependency = dependency.transitive,
-            isDirectlyForceDependency = false
-          )
-        }
-
-        val rep = ModuleReport(
-          moduleId((dependency, project.version, infoProperties(project).toMap)),
-          sbtArtifacts.toVector,
-          sbtMissingArtifacts.toVector
+      val callers = dependees.distinct.map { case (dependee, dependeeProj) =>
+        librarymanagement.Caller(
+          moduleId((dependee, dependeeProj.version, Map.empty)),
+          // FIXME Shouldn't we only keep the configurations pulling dependency?
+          dependeeProj.configs,
+          dependee.module.attributes ++ dependeeProj.properties,
+          // FIXME Set better values here
+          isForceDependency = false,
+          isChangingDependency = false,
+          isTransitiveDependency = dependency.transitive,
+          isDirectlyForceDependency = false
         )
+      }
 
-        rep
-          // .withStatus(None)
-          .withPublicationDate(publicationDate)
-          // .withResolver(None)
-          // .withArtifactResolver(None)
-          // .withEvicted(false)
-          // .withEvictedData(None)
-          // .withEvictedReason(None)
-          // .withProblem(None)
-          .withHomepage(Some(project.info.homePage).filter(_.nonEmpty))
-          .withLicenses(project.info.licenses.toVector)
-          .withExtraAttributes(dependency.module.attributes ++ infoProperties(project))
-          // .withIsDefault(None)
-          // .withBranch(None)
-          .withConfigurations(project.configurations.keys.toVector.map(c => ConfigRef(c.value)))
-          .withLicenses(project.info.licenses.toVector)
-          .withCallers(callers.toVector)
+      val rep = librarymanagement.ModuleReport(
+        moduleId((dependency, project.version, infoProperties(project).toMap)),
+        sbtArtifacts.toVector,
+        sbtMissingArtifacts.toVector
+      )
+
+      rep
+        // .withStatus(None)
+        .withPublicationDate(publicationDate)
+        // .withResolver(None)
+        // .withArtifactResolver(None)
+        // .withEvicted(false)
+        // .withEvictedData(None)
+        // .withEvictedReason(None)
+        // .withProblem(None)
+        .withHomepage(Some(project.info.homePage).filter(_.nonEmpty))
+        .withLicenses(project.info.licenses.toVector)
+        .withExtraAttributes(dependency.module.attributes ++ infoProperties(project))
+        // .withIsDefault(None)
+        // .withBranch(None)
+        .withConfigurations(project.configurations.keys.toVector.map(c => librarymanagement.ConfigRef(c.value)))
+        .withLicenses(project.info.licenses.toVector)
+        .withCallers(callers.toVector)
     }
 
   private def moduleReports(
@@ -137,7 +139,7 @@ object SbtUpdateReport {
       classpathOrder: Boolean,
       missingOk: Boolean,
       classLoaders: Seq[ClassLoader]
-  ): Vector[ModuleReport] = {
+  ): Vector[librarymanagement.ModuleReport] = {
 
     val deps = classifiersOpt match {
       case Some(classifiers) =>
@@ -249,7 +251,14 @@ object SbtUpdateReport {
           lookupProject(dependee.moduleVersion) match {
             case Some(dependeeProj) =>
               Vector(
-                (dependee, ProjectInfo(dependeeProj.version, dependeeProj.configurations.keys.toVector.map(c => ConfigRef(c.value)), dependeeProj.properties))
+                (
+                  dependee,
+                  ProjectInfo(
+                    dependeeProj.version,
+                    dependeeProj.configurations.keys.toVector.map(c => librarymanagement.ConfigRef(c.value)),
+                    dependeeProj.properties
+                  )
+                )
               )
             case _ =>
               Vector.empty
@@ -287,7 +296,7 @@ object SbtUpdateReport {
       missingOk: Boolean,
       forceVersions: Map[Module, String],
       classLoaders: Seq[ClassLoader]
-  ): UpdateReport = {
+  ): librarymanagement.UpdateReport = {
 
     val configReports = resolutions.map { case (config, subRes) =>
       val reports = moduleReports(
@@ -320,7 +329,7 @@ object SbtUpdateReport {
       }
 
       val mainReportDetails = reports0.map { rep =>
-        OrganizationArtifactReport(rep.module.organization, rep.module.name, Vector(rep))
+        librarymanagement.OrganizationArtifactReport(rep.module.organization, rep.module.name, Vector(rep))
       }
 
       val evicted = for {
@@ -339,7 +348,7 @@ object SbtUpdateReport {
         val dependee = Dependency(c.dependeeModule, c.dependeeVersion)
         val dependeeProj = subRes.projectCache.get((c.dependeeModule, c.dependeeVersion)) match {
           case Some((_, p)) =>
-            ProjectInfo(p.version, p.configurations.keys.toVector.map(c => ConfigRef(c.value)), p.properties)
+            ProjectInfo(p.version, p.configurations.keys.toVector.map(c => librarymanagement.ConfigRef(c.value)), p.properties)
           case None =>
             // should not happen
             ProjectInfo(c.dependeeVersion, Vector.empty, Vector.empty)
@@ -347,7 +356,7 @@ object SbtUpdateReport {
         val rep = moduleReport((dep, Seq((dependee, dependeeProj)), proj.withVersion(c.wantedVersion), Nil, classLoaders))
           .withEvicted(true)
           .withEvictedData(Some("version selection")) // ??? put latest-revision like sbt/ivy here?
-        OrganizationArtifactReport(c.module.organization.value, c.module.name.value, Vector(rep))
+        librarymanagement.OrganizationArtifactReport(c.module.organization.value, c.module.name.value, Vector(rep))
       }
 
       val details = (mainReportDetails ++ evicted)
@@ -355,23 +364,23 @@ object SbtUpdateReport {
         .toVector // order?
         .map { case ((org, name), l) =>
           val modules = l.flatMap(_.modules)
-          OrganizationArtifactReport(org, name, modules)
+          librarymanagement.OrganizationArtifactReport(org, name, modules)
         }
 
-      ConfigurationReport(
-        ConfigRef(config.value),
+      librarymanagement.ConfigurationReport(
+        librarymanagement.ConfigRef(config.value),
         reports0,
         details
       )
     }
 
-    UpdateReport(
+    librarymanagement.UpdateReport(
       new File("."), // dummy value
       configReports.toVector,
-      UpdateStats(-1L, -1L, -1L, cached = false),
+      librarymanagement.UpdateStats(-1L, -1L, -1L, cached = false),
       Map.empty
     )
   }
 
-  private case class ProjectInfo(version: String, configs: Vector[ConfigRef], properties: Seq[(String, String)])
+  private case class ProjectInfo(version: String, configs: Vector[librarymanagement.ConfigRef], properties: Seq[(String, String)])
 }

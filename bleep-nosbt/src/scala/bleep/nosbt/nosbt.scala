@@ -1,4 +1,4 @@
-package bleep.plugin
+package bleep
 
 import java.io.File
 

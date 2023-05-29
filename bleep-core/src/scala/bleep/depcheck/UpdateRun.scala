@@ -1,10 +1,10 @@
 package bleep.depcheck
 
 import bleep.logging.Logger
+import bleep.nosbt.librarymanagement
+import coursier.core.*
 import coursier.core.Resolution.ModuleVersion
-import coursier.core._
 import coursier.util.Print
-import sbt.librarymanagement.UpdateReport
 
 object UpdateRun {
 
@@ -50,7 +50,7 @@ object UpdateRun {
       params: UpdateParams,
       verbosityLevel: Int,
       log: Logger
-  ): UpdateReport = {
+  ): librarymanagement.UpdateReport = {
 
     if (verbosityLevel >= 2) {
       val depsByConfig = grouped(params.dependencies)
