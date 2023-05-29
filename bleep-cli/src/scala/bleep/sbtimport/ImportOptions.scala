@@ -1,14 +1,12 @@
 package bleep
 package sbtimport
 
+import bleep.model.Jvm
+import cats.data.{Validated, ValidatedNel}
 import cats.syntax.apply.*
-import com.monovore.decline.Opts
+import com.monovore.decline.{Argument, Opts}
 
-case class ImportOptions(
-    ignoreWhenInferringTemplates: Set[model.ProjectName],
-    skipSbt: Boolean,
-    skipGeneratedResourcesScript: Boolean
-)
+case class ImportOptions(ignoreWhenInferringTemplates: Set[model.ProjectName], skipSbt: Boolean, skipGeneratedResourcesScript: Boolean, jvm: model.Jvm)
 
 object ImportOptions {
   val ignoreWhenInferringTemplates: Opts[Set[model.ProjectName]] = Opts
@@ -27,6 +25,17 @@ object ImportOptions {
   val skipGeneratedResourcesScript: Opts[Boolean] =
     Opts.flag("skip-generated-resources-script", "disable creating a script to regenerate discovered generated sources/resources ").orFalse
 
+  implicit val jvmArgument: Argument[model.Jvm] = new Argument[Jvm] {
+    override def read(string: String): ValidatedNel[String, Jvm] = Validated.Valid(model.Jvm(string, None))
+    override def defaultMetavar: String = "metavar-jvm"
+  }
+
+  val jvm: Opts[model.Jvm] =
+    Opts
+      .flagOption("jvm", "pick JVM to use for import. Valid nam in index file at https://github.com/coursier/jvm-index/raw/master/index.json")
+      .withDefault(Some(model.Jvm.system))
+      .map(_.get)
+
   val opts: Opts[ImportOptions] =
-    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript).mapN(ImportOptions.apply)
+    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm).mapN(ImportOptions.apply)
 }

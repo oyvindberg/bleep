@@ -103,14 +103,14 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.lihaoyi",
-          "name": "fansi_2.12",
-          "version": "0.2.14",
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.14",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "fansi_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.14/fansi_2.12-0.2.14.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar"
             }
           ]
         },
@@ -127,14 +127,14 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.14",
+          "organization": "com.lihaoyi",
+          "name": "fansi_2.12",
+          "version": "0.2.14",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar"
+              "name": "fansi_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.12/0.2.14/fansi_2.12-0.2.14.jar"
             }
           ]
         }

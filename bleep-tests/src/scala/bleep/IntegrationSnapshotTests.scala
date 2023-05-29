@@ -21,7 +21,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   test("doobie") {
-    testIn("doobie", "https://github.com/tpolecat/doobie.git", "5d0957d")
+    testIn("doobie", "https://github.com/tpolecat/doobie.git", "5d0957d", jvm = model.Jvm("zulu-jre:16.0.0", None))
   }
 
   test("http4s") {
@@ -29,7 +29,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   test("bloop") {
-    testIn("bloop", "https://github.com/scalacenter/bloop.git", "b190bd3")
+    testIn("bloop", "https://github.com/scalacenter/bloop.git", "cc04a06")
   }
 
   test("sbt") {
@@ -44,7 +44,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
     testIn("converter", "https://github.com/ScalablyTyped/Converter.git", "715edaf")
   }
 
-  def testIn(project: String, repo: String, sha: String): Assertion = {
+  def testIn(project: String, repo: String, sha: String, jvm: model.Jvm = model.Jvm.graalvm): Assertion = {
     val logger = logger0.withPath(project)
     val testFolder = outFolder / project
     val sbtBuildDir = testFolder / "sbt-build"
@@ -72,7 +72,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
         val sbtBuildLoader = BuildLoader.inDirectory(sbtBuildDir)
         val sbtDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, sbtBuildLoader, model.BuildVariant.Normal)
-        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths)
+        val cacheLogger = new BleepCacheLogger(logger)
+        val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ExecutionContext.global)
+        val fetchedJvm = fetchJvm(jvm)
+        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths, fetchedJvm)
 
         val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths)
         FileUtils.writeGzippedBytes(
@@ -94,7 +97,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     val importedBuildLoader = BuildLoader.inDirectory(importedPath)
     val importedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, importedBuildLoader, model.BuildVariant.Normal)
-    val importerOptions = sbtimport.ImportOptions(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false)
+    val importerOptions = sbtimport.ImportOptions(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false, jvm = jvm)
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =

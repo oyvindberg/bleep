@@ -11,24 +11,27 @@
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloop4j/src/main/scala-2.12"
     ],
     "dependencies": [
-      "bloop-config@jvm212"
+      
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.0.0-M13/bsp4j-2.0.0-M13.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/1.5.5/bloop-config_2.12-1.5.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.2/gson-2.8.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.8.1/org.eclipse.lsp4j.generator-0.8.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.8.1/org.eclipse.lsp4j.jsonrpc-0.8.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.18.0/org.eclipse.xtend.lib.macro-2.18.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.18.0/org.eclipse.xtend.lib-2.18.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.18.0/org.eclipse.xtext.xbase.lib-2.18.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-config/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/.jvm/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/src/main/resources"
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop4j",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop4j/classes",
@@ -40,7 +43,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.17",
       "options": [
         "-Xfuture",
         "-Xlint:unused",
@@ -59,10 +62,10 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop4j/inc_compile.zip",
       "setup": {
@@ -94,62 +97,74 @@
     "resolution": {
       "modules": [
         {
-          "organization": "ch.epfl.scala",
-          "name": "bsp4j",
-          "version": "2.0.0-M13",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "bsp4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.0.0-M13/bsp4j-2.0.0-M13.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.eclipse.lsp4j",
           "name": "org.eclipse.lsp4j.jsonrpc",
-          "version": "0.8.1",
+          "version": "0.12.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.lsp4j.jsonrpc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.8.1/org.eclipse.lsp4j.jsonrpc-0.8.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.xtend",
           "name": "org.eclipse.xtend.lib",
-          "version": "2.18.0",
+          "version": "2.24.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtend.lib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.18.0/org.eclipse.xtend.lib-2.18.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0.jar"
             }
           ]
         },
         {
           "organization": "com.google.guava",
           "name": "guava",
-          "version": "21.0",
+          "version": "27.1-jre",
           "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/21.0/guava-21.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.epfl.scala",
+          "name": "bloop-config_2.12",
+          "version": "1.5.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bloop-config_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/1.5.5/bloop-config_2.12-1.5.5.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.lsp4j",
           "name": "org.eclipse.lsp4j.generator",
-          "version": "0.8.1",
+          "version": "0.12.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.lsp4j.generator",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.8.1/org.eclipse.lsp4j.generator-0.8.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "2.5.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2.jar"
             }
           ]
         },
@@ -168,48 +183,132 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.15",
+          "version": "2.12.17",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.xtext",
           "name": "org.eclipse.xtext.xbase.lib",
-          "version": "2.18.0",
+          "version": "2.24.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtext.xbase.lib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.18.0/org.eclipse.xtext.xbase.lib-2.18.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.epfl.scala",
+          "name": "bsp4j",
+          "version": "2.1.0-M3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bsp4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
             }
           ]
         },
         {
           "organization": "com.google.code.gson",
           "name": "gson",
-          "version": "2.8.2",
+          "version": "[2.8.6,2.9)",
           "configurations": "default",
           "artifacts": [
             {
               "name": "gson",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.2/gson-2.8.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.xtend",
           "name": "org.eclipse.xtend.lib.macro",
-          "version": "2.18.0",
+          "version": "2.24.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtend.lib.macro",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.18.0/org.eclipse.xtend.lib.macro-2.18.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.mojo",
+          "name": "animal-sniffer-annotations",
+          "version": "1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "animal-sniffer-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
             }
           ]
         }

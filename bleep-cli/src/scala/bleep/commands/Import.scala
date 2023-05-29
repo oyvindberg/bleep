@@ -8,6 +8,7 @@ import java.nio.file.Path
 case class Import(
     existingBuild: Option[model.BuildFile],
     sbtBuildDir: Path,
+    fetchJvm: FetchJvm,
     destinationPaths: BuildPaths,
     logger: Logger,
     options: sbtimport.ImportOptions,
@@ -15,7 +16,8 @@ case class Import(
 ) extends BleepNoBuildCommand {
   override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
-      sbtimport.runSbt(logger, sbtBuildDir, destinationPaths)
+      val resolvedJvm = fetchJvm(model.Jvm.system)
+      sbtimport.runSbt(logger, sbtBuildDir, destinationPaths, resolvedJvm)
     }
 
     val inputData = sbtimport.ImportInputData.collectFromFileSystem(destinationPaths)

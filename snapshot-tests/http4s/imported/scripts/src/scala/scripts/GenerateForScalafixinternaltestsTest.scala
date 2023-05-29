@@ -14,7 +14,7 @@ object GenerateForScalafixinternaltestsTest extends BleepCodegenScript("Generate
         val to = target.resources.resolve("scalafix-testkit.properties")
         started.logger.withContext(target.project).warn(s"Writing $to")
         val content = s"""|#Input data for scalafix testkit
-      |#Sat Nov 05 01:16:47 CET 2022
+      |#Mon May 29 12:34:30 CEST 2023
       |inputSourceDirectories=<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/input/src/main/scala
       |scalaVersion=3.1.1
       |scalacOptions=-deprecation|-encoding|UTF-8|-feature|-unchecked|-language\\\\:implicitConversions|-Ykind-projector|-source\\\\:3.0-migration|-Xsemanticdb|-semanticdb-target|<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/input/target/scala-3.1.1/meta
@@ -33,7 +33,7 @@ object GenerateForScalafixinternaltestsTest extends BleepCodegenScript("Generate
         val to = target.resources.resolve("scalafix-testkit.properties")
         started.logger.withContext(target.project).warn(s"Writing $to")
         val content = s"""|#Input data for scalafix testkit
-      |#Sat Nov 05 01:15:51 CET 2022
+      |#Mon May 29 12:33:03 CEST 2023
       |inputSourceDirectories=<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/input/src/main/scala
       |scalaVersion=2.13.8
       |scalacOptions=-deprecation|-encoding|UTF-8|-feature|-unchecked|-Ywarn-numeric-widen|-Xlint\\\\:deprecation|-Wunused\\\\:nowarn|-Wdead-code|-Wextra-implicit|-Wnumeric-widen|-Wunused\\\\:implicits|-Wunused\\\\:explicits|-Wunused\\\\:imports|-Wunused\\\\:locals|-Wunused\\\\:params|-Wunused\\\\:patvars|-Wunused\\\\:privates|-Wvalue-discard|-Ywarn-dead-code|-Ybackend-parallelism|10|-language\\\\:_|-Xplugin\\\\:<COURSIER>/https/repo1.maven.org/maven2/com/olegpy/better-monadic-for_2.13/0.3.1/better-monadic-for_2.13-0.3.1.jar|-Xplugin\\\\:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.8/0.13.2/kind-projector_2.13.8-0.13.2.jar|-Xplugin\\\\:<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/semanticdb-scalac_2.13.8/4.4.32/semanticdb-scalac_2.13.8-4.4.32.jar|-P\\\\:semanticdb\\\\:synthetics\\\\:on|-Yrangepos|-P\\\\:semanticdb\\\\:targetroot\\\\:<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/input/target/scala-2.13/meta

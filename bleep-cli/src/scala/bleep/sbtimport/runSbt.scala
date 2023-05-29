@@ -16,20 +16,20 @@ object runSbt {
     *
     * I'm sure it's possible to do the same thing from within sbt and only launch it first, but you know. it's not at all easy.
     */
-  def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths): Unit = {
+  def apply(logger: Logger, sbtBuildDir: Path, destinationPaths: BuildPaths, jvm: ResolvedJvm): Unit = {
     val fetchSbt = new FetchSbt(new BleepCacheLogger(logger), ExecutionContext.global)
     val version = readSbtVersionFromFile(sbtBuildDir).getOrElse("1.8.0")
     val sbtPath = fetchSbt(version)
     def sbtCommands(cmds: Iterable[String]) =
       cli.In.Provided(cmds.mkString("", "\n", "\nexit\n").getBytes)
 
-    val sbtEnvs = List(
-      "SBT_OPTS" -> Some("-Xmx4096M"),
-      "JAVA_HOME" -> sys.env.get("JAVA_HOME")
-    ).collect { case (k, Some(v)) => (k, v) }
+    val javaHome = jvm.javaBin.getParent.getParent
 
-    val sbt =
-      List(sbtPath.toString) ++ sys.env.get("JAVA_HOME").toList.flatMap(home => List("-java-home", home))
+    val sbtEnvs = List(
+      "SBT_OPTS" -> "-Xmx4096M",
+      "JAVA_HOME" -> javaHome.toString
+    )
+    val sbt = List(sbtPath.toString) ++ List("-java-home", javaHome.toString)
 
     FileUtils.deleteDirectory(destinationPaths.bleepImportDir)
 
