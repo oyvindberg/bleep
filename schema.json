@@ -433,6 +433,20 @@
               }
             }
           ]
+        },
+        "libraryVersionSchemes": {
+          "description": "Version scheme to use for specific modules. Same syntax as a normal dependency, but the version need to be one of these values: \"early-semver\", \"pvp\", \"semver-spec\", \"always\", and \"strict\".",
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Dependency"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Dependency"
+              }
+            }
+          ]
         }
       }
     },
@@ -457,8 +471,7 @@
                 "$ref": "#/$defs/RelPath"
               }
             }
-          ],
-
+          ]
         }
       },
       "required": [
