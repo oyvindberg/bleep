@@ -501,12 +501,12 @@
           "artifacts": [
             {
               "name": "inject-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-core_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-core_2.13/21.2.0/inject-core_2.13-21.2.0.jar"
             }
           ]
         },
@@ -530,12 +530,12 @@
           "artifacts": [
             {
               "name": "inject-server_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-server_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-server_2.13/21.2.0/inject-server_2.13-21.2.0.jar"
             }
           ]
         },
@@ -571,12 +571,12 @@
           "artifacts": [
             {
               "name": "finatra-http_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0-tests.jar"
             },
             {
               "name": "finatra-http_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/finatra-http_2.13/21.2.0/finatra-http_2.13-21.2.0.jar"
             }
           ]
         },
@@ -804,12 +804,12 @@
           "artifacts": [
             {
               "name": "inject-modules_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-modules_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-modules_2.13/21.2.0/inject-modules_2.13-21.2.0.jar"
             }
           ]
         },
@@ -1715,12 +1715,12 @@
           "artifacts": [
             {
               "name": "inject-app_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0.jar"
+              "classifier": "tests",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-tests.jar"
             },
             {
               "name": "inject-app_2.13",
-              "classifier": "tests",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0-tests.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/twitter/inject-app_2.13/21.2.0/inject-app_2.13-21.2.0.jar"
             }
           ]
         },

@@ -15,18 +15,18 @@
       "sockets"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.13.3.2/jsoniter-scala-core_2.12-2.13.3.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/github/scopt/scopt_2.12/4.0.0-RC2/scopt_2.12-4.0.0-RC2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.16/interface-svm-subs-1.0.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.16/interface-1.0.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-cli_2.12/0.4.0/snailgun-cli_2.12-0.4.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/me/vican/jorge/snailgun-core_2.12/0.4.0/snailgun-core_2.12-0.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.13.0/jna-platform-5.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.7/slf4j-api-2.0.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/2.0.7/slf4j-nop-2.0.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.12/zt-exec-1.12.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloopgun-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sockets/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloopgun-core@jvm212/scripts.GenerateForBloopgunCore",
@@ -45,7 +45,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.17",
       "options": [
         "-Xfuture",
         "-Yno-adapted-args",
@@ -61,10 +61,10 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-launcher-core/jvm212/inc_compile.zip",
       "setup": {
@@ -97,12 +97,12 @@
         {
           "organization": "org.zeroturnaround",
           "name": "zt-exec",
-          "version": "1.11",
+          "version": "1.12",
           "configurations": "default",
           "artifacts": [
             {
               "name": "zt-exec",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.11/zt-exec-1.11.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.12/zt-exec-1.12.jar"
             }
           ]
         },
@@ -121,48 +121,48 @@
         {
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.12",
-          "version": "2.4.0",
+          "version": "2.13.3.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.13.3.2/jsoniter-scala-core_2.12-2.13.3.2.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "interface-svm-subs",
-          "version": "1.0.6",
+          "version": "1.0.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "interface-svm-subs",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.6/interface-svm-subs-1.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface-svm-subs/1.0.16/interface-svm-subs-1.0.16.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.15",
+          "version": "2.12.17",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
             }
           ]
         },
         {
           "organization": "net.java.dev.jna",
           "name": "jna",
-          "version": "5.8.0",
+          "version": "5.13.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jna",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.8.0/jna-5.8.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.13.0/jna-5.13.0.jar"
             }
           ]
         },
@@ -181,48 +181,48 @@
         {
           "organization": "net.java.dev.jna",
           "name": "jna-platform",
-          "version": "5.8.0",
+          "version": "5.13.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jna-platform",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.8.0/jna-platform-5.8.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.13.0/jna-platform-5.13.0.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "slf4j-nop",
-          "version": "1.7.2",
+          "version": "2.0.7",
           "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-nop",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/1.7.2/slf4j-nop-1.7.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-nop/2.0.7/slf4j-nop-2.0.7.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "interface",
-          "version": "1.0.6",
+          "version": "1.0.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.6/interface-1.0.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/interface/1.0.16/interface-1.0.16.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "slf4j-api",
-          "version": "1.7.2",
+          "version": "2.0.7",
           "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.2/slf4j-api-1.7.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.7/slf4j-api-2.0.7.jar"
             }
           ]
         },

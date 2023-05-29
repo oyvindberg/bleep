@@ -1,8 +1,6 @@
 package bleep
 package model
 
-import coursier.Organization
-import coursier.core.ModuleName
 import io.circe.{Decoder, Encoder}
 
 case class LibraryVersionScheme(scheme: LibraryVersionScheme.VersionScheme, dep: Dep)
@@ -10,7 +8,7 @@ case class LibraryVersionScheme(scheme: LibraryVersionScheme.VersionScheme, dep:
 object LibraryVersionScheme {
   def from(dep: Dep): Either[String, LibraryVersionScheme] =
     VersionScheme.fromString(dep.version) match {
-      case Left(err) => Left(s"Invalid version scheme: $err")
+      case Left(err)            => Left(s"Invalid version scheme: $err")
       case Right(versionScheme) => Right(LibraryVersionScheme(versionScheme, dep))
     }
 

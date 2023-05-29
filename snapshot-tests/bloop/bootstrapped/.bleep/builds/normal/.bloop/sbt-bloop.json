@@ -1,11 +1,11 @@
 {
   "version": "1.4.0",
   "project": {
-    "name": "sbt-bloop-core@jvm212",
-    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm212",
+    "name": "sbt-bloop",
+    "directory": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped",
     "sources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/sbt-bloop-core@jvm212/scripts.GenerateForSbtBloopCore",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-sources/sbt-bloop/scripts.GenerateForSbtBloop",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/java",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala-2",
@@ -13,9 +13,10 @@
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/scala-sbt-1.0"
     ],
     "dependencies": [
-      "bloop-config@jvm212"
+      
     ],
     "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/1.5.5/bloop-config_2.12-1.5.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.12/0.5.0/gigahorse-core_2.12-0.5.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-okhttp_2.12/0.5.0/gigahorse-okhttp_2.12-0.5.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.12/1.0.0-M4/shaded-scalajson_2.12-1.0.0-M4.jar",
@@ -49,10 +50,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.11.2/log4j-slf4j-impl-2.11.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.2/reactive-streams-1.0.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.12/1.1.2/scala-parser-combinators_2.12-1.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.2.0/scala-xml_2.12-1.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/actions_2.12/1.3.3/actions_2.12-1.3.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.12/1.3.3/collections_2.12-1.3.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/command_2.12/1.3.3/command_2.12-1.3.3.jar",
@@ -99,17 +100,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc-persist_2.12/1.3.1/zinc-persist_2.12-1.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/zinc_2.12/1.3.1/zinc_2.12-1.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.26/slf4j-api-1.7.26.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.12/0.10.4/jawn-parser_2.12-0.10.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-config/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/.jvm/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/config/src/main/resources"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/spire-math/jawn-parser_2.12/0.10.4/jawn-parser_2.12-0.10.4.jar"
     ],
-    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm212/classes",
+    "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop/classes",
     "resources": [
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sbt-bloop-core@jvm212/scripts.GenerateForSbtBloopCore",
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/sbt-bloop/scripts.GenerateForSbtBloop",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
       "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/integrations/sbt-bloop/src/main/resources"
@@ -117,7 +113,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.17",
       "options": [
         "-Wconf:cat=unused-nowarn:s",
         "-Xfuture",
@@ -135,12 +131,12 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.17/scala-compiler-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.17/scala-reflect-2.12.17.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
       ],
-      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop-core/jvm212/inc_compile.zip",
+      "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/sbt-bloop/inc_compile.zip",
       "setup": {
         "order": "mixed",
         "addLibraryToBootClasspath": true,
@@ -169,30 +165,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.github.plokhotnyuk.jsoniter-scala",
-          "name": "jsoniter-scala-core_2.12",
-          "version": "2.4.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jsoniter-scala-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-sbt",
           "name": "sbt",
           "version": "1.3.3",
@@ -201,6 +173,42 @@
             {
               "name": "sbt",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/sbt/1.3.3/sbt-1.3.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.17/scala-library-2.12.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.epfl.scala",
+          "name": "bloop-config_2.12",
+          "version": "1.5.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bloop-config_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.12/1.5.5/bloop-config_2.12-1.5.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_2.12",
+          "version": "2.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsoniter-scala-core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.12/2.4.0/jsoniter-scala-core_2.12-2.4.0.jar"
             }
           ]
         }

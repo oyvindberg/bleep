@@ -53,7 +53,7 @@ object Main {
   def noBuildOpts(logger: Logger, userPaths: UserPaths, buildPaths: BuildPaths, buildLoader: BuildLoader.NonExisting): Opts[BleepNoBuildCommand] =
     commonOpts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
-      importCmd(buildLoader, buildPaths, logger),
+      importCmd(buildLoader, userPaths, buildPaths, logger),
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger)
     ).foldK
@@ -294,12 +294,15 @@ object Main {
       ).foldK
     )
 
-  def importCmd(buildLoader: BuildLoader, buildPaths: BuildPaths, logger: Logger): Opts[BleepNoBuildCommand] =
+  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepNoBuildCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
       sbtimport.ImportOptions.opts.map { opts =>
+        val cacheLogger = new BleepCacheLogger(logger)
+        val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ec)
+
         val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
-        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
+        commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
       }
     )
 

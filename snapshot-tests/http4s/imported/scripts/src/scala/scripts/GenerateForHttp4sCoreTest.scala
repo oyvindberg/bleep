@@ -86,6 +86,60 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
+      if (Set("http4s-core-test@jvm213").contains(target.project.value)) {
+        val to = target.sources.resolve("org/http4s/HeadersDoctest.scala")
+        started.logger.withContext(target.project).warn(s"Writing $to")
+        val content = s"""|package org.http4s
+      |
+      |import _root_.munit._
+      |
+      |class `HeadersDoctest` extends FunSuite {
+      |
+      |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
+      |    val _ = () => (a1, a2)
+      |  }
+      |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
+      |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
+      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |  }
+      |
+      |  test("Headers.scala:95: withContentLength") {
+      |    import org.http4s.headers._
+      |
+      |    val chunked = Headers(
+      |      `Transfer-Encoding`(TransferCoding.chunked),
+      |      `Content-Type`(MediaType.text.plain))
+      |
+      |    //example at line 105: chunked.withContentLength(`Content-Length`.unsafeFromLong(10 ...
+      |    sbtDoctestTypeEquals(chunked.withContentLength(`Content-Length`.unsafeFromLong(1024)))((chunked.withContentLength(`Content-Length`.unsafeFromLong(1024))): Headers)
+      |      assertEquals(sbtDoctestReplString(chunked.withContentLength(`Content-Length`.unsafeFromLong(1024))), "Headers(Content-Length: 1024, Content-Type: text/plain)")
+      |
+      |    val chunkedGzipped = Headers(
+      |      `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip),
+      |      `Content-Type`(MediaType.text.plain))
+      |
+      |    //example at line 111: chunkedGzipped.withContentLength(`Content-Length`.unsafeFrom ...
+      |    sbtDoctestTypeEquals(chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024)))((chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024))): Headers)
+      |      assertEquals(sbtDoctestReplString(chunkedGzipped.withContentLength(`Content-Length`.unsafeFromLong(1024))), "Headers(Content-Length: 1024, Transfer-Encoding: gzip, Content-Type: text/plain)")
+      |
+      |    val const = Headers(
+      |      `Content-Length`(2048),
+      |      `Content-Type`(MediaType.text.plain))
+      |
+      |    //example at line 117: const.withContentLength(`Content-Length`.unsafeFromLong(1024 ...
+      |    sbtDoctestTypeEquals(const.withContentLength(`Content-Length`.unsafeFromLong(1024)))((const.withContentLength(`Content-Length`.unsafeFromLong(1024))): Headers)
+      |      assertEquals(sbtDoctestReplString(const.withContentLength(`Content-Length`.unsafeFromLong(1024))), "Headers(Content-Length: 1024, Content-Type: text/plain)")
+      |  }
+      |
+      |}""".stripMargin
+        Files.createDirectories(to.getParent)
+        Files.writeString(to, content)
+      }
+    }
+
+
+
+    targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/HttpVersionDoctest.scala")
         started.logger.withContext(target.project).warn(s"Writing $to")
@@ -225,6 +279,46 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |    //example at line 60: uri\\\\"www.scala.com\\\\".++?(\\\\"key\\\\" -> List(\\\\"value1\\\\", \\\\"value2\\\\", \\\\"va ...
       |    sbtDoctestTypeEquals(uri"www.scala.com".++?("key" -> List("value1", "value2", "value3")))((uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))): Uri)
       |      assertEquals(sbtDoctestReplString(uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))), "www.scala.com?key=value1&key=value2&key=value3")
+      |  }
+      |
+      |}""".stripMargin
+        Files.createDirectories(to.getParent)
+        Files.writeString(to, content)
+      }
+    }
+
+
+
+    targets.foreach { target =>
+      if (Set("http4s-core-test@jvm213").contains(target.project.value)) {
+        val to = target.sources.resolve("org/http4s/headers/Transfer-EncodingDoctest.scala")
+        started.logger.withContext(target.project).warn(s"Writing $to")
+        val content = s"""|package org.http4s.headers
+      |
+      |import _root_.munit._
+      |
+      |class `Transfer-EncodingDoctest` extends FunSuite {
+      |
+      |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
+      |    val _ = () => (a1, a2)
+      |  }
+      |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
+      |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
+      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |  }
+      |
+      |  test("Transfer-Encoding.scala:54: filter") {
+      |    import org.http4s._
+      |
+      |    val te = `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip)
+      |
+      |    //example at line 60: te.filter(_ != TransferCoding.chunked)
+      |    sbtDoctestTypeEquals(te.filter(_ != TransferCoding.chunked))((te.filter(_ != TransferCoding.chunked)): Option[`Transfer-Encoding`])
+      |      assertEquals(sbtDoctestReplString(te.filter(_ != TransferCoding.chunked)), "Some(Transfer-Encoding(NonEmptyList(TransferCoding(gzip))))")
+      |
+      |    //example at line 62: te.filter(_ => false)
+      |    sbtDoctestTypeEquals(te.filter(_ => false))((te.filter(_ => false)): Option[`Transfer-Encoding`])
+      |      assertEquals(sbtDoctestReplString(te.filter(_ => false)), "None")
       |  }
       |
       |}""".stripMargin

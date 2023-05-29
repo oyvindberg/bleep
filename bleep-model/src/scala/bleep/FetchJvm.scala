@@ -54,9 +54,8 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
 object FetchJvm {
   def doFetch(cacheLogger: CacheLogger, jvm: Jvm, ec: ExecutionContext, arch: String): Path = {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)
-    val archiveCache = ArchiveCache[Task]().withCache(fileCache)
     val jvmCache = JvmCache()
-      .withArchiveCache(archiveCache)
+      .withArchiveCache(ArchiveCache[Task]().withCache(fileCache))
       .withIndex(jvm.index.getOrElse(JvmIndex.coursierIndexUrl))
       .withArchitecture(arch)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)

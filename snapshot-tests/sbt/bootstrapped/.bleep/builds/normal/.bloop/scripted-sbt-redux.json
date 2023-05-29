@@ -515,7 +515,7 @@
           "organization": "org.scala-sbt",
           "name": "launcher-interface",
           "version": "1.3.3",
-          "configurations": "default",
+          "configurations": "provided",
           "artifacts": [
             {
               "name": "launcher-interface",

@@ -155,18 +155,6 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.16",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalacheck",
           "name": "scalacheck_2.12",
           "version": "1.15.4",
@@ -175,6 +163,18 @@
             {
               "name": "scalacheck_2.12",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_2.12/1.15.4/scalacheck_2.12-1.15.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
             }
           ]
         },
