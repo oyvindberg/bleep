@@ -13,7 +13,7 @@ case class Import(
     logger: Logger,
     options: sbtimport.ImportOptions,
     bleepVersion: model.BleepVersion
-) extends BleepNoBuildCommand {
+) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
       val resolvedJvm = fetchJvm(model.Jvm.system)
