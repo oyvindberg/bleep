@@ -446,6 +446,7 @@
           "type": "string"
         },
         "sourceGlobs": {
+          "description": "additional set of directories to watch. These are relative to the project folder of the script project. All source and resource folders for the project are already added",
           "oneOf": [
             {
               "$ref": "#/$defs/RelPath"
@@ -456,7 +457,8 @@
                 "$ref": "#/$defs/RelPath"
               }
             }
-          ]
+          ],
+
         }
       },
       "required": [

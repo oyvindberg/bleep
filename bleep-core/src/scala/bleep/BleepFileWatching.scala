@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.TransitiveProjects
+import bleep.model.ScriptDef
 
 import java.nio.file.Path
 import scala.collection.compat.*
@@ -13,9 +14,12 @@ object BleepFileWatching {
       projects.all.iterator.flatMap { name =>
         val p = started.build.explodedProjects(name)
         val paths = started.buildPaths.project(name, p)
-        val allPaths = paths.sourcesDirs.all ++ paths.resourcesDirs.all
-
-        allPaths.iterator.map(path => (path, name))
+        val allPaths = paths.sourcesDirs.all.iterator ++ paths.resourcesDirs.all
+        val fromSourceGen: Iterator[Path] =
+          p.sourcegen.values.iterator.flatMap { case ScriptDef.Main(_, _, sourceGlobs) =>
+            sourceGlobs.values.iterator.map(relPath => paths.dir / relPath)
+          }
+        (allPaths ++ fromSourceGen).map(path => (path, name))
       }
 
     sourceProjectPairs.toSeq.groupMap { case (p, _) => p } { case (_, name) => name }
