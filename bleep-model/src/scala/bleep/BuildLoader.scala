@@ -74,6 +74,9 @@ object BuildLoader {
         case e: Existing    => Some(e)
       }
 
-    in(cwd).getOrElse(NonExisting(cwd.resolve(BuildFileName)))
+    in(cwd).getOrElse(nonExisting(cwd))
   }
+
+  def nonExisting(cwd: Path): NonExisting =
+    NonExisting(cwd.resolve(BuildFileName))
 }

@@ -18,7 +18,7 @@ case class BuildCreateNew(
     name: String,
     bleepVersion: model.BleepVersion,
     coursierResolver: CoursierResolver.Factory
-) extends BleepNoBuildCommand {
+) extends BleepCommand {
 
   override def run(): Either[BleepException, Unit] = {
     val buildLoader = BuildLoader.inDirectory(cwd)

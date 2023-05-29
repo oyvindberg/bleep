@@ -160,7 +160,8 @@ object Main {
               ),
               Opts.subcommand("evicted", "show eviction warnings for project")(
                 projectNames.map(projectNames => commands.Evicted(projectNames))
-              )
+              ),
+              newCommand(started.pre.logger, started.pre.userPaths, started.buildPaths.cwd)
             ).foldK
           ),
           Opts.subcommand("compile", "compile projects")(
@@ -197,7 +198,12 @@ object Main {
           ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
             testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
-          ),
+          ), {
+            // edge case: import an sbt build in a folder underneath one where you have a bleep build
+            val buildLoader = BuildLoader.nonExisting(started.buildPaths.cwd)
+            val buildPaths = BuildPaths(started.buildPaths.cwd, buildLoader, model.BuildVariant.Normal)
+            importCmd(buildLoader, started.userPaths, buildPaths, started.logger)
+          },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
           Opts.subcommand("publish-local", "publishes your project locally") {
@@ -294,7 +300,7 @@ object Main {
       ).foldK
     )
 
-  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepNoBuildCommand] =
+  def importCmd(buildLoader: BuildLoader, userPaths: UserPaths, buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
     Opts.subcommand("import", "import existing build from files in .bloop")(
       sbtimport.ImportOptions.opts.map { opts =>
         val cacheLogger = new BleepCacheLogger(logger)
@@ -316,7 +322,7 @@ object Main {
       )
     ).foldK
 
-  def newCommand(logger: Logger, userPaths: UserPaths, cwd: Path): Opts[BleepNoBuildCommand] =
+  def newCommand(logger: Logger, userPaths: UserPaths, cwd: Path): Opts[BleepCommand] =
     Opts.subcommand("new", "create new build in current directory")(
       (
         Opts
