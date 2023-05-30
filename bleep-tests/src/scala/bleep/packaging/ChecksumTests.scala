@@ -1,5 +1,6 @@
 package bleep.packaging
 
+import bleep.Checksums
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 
