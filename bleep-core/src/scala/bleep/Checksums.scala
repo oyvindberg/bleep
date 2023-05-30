@@ -1,5 +1,4 @@
 package bleep
-package packaging
 
 import java.security.MessageDigest
 import java.util
@@ -31,12 +30,15 @@ object Checksums {
       Map(in) ++ res
     }
 
-  def compute(content: Array[Byte], algorithm: Algorithm): Digest = {
+  def compute(algorithm: Algorithm)(f: MessageDigest => Unit): Digest = {
     val md = MessageDigest.getInstance(algorithm.name)
     md.reset()
-    md.update(content)
+    f(md)
     Digest(md.digest)
   }
+
+  def compute(content: Array[Byte], algorithm: Algorithm): Digest =
+    compute(algorithm)(_.update(content))
 
   // byte to hex string converter
   val Chars = Array[Char]('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')

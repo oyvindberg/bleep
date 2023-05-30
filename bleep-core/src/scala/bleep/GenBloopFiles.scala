@@ -108,14 +108,19 @@ object GenBloopFiles {
   case class SyncToDiskWith(next: GenBloopFiles) extends GenBloopFiles {
     override def apply(pre: Prebootstrapped, resolver: CoursierResolver, build: model.Build): Files = {
 
-      val currentHash = List(
-        build.$version,
-        build.explodedProjects.toVector.sortBy(_._1)
-      ).hashCode().toString
+      val currentHash: Checksums.Digest =
+        Checksums.compute(Checksums.Algorithm.Md5) { md =>
+          md.update(build.$version.value.getBytes(UTF_8))
+          build.explodedProjects.toVector.sortBy { case (cn, _) => cn }.foreach { case (cn, p) =>
+            import io.circe.syntax.*
+            md.update(cn.value.getBytes(UTF_8))
+            md.update(p.asJson.noSpacesSortKeys.getBytes(UTF_8))
+          }
+        }
 
       val oldHash = Try(Files.readString(pre.buildPaths.digestFile, UTF_8)).toOption
 
-      if (oldHash.contains(currentHash)) {
+      if (oldHash.contains(currentHash.hexString)) {
         pre.logger.debug(s"${pre.buildPaths.bleepBloopDir} up to date")
         next(pre, resolver, build)
       } else {
@@ -123,7 +128,7 @@ object GenBloopFiles {
 
         val bloopFiles = next(pre, resolver, build)
 
-        val fileMap = encodedFiles(pre.buildPaths, bloopFiles).updated(pre.buildPaths.digestFile, currentHash)
+        val fileMap = encodedFiles(pre.buildPaths, bloopFiles).updated(pre.buildPaths.digestFile, currentHash.hexString)
 
         FileSync
           .syncPaths(
