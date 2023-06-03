@@ -363,7 +363,7 @@ object GenBloopFiles {
             case Some(scala) =>
               val base = scala.options.union(compilerPlugins).union(versionCombo.compilerOptions)
               if (scala.strict.getOrElse(false)) {
-                val tpolecat = model.Options.parse(new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion).toList, None)
+                val tpolecat = new TpolecatPlugin(DevMode).scalacOptions(scalaVersion.scalaVersion)
                 base.union(tpolecat)
               } else base
             case None => model.Options.empty

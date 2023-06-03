@@ -28,7 +28,7 @@ projects:
     - bleep-model
     - bleep-nosbt
     extends: template-cross-all
-    sources: ../liberated/sbt-tpolecat/src/main/scala
+    sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleep-model:
     dependencies:
     - io.circe::circe-core:0.14.4

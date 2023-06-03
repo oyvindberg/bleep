@@ -546,7 +546,7 @@ object buildFromBloopFiles {
     val (strict, remainingOptions) = {
       val tpolecat = new TpolecatPlugin(DevMode)
 
-      val tpolecatOptions = model.Options.parse(tpolecat.scalacOptions(s.version).toList, None)
+      val tpolecatOptions = tpolecat.scalacOptions(s.version)
       if (tpolecatOptions.values.forall(notCompilerPlugins.contains))
         (Some(true), new model.Options(notCompilerPlugins -- tpolecatOptions.values))
       else
