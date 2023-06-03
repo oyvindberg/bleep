@@ -57,6 +57,7 @@
       "options": [
         "-Wdead-code",
         "-Wextra-implicit",
+        "-Wnonunit-statement",
         "-Wnumeric-widen",
         "-Wunused:explicits",
         "-Wunused:implicits",
