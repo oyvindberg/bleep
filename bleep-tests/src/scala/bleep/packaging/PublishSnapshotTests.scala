@@ -10,7 +10,15 @@ class PublishSnapshotTests extends SnapshotTest {
 
     val self = Dependency(Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty), "1.0.0")
     val deps = List(
-      Dependency(Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty), "1.0.0")
+      Dependency(
+        Module(Organization("com.org"), ModuleName("moduleName_2.13"), Map.empty),
+        "1.0.0",
+        Configuration.empty,
+        Set((Organization("com.exclude"), ModuleName("exclude-artifact"))),
+        Publication("", Type.empty, Extension.empty, Classifier.empty),
+        optional = false,
+        transitive = true
+      )
     )
     val info = Info(
       description = "description",

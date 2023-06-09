@@ -79,10 +79,10 @@ object GenLayout {
       </publications>
       <dependencies>{
       deps.map { dep =>
-        <dependency 
-          org={dep.module.organization.value} 
-          name={dep.module.name.value} 
-          rev={dep.version} 
+        <dependency
+          org={dep.module.organization.value}
+          name={dep.module.name.value}
+          rev={dep.version}
           conf={dep.configuration.value}
           />
       }
@@ -163,6 +163,18 @@ object GenLayout {
           dep.configuration match {
             case Configuration.empty => Nil
             case other               => <scope>{other.value}</scope>
+          }
+        }
+          {
+          dep.minimizedExclusions.toSeq().render { exc =>
+            <exclusions>{
+              exc.map { case (org, thing) =>
+                <exclusion>
+                  <groupId>{org.value}</groupId>
+                  <artifactId>{thing.value}</artifactId>
+                </exclusion>
+              }
+            }</exclusions>
           }
         }</dependency>
       }
