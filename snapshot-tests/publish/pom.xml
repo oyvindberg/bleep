@@ -37,6 +37,12 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xs
       <groupId>com.org</groupId>
       <artifactId>moduleName_2.13</artifactId>
       <version>1.0.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.exclude</groupId>
+          <artifactId>exclude-artifact</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 </project>
