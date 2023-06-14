@@ -19,13 +19,14 @@ object SetupBloopRifle {
       resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,
-      bleepRifleLogger: BleepRifleLogger
+      bleepRifleLogger: BleepRifleLogger,
+      workingDir: Option[Path]
   ): BloopRifleConfig = {
     val default = BloopRifleConfig
       .default(
         BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, compileServerMode, resolvedJvm.jvm)),
         bloopClassPath(resolver),
-        FileUtils.TempDir.toFile
+        workingDir.getOrElse(FileUtils.TempDir).toFile
       )
 
     default.copy(

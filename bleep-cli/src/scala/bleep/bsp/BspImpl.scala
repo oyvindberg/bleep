@@ -43,7 +43,8 @@ object BspImpl {
           resolvedJvm = pre.resolvedJvm.forceGet,
           userPaths = pre.userPaths,
           resolver = resolver,
-          bleepRifleLogger = bleepRifleLogger
+          bleepRifleLogger = bleepRifleLogger,
+          workingDir = Some(pre.buildPaths.cwd)
         )
 
       val workspaceDir = pre.buildPaths.buildVariantDir

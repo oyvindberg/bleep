@@ -30,7 +30,8 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         started.resolvedJvm.forceGet,
         started.pre.userPaths,
         started.resolver,
-        bleepRifleLogger
+        bleepRifleLogger,
+        Some(started.pre.buildPaths.cwd)
       )
 
     val buildClient: BspClientDisplayProgress =
