@@ -44,7 +44,7 @@ object Main {
     (
       Opts.flag("no-color", "enable CI-friendly output").orFalse,
       Opts.flag("debug", "enable more output").orFalse,
-      Opts.option[String]("directory", "enable more output", "d").orNone,
+      Opts.option[String]("directory", "specify a project directory to use, instead of the current working directory", "d").orNone,
       Opts.flag("dev", "use the current bleep binary and don't launch the one specified in bleep.yaml").orFalse,
       Opts.flag("no-bsp-progress", "don't show compilation progress. good for CI").orFalse,
       Opts.flag("log-as-json", "bleep internal: for running bleep scripts").orFalse
