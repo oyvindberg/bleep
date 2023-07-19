@@ -7,11 +7,15 @@ import bloop.config.Config
 import coursier.core.Configuration
 import io.circe.Codec
 import io.circe.generic.semiauto.*
+import bleep.logging.Logger
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.jdk.StreamConverters.StreamHasToScala
+import scala.util.Try
+import scala.util.Failure
+import scala.util.Success
 
 /** Absolutely everything that the import cares about from the sbt build is dumped in this structure. It's all read up front, so the import is a pure function.
   *
@@ -115,7 +119,10 @@ object ImportInputData {
   model.assertUsed(codecPath)
   implicit val codec: Codec.AsObject[ImportInputData] = deriveCodec
 
-  def collectFromFileSystem(destinationPaths: BuildPaths): ImportInputData = {
+  def collectFromFileSystem(
+      destinationPaths: BuildPaths,
+      logger: Logger
+  ): ImportInputData = {
     val bloopFileStrings: Vector[(Path, String)] =
       findGeneratedJsonFiles(destinationPaths.bleepImportBloopDir)
         .map(path => (path, Files.readString(path)))
@@ -157,7 +164,12 @@ object ImportInputData {
               dir <- dirs
               if dir.startsWith(originalTargetDir) && FileUtils.exists(dir)
               file <- Files.walk(dir).filter(Files.isRegularFile(_)).iterator().asScala
-            } yield (dir, GeneratedFile(isResource = isResource, Files.readString(file), RelPath.relativeTo(dir, file)))
+              // reading non UTF-8 files will fail, but that's fine
+              content <- Try(Files.readString(file)) match {
+                case Failure(exception) => logger.warn(s"Failed to read $file: $exception"); None
+                case Success(value)     => Some(value)
+              }
+            } yield (dir, GeneratedFile(isResource = isResource, content, RelPath.relativeTo(dir, file)))
 
           val sources = findFiles(bloopProject.sources, isResource = false)
           val resources = findFiles(bloopProject.resources.getOrElse(Nil), isResource = true)

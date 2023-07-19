@@ -20,7 +20,7 @@ case class Import(
       sbtimport.runSbt(logger, sbtBuildDir, destinationPaths, resolvedJvm)
     }
 
-    val inputData = sbtimport.ImportInputData.collectFromFileSystem(destinationPaths)
+    val inputData = sbtimport.ImportInputData.collectFromFileSystem(destinationPaths, logger)
 
     val generatedBuildFiles = sbtimport
       .generateBuild(
