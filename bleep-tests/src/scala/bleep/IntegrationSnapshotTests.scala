@@ -77,7 +77,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         val fetchedJvm = fetchJvm(jvm)
         sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths, fetchedJvm)
 
-        val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths)
+        val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths, logger)
         FileUtils.writeGzippedBytes(
           inputDataPath,
           inputData
