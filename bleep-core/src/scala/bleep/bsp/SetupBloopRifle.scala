@@ -8,7 +8,7 @@ import coursier.parse.ModuleParser
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.PosixFilePermission
-import scala.build.blooprifle.BloopRifleConfig
+import bloop.rifle.BloopRifleConfig
 import scala.collection.immutable.SortedSet
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Properties, Random, Success, Try}

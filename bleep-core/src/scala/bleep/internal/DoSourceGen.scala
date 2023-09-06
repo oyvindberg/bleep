@@ -7,7 +7,7 @@ import bleep.internal.compat.IteratorCompatOps
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
 import java.time.{Duration, Instant}
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 import scala.collection.compat.*
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*

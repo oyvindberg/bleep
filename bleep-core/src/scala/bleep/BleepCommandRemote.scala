@@ -6,9 +6,9 @@ import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
 import java.util
-import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
-import scala.build.blooprifle.internal.Operations
-import scala.build.blooprifle.{BloopRifleConfig, FailedToStartServerException}
+import bloop.rifle.{BloopServer, BloopThreads, BuildServer}
+import bloop.rifle.internal.Operations
+import bloop.rifle.{BloopRifleConfig, FailedToStartServerException}
 import scala.util.Try
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {

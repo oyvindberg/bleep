@@ -3,7 +3,7 @@ package commands
 
 import bleep.internal.{traverseish, TransitiveProjects}
 
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 
 case class SourceGen(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) {
   override def watchableProjects(started: Started): TransitiveProjects = {

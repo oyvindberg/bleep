@@ -4,7 +4,7 @@
     "org.eclipse.lsp4j.jsonrpc.Endpoint"
   ],
   [
-    "scala.build.bloop.BuildServer",
+    "bloop.rifle.BuildServer",
     "org.eclipse.lsp4j.jsonrpc.Endpoint"
   ]
 ]

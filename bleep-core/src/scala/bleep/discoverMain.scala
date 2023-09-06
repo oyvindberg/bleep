@@ -4,7 +4,7 @@ import bleep.logging.Logger
 import ch.epfl.scala.bsp4j
 
 import java.util
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 import scala.jdk.CollectionConverters.*
 
 object discoverMain {
