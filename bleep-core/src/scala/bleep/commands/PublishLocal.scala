@@ -5,7 +5,7 @@ import bleep.internal.TransitiveProjects
 import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 
 import java.nio.file.Path
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 import scala.collection.immutable.SortedMap
 import bleep.packaging.ManifestCreator
 

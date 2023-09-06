@@ -5,7 +5,7 @@ import bleep.bsp.BspCommandFailed
 import bleep.internal.{DoSourceGen, TransitiveProjects}
 import ch.epfl.scala.bsp4j
 
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 
 case class Test(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
 

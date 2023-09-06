@@ -4,7 +4,7 @@ import bleep.logging.{Logger, LoggerFn}
 
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
-import scala.build.blooprifle.BloopRifleLogger
+import bloop.rifle.BloopRifleLogger
 
 class BleepRifleLogger(logger: Logger) extends BloopRifleLogger {
   val bloopLogger = logger.withPath("bloop")

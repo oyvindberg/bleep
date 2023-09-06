@@ -266,6 +266,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "ch.epfl.scala.bsp4j.JvmMainClass",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "ch.epfl.scala.bsp4j.JvmBuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -679,14 +686,7 @@
     "allDeclaredFields": true
   },
   {
-    "name": "scala.build.bloop.BuildServer",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bloop.bloop4j.BloopExtraBuildParams",
+    "name": "bloop.rifle.BuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,

@@ -12,8 +12,8 @@ import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
 import java.util
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util.function.BiFunction
-import scala.build.bloop.BuildServer
-import scala.build.blooprifle.internal.Constants
+import bloop.rifle.BuildServer
+import bloop.rifle.internal.Constants
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.Random
@@ -81,7 +81,7 @@ class BleepBspServer(
       case Left(th) =>
         warn("couldn't refresh the build", th)
         CompletableFuture.failedFuture(
-          new ResponseErrorException(new ResponseError(ResponseErrorCode.serverErrorEnd, "couldn't refresh the build", new Object))
+          new ResponseErrorException(new ResponseError(ResponseErrorCode.jsonrpcReservedErrorRangeEnd, "couldn't refresh the build", new Object))
         )
       case Right(started) =>
         val workspaceDir = started.buildPaths.buildVariantDir
@@ -128,7 +128,7 @@ class BleepBspServer(
       case Left(th) =>
         warn("Couldn't refresh the build", th)
         CompletableFuture.failedFuture(
-          new ResponseErrorException(new ResponseError(ResponseErrorCode.serverErrorEnd, "couldn't refresh the build", new Object))
+          new ResponseErrorException(new ResponseError(ResponseErrorCode.jsonrpcReservedErrorRangeEnd, "couldn't refresh the build", new Object))
         )
       case Right(_) =>
         bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
