@@ -7,9 +7,9 @@ import org.eclipse.lsp4j.jsonrpc
 
 import java.net.Socket
 import java.nio.file.{Files, Path}
-import scala.build.bloop.{BloopServer, BloopThreads, BuildServer}
-import scala.build.blooprifle.internal.Operations
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, FailedToStartServerException}
+import bloop.rifle.{BloopServer, BloopThreads, BuildServer}
+import bloop.rifle.internal.Operations
+import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopRifleLogger, FailedToStartServerException}
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success, Try}

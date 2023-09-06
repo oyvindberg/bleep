@@ -8,8 +8,8 @@ import bleep.logging.Logger
 
 import java.io.OutputStream
 import java.nio.file.{Files, Path}
-import scala.build.blooprifle.BloopRifleConfig
-import scala.build.blooprifle.internal.Operations
+import bloop.rifle.BloopRifleConfig
+import bloop.rifle.internal.Operations
 import scala.jdk.StreamConverters.StreamHasToScala
 
 case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends BleepCommand {

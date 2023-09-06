@@ -2,7 +2,7 @@ package bleep.bsp
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
-import scala.build.bloop.BloopThreads
+import bloop.rifle.BloopThreads
 
 final case class BspThreads(
     buildThreads: BloopThreads,

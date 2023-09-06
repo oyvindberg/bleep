@@ -6,7 +6,7 @@ import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, Throwables, Tra
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 

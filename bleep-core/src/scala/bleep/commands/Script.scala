@@ -4,7 +4,7 @@ package commands
 import bleep.internal.{traverseish, TransitiveProjects}
 import bleep.model.ScriptDef
 
-import scala.build.bloop.BuildServer
+import bloop.rifle.BuildServer
 
 case class Script(name: model.ScriptName, args: List[String], watch: Boolean) extends BleepCommandRemote(watch) {
   override def watchableProjects(started: Started): TransitiveProjects = {
