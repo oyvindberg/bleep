@@ -258,7 +258,7 @@ object Main {
         }
       )
 
-      commonOpts *> allCommands.flatten.foldK
+      commonOpts *> Opts.flag("version", "output version information and exit") *> allCommands.flatten.foldK
     }
 
     ret
@@ -457,6 +457,12 @@ object Main {
         }
 
       case args =>
+        if (args.contains("--version")) {
+          // This is a little bit hacky but the only way to not have any output before the version.
+          println(s"bleep ${model.BleepVersion.current.value}")
+          System.exit(0)
+        }
+          
         val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
 
