@@ -537,14 +537,14 @@ object Main {
   private def run[Cmd](opts: Opts[Cmd], restArgs: List[String], logger: Logger)(runCommand: Cmd => Either[BleepException, Unit]): ExitCode =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
-        System.err.println(help)
+        System.out.println(help)
         help.errors match {
           case List() => ExitCode.Success
           case _      => ExitCode.Failure
         }
       case Right(cmd) =>
         Try(runCommand(cmd)) match {
-          case Failure(th)        => fatal("command failed unexpectedly", logger, th) // This really shouldn't happen
+          case Failure(th)        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
           case Success(Left(th))  => fatal("command failed", logger, th)
           case Success(Right(())) => ExitCode.Success
         }
