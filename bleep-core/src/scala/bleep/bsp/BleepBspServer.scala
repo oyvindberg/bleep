@@ -14,9 +14,10 @@ import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util.function.BiFunction
 import bloop.rifle.BuildServer
 import bloop.rifle.internal.Constants
+
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
-import scala.util.Random
+import scala.util.{Random, Try}
 
 class BleepBspServer(
     val logger: Logger,
@@ -244,7 +245,7 @@ class BleepBspServer(
     logger.debug("buildShutdown")
     if (!shutdownPromise.isCompleted)
       shutdownPromise.success(())
-    bloopServer.buildShutdown()
+    Try(bloopServer.buildShutdown()).getOrElse(null)
   }
 
   override def onBuildExit(): Unit = {
