@@ -38,7 +38,7 @@ class BleepBspServer(
   }
 
   protected def onFatalError(throwable: Throwable, context: String): Nothing = {
-    error(s"Fatal error has occurred within $context. Shutting down the server", throwable)
+    error(s"Shutting down Bleep after encountering fatal error within $context", throwable)
 
     // wait random bit before shutting down server to reduce risk of multiple bleep instances starting bloop at the same time
     val timeout = Random.nextInt(400)
