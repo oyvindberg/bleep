@@ -44,7 +44,9 @@ object SetupBloopRifle {
 
   def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] = {
     val dep = model.Dep.Scala("io.github.alexarchambault.bleep", "bloop-frontend", bloopVersion)
-    resolver.resolve(Set(dep), versionCombo, libraryVersionSchemes = SortedSet(parallelCollectionAlways)) match {
+    resolver
+      .updatedParams(_.copy(downloadSources = false))
+      .resolve(Set(dep), versionCombo, libraryVersionSchemes = SortedSet(parallelCollectionAlways)) match {
       case Left(coursierError) =>
         Left(new BleepException.ResolveError(coursierError, "installing bloop"))
       case Right(value) =>
