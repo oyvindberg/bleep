@@ -21,7 +21,11 @@ import scala.collection.immutable.SortedSet
 
 trait CoursierResolver {
   val params: CoursierResolver.Params
-
+  def withParams(newParams: CoursierResolver.Params): CoursierResolver
+  
+  final def updatedParams(f: CoursierResolver.Params => CoursierResolver.Params): CoursierResolver = 
+    withParams(f(params))
+    
   // uncached, raw result from coursier
   def direct(
       deps: SortedSet[model.Dep],
@@ -169,6 +173,9 @@ object CoursierResolver {
     val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
     val repos = coursierRepos(params.repos, params.authentications)
 
+    override def withParams(newParams: Params): CoursierResolver = 
+      new Direct(logger, cacheLogger, newParams)
+
     override def direct(
         bleepDeps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
@@ -229,6 +236,10 @@ object CoursierResolver {
   // this is a performance cache, the real cache is the coursier folder
   private class Cached(logger: Logger, underlying: CoursierResolver, in: Path) extends CoursierResolver {
     override val params = underlying.params
+    
+    override def withParams(newParams: Params): CoursierResolver =
+      new Cached(logger, underlying.withParams(newParams), in)
+
     override def resolve(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
@@ -305,6 +316,10 @@ object CoursierResolver {
 
   class TemplatedVersions(underlying: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
     override val params = underlying.params
+
+    override def withParams(newParams: Params): CoursierResolver =
+      new TemplatedVersions(underlying.withParams(newParams), maybeWantedBleepVersion)
+
     override def resolve(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,

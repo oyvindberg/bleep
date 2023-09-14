@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.CoursierResolver.Cached
+import bleep.CoursierResolver.{Cached, Direct, Params}
 import bleep.internal.FileUtils
 import coursier.Fetch
 import coursier.error.CoursierError
@@ -16,6 +16,9 @@ import scala.collection.mutable
 class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[CoursierResolver.Cached.Request, CoursierResolver.Result])
     extends CoursierResolver {
   override val params = underlying.params
+
+  override def withParams(newParams: Params): CoursierResolver =
+    new TestResolver(underlying.withParams(newParams), inMemoryCache)
 
   override def resolve(
       deps: SortedSet[model.Dep],
@@ -49,6 +52,8 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
 
 object TestResolver {
   case class NoDownloadInCI(params: CoursierResolver.Params) extends CoursierResolver {
+    override def withParams(newParams: Params): CoursierResolver = NoDownloadInCI(newParams)
+
     private def complain =
       new CoursierError("tried to download dependencies in CI. This is because the resolve cache is not filled properly") {}
 
