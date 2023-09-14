@@ -20,7 +20,13 @@ class BleepRifleLogger(logger: Logger) extends BloopRifleLogger {
     }
 
   override def error(msg: => String, ex: Throwable): Unit = bloopRifleLogger.error(msg)
-  override def error(msg: => String): Unit = bloopRifleLogger.error(msg)
+  override def error(msg: => String): Unit = {
+    bloopRifleLogger.error(msg)
+    // work around bug in bloop-rifle
+    if (msg.contains("Bloop 'bsp' command exited")) {
+      System.exit(1)
+    }
+  }
   override val bloopCliInheritStdout: Boolean = false
   override val bloopCliInheritStderr: Boolean = false
   override def bloopBspStdout: Option[OutputStream] = Some(new BleepRifleLogger.Stream(bloopLogger))
