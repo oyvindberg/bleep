@@ -38,11 +38,17 @@ object SetupBloopRifle {
   }
 
   def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] =
-    ModuleParser.module(BloopRifleConfig.defaultModule, BloopRifleConfig.defaultScalaVersion) match {
+    ModuleParser.module("io.github.alexarchambault.bleep:bloop-frontend_2.13", BloopRifleConfig.defaultScalaVersion) match {
       case Left(msg) => Left(new BleepException.ModuleFormatError(BloopRifleConfig.defaultModule, msg))
       case Right(mod) =>
         val dep = model.Dep.JavaDependency(mod.organization, mod.name, bloopVersion)
-        resolver.resolve(Set(dep), model.VersionCombo.Java, libraryVersionSchemes = SortedSet.empty[model.LibraryVersionScheme]) match {
+        val libraryVersionSchemes = SortedSet(
+          model.LibraryVersionScheme(
+            model.LibraryVersionScheme.VersionScheme.Always,
+            model.Dep.Java("org.scala-lang.modules", "scala-parallel-collections_2.13", "always")
+          )
+        )
+        resolver.resolve(Set(dep), model.VersionCombo.Java, libraryVersionSchemes = libraryVersionSchemes) match {
           case Left(coursierError) =>
             Left(new BleepException.ResolveError(coursierError, "installing bloop"))
           case Right(value) =>
