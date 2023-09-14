@@ -3,12 +3,11 @@ package bsp
 
 import bleep.internal.FileUtils
 import bleep.model.CompileServerMode
-import coursier.parse.ModuleParser
+import bloop.rifle.BloopRifleConfig
 
 import java.io.File
 import java.nio.file.*
 import java.nio.file.attribute.PosixFilePermission
-import bloop.rifle.BloopRifleConfig
 import scala.collection.immutable.SortedSet
 import scala.concurrent.duration.DurationInt
 import scala.util.{Failure, Properties, Random, Success, Try}
@@ -37,24 +36,21 @@ object SetupBloopRifle {
     )
   }
 
-  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] =
-    ModuleParser.module("io.github.alexarchambault.bleep:bloop-frontend_2.13", BloopRifleConfig.defaultScalaVersion) match {
-      case Left(msg) => Left(new BleepException.ModuleFormatError(BloopRifleConfig.defaultModule, msg))
-      case Right(mod) =>
-        val dep = model.Dep.JavaDependency(mod.organization, mod.name, bloopVersion)
-        val libraryVersionSchemes = SortedSet(
-          model.LibraryVersionScheme(
-            model.LibraryVersionScheme.VersionScheme.Always,
-            model.Dep.Java("org.scala-lang.modules", "scala-parallel-collections_2.13", "always")
-          )
-        )
-        resolver.resolve(Set(dep), model.VersionCombo.Java, libraryVersionSchemes = libraryVersionSchemes) match {
-          case Left(coursierError) =>
-            Left(new BleepException.ResolveError(coursierError, "installing bloop"))
-          case Right(value) =>
-            Right((value.jarFiles, true))
-        }
+  val parallelCollectionAlways = model.LibraryVersionScheme(
+    model.LibraryVersionScheme.VersionScheme.Always,
+    model.Dep.Scala("org.scala-lang.modules", "scala-parallel-collections", "always")
+  )
+  val versionCombo = model.VersionCombo.Jvm(model.VersionScala.Scala213)
+
+  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] = {
+    val dep = model.Dep.Scala("io.github.alexarchambault.bleep", "bloop-frontend", bloopVersion)
+    resolver.resolve(Set(dep), versionCombo, libraryVersionSchemes = SortedSet(parallelCollectionAlways)) match {
+      case Left(coursierError) =>
+        Left(new BleepException.ResolveError(coursierError, "installing bloop"))
+      case Right(value) =>
+        Right((value.jarFiles, true))
     }
+  }
 
   private def socketDirectory(userPaths: UserPaths, socketId: String): Path = {
     val dir = userPaths.bspSocketDir
