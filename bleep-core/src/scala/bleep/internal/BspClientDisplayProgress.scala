@@ -17,7 +17,7 @@ object BspClientDisplayProgress {
       case bsp4j.MessageType.ERROR       => LogLevel.error
       case bsp4j.MessageType.WARNING     => LogLevel.warn
       case bsp4j.MessageType.INFORMATION => LogLevel.info
-      case bsp4j.MessageType.LOG         => LogLevel.info
+      case bsp4j.MessageType.LOG         => LogLevel.debug
     }
 }
 
