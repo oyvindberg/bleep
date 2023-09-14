@@ -94,13 +94,17 @@ object BspImpl {
         if (bloopServer != null)
           bloopServer.shutdown()
 
-        Operations.exit(
-          bloopRifleConfig.address,
-          workspaceDir,
-          System.out,
-          System.err,
-          bleepRifleLogger
-        )
+        try
+          Operations.exit(
+            bloopRifleConfig.address,
+            workspaceDir,
+            System.out,
+            System.err,
+            bleepRifleLogger
+          )
+        catch {
+          case th: Throwable => pre.logger.warn("Couldn't exit bloop server at Bleep shutdown", th)
+        }
         ()
       }
     }
