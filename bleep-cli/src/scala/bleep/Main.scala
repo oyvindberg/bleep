@@ -405,7 +405,7 @@ object Main {
         }
     }
 
-  def main(_args: Array[String]): Unit = {
+  def _main(_args: Array[String]): ExitCode = {
     val userPaths = UserPaths.fromAppDirs
 
     val exitCode: ExitCode = _args.toList match {
@@ -485,9 +485,11 @@ object Main {
           }
         }
     }
-
-    System.exit(exitCode.value)
+    exitCode
   }
+
+  def main(args: Array[String]): Unit =
+    System.exit(_main(args).value)
 
   def withCompletions(_args: Array[String], userPaths: UserPaths, commonOpts: CommonOpts, args: List[String])(f: Completer.Res => ExitCode): ExitCode = {
     val (_, restArgs) = CommonOpts.parse(args)
@@ -537,14 +539,17 @@ object Main {
   private def run[Cmd](opts: Opts[Cmd], restArgs: List[String], logger: Logger)(runCommand: Cmd => Either[BleepException, Unit]): ExitCode =
     Command("bleep", s"Bleeping fast build! (version ${model.BleepVersion.current.value})")(opts).parse(restArgs, sys.env) match {
       case Left(help) =>
-        System.err.println(help)
         help.errors match {
-          case List() => ExitCode.Success
-          case _      => ExitCode.Failure
+          case List() =>
+            System.out.println(help)
+            ExitCode.Success
+          case _ =>
+            System.err.println(help)
+            ExitCode.Failure
         }
       case Right(cmd) =>
         Try(runCommand(cmd)) match {
-          case Failure(th)        => fatal("command failed unexpectedly", logger, th) // This really shouldn't happen
+          case Failure(th)        => fatal("command failed unexpectedly! This really shouldn't happen. Please report.", logger, th)
           case Success(Left(th))  => fatal("command failed", logger, th)
           case Success(Right(())) => ExitCode.Success
         }
