@@ -29,8 +29,8 @@ object packageLibraries {
 
       val files =
         publishLayout match {
-          case PublishLayout.Maven(info) => GenLayout.maven(manifestCreator, self, started.projectPaths(projectName), deps, info, mainClass)
-          case PublishLayout.Ivy         => GenLayout.ivy(manifestCreator, self, started.projectPaths(projectName), deps, mainClass)
+          case PublishLayout.Maven(info) => GenLayout.maven(manifestCreator, projectName, self, started.projectPaths(projectName), deps, info, mainClass)
+          case PublishLayout.Ivy         => GenLayout.ivy(manifestCreator, projectName, self, started.projectPaths(projectName), deps, mainClass)
         }
 
       PackagedLibrary(self, files)

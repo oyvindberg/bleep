@@ -5,18 +5,20 @@ import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets
 import scala.xml.{Elem, NodeSeq}
+import bleep.model.CrossProjectName
 
 object GenLayout {
   val p = new scala.xml.PrettyPrinter(120, 2)
 
   def ivy(
       manifestCreator: ManifestCreator,
+      projectName: CrossProjectName,
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
       mainClass: Option[String]
   ): IvyLayout[RelPath, Array[Byte]] = {
-    val m = maven(manifestCreator, self, projectPaths, deps, Info.empty, mainClass)
+    val m = maven(manifestCreator, projectName, self, projectPaths, deps, Info.empty, mainClass)
     IvyLayout(
       self = self,
       jarFile = m.jarFile._2,
@@ -29,6 +31,7 @@ object GenLayout {
 
   def maven(
       manifestCreator: ManifestCreator,
+      projectName: CrossProjectName,
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
@@ -37,11 +40,17 @@ object GenLayout {
   ): MavenLayout[RelPath, Array[Byte]] =
     MavenLayout(
       self = self,
-      jarFile = createJar(JarType.Jar, manifestCreator, Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all, mainClass = mainClass),
-      sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all),
+      jarFile = createJar(
+        JarType.Jar,
+        manifestCreator,
+        Array(projectPaths.classes) ++ projectPaths.resourcesDirs.all,
+        projectName = Some(projectName),
+        mainClass = mainClass
+      ),
+      sourceFile = createJar(JarType.SourcesJar, manifestCreator, projectPaths.sourcesDirs.all, projectName = Some(projectName)),
       pomFile = fromXml(pomFile(self, deps, info)),
       // javadoc should never have existed.
-      docFile = createJar(JarType.DocsJar, manifestCreator, Nil)
+      docFile = createJar(JarType.DocsJar, manifestCreator, Nil, projectName = Some(projectName))
     )
 
   def fromXml(xml: Elem): Array[Byte] = {
