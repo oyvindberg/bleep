@@ -2,6 +2,7 @@ package bleep.scripts
 
 import bleep.*
 import bleep.plugin.dynver.DynVerPlugin
+import bleep.packaging.ManifestCreator
 
 object PublishLocal extends BleepScript("PublishLocal") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
@@ -13,7 +14,8 @@ object PublishLocal extends BleepScript("PublishLocal") {
         groupId = "build.bleep",
         version = dynVer.version,
         publishTarget = bleep.commands.PublishLocal.LocalIvy,
-        projects = projects
+        projects = projects,
+        manifestCreator = ManifestCreator.default
       )
     )
   }
