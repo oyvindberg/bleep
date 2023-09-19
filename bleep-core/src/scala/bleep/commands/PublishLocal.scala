@@ -7,6 +7,7 @@ import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, Publi
 import java.nio.file.Path
 import scala.build.bloop.BuildServer
 import scala.collection.immutable.SortedMap
+import bleep.packaging.ManifestCreator
 
 object PublishLocal {
   sealed trait PublishTarget {
@@ -24,7 +25,13 @@ object PublishLocal {
     override val publishLayout: PublishLayout = PublishLayout.Maven()
   }
 
-  case class Options(groupId: String, version: String, publishTarget: PublishLocal.PublishTarget, projects: Array[model.CrossProjectName])
+  case class Options(
+      groupId: String,
+      version: String,
+      publishTarget: PublishLocal.PublishTarget,
+      projects: Array[model.CrossProjectName],
+      manifestCreator: ManifestCreator
+  )
 }
 
 case class PublishLocal(watch: Boolean, options: PublishLocal.Options) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
@@ -41,7 +48,8 @@ case class PublishLocal(watch: Boolean, options: PublishLocal.Options) extends B
           started,
           coordinatesFor = CoordinatesFor.Default(groupId = options.groupId, version = options.version),
           shouldInclude = options.projects.toSet,
-          publishLayout = options.publishTarget.publishLayout
+          publishLayout = options.publishTarget.publishLayout,
+          manifestCreator = options.manifestCreator
         )
 
       packagedLibraries.foreach { case (projectName, PackagedLibrary(_, files)) =>

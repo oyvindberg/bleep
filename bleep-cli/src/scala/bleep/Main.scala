@@ -13,6 +13,7 @@ import coursier.jvm.Execve
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Success, Try}
+import bleep.packaging.ManifestCreator
 
 object Main {
   private def isGraalvmNativeImage: Boolean =
@@ -222,7 +223,8 @@ object Main {
                 groupId = groupId,
                 version = version,
                 publishTarget = publishTarget,
-                projects
+                projects,
+                ManifestCreator.default
               )
               commands.PublishLocal(watch, options)
             }
