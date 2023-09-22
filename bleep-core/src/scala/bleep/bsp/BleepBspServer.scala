@@ -229,13 +229,13 @@ class BleepBspServer(
     logger.debug(("buildTargetOutputPaths", params.toString))
     bloopServer.buildTargetOutputPaths(params).handle(fatalExceptionHandler("buildTargetOutputPaths", params))
   }
-  override def jvmRunEnvironment(params: bsp4j.JvmRunEnvironmentParams): CompletableFuture[bsp4j.JvmRunEnvironmentResult] = {
+  override def buildTargetJvmRunEnvironment(params: bsp4j.JvmRunEnvironmentParams): CompletableFuture[bsp4j.JvmRunEnvironmentResult] = {
     logger.debug(("jvmRunEnvironment", params.toString))
-    bloopServer.jvmRunEnvironment(params).handle(fatalExceptionHandler("jvmRunEnvironment", params))
+    bloopServer.buildTargetJvmRunEnvironment(params).handle(fatalExceptionHandler("jvmRunEnvironment", params))
   }
-  override def jvmTestEnvironment(params: bsp4j.JvmTestEnvironmentParams): CompletableFuture[bsp4j.JvmTestEnvironmentResult] = {
+  override def buildTargetJvmTestEnvironment(params: bsp4j.JvmTestEnvironmentParams): CompletableFuture[bsp4j.JvmTestEnvironmentResult] = {
     logger.debug(("jvmTestEnvironment", params.toString))
-    bloopServer.jvmTestEnvironment(params).handle(fatalExceptionHandler("jvmTestEnvironment", params))
+    bloopServer.buildTargetJvmTestEnvironment(params).handle(fatalExceptionHandler("jvmTestEnvironment", params))
   }
 
   private val shutdownPromise = Promise[Unit]()

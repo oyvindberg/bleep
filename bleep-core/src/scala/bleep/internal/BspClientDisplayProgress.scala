@@ -14,10 +14,10 @@ object BspClientDisplayProgress {
 
   def logLevelFor(messageType: MessageType): LogLevel =
     messageType match {
-      case bsp4j.MessageType.ERROR       => LogLevel.error
-      case bsp4j.MessageType.WARNING     => LogLevel.warn
-      case bsp4j.MessageType.INFORMATION => LogLevel.info
-      case bsp4j.MessageType.LOG         => LogLevel.debug
+      case bsp4j.MessageType.ERROR   => LogLevel.error
+      case bsp4j.MessageType.WARNING => LogLevel.warn
+      case bsp4j.MessageType.INFO    => LogLevel.info
+      case bsp4j.MessageType.LOG     => LogLevel.debug
     }
 }
 

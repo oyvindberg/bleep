@@ -24,7 +24,7 @@ projects:
     - com.swoval:file-tree-views:2.1.10
     - org.graalvm.nativeimage:svm:22.3.1
     - for3Use213: true
-      module: io.github.alexarchambault.bleep::bloop-rifle:1.5.11-sc-1
+      module: io.github.alexarchambault.bleep::bloop-rifle:1.5.11-sc-2
     dependsOn:
     - bleep-model
     - bleep-nosbt
