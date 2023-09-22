@@ -29,8 +29,10 @@ jobs:
         env:
           CI: true
         run: |
-          bleep compile
-          bleep test
+          bleep compile bleep-cli@jvm3
+          bleep setup-dev-script bleep-cli@jvm3
+          bleep config compile-server stop-all
+          ./bleep-cli@jvm3.sh test
 
   build-native-image:
     name: Native image build on ${{ matrix.os }}
@@ -64,8 +66,10 @@ jobs:
       - name: Build native image (non-windows)
         # stop compile server after build since the new version may use a newer version of bloop
         run: |
-          bleep native-image ${{ matrix.file_name }}
+          bleep compile bleep-cli@jvm3
+          bleep setup-dev-script bleep-cli@jvm3
           bleep config compile-server stop-all
+          ./bleep-cli@jvm3.sh native-image ${{ matrix.file_name }}
 
         if: runner.os != 'Windows'
 
