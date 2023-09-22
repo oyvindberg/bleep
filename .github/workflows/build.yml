@@ -29,7 +29,7 @@ jobs:
         env:
           CI: true
         run: |
-          bleep compile bleep-cli@jvm3
+          bleep compile
           bleep setup-dev-script bleep-cli@jvm3
           bleep config compile-server stop-all
           ./bleep-cli@jvm3.sh test
