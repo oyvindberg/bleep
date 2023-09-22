@@ -210,13 +210,6 @@
     "allDeclaredFields": true
   },
   {
-    "name": "ch.epfl.scala.bsp4j.FileChangeType",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
     "name": "ch.epfl.scala.bsp4j.InitializeBuildParams",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -568,13 +561,6 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.StatusCode",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "ch.epfl.scala.bsp4j.TaskDataKind",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
