@@ -9,7 +9,8 @@ projects:
     - com.monovore::decline:2.4.1
     - org.gnieh::diffson-circe:4.4.0
     - org.scalameta:svm-subs:101.0.0
-    - org.typelevel::cats-core:2.10.0
+    # note: weird binary incompatibility when bumping this for scala3
+    - org.typelevel::cats-core:2.9.0
     dependsOn: bleep-core
     extends:
     - template-common
