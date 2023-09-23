@@ -2,13 +2,7 @@ package bleep
 
 import org.scalatest.funsuite.AnyFunSuite
 
-import java.io.BufferedOutputStream
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.io.File
-import java.io.FileDescriptor
-import java.io.FileOutputStream
-import java.io.PrintStream
+import java.io.{ByteArrayOutputStream, PrintStream}
 
 class CliInvocationTest extends AnyFunSuite {
   case class IoBuffer(stdOutBuffer: ByteArrayOutputStream, stdErrBuffer: ByteArrayOutputStream)
@@ -58,7 +52,8 @@ class CliInvocationTest extends AnyFunSuite {
     System.setOut(bufferedOut)
     System.setErr(bufferedErr)
 
-    Main._main(arguments)
+    // without `--dev`, `Main may try to boot another bleep version
+    Main._main(Array("--dev") ++ arguments)
 
     bufferedOut.close()
     bufferedErr.close()
