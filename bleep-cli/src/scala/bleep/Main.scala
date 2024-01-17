@@ -251,7 +251,8 @@ object Main {
             (projectName, Opts.option[String]("--main-class", "override main class").orNone).mapN { case (projectNames, main) =>
               new commands.SetupDevScript(started, projectNames, main)
             }
-          )
+          ),
+          Opts.subcommand("version", "output version information and exit")(Opts(null.asInstanceOf[BleepBuildCommand])),
         ),
         started.build.scripts.map { case (scriptName, _) =>
           Opts.subcommand(scriptName.value, s"run script ${scriptName.value}")(
@@ -260,7 +261,7 @@ object Main {
         }
       )
 
-      commonOpts *> allCommands.flatten.foldK
+      commonOpts *> Opts.flag("version", "output version information and exit").orFalse *> allCommands.flatten.foldK
     }
 
     ret
@@ -459,6 +460,12 @@ object Main {
         }
 
       case args =>
+        if (args.contains("--version") || args.contains("version")) {
+          // This is a little bit hacky but the only way to not have any output before the version.
+          commands.Version.run()
+          System.exit(0)
+        }
+
         val (commonOpts, restArgs) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
 
