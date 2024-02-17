@@ -18,12 +18,13 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         "--enable-http",
         "--enable-https",
         "-H:+ReportExceptionStackTraces",
+        "-H:+UnlockExperimentalVMOptions",
         "--initialize-at-build-time=scala.runtime.Statics$VM",
         "--initialize-at-build-time=scala.Symbol",
         "--initialize-at-build-time=scala.Symbol$",
         "--native-image-info"
       ),
-      env = sys.env.toList ++ List(("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM", "false"))
+      env = sys.env.toList
     ) {
       // allow user to pass in name of generated binary as parameter
       override val nativeImageOutput = args.headOption match {
