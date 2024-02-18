@@ -27,6 +27,7 @@ projects:
       module: io.github.alexarchambault.bleep::bloop-rifle:1.5.11-sc-3
     - for3Use213: true
       module: io.github.alexarchambault.libdaemon::libdaemon:0.0.12-SNAPSHOT
+    - org.typelevel::scalac-options:0.1.3
     dependsOn:
     - bleep-model
     - bleep-nosbt
