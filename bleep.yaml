@@ -163,6 +163,8 @@ templates:
   template-common:
     platform:
       name: jvm
+    java:
+      options: -proc:none
     scala:
       options: -encoding utf8 -feature -language:experimental.macros -language:higherKinds
         -language:implicitConversions -unchecked
