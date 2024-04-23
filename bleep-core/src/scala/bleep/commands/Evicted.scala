@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.BleepException
 import bleep.depcheck.CheckEvictions
 import bleep.model.VersionCombo
 import bleep.nosbt.librarymanagement

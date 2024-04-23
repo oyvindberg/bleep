@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.BleepException
 import bloop.config.ConfigCodecs
 import cats.data.NonEmptyList
 

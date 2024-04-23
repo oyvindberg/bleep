@@ -61,16 +61,22 @@ object SetupBloopRifle {
       val tmpDir = dir.getParent / s".${dir.getFileName}.tmp-$socketId"
       try {
         Files.createDirectories(tmpDir)
-        if (!Properties.isWin)
+        if (!Properties.isWin) {
           Files.setPosixFilePermissions(
             tmpDir,
             java.util.Set.of(PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE)
           )
-        try Files.move(tmpDir, dir, StandardCopyOption.ATOMIC_MOVE)
-        catch {
+          ()
+        }
+        try {
+          Files.move(tmpDir, dir, StandardCopyOption.ATOMIC_MOVE)
+          ()
+        } catch {
           case _: AtomicMoveNotSupportedException =>
-            try Files.move(tmpDir, dir)
-            catch {
+            try {
+              Files.move(tmpDir, dir)
+              ()
+            } catch {
               case _: FileAlreadyExistsException =>
             }
           case _: FileAlreadyExistsException =>

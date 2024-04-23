@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.{BuildLoader, Lazy}
 import com.monovore.decline.Opts
 
 import scala.collection.immutable.SortedSet

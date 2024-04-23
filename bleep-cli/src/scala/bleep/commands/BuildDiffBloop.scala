@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.{BuildLoader, Lazy}
 import bloop.config.{Config, ConfigCodecs}
 import cats.Show
 import cats.syntax.show.*
