@@ -376,7 +376,8 @@ object GenBloopFiles {
           options = templateDirs.fill.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
           analysis = Some(projectPaths.incrementalAnalysis),
-          setup = Some(setup)
+          setup = Some(setup),
+          bridgeJars = None
         )
       }
 
