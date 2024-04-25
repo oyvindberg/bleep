@@ -159,6 +159,41 @@
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
     "allDeclaredFields": true
+  },  
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencyModule",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencyModulesDataKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencyModulesItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencyModulesParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.DependencyModulesResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
   },
   {
     "name": "ch.epfl.scala.bsp4j.DependencySourcesItem",
