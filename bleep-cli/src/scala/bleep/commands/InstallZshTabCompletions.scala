@@ -10,7 +10,8 @@ import java.nio.file.Path
 case class InstallZshTabCompletions(userPaths: UserPaths, logger: Logger) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {
     val programName = BleepExecutable.findCurrentBleep(logger) match {
-      case Some(binary: BleepExecutable.Binary) => binary.command.getFileName.toString
+      case Some(CoursierInstallation(scriptPath, _)) => scriptPath.getFileName.toString
+      case Some(binary: BleepExecutable.Binary)      => binary.command.getFileName.toString
       case _ =>
         logger.warn("Doesn't know name of a Bleep executable. Falling back to 'bleep'")
         "bleep"
