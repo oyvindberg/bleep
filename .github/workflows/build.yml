@@ -91,7 +91,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Build native image 2 (windows)
-        uses: graalvm/setup-graalvm@v4
+        uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
