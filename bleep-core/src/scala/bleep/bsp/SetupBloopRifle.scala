@@ -2,6 +2,7 @@ package bleep
 package bsp
 
 import bleep.internal.FileUtils
+import bleep.logging.Logger
 import bleep.model.CompileServerMode
 import bloop.rifle.BloopRifleConfig
 
@@ -22,7 +23,7 @@ object SetupBloopRifle {
   ): BloopRifleConfig = {
     val default = BloopRifleConfig
       .default(
-        BloopRifleConfig.Address.DomainSocket(bspSocketFile(userPaths, compileServerMode, resolvedJvm.jvm)),
+        BloopRifleConfig.Address.DomainSocket(bspSocketFile(bleepRifleLogger.logger, userPaths, compileServerMode, resolvedJvm.jvm)),
         bloopClassPath(resolver),
         FileUtils.TempDir.toFile
       )
@@ -88,7 +89,7 @@ object SetupBloopRifle {
     }
     dir
   }
-  def bspSocketFile(userPaths: UserPaths, mode: model.CompileServerMode, jvm: model.Jvm): Path = {
+  def bspSocketFile(logger: Logger, userPaths: UserPaths, mode: model.CompileServerMode, jvm: model.Jvm): Path = {
     val somewhatRandomIdentifier = Try(ProcessHandle.current.pid) match {
       case Failure(_) =>
         val r = new Random
@@ -111,10 +112,11 @@ object SetupBloopRifle {
       case model.CompileServerMode.NewEachInvocation =>
         Runtime.getRuntime.addShutdownHook(
           new Thread("delete-bloop-bsp-named-socket") {
-            override def run() = {
-              FileUtils.deleteDirectory(socket)
-              ()
-            }
+            override def run(): Unit =
+              try FileUtils.deleteDirectory(socket)
+              catch {
+                case x: FileSystemException => logger.warn(s"Failed to delete $socket", x)
+              }
           }
         )
 
