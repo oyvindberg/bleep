@@ -115,7 +115,7 @@ object SetupBloopRifle {
             override def run(): Unit =
               try FileUtils.deleteDirectory(socket)
               catch {
-                case x: FileSystemException => logger.warn(s"Failed to delete $socket", x)
+                case x: FileSystemException => logger.warn(s"Failed to delete $socket at shutdown: ${x.getMessage}")
               }
           }
         )
