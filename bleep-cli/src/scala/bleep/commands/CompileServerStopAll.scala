@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.BleepException
 import bleep.bsp.BleepRifleLogger
 import bleep.internal.FileUtils
 import bleep.logging.Logger

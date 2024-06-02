@@ -6,7 +6,7 @@ import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
 import coursier.Classifier
 import coursier.core.{Configuration, Extension}
-import io.github.davidgregory084.{DevMode, TpolecatPlugin}
+import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
@@ -376,7 +376,8 @@ object GenBloopFiles {
           options = templateDirs.fill.opts(scalacOptions).render,
           jars = resolvedScalaCompiler,
           analysis = Some(projectPaths.incrementalAnalysis),
-          setup = Some(setup)
+          setup = Some(setup),
+          bridgeJars = None
         )
       }
 

@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.RelPath
 import bleep.internal.{writeYamlLogged, FileUtils}
 import bleep.logging.Logger
 import bleep.rewrites.BuildRewrite

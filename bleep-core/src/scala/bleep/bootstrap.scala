@@ -61,8 +61,12 @@ object bootstrap {
             else {
               val chosen =
                 build.explodedProjects.flatMap { case (crossProjectName, p) =>
-                  val folder = pre.buildPaths.project(crossProjectName, p).dir
-                  if (folder.startsWith(pre.buildPaths.cwd)) Some(crossProjectName)
+                  val projectPaths = pre.buildPaths.project(crossProjectName, p)
+                  val underFolder = projectPaths.dir.startsWith(pre.buildPaths.cwd)
+                  def underSources = projectPaths.sourcesDirs.all.exists(_.startsWith(pre.buildPaths.cwd))
+                  def underResources = projectPaths.resourcesDirs.all.exists(_.startsWith(pre.buildPaths.cwd))
+                  val underAny = underFolder || underSources || underResources
+                  if (underAny) Some(crossProjectName)
                   else None
                 }.toArray
 
