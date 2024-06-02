@@ -24,15 +24,16 @@ projects:
     - com.lihaoyi::fansi:0.5.0
     - com.swoval:file-tree-views:2.1.12
     - for3Use213: true
-      module: io.github.alexarchambault.bleep::bloop-rifle:1.5.17-sc-1
-    - for3Use213: true
-      module: io.github.alexarchambault.libdaemon::libdaemon:0.0.12-SNAPSHOT
-    - org.typelevel::scalac-options:0.1.4
+      module: io.github.alexarchambault.bleep::bloop-rifle:1.5.17-sc-2
+    - org.typelevel::scalac-options:0.1.5
     dependsOn:
     - bleep-model
     - bleep-nosbt
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
+  bleep-libdaemon-jvm:
+    extends: template-cross-all
+    sources: ../liberated/libdaemon-jvm/library/src
   bleep-model:
     dependencies:
     - io.circe::circe-core:0.14.4

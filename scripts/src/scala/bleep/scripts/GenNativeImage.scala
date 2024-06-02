@@ -5,12 +5,18 @@ import bleep.plugin.nativeimage.NativeImagePlugin
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm3")))
+    val jvm3 = model.CrossId("jvm3")
+    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(jvm3))
+    val localLibDaemon = model.CrossProjectName(model.ProjectName("bleep-libdaemon-jvm"), crossId = Some(jvm3))
     val project = started.bloopProject(projectName)
-    commands.compile(List(projectName))
-
+    commands.compile(List(projectName, localLibDaemon))
+    val dir = started.bloopProject(localLibDaemon).classesDir
+    println(dir)
+    // use a forked version of libdaemon-jvm for native-image
+    val fixedProject =
+      project.copy(classpath = project.classpath.filterNot(_.toString.contains("libdaemon")) :+ dir)
     val plugin = new NativeImagePlugin(
-      project = project,
+      project = fixedProject,
       logger = started.logger,
       jvmCommand = started.jvmCommand,
       nativeImageOptions = List(

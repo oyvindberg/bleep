@@ -48,3 +48,8 @@
     url = git@github.com:bleep-build/librarymanagement.git
     branch = develop
     update = rebase
+[submodule "liberated/libdaemon-jvm"]
+	path = liberated/libdaemon-jvm
+	url = git@github.com:bleep-build/libdaemon-jvm
+    branch = process-handle
+    update = rebase
