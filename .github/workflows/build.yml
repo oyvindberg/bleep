@@ -48,6 +48,9 @@ jobs:
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
+          - os: macOS-m1
+            file_name: bleep
+            artifact_name: bleep-arm64-apple-darwin
           - os: windows-latest
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
