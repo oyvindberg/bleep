@@ -45,10 +45,10 @@ jobs:
           - os: ubuntu-20.04
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
-          - os: macos-latest
+          - os: macos-14-large
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
-          - os: macOS-m1
+          - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
           - os: windows-latest
