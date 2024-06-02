@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: 0.0.3
-#jvm:
-#  name: graalvm-community:21.0.2
+jvm:
+  name: graalvm-community:21.0.2
 projects:
   bleep-cli:
     dependencies:
