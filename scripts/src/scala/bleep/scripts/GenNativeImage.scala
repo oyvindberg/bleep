@@ -12,12 +12,22 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val localLibDaemon = model.CrossProjectName(model.ProjectName("bleep-libdaemon-jvm"), crossId = Some(jvm3))
     val project = started.bloopProject(projectName)
     commands.compile(List(projectName, localLibDaemon))
-    val dir = started.bloopProject(localLibDaemon).classesDir
-    println(dir)
+
     // use a forked version of libdaemon-jvm for native-image
     val fixedProject =
-      project.copy(classpath = project.classpath.filterNot(_.toString.contains("libdaemon")) :+ dir)
-    val jvm = sys.env.get("JAVA_HOME").map(javahome => Path.of(javahome).resolve("bin/java.exe")).filter(Files.exists(_)).getOrElse(started.jvmCommand)
+      project.copy(
+        classpath = project.classpath.filterNot(_.toString.contains("libdaemon")) :+ started.bloopProject(localLibDaemon).classesDir
+      )
+
+    // this is here to pick up the graalvm installed by `graalvm/setup-graalvm@v1` in github actions *on windows*
+    // the one we install ourselves does not work
+    val jvm = sys.env.get("JAVA_HOME").map(javahome => Path.of(javahome).resolve("bin/java.exe")).filter(Files.exists(_)) match {
+      case Some(jvm) =>
+        started.logger.warn("hack: picked up external java from JAVA_HOME. this mechanism is meant to fix native image build on windows")
+        jvm
+      case None => started.jvmCommand
+    }
+
     val plugin = new NativeImagePlugin(
       project = fixedProject,
       logger = started.logger,
