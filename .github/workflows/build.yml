@@ -91,12 +91,12 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Build native image 2 (windows)
-        uses: graalvm/setup-graalvm@v1
+        uses: graalvm/setup-graalvm@v4
         if: runner.os == 'Windows'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          version: '22.3.1'
-          java-version: '17'
+          distribution: 'graalvm' # See 'Options' section below for all available distributions
+          java-version: '21'
           components: 'native-image'
 
       - name: Build native image 3 (windows)
