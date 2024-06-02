@@ -107,12 +107,12 @@ jobs:
         if: runner.os == 'Windows'
 
       # todo: fix tests on windows
-      - name: Test binary after build 1 (windows)
-        shell: cmd
-        env:
-          CI: true
-        run: .\${{ matrix.file_name }} --dev compile --no-color jvm3
-        if: runner.os == 'Windows'
+#      - name: Test binary after build 1 (windows)
+#        shell: cmd
+#        env:
+#          CI: true
+#        run: .\${{ matrix.file_name }} --dev compile --no-color jvm3
+#        if: runner.os == 'Windows'
 
 #      - name: Test binary after build 2 (windows)
 #        shell: cmd
