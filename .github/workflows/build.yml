@@ -95,9 +95,8 @@ jobs:
         if: runner.os == 'Windows'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          distribution: 'graalvm' # See 'Options' section below for all available distributions
-          java-version: '21'
-          components: 'native-image'
+          distribution: 'graalvm-community' # See 'Options' section below for all available distributions
+          java-version: '21.0.2'
 
       - name: Build native image 3 (windows)
         run: bleep native-image ${{ matrix.file_name }}
