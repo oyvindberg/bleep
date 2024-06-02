@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 jvm:
-  name: graalvm-java17:22.3.1
+  name: graalvm-community:21.0.2
 projects:
   myapp:
     dependencies: com.lihaoyi::fansi:0.3.1
