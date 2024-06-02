@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bleep.BleepException
 import bleep.internal.FileUtils
 
 import java.nio.file.{Files, Path}

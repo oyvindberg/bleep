@@ -6,7 +6,7 @@ import java.io.OutputStream
 import java.nio.charset.StandardCharsets
 import bloop.rifle.BloopRifleLogger
 
-class BleepRifleLogger(logger: Logger) extends BloopRifleLogger {
+class BleepRifleLogger(val logger: Logger) extends BloopRifleLogger {
   val bloopLogger = logger.withPath("bloop")
   val bloopRifleLogger = logger.withPath("bloop-rifle")
 

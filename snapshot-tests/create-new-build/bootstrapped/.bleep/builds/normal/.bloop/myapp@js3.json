@@ -34,6 +34,13 @@
       "name": "scala3-compiler_3",
       "version": "3.3.0",
       "options": [
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:params",
+        "-Wunused:privates",
+        "-Wvalue-discard",
         "-Ykind-projector",
         "-deprecation",
         "-encoding",
