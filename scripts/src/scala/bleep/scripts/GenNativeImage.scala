@@ -1,6 +1,8 @@
 package bleep
 package scripts
 
+import java.nio.file.Path
+import java.nio.file.Files
 import bleep.plugin.nativeimage.NativeImagePlugin
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
@@ -15,10 +17,11 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     // use a forked version of libdaemon-jvm for native-image
     val fixedProject =
       project.copy(classpath = project.classpath.filterNot(_.toString.contains("libdaemon")) :+ dir)
+    val jvm = sys.env.get("JAVA_HOME").map(javahome => Path.of(javahome).resolve("bin/java.exe")).filter(Files.exists(_)).getOrElse(started.jvmCommand)
     val plugin = new NativeImagePlugin(
       project = fixedProject,
       logger = started.logger,
-      jvmCommand = started.jvmCommand,
+      jvmCommand = jvm,
       nativeImageOptions = List(
         "--no-fallback",
         "--enable-http",
