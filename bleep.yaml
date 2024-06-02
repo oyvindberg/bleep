@@ -40,11 +40,11 @@ projects:
     - io.circe::circe-parser:0.14.4
     - io.circe::circe-yaml-v12:1.15.0
     - for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.9
+      module: io.get-coursier::coursier-jvm:2.1.10
     - for3Use213: true
-      module: io.get-coursier::coursier-sbt-maven-repository:2.1.9
+      module: io.get-coursier::coursier-sbt-maven-repository:2.1.10
     - for3Use213: true
-      module: io.get-coursier::coursier:2.1.9
+      module: io.get-coursier::coursier:2.1.10
     - org.snakeyaml:snakeyaml-engine:2.7
     extends: template-cross-all
     sourcegen:
@@ -95,7 +95,7 @@ projects:
     sources: ../liberated/mdoc/mdoc-sbt/src/main/scala
   bleep-plugin-native-image:
     dependencies:
-    - com.lihaoyi::os-lib:0.10.0
+    - com.lihaoyi::os-lib:0.10.2
     - org.ow2.asm:asm:9.7
     dependsOn: bleep-core
     extends: template-cross-all
@@ -114,7 +114,7 @@ projects:
   bleep-plugin-sonatype:
     dependencies:
     - org.sonatype.spice.zapper:spice-zapper:1.3
-    - org.wvlet.airframe::airframe-http:24.4.2
+    - org.wvlet.airframe::airframe-http:24.5.2
     dependsOn: bleep-core
     extends:
     - template-cross-all
