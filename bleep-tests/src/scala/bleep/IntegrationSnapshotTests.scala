@@ -75,7 +75,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         val cacheLogger = new BleepCacheLogger(logger)
         val fetchJvm = new FetchJvm(Some(userPaths.resolveJvmCacheDir), cacheLogger, ExecutionContext.global)
         val fetchedJvm = fetchJvm(jvm)
-        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths, fetchedJvm)
+        sbtimport.runSbt(logger, sbtBuildDir, sbtDestinationPaths, fetchedJvm, None)
 
         val inputData = sbtimport.ImportInputData.collectFromFileSystem(sbtDestinationPaths, logger)
         FileUtils.writeGzippedBytes(
@@ -97,7 +97,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
     val importedBuildLoader = BuildLoader.inDirectory(importedPath)
     val importedDestinationPaths = BuildPaths(cwd = FileUtils.TempDir, importedBuildLoader, model.BuildVariant.Normal)
-    val importerOptions = sbtimport.ImportOptions(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false, jvm = jvm)
+    val importerOptions =
+      sbtimport.ImportOptions(ignoreWhenInferringTemplates = Set.empty, skipSbt = false, skipGeneratedResourcesScript = false, jvm = jvm, sbtPath = None)
 
     // generate a build file and store it
     val buildFiles: Map[Path, String] =
