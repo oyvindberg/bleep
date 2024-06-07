@@ -317,10 +317,20 @@ object Main {
   def installTabCompletions(userPaths: UserPaths, logger: Logger): Opts[BleepCommand] =
     List(
       Opts.subcommand("install-tab-completions-bash", "Install tab completions for bash")(
-        Opts(commands.InstallBashTabCompletions(logger))
+        Opts
+          .flag("stdout", "send completion configuration to stdout")
+          .orFalse
+          .map { stdout =>
+            commands.InstallBashTabCompletions(logger, stdout)
+          }
       ),
       Opts.subcommand("install-tab-completions-zsh", "Install tab completions for zsh")(
-        Opts(commands.InstallZshTabCompletions(userPaths, logger))
+        Opts
+          .flag("stdout", "send completion configuration to stdout")
+          .orFalse
+          .map { stdout =>
+            commands.InstallZshTabCompletions(userPaths, logger, stdout)
+          }
       )
     ).foldK
 
