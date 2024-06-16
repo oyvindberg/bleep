@@ -176,6 +176,11 @@ object Main {
               commands.Test(watch, projectNames)
             }
           ),
+          Opts.subcommand("list-tests", "list tests in projects")(
+            testProjectNames.map { projectNames =>
+              commands.ListTests(projectNames)
+            }
+          ),
           Opts.subcommand("run", "run project")(
             (
               projectName,

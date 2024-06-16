@@ -166,7 +166,12 @@ class BleepBspServer(
         warn(s"bleep was not able to refresh the build", bleepException)
         CompletableFuture.completedFuture[CompileResult](new CompileResult(bsp4j.StatusCode.ERROR))
       case Right(started) =>
-        val projects = params.getTargets.asScala.toArray.map(BleepCommandRemote.projectFromBuildTarget(started))
+        val projects = params.getTargets.asScala.toArray.flatMap { target =>
+          BleepCommandRemote.projectFromBuildTarget(started)(target).orElse {
+            logger.warn(s"Couldn't find project for target ${target.getUri}. Bleep may have picked up a change you IDE hasn't. Try to reload the build.")
+            None
+          }
+        }
 
         DoSourceGen(started, bloopServer, TransitiveProjects(started.build, projects)) match {
           case Left(bleepException) =>

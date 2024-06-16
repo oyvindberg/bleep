@@ -2,13 +2,12 @@ package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
 import bleep.internal.{BspClientDisplayProgress, Throwables, TransitiveProjects}
+import bloop.rifle.internal.Operations
+import bloop.rifle.*
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
 import java.util
-import bloop.rifle.{BloopServer, BloopThreads, BuildServer}
-import bloop.rifle.internal.Operations
-import bloop.rifle.{BloopRifleConfig, FailedToStartServerException}
 import scala.util.Try
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
@@ -102,7 +101,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           res <- buildClient.failed match {
             case empty if empty.isEmpty => Right(())
             case failed =>
-              val projects = failed.map(BleepCommandRemote.projectFromBuildTarget(started)).toArray
+              val projects = failed.flatMap(BleepCommandRemote.projectFromBuildTarget(started)).toArray
               Left(new BspCommandFailed("Failed", projects, BspCommandFailed.NoDetails))
           }
         } yield res
@@ -111,7 +110,9 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
       started.config.compileServerModeOrDefault match {
         case model.CompileServerMode.NewEachInvocation =>
           server.shutdown()
-          Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, bleepRifleLogger)
+          if (Operations.exit(bloopRifleConfig.address, started.buildPaths.dotBleepDir, System.out, System.err, bleepRifleLogger) != 0) {
+            started.logger.warn("Failed to shutdown the compile server")
+          }
           ()
         case model.CompileServerMode.Shared =>
           ()
@@ -138,10 +139,8 @@ object BleepCommandRemote {
     new bsp4j.BuildTargetIdentifier(amended)
   }
 
-  def projectFromBuildTarget(started: Started)(name: bsp4j.BuildTargetIdentifier): model.CrossProjectName = {
-    val id = name.getUri.split("=").last
-    started.build.explodedProjects.keys.find(_.value == id).getOrElse(sys.error(s"Couldn't find project for $name"))
-  }
+  def projectFromBuildTarget(started: Started)(name: bsp4j.BuildTargetIdentifier): Option[model.CrossProjectName] =
+    started.build.explodedProjects.keys.find(_.value == name.getUri.split("=").last)
 
   def buildTargets(buildPaths: BuildPaths, projects: Array[model.CrossProjectName]): util.List[bsp4j.BuildTargetIdentifier] =
     util.List.of(projects.map(p => buildTarget(buildPaths, p)): _*)
