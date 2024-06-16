@@ -37,17 +37,18 @@ class ProjectGlobs(activeProjectsFromPath: Option[Array[CrossProjectName]], expl
     projectCompletions(projects)
   }
 
-  def testProjectNameMap: Map[String, Array[CrossProjectName]] = {
+  def testProjects: Array[CrossProjectName] = {
     val projects: Array[CrossProjectName] =
       activeProjectsFromPath match {
-        case None           => explodedProjects.keys.toArray
+        case None => explodedProjects.keys.toArray
         case Some(nonEmpty) => nonEmpty
       }
 
-    val testProjects = projects.filter(projectName => explodedProjects(projectName).isTestProject.getOrElse(false))
-
-    projectCompletions(testProjects)
+    projects.filter(projectName => explodedProjects(projectName).isTestProject.getOrElse(false))
   }
+
+  def testProjectNameMap: Map[String, Array[CrossProjectName]] =
+    projectCompletions(testProjects)
 
   def hasSourceGenProjectNameMap: Map[String, Array[CrossProjectName]] = {
     val projects: Array[CrossProjectName] =

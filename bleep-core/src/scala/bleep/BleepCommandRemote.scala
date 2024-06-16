@@ -15,7 +15,67 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
 
   def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit]
 
-  override final def run(started: Started): Either[BleepException, Unit] = {
+  override final def run(started: Started): Either[BleepException, Unit] =
+    BleepCommandRemote.withServer(started) { (server, buildClient) =>
+      if (watch) {
+        // run once initially
+        runWithServer(started, server)
+
+        var currentStarted = started
+
+        val codeWatcher = BleepFileWatching.projects(currentStarted, watchableProjects(currentStarted)) { changedProjects =>
+          val patchedCmd = this match {
+            case x: BleepCommandRemote.OnlyChanged => x.onlyChangedProjects(currentStarted, changedProjects)
+            case other                             => other
+          }
+
+          patchedCmd.runWithServer(currentStarted, server) match {
+            case Left(bleepException) => currentStarted.logger.error(Throwables.messagesFrom(bleepException).mkString(": "))
+            case Right(())            => ()
+          }
+          ()
+        }
+
+        val buildWatcher = BleepFileWatching.build(started.pre) { _ =>
+          started.reloadFromDisk() match {
+            case Left(bleepException) =>
+              Throwables.log("build changed, but it didn't work :(", started.logger, bleepException)
+              codeWatcher.updateMapping(Map.empty)
+            case Right(None) =>
+              ()
+            case Right(Some(newStarted)) =>
+              currentStarted = newStarted
+              codeWatcher.updateMapping(BleepFileWatching.projectPathsMapping(currentStarted, watchableProjects(currentStarted)))
+          }
+        }
+
+        started.logger.info("Running in watch mode")
+
+        codeWatcher.combine(buildWatcher).run(FileWatching.StopWhen.OnStdInput)
+
+        Right(())
+      } else {
+        for {
+          _ <- runWithServer(started, server)
+          res <- buildClient.failed match {
+            case empty if empty.isEmpty => Right(())
+            case failed =>
+              val projects = failed.flatMap(BleepCommandRemote.projectFromBuildTarget(started)).toArray
+              Left(new BspCommandFailed("Failed", projects, BspCommandFailed.NoDetails))
+          }
+        } yield res
+      }
+
+    }
+}
+
+object BleepCommandRemote {
+  trait OnlyChanged {
+    self: BleepCommandRemote =>
+    def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
+  }
+
+  def withServer[T](started: Started)(run: (BuildServer, BspClientDisplayProgress) => Either[BleepException, T]): Either[BleepException, T] = {
     started.config.compileServerModeOrDefault match {
       case model.CompileServerMode.NewEachInvocation =>
         started.logger.warn("TIP: run `bleep config compile-server auto-shutdown-disable` so you'll get a warm/fast compile server")
@@ -57,55 +117,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           throw BleepCommandRemote.FailedToStartBloop(th, readLog)
       }
 
-    try
-      if (watch) {
-        // run once initially
-        runWithServer(started, server.server)
-
-        var currentStarted = started
-
-        val codeWatcher = BleepFileWatching.projects(currentStarted, watchableProjects(currentStarted)) { changedProjects =>
-          val patchedCmd = this match {
-            case x: BleepCommandRemote.OnlyChanged => x.onlyChangedProjects(currentStarted, changedProjects)
-            case other                             => other
-          }
-
-          patchedCmd.runWithServer(currentStarted, server.server) match {
-            case Left(bleepException) => currentStarted.logger.error(Throwables.messagesFrom(bleepException).mkString(": "))
-            case Right(())            => ()
-          }
-          ()
-        }
-
-        val buildWatcher = BleepFileWatching.build(started.pre) { _ =>
-          started.reloadFromDisk() match {
-            case Left(bleepException) =>
-              Throwables.log("build changed, but it didn't work :(", started.logger, bleepException)
-              codeWatcher.updateMapping(Map.empty)
-            case Right(None) =>
-              ()
-            case Right(Some(newStarted)) =>
-              currentStarted = newStarted
-              codeWatcher.updateMapping(BleepFileWatching.projectPathsMapping(currentStarted, watchableProjects(currentStarted)))
-          }
-        }
-
-        started.logger.info("Running in watch mode")
-
-        codeWatcher.combine(buildWatcher).run(FileWatching.StopWhen.OnStdInput)
-
-        Right(())
-      } else {
-        for {
-          _ <- runWithServer(started, server.server)
-          res <- buildClient.failed match {
-            case empty if empty.isEmpty => Right(())
-            case failed =>
-              val projects = failed.flatMap(BleepCommandRemote.projectFromBuildTarget(started)).toArray
-              Left(new BspCommandFailed("Failed", projects, BspCommandFailed.NoDetails))
-          }
-        } yield res
-      }
+    try run(server.server, buildClient)
     finally
       started.config.compileServerModeOrDefault match {
         case model.CompileServerMode.NewEachInvocation =>
@@ -117,14 +129,6 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         case model.CompileServerMode.Shared =>
           ()
       }
-  }
-
-}
-
-object BleepCommandRemote {
-  trait OnlyChanged {
-    self: BleepCommandRemote =>
-    def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
   }
 
   case class FailedToStartBloop(cause: FailedToStartServerException, readLog: Option[String])

@@ -67,7 +67,7 @@ object DoSourceGen {
     }
   }
 
-  def apply(started: Started, bloop: BuildServer, projects: TransitiveProjects) = {
+  def apply(started: Started, bloop: BuildServer, projects: TransitiveProjects): Either[BleepException, Unit] = {
     val scriptsWithPaths = findScriptPaths(started, projects)
 
     val sortedScriptsWithPath = scriptsWithPaths.toList.sortBy(_._1)(TopologicalOrdering(started.build))

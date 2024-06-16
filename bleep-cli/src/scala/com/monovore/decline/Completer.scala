@@ -4,7 +4,7 @@ import com.monovore.decline.Completer.*
 
 import scala.util.hashing.MurmurHash3
 
-final class Completer(possibleCompletionsForMetavar: String => List[String]) {
+final class Completer(possibleCompletionsForMetavar: (String, Option[String]) => List[String]) {
   def completeOpts[A](args: List[String])(x: Opts[A]): Res =
     x match {
       case Opts.Subcommand(command) =>
@@ -87,7 +87,7 @@ final class Completer(possibleCompletionsForMetavar: String => List[String]) {
     name.startsWith(arg) && arg != name
 
   def completeMetaVar(args: List[String], metavar: String): Res = {
-    val all = possibleCompletionsForMetavar(metavar)
+    val all = possibleCompletionsForMetavar(metavar, args.headOption)
 
     if (args.forall(_.trim.isEmpty)) Res.Found(all.map(one => Completion(one, nonEmpty(metavar))), 1)
     else if (args.sizeIs == 1)
@@ -204,5 +204,5 @@ object Zsh {
     }
 
   def print(items: Seq[Completion]): String =
-    render(items.flatMap(defs(_)))
+    render(items.flatMap(defs))
 }

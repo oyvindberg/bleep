@@ -1,10 +1,12 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{bleepLoggers, fatal, FileUtils}
+import bleep.commands.ListTests
+import bleep.internal.{FileUtils, bleepLoggers, fatal}
 import bleep.logging.Logger
 import bleep.model.{BleepVersion, Os}
-import cats.data.NonEmptyList
+import bleep.packaging.ManifestCreator
+import cats.data.{NonEmptyList, Validated}
 import cats.syntax.apply.*
 import cats.syntax.foldable.*
 import com.monovore.decline.*
@@ -13,7 +15,6 @@ import coursier.jvm.Execve
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Success, Try}
-import bleep.packaging.ManifestCreator
 
 object Main {
   private def isGraalvmNativeImage: Boolean =
@@ -36,6 +37,7 @@ object Main {
     val projectName = "project name"
     val projectNameNoCross = "project name (not cross id)"
     val testProjectName = "test project name"
+    val testSuiteName = "test suite name"
     val hasSourceGenProject = "project name (with sourcegen)"
     val platformName = "platform name"
     val scalaVersion = "scala version"
@@ -89,6 +91,23 @@ object Main {
         .map(_.toList.toArray.flatten)
         .orNone
         .map(started.chosenTestProjects)
+
+    val testProjectNamesAndSuite: Opts[NonEmptyList[Array[ListTests.Test]]] =
+      Opts.arguments(metavars.testSuiteName)(
+        Argument.from(metavars.testSuiteName) { str =>
+          str.split('/') match {
+            case Array(projectGlob, suiteName) =>
+              started.globs.testProjectNameMap.get(projectGlob) match {
+                case Some(projects) => Validated.Valid(projects.map(p => ListTests.Test(p, suiteName)))
+                case None           => Validated.Invalid(NonEmptyList.of(s"not a valid project glob: $projectGlob"))
+              }
+            case Array(suiteName) =>
+              Validated.Valid(started.globs.testProjects.map(p => ListTests.Test(p, suiteName)))
+            case tooMany =>
+              Validated.Invalid(NonEmptyList.of(s"syntax is either <suiteName> or <testProjectGlob/suiteName>"))
+          }
+        }
+      )
 
     val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
@@ -174,6 +193,11 @@ object Main {
           Opts.subcommand("test", "test projects")(
             (watch, testProjectNames).mapN { case (watch, projectNames) =>
               commands.Test(watch, projectNames)
+            }
+          ),
+          Opts.subcommand("test-only", "test projects")(
+            (watch, testProjectNamesAndSuite).mapN { case (watch, suites) =>
+              commands.TestOnly(watch, suites.toList.toArray.flatten)
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
@@ -521,9 +545,9 @@ object Main {
       val completions = buildLoader match {
         case noBuild: BuildLoader.NonExisting =>
           val completer = new Completer({
-            case metavars.platformName => model.PlatformId.All.map(_.value)
-            case metavars.scalaVersion => possibleScalaVersions.keys.toList
-            case _                     => Nil
+            case (metavars.platformName, _) => model.PlatformId.All.map(_.value)
+            case (metavars.scalaVersion, _) => possibleScalaVersions.keys.toList
+            case _                          => Nil
           })
           completer.completeOpts(restArgs)(noBuildOpts(stderr, userPaths, buildPaths, noBuild))
         case existing: BuildLoader.Existing =>
@@ -538,13 +562,25 @@ object Main {
 
             case Right(started) =>
               val completer = new Completer({
-                case metavars.platformName       => model.PlatformId.All.map(_.value)
-                case metavars.scalaVersion       => possibleScalaVersions.keys.toList
-                case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
-                case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
-                case metavars.projectName        => started.globs.projectNameMap.keys.toList
-                case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
-                case _                           => Nil
+                case (metavars.platformName, _)       => model.PlatformId.All.map(_.value)
+                case (metavars.scalaVersion, _)       => possibleScalaVersions.keys.toList
+                case (metavars.projectNameExact, _)   => started.globs.exactProjectMap.keys.toList
+                case (metavars.projectNameNoCross, _) => started.globs.projectNamesNoCrossMap.keys.toList
+                case (metavars.projectName, _)        => started.globs.projectNameMap.keys.toList
+                case (metavars.testProjectName, _)    => started.globs.testProjectNameMap.keys.toList
+                case (metavars.testSuiteName, maybeArg) =>
+                  val projectGlob = maybeArg.map(_.split("/").head).getOrElse("")
+                  started.globs.testProjectNameMap.get(projectGlob) match {
+                    case Some(projectNames) =>
+                      BleepCommandRemote.withServer(started)((server, _) => Right(ListTests.findTests(started, server, projectNames))) match {
+                        case Left(value) => Nil
+                        case Right(testItems) =>
+                          testItems.map(t => s"${t.project.value}/${t.cls}")
+                      }
+                    case None =>
+                      started.globs.testProjectNameMap.keys.toList.map(_ + "/")
+                  }
+                case _ => Nil
               })
               completer.completeOpts(restArgs)(hasBuildOpts(started))
           }
