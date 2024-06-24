@@ -496,6 +496,7 @@ object buildFromBloopFiles {
           jsVersion = jsVersion,
           jsMode = Some(conversions.linkerMode.to(config.mode)),
           jsKind = Some(conversions.moduleKindJS.to(config.kind)),
+          jsSplitStyle = config.moduleSplitStyle.map(style => conversions.moduleSplitStyleJS.to(style)),
           jsEmitSourceMaps = Some(config.emitSourceMaps),
           jsJsdom = config.jsdom,
           jsNodeVersion = config.nodePath
