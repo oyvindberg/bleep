@@ -19,6 +19,7 @@ object Defaults {
       jsVersion = None,
       jsMode = None,
       jsKind = None,
+      jsSplitStyle = None,
       jsEmitSourceMaps = None,
       jsJsdom = None,
       jsNodeVersion = None,
