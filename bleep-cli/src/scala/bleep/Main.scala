@@ -90,6 +90,8 @@ object Main {
         .orNone
         .map(started.chosenTestProjects)
 
+    val testSuites: Opts[Option[NonEmptyList[String]]] = Opts.options[String]("test-only", "Test only a subset of test suites", "o").orNone
+
     val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
         .arguments(metavars.hasSourceGenProject)(argumentFrom(metavars.hasSourceGenProject, Some(started.globs.hasSourceGenProjectNameMap)))
@@ -172,8 +174,8 @@ object Main {
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
-            (watch, testProjectNames).mapN { case (watch, projectNames) =>
-              commands.Test(watch, projectNames)
+            (watch, testProjectNames, testSuites).mapN { case (watch, projectNames, testSuites) =>
+              commands.Test(watch, projectNames, testSuites)
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
