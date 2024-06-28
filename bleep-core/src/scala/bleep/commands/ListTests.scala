@@ -26,7 +26,7 @@ case class ListTests(projects: Array[model.CrossProjectName]) extends BleepComma
 
   private def testsByCrossProject(started: Started, bloop: BuildServer): Iterator[(model.CrossProjectName, String)] = {
     val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
-    val result = bloop.buildTargetScalaTestClasses(new ScalaTestClassesParams(targets)).get()
+    val result: bsp4j.ScalaTestClassesResult = bloop.buildTargetScalaTestClasses(new ScalaTestClassesParams(targets)).get()
 
     for {
       item <- result.getItems.iterator().asScala
