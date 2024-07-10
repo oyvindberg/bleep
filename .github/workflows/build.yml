@@ -88,10 +88,10 @@ jobs:
         # - powershell doesn't work, for one: https://github.com/dirs-dev/directories-jvm/issues/49
         # - with `shell: cmd` only one command can be run at a time, so this is split into three
         # - some windows development stuff needs to be available, that's what setup-graalvm accomplishes below. todo: figure out how bleep can download it itself
-      - name: Build native image 1 (windows)
-        run: bleep config compile-server auto-shutdown-enable
-        shell: cmd
-        if: runner.os == 'Windows'
+#      - name: Build native image 1 (windows)
+#        run: bleep config compile-server auto-shutdown-enable
+#        shell: cmd
+#        if: runner.os == 'Windows'
 
       - name: Build native image 2 (windows)
         uses: graalvm/setup-graalvm@v1
@@ -114,13 +114,13 @@ jobs:
 #        run: .\${{ matrix.file_name }} --dev compile --no-color jvm3
 #        if: runner.os == 'Windows'
 
-#      - name: Test binary after build 2 (windows)
-#        shell: cmd
-#        env:
-#          CI: true
-#        # todo: fix tests on windows
-#        run: .\${{ matrix.file_name }} selftest
-#        if: runner.os == 'Windows'
+      - name: Test binary after build 2 (windows)
+        shell: cmd
+        env:
+          CI: true
+        # todo: fix tests on windows
+        run: .\${{ matrix.file_name }} selftest
+        if: runner.os == 'Windows'
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v2
