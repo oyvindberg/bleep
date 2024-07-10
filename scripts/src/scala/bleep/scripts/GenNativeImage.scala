@@ -33,6 +33,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
       logger = started.logger,
       jvmCommand = jvm,
       nativeImageOptions = List(
+        "-march=compatibility",
         "--no-fallback",
         "--enable-http",
         "--enable-https",
