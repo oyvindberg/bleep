@@ -31,7 +31,7 @@ object ImportOptions {
     Opts.flag("skip-generated-resources-script", "disable creating a script to regenerate discovered generated sources/resources ").orFalse
 
   implicit val jvmArgument: Argument[model.Jvm] = new Argument[model.Jvm] {
-    override def read(string: String): ValidatedNel[String, model.Jvm] = Validated.Valid(model.Jvm(string, None))
+    override def read(string: String): ValidatedNel[String, model.Jvm] = Validated.Valid(model.Jvm(string, None, model.Options.empty, None))
     override def defaultMetavar: String = "metavar-jvm"
   }
 

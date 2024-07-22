@@ -22,7 +22,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   test("doobie") {
-    testIn("doobie", "https://github.com/tpolecat/doobie.git", "5d0957d", jvm = model.Jvm("zulu-jre:16.0.0", None))
+    testIn("doobie", "https://github.com/tpolecat/doobie.git", "5d0957d", jvm = model.Jvm("zulu-jre:16.0.0", None, model.Options.empty, None))
   }
 
   test("http4s") {
