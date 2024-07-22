@@ -55,15 +55,20 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
           |import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
           |import io.circe.{Decoder, Encoder}
           |
-          |case class Jvm(name: String, index: Option[String])
+          |case class Jvm(
+          |    name: String,
+          |    index: Option[String],
+          |    compileServerOptions: Options,
+          |    compileServerOptionIncludeDefault: Option[Boolean]
+          |)
           |
           |object Jvm {
-          |  val graalvm = Jvm("${buildJvm.name}", None)
-          |  val system = Jvm("system", None)
+          |  val graalvm = Jvm("${buildJvm.name}", None, Options.empty, None)
+          |  val system = Jvm("system", None,Options.empty, None)
           |  implicit val encodes: Encoder[Jvm] = deriveEncoder
           |  implicit val decodes: Decoder[Jvm] = deriveDecoder
           |
-          |  def isSystem(jvm: Jvm): Boolean = jvm == system
+          |  def isSystem(jvm: Jvm): Boolean = jvm.name == system.name
           |}
           |""".stripMargin
     Files.createDirectories(to.getParent)
