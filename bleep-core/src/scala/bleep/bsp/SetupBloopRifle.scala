@@ -41,17 +41,17 @@ object SetupBloopRifle {
     model.LibraryVersionScheme.VersionScheme.Always,
     model.Dep.Scala("org.scala-lang.modules", "scala-parallel-collections", "always")
   )
-  val versionCombo = model.VersionCombo.Jvm(model.VersionScala.Scala213)
+  val versionCombo = model.VersionCombo.Jvm(model.VersionScala.Scala212)
 
-  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, (Seq[File], Boolean)] = {
-    val dep = model.Dep.Scala("io.github.alexarchambault.bleep", "bloop-frontend", bloopVersion)
+  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, Seq[File]] = {
+    val dep = model.Dep.Scala("ch.epfl.scala", "bloop-frontend", bloopVersion)
     resolver
       .updatedParams(_.copy(downloadSources = false))
       .resolve(Set(dep), versionCombo, libraryVersionSchemes = SortedSet(parallelCollectionAlways)) match {
       case Left(coursierError) =>
         Left(new BleepException.ResolveError(coursierError, "installing bloop"))
       case Right(value) =>
-        Right((value.jarFiles, true))
+        Right(value.jarFiles)
     }
   }
 

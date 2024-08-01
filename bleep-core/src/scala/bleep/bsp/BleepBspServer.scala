@@ -13,7 +13,7 @@ import java.util
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util.function.BiFunction
 import bloop.rifle.BuildServer
-import bloop.rifle.internal.Constants
+import bloop.rifle.internal.BuildInfo
 
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
@@ -90,7 +90,7 @@ class BleepBspServer(
         val initParams = new bsp4j.InitializeBuildParams(
           s"bleep / ${params.getDisplayName}",
           s"${model.BleepVersion.current.value} / ${params.getVersion}",
-          Constants.bspVersion,
+          BuildInfo.bspVersion,
           workspaceDir.toUri.toASCIIString,
           new bsp4j.BuildClientCapabilities(supportedLanguages)
         )
@@ -117,7 +117,7 @@ class BleepBspServer(
           .handle(fatalExceptionHandler("buildInitialize", initParams))
           .thenApply { _ =>
             bloopServer.onBuildInitialized()
-            new bsp4j.InitializeBuildResult("bleep", model.BleepVersion.current.value, Constants.bspVersion, capabilities)
+            new bsp4j.InitializeBuildResult("bleep", model.BleepVersion.current.value, BuildInfo.bspVersion, capabilities)
           }
     }
   }

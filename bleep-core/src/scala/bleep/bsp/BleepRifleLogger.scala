@@ -19,6 +19,9 @@ class BleepRifleLogger(val logger: Logger) extends BloopRifleLogger {
       case None     => bloopRifleLogger.debug(msg)
     }
 
+  override def debug(msg: => String): Unit =
+    bloopRifleLogger.debug(msg)
+
   override def error(msg: => String, ex: Throwable): Unit = bloopRifleLogger.error(msg)
   override def error(msg: => String): Unit = {
     bloopRifleLogger.error(msg)
