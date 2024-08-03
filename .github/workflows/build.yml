@@ -94,7 +94,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Build native image 2 (windows)
-        run: bleep config compile bleep-cli@jvm3
+        run: bleep compile bleep-cli@jvm3
         shell: cmd
         if: runner.os == 'Windows'
 
