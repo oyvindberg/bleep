@@ -27,7 +27,7 @@ case class SetupIde(maybeSelectedProjects: Option[List[String]], forceJvm: Boole
       "bleep",
       (started.bleepExecutable.forceGet.whole ++ List("bsp")).asJava,
       model.BleepVersion.current.value,
-      bloop.rifle.internal.Constants.bspVersion,
+      bloop.rifle.internal.BuildInfo.bspVersion,
       List("scala", "java").asJava
     )
 
