@@ -11,7 +11,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(jvm3))
     val localLibDaemon = model.CrossProjectName(model.ProjectName("bleep-libdaemon-jvm"), crossId = Some(jvm3))
     val project = started.bloopProject(projectName)
-    commands.compile(List(projectName, localLibDaemon))
+//    commands.compile(List(projectName, localLibDaemon))
 
     // use a forked version of libdaemon-jvm for native-image
     val fixedProject =
