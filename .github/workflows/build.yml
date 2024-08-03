@@ -88,12 +88,17 @@ jobs:
         # - powershell doesn't work, for one: https://github.com/dirs-dev/directories-jvm/issues/49
         # - with `shell: cmd` only one command can be run at a time, so this is split into three
         # - some windows development stuff needs to be available, that's what setup-graalvm accomplishes below. todo: figure out how bleep can download it itself
-#      - name: Build native image 1 (windows)
-#        run: bleep config compile-server auto-shutdown-enable
-#        shell: cmd
-#        if: runner.os == 'Windows'
+      - name: Build native image 1 (windows)
+        run: bleep config compile-server auto-shutdown-enable
+        shell: cmd
+        if: runner.os == 'Windows'
 
       - name: Build native image 2 (windows)
+        run: bleep config compile bleep-cli@jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
+
+      - name: Build native image 3 (windows)
         uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
         with:
