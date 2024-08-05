@@ -2,6 +2,9 @@ package bleep.internal
 
 import bleep.model
 import bloop.config.Config
+import bloop.config.Config.ModuleSplitStyleJS.SmallestModules
+import bloop.config.Config.ModuleSplitStyleJS.SmallModulesFor
+import bloop.config.Config.ModuleSplitStyleJS.FewestModules
 
 object conversions {
   trait Bijection[T1, T2] {
@@ -48,5 +51,22 @@ object conversions {
       case model.ModuleKindJS.CommonJSModule => Config.ModuleKindJS.CommonJSModule
       case model.ModuleKindJS.ESModule       => Config.ModuleKindJS.ESModule
     }
+  }
+
+  object moduleSplitStyleJS extends Bijection[Config.ModuleSplitStyleJS, model.ModuleSplitStyleJS] {
+
+    override def to(t1: Config.ModuleSplitStyleJS): model.ModuleSplitStyleJS = t1 match {
+      case FewestModules             => model.ModuleSplitStyleJS.FewestModules
+      case SmallModulesFor(packages) => model.ModuleSplitStyleJS.SmallModulesFor(packages)
+      case SmallestModules           => model.ModuleSplitStyleJS.SmallestModules
+
+    }
+
+    override def from(t2: model.ModuleSplitStyleJS): Config.ModuleSplitStyleJS = t2 match {
+      case model.ModuleSplitStyleJS.FewestModules             => Config.ModuleSplitStyleJS.FewestModules
+      case model.ModuleSplitStyleJS.SmallModulesFor(packages) => Config.ModuleSplitStyleJS.SmallModulesFor(packages)
+      case model.ModuleSplitStyleJS.SmallestModules           => Config.ModuleSplitStyleJS.SmallestModules
+    }
+
   }
 }

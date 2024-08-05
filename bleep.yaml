@@ -20,7 +20,7 @@ projects:
   bleep-core:
     dependencies:
     - for3Use213: true
-      module: ch.epfl.scala::bloop-config:2.0.0
+      module: ch.epfl.scala::bloop-config:2.0.2
     - com.lihaoyi::fansi:0.5.0
     - com.swoval:file-tree-views:2.1.12
     - for3Use213: true
