@@ -13,6 +13,18 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSui
     extends BleepCommandRemote(watch)
     with BleepCommandRemote.OnlyChanged {
 
+  private def intersectTestSuites(fromBuild: List[String], fromCli: List[String]): List[String] =
+    fromBuild.filter { fullyQualified =>
+      fromCli.exists { fromCliCls =>
+        println(fullyQualified)
+        println(fromCliCls)
+        val fromBuildFqn = if (fullyQualified.contains(".")) fullyQualified.split(".").toList else List(fullyQualified)
+        val fromCliFqn = if (fromCliCls.contains(".")) fromCliCls.split(".").toList else List(fromCliCls)
+
+        fromBuildFqn == fromCliFqn || fromBuildFqn.last == fromCliFqn.last
+      }
+    }
+
   override def watchableProjects(started: Started): TransitiveProjects =
     TransitiveProjects(started.build, projects)
 
@@ -29,7 +41,9 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSui
 
       testSuites.foreach { classes =>
         val testClassesData = new bsp4j.ScalaTestSuites(
-          testClasses.filter(classes.toList.contains).map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava)).asJava,
+          intersectTestSuites(testClasses, classes.toList)
+            .map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava))
+            .asJava,
           List.empty[String].asJava,
           List.empty[String].asJava
         )
