@@ -14,14 +14,11 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSui
     with BleepCommandRemote.OnlyChanged {
 
   private def intersectTestSuites(fromBuild: List[String], fromCli: List[String]): List[String] =
-    fromBuild.filter { fullyQualified =>
+    fromBuild.filter { fullyQualifiedCls =>
       fromCli.exists { fromCliCls =>
-        println(fullyQualified)
-        println(fromCliCls)
-        val fromBuildFqn = if (fullyQualified.contains(".")) fullyQualified.split(".").toList else List(fullyQualified)
-        val fromCliFqn = if (fromCliCls.contains(".")) fromCliCls.split(".").toList else List(fromCliCls)
-
-        fromBuildFqn == fromCliFqn || fromBuildFqn.last == fromCliFqn.last
+        val fromBuildFqn = fullyQualifiedCls.split('.')
+        val fromCliFqn = fromCliCls.split('.')
+        fromBuildFqn.sameElements(fromCliFqn) || fromBuildFqn.last == fromCliFqn.last
       }
     }
 
