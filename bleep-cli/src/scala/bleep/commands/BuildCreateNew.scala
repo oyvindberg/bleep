@@ -153,6 +153,7 @@ object BuildCreateNew {
             platformId match {
               case model.PlatformId.Jvm =>
                 model.Platform.Jvm(model.Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = model.Options.empty)
+              case model.PlatformId.Js =>
                 model.Platform
                   .Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
               case model.PlatformId.Native =>
