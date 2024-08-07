@@ -8,6 +8,7 @@ import scala.jdk.CollectionConverters.*
 
 import bloop.rifle.BuildServer
 import cats.data.NonEmptyList
+import bleep.BleepException.TestSuitesNotFound
 
 case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSuites: Option[NonEmptyList[String]])
     extends BleepCommandRemote(watch)
@@ -36,26 +37,35 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSui
 
       val testParams = new bsp4j.TestParams(targets)
 
-      testSuites.foreach { classes =>
-        val testClassesData = new bsp4j.ScalaTestSuites(
-          intersectTestSuites(testClasses, classes.toList)
-            .map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava))
-            .asJava,
-          List.empty[String].asJava,
-          List.empty[String].asJava
-        )
-        testParams.setData(testClassesData)
-        testParams.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES_SELECTION)
-      }
+      val hasSuites: Boolean = testSuites
+        .map { classes =>
+          val testClassesData = new bsp4j.ScalaTestSuites(
+            intersectTestSuites(testClasses, classes.toList)
+              .map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava))
+              .asJava,
+            List.empty[String].asJava,
+            List.empty[String].asJava
+          )
+          testParams.setData(testClassesData)
+          testParams.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES_SELECTION)
 
-      val result = bloop.buildTargetTest(testParams).get()
+          !testClassesData.getSuites().isEmpty
+        }
+        .getOrElse(true)
 
-      result.getStatusCode match {
-        case bsp4j.StatusCode.OK =>
-          started.logger.info("Tests succeeded")
-          Right(())
-        case errorCode =>
-          Left(new BspCommandFailed("tests", projects, BspCommandFailed.StatusCode(errorCode)))
+      if (hasSuites) {
+        val result = bloop.buildTargetTest(testParams).get()
+
+        result.getStatusCode match {
+          case bsp4j.StatusCode.OK =>
+            started.logger.info("Tests succeeded")
+            Right(())
+          case errorCode =>
+            println(errorCode)
+            Left(new BspCommandFailed("tests", projects, BspCommandFailed.StatusCode(errorCode)))
+        }
+      } else {
+        Left(new TestSuitesNotFound(testSuites.map(_.toList).getOrElse(List.empty[String])))
       }
     }
 }
