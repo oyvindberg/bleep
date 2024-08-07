@@ -10,16 +10,24 @@ import bloop.rifle.BuildServer
 import cats.data.NonEmptyList
 import bleep.BleepException.TestSuitesNotFound
 
-case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSuites: Option[NonEmptyList[String]])
-    extends BleepCommandRemote(watch)
+case class Test(
+    watch: Boolean,
+    projects: Array[model.CrossProjectName],
+    testSuitesOnly: Option[NonEmptyList[String]],
+    testSuitesExclude: Option[NonEmptyList[String]]
+) extends BleepCommandRemote(watch)
     with BleepCommandRemote.OnlyChanged {
+
+  private def isSameSuite(fromBuild: String, fromCli: String) = {
+    val fromBuildFqn = fromBuild.split('.')
+    val fromCliFqn = fromCli.split('.')
+    fromBuildFqn.sameElements(fromCliFqn) || fromBuildFqn.last == fromCliFqn.last
+  }
 
   private def intersectTestSuites(fromBuild: List[String], fromCli: List[String]): List[String] =
     fromBuild.filter { fullyQualifiedCls =>
       fromCli.exists { fromCliCls =>
-        val fromBuildFqn = fullyQualifiedCls.split('.')
-        val fromCliFqn = fromCliCls.split('.')
-        fromBuildFqn.sameElements(fromCliFqn) || fromBuildFqn.last == fromCliFqn.last
+        isSameSuite(fullyQualifiedCls, fromCliCls)
       }
     }
 
@@ -33,25 +41,47 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSui
     DoSourceGen(started, bloop, watchableProjects(started)).flatMap { _ =>
       val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
       val tests = bloop.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)).get()
-      val testClasses: List[String] = tests.getItems().asScala.flatMap(_.getClasses.asScala).toList
+      val testClassesUnfiltered: List[String] = tests.getItems().asScala.flatMap(_.getClasses.asScala).toList
+
+      val testClasses = testSuitesExclude.map { exclude =>
+        val filtered = testClassesUnfiltered
+          .filter(fromBuildCls => exclude.toList.find(fromCliCls => isSameSuite(fromBuildCls, fromCliCls)).isDefined)
+        if (filtered.nonEmpty) testClassesUnfiltered.diff(filtered) else List.empty
+      }
 
       val testParams = new bsp4j.TestParams(targets)
 
-      val hasSuites: Boolean = testSuites
-        .map { classes =>
-          val testClassesData = new bsp4j.ScalaTestSuites(
-            intersectTestSuites(testClasses, classes.toList)
-              .map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava))
-              .asJava,
-            List.empty[String].asJava,
-            List.empty[String].asJava
-          )
-          testParams.setData(testClassesData)
-          testParams.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES_SELECTION)
+      val hasSuites: Boolean =
+        testClasses match {
+          case None =>
+            testSuitesOnly
+              .map { classes =>
+                val testClassesData = new bsp4j.ScalaTestSuites(
+                  intersectTestSuites(testClassesUnfiltered, classes.toList)
+                    .map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava))
+                    .asJava,
+                  List.empty[String].asJava,
+                  List.empty[String].asJava
+                )
+                testParams.setData(testClassesData)
+                testParams.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES_SELECTION)
 
-          !testClassesData.getSuites().isEmpty
+                !testClassesData.getSuites().isEmpty
+              }
+              .getOrElse(true)
+          case Some(value) =>
+            if (value.isEmpty) false
+            else {
+              val testClassesData = new bsp4j.ScalaTestSuites(
+                value.map(suite => new bsp4j.ScalaTestSuiteSelection(suite, List.empty[String].asJava)).asJava,
+                List.empty[String].asJava,
+                List.empty[String].asJava
+              )
+              testParams.setData(testClassesData)
+              testParams.setDataKind(bsp4j.TestParamsDataKind.SCALA_TEST_SUITES_SELECTION)
+              true
+            }
         }
-        .getOrElse(true)
 
       if (hasSuites) {
         val result = bloop.buildTargetTest(testParams).get()
@@ -65,7 +95,7 @@ case class Test(watch: Boolean, projects: Array[model.CrossProjectName], testSui
             Left(new BspCommandFailed("tests", projects, BspCommandFailed.StatusCode(errorCode)))
         }
       } else {
-        Left(new TestSuitesNotFound(testSuites.map(_.toList).getOrElse(List.empty[String])))
+        Left(new TestSuitesNotFound(testSuitesOnly.map(_.toList).getOrElse(List.empty[String])))
       }
     }
 }
