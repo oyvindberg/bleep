@@ -90,6 +90,23 @@ object Main {
         .orNone
         .map(started.chosenTestProjects)
 
+    val testSuitesOnly: Opts[Option[NonEmptyList[String]]] =
+      Opts
+        .options[String](
+          "only",
+          "Test only a subset of test suite class names. Class name can be fully qualified to disambiguate",
+          "o"
+        )
+        .orNone
+    val testSuitesExclude: Opts[Option[NonEmptyList[String]]] =
+      Opts
+        .options[String](
+          "exclude",
+          "Exclude specific test suite class names. Class name can be fully qualified to disambiguate. Takes precedence over --only",
+          "x"
+        )
+        .orNone
+
     val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
         .arguments(metavars.hasSourceGenProject)(argumentFrom(metavars.hasSourceGenProject, Some(started.globs.hasSourceGenProjectNameMap)))
@@ -172,8 +189,8 @@ object Main {
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
-            (watch, testProjectNames).mapN { case (watch, projectNames) =>
-              commands.Test(watch, projectNames)
+            (watch, testProjectNames, testSuitesOnly, testSuitesExclude).mapN { case (watch, projectNames, testSuitesOnly, testSuitesExclude) =>
+              commands.Test(watch, projectNames, testSuitesOnly, testSuitesExclude)
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
