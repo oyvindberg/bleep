@@ -39,7 +39,7 @@ jobs:
           root: .
           schemaMapping: |
             {
-                "https://github.com/oyvindberg/bleep/blob/master/schema.json": [ "**/*.yml", "**/*.yaml" ]
+                "schema.json": [ "**/*.yml", "**/*.yaml" ]
             }
 
   build-native-image:
