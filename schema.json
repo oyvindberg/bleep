@@ -245,13 +245,19 @@
               "items": {
                 "type": "string"
               }
-            },
-            "required": ["splitStyle"],
-            "if": {
-              "properties": { "splitStyle": { "const": "SmallModulesFor" } }
-            },
-            "then": { "required": ["packages"] }
-          }
+            }
+          },
+          "required": ["splitStyle"],
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "splitStyle": { "const": "SmallModulesFor" }
+                }
+              },
+              "then": { "required": ["packages"] }
+            }
+          ]
         },
         "jsEmitSourceMaps": {
           "type": "boolean"
