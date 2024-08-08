@@ -285,12 +285,28 @@
       "dependencies": {
         "jsSplitStyle": ["jsKind"]
       },
-      "allOf": [{
-        "if": {
-          "properties": { "jsKind": { "const": "esmodule" } }
-        },
-        "then": { "required": ["jsSplitStyle"] }
-      }]
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "platform": {
+                "properties": {
+                  "name": { "const": "js" },
+                  "jsKind": { "const": "esmodule" }
+                },
+                "required": ["name", "jsKind"]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "platform": {
+                "required": ["jsSplitStyle"]
+              }
+            }
+          }
+        }
+      ]
     },
     "CompileSetup": {
       "type": "object",
