@@ -245,13 +245,13 @@
               "items": {
                 "type": "string"
               }
-            }
-          },
-          "required": ["splitStyle"],
-          "if": {
-            "properties": { "splitStyle": { "const": "SmallModulesFor" } }
-          },
-          "then": { "required": ["packages"] }
+            },
+            "required": ["splitStyle"],
+            "if": {
+              "properties": { "splitStyle": { "const": "SmallModulesFor" } }
+            },
+            "then": { "required": ["packages"] }
+          }
         },
         "jsEmitSourceMaps": {
           "type": "boolean"
@@ -289,21 +289,13 @@
         {
           "if": {
             "properties": {
-              "platform": {
-                "properties": {
-                  "name": { "const": "js" },
-                  "jsKind": { "const": "esmodule" }
-                },
-                "required": ["name", "jsKind"]
-              }
-            }
+              "name": { "const": "js" },
+              "jsKind": { "const": "esmodule" }
+            },
+            "required": ["name", "jsKind"]
           },
           "then": {
-            "properties": {
-              "platform": {
-                "required": ["jsSplitStyle"]
-              }
-            }
+            "required": ["jsSplitStyle"]
           }
         }
       ]
