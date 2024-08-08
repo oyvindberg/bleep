@@ -20,8 +20,6 @@ abstract class BleepException(
 object BleepException {
   class BuildNotFound(cwd: Path) extends BleepException(s"Couldn't find ${BuildLoader.BuildFileName} in directories in or above $cwd")
 
-  class TestSuitesNotFound(suites: List[String]) extends BleepException(s"None of the given test suites: ${suites.mkString(", ")} were found in the project")
-
   class TargetFolderNotDetermined(projectName: model.CrossProjectName)
       extends BleepException(s"Couldn't determine original output directory of project ${projectName.name}")
 

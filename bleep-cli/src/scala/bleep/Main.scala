@@ -90,9 +90,22 @@ object Main {
         .orNone
         .map(started.chosenTestProjects)
 
-    val testSuitesOnly: Opts[Option[NonEmptyList[String]]] = Opts.options[String]("only", "Test only a subset of test suites", "o").orNone
+    val testSuitesOnly: Opts[Option[NonEmptyList[String]]] =
+      Opts
+        .options[String](
+          "only",
+          "Test only a subset of test suite class names. Class name can be fully qualified to disambiguate",
+          "o"
+        )
+        .orNone
     val testSuitesExclude: Opts[Option[NonEmptyList[String]]] =
-      Opts.options[String]("exclude", "Exclude specific test suites, if used the --only is ignored", "x").orNone
+      Opts
+        .options[String](
+          "exclude",
+          "Exclude specific test suite class names. Class name can be fully qualified to disambiguate. Takes precedence over --only",
+          "x"
+        )
+        .orNone
 
     val hasSourcegenProjectNames: Opts[Array[model.CrossProjectName]] =
       Opts
