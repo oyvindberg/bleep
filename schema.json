@@ -291,27 +291,16 @@
       "dependencies": {
         "jsSplitStyle": ["jsKind"]
       },
-      "anyOf": [
-        {
-          "if": {
-            "properties": {
-              "name": { "const": "js" },
-              "jsKind": { "const": "esmodule" }
-            },
-            "required": ["name", "jsKind"]
-          },
-          "then": {
-            "required": ["jsSplitStyle"]
-          }
+      "if": {
+        "properties": {
+          "name": { "const": "js" },
+          "jsKind": { "const": "esmodule" }
         },
-        {
-          "not": {
-            "properties": {
-              "name": { "const": "js" }
-            }
-          }
-        }
-      ]
+        "required": ["name", "jsKind"]
+      },
+      "then": {
+        "required": ["jsSplitStyle"]
+      }
     },
     "CompileSetup": {
       "type": "object",
