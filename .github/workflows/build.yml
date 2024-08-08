@@ -34,6 +34,14 @@ jobs:
           bleep config compile-server stop-all
           ./bleep-cli@jvm3.sh --dev test 
 
+      - uses: InoUno/yaml-ls-check@develop
+        with:
+          root: .
+          schemaMapping: |
+            {
+                "https://github.com/oyvindberg/bleep/blob/master/schema.json": [ "**/*.yml", "**/*.yaml" ]
+            }
+
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
