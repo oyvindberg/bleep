@@ -285,7 +285,7 @@
       "dependencies": {
         "jsSplitStyle": ["jsKind"]
       },
-      "allOf": [
+      "anyOf": [
         {
           "if": {
             "properties": {
@@ -296,6 +296,13 @@
           },
           "then": {
             "required": ["jsSplitStyle"]
+          }
+        },
+        {
+          "not": {
+            "properties": {
+              "name": { "const": "js" }
+            }
           }
         }
       ]
