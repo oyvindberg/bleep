@@ -34,6 +34,18 @@ jobs:
           bleep config compile-server stop-all
           ./bleep-cli@jvm3.sh --dev test 
 
+  yaml-ls-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: InoUno/yaml-ls-check@develop
+        with:
+          root: .
+          schemaMapping: |
+            {
+                "schema.json": [ "**/bleep.yaml" ]
+            }
+
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -138,7 +150,7 @@ jobs:
   release:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
-    needs: [ build, build-native-image ]
+    needs: [ build, build-native-image, yaml-ls-check ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - uses: actions/checkout@v2
