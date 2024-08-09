@@ -248,10 +248,16 @@
             }
           },
           "required": ["splitStyle"],
-          "if": {
-            "properties": { "splitStyle": { "const": "SmallModulesFor" } }
-          },
-          "then": { "required": ["packages"] }
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "splitStyle": { "const": "SmallModulesFor" }
+                }
+              },
+              "then": { "required": ["packages"] }
+            }
+          ]
         },
         "jsEmitSourceMaps": {
           "type": "boolean"
@@ -285,12 +291,16 @@
       "dependencies": {
         "jsSplitStyle": ["jsKind"]
       },
-      "allOf": [{
-        "if": {
-          "properties": { "jsKind": { "const": "esmodule" } }
+      "if": {
+        "properties": {
+          "name": { "const": "js" },
+          "jsKind": { "const": "esmodule" }
         },
-        "then": { "required": ["jsSplitStyle"] }
-      }]
+        "required": ["name", "jsKind"]
+      },
+      "then": {
+        "required": ["jsSplitStyle"]
+      }
     },
     "CompileSetup": {
       "type": "object",

@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.commands.PublishLocal
+import cats.data.NonEmptyList
 
 class Commands(started: Started) {
   private def force(cmd: BleepBuildCommand): Unit =
@@ -21,8 +22,13 @@ class Commands(started: Started) {
   ): Unit =
     force(commands.Run(project, maybeOverriddenMain, args, raw, watch))
 
-  def test(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(commands.Test(watch, projects.toArray))
+  def test(
+      projects: List[model.CrossProjectName],
+      watch: Boolean = false,
+      testOnlyClasses: Option[NonEmptyList[String]],
+      testExcludeClasses: Option[NonEmptyList[String]]
+  ): Unit =
+    force(commands.Test(watch, projects.toArray, testOnlyClasses, testExcludeClasses))
 
   def script(name: model.ScriptName, args: List[String], watch: Boolean = false): Unit =
     force(commands.Script(name, args, watch))
