@@ -32,7 +32,7 @@ case class InstallZshTabCompletions(userPaths: UserPaths, logger: Logger, stdout
       println(completionScript)
     } else {
       logger.info(s"Writing $completionScriptDest")
-      FileSync.softWriteBytes(completionScriptDest, completionScript.getBytes(StandardCharsets.UTF_8)): Unit
+      FileSync.softWriteBytes(completionScriptDest, completionScript.getBytes(StandardCharsets.UTF_8)).discard()
       val zshRc = Option(System.getenv("ZDOTDIR")).map(Path.of(_)).getOrElse(FileUtils.Home) / ".zshrc"
 
       PatchRcFile(None, logger, zshRc)(

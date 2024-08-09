@@ -1,6 +1,5 @@
-package bleep.packaging
-
-import bleep.{model, RelPath}
+package bleep
+package packaging
 
 import java.io.ByteArrayOutputStream
 import java.nio.file.attribute.FileTime
@@ -31,7 +30,7 @@ object createJar {
             if (Files.isRegularFile(file)) {
               val mapping = RelPath.relativeTo(fromFolder, file)
               if (!seen(mapping)) {
-                seen.add(mapping)
+                seen.add(mapping).discard()
                 val entry = new JarEntry(mapping.toString)
                 entry.setCreationTime(epochTime)
                 entry.setLastModifiedTime(epochTime)

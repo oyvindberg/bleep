@@ -2,8 +2,6 @@ package bleep
 package commands
 
 import bleep.internal.{traverseish, TransitiveProjects}
-import bleep.model.ScriptDef
-
 import bloop.rifle.BuildServer
 
 case class Script(name: model.ScriptName, args: List[String], watch: Boolean) extends BleepCommandRemote(watch) {
@@ -22,7 +20,7 @@ case class Script(name: model.ScriptName, args: List[String], watch: Boolean) ex
 }
 
 object Script {
-  def run(started: Started, bloop: BuildServer, scriptDefs: Seq[ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
+  def run(started: Started, bloop: BuildServer, scriptDefs: Seq[model.ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
     traverseish.runAll(scriptDefs) { case model.ScriptDef.Main(project, main, _) =>
       Run(project, Some(main), args = args, raw = false, watch = watch).runWithServer(started, bloop)
     }

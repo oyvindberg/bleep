@@ -1,9 +1,9 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{bleepLoggers, fatal, FileUtils}
+import bleep.internal.{bleepLoggers, fatal, FileUtils, Throwables}
 import bleep.logging.Logger
-import bleep.model.{BleepVersion, Os}
+import bleep.packaging.ManifestCreator
 import cats.data.NonEmptyList
 import cats.syntax.apply.*
 import cats.syntax.foldable.*
@@ -13,7 +13,6 @@ import coursier.jvm.Execve
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Success, Try}
-import bleep.packaging.ManifestCreator
 
 object Main {
   private def isGraalvmNativeImage: Boolean =
@@ -392,7 +391,7 @@ object Main {
           case _                                => true
         }
 
-        def go(wantedVersion: BleepVersion): ExitCode = {
+        def go(wantedVersion: model.BleepVersion): ExitCode = {
           val cacheLogger = new BleepCacheLogger(logger)
 
           OsArch.current match {
@@ -400,7 +399,7 @@ object Main {
               FetchBleepRelease(wantedVersion, cacheLogger, ec, hasNativeImage) match {
                 case Left(buildException) =>
                   fatal("couldn't download bleep release", logger, buildException)
-                case Right(binaryPath) if OsArch.current.os == Os.Windows || !isGraalvmNativeImage =>
+                case Right(binaryPath) if OsArch.current.os == model.Os.Windows || !isGraalvmNativeImage =>
                   val status = scala.sys.process.Process(binaryPath.toString :: args.toList, FileUtils.cwd.toFile, sys.env.toSeq: _*).!<
                   sys.exit(status)
                 case Right(path) =>
@@ -550,7 +549,7 @@ object Main {
 
           bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
             case Left(th) =>
-              fatal("couldn't load build", stderr, th)
+              Throwables.log("couldn't load build", stderr, th)
               Completer.Res.NoMatch
 
             case Right(started) =>

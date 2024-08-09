@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.4
+$version: 0.0.5
 jvm:
   name: graalvm-community:21.0.2
 projects:
@@ -57,6 +57,8 @@ projects:
       module: com.eed3si9n::sjson-new-scalajson:0.13.0
     - org.scala-lang.modules::scala-xml:2.3.0
     extends: template-cross-all
+    scala:
+      strict: false
     sources:
     - ../liberated/librarymanagement/core/src/main/contraband-scala
     - ../liberated/librarymanagement/core/src/main/java

@@ -1,6 +1,6 @@
-package bleep.model
+package bleep
+package model
 
-import bleep.{model, RelPath}
 import io.circe.{Decoder, Encoder}
 
 sealed abstract class SourceLayout(val id: String) {

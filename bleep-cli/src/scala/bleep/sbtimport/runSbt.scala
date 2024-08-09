@@ -221,18 +221,18 @@ object runSbt {
       while (i < lines.length) {
         val line = lines(i)
 
-        def handleScalaVersion(projectName: String) = {
+        def handleScalaVersion(projectName: String): Unit = {
           i = i + 1
           val nextLine = lines(i)
           val scalaVersion = model.VersionScala(nextLine.split("\\s").last)
-          scalaVersionsBuilder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName)
+          scalaVersionsBuilder.getOrElseUpdate(scalaVersion, mutable.Set.empty).add(projectName).discard()
         }
 
-        def handleCrossScalaVersions(projectName: String) = {
+        def handleCrossScalaVersions(projectName: String): Unit = {
           i = i + 1
           val nextLine = lines(i)
           val versions = nextLine.dropWhile(_ != '(').drop(1).takeWhile(_ != ')').split(",").map(_.trim).filterNot(_.isEmpty)
-          versions.map { scalaVersion =>
+          versions.foreach { scalaVersion =>
             crossVersionsBuilder.getOrElseUpdate(model.VersionScala(scalaVersion), mutable.Set.empty).add(projectName)
           }
         }

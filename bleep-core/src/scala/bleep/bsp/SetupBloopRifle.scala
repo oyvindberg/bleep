@@ -3,7 +3,6 @@ package bsp
 
 import bleep.internal.FileUtils
 import bleep.logging.Logger
-import bleep.model.CompileServerMode
 import bloop.rifle.BloopRifleConfig
 
 import java.io.File
@@ -15,7 +14,7 @@ import scala.util.{Failure, Properties, Random, Success, Try}
 
 object SetupBloopRifle {
   def apply(
-      compileServerMode: CompileServerMode,
+      compileServerMode: model.CompileServerMode,
       resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,

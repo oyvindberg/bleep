@@ -1,6 +1,6 @@
 package bleep.depcheck
 
-import coursier.core._
+import coursier.core.*
 import coursier.util.Artifact
 
 import java.io.File

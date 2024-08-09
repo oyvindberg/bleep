@@ -1,9 +1,9 @@
 package bleep
 package scripts
 
-import java.nio.file.Path
-import java.nio.file.Files
 import bleep.plugin.nativeimage.NativeImagePlugin
+
+import java.nio.file.{Files, Path}
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {

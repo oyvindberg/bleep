@@ -1,10 +1,10 @@
 package bleep.bsp
 
 import bleep.logging.{Logger, LoggerFn}
+import bloop.rifle.BloopRifleLogger
 
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
-import bloop.rifle.BloopRifleLogger
 
 class BleepRifleLogger(val logger: Logger) extends BloopRifleLogger {
   val bloopLogger = logger.withPath("bloop")

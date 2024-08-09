@@ -2,20 +2,18 @@ package bleep
 package sbtimport
 
 import bleep.internal.{codecs, parseBloopFile, FileUtils, GeneratedFile}
+import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import bloop.config.Config
 import coursier.core.Configuration
 import io.circe.Codec
 import io.circe.generic.semiauto.*
-import bleep.logging.Logger
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.{SortedMap, SortedSet}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.jdk.StreamConverters.StreamHasToScala
-import scala.util.Try
-import scala.util.Failure
-import scala.util.Success
+import scala.util.{Failure, Success, Try}
 
 /** Absolutely everything that the import cares about from the sbt build is dumped in this structure. It's all read up front, so the import is a pure function.
   *
@@ -116,7 +114,7 @@ case class ImportInputData(
 
 object ImportInputData {
   import codecs.*
-  model.assertUsed(codecPath)
+  codecPath.discard()
   implicit val codec: Codec.AsObject[ImportInputData] = deriveCodec
 
   def collectFromFileSystem(

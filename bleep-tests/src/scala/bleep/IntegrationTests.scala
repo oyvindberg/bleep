@@ -3,7 +3,7 @@ package bleep
 import bleep.internal.FileUtils
 import bleep.logging.TypedLogger.Stored
 import bleep.logging.{LogLevel, Loggers, TypedLogger}
-import bleep.model.BuildVariant
+
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -26,7 +26,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val lazyBleepBuild: Lazy[Started] =
     Lazy {
       val existing = BuildLoader.find(FileUtils.cwd).existing.orThrow
-      val pre = Prebootstrapped(logger0, userPaths, BuildPaths(FileUtils.cwd, existing, BuildVariant.Normal), existing, ec)
+      val pre = Prebootstrapped(logger0, userPaths, BuildPaths(FileUtils.cwd, existing, model.BuildVariant.Normal), existing, ec)
       bootstrap.from(pre, GenBloopFiles.SyncToDisk, Nil, model.BleepConfig.default, CoursierResolver.Factory.default).orThrow
     }
 
@@ -44,7 +44,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 
     val withBuildScript = files.updated(RelPath(List(BuildLoader.BuildFileName)), prelude ++ yaml)
-    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false)
+    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false).discard()
     val existingBuild = BuildLoader.find(testTempFolder).existing.orThrow
     val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
 

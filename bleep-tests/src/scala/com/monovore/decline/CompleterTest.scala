@@ -1,5 +1,6 @@
 package com.monovore.decline
 
+import bleep.DiscardOps
 import cats.data.{NonEmptyList, Validated}
 import cats.syntax.apply.*
 import cats.syntax.foldable.*
@@ -68,14 +69,14 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
 
     val opts = subCommands.foldK
 
-    assert(completer.completeOpts(Nil)(opts).value === List(compile, compose, testCmd))
-    assert(completer.completeOpts(List("co"))(opts).value === List(compile, compose))
-    assert(completer.completeOpts(List("te"))(opts).value === List(testCmd))
-    assert(completer.completeOpts(List("compile", "co"))(opts).value === List(common, core))
-    assert(completer.completeOpts(List("compile", "core", "te"))(opts).value === List(testProj))
-    assert(completer.completeOpts(List("compile", ""))(opts).value === List(foobar, f, bar, b, common, core, testProj))
-    assert(completer.completeOpts(List("compile", "--bar", ""))(opts).value === List(one, two, three))
-    assert(completer.completeOpts(List("compile", "--bar", "t"))(opts).value === List(two, three))
+    assert(completer.completeOpts(Nil)(opts).value === List(compile, compose, testCmd)).discard()
+    assert(completer.completeOpts(List("co"))(opts).value === List(compile, compose)).discard()
+    assert(completer.completeOpts(List("te"))(opts).value === List(testCmd)).discard()
+    assert(completer.completeOpts(List("compile", "co"))(opts).value === List(common, core)).discard()
+    assert(completer.completeOpts(List("compile", "core", "te"))(opts).value === List(testProj)).discard()
+    assert(completer.completeOpts(List("compile", ""))(opts).value === List(foobar, f, bar, b, common, core, testProj)).discard()
+    assert(completer.completeOpts(List("compile", "--bar", ""))(opts).value === List(one, two, three)).discard()
+    assert(completer.completeOpts(List("compile", "--bar", "t"))(opts).value === List(two, three)).discard()
   }
 
   test("repeated options") {
@@ -107,36 +108,36 @@ class CompleterTest extends AnyFunSuite with TypeCheckedTripleEquals {
       case _                 => Nil
     })
 
-    assert(completer.completeOpts(List("cmd1", "cmd2", "--p"))(opts).value === List(Completion("--platform", Some(platformHelp))))
-    assert(completer.completeOpts(List("cmd1", "cmd2", "-p"))(opts).value === Nil)
+    assert(completer.completeOpts(List("cmd1", "cmd2", "--p"))(opts).value === List(Completion("--platform", Some(platformHelp)))).discard()
+    assert(completer.completeOpts(List("cmd1", "cmd2", "-p"))(opts).value === Nil).discard()
     assert(
       completer.completeOpts(List("cmd1", "cmd2", "-p", ""))(opts).value === List(
         Completion("jvm", Some(platformMetavar)),
         Completion("js", Some(platformMetavar)),
         Completion("native", Some(platformMetavar))
       )
-    )
+    ).discard()
     assert(
       completer.completeOpts(List("cmd1", "cmd2", "-p", "j"))(opts).value === List(
         Completion("jvm", Some(platformMetavar)),
         Completion("js", Some(platformMetavar))
       )
-    )
+    ).discard()
     assert(
       completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-p", "n"))(opts).value === List(
         Completion("native", Some(platformMetavar))
       )
-    )
+    ).discard()
     assert(
       completer.completeOpts(List("cmd1", "cmd2", "-p", "jvm", "-f", "o"))(opts).value === List(
         Completion("one", Some(fooMetavar))
       )
-    )
+    ).discard()
   }
 
   test("bashToArgs") {
-    assert(Completer.bashToArgs("bleep/target/bleep compile ble", 2, 30) === List("compile", "ble"))
-    assert(Completer.bashToArgs("bleep/target/bleep compile ", 2, 26) === List("compile"))
-    assert(Completer.bashToArgs("bleep/target/bleep compile ", 2, 27) === List("compile", ""))
+    assert(Completer.bashToArgs("bleep/target/bleep compile ble", 2, 30) === List("compile", "ble")).discard()
+    assert(Completer.bashToArgs("bleep/target/bleep compile ", 2, 26) === List("compile")).discard()
+    assert(Completer.bashToArgs("bleep/target/bleep compile ", 2, 27) === List("compile", "")).discard()
   }
 }

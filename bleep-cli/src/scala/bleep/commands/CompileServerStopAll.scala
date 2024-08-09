@@ -4,11 +4,11 @@ package commands
 import bleep.bsp.BleepRifleLogger
 import bleep.internal.FileUtils
 import bleep.logging.Logger
+import bloop.rifle.BloopRifleConfig
+import bloop.rifle.internal.Operations
 
 import java.io.OutputStream
 import java.nio.file.{Files, Path}
-import bloop.rifle.BloopRifleConfig
-import bloop.rifle.internal.Operations
 import scala.jdk.StreamConverters.StreamHasToScala
 
 case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends BleepCommand {
@@ -23,13 +23,15 @@ case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends Bl
       val address = BloopRifleConfig.Address.DomainSocket(socketDir)
       if (Operations.check(address, rifleLogger)) {
         logger.info(s"stopping bloop server running at socket $socketDir")
-        Operations.exit(
-          address = address,
-          workingDir = FileUtils.TempDir,
-          out = rifleLogger.bloopBspStdout.getOrElse(OutputStream.nullOutputStream()),
-          err = rifleLogger.bloopBspStderr.getOrElse(OutputStream.nullOutputStream()),
-          logger = rifleLogger
-        )
+        Operations
+          .exit(
+            address = address,
+            workingDir = FileUtils.TempDir,
+            out = rifleLogger.bloopBspStdout.getOrElse(OutputStream.nullOutputStream()),
+            err = rifleLogger.bloopBspStderr.getOrElse(OutputStream.nullOutputStream()),
+            logger = rifleLogger
+          )
+          .discard()
         FileUtils.deleteDirectory(socketDir)
       } else
         logger.info(s"bloop server was not running at socket $socketDir")

@@ -14,9 +14,9 @@ class JsonTest extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("VersionCombo") {
-    roundtrip(VersionCombo.Jvm(VersionScala.Scala3))
-    roundtrip(VersionCombo.Js(VersionScala.Scala212, VersionScalaJs.ScalaJs1))
-    roundtrip(VersionCombo.Native(VersionScala.Scala3, VersionScalaNative.ScalaNative04))
-    roundtrip(VersionCombo.Java)
+    roundtrip(VersionCombo.Jvm(VersionScala.Scala3)).discard()
+    roundtrip(VersionCombo.Js(VersionScala.Scala212, VersionScalaJs.ScalaJs1)).discard()
+    roundtrip(VersionCombo.Native(VersionScala.Scala3, VersionScalaNative.ScalaNative04)).discard()
+    roundtrip(VersionCombo.Java).discard()
   }
 }

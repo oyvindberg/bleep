@@ -60,7 +60,7 @@ case class Scalafmt(check: Boolean) extends BleepBuildCommand {
       cmd,
       logger = started.logger,
       out = cli.Out.ViaLogger(started.logger)
-    )
+    ).discard()
     Right(())
   }
 }

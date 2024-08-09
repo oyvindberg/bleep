@@ -5,14 +5,13 @@ import coursier.core.{Configuration, Dependency, Info}
 
 import java.nio.charset.StandardCharsets
 import scala.xml.{Elem, NodeSeq}
-import bleep.model.CrossProjectName
 
 object GenLayout {
   val p = new scala.xml.PrettyPrinter(120, 2)
 
   def ivy(
       manifestCreator: ManifestCreator,
-      projectName: CrossProjectName,
+      projectName: model.CrossProjectName,
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],
@@ -31,7 +30,7 @@ object GenLayout {
 
   def maven(
       manifestCreator: ManifestCreator,
-      projectName: CrossProjectName,
+      projectName: model.CrossProjectName,
       self: Dependency,
       projectPaths: ProjectPaths,
       deps: List[Dependency],

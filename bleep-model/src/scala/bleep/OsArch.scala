@@ -1,23 +1,21 @@
 package bleep
 
-import bleep.model.Os
-
 import java.util.Locale
 
 sealed trait OsArch {
-  val os: Os
+  val os: model.Os
   val arch: Arch
 }
 
 object OsArch {
-  sealed abstract class HasNativeImage(val os: Os, val arch: Arch) extends OsArch
+  sealed abstract class HasNativeImage(val os: model.Os, val arch: Arch) extends OsArch
 
-  object LinuxAmd64 extends HasNativeImage(Os.Linux, Arch.Amd64)
-  object WindowsAmd64 extends HasNativeImage(Os.Windows, Arch.Amd64)
-  object MacosAmd64 extends HasNativeImage(Os.Macos, Arch.Amd64)
-  case class MacosArm64(freedFromJail: Boolean) extends HasNativeImage(Os.Macos, Arch.Arm64)
+  object LinuxAmd64 extends HasNativeImage(model.Os.Linux, Arch.Amd64)
+  object WindowsAmd64 extends HasNativeImage(model.Os.Windows, Arch.Amd64)
+  object MacosAmd64 extends HasNativeImage(model.Os.Macos, Arch.Amd64)
+  case class MacosArm64(freedFromJail: Boolean) extends HasNativeImage(model.Os.Macos, Arch.Arm64)
 
-  case class Other(os: Os, arch: Arch) extends OsArch
+  case class Other(os: model.Os, arch: Arch) extends OsArch
 
   def shouldBeArm64(): Boolean =
     if (sys.env.contains("BLEEP_ALLOW_AMD64")) false
@@ -29,11 +27,11 @@ object OsArch {
     }
 
   lazy val current: OsArch = {
-    val os: Os =
+    val os: model.Os =
       Option(System.getProperty("os.name")).getOrElse("").toLowerCase(Locale.ROOT) match {
-        case s if s.contains("windows") => Os.Windows
-        case s if s.contains("linux")   => Os.Linux
-        case s if s.contains("mac")     => Os.Macos
+        case s if s.contains("windows") => model.Os.Windows
+        case s if s.contains("linux")   => model.Os.Linux
+        case s if s.contains("mac")     => model.Os.Macos
         case unrecognized               => throw new BleepException.Text(s"OS $unrecognized not supported yet. PR welcome! :)")
       }
 
@@ -45,11 +43,11 @@ object OsArch {
       }
 
     (os, arch) match {
-      case (Os.Windows, Arch.Amd64) => WindowsAmd64
-      case (Os.Linux, Arch.Amd64)   => LinuxAmd64
-      case (Os.Macos, Arch.Arm64)   => MacosArm64(freedFromJail = false)
-      case (Os.Macos, Arch.Amd64)   => if (shouldBeArm64()) MacosArm64(freedFromJail = true) else MacosAmd64
-      case (os, arch)               => Other(os, arch)
+      case (model.Os.Windows, Arch.Amd64) => WindowsAmd64
+      case (model.Os.Linux, Arch.Amd64)   => LinuxAmd64
+      case (model.Os.Macos, Arch.Arm64)   => MacosArm64(freedFromJail = false)
+      case (model.Os.Macos, Arch.Amd64)   => if (shouldBeArm64()) MacosArm64(freedFromJail = true) else MacosAmd64
+      case (os, arch)                     => Other(os, arch)
     }
   }
 }

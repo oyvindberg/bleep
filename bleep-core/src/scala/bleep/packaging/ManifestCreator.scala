@@ -1,7 +1,6 @@
 package bleep.packaging
 
 import bleep.model
-import bleep.model.CrossProjectName
 
 import java.util.jar.{Attributes, Manifest}
 
@@ -11,7 +10,7 @@ trait ManifestCreator {
 
 object ManifestCreator {
   object default extends ManifestCreator {
-    override def apply(jarType: JarType, projectName: Option[CrossProjectName], mainClass: Option[String]): Manifest = {
+    override def apply(jarType: JarType, projectName: Option[model.CrossProjectName], mainClass: Option[String]): Manifest = {
       val m = new java.util.jar.Manifest()
       val attrs = m.getMainAttributes
       attrs.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")

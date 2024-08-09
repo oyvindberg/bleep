@@ -1,14 +1,10 @@
 package bleep
 
 import bleep.internal.TransitiveProjects
-import bleep.model.ScriptDef
 
 import java.nio.file.Path
-import scala.collection.compat.*
 
 object BleepFileWatching {
-  model.assertUsed(immutable.LazyList) // silence warning
-
   def projectPathsMapping(started: Started, projects: TransitiveProjects): Map[Path, Seq[model.CrossProjectName]] = {
     val sourceProjectPairs: Iterator[(Path, model.CrossProjectName)] =
       projects.all.iterator.flatMap { name =>
@@ -16,7 +12,7 @@ object BleepFileWatching {
         val paths = started.buildPaths.project(name, p)
         val allPaths = paths.sourcesDirs.all.iterator ++ paths.resourcesDirs.all
         val fromSourceGen: Iterator[Path] =
-          p.sourcegen.values.iterator.flatMap { case ScriptDef.Main(_, _, sourceGlobs) =>
+          p.sourcegen.values.iterator.flatMap { case model.ScriptDef.Main(_, _, sourceGlobs) =>
             sourceGlobs.values.iterator.map(relPath => paths.dir / relPath)
           }
         (allPaths ++ fromSourceGen).map(path => (path, name))

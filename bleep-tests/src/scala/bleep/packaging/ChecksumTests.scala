@@ -1,6 +1,6 @@
-package bleep.packaging
+package bleep
+package packaging
 
-import bleep.Checksums
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.funsuite.AnyFunSuite
 
@@ -15,7 +15,7 @@ class ChecksumTests extends AnyFunSuite with TripleEqualsSupport {
     val pom = resource("/shapeless_2.13-2.4.0-M1.pom")
     val sha1 = str("/shapeless_2.13-2.4.0-M1.pom.sha1")
     val md5 = str("/shapeless_2.13-2.4.0-M1.pom.md5")
-    assert(Checksums.compute(pom, Checksums.Algorithm.Sha1).hexString === sha1)
-    assert(Checksums.compute(pom, Checksums.Algorithm.Md5).hexString === md5)
+    assert(Checksums.compute(pom, Checksums.Algorithm.Sha1).hexString === sha1).discard()
+    assert(Checksums.compute(pom, Checksums.Algorithm.Md5).hexString === md5).discard()
   }
 }

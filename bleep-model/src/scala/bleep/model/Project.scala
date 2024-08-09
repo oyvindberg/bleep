@@ -1,6 +1,6 @@
-package bleep.model
+package bleep
+package model
 
-import bleep.RelPath
 import bleep.internal.compat.OptionCompatOps
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
@@ -146,7 +146,8 @@ object Project {
   )
 
   implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = {
-    assertUsed(templateIdDecoder, projectNameDecoder)
+    templateIdDecoder.discard()
+    projectNameDecoder.discard()
     deriveDecoder
   }
 

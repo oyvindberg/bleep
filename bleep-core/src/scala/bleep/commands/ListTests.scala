@@ -16,7 +16,7 @@ case class ListTests(projects: Array[model.CrossProjectName]) extends BleepComma
   override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] = {
     val all: Iterator[(model.CrossProjectName, String)] = testsByCrossProject(started, bloop)
 
-    all.toList.groupBy { case (pn, cls) => pn.name }.foreach { case (pn, tuples) =>
+    all.toList.groupBy { case (pn, _) => pn.name }.foreach { case (pn, tuples) =>
       started.logger.info(s"${pn.value}:")
       tuples.foreach { case (_, cls) => started.logger.info(s"  $cls") }
     }

@@ -2,8 +2,8 @@ package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
 import bleep.internal.{BspClientDisplayProgress, Throwables, TransitiveProjects}
-import bloop.rifle.internal.Operations
 import bloop.rifle.*
+import bloop.rifle.internal.Operations
 import ch.epfl.scala.bsp4j
 
 import java.nio.file.Files
@@ -60,7 +60,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
     try
       if (watch) {
         // run once initially
-        runWithServer(started, server.server)
+        runWithServer(started, server.server).discard()
 
         var currentStarted = started
 

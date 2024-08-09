@@ -3,7 +3,6 @@ package commands
 
 import bleep.internal.writeYamlLogged
 import bleep.logging.Logger
-import bleep.model.{CrossProjectName, Dep}
 import bleep.rewrites.{normalizeBuild, UpgradeDependencies}
 import coursier.Repository
 import coursier.cache.FileCache
@@ -45,7 +44,7 @@ case object BuildUpdateDeps extends BleepBuildCommand {
   }
 
   class UpgradeLogger(logger: Logger) extends UpgradeDependencies.UpgradeLogger {
-    override def upgraded(project: CrossProjectName, dep: Dep, newVersion: String): Unit =
+    override def upgraded(project: model.CrossProjectName, dep: model.Dep, newVersion: String): Unit =
       logger
         .withContext(project)
         .info(s"${dep.organization.value}:${dep.baseModuleName.value} ${dep.version} => $newVersion")

@@ -1,4 +1,5 @@
-package bleep.internal
+package bleep
+package internal
 
 import bleep.logging.{LogLevel, Logger}
 import ch.epfl.scala.bsp4j
@@ -92,7 +93,7 @@ class BspClientDisplayProgress(
 
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
     extract(params.getData).foreach { id =>
-      active.remove(id)
+      active.remove(id).discard()
       params.getStatus match {
         case bsp4j.StatusCode.OK        => ()
         case bsp4j.StatusCode.ERROR     => failed += id

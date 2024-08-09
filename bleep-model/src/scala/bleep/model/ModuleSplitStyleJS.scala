@@ -1,7 +1,7 @@
 package bleep.model
 
-import io.circe._
-import io.circe.syntax._
+import io.circe.*
+import io.circe.syntax.*
 
 sealed abstract class ModuleSplitStyleJS(val id: String)
 object ModuleSplitStyleJS {
