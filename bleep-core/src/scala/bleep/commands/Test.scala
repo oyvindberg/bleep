@@ -6,7 +6,6 @@ import bleep.internal.{DoSourceGen, TransitiveProjects}
 import bloop.rifle.BuildServer
 import cats.data.NonEmptyList
 import ch.epfl.scala.bsp4j
-import ch.epfl.scala.bsp4j.ScalaTestSuiteSelection
 
 import java.util
 import scala.jdk.CollectionConverters.*
@@ -92,10 +91,10 @@ object Test {
 
     if (afterExcludes.isEmpty) None
     else {
-      val asBspTestSuites: util.List[ScalaTestSuiteSelection] =
+      val asBspTestSuites: util.List[bsp4j.ScalaTestSuiteSelection] =
         afterExcludes.valuesIterator
           .flatMap(_.iterator)
-          .map(cls => new ScalaTestSuiteSelection(cls, List.empty[String].asJava))
+          .map(cls => new bsp4j.ScalaTestSuiteSelection(cls, List.empty[String].asJava))
           .toList
           .asJava
       val testParams = new bsp4j.TestParams(afterExcludes.keys.toList.asJava)
