@@ -2,7 +2,6 @@ package bleep
 package internal
 
 import bleep.logging.{LogLevel, Loggers, TypedLogger, TypedLoggerResource}
-import bleep.model.BleepConfig
 
 import java.io.{BufferedWriter, PrintStream}
 import java.time.Instant
@@ -16,7 +15,7 @@ object bleepLoggers {
     else baseStdout(bleepConfig, commonOpts).map(Loggers.decodeJsonStream)
 
   def stdoutAndFileLogging(
-      bleepConfig: BleepConfig,
+      bleepConfig: model.BleepConfig,
       commonOpts: CommonOpts,
       buildPaths: BuildPaths
   ): TypedLoggerResource[(PrintStream, Option[BufferedWriter])] =
@@ -28,7 +27,7 @@ object bleepLoggers {
         .map(Loggers.decodeJsonStream)
     }
 
-  private def baseStdout(bleepConfig: BleepConfig, commonOpts: CommonOpts): TypedLoggerResource[PrintStream] =
+  private def baseStdout(bleepConfig: model.BleepConfig, commonOpts: CommonOpts): TypedLoggerResource[PrintStream] =
     Loggers
       .stdout(
         LogPatterns.interface(
@@ -53,7 +52,7 @@ object bleepLoggers {
     else Loggers.decodeJsonStream(Loggers.stderr(LogPatterns.logFile))
 
   def stderrAndFileLogging(
-      bleepConfig: BleepConfig,
+      bleepConfig: model.BleepConfig,
       commonOpts: CommonOpts,
       buildPaths: BuildPaths
   ): TypedLoggerResource[(PrintStream, Option[BufferedWriter])] =

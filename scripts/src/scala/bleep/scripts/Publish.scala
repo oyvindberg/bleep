@@ -1,7 +1,6 @@
 package bleep
 package scripts
 
-import bleep.RelPath
 import bleep.nosbt.InteractionService
 import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
 import bleep.plugin.cirelease.CiReleasePlugin

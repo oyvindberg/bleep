@@ -3,7 +3,7 @@ package bleep
 import bleep.internal.FileUtils
 import bleep.logging.TypedLogger.Stored
 import bleep.logging.{LogLevel, Loggers, TypedLogger}
-import bleep.model.BuildVariant
+
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -26,15 +26,15 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val lazyBleepBuild: Lazy[Started] =
     Lazy {
       val existing = BuildLoader.find(FileUtils.cwd).existing.orThrow
-      val pre = Prebootstrapped(logger0, userPaths, BuildPaths(FileUtils.cwd, existing, BuildVariant.Normal), existing, ec)
+      val pre = Prebootstrapped(logger0, userPaths, BuildPaths(FileUtils.cwd, existing, model.BuildVariant.Normal), existing, ec)
       bootstrap.from(pre, GenBloopFiles.SyncToDisk, Nil, model.BleepConfig.default, CoursierResolver.Factory.default).orThrow
     }
 
   val prelude =
-    """$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-      |$version: dev
+    s"""$$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+      |$$version: dev
       |jvm:
-      |  name: graalvm-java17:22.3.1
+      |  name: ${model.Jvm.graalvm.name}
       |""".stripMargin
 
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
@@ -44,7 +44,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 
     val withBuildScript = files.updated(RelPath(List(BuildLoader.BuildFileName)), prelude ++ yaml)
-    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false)
+    FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false).discard()
     val existingBuild = BuildLoader.find(testTempFolder).existing.orThrow
     val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
 
@@ -77,7 +77,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
           jvmOptions: -Dfoo=1
           mainClass: test.Main
         scala:
-          version: 3.3.0
+          version: 3.4.2
 """,
       Map(
         RelPath.force("./a/src/scala/Main.scala") ->
@@ -102,7 +102,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
           jvmOptions: -Dfoo=1
           mainClass: test.Main
         scala:
-          version: 3.3.0
+          version: 3.4.2
 """,
       Map(
         RelPath.force("./a/src/scala/Main.scala") ->
@@ -134,7 +134,7 @@ templates:
     platform:
       name: jvm
     scala:
-      version: 3.3.0
+      version: 3.4.2
 """
 
     val Main = """

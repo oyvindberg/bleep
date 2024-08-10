@@ -17,4 +17,10 @@ package object bleep {
         case Right(relPath) => path / relPath
       }
   }
+
+  implicit class DiscardOps[T](private val t: T) extends AnyVal {
+    // used to avoid unused warnings
+    def discard(): Unit = ()
+  }
+
 }

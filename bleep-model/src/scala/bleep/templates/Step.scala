@@ -2,7 +2,6 @@ package bleep.templates
 
 import bleep.internal.IterableOps
 import bleep.model
-import bleep.model.ProjectWithExploded
 import bleep.templates.ProjectNameLike.Syntax
 
 import scala.collection.mutable
@@ -71,7 +70,7 @@ object Step {
         else Right(projects)
       }
 
-      val fullTemplateContents: Either[String, ProjectWithExploded] =
+      val fullTemplateContents: Either[String, model.ProjectWithExploded] =
         initial.flatMap { projects =>
           projects
             .map { case (_, p) => p.mapBoth(current => templatingContent(current, templateDef)) }

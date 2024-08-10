@@ -28,13 +28,11 @@ object BuildPatch {
           val pushedValues =
             mutable.HashMap.empty[model.CrossProjectName, model.Project]
 
-          def pushValues(values: model.Project)(crossName: model.CrossProjectName): Unit = {
+          def pushValues(values: model.Project)(crossName: model.CrossProjectName): Unit =
             pushedValues.get(crossName) match {
-              case Some(oldValues) => pushedValues.put(crossName, oldValues.union(values))
-              case None            => pushedValues.put(crossName, values)
+              case Some(oldValues) => pushedValues.put(crossName, oldValues.union(values)).discard()
+              case None            => pushedValues.put(crossName, values).discard()
             }
-            ()
-          }
 
           val newTemplates = build.file.templates.map {
             case (templateId, templateDef) if affected.templates(templateId) && !templateDef.cross.isEmpty =>
@@ -238,13 +236,11 @@ object BuildPatch {
     val pushedValues =
       mutable.HashMap.empty[model.CrossProjectName, model.Project]
 
-    def pushValues(values: model.Project)(crossName: model.CrossProjectName): Unit = {
+    def pushValues(values: model.Project)(crossName: model.CrossProjectName): Unit =
       pushedValues.get(crossName) match {
-        case Some(oldValues) => pushedValues.put(crossName, oldValues.union(values))
-        case None            => pushedValues.put(crossName, values)
+        case Some(oldValues) => pushedValues.put(crossName, oldValues.union(values)).discard()
+        case None            => pushedValues.put(crossName, values).discard()
       }
-      ()
-    }
 
     // check if noop
     if (affected.crossProjectNames.isEmpty) return build

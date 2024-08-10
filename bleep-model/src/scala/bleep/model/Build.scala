@@ -1,8 +1,8 @@
-package bleep.model
+package bleep
+package model
 
 import bleep.internal.rewriteDependentData
 import bleep.rewrites.Defaults
-import bleep.{bleepExceptionOps, yaml, BleepException}
 
 import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap

@@ -103,8 +103,8 @@ object FileWatching {
     private[FileWatching] var isShutdown = false
     private[FileWatching] var mapping: Map[Path, Seq[K]] = Map.empty
 
-    def addObserver(observer: Observer[PathWatchers.Event]): List[Int] =
-      List(watcher.addObserver(observer))
+    def addObserver(observer: Observer[PathWatchers.Event]): Unit =
+      watcher.addObserver(observer).discard()
 
     // todo: imperfect, but good enough for now
     // - path.getParent may clobber `path` if that was its own mapping, and we may lose events under that (depending on order)

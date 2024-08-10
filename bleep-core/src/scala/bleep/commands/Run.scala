@@ -3,10 +3,10 @@ package commands
 
 import bleep.bsp.BspCommandFailed
 import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, Throwables, TransitiveProjects}
+import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 
-import bloop.rifle.BuildServer
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
@@ -54,8 +54,7 @@ case class Run(
         out = cli.Out.Raw,
         in = cli.In.Attach,
         env = sys.env.toList
-      )
-      ()
+      ).discard()
     }
 
   def bspRun(started: Started, bloop: BuildServer, main: String): Either[BleepException, Unit] =

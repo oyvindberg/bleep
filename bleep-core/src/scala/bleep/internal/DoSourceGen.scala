@@ -3,19 +3,16 @@ package internal
 
 import bleep.commands.Run
 import bleep.internal.compat.IteratorCompatOps
+import bloop.rifle.BuildServer
 
 import java.nio.file.attribute.FileTime
 import java.nio.file.{Files, Path}
 import java.time.{Duration, Instant}
-import bloop.rifle.BuildServer
-import scala.collection.compat.*
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.math.Ordering.Implicits.infixOrderingOps
 
 object DoSourceGen {
-  model.assertUsed(BuildFrom) // avoid warning while supporting 2.12
-
   case class PathWithLastModified(path: Path, lastModified: FileTime) {
     def asString(now: Instant): String =
       s"$path (last modified ${Duration.between(lastModified.toInstant, now)} ago)"

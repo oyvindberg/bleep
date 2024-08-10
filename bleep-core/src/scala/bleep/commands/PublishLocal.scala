@@ -2,12 +2,11 @@ package bleep
 package commands
 
 import bleep.internal.TransitiveProjects
-import bleep.packaging.{packageLibraries, CoordinatesFor, PackagedLibrary, PublishLayout}
+import bleep.packaging.*
+import bloop.rifle.BuildServer
 
 import java.nio.file.Path
-import bloop.rifle.BuildServer
 import scala.collection.immutable.SortedMap
-import bleep.packaging.ManifestCreator
 
 object PublishLocal {
   sealed trait PublishTarget {

@@ -57,7 +57,7 @@ object BleepException {
       val cause: Th,
       val error: String
   ) extends BleepException(error, cause) {
-    model.assertUsed(implicitly[Not[Th]])
+    implicitly[Not[Th]].discard()
   }
 
   sealed trait Not[T]

@@ -1,7 +1,6 @@
 package bleep
 package sbtimport
 
-import bleep.model.Jvm
 import cats.data.{Validated, ValidatedNel}
 import cats.syntax.apply.*
 import com.monovore.decline.{Argument, Opts}
@@ -31,8 +30,8 @@ object ImportOptions {
   val skipGeneratedResourcesScript: Opts[Boolean] =
     Opts.flag("skip-generated-resources-script", "disable creating a script to regenerate discovered generated sources/resources ").orFalse
 
-  implicit val jvmArgument: Argument[model.Jvm] = new Argument[Jvm] {
-    override def read(string: String): ValidatedNel[String, Jvm] = Validated.Valid(model.Jvm(string, None))
+  implicit val jvmArgument: Argument[model.Jvm] = new Argument[model.Jvm] {
+    override def read(string: String): ValidatedNel[String, model.Jvm] = Validated.Valid(model.Jvm(string, None))
     override def defaultMetavar: String = "metavar-jvm"
   }
 

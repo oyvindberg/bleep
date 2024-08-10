@@ -1,8 +1,9 @@
 package bleep.bsp
 
+import bloop.rifle.BloopThreads
+
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
-import bloop.rifle.BloopThreads
 
 final case class BspThreads(
     buildThreads: BloopThreads,

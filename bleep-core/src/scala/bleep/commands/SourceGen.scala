@@ -2,7 +2,6 @@ package bleep
 package commands
 
 import bleep.internal.{traverseish, TransitiveProjects}
-import bleep.model.{CrossProjectName, ScriptDef}
 import bloop.rifle.BuildServer
 
 case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) {
@@ -19,7 +18,7 @@ case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]
   }
 
   override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] = {
-    val byScript: Map[ScriptDef, Array[CrossProjectName]] =
+    val byScript: Map[model.ScriptDef, Array[model.CrossProjectName]] =
       projectNames
         .flatMap(projectName => started.build.explodedProjects(projectName).sourcegen.values.map(script => (script, projectName)))
         .groupMap { case (s, _) => s } { case (_, pn) => pn }

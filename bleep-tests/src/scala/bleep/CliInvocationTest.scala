@@ -20,7 +20,7 @@ class CliInvocationTest extends AnyFunSuite {
         })
         .toList
         .size == 3
-    )
+    ).discard()
 
     assert(captured.stdErrBuffer.size == 0)
   }
@@ -53,7 +53,7 @@ class CliInvocationTest extends AnyFunSuite {
     System.setErr(bufferedErr)
 
     // without `--dev`, `Main may try to boot another bleep version
-    Main._main(Array("--dev") ++ arguments)
+    Main._main(Array("--dev") ++ arguments).discard()
 
     bufferedOut.close()
     bufferedErr.close()

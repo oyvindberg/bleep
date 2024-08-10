@@ -1,8 +1,7 @@
-package bleep.rewrites
+package bleep
+package rewrites
 
-import bleep.model.{CrossProjectName, Dep}
 import bleep.rewrites.UpgradeDependencies.{ContextualDep, UpgradeLogger}
-import bleep.{bleepExceptionOps, model}
 
 case class UpgradeDependencies(logger: UpgradeLogger, upgrades: Map[ContextualDep, model.Dep]) extends BuildRewrite {
   override val name = model.BuildRewriteName("upgrade-dependencies")
@@ -30,7 +29,7 @@ object UpgradeDependencies {
   }
   object UpgradeLogger {
     object Noop extends UpgradeLogger {
-      override def upgraded(project: CrossProjectName, dep: Dep, newVersion: String): Unit = ()
+      override def upgraded(project: model.CrossProjectName, dep: model.Dep, newVersion: String): Unit = ()
     }
   }
 

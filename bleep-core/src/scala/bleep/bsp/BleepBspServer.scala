@@ -3,6 +3,8 @@ package bsp
 
 import bleep.internal.{DoSourceGen, Throwables, TransitiveProjects}
 import bleep.logging.Logger
+import bloop.rifle.BuildServer
+import bloop.rifle.internal.BuildInfo
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.CompileResult
 import com.google.gson.{JsonObject, JsonPrimitive}
@@ -12,9 +14,6 @@ import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
 import java.util
 import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util.function.BiFunction
-import bloop.rifle.BuildServer
-import bloop.rifle.internal.BuildInfo
-
 import scala.concurrent.{Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Random, Try}

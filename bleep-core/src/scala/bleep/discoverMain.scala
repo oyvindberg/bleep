@@ -1,10 +1,10 @@
 package bleep
 
 import bleep.logging.Logger
+import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 
 import java.util
-import bloop.rifle.BuildServer
 import scala.jdk.CollectionConverters.*
 
 object discoverMain {

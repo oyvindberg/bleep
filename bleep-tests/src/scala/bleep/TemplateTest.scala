@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.{BleepTemplateLogger, ShortenAndSortJson}
+
 import bleep.rewrites.Defaults
 import bleep.templates.{templatesInfer, TemplateDef}
 import bleep.testing.SnapshotTest
@@ -29,7 +30,7 @@ class TemplateTest extends SnapshotTest {
     )
 
     val build = run(projects, "common_template.yaml")
-    requireBuildHasTemplate(build, TemplateDef.Common)
+    requireBuildHasTemplate(build, TemplateDef.Common).discard()
     requireProjectsHaveTemplate(build, TemplateDef.Common, a.name, b.name)
   }
 
@@ -43,8 +44,8 @@ class TemplateTest extends SnapshotTest {
 
     val build = run(projects, "common_test_template.yaml")
     val commonTest = TemplateDef.Test(TemplateDef.Common)
-    requireBuildHasTemplate(build, commonTest)
-    requireTemplateHasParent(build, childTemplate = commonTest, parentTemplate = TemplateDef.Common)
+    requireBuildHasTemplate(build, commonTest).discard()
+    requireTemplateHasParent(build, childTemplate = commonTest, parentTemplate = TemplateDef.Common).discard()
     requireProjectsHaveTemplate(build, commonTest, aTest.name, bTest.name)
   }
 
@@ -57,8 +58,8 @@ class TemplateTest extends SnapshotTest {
     )
 
     val build = run(projects, "template_ignore_b.yaml", ignoreWhenInferringTemplates = Set(b.name))
-    requireBuildHasProject(build, b.name)
-    requireBuildHasTemplate(build, TemplateDef.Common)
+    requireBuildHasProject(build, b.name).discard()
+    requireBuildHasTemplate(build, TemplateDef.Common).discard()
     requireProjectsHaveTemplate(build, TemplateDef.Common, aTest.name, bTest.name)
   }
 
@@ -86,7 +87,7 @@ class TemplateTest extends SnapshotTest {
       outFolder.resolve(testName),
       Map(outFolder.resolve(testName) -> buildFile.asJson.foldWith(ShortenAndSortJson(Nil)).spaces2),
       logger
-    )
+    ).discard()
 
     // complain if we have done illegal rewrites during templating
     val post = model.Build.FileBacked(buildFile).dropBuildFile.dropTemplates
@@ -129,14 +130,14 @@ class TemplateTest extends SnapshotTest {
     assert(
       buildFile.templates.value.contains(templateId.templateId),
       buildFile.templates.value.keySet.mkString(", ")
-    )
+    ).discard()
     buildFile.templates.value(templateId.templateId)
   }
   def requireBuildHasProject(build: model.BuildFile, name: model.ProjectName)(implicit prettifier: Prettifier, pos: source.Position): model.Project = {
     assert(
       build.projects.value.contains(name),
       build.projects.value.keySet.mkString(", ")
-    )
+    ).discard()
     build.projects.value(name)
   }
 

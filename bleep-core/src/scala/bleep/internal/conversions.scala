@@ -2,9 +2,7 @@ package bleep.internal
 
 import bleep.model
 import bloop.config.Config
-import bloop.config.Config.ModuleSplitStyleJS.SmallestModules
-import bloop.config.Config.ModuleSplitStyleJS.SmallModulesFor
-import bloop.config.Config.ModuleSplitStyleJS.FewestModules
+import bloop.config.Config.ModuleSplitStyleJS.{FewestModules, SmallModulesFor, SmallestModules}
 
 object conversions {
   trait Bijection[T1, T2] {

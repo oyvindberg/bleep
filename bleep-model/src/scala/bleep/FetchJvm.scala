@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.model.Jvm
 import coursier.cache.{ArchiveCache, CacheLogger, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.Task
@@ -21,7 +20,7 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
     }
 
     val javaBin = maybeCacheDir match {
-      case Some(cacheDir) if !Jvm.isSystem(jvm) =>
+      case Some(cacheDir) if !model.Jvm.isSystem(jvm) =>
         val cacheFile = {
           val relPath = RelPath(
             List(Some(arch), jvm.index, Some(jvm.name)).flatten
@@ -52,7 +51,7 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
 }
 
 object FetchJvm {
-  def doFetch(cacheLogger: CacheLogger, jvm: Jvm, ec: ExecutionContext, arch: String): Path = {
+  def doFetch(cacheLogger: CacheLogger, jvm: model.Jvm, ec: ExecutionContext, arch: String): Path = {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache[Task]().withCache(fileCache))

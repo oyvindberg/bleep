@@ -2,7 +2,6 @@ package bleep
 package commands
 
 import bleep.depcheck.CheckEvictions
-import bleep.model.VersionCombo
 import bleep.nosbt.librarymanagement
 import cats.implicits.toTraverseOps
 
@@ -11,7 +10,7 @@ case class Evicted(projectNames: Array[model.CrossProjectName]) extends BleepBui
     projectNames.toList
       .traverse { projectName =>
         val project = started.build.explodedProjects(projectName)
-        val versionCombo = VersionCombo.fromExplodedProject(project).orThrowText
+        val versionCombo = model.VersionCombo.fromExplodedProject(project).orThrowText
         val bleepDeps = project.dependencies.values
 
         val res = for {

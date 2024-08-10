@@ -1,7 +1,6 @@
 package bleep.templates
 
 import bleep.model
-import bleep.model.TemplateId
 
 // decouple model/templating from internal logging library.
 trait TemplateLogger {
@@ -10,8 +9,8 @@ trait TemplateLogger {
 }
 object TemplateLogger {
   object Noop extends TemplateLogger {
-    override def appliedTemplateTo[Name: ProjectNameLike](templateId: TemplateId, to: Seq[Name]): Unit = ()
+    override def appliedTemplateTo[Name: ProjectNameLike](templateId: model.TemplateId, to: Seq[Name]): Unit = ()
 
-    override def couldntApplyTemplate(templateId: TemplateId, reason: String): Unit = ()
+    override def couldntApplyTemplate(templateId: model.TemplateId, reason: String): Unit = ()
   }
 }

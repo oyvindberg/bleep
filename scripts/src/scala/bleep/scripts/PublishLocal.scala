@@ -1,8 +1,8 @@
 package bleep.scripts
 
 import bleep.*
-import bleep.plugin.dynver.DynVerPlugin
 import bleep.packaging.ManifestCreator
+import bleep.plugin.dynver.DynVerPlugin
 
 object PublishLocal extends BleepScript("PublishLocal") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
