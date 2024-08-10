@@ -10,7 +10,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val jvm3 = model.CrossId("jvm3")
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(jvm3))
     val project = started.bloopProject(projectName)
-//    commands.compile(List(projectName, localLibDaemon))
+    commands.compile(List(projectName))
 
     // this is here to pick up the graalvm installed by `graalvm/setup-graalvm@v1` in github actions *on windows*
     // the one we install ourselves does not work
