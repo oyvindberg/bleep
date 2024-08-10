@@ -185,5 +185,5 @@ templates:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
   template-scala-3:
     scala:
-      options: -source 3.3-migration
-      version: 3.3.3
+      options: -source 3.3
+      version: 3.4.2
