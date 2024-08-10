@@ -26,9 +26,10 @@ class Commands(started: Started) {
       projects: List[model.CrossProjectName],
       watch: Boolean = false,
       testOnlyClasses: Option[NonEmptyList[String]],
-      testExcludeClasses: Option[NonEmptyList[String]]
+      testExcludeClasses: Option[NonEmptyList[String]],
+      parallelism: Int = 1
   ): Unit =
-    force(commands.Test(watch, projects.toArray, testOnlyClasses, testExcludeClasses))
+    force(commands.Test(watch, projects.toArray, testOnlyClasses, testExcludeClasses, parallelism))
 
   def script(name: model.ScriptName, args: List[String], watch: Boolean = false): Unit =
     force(commands.Script(name, args, watch))
