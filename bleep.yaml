@@ -117,8 +117,7 @@ projects:
   bleep-plugin-sonatype:
     dependencies:
     - org.sonatype.spice.zapper:spice-zapper:1.3
-    # reminder: 24.7.1 is broken. CCE while publishing
-    - org.wvlet.airframe::airframe-http:24.5.2
+    - org.wvlet.airframe::airframe-http:24.7.1
     dependsOn: bleep-core
     extends:
     - template-cross-all
@@ -140,7 +139,7 @@ projects:
     - template-common
     - template-scala-3
   scripts-init:
-    dependencies: build.bleep::bleep-plugin-dynver:${BLEEP_VERSION}
+    dependencies: build.bleep::bleep-plugin-dynver:0.0.4
     extends:
     - template-common
     - template-scala-3
