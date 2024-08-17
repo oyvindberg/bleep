@@ -15,7 +15,7 @@ object CoursierInstallation {
         if (isCoursierPath && Files.exists(scriptPath)) {
           Some((scriptPath, binary))
         } else None
-      case BleepExecutable.CurrentJava(command, args)    => None
-      case BleepExecutable.DownloadedJava(command, args) => None
+      case BleepExecutable.CurrentJava(_, _)    => None
+      case BleepExecutable.DownloadedJava(_, _) => None
     }
 }
