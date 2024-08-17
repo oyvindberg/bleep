@@ -22,7 +22,7 @@ projects:
     - for3Use213: true
       module: ch.epfl.scala::bloop-config:2.0.3
     - for3Use213: true
-      module: ch.epfl.scala::bloop-rifle:2.0.0-RC1
+      module: ch.epfl.scala::bloop-rifle:2.0.0
     - com.lihaoyi::fansi:0.5.0
     - com.swoval:file-tree-views:2.1.12
     - org.typelevel::scalac-options:0.1.5
