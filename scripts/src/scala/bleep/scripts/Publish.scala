@@ -22,7 +22,10 @@ object Publish extends BleepScript("Publish") {
       logger = started.logger,
       maybeCredentials = None,
       interactionService = InteractionService.DoesNotMaskYourPasswordExclamationOneOne
-    )
+    ) {
+      // pick one of the keys from `gpg --list-keys`
+      override def pgpSigningKey() = Some("0BC13EB20EDBE20BE51010A04F1C4835C3551931")
+    }
     val sonatype = new Sonatype(
       logger = started.logger,
       sonatypeBundleDirectory = started.buildPaths.dotBleepDir / "sonatype-bundle",
@@ -43,7 +46,7 @@ object Publish extends BleepScript("Publish") {
           "oyvindberg",
           "Øyvind Raddum Berg",
           "https://github.com/oyvindberg"
-        ),
+        )
       ),
       publication = None,
       scm = CiReleasePlugin.inferScmInfo,
