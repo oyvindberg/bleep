@@ -44,11 +44,6 @@ object Publish extends BleepScript("Publish") {
           "Øyvind Raddum Berg",
           "https://github.com/oyvindberg"
         ),
-        Info.Developer(
-          "hamnis",
-          "Erlend Hamnaberg",
-          "https://github.com/hamnis"
-        )
       ),
       publication = None,
       scm = CiReleasePlugin.inferScmInfo,
