@@ -217,7 +217,8 @@ object GenBloopFiles {
               jsdom = platform.jsJsdom,
               output = None,
               nodePath = platform.jsNodeVersion.map(pre.fetchNode.apply),
-              toolchain = Nil
+              toolchain = Nil,
+              moduleSplitStyle = platform.jsSplitStyle.map(conversions.moduleSplitStyleJS.from)
             ),
             platform.mainClass
           )
