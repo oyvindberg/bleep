@@ -269,7 +269,7 @@ object Main {
             Opts.flag("check", "ensure that all files are already formatted").orFalse.map(commands.Scalafmt.apply)
           },
           Opts.subcommand("setup-dev-script", "setup a bash script which can run the code bleep has compiled")(
-            (projectName, Opts.option[String]("--main-class", "override main class").orNone).mapN { case (projectNames, main) =>
+            (projectName, Opts.option[String]("main-class", "override main class").orNone).mapN { case (projectNames, main) =>
               new commands.SetupDevScript(started, projectNames, main)
             }
           )
