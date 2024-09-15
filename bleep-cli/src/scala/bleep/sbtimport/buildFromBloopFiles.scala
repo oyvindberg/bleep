@@ -224,7 +224,7 @@ object buildFromBloopFiles {
     val providedDepReprs: Set[String] =
       providedDeps.map(_.repr).toSet
 
-    val ctxLogger = logger.withContext(crossName)
+    val ctxLogger = logger.withContext("crossName", crossName)
 
     val all = dependencies.flatMap { moduleId =>
       importModuleId(ctxLogger, moduleId, platformName) match {
@@ -309,7 +309,7 @@ object buildFromBloopFiles {
   }
 
   def importModuleId(logger: Logger, moduleID: librarymanagement.ModuleID, platformId: Option[model.PlatformId]): Either[String, model.Dep] = {
-    val ctxLogger = logger.withContext(moduleID.name)
+    val ctxLogger = logger.withContext("moduleIdName", moduleID.name)
 
     val configuration = moduleID.configurations.fold(Configuration.empty)(Configuration(_))
 

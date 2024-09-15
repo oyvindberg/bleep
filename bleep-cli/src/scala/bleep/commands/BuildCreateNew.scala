@@ -43,11 +43,11 @@ case class BuildCreateNew(
       val sourceDirs = projects.flatMap(_.sources).distinct
       val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct
       sourceDirs.foreach { path =>
-        logger.withContext(path).debug("Creating source directory")
+        logger.withContext("path", path).debug("Creating source directory")
         Files.createDirectories(path)
       }
       resourceDirs.foreach { path =>
-        logger.withContext(path).debug("Creating resource directory")
+        logger.withContext("path", path).debug("Creating resource directory")
         Files.createDirectories(path)
       }
 

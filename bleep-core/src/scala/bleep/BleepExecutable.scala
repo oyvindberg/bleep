@@ -98,7 +98,7 @@ object BleepExecutable {
     }
 
     ret.foreach { cmd =>
-      logger.withContext(cmd.whole).debug("Can run your current bleep with this command")
+      logger.withContext("cmd", cmd.whole).debug("Can run your current bleep with this command")
     }
 
     ret
