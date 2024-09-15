@@ -2,7 +2,6 @@ package bleep
 package testing
 
 import bleep.logging.{LogLevel, Logger, Loggers}
-
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion

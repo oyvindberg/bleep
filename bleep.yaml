@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.6
+$version: 0.0.7
 jvm:
   name: graalvm-community:21.0.2
 projects:
@@ -31,9 +31,6 @@ projects:
     - bleep-nosbt
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
-  bleep-libdaemon-jvm:
-    extends: template-cross-all
-    sources: ../liberated/libdaemon-jvm/library/src
   bleep-model:
     dependencies:
     - io.circe::circe-core:0.14.4
@@ -114,6 +111,11 @@ projects:
     sources:
     - ../liberated/sbt-pgp/gpg-library/src/main/scala
     - ../liberated/sbt-pgp/sbt-pgp/src/main/scala
+  bleep-plugin-scalafix:
+    dependencies: ch.epfl.scala:scalafix-interfaces:0.12.1
+    dependsOn: bleep-core
+    extends: template-cross-all
+    sources: ../liberated/mill-scalafix/mill-scalafix/src
   bleep-plugin-sonatype:
     dependencies:
     - com.lumidion::sonatype-central-client-sttp-core:0.3.0
@@ -139,6 +141,7 @@ projects:
     - bleep-plugin-ci-release
     - bleep-plugin-mdoc
     - bleep-plugin-native-image
+    - bleep-plugin-scalafix
     extends:
     - template-common
     - template-scala-3
@@ -165,6 +168,9 @@ scripts:
     project: scripts
   publish:
     main: bleep.scripts.Publish
+    project: scripts
+  scalafix:
+    main: bleep.scripts.Scalafix
     project: scripts
 templates:
   template-common:

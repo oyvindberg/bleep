@@ -38,8 +38,8 @@ case object BuildUpdateDeps extends BleepBuildCommand {
         else Some(tuple -> bleepDep.withVersion(latest))
       }
 
-    val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build)
-    val newBuild1 = normalizeBuild(newBuild)
+    val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build, started.buildPaths)
+    val newBuild1 = normalizeBuild(newBuild, started.buildPaths)
     Right(writeYamlLogged(started.logger, "Wrote update build", newBuild1.file, started.buildPaths.bleepYamlFile))
   }
 

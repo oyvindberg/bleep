@@ -21,7 +21,7 @@ object generateBuild {
   ): Map[Path, String] = {
 
     val build0 = buildFromBloopFiles(logger, sbtBuildDir, destinationPaths, inputData, bleepVersion)
-    val normalizedBuild = normalizeBuild(build0)
+    val normalizedBuild = normalizeBuild(build0, destinationPaths)
 
     val buildFile = templatesInfer(new BleepTemplateLogger(logger), normalizedBuild, options.ignoreWhenInferringTemplates)
 
@@ -32,7 +32,7 @@ object generateBuild {
       }
 
     // complain if we have done illegal rewrites during templating
-    model.Build.diffProjects(Defaults.add(normalizedBuild), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
+    model.Build.diffProjects(Defaults.add(normalizedBuild, destinationPaths), model.Build.FileBacked(buildFile1).dropBuildFile.dropTemplates) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         logger.error("Project templating did illegal rewrites. Please report this as a bug")

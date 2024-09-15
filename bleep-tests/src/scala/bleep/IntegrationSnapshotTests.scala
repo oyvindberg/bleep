@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.internal.FileUtils
-
 import bleep.testing.SnapshotTest
 import bloop.config.Config
 import io.circe.parser.decode

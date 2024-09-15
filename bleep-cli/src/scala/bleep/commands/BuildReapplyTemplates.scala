@@ -8,9 +8,9 @@ import bleep.templates.templatesReapply
 object BuildReapplyTemplates extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
     val build = started.build.requireFileBacked(ctx = "command templates-reapply")
-    val build1 = normalizeBuild(build)
+    val build1 = normalizeBuild(build, started.buildPaths)
     val build2 = templatesReapply(build1)
-    val build3 = normalizeBuild(build2)
+    val build3 = normalizeBuild(build2, started.buildPaths)
     Right(writeYamlLogged(started.logger, "Wrote update build", build3.file, started.buildPaths.bleepYamlFile))
   }
 }

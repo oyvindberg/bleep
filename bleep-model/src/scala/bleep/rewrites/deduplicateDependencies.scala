@@ -8,7 +8,7 @@ import coursier.core.Configuration
 object deduplicateDependencies extends BuildRewrite {
   override val name = model.BuildRewriteName("deduplicate-dependencies")
 
-  protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+  protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
     rewriteDependentData(oldBuild.explodedProjects).eager[model.Project] { (projectName, p, eval) =>
       val shortenedDeps: Map[model.CrossProjectName, model.Project] =
         oldBuild.transitiveDependenciesFor(projectName).map { case (pn, _) => (pn, eval(pn).forceGet(pn.value)) }

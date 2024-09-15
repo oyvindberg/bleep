@@ -140,7 +140,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Temporarily save package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ matrix.artifact_name }}

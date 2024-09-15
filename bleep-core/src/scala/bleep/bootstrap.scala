@@ -53,7 +53,7 @@ object bootstrap {
       try
         pre.existingBuild.buildFile.forceGet.map { buildFile =>
           val resolver = resolverFactory(pre, config, buildFile)
-          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
+          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b, pre.buildPaths) }
           val bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false))
 
           val activeProjects: Option[Array[model.CrossProjectName]] =
