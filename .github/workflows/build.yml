@@ -17,7 +17,7 @@ jobs:
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: bleep-build/bleep-setup-action@0.0.1
+      - uses: bleep-build/bleep-setup-action@0.0.2
       - uses: coursier/cache-action@v6
         with:
           extraFiles: bleep.yaml
@@ -72,7 +72,7 @@ jobs:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: bleep-build/bleep-setup-action@0.0.1
+      - uses: bleep-build/bleep-setup-action@0.0.2
 
       - uses: coursier/cache-action@v6
         with:
