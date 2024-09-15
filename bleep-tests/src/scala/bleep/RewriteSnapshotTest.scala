@@ -14,7 +14,7 @@ class RewriteSnapshotTest extends SnapshotTest {
   object DropFeatureFlag extends BuildRewrite {
     override val name = model.BuildRewriteName("drop-feature-flag")
 
-    override protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+    override protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.map { case (name, p) =>
         val newP = p.copy(scala = p.scala.map { s =>
           s.copy(options = s.options.copy(values = s.options.values - model.Options.Opt.Flag("-feature")))
@@ -45,7 +45,7 @@ class RewriteSnapshotTest extends SnapshotTest {
     test(testName) {
       val logger = logger0.withPath(testName)
       val build = model.Build.FileBacked(existingBuild.buildFile.forceGet.orThrow)
-      val rewritten = rewrite(build)
+      val rewritten = rewrite(build, null)
       val destinationPath = outFolder / rewrite.name.value / buildName / s"bleep.yaml"
       val rewrittenYamlString = yaml.encodeShortened(rewritten.file)
       writeAndCompare(destinationPath, Map(destinationPath -> rewrittenYamlString), logger)

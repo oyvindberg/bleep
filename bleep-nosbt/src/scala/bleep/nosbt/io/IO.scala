@@ -1,6 +1,6 @@
 package bleep.nosbt.io
 
-import bleep.nosbt.Using.{fileInputStream, OpenFile}
+import bleep.nosbt.Using.{OpenFile, fileInputStream}
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, IOException}
 import java.util.Properties

@@ -26,7 +26,7 @@ object unifyDeps extends BuildRewrite {
 
   val OnlyJvm = Set(model.PlatformId.Jvm)
 
-  protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] = {
+  protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] = {
     val replacements: Map[model.Dep, model.Dep] =
       findReplacements(oldBuild.explodedProjects.flatMap(_._2.dependencies.values))
 

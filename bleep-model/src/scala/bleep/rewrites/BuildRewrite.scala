@@ -13,21 +13,21 @@ import scala.collection.immutable
 trait BuildRewrite {
   val name: model.BuildRewriteName
 
-  protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project]
+  protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project]
 
-  final def apply(oldBuild: model.Build): model.Build =
+  final def apply(oldBuild: model.Build, buildPaths: BuildPaths): model.Build =
     oldBuild match {
-      case oldBuild: model.Build.Exploded   => apply(oldBuild)
-      case oldBuild: model.Build.FileBacked => apply(oldBuild)
+      case oldBuild: model.Build.Exploded   => apply(oldBuild, buildPaths)
+      case oldBuild: model.Build.FileBacked => apply(oldBuild, buildPaths)
     }
 
-  final def apply(oldBuild: model.Build.Exploded): model.Build.Exploded = {
-    val newProjects = newExplodedProjects(oldBuild)
+  final def apply(oldBuild: model.Build.Exploded, buildPaths: BuildPaths): model.Build.Exploded = {
+    val newProjects = newExplodedProjects(oldBuild, buildPaths)
     oldBuild.copy(explodedProjects = newProjects)
   }
 
-  final def apply(oldBuild: model.Build.FileBacked): model.Build.FileBacked = {
-    val newProjects = newExplodedProjects(oldBuild)
+  final def apply(oldBuild: model.Build.FileBacked, buildPaths: BuildPaths): model.Build.FileBacked = {
+    val newProjects = newExplodedProjects(oldBuild, buildPaths)
     BuildRewrite.withProjects(oldBuild, newProjects)
   }
 }

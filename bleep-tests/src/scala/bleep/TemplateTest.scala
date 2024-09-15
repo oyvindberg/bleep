@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.internal.{BleepTemplateLogger, ShortenAndSortJson}
-
 import bleep.rewrites.Defaults
 import bleep.templates.{templatesInfer, TemplateDef}
 import bleep.testing.SnapshotTest
@@ -91,7 +90,7 @@ class TemplateTest extends SnapshotTest {
 
     // complain if we have done illegal rewrites during templating
     val post = model.Build.FileBacked(buildFile).dropBuildFile.dropTemplates
-    model.Build.diffProjects(Defaults.add(pre), post) match {
+    model.Build.diffProjects(Defaults.add(pre, null), post) match {
       case empty if empty.isEmpty => ()
       case diffs =>
         diffs.foreach { case (projectName, msg) => System.err.println(s"$projectName: $msg") }

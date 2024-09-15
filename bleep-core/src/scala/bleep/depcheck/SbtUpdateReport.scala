@@ -3,7 +3,7 @@ package bleep.depcheck
 import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import coursier.cache.CacheUrl
-import coursier.core.{Classifier, Configuration, Extension, MinimizedExclusions, Publication, Type}
+import coursier.core.*
 import coursier.maven.MavenAttributes
 import coursier.util.Artifact
 import coursier.{Attributes, Dependency, Module, Project, Resolution}

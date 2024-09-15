@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.{writeYamlLogged, FileUtils}
+import bleep.internal.{FileUtils, writeYamlLogged}
 import bleep.logging.Logger
 
 import java.nio.file.Files

@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.rewrites.{keepSelectedProjects, BuildRewrite}
+import bleep.rewrites.{BuildRewrite, keepSelectedProjects}
 import bloop.config.Config
 import ch.epfl.scala.bsp4j
 

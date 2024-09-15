@@ -5,7 +5,7 @@ import bleep.internal.conversions
 import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import bloop.config.Config
-import coursier.core.{Classifier, Configuration, Extension, Module, ModuleName, Organization, Publication, Type}
+import coursier.core.*
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
 
 import java.net.URI

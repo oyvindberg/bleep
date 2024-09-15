@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{traverseish, TransitiveProjects}
+import bleep.internal.{TransitiveProjects, traverseish}
 import bloop.rifle.BuildServer
 
 case class Script(name: model.ScriptName, args: List[String], watch: Boolean) extends BleepCommandRemote(watch) {

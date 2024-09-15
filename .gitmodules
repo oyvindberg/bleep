@@ -48,3 +48,6 @@
     url = git@github.com:bleep-build/librarymanagement.git
     branch = develop
     update = merge
+[submodule "liberated/mill-scalafix"]
+	path = liberated/mill-scalafix
+	url = git@github.com:bleep-build/mill-scalafix.git

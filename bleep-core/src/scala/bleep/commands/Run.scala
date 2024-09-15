@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import bleep.bsp.BspCommandFailed
-import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, Throwables, TransitiveProjects}
+import bleep.internal.{DoSourceGen, Throwables, TransitiveProjects, bleepLoggers, jvmRunCommand}
 import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
