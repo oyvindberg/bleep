@@ -13,11 +13,10 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: bleep-build/bleep-setup-action@0.0.1
+      - uses: bleep-build/bleep-setup-action@0.0.2
       - uses: coursier/cache-action@v6
         with:
           extraFiles: bleep.yaml
@@ -37,7 +36,7 @@ jobs:
   yaml-ls-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: InoUno/yaml-ls-check@develop
         with:
           root: .
@@ -67,12 +66,11 @@ jobs:
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: bleep-build/bleep-setup-action@0.0.1
+      - uses: bleep-build/bleep-setup-action@0.0.2
 
       - uses: coursier/cache-action@v6
         with:
@@ -142,7 +140,6 @@ jobs:
       - name: Temporarily save package
         uses: actions/upload-artifact@v4
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.file_name }}
           retention-days: 1
@@ -153,18 +150,15 @@ jobs:
     needs: [ build, build-native-image, yaml-ls-check ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
-          submodules: recursive
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          submodules: true
       - id: get_version
         uses: battila7/get-version-action@v2
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: artifacts
       - name: Display structure of downloaded files
         run: find artifacts
@@ -182,11 +176,10 @@ jobs:
           export VERSION=${{ steps.get_version.outputs.version-without-v }}
           bash .github/prepare-release.sh
       - name: Upload-to-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
           name: "${{ steps.get_version.outputs.version-without-v }}"
-          prerelease: true
+          prerelease: false
           generate_release_notes: true
           files: |
             work/release/*
