@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{FileUtils, bleepLoggers, fatal}
+import bleep.internal.{bleepLoggers, fatal, FileUtils}
 import bleep.rewrites.BuildRewrite
 
 import scala.concurrent.ExecutionContext

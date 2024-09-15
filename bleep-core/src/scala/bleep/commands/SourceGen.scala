@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.internal.{TransitiveProjects, traverseish}
+import bleep.internal.{traverseish, TransitiveProjects}
 import bloop.rifle.BuildServer
 
 case class SourceGen(watch: Boolean, projectNames: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) {
