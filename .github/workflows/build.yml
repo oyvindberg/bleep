@@ -182,7 +182,7 @@ jobs:
           export VERSION=${{ steps.get_version.outputs.version-without-v }}
           bash .github/prepare-release.sh
       - name: Upload-to-release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           name: "${{ steps.get_version.outputs.version-without-v }}"
