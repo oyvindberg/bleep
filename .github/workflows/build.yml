@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -37,7 +37,7 @@ jobs:
   yaml-ls-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: InoUno/yaml-ls-check@develop
         with:
           root: .
@@ -67,7 +67,7 @@ jobs:
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -153,7 +153,7 @@ jobs:
     needs: [ build, build-native-image, yaml-ls-check ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
           repo-token: ${{ secrets.GITHUB_TOKEN }}
