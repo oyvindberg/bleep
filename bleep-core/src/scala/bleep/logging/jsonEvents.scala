@@ -89,7 +89,7 @@ private object jsonEvents {
     }
 
     override def withContext[T: Formatter](key: String, value: T): DeserializeLogEvents[U] =
-      DeserializeLogEvents(next.withContext(value))
+      DeserializeLogEvents(next.withContext(key, value))
 
     override def progressMonitor: Option[LoggerFn] = next.progressMonitor
 

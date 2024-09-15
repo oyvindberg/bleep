@@ -36,7 +36,7 @@ object generateBuild {
       case empty if empty.isEmpty => ()
       case diffs =>
         logger.error("Project templating did illegal rewrites. Please report this as a bug")
-        diffs.foreach { case (projectName, msg) => logger.withContext(projectName).error(msg) }
+        diffs.foreach { case (projectName, msg) => logger.withContext("projectName", projectName).error(msg) }
     }
 
     logger.info(s"Imported ${build0.explodedProjects.size} cross targets for ${buildFile1.projects.value.size} projects")

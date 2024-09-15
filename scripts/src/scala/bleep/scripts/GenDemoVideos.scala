@@ -76,7 +76,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     // nest one level to not include script and output file in file listings
     val workDir = tempDir / "work"
     Files.createDirectories(workDir)
-    logger.withContext(tempDir).debug("using temporary directory")
+    logger.withContext("tempDir", tempDir).debug("using temporary directory")
 
     val scriptFile = tempDir / "script"
     FileUtils.writeString(logger, None, scriptFile, demo.script(Path.of("bleep")))

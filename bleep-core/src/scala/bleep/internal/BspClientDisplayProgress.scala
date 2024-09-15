@@ -116,19 +116,19 @@ class BspClientDisplayProgress(
         List(
           params.getTextDocument.getUri,
           ":",
-          d.getRange.getStart.getLine.toString,
+          (d.getRange.getStart.getLine + 1).toString,
           ":",
           d.getRange.getStart.getCharacter.toString,
           " until ",
-          d.getRange.getEnd.getLine.toString,
+          (d.getRange.getEnd.getLine + 1).toString,
           ":",
           d.getRange.getEnd.getCharacter.toString
         )
       )
 
       logger
-        .withContext(location)
         .withOptContext("code", Option(d.getCode))
+        .withContext("location", location)
         .apply(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str(d.getMessage)))
     }
 

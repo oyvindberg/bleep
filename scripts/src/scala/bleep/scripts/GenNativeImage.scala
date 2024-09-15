@@ -16,7 +16,9 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     // the one we install ourselves does not work
     val jvm = sys.env.get("JAVA_HOME").map(javahome => Path.of(javahome).resolve("bin/java.exe")).filter(Files.exists(_)) match {
       case Some(jvm) =>
-        started.logger.withContext(jvm).warn("hack: picked up external java from JAVA_HOME. this mechanism is meant to fix native image build on windows")
+        started.logger
+          .withContext("jvm", jvm)
+          .warn("hack: picked up external java from JAVA_HOME. this mechanism is meant to fix native image build on windows")
         jvm
       case None => started.jvmCommand
     }

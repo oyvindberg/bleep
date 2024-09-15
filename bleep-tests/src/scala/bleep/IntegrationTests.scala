@@ -39,7 +39,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
   def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Assertion = {
     val storingLogger = Loggers.storing()
-    val stdLogger = logger0.withContext(testName)
+    val stdLogger = logger0.withContext("testName", testName)
     val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 
     val withBuildScript = files.updated(RelPath(List(BuildLoader.BuildFileName)), prelude ++ yaml)
@@ -164,7 +164,7 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
         "  val result = 100" +
         "}"
       )
-      started.logger.withContext(targetFile).warn("Wrote ")
+      started.logger.withContext("targetFile", targetFile).warn("Wrote ")
     }
   }
 }

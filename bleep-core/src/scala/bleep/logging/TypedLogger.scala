@@ -14,9 +14,6 @@ trait TypedLogger[Underlying] extends LoggerFn {
 
   def withPath(fragment: String): TypedLogger[Underlying]
 
-  final def withContext[T: Formatter](value: Text[T]): TypedLogger[Underlying] =
-    withContext(value.source, value.value)
-
   final def withOptContext[T: Formatter](key: String, maybeValue: Option[T]): TypedLogger[Underlying] =
     maybeValue match {
       case Some(value) => withContext(key, value)

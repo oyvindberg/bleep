@@ -63,9 +63,9 @@ object runSbt {
     allProjectNamesByBuild.foreach { case ( /* shadow*/ sbtBuildDir, projectNames) =>
       // ask for all (cross) scala versions for these projects
       val scalaVersionOutput: ScalaVersionOutput = {
-        logger.withContext(sbtBuildDir).info("Calling sbt to discover cross projects...")
+        logger.withContext("sbtBuildDir", sbtBuildDir).info("Calling sbt to discover cross projects...")
         val cmds = projectNames.map(p => s"show $p/scalaVersion $p/crossScalaVersions")
-        logger.withContext(sbtBuildDir).debug(cmds)
+        logger.withContext("sbtBuildDir", sbtBuildDir).debug(cmds)
 
         val output =
           cli(
@@ -125,8 +125,8 @@ object runSbt {
           scalaVersionOutput.crossVersions.flatMap { case (scalaVersion, projects) => argsFor(scalaVersion, projects, switchScalaVersion = true) }
       }
 
-      logger.withContext(sbtBuildDir).info("Calling sbt to export cross projects...")
-      logger.withContext(sbtBuildDir).debug(cmds)
+      logger.withContext("sbtBuildDir", sbtBuildDir).info("Calling sbt to export cross projects...")
+      logger.withContext("sbtBuildDir", sbtBuildDir).debug(cmds)
 
       try
         cli(

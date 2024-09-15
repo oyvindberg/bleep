@@ -48,8 +48,8 @@ object FileUtils {
   def writeString(logger: Logger, message: Option[String], path: Path, newContent: String): Unit = {
     writeBytes(path, newContent.getBytes(StandardCharsets.UTF_8))
     message match {
-      case Some(message) => logger.withContext(path).info(message)
-      case None          => logger.withContext(path).debug("wrote file")
+      case Some(message) => logger.withContext("path", path).info(message)
+      case None          => logger.withContext("path", path).debug("wrote file")
     }
   }
 

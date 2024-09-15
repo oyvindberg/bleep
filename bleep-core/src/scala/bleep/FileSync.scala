@@ -31,7 +31,7 @@ object FileSync {
           .map { case (synced, files) => s"$synced: ${files.length}" }
           .mkString(", ")
 
-        logger.withContext(summary).info(msg)
+        logger.withContext("summary", summary).info(msg)
       }
     }
   }
