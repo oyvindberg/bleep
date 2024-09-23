@@ -11,6 +11,7 @@ projects:
     - org.scalameta:svm-subs:101.0.0
       # note: weird binary incompatibility when bumping this for scala3
     - org.typelevel::cats-core:2.9.0
+    - org.typelevel::cats-parse:1.0.0
     dependsOn: bleep-core
     extends:
     - template-common

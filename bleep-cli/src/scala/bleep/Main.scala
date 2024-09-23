@@ -122,6 +122,10 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
+    val updateAsScalaSteward = Opts.flag("steward", "Use same upgrade strategy as Scala Steward").orFalse
+
+    val updateWithPrerelease = Opts.flag("prerelease", "Allow upgrading to prerelease version if there is any.").orFalse
+
     lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
         List[Opts[BleepBuildCommand]](
@@ -140,7 +144,9 @@ object Main {
                 Opts(commands.BuildReinferTemplates(Set.empty))
               ),
               Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
-                Opts(commands.BuildUpdateDeps)
+                (updateAsScalaSteward, updateWithPrerelease).mapN { case (sw, prerelease) =>
+                  commands.BuildUpdateDeps.apply(sw, prerelease)
+                }
               ),
               Opts.subcommand(
                 "move-files-into-bleep-layout",

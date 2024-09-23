@@ -2,6 +2,7 @@ package bleep
 package commands
 
 import bleep.internal.writeYamlLogged
+import bleep.internal.Version
 import bleep.logging.Logger
 import bleep.rewrites.{normalizeBuild, UpgradeDependencies}
 import coursier.Repository
@@ -14,7 +15,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
 
-case object BuildUpdateDeps extends BleepBuildCommand {
+case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
     val build = started.build.requireFileBacked("command update-deps")
     // a bleep dependency may be instantiated into several different coursier dependencies
@@ -32,10 +33,15 @@ case object BuildUpdateDeps extends BleepBuildCommand {
     }
 
     val upgrades: Map[UpgradeDependencies.ContextualDep, model.Dep] =
-      foundByDep.flatMap { case (tuple @ (bleepDep, _), (_, version)) =>
-        val latest = version.latest
-        if (latest == bleepDep.version) None
-        else Some(tuple -> bleepDep.withVersion(latest))
+      foundByDep.flatMap { case (tuple @ (bleepDep, _), (_, coursierVersion)) =>
+        val version = Version(bleepDep.version)
+        val latest =
+          if (scalaStewardMode) {
+            version.selectNext(coursierVersion.available.map(Version.apply), allowPrerelease)
+          } else {
+            version.selectLatest(coursierVersion.available.map(Version.apply), allowPrerelease)
+          }
+        latest.map(latestV => tuple -> bleepDep.withVersion(latestV.value))
       }
 
     val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build, started.buildPaths)
