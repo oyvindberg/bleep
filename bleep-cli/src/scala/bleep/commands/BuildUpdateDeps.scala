@@ -14,10 +14,13 @@ import scala.collection.immutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
+import cats.parse.Parser
+import bleep.model.Build
 
-case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean) extends BleepBuildCommand {
+case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, singleDep: Option[String]) extends BleepBuildCommand {
+
   override def run(started: Started): Either[BleepException, Unit] = {
-    val build = started.build.requireFileBacked("command update-deps")
+    val build: Build.FileBacked = started.build.requireFileBacked("command update-deps")
     // a bleep dependency may be instantiated into several different coursier dependencies
     // depending on which scala versions and platforms are plugging in
     // collect all instantiations into this structure
@@ -31,6 +34,16 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean) 
       implicit val ec: ExecutionContext = started.executionContext
       Await.result(fetchAllVersions(fileCache, repos, allDeps), Duration.Inf)
     }
+
+    DependencyUpgrader.runUpgrade(singleDep, foundByDep, runUgrades(started, build))
+  }
+
+  private def runUgrades(
+      started: Started,
+      build: Build.FileBacked
+  )(
+      foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)]
+  ): Right[BleepException, Unit] = {
 
     val upgrades: Map[UpgradeDependencies.ContextualDep, model.Dep] =
       foundByDep.flatMap { case (tuple @ (bleepDep, _), (_, coursierVersion)) =>
@@ -93,4 +106,40 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean) 
         }
       case Nil => Future.successful(None)
     }
+
+  object DependencyUpgrader {
+    private val sepParser = Parser.char(':').rep.void
+
+    val parseSingleDep = Parser.anyChar.repUntil(sepParser).string ~ (sepParser *> Parser.anyChar.repUntil(Parser.end).string).?
+
+    def runUpgrade(
+        singleDep: Option[String],
+        foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
+        runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
+    ): Either[BleepException, Unit] = {
+      val singleDepParsed = singleDep.map(dep => parseSingleDep.parseAll(dep))
+
+      singleDepParsed match {
+        case None            => runAllGivenUpgrades(foundByDep)
+        case Some(parsedDep) => runSingleUpgrade(foundByDep, parsedDep, singleDep.getOrElse(""), runAllGivenUpgrades)
+      }
+    }
+
+    private def runSingleUpgrade(
+        foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
+        parsedDep: Either[Parser.Error, (String, Option[String])],
+        depName: String,
+        runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
+    ) =
+      parsedDep match {
+        case Left(_) => Left(new BleepException.Text(s"${depName} is not a valid dependency name"))
+        case Right((org, module)) =>
+          val filteredDeps = foundByDep.filter { case ((bleepDep, _), _) =>
+            module.map(bleepDep.baseModuleName.value.equalsIgnoreCase).getOrElse(true) && bleepDep.organization.value.equalsIgnoreCase(org)
+
+          }
+          runAllGivenUpgrades(filteredDeps)
+      }
+
+  }
 }
