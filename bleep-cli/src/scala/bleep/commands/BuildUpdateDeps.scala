@@ -107,39 +107,40 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, 
       case Nil => Future.successful(None)
     }
 
-  object DependencyUpgrader {
-    private val sepParser = Parser.char(':').rep.void
+}
 
-    val parseSingleDep = Parser.anyChar.repUntil(sepParser).string ~ (sepParser *> Parser.anyChar.repUntil(Parser.end).string).?
+object DependencyUpgrader {
+  private val sepParser = Parser.char(':').rep.void
 
-    def runUpgrade(
-        singleDep: Option[String],
-        foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
-        runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
-    ): Either[BleepException, Unit] = {
-      val singleDepParsed = singleDep.map(dep => parseSingleDep.parseAll(dep))
+  val parseSingleDep = Parser.anyChar.repUntil(sepParser).string ~ (sepParser *> Parser.anyChar.repUntil(Parser.end).string).?
 
-      singleDepParsed match {
-        case None            => runAllGivenUpgrades(foundByDep)
-        case Some(parsedDep) => runSingleUpgrade(foundByDep, parsedDep, singleDep.getOrElse(""), runAllGivenUpgrades)
-      }
+  def runUpgrade(
+      singleDep: Option[String],
+      foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
+      runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
+  ): Either[BleepException, Unit] = {
+    val singleDepParsed = singleDep.map(dep => parseSingleDep.parseAll(dep))
+
+    singleDepParsed match {
+      case None            => runAllGivenUpgrades(foundByDep)
+      case Some(parsedDep) => runSingleUpgrade(foundByDep, parsedDep, singleDep.getOrElse(""), runAllGivenUpgrades)
+    }
+  }
+
+  private def runSingleUpgrade(
+      foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
+      parsedDep: Either[Parser.Error, (String, Option[String])],
+      depName: String,
+      runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
+  ) =
+    parsedDep match {
+      case Left(_) => Left(new BleepException.Text(s"${depName} is not a valid dependency name"))
+      case Right((org, module)) =>
+        val filteredDeps = foundByDep.filter { case ((bleepDep, _), _) =>
+          module.map(bleepDep.baseModuleName.value.equalsIgnoreCase).getOrElse(true) && bleepDep.organization.value.equalsIgnoreCase(org)
+
+        }
+        runAllGivenUpgrades(filteredDeps)
     }
 
-    private def runSingleUpgrade(
-        foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
-        parsedDep: Either[Parser.Error, (String, Option[String])],
-        depName: String,
-        runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
-    ) =
-      parsedDep match {
-        case Left(_) => Left(new BleepException.Text(s"${depName} is not a valid dependency name"))
-        case Right((org, module)) =>
-          val filteredDeps = foundByDep.filter { case ((bleepDep, _), _) =>
-            module.map(bleepDep.baseModuleName.value.equalsIgnoreCase).getOrElse(true) && bleepDep.organization.value.equalsIgnoreCase(org)
-
-          }
-          runAllGivenUpgrades(filteredDeps)
-      }
-
-  }
 }
