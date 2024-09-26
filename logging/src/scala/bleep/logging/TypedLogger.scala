@@ -1,7 +1,6 @@
 package bleep.logging
 
 import fansi.Str
-import sourcecode.Text
 
 import java.io.{PrintStream, Writer}
 import java.util.concurrent.atomic.AtomicBoolean

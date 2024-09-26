@@ -53,7 +53,7 @@ class BuildRewriteTest extends AnyFunSuite with TripleEqualsSupport {
       |""".stripMargin
   ) { build =>
     val newProjects = build.explodedProjects.map { case (crossName, p) =>
-      val newP = p.copy(folder = p.folder.map(f => RelPath(f.segments.map(_.replace('a', 'b')))))
+      val newP = p.copy(folder = p.folder.map(f => RelPath.of(f.segments.map(_.replace('a', 'b'))*)))
       (crossName, newP)
     }
     BuildRewrite.withProjects(build, newProjects)
@@ -74,7 +74,7 @@ class BuildRewriteTest extends AnyFunSuite with TripleEqualsSupport {
       |""".stripMargin
   ) { build =>
     val newProjects = build.explodedProjects.map { case (crossName, p) =>
-      val newP = p.copy(folder = p.folder.map(f => RelPath(f.segments.map(_.replace('a', 'b')))))
+      val newP = p.copy(folder = p.folder.map(f => RelPath.of(f.segments.map(_.replace('a', 'b'))*)))
       (crossName, newP)
     }
     BuildRewrite.withProjects(build, newProjects)

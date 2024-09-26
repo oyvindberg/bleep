@@ -78,8 +78,7 @@ object Replacements {
     def string(str: String): String
 
     def relPath(relPath: RelPath): RelPath =
-      new RelPath(relPath.segments.map(string))
-
+      relPath.mapSegments(string)
     def path(path: Path): Path =
       Path.of(string(path.toString))
     def file(file: File): File =

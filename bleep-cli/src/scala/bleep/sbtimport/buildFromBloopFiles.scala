@@ -59,8 +59,8 @@ object buildFromBloopFiles {
 
       val folder: Option[RelPath] =
         RelPath.relativeTo(destinationPaths.buildDir, directory) match {
-          case RelPath(List(crossName.name.value)) => None
-          case relPath                             => Some(relPath)
+          case RelPath(Array(crossName.name.value)) => None
+          case relPath                              => Some(relPath)
         }
 
       val dependsOn: model.JsonSet[model.ProjectName] =

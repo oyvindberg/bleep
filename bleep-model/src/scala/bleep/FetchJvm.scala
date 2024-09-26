@@ -22,10 +22,9 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
     val javaBin = maybeCacheDir match {
       case Some(cacheDir) if !model.Jvm.isSystem(jvm) =>
         val cacheFile = {
-          val relPath = RelPath(
-            List(Some(arch), jvm.index, Some(jvm.name)).flatten
-              // somewhat windows safe
-              .map(_.replace(":", "_"))
+          val relPath = RelPath.of(
+            // somewhat windows safe
+            List(Some(arch), jvm.index, Some(jvm.name)).flatten.map(_.replace(":", "_"))*
           )
 
           cacheDir / relPath
