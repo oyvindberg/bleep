@@ -42,7 +42,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     val stdLogger = logger0.withContext("testName", testName)
     val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 
-    val withBuildScript = files.updated(RelPath(List(BuildLoader.BuildFileName)), prelude ++ yaml)
+    val withBuildScript = files.updated(RelPath.of(BuildLoader.BuildFileName), prelude ++ yaml)
     FileSync.syncStrings(testTempFolder, withBuildScript, FileSync.DeleteUnknowns.No, soft = false).discard()
     val existingBuild = BuildLoader.find(testTempFolder).existing.orThrow
     val buildPaths = BuildPaths(cwd = testTempFolder, existingBuild, model.BuildVariant.Normal)
