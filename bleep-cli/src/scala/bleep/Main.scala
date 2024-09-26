@@ -126,7 +126,7 @@ object Main {
 
     val updateWithPrerelease = Opts.flag("prerelease", "Allow upgrading to prerelease version if there is any.").orFalse
 
-    val updateSingleOrgOrModule = Opts.argument[String]("The depenency to update, alternatively only the organization name can be passed").orNone
+    val updateSingleOrgOrModule = Opts.argument[String]("The depenency to update, alternatively only the organization name can be passed")
 
     lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
@@ -152,7 +152,7 @@ object Main {
               ),
               Opts.subcommand("update-dep", "update a single dependency or dependencies of a single organization to newest version(s)")(
                 (updateSingleOrgOrModule, updateAsScalaSteward, updateWithPrerelease).mapN { case (singleDep, sw, prerelease) =>
-                  commands.BuildUpdateDeps.apply(sw, prerelease, singleDep)
+                  commands.BuildUpdateDeps.apply(sw, prerelease, Some(singleDep))
                 }
               ),
               Opts.subcommand(
