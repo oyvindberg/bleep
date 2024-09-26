@@ -24,7 +24,7 @@ case class BuildCreateDirectories(projects: Array[model.CrossProjectName]) exten
         .map { case (dir, tuples) => (dir, tuples.map { case (_, crossName) => crossName }) }
 
     dirsWithProject.foreach { case (dir, crossNames) =>
-      val logger = started.logger.withContext("for projects", crossNames)
+      val logger = started.logger.withContext("for projects", crossNames.map(_.value))
 
       if (FileUtils.exists(dir)) {
         logger.info(s"Already exists: $dir")

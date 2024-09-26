@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.Throwables.messagesFrom
+import bleep.logging.Throwables.messagesFrom
 import bleep.logging.Logger
 import coursier.cache.CacheLogger
 import coursier.error.CoursierError

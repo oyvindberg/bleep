@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{bleepLoggers, fatal, FileUtils, Throwables}
+import bleep.internal.{bleepLoggers, fatal, logException, FileUtils}
 import bleep.logging.Logger
 import bleep.packaging.ManifestCreator
 import cats.data.NonEmptyList
@@ -549,7 +549,7 @@ object Main {
 
           bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
             case Left(th) =>
-              Throwables.log("couldn't load build", stderr, th)
+              logException("couldn't load build", stderr, th)
               Completer.Res.NoMatch
 
             case Right(started) =>

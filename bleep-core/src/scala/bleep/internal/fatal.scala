@@ -1,11 +1,11 @@
 package bleep
 package internal
 
-import bleep.logging.Logger
+import bleep.logging.{Logger, Throwables}
 
 object fatal {
   def apply(context: String, logger: Logger, throwable: Throwable): ExitCode.Failure.type = {
-    Throwables.log(context, logger, throwable)
+    logException(context, logger, throwable)
     ExitCode.Failure
   }
 

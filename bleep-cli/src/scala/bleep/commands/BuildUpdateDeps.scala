@@ -46,7 +46,7 @@ case object BuildUpdateDeps extends BleepBuildCommand {
   class UpgradeLogger(logger: Logger) extends UpgradeDependencies.UpgradeLogger {
     override def upgraded(project: model.CrossProjectName, dep: model.Dep, newVersion: String): Unit =
       logger
-        .withContext("project", project)
+        .withContext("project", project.value)
         .info(s"${dep.organization.value}:${dep.baseModuleName.value} ${dep.version} => $newVersion")
   }
 
