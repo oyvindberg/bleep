@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.internal.Throwables
 import bleep.logging.*
 import fansi.{Color, EscapeAttr, Str}
 import sourcecode.Text

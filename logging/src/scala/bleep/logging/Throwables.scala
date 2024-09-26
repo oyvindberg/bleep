@@ -1,8 +1,4 @@
-package bleep
-package internal
-
-import bleep.logging.Logger
-import sourcecode.{Enclosing, File, Line}
+package bleep.logging
 
 import java.io.{PrintWriter, StringWriter}
 
@@ -22,13 +18,4 @@ object Throwables {
     th.printStackTrace(pw)
     sw.toString
   }
-
-  def log(context: String, logger: Logger, throwable: Throwable)(implicit l: Line, f: File, e: Enclosing): Unit =
-    throwable match {
-      case buildException: BleepException =>
-        logger.debug(context, buildException)
-        logger.error(s"$context: ${Throwables.messagesFrom(buildException).mkString(": ")}")
-      case unexpected =>
-        logger.error(context, unexpected)
-    }
 }

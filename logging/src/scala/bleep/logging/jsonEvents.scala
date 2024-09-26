@@ -1,6 +1,5 @@
 package bleep.logging
 
-import bleep.internal.Throwables
 import fansi.Str
 import io.circe.generic.semiauto
 import io.circe.parser.decode

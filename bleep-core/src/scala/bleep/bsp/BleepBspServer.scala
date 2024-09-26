@@ -1,8 +1,8 @@
 package bleep
 package bsp
 
-import bleep.internal.{DoSourceGen, Throwables, TransitiveProjects}
-import bleep.logging.Logger
+import bleep.internal.{DoSourceGen, TransitiveProjects}
+import bleep.logging.{Logger, Throwables}
 import bloop.rifle.BuildServer
 import bloop.rifle.internal.BuildInfo
 import ch.epfl.scala.bsp4j

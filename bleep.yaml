@@ -23,19 +23,17 @@ projects:
       module: ch.epfl.scala::bloop-config:2.0.3
     - for3Use213: true
       module: ch.epfl.scala::bloop-rifle:2.0.0
-    - com.lihaoyi::fansi:0.5.0
     - com.swoval:file-tree-views:2.1.12
     - org.typelevel::scalac-options:0.1.7
     dependsOn:
     - bleep-model
     - bleep-nosbt
+    - logging
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleep-model:
     dependencies:
-    - io.circe::circe-core:0.14.10
     - io.circe::circe-generic:0.14.10
-    - io.circe::circe-parser:0.14.10
     - io.circe::circe-yaml-v12:1.15.0
     - for3Use213: true
       module: io.get-coursier::coursier-jvm:2.1.12
@@ -136,6 +134,13 @@ projects:
     - template-common
     - template-scala-3
     isTestProject: true
+  logging:
+    dependencies:
+    - com.lihaoyi::fansi:0.5.0
+    - io.circe::circe-core:0.14.10
+    - io.circe::circe-generic:0.14.10
+    - io.circe::circe-parser:0.14.10
+    extends: template-cross-all
   scripts:
     dependsOn:
     - bleep-plugin-ci-release

@@ -1,7 +1,7 @@
 package bleep
 package bsp
 
-import bleep.internal.Throwables
+import bleep.internal.logException
 import bloop.rifle.*
 import bloop.rifle.internal.Operations
 import ch.epfl.scala.bsp4j
@@ -55,7 +55,7 @@ object BspImpl {
             BleepFileWatching
               .build(pre) { _ =>
                 buildChangeTracker.ensureBloopUpToDate() match {
-                  case Left(th) => Throwables.log("Could not reload build", pre.logger, th)
+                  case Left(th) => logException("Could not reload build", pre.logger, th)
                   case Right(_) => pre.logger.info("Loaded changed build")
                 }
               }

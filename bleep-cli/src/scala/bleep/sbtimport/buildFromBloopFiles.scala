@@ -224,7 +224,7 @@ object buildFromBloopFiles {
     val providedDepReprs: Set[String] =
       providedDeps.map(_.repr).toSet
 
-    val ctxLogger = logger.withContext("crossName", crossName)
+    val ctxLogger = logger.withContext("crossName", crossName.value)
 
     val all = dependencies.flatMap { moduleId =>
       importModuleId(ctxLogger, moduleId, platformName) match {

@@ -27,7 +27,7 @@ case class BuildReinferTemplates(ignoreWhenInferringTemplates: Set[model.Project
       case empty if empty.isEmpty => ()
       case diffs =>
         started.logger.error("Project templating did illegal rewrites. Please report this as a bug")
-        diffs.foreach { case (projectName, msg) => started.logger.withContext("projectName", projectName).error(msg) }
+        diffs.foreach { case (projectName, msg) => started.logger.withContext("projectName", projectName.value).error(msg) }
     }
     Right(writeYamlLogged(started.logger, "Wrote update build", newBuildFile, started.buildPaths.bleepYamlFile))
   }
