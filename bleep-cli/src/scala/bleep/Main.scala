@@ -122,11 +122,16 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
-    val updateAsScalaSteward = Opts.flag("steward", "Use same upgrade strategy as Scala Steward").orFalse
+    val updateAsScalaSteward = Opts
+      .flag(
+        "steward",
+        "Use same upgrade strategy as Scala Steward. Updates to the latest patch version at the same minor and major version. If the dependency is already on the latest patch version, it updates to the latest minor version at the same major version. And if the dependency is already on the latest minor version, it updates to the latest major version."
+      )
+      .orFalse
 
     val updateWithPrerelease = Opts.flag("prerelease", "Allow upgrading to prerelease version if there is any.").orFalse
 
-    val updateSingleOrgOrModule = Opts.argument[String]("The depenency to update, alternatively only the organization name can be passed")
+    val updateSingleOrgOrModule = Opts.argument[String]("The dependency to update, alternatively only the organization name can be passed")
 
     lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(

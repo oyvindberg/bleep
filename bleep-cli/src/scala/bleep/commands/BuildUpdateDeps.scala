@@ -37,11 +37,11 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, 
     }
 
     DependencyUpgrader.depsToUpgrade(singleDep, foundByDep, scalaStewardMode, allowPrerelease).flatMap { toUpdate =>
-      runUgrades(started, build, toUpdate)
+      runUpdates(started, build, toUpdate)
     }
   }
 
-  private def runUgrades(
+  private def runUpdates(
       started: Started,
       build: Build.FileBacked,
       upgrades: Map[(Dep, VersionCombo), Dep]

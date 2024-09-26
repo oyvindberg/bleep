@@ -29,6 +29,18 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
+  test("parses single java dependency") {
+    val dependency = "org.springframework:spring-boot-starter-web"
+    DependencyUpgrader.singleDepParser.parseAll(dependency) match {
+
+      case Left(_) => assert(false)
+      case Right(value) =>
+        val org = value._1
+        val module = value._2.getOrElse("")
+
+        (org, module) shouldBe ("org.springframework", "spring-boot-starter-web")
+    }
+  }
   test("parses single dependency - only organization") {
     val dependency = "org.http4s"
     DependencyUpgrader.singleDepParser.parseAll(dependency) match {
@@ -47,7 +59,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
 
     upgrades match {
       case Left(_)      => assert(false)
-      case Right(value) => assert(value.size === 3)
+      case Right(value) => assert(value.size === 4)
     }
 
   }
@@ -93,6 +105,17 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
+  test("correctly updates java-dep") {
+
+    val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.springframework:spring-boot-starter-web"), DependencyUpdateTestFixture.foundByDep, false, false)
+
+    upgrades match {
+      case Left(_) => assert(false)
+      case Right(value) =>
+        val version = value.head._2.version
+        assert(version === "3.3.4")
+    }
+  }
   test("correctly update to newest prerelease") {
 
     val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, true)
@@ -107,6 +130,243 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
 }
 
 object DependencyUpdateTestFixture {
+  val springVersions = Versions(
+    "3.3.4",
+    "3.3.4",
+    List(
+      "1.0.0.RELEASE",
+      "1.0.1.RELEASE",
+      "1.0.2.RELEASE",
+      "1.1.0.RELEASE",
+      "1.1.1.RELEASE",
+      "1.1.2.RELEASE",
+      "1.1.3.RELEASE",
+      "1.1.4.RELEASE",
+      "1.1.5.RELEASE",
+      "1.1.6.RELEASE",
+      "1.1.7.RELEASE",
+      "1.1.8.RELEASE",
+      "1.1.9.RELEASE",
+      "1.1.10.RELEASE",
+      "1.1.11.RELEASE",
+      "1.1.12.RELEASE",
+      "1.2.0.RELEASE",
+      "1.2.1.RELEASE",
+      "1.2.2.RELEASE",
+      "1.2.3.RELEASE",
+      "1.2.4.RELEASE",
+      "1.2.5.RELEASE",
+      "1.2.6.RELEASE",
+      "1.2.7.RELEASE",
+      "1.2.8.RELEASE",
+      "1.3.0.RELEASE",
+      "1.3.1.RELEASE",
+      "1.3.2.RELEASE",
+      "1.3.3.RELEASE",
+      "1.3.4.RELEASE",
+      "1.3.5.RELEASE",
+      "1.3.6.RELEASE",
+      "1.3.7.RELEASE",
+      "1.3.8.RELEASE",
+      "1.4.0.RELEASE",
+      "1.4.1.RELEASE",
+      "1.4.2.RELEASE",
+      "1.4.3.RELEASE",
+      "1.4.4.RELEASE",
+      "1.4.5.RELEASE",
+      "1.4.6.RELEASE",
+      "1.4.7.RELEASE",
+      "1.5.0.RELEASE",
+      "1.5.1.RELEASE",
+      "1.5.2.RELEASE",
+      "1.5.3.RELEASE",
+      "1.5.4.RELEASE",
+      "1.5.5.RELEASE",
+      "1.5.6.RELEASE",
+      "1.5.7.RELEASE",
+      "1.5.8.RELEASE",
+      "1.5.9.RELEASE",
+      "1.5.10.RELEASE",
+      "1.5.11.RELEASE",
+      "1.5.12.RELEASE",
+      "1.5.13.RELEASE",
+      "1.5.14.RELEASE",
+      "1.5.15.RELEASE",
+      "1.5.16.RELEASE",
+      "1.5.17.RELEASE",
+      "1.5.18.RELEASE",
+      "1.5.19.RELEASE",
+      "1.5.20.RELEASE",
+      "1.5.21.RELEASE",
+      "1.5.22.RELEASE",
+      "2.0.0.RELEASE",
+      "2.0.1.RELEASE",
+      "2.0.2.RELEASE",
+      "2.0.3.RELEASE",
+      "2.0.4.RELEASE",
+      "2.0.5.RELEASE",
+      "2.0.6.RELEASE",
+      "2.0.7.RELEASE",
+      "2.0.8.RELEASE",
+      "2.0.9.RELEASE",
+      "2.1.0.RELEASE",
+      "2.1.1.RELEASE",
+      "2.1.2.RELEASE",
+      "2.1.3.RELEASE",
+      "2.1.4.RELEASE",
+      "2.1.5.RELEASE",
+      "2.1.6.RELEASE",
+      "2.1.7.RELEASE",
+      "2.1.8.RELEASE",
+      "2.1.9.RELEASE",
+      "2.1.10.RELEASE",
+      "2.1.11.RELEASE",
+      "2.1.12.RELEASE",
+      "2.1.13.RELEASE",
+      "2.1.14.RELEASE",
+      "2.1.15.RELEASE",
+      "2.1.16.RELEASE",
+      "2.1.17.RELEASE",
+      "2.1.18.RELEASE",
+      "2.2.0.RELEASE",
+      "2.2.1.RELEASE",
+      "2.2.2.RELEASE",
+      "2.2.3.RELEASE",
+      "2.2.4.RELEASE",
+      "2.2.5.RELEASE",
+      "2.2.6.RELEASE",
+      "2.2.7.RELEASE",
+      "2.2.8.RELEASE",
+      "2.2.9.RELEASE",
+      "2.2.10.RELEASE",
+      "2.2.11.RELEASE",
+      "2.2.12.RELEASE",
+      "2.2.13.RELEASE",
+      "2.3.0.RELEASE",
+      "2.3.1.RELEASE",
+      "2.3.2.RELEASE",
+      "2.3.3.RELEASE",
+      "2.3.4.RELEASE",
+      "2.3.5.RELEASE",
+      "2.3.6.RELEASE",
+      "2.3.7.RELEASE",
+      "2.3.8.RELEASE",
+      "2.3.9.RELEASE",
+      "2.3.10.RELEASE",
+      "2.3.11.RELEASE",
+      "2.3.12.RELEASE",
+      "2.4.0",
+      "2.4.1",
+      "2.4.2",
+      "2.4.3",
+      "2.4.4",
+      "2.4.5",
+      "2.4.6",
+      "2.4.7",
+      "2.4.8",
+      "2.4.9",
+      "2.4.10",
+      "2.4.11",
+      "2.4.12",
+      "2.4.13",
+      "2.5.0",
+      "2.5.1",
+      "2.5.2",
+      "2.5.3",
+      "2.5.4",
+      "2.5.5",
+      "2.5.6",
+      "2.5.7",
+      "2.5.8",
+      "2.5.9",
+      "2.5.10",
+      "2.5.11",
+      "2.5.12",
+      "2.5.13",
+      "2.5.14",
+      "2.5.15",
+      "2.6.0",
+      "2.6.1",
+      "2.6.2",
+      "2.6.3",
+      "2.6.4",
+      "2.6.5",
+      "2.6.6",
+      "2.6.7",
+      "2.6.8",
+      "2.6.9",
+      "2.6.10",
+      "2.6.11",
+      "2.6.12",
+      "2.6.13",
+      "2.6.14",
+      "2.6.15",
+      "2.7.0",
+      "2.7.1",
+      "2.7.2",
+      "2.7.3",
+      "2.7.4",
+      "2.7.5",
+      "2.7.6",
+      "2.7.7",
+      "2.7.8",
+      "2.7.9",
+      "2.7.10",
+      "2.7.11",
+      "2.7.12",
+      "2.7.13",
+      "2.7.14",
+      "2.7.15",
+      "2.7.16",
+      "2.7.17",
+      "2.7.18",
+      "3.0.0",
+      "3.0.1",
+      "3.0.2",
+      "3.0.3",
+      "3.0.4",
+      "3.0.5",
+      "3.0.6",
+      "3.0.7",
+      "3.0.8",
+      "3.0.9",
+      "3.0.10",
+      "3.0.11",
+      "3.0.12",
+      "3.0.13",
+      "3.1.0",
+      "3.1.1",
+      "3.1.2",
+      "3.1.3",
+      "3.1.4",
+      "3.1.5",
+      "3.1.6",
+      "3.1.7",
+      "3.1.8",
+      "3.1.9",
+      "3.1.10",
+      "3.1.11",
+      "3.1.12",
+      "3.2.0",
+      "3.2.1",
+      "3.2.2",
+      "3.2.3",
+      "3.2.4",
+      "3.2.5",
+      "3.2.6",
+      "3.2.7",
+      "3.2.8",
+      "3.2.9",
+      "3.2.10",
+      "3.3.0",
+      "3.3.1",
+      "3.3.2",
+      "3.3.3",
+      "3.3.4"
+    ),
+    Some(DateTime(2024, 9, 19, 10, 54, 26))
+  )
+
   val http4sVersions = Versions(
     "1.0-234-d1a2b53",
     "1.0-234-d1a2b53",
@@ -297,6 +557,10 @@ object DependencyUpdateTestFixture {
     (Dependency(coursier.Module(Organization("org.other"), ModuleName("http4s-dsl"), Map.empty), "0.21.0"), http4sVersions)
   )
 
-  val foundByDep = List(http4sDsl, http4sCore, someOtherDep).toMap
+  val springBootWeb: (UpgradeDependencies.ContextualDep, (Dependency, Versions)) = (
+    (Dep.Scala("org.springframework", "spring-boot-starter-web", "3.0.0"), VersionCombo.Jvm(VersionScala("2.13.12"))),
+    (Dependency(coursier.Module(Organization("org.springframework"), ModuleName("spring-boot-starter-web"), Map.empty), "3.0.0"), springVersions)
+  )
+  val foundByDep = List(http4sDsl, http4sCore, someOtherDep, springBootWeb).toMap
 
 }
