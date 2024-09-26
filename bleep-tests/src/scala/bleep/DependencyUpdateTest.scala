@@ -13,13 +13,12 @@ import bleep.model.VersionScala
 import coursier.core.Versions
 import coursier.core.Versions.DateTime
 import bleep.rewrites.UpgradeDependencies
-import bleep.rewrites.UpgradeDependencies.UpgradeLogger.Noop.upgraded
 
 class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
 
   test("parses single dependency") {
     val dependency = "org.http4s::http4s-core"
-    DependencyUpgrader.parseSingleDep.parseAll(dependency) match {
+    DependencyUpgrader.singleDepParser.parseAll(dependency) match {
 
       case Left(_) => assert(false)
       case Right(value) =>
@@ -32,19 +31,7 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
 
   test("parses single dependency - only organization") {
     val dependency = "org.http4s"
-    DependencyUpgrader.parseSingleDep.parseAll(dependency) match {
-      case Left(_) => assert(false)
-      case Right(value) =>
-        val org = value._1
-        val module = value._2
-
-        (org, module) shouldBe ("org.http4s", None)
-    }
-  }
-
-  test("parses single dependency - only organization") {
-    val dependency = "org.http4s"
-    DependencyUpgrader.parseSingleDep.parseAll(dependency) match {
+    DependencyUpgrader.singleDepParser.parseAll(dependency) match {
       case Left(_) => assert(false)
       case Right(value) =>
         val org = value._1
@@ -56,33 +43,67 @@ class DependencyUpdateTest extends AnyFunSuite with TripleEqualsSupport {
 
   test("find upgrades with no single dep defined") {
 
-    val upgrades = DependencyUpgrader.runUpgrade(None, DependencyUpdateTestFixture.foundByDep, dummy)
+    val upgrades = DependencyUpgrader.depsToUpgrade(None, DependencyUpdateTestFixture.foundByDep, false, false)
 
-    assert(upgrades.isRight)
-  }
+    upgrades match {
+      case Left(_)      => assert(false)
+      case Right(value) => assert(value.size === 3)
+    }
 
-  test("find upgrades fails with improperly formated single dep") {
-
-    val upgrades = DependencyUpgrader.runUpgrade(Some("this;;can't;;be;;right"), DependencyUpdateTestFixture.foundByDep, dummy)
-
-    assert(upgrades.isLeft)
   }
 
   test("find upgrades with single dep") {
 
-    val upgrades = DependencyUpgrader.runUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, dummy)
+    val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, false)
 
-    assert(upgrades.isRight)
+    upgrades match {
+      case Left(_) => assert(false)
+      case Right(value) =>
+        val moduleName = value.head._2.baseModuleName.value
+        (value.size, moduleName) shouldBe (1, "http4s-dsl")
+    }
   }
 
   test("find upgrades with single dep - org only") {
+    val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s"), DependencyUpdateTestFixture.foundByDep, false, false)
 
-    val upgrades = DependencyUpgrader.runUpgrade(Some("org.http4s"), DependencyUpdateTestFixture.foundByDep, dummy)
-
-    assert(upgrades.isRight)
+    upgrades match {
+      case Left(_) => assert(false)
+      case Right(value) =>
+        val modules = List("http4s-dsl", "http4s-core")
+        assert(value.values.map(_.baseModuleName.value) === modules)
+    }
   }
 
-  def dummy(ignored: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)]): Either[BleepException, Unit] = Right(())
+  test("find upgrades with no matching deps gives error") {
+    val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.nottoday"), DependencyUpdateTestFixture.foundByDep, false, false)
+
+    assert(upgrades.isLeft)
+  }
+
+  test("correctly update to newest non-prerelease") {
+
+    val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, false)
+
+    upgrades match {
+      case Left(_) => assert(false)
+      case Right(value) =>
+        val version = value.head._2.version
+        assert(version === "0.23.28")
+    }
+  }
+
+  test("correctly update to newest prerelease") {
+
+    val upgrades = DependencyUpgrader.depsToUpgrade(Some("org.http4s::http4s-dsl"), DependencyUpdateTestFixture.foundByDep, false, true)
+
+    upgrades match {
+      case Left(_) => assert(false)
+      case Right(value) =>
+        val version = value.head._2.version
+        assert(version === "1.0.0-M41")
+    }
+  }
 }
 
 object DependencyUpdateTestFixture {
@@ -271,6 +292,11 @@ object DependencyUpdateTestFixture {
     (Dependency(coursier.Module(Organization("org.http4s"), ModuleName("http4s-dsl"), Map.empty), "0.21.0"), http4sVersions)
   )
 
-  val foundByDep = List(http4sDsl, http4sCore).toMap
+  val someOtherDep: (UpgradeDependencies.ContextualDep, (Dependency, Versions)) = (
+    (Dep.Scala("org.other", "http4s-dsl", "0.21.0"), VersionCombo.Jvm(VersionScala("2.13.12"))),
+    (Dependency(coursier.Module(Organization("org.other"), ModuleName("http4s-dsl"), Map.empty), "0.21.0"), http4sVersions)
+  )
+
+  val foundByDep = List(http4sDsl, http4sCore, someOtherDep).toMap
 
 }

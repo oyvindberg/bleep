@@ -126,7 +126,7 @@ object Main {
 
     val updateWithPrerelease = Opts.flag("prerelease", "Allow upgrading to prerelease version if there is any.").orFalse
 
-    val updateSingleOrgOrModule = Opts.option[String]("single", "Update a single dependency or all dependencies from one organization").orNone
+    val updateSingleOrgOrModule = Opts.argument[String]("The depenency to update, alternatively only the organization name can be passed").orNone
 
     lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
@@ -146,7 +146,12 @@ object Main {
                 Opts(commands.BuildReinferTemplates(Set.empty))
               ),
               Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
-                (updateAsScalaSteward, updateWithPrerelease, updateSingleOrgOrModule).mapN { case (sw, prerelease, singleDep) =>
+                (updateAsScalaSteward, updateWithPrerelease).mapN { case (sw, prerelease) =>
+                  commands.BuildUpdateDeps.apply(sw, prerelease, None)
+                }
+              ),
+              Opts.subcommand("update-dep", "update a single dependency or dependencies of a single organization to newest version(s)")(
+                (updateSingleOrgOrModule, updateAsScalaSteward, updateWithPrerelease).mapN { case (singleDep, sw, prerelease) =>
                   commands.BuildUpdateDeps.apply(sw, prerelease, singleDep)
                 }
               ),

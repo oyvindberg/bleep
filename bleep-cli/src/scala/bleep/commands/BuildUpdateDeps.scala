@@ -16,6 +16,7 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Success
 import cats.parse.Parser
 import bleep.model.Build
+import bleep.model.{Dep, VersionCombo}
 
 case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, singleDep: Option[String]) extends BleepBuildCommand {
 
@@ -35,27 +36,16 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, 
       Await.result(fetchAllVersions(fileCache, repos, allDeps), Duration.Inf)
     }
 
-    DependencyUpgrader.runUpgrade(singleDep, foundByDep, runUgrades(started, build))
+    DependencyUpgrader.depsToUpgrade(singleDep, foundByDep, scalaStewardMode, allowPrerelease).flatMap { toUpdate =>
+      runUgrades(started, build, toUpdate)
+    }
   }
 
   private def runUgrades(
       started: Started,
-      build: Build.FileBacked
-  )(
-      foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)]
+      build: Build.FileBacked,
+      upgrades: Map[(Dep, VersionCombo), Dep]
   ): Right[BleepException, Unit] = {
-
-    val upgrades: Map[UpgradeDependencies.ContextualDep, model.Dep] =
-      foundByDep.flatMap { case (tuple @ (bleepDep, _), (_, coursierVersion)) =>
-        val version = Version(bleepDep.version)
-        val latest =
-          if (scalaStewardMode) {
-            version.selectNext(coursierVersion.available.map(Version.apply), allowPrerelease)
-          } else {
-            version.selectLatest(coursierVersion.available.map(Version.apply), allowPrerelease)
-          }
-        latest.map(latestV => tuple -> bleepDep.withVersion(latestV.value))
-      }
 
     val newBuild = UpgradeDependencies(new UpgradeLogger(started.logger), upgrades)(build, started.buildPaths)
     val newBuild1 = normalizeBuild(newBuild, started.buildPaths)
@@ -112,35 +102,56 @@ case class BuildUpdateDeps(scalaStewardMode: Boolean, allowPrerelease: Boolean, 
 object DependencyUpgrader {
   private val sepParser = Parser.char(':').rep.void
 
-  val parseSingleDep = Parser.anyChar.repUntil(sepParser).string ~ (sepParser *> Parser.anyChar.repUntil(Parser.end).string).?
+  val singleDepParser = Parser.anyChar.repUntil(sepParser).string ~ (sepParser *> Parser.anyChar.repUntil(Parser.end).string).?
 
-  def runUpgrade(
+  def depsToUpgrade(
       singleDep: Option[String],
       foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
-      runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
-  ): Either[BleepException, Unit] = {
-    val singleDepParsed = singleDep.map(dep => parseSingleDep.parseAll(dep))
+      scalaStewardMode: Boolean,
+      allowPrerelease: Boolean
+  ) = {
+    val singleDepParsed = singleDep.map(dep => singleDepParser.parseAll(dep))
 
     singleDepParsed match {
-      case None            => runAllGivenUpgrades(foundByDep)
-      case Some(parsedDep) => runSingleUpgrade(foundByDep, parsedDep, singleDep.getOrElse(""), runAllGivenUpgrades)
+      case None => Right(findUpgrades(foundByDep, scalaStewardMode, allowPrerelease))
+      case Some(parsedDep) =>
+        filterDependencies(foundByDep, parsedDep, singleDep.getOrElse("")).map { filtered =>
+          findUpgrades(filtered, scalaStewardMode, allowPrerelease)
+        }
     }
   }
 
-  private def runSingleUpgrade(
+  def filterDependencies(
       foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
       parsedDep: Either[Parser.Error, (String, Option[String])],
-      depName: String,
-      runAllGivenUpgrades: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)] => Either[BleepException, Unit]
-  ) =
+      depName: String
+  ): Either[BleepException.Text, Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)]] =
     parsedDep match {
       case Left(_) => Left(new BleepException.Text(s"${depName} is not a valid dependency name"))
       case Right((org, module)) =>
-        val filteredDeps = foundByDep.filter { case ((bleepDep, _), _) =>
+        val toUpdate = foundByDep.filter { case ((bleepDep, _), _) =>
           module.map(bleepDep.baseModuleName.value.equalsIgnoreCase).getOrElse(true) && bleepDep.organization.value.equalsIgnoreCase(org)
-
         }
-        runAllGivenUpgrades(filteredDeps)
+        if (toUpdate.isEmpty) {
+          Left(new BleepException.Text(s"$depName is not a dependency identifier in this build"))
+        } else {
+          Right(toUpdate)
+        }
     }
 
+  def findUpgrades(
+      foundByDep: Map[UpgradeDependencies.ContextualDep, (Dependency, Versions)],
+      scalaStewardMode: Boolean,
+      allowPrerelease: Boolean
+  ): Map[(Dep, VersionCombo), Dep] =
+    foundByDep.flatMap { case (tuple @ (bleepDep, _), (_, coursierVersion)) =>
+      val version = Version(bleepDep.version)
+      val latest =
+        if (scalaStewardMode) {
+          version.selectNext(coursierVersion.available.map(Version.apply), allowPrerelease)
+        } else {
+          version.selectLatest(coursierVersion.available.map(Version.apply), allowPrerelease)
+        }
+      latest.map(latestV => tuple -> bleepDep.withVersion(latestV.value))
+    }
 }
