@@ -8,6 +8,7 @@ import io.circe.{Decoder, Encoder, Json}
   */
 case class Options(values: Set[Options.Opt]) extends SetLike[Options] {
   def render: List[String] = values.toList.sorted.flatMap(_.render)
+  def renderCombinedArgs: List[String] = values.toList.sorted.map(_.renderCombinedWithArgs)
   def isEmpty: Boolean = values.isEmpty
 
   override def union(other: Options) = new Options(values ++ other.values)
@@ -46,6 +47,7 @@ object Options {
 
   sealed trait Opt {
     def render: List[String]
+    def renderCombinedWithArgs: String
     def withArg(str: String): Opt.WithArgs
   }
 
@@ -54,11 +56,13 @@ object Options {
 
     case class Flag(name: String) extends Opt {
       override def render: List[String] = List(name)
+      override def renderCombinedWithArgs: String = name
       override def withArg(arg: String): WithArgs = WithArgs(name, List(arg))
     }
 
     case class WithArgs(name: String, args: List[String]) extends Opt {
       override def render: List[String] = name :: args
+      override def renderCombinedWithArgs: String = (name :: args).mkString(" ")
       override def withArg(arg: String): WithArgs = WithArgs(name, args :+ arg)
     }
   }

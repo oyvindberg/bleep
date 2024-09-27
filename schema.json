@@ -340,6 +340,14 @@
         "index": {
           "description": "the default index is the coursier index, located at https://github.com/coursier/jvm-index/raw/master/index.json . If you need to use a JVM which is not there, you can specify another index here",
           "type": "string"
+        },
+        "compileServerOptions": {
+          "description": "Adds extra javacOptions to the compile server. Useful for turning on experimental features, for instance",
+          "$ref": "#/$defs/Options"
+        },
+        "compileServerOptionIncludeDefault": {
+          "description": "Include default javaOptions from bloop as well as those you set in `compileServerOptions`. defaults to true",
+          "type": "boolean"
         }
       },
       "required": [

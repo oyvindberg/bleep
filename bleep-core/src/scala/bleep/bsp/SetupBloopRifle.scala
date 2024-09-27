@@ -3,9 +3,11 @@ package bsp
 
 import bleep.internal.FileUtils
 import bleep.logging.Logger
-import bloop.rifle.BloopRifleConfig
+import bloop.rifle.internal.BuildInfo
+import bloop.rifle.{BloopRifleConfig, BloopVersion}
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.nio.file.*
 import java.nio.file.attribute.PosixFilePermission
 import scala.collection.immutable.SortedSet
@@ -19,22 +21,31 @@ object SetupBloopRifle {
       userPaths: UserPaths,
       resolver: CoursierResolver,
       bleepRifleLogger: BleepRifleLogger
-  ): BloopRifleConfig = {
-    val default = BloopRifleConfig
-      .default(
-        BloopRifleConfig.Address.DomainSocket(bspSocketFile(bleepRifleLogger.logger, userPaths, compileServerMode, resolvedJvm.jvm)),
-        bloopClassPath(resolver),
-        FileUtils.TempDir.toFile
-      )
-
-    default.copy(
+  ): BloopRifleConfig =
+    BloopRifleConfig(
+      address = BloopRifleConfig.Address.DomainSocket(bspSocketFile(bleepRifleLogger.logger, userPaths, compileServerMode, resolvedJvm)),
       javaPath = resolvedJvm.javaBin.toString,
+      javaOpts = mkJavacOptionsFor(resolvedJvm),
+      classPath = mkBloopClassPath(resolver),
+      workingDir = FileUtils.TempDir.toFile,
+      bspSocketOrPort = None,
+      bspStdin = None,
       bspStdout = bleepRifleLogger.bloopBspStdout,
       bspStderr = bleepRifleLogger.bloopBspStderr,
       period = 10.millis,
-      javaOpts = default.javaOpts
+      timeout = 10.seconds + BloopRifleConfig.extraTimeout,
+      startCheckPeriod = 100.millis,
+      startCheckTimeout = 1.minute + BloopRifleConfig.extraTimeout,
+      initTimeout = 30.seconds + BloopRifleConfig.extraTimeout,
+      minimumBloopJvm = 17,
+      retainedBloopVersion = BloopRifleConfig.AtLeast(BloopVersion(BuildInfo.version))
     )
-  }
+
+  def mkJavacOptionsFor(resolvedJvm: ResolvedJvm): Seq[String] =
+    resolvedJvm.jvm.compileServerOptionIncludeDefault match {
+      case Some(false) => resolvedJvm.jvm.compileServerOptions.render
+      case _           => BloopRifleConfig.hardCodedDefaultJavaOpts ++ resolvedJvm.jvm.compileServerOptions.renderCombinedArgs
+    }
 
   val parallelCollectionAlways = model.LibraryVersionScheme(
     model.LibraryVersionScheme.VersionScheme.Always,
@@ -42,7 +53,7 @@ object SetupBloopRifle {
   )
   val versionCombo = model.VersionCombo.Jvm(model.VersionScala.Scala212)
 
-  def bloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, Seq[File]] = {
+  def mkBloopClassPath(resolver: CoursierResolver)(bloopVersion: String): Either[BleepException, Seq[File]] = {
     val dep = model.Dep.Scala("ch.epfl.scala", "bloop-frontend", bloopVersion)
     resolver
       .updatedParams(_.copy(downloadSources = false))
@@ -88,7 +99,7 @@ object SetupBloopRifle {
     }
     dir
   }
-  def bspSocketFile(logger: Logger, userPaths: UserPaths, mode: model.CompileServerMode, jvm: model.Jvm): Path = {
+  def bspSocketFile(logger: Logger, userPaths: UserPaths, mode: model.CompileServerMode, jvm: ResolvedJvm): Path = {
     val somewhatRandomIdentifier = Try(ProcessHandle.current.pid) match {
       case Failure(_) =>
         val r = new Random
@@ -101,7 +112,9 @@ object SetupBloopRifle {
         case model.CompileServerMode.NewEachInvocation => somewhatRandomIdentifier
         case model.CompileServerMode.Shared            =>
           // windows does not accept colon in path names
-          jvm.name.replace(':', '_')
+          val name = jvm.jvm.name.replace(':', '_')
+          val optionDigest = Checksums.compute(mkJavacOptionsFor(jvm).mkString("").getBytes(StandardCharsets.UTF_8), Checksums.Algorithm.Md5)
+          name + "_" + optionDigest.hexString.take(8)
       }
 
     val socket: Path =
