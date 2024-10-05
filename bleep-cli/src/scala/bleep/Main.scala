@@ -122,6 +122,17 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
+    val updateAsScalaSteward = Opts
+      .flag(
+        "steward",
+        "Use same upgrade strategy as Scala Steward. Updates to the latest patch version at the same minor and major version. If the dependency is already on the latest patch version, it updates to the latest minor version at the same major version. And if the dependency is already on the latest minor version, it updates to the latest major version."
+      )
+      .orFalse
+
+    val updateWithPrerelease = Opts.flag("prerelease", "Allow upgrading to prerelease version if there is any.").orFalse
+
+    val updateSingleOrgOrModule = Opts.argument[String]("The dependency to update, alternatively only the organization name can be passed")
+
     lazy val ret: Opts[BleepBuildCommand] = {
       val allCommands = List(
         List[Opts[BleepBuildCommand]](
@@ -140,7 +151,14 @@ object Main {
                 Opts(commands.BuildReinferTemplates(Set.empty))
               ),
               Opts.subcommand("update-deps", "updates to newest versions of all dependencies")(
-                Opts(commands.BuildUpdateDeps)
+                (updateAsScalaSteward, updateWithPrerelease).mapN { case (sw, prerelease) =>
+                  commands.BuildUpdateDeps.apply(sw, prerelease, None)
+                }
+              ),
+              Opts.subcommand("update-dep", "update a single dependency or dependencies of a single organization to newest version(s)")(
+                (updateSingleOrgOrModule, updateAsScalaSteward, updateWithPrerelease).mapN { case (singleDep, sw, prerelease) =>
+                  commands.BuildUpdateDeps.apply(sw, prerelease, Some(singleDep))
+                }
               ),
               Opts.subcommand(
                 "move-files-into-bleep-layout",

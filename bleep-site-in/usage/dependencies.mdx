@@ -72,6 +72,21 @@ This lets you build sbt plugins with bleep (note that publishing is not implemen
       module: org.scala-sbt:sbt:1.5.5
 ```
 
+## Updating dependencies
+bleep can update it's own dependencies using cli commands. 
+```shell
+bleep build update-deps
+```
+will update all the dependencies of a build. It is also possible to specify a single dependency or dependencies of a single organization to upgrade using the command
+```shell
+bleep build update-dep com.example::foo
+# Alternatively for all dependencies of the organization
+bleep build update-dep com.example
+```
+The update commands support two flags:
+  - --prerelease which updates to the latest prerelease version if possible
+  - --steward which makes the update command update to the version according to the same strategy that Scala Steward uses. Detailed description of the strategy can be found [here](https://github.com/scala-steward-org/scala-steward/blob/main/docs/faq.md#how-does-scala-steward-decide-what-version-it-is-updating-to).
+
 ## Limitations
 
 Note that Bleep has shed support for the most intricate ivyisms. What is left makes the structure much more cacheable, and should be enough for 99% of projects.
