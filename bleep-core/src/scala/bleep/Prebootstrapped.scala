@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.logging.Logger
+import ryddig.Logger
 
 import scala.concurrent.ExecutionContext
 

@@ -1,10 +1,10 @@
 package bleep
 
-import bleep.logging.Throwables.messagesFrom
-import bleep.logging.Logger
 import coursier.cache.CacheLogger
 import coursier.error.CoursierError
 import coursier.util.Artifact
+import ryddig.Logger
+import ryddig.Throwables.messagesFrom
 
 class BleepCacheLogger(logger: Logger) extends CacheLogger {
   def retrying(err: CoursierError, retriesLeft: Int): Unit =

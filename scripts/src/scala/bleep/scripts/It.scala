@@ -2,8 +2,8 @@ package bleep
 package scripts
 
 import bleep.internal.FileUtils
-import bleep.logging.Logger
 import bleep.plugin.nativeimage.NativeImagePlugin
+import ryddig.Logger
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.duration.Duration

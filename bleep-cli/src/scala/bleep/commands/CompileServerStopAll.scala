@@ -3,9 +3,9 @@ package commands
 
 import bleep.bsp.BleepRifleLogger
 import bleep.internal.FileUtils
-import bleep.logging.Logger
 import bloop.rifle.BloopRifleConfig
 import bloop.rifle.internal.Operations
+import ryddig.Logger
 
 import java.io.OutputStream
 import java.nio.file.{Files, Path}

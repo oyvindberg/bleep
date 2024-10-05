@@ -1,9 +1,9 @@
 package bleep
 
-import bleep.logging.Logger
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{PathWatcher, PathWatchers}
 import com.swoval.functional.Either
+import ryddig.Logger
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable

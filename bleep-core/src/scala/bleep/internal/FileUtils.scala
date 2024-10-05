@@ -1,7 +1,7 @@
 package bleep
 package internal
 
-import bleep.logging.Logger
+import ryddig.Logger
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, IOException}
 import java.nio.charset.StandardCharsets

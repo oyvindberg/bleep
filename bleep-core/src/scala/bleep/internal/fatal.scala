@@ -1,7 +1,7 @@
 package bleep
 package internal
 
-import bleep.logging.Logger
+import ryddig.Logger
 
 object fatal {
   def apply(context: String, logger: Logger, throwable: Throwable): ExitCode.Failure.type = {

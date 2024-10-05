@@ -2,11 +2,11 @@ package bleep
 package sbtimport
 
 import bleep.internal.conversions
-import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import bloop.config.Config
 import coursier.core.*
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
+import ryddig.Logger
 
 import java.net.URI
 import java.nio.file.{Path, Paths}

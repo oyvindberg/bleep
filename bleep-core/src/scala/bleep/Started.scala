@@ -1,8 +1,8 @@
 package bleep
 
-import bleep.logging.Logger
 import bleep.rewrites.BuildRewrite
 import bloop.config.Config
+import ryddig.Logger
 
 import java.nio.file.Path
 import scala.concurrent.ExecutionContext

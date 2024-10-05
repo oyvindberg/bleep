@@ -2,8 +2,8 @@ package bleep
 package bsp
 
 import bleep.internal.FileUtils
-import bleep.logging.Logger
 import bloop.rifle.BloopRifleConfig
+import ryddig.Logger
 
 import java.io.File
 import java.nio.file.*

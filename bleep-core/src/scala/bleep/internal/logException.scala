@@ -1,7 +1,7 @@
 package bleep.internal
 
 import bleep.BleepException
-import bleep.logging.{Logger, Throwables}
+import ryddig.{Logger, Throwables}
 import sourcecode.{Enclosing, File, Line}
 
 object logException {

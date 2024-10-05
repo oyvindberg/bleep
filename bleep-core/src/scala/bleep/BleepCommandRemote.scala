@@ -2,10 +2,10 @@ package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
 import bleep.internal.{logException, BspClientDisplayProgress, TransitiveProjects}
-import bleep.logging.Throwables
 import bloop.rifle.*
 import bloop.rifle.internal.Operations
 import ch.epfl.scala.bsp4j
+import ryddig.Throwables
 
 import java.nio.file.Files
 import java.util

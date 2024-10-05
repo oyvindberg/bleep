@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.FileUtils
-import bleep.logging.Logger
+import ryddig.Logger
 import sourcecode.{Enclosing, File, Line}
 
 import java.nio.charset.StandardCharsets

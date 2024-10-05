@@ -15,7 +15,7 @@ object bootstrap {
     val buildPaths = BuildPaths(FileUtils.cwd, buildLoader, buildVariant)
 
     val exitCode: ExitCode =
-      bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).untyped.use { logger =>
+      bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).use { logger =>
         val ec = ExecutionContext.global
         val maybeStarted = for {
           existingBuild <- buildLoader.existing

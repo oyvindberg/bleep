@@ -2,8 +2,8 @@ package bleep
 package commands
 
 import bleep.internal.{writeYamlLogged, FileUtils}
-import bleep.logging.Logger
 import bleep.rewrites.BuildRewrite
+import ryddig.Logger
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.SortedMap

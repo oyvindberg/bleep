@@ -1,18 +1,18 @@
 package bleep
 package testing
 
-import bleep.logging.{LogLevel, Logger, Loggers}
 import coursier.paths.CoursierPaths
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
+import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 
 import java.nio.file.{Files, Path, Paths}
 import java.time.Instant
 import scala.util.Properties
 
 trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
-  val logger0 = Loggers.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).untyped.unsafeGet().minLogLevel(LogLevel.info)
+  val logger0 = Loggers.stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true).acquire().value.withMinLogLevel(LogLevel.info)
 
   val isCi: Boolean =
     sys.env.contains("BUILD_NUMBER") || sys.env.contains("CI") // from sbt

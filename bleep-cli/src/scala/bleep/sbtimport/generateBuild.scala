@@ -2,9 +2,9 @@ package bleep
 package sbtimport
 
 import bleep.internal.{BleepTemplateLogger, GeneratedFilesScript}
-import bleep.logging.Logger
 import bleep.rewrites.{normalizeBuild, Defaults}
 import bleep.templates.templatesInfer
+import ryddig.Logger
 
 import java.nio.file.Path
 

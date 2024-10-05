@@ -1,11 +1,11 @@
 package bleep
 
-import bleep.internal.FileUtils
-import bleep.logging.TypedLogger.Stored
-import bleep.logging.{LogLevel, Loggers, TypedLogger}
+import bleep.internal.{bleepLoggers, FileUtils}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
+import ryddig.TypedLogger.Stored
+import ryddig.{LogLevel, LogPatterns, Loggers, TypedLogger}
 
 import java.nio.file.Files
 import java.time.Instant
@@ -14,11 +14,12 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val userPaths = UserPaths.fromAppDirs
   val logger0 = Loggers.decodeJsonStream(
+    bleepLoggers.BLEEP_JSON_EVENT,
     Loggers
       .stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true)
-      .untyped
-      .unsafeGet()
-      .minLogLevel(LogLevel.info)
+      .acquire()
+      .value
+      .withMinLogLevel(LogLevel.info)
   )
   val ec: ExecutionContextExecutor = ExecutionContext.global
 
@@ -50,7 +51,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     try {
       val started = bootstrap
         .from(
-          Prebootstrapped(storingLogger.untyped.zipWith(stdLogger).untyped, userPaths, buildPaths, existingBuild, ec),
+          Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
           GenBloopFiles.SyncToDiskWith(GenBloopFiles.ReplaceBleepDependencies(lazyBleepBuild)),
           Nil,
           model.BleepConfig.default,

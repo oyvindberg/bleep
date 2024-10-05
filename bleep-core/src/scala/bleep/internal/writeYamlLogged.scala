@@ -1,8 +1,8 @@
 package bleep.internal
 
-import bleep.logging.Logger
 import bleep.yaml
 import io.circe.Encoder
+import ryddig.Logger
 
 import java.nio.file.Path
 
