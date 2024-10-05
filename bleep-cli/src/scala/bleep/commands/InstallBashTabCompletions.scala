@@ -2,7 +2,7 @@ package bleep
 package commands
 
 import bleep.internal.FileUtils
-import bleep.logging.Logger
+import ryddig.Logger
 
 case class InstallBashTabCompletions(logger: Logger, stdout: Boolean) extends BleepCommand {
   override def run(): Either[BleepException, Unit] = {

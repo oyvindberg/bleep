@@ -2,7 +2,6 @@ package bleep
 package bsp
 
 import bleep.internal.{DoSourceGen, TransitiveProjects}
-import bleep.logging.{Logger, Throwables}
 import bloop.rifle.BuildServer
 import bloop.rifle.internal.BuildInfo
 import ch.epfl.scala.bsp4j
@@ -10,6 +9,7 @@ import ch.epfl.scala.bsp4j.CompileResult
 import com.google.gson.{JsonObject, JsonPrimitive}
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
 import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
+import ryddig.{Logger, Throwables}
 
 import java.util
 import java.util.concurrent.{CompletableFuture, TimeUnit}

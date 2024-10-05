@@ -3,7 +3,6 @@ package bleep
 import bleep.depcheck.CheckEvictions
 import bleep.internal.codecs.*
 import bleep.internal.{FileUtils, ShortenAndSortJson}
-import bleep.logging.Logger
 import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core.*
 import coursier.error.CoursierError
@@ -14,6 +13,7 @@ import coursier.util.{Artifact, Task}
 import coursier.{Artifacts, Fetch, Resolution}
 import io.circe.*
 import io.circe.syntax.*
+import ryddig.Logger
 
 import java.io.File
 import java.nio.file.{Files, Path}

@@ -1,7 +1,7 @@
 package bleep
 package commands
 
-import bleep.logging.Logger
+import ryddig.Logger
 
 import java.nio.file.Path
 

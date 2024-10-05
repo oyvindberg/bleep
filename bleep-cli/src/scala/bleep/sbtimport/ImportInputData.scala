@@ -2,12 +2,12 @@ package bleep
 package sbtimport
 
 import bleep.internal.{codecs, parseBloopFile, FileUtils, GeneratedFile}
-import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import bloop.config.Config
 import coursier.core.Configuration
 import io.circe.Codec
 import io.circe.generic.semiauto.*
+import ryddig.Logger
 
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.{SortedMap, SortedSet}

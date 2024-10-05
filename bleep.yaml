@@ -25,10 +25,10 @@ projects:
       module: ch.epfl.scala::bloop-rifle:2.0.0
     - com.swoval:file-tree-views:2.1.12
     - org.typelevel::scalac-options:0.1.7
+    - com.olvind.ryddig::ryddig:0.0.4
     dependsOn:
     - bleep-model
     - bleep-nosbt
-    - logging
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleep-model:
@@ -134,13 +134,6 @@ projects:
     - template-common
     - template-scala-3
     isTestProject: true
-  logging:
-    dependencies:
-    - com.lihaoyi::fansi:0.5.0
-    - io.circe::circe-core:0.14.10
-    - io.circe::circe-generic:0.14.10
-    - io.circe::circe-parser:0.14.10
-    extends: template-cross-all
   scripts:
     dependsOn:
     - bleep-plugin-ci-release

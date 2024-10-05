@@ -2,9 +2,9 @@ package bleep
 package commands
 
 import bleep.internal.BleepTemplateLogger
-import bleep.logging.Logger
 import bleep.templates.templatesInfer
 import cats.data.NonEmptyList
+import ryddig.Logger
 
 import java.nio.file.{Files, Path}
 import scala.concurrent.ExecutionContext

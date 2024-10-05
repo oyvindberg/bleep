@@ -1,9 +1,9 @@
 package bleep
 package internal
 
-import bleep.logging.Logger
 import bleep.templates.ProjectNameLike.Syntax
 import bleep.templates.{ProjectNameLike, TemplateLogger}
+import ryddig.Logger
 
 class BleepTemplateLogger(logger: Logger) extends TemplateLogger {
   override def appliedTemplateTo[Name: ProjectNameLike](templateId: model.TemplateId, to: Seq[Name]): Unit =

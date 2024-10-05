@@ -2,13 +2,13 @@ package bleep
 
 import bleep.bsp.BspImpl
 import bleep.internal.{bleepLoggers, fatal, logException, FileUtils}
-import bleep.logging.Logger
 import bleep.packaging.ManifestCreator
 import cats.data.NonEmptyList
 import cats.syntax.apply.*
 import cats.syntax.foldable.*
 import com.monovore.decline.*
 import coursier.jvm.Execve
+import ryddig.Logger
 
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
@@ -465,7 +465,7 @@ object Main {
       case "selftest" :: Nil =>
         // checks that JNI libraries are successfully loaded
         val (commonOpts, _) = CommonOpts.parse(Nil)
-        FileWatching(bleepLoggers.stderrWarn(commonOpts).untyped, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        FileWatching(bleepLoggers.stderrWarn(commonOpts), Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
         println("OK")
         ExitCode.Success
 
@@ -473,11 +473,11 @@ object Main {
         val (commonOpts, _) = CommonOpts.parse(args)
         val cwd = cwdFor(commonOpts)
         val buildLoader = BuildLoader.find(cwd)
-        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts).untyped, buildLoader, commonOpts).andThen {
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts).andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.BSP)
           val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
-          bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).untyped.use { logger =>
+          bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).use { logger =>
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
               case Left(be) => fatal("", logger, be)
               case Right(pre) =>
@@ -497,14 +497,14 @@ object Main {
         val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
 
         // initialize just stdout logger first to avoid creating log file if we're just booting a new version immediately
-        val exitCode = bleepLoggers.stdoutNoLogFile(config, commonOpts).untyped.use { logger =>
+        val exitCode = bleepLoggers.stdoutNoLogFile(config, commonOpts).use { logger =>
           maybeRunWithDifferentVersion(_args, logger, buildLoader, commonOpts)
         }
 
         exitCode.andThen {
           val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
 
-          bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).untyped.use { logger =>
+          bleepLoggers.stdoutAndFileLogging(config, commonOpts, buildPaths).use { logger =>
             buildLoader match {
               case noBuild: BuildLoader.NonExisting =>
                 run(noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs, logger)(_.run())
@@ -528,7 +528,7 @@ object Main {
     val (_, restArgs) = CommonOpts.parse(args)
     val cwd = cwdFor(commonOpts)
     // we can not log to stdout when completing. logger should be used sparingly
-    val stderr = bleepLoggers.stderrWarn(commonOpts).untyped
+    val stderr = bleepLoggers.stderrWarn(commonOpts)
     val buildLoader = BuildLoader.find(cwd)
     maybeRunWithDifferentVersion(_args, stderr, buildLoader, commonOpts).andThen {
 

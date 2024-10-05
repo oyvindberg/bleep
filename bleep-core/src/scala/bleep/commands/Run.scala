@@ -3,10 +3,10 @@ package commands
 
 import bleep.bsp.BspCommandFailed
 import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, TransitiveProjects}
-import bleep.logging.Throwables
 import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
+import ryddig.Throwables
 
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}

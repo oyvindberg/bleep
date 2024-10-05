@@ -1,7 +1,7 @@
 package bleep.bsp
 
-import bleep.logging.{Logger, LoggerFn}
 import bloop.rifle.BloopRifleLogger
+import ryddig.{Logger, LoggerFn}
 
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets

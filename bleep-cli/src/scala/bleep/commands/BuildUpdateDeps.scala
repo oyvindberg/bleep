@@ -2,12 +2,12 @@ package bleep
 package commands
 
 import bleep.internal.writeYamlLogged
-import bleep.logging.Logger
 import bleep.rewrites.{normalizeBuild, UpgradeDependencies}
 import coursier.Repository
 import coursier.cache.FileCache
 import coursier.core.{Dependency, Versions}
 import coursier.util.Task
+import ryddig.Logger
 
 import scala.collection.immutable
 import scala.concurrent.duration.Duration
