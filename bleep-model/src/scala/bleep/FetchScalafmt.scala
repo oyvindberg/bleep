@@ -1,7 +1,7 @@
 package bleep
 
 import coursier.cache.{CacheLogger, FileCache}
-import coursier.jvm.JvmIndex
+import coursier.jvm.JvmChannel
 import coursier.util.{Artifact, Task}
 
 import java.nio.file.Path
@@ -10,7 +10,7 @@ import scala.concurrent.{Await, ExecutionContext}
 
 object FetchScalafmt {
   def apply(cacheLogger: CacheLogger, ec: ExecutionContext, version: String): Path = {
-    val filename = JvmIndex.defaultOs() match {
+    val filename = JvmChannel.defaultOs() match {
       case "darwin" =>
         "scalafmt-macos"
       case "linux" =>

@@ -1,7 +1,7 @@
 package bleep
 
 import coursier.cache.{ArchiveCache, CacheLogger, FileCache}
-import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel}
 import coursier.util.Task
 
 import java.nio.file.{Files, Path}
@@ -54,7 +54,7 @@ object FetchJvm {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache[Task]().withCache(fileCache))
-      .withIndex(jvm.index.getOrElse(JvmIndex.coursierIndexUrl))
+      .withIndex(jvm.index.getOrElse(JvmChannel.gitHubIndexUrl))
       .withArchitecture(arch)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)
     javaBin
