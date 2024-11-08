@@ -44,10 +44,10 @@ class CliInvocationTest extends AnyFunSuite {
     val systemOut = System.out
     val systemErr = System.err
 
-    val stdOutBuffer = ByteArrayOutputStream()
-    val stdErrBuffer = ByteArrayOutputStream()
-    val bufferedOut = PrintStream(stdOutBuffer)
-    val bufferedErr = PrintStream(stdErrBuffer)
+    val stdOutBuffer = new ByteArrayOutputStream()
+    val stdErrBuffer = new ByteArrayOutputStream()
+    val bufferedOut = new PrintStream(stdOutBuffer)
+    val bufferedErr = new PrintStream(stdErrBuffer)
 
     System.setOut(bufferedOut)
     System.setErr(bufferedErr)
