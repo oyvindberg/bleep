@@ -31,20 +31,26 @@ class BuildProjectRename(from: model.ProjectName, to: model.ProjectName) extends
         case s => s
       }
 
-    val newBuildFile = buildFile.copy(
-      projects = buildFile.projects.map {
-        case (`from`, p) => (`to`, rewriteProject(p))
-        case (pn, p)     => (pn, rewriteProject(p))
-      },
-      scripts = buildFile.scripts.map { case (sn, sd) => (sn, rewriteScriptDefs(sd)) },
-      templates = buildFile.templates.map { case (pn, p) => (pn, rewriteProject(p)) }
-    )
-
     fromCrossProjects.map(started.projectPaths).map(_.dir).distinct match {
       case List(fromDir) =>
         val toDir = fromDir.resolveSibling(to.value)
         if (Files.exists(toDir))
           return Left(new BleepException.Text(s"Expected to move project ${from.value} from $fromDir to $toDir, but it already exists"))
+
+        val newBuildFile = buildFile.copy(
+          projects = buildFile.projects.map {
+            case (`from`, p) =>
+              val folderValue = RelPath.relativeTo(started.buildPaths.buildDir, toDir) match {
+                case RelPath(Array(to.value)) => None
+                case other                    => Some(other)
+              }
+
+              (`to`, p.copy(folder = folderValue))
+            case (pn, p) => (pn, rewriteProject(p))
+          },
+          scripts = buildFile.scripts.map { case (sn, sd) => (sn, rewriteScriptDefs(sd)) },
+          templates = buildFile.templates.map { case (pn, p) => (pn, rewriteProject(p)) }
+        )
 
         Right(
           commit(
