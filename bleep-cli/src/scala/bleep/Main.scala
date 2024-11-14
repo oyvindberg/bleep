@@ -155,6 +155,11 @@ object Main {
                   new commands.BuildProjectRename(from, model.ProjectName(to))
                 }
               ),
+              Opts.subcommand("projects-move", "move projects")(
+                (Opts.argument[String]("new parent folder"), projectNamesNoCross).mapN { case (parentFolder, projectNames) =>
+                  new commands.BuildProjectMove(Path.of(parentFolder).toAbsolutePath, projectNames)
+                }
+              ),
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
                 Opts(commands.BuildReinferTemplates(Set.empty))
               ),
