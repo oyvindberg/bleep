@@ -10,7 +10,7 @@ import io.circe.{Decoder, Encoder, Json}
 // are all allowed and put into a `List`
 case class JsonList[T](values: List[T]) extends SetLike[JsonList[T]] {
   def isEmpty = values.isEmpty
-
+  def map[U](f: T => U): JsonList[U] = JsonList(values.map(f))
   override def intersect(other: JsonList[T]): JsonList[T] = JsonList(values.intersect(other.values))
   override def removeAll(other: JsonList[T]): JsonList[T] = JsonList(values.filterNot(other.values.toSet))
   override def union(other: JsonList[T]): JsonList[T] = JsonList((values ++ other.values).distinct)
