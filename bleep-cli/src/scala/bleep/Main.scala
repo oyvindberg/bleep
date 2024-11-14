@@ -73,6 +73,9 @@ object Main {
         .orNone
         .map(started.chosenProjects)
 
+    val projectNameNoCross: Opts[model.ProjectName] =
+      Opts.argument(metavars.projectNameNoCross)(argumentFrom(metavars.projectNameNoCross, Some(started.globs.projectNamesNoCrossMap)))
+
     val projectName: Opts[model.CrossProjectName] =
       Opts.argument(metavars.projectNameExact)(argumentFrom(metavars.projectNameExact, Some(started.globs.exactProjectMap)))
 
@@ -146,6 +149,11 @@ object Main {
               ),
               Opts.subcommand("templates-reapply", "apply existing templates again")(
                 Opts(commands.BuildReapplyTemplates)
+              ),
+              Opts.subcommand("project-rename", "rename project")(
+                (projectNameNoCross, Opts.argument[String]("new project name")).mapN { case (from, to) =>
+                  new commands.BuildProjectRename(from, model.ProjectName(to))
+                }
               ),
               Opts.subcommand("templates-generate-new", "throw away existing templates and infer new")(
                 Opts(commands.BuildReinferTemplates(Set.empty))
