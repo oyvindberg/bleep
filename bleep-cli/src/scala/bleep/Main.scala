@@ -155,6 +155,11 @@ object Main {
                   new commands.BuildProjectRename(from, model.ProjectName(to))
                 }
               ),
+              Opts.subcommand("project-merge-into", "merge first project into second")(
+                (projectNameNoCross, projectNameNoCross).mapN { case (projectName, into) =>
+                  new commands.BuildProjectMergeInto(projectName, into)
+                }
+              ),
               Opts.subcommand("projects-move", "move projects")(
                 (Opts.argument[String]("new parent folder"), projectNamesNoCross).mapN { case (parentFolder, projectNames) =>
                   new commands.BuildProjectMove(Path.of(parentFolder).toAbsolutePath, projectNames)
