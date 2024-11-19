@@ -40,7 +40,6 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
 
-    @tailrec
     def mkServer(retriesLeft: Int): BloopServer =
       try
         BloopServer.buildServer(
