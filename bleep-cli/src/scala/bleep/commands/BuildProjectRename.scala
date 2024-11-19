@@ -10,9 +10,9 @@ class BuildProjectRename(from: model.ProjectName, to: model.ProjectName) extends
       started.build.explodedProjects.toList.collect { case (cp @ model.CrossProjectName(`from`, _), _) => cp }
 
     if (fromCrossProjects.isEmpty)
-      return Left(new BleepException.Text(s"Project $from does not exist"))
+      return Left(new BleepException.Text(s"Project ${from.value} does not exist"))
     if (started.build.explodedProjects.keys.exists(_.name == to))
-      return Left(new BleepException.Text(s"Project $to already exists"))
+      return Left(new BleepException.Text(s"Project ${to.value} already exists"))
 
     val buildFile = started.build.requireFileBacked(ctx = "command project-rename").file
 
@@ -21,11 +21,12 @@ class BuildProjectRename(from: model.ProjectName, to: model.ProjectName) extends
         dependsOn = p.dependsOn.map {
           case `from` => to
           case other  => other
-        }
+        },
+        sourcegen = p.sourcegen.map(rewriteScriptDefs)
       )
 
-    def rewriteScriptDefs(sd: model.JsonList[model.ScriptDef]): model.JsonList[model.ScriptDef] =
-      sd.map {
+    def rewriteScriptDefs(s: model.ScriptDef): model.ScriptDef =
+      s match {
         case s @ model.ScriptDef.Main(model.CrossProjectName(`from`, _), _, _) =>
           s.copy(project = model.CrossProjectName(to, s.project.crossId))
         case s => s
@@ -48,7 +49,7 @@ class BuildProjectRename(from: model.ProjectName, to: model.ProjectName) extends
               (`to`, p.copy(folder = folderValue))
             case (pn, p) => (pn, rewriteProject(p))
           },
-          scripts = buildFile.scripts.map { case (sn, sd) => (sn, rewriteScriptDefs(sd)) },
+          scripts = buildFile.scripts.map { case (sn, scripts) => (sn, scripts.map(rewriteScriptDefs)) },
           templates = buildFile.templates.map { case (pn, p) => (pn, rewriteProject(p)) }
         )
 
