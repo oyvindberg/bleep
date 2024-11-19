@@ -3,13 +3,17 @@ package bleep
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
 import bleep.internal.{logException, BspClientDisplayProgress, TransitiveProjects}
 import bloop.rifle.*
+import bloop.rifle.BloopRifleConfig.Address
 import bloop.rifle.internal.Operations
 import ch.epfl.scala.bsp4j
 import ryddig.Throwables
 
+import java.io.IOException
 import java.nio.file.Files
 import java.util
+import scala.annotation.tailrec
 import scala.util.Try
+import scala.util.control.NonFatal
 
 abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
   def watchableProjects(started: Started): TransitiveProjects
@@ -36,7 +40,8 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
     val buildClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
 
-    val server =
+    @tailrec
+    def mkServer(retriesLeft: Int): BloopServer =
       try
         BloopServer.buildServer(
           config = bloopRifleConfig,
@@ -49,14 +54,21 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
           logger = bleepRifleLogger
         )
       catch {
-        case th: FailedToStartServerException =>
-          val readLog: Option[String] =
+        case th: IOException if retriesLeft > 0 =>
+          started.logger.withContext("message", th.getMessage).warn("Failed to connect to bloop, retrying...")
+          Thread.sleep(500)
+          mkServer(retriesLeft - 1)
+        case NonFatal(th) =>
+          throw BleepCommandRemote.FailedToStartBloop(
+            th,
             bloopRifleConfig.address match {
-              case _: BloopRifleConfig.Address.Tcp           => None
-              case ds: BloopRifleConfig.Address.DomainSocket => Try(Files.readString(ds.outputPath)).toOption
+              case _: Address.Tcp           => None
+              case ds: Address.DomainSocket => Try(Files.readString(ds.outputPath)).toOption
             }
-          throw BleepCommandRemote.FailedToStartBloop(th, readLog)
+          )
       }
+
+    val server = mkServer(10)
 
     try
       if (watch) {
@@ -128,7 +140,7 @@ object BleepCommandRemote {
     def onlyChangedProjects(started: Started, isChanged: model.CrossProjectName => Boolean): BleepCommandRemote
   }
 
-  case class FailedToStartBloop(cause: FailedToStartServerException, readLog: Option[String])
+  case class FailedToStartBloop(cause: Throwable, readLog: Option[String])
       extends BleepException(
         readLog.foldLeft(cause.getMessage)((msg, log) => s"$msg\nRead log file:\n$log")
       )
