@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.internal.{FileUtils, bleepLoggers}
+import bleep.internal.{bleepLoggers, FileUtils}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
