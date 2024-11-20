@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: 0.0.10
 jvm:
-  name: graalvm-community:21.0.2
+  name: graalvm-community:23.0.1
 projects:
   bleep-cli:
     dependencies:
@@ -24,7 +24,7 @@ projects:
       module: ch.epfl.scala::bloop-config:2.1.0
     - for3Use213: true
       module: ch.epfl.scala::bloop-rifle:2.0.5
-    - com.olvind.ryddig::ryddig:0.0.5
+    - com.olvind.ryddig::ryddig:0.0.6
     - com.swoval:file-tree-views:2.1.12
     - org.typelevel::scalac-options:0.1.7
     dependsOn:
@@ -37,11 +37,11 @@ projects:
     - io.circe::circe-generic:0.14.10
     - io.circe::circe-yaml-v12:1.15.0
     - for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.17
+      module: io.get-coursier::coursier-jvm:2.1.18
     - for3Use213: true
-      module: io.get-coursier::coursier-sbt-maven-repository:2.1.17
+      module: io.get-coursier::coursier-sbt-maven-repository:2.1.18
     - for3Use213: true
-      module: io.get-coursier::coursier:2.1.17
+      module: io.get-coursier::coursier:2.1.18
     - org.snakeyaml:snakeyaml-engine:2.8
     extends: template-cross-all
     sourcegen:
