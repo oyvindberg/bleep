@@ -1,11 +1,10 @@
 package bleep
 
-import bleep.internal.{bleepLoggers, FileUtils}
+import bleep.internal.{FileUtils, bleepLoggers}
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
-import ryddig.TypedLogger.Stored
-import ryddig.{LogLevel, LogPatterns, Loggers, TypedLogger}
+import ryddig.*
 
 import java.nio.file.Files
 import java.time.Instant
