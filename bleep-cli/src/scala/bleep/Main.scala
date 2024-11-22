@@ -124,6 +124,7 @@ object Main {
       .orNone
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
+    val parallelism = Opts.option[Int]("parallelim", "parallelism", "p").withDefault(1)
 
     val updateAsScalaSteward = Opts
       .flag(
@@ -224,9 +225,7 @@ object Main {
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
-            (watch, testProjectNames, testSuitesOnly, testSuitesExclude).mapN { case (watch, projectNames, testSuitesOnly, testSuitesExclude) =>
-              commands.Test(watch, projectNames, testSuitesOnly, testSuitesExclude)
-            }
+            (watch, testProjectNames, testSuitesOnly, testSuitesExclude, parallelism).mapN(commands.Test.apply)
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
             testProjectNames.map { projectNames =>
