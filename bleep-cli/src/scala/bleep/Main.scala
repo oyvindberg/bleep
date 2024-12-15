@@ -220,6 +220,9 @@ object Main {
           Opts.subcommand("compile", "compile projects")(
             (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(watch, projectNames) }
           ),
+          Opts.subcommand("link", "link projects")(
+            (watch, projectNames).mapN { case (watch, projectNames) => commands.Link(watch, projectNames) }
+          ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
