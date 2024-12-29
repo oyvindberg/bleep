@@ -11,7 +11,6 @@ import ryddig.Throwables
 import java.io.IOException
 import java.nio.file.Files
 import java.util
-import scala.annotation.tailrec
 import scala.util.Try
 import scala.util.control.NonFatal
 

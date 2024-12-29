@@ -6,8 +6,13 @@ import bleep.internal.{DoSourceGen, TransitiveProjects}
 import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import scala.jdk.CollectionConverters.*
+import bleep.model.LinkerMode
+import bleep.model.LinkerMode.Debug
+import bleep.model.LinkerMode.Release
 
-case class Link(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
+case class Link(watch: Boolean, projects: Array[model.CrossProjectName], linkerMode: Option[LinkerMode])
+    extends BleepCommandRemote(watch)
+    with BleepCommandRemote.OnlyChanged {
 
   override def watchableProjects(started: Started): TransitiveProjects =
     TransitiveProjects(started.build, projects)
@@ -21,6 +26,13 @@ case class Link(watch: Boolean, projects: Array[model.CrossProjectName]) extends
 
       val compileParams = new bsp4j.CompileParams(targets)
       compileParams.setArguments(List("--link").asJava)
+
+      linkerMode.foreach(_ match {
+        case Debug =>
+          compileParams.setArguments(List("--link", "--debug").asJava)
+        case Release =>
+          compileParams.setArguments(List("--link", "--release").asJava)
+      })
 
       val result = bloop.buildTargetCompile(compileParams).get()
 
