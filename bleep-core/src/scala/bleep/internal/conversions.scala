@@ -3,6 +3,7 @@ package bleep.internal
 import bleep.model
 import bloop.config.Config
 import bloop.config.Config.ModuleSplitStyleJS.{FewestModules, SmallModulesFor, SmallestModules}
+import bloop.config.Config.NativeBuildTarget.{Application, LibraryDynamic, LibraryStatic}
 
 object conversions {
   trait Bijection[T1, T2] {
@@ -64,6 +65,22 @@ object conversions {
       case model.ModuleSplitStyleJS.FewestModules             => Config.ModuleSplitStyleJS.FewestModules
       case model.ModuleSplitStyleJS.SmallModulesFor(packages) => Config.ModuleSplitStyleJS.SmallModulesFor(packages)
       case model.ModuleSplitStyleJS.SmallestModules           => Config.ModuleSplitStyleJS.SmallestModules
+    }
+
+  }
+
+  object nativeBuildTarget extends Bijection[Config.NativeBuildTarget, model.NativeBuildTarget] {
+
+    override def to(t1: Config.NativeBuildTarget): model.NativeBuildTarget = t1 match {
+      case Application    => model.NativeBuildTarget.Application
+      case LibraryDynamic => model.NativeBuildTarget.LibraryDynamic
+      case LibraryStatic  => model.NativeBuildTarget.LibraryStatic
+    }
+
+    override def from(t2: model.NativeBuildTarget): Config.NativeBuildTarget = t2 match {
+      case model.NativeBuildTarget.Application    => Config.NativeBuildTarget.Application
+      case model.NativeBuildTarget.LibraryDynamic => Config.NativeBuildTarget.LibraryDynamic
+      case model.NativeBuildTarget.LibraryStatic  => Config.NativeBuildTarget.LibraryStatic
     }
 
   }
