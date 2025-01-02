@@ -25,18 +25,6 @@ object conversions {
     }
   }
 
-  object linkerMode extends Bijection[Config.LinkerMode, model.LinkerMode] {
-    override def to(t1: Config.LinkerMode): model.LinkerMode = t1 match {
-      case Config.LinkerMode.Debug   => model.LinkerMode.Debug
-      case Config.LinkerMode.Release => model.LinkerMode.Release
-    }
-
-    override def from(t2: model.LinkerMode): Config.LinkerMode = t2 match {
-      case model.LinkerMode.Debug   => Config.LinkerMode.Debug
-      case model.LinkerMode.Release => Config.LinkerMode.Release
-    }
-  }
-
   object moduleKindJS extends Bijection[Config.ModuleKindJS, model.ModuleKindJS] {
     override def to(t1: Config.ModuleKindJS): model.ModuleKindJS = t1 match {
       case Config.ModuleKindJS.NoModule       => model.ModuleKindJS.NoModule

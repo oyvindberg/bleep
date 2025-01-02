@@ -218,13 +218,6 @@
         "jsVersion": {
           "type": "string"
         },
-        "jsMode": {
-          "type": "string",
-          "enum": [
-            "debug",
-            "release"
-          ]
-        },
         "jsKind": {
           "type": "string",
           "enum": [
@@ -276,13 +269,6 @@
         },
         "nativeVersion": {
           "type": "string"
-        },
-        "nativeMode": {
-          "type": "string",
-          "enum": [
-            "debug",
-            "release"
-          ]
         },
         "nativeGc": {
           "type": "string"

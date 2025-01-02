@@ -17,7 +17,6 @@ object Defaults {
       name = None,
       mainClass = None,
       jsVersion = None,
-      jsMode = None,
       jsKind = None,
       jsSplitStyle = None,
       jsEmitSourceMaps = None,
@@ -26,7 +25,6 @@ object Defaults {
       jvmOptions = model.Options(Set(model.Options.Opt.Flag(s"-Duser.dir=${model.Replacements.known.BuildDir}"))),
       jvmRuntimeOptions = model.Options.empty,
       nativeVersion = None,
-      nativeMode = None,
       nativeGc = None
     )
 

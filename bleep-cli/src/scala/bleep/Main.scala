@@ -13,7 +13,6 @@ import ryddig.Logger
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Properties, Success, Try}
-import bleep.model.LinkerMode
 
 object Main {
   private def isGraalvmNativeImage: Boolean =
@@ -126,11 +125,7 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
-    val linkerMode: Opts[Option[LinkerMode]] =
-      Opts.flag("release", "force linking in release mode", "r").map(_ => LinkerMode.Release).orNone orElse Opts
-        .flag("debug", "force linking in debug mode", "d")
-        .map(_ => LinkerMode.Debug)
-        .orNone
+    val isReleaseMode = Opts.flag("release", "force linking in release mode", "r").orFalse
 
     val updateAsScalaSteward = Opts
       .flag(
@@ -228,8 +223,8 @@ object Main {
             (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(watch, projectNames) }
           ),
           Opts.subcommand("link", "link projects")(
-            (watch, projectNames, linkerMode).mapN { case (watch, projectNames, mode) =>
-              commands.Link(watch, projectNames, mode)
+            (watch, projectNames, isReleaseMode).mapN { case (watch, projectNames, isReleaseMode) =>
+              commands.Link(watch, projectNames, isReleaseMode)
             }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
