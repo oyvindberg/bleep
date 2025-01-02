@@ -20,8 +20,7 @@ projects:
       mainClass: bleep.Main
   bleep-core:
     dependencies:
-    - for3Use213: true
-      module: ch.epfl.scala::bloop-config:2.1.0
+    - ch.epfl.scala::bloop-config:2.2.0
     - for3Use213: true
       module: ch.epfl.scala::bloop-rifle:2.0.5
     - com.olvind.ryddig::ryddig:0.0.6

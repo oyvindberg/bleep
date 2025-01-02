@@ -25,7 +25,8 @@ case class Platform(
     //        resources: Option[List[Path]]
     nativeVersion: Option[VersionScalaNative],
     nativeMode: Option[LinkerMode],
-    nativeGc: Option[String]
+    nativeGc: Option[String],
+    nativeBuildTarget: Option[NativeBuildTarget]
     //      targetTriple: Option[String],
     //      clang: Path,
     //      clangpp: Path,
@@ -54,7 +55,8 @@ case class Platform(
       jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
       nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
       nativeMode = if (nativeMode == other.nativeMode) nativeMode else None,
-      nativeGc = if (nativeGc == other.nativeGc) nativeGc else None
+      nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
+      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None
     )
 
   override def removeAll(other: Platform): Platform =
@@ -73,7 +75,8 @@ case class Platform(
       jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
       nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
       nativeMode = if (nativeMode == other.nativeMode) None else nativeMode,
-      nativeGc = if (nativeGc == other.nativeGc) None else nativeGc
+      nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
+      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget
     )
 
   override def union(other: Platform): Platform =
@@ -92,13 +95,14 @@ case class Platform(
       jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
       nativeVersion = nativeVersion.orElse(other.nativeVersion),
       nativeMode = nativeMode.orElse(other.nativeMode),
-      nativeGc = nativeGc.orElse(other.nativeGc)
+      nativeGc = nativeGc.orElse(other.nativeGc),
+      nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget)
     )
 
   override def isEmpty: Boolean =
     name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
       jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty &&
-      nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty
+      nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty
 }
 
 object Platform {
@@ -118,7 +122,8 @@ object Platform {
         jvmRuntimeOptions = jvmRuntimeOptions,
         nativeVersion = None,
         nativeMode = None,
-        nativeGc = None
+        nativeGc = None,
+        nativeBuildTarget = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -154,7 +159,8 @@ object Platform {
         jvmRuntimeOptions = Options.empty,
         nativeVersion = None,
         nativeMode = None,
-        nativeGc = None
+        nativeGc = None,
+        nativeBuildTarget = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -180,7 +186,8 @@ object Platform {
         jvmRuntimeOptions = Options.empty,
         nativeVersion = Some(nativeVersion),
         nativeMode = nativeMode,
-        nativeGc = nativeGc
+        nativeGc = nativeGc,
+        nativeBuildTarget = None
       )
 
     def unapply(x: Platform): Option[Platform] =

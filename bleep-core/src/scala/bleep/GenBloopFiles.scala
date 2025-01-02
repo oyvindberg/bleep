@@ -248,7 +248,8 @@ object GenBloopFiles {
               linkStubs = empty.linkStubs,
               check = empty.check,
               dump = empty.dump,
-              output = empty.output
+              output = empty.output,
+              buildTarget = empty.buildTarget
             ),
             platform.mainClass
           )

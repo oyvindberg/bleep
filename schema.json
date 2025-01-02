@@ -284,6 +284,14 @@
             "release"
           ]
         },
+        "nativeBuildTarget": {
+          "type": "string",
+          "enum": [
+            "application",
+            "dynamic",
+            "static"
+          ]
+        },
         "nativeGc": {
           "type": "string"
         }
