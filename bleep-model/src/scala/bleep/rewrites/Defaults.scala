@@ -25,7 +25,8 @@ object Defaults {
       jvmOptions = model.Options(Set(model.Options.Opt.Flag(s"-Duser.dir=${model.Replacements.known.BuildDir}"))),
       jvmRuntimeOptions = model.Options.empty,
       nativeVersion = None,
-      nativeGc = None
+      nativeGc = None,
+      nativeBuildTarget = None
     )
 
   object remove extends BuildRewrite {
