@@ -125,6 +125,8 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
+    val isReleaseMode = Opts.flag("release", "force linking in release mode", "r").orFalse
+
     val updateAsScalaSteward = Opts
       .flag(
         "steward",
@@ -219,6 +221,11 @@ object Main {
           ),
           Opts.subcommand("compile", "compile projects")(
             (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(watch, projectNames) }
+          ),
+          Opts.subcommand("link", "link projects")(
+            (watch, projectNames, isReleaseMode).mapN { case (watch, projectNames, isReleaseMode) =>
+              commands.Link(watch, projectNames, isReleaseMode)
+            }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }

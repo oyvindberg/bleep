@@ -987,7 +987,6 @@ templates:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
-      jsMode: debug
       jsNodeVersion: 18.4.0
       jsVersion: 1.8.0
       name: js
