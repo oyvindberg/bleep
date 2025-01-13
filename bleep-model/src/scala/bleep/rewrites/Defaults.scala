@@ -26,7 +26,8 @@ object Defaults {
       jvmRuntimeOptions = model.Options.empty,
       nativeVersion = None,
       nativeGc = None,
-      nativeBuildTarget = None
+      nativeBuildTarget = None,
+      nativeLinkerReleaseMode = None
     )
 
   object remove extends BuildRewrite {

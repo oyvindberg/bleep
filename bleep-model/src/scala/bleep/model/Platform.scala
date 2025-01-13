@@ -24,7 +24,8 @@ case class Platform(
     //        resources: Option[List[Path]]
     nativeVersion: Option[VersionScalaNative],
     nativeGc: Option[String],
-    nativeBuildTarget: Option[NativeBuildTarget]
+    nativeBuildTarget: Option[NativeBuildTarget],
+    nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode]
 
     //      targetTriple: Option[String],
     //      clang: Path,
@@ -53,7 +54,8 @@ case class Platform(
       jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
       nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
       nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
-      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None
+      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None,
+      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) nativeLinkerReleaseMode else None
     )
 
   override def removeAll(other: Platform): Platform =
@@ -71,7 +73,8 @@ case class Platform(
       jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
       nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
       nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
-      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget
+      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget,
+      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) None else nativeLinkerReleaseMode
     )
 
   override def union(other: Platform): Platform =
@@ -89,7 +92,8 @@ case class Platform(
       jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
       nativeVersion = nativeVersion.orElse(other.nativeVersion),
       nativeGc = nativeGc.orElse(other.nativeGc),
-      nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget)
+      nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget),
+      nativeLinkerReleaseMode = nativeLinkerReleaseMode.orElse(other.nativeLinkerReleaseMode)
     )
 
   override def isEmpty: Boolean =
@@ -114,7 +118,8 @@ object Platform {
         jvmRuntimeOptions = jvmRuntimeOptions,
         nativeVersion = None,
         nativeGc = None,
-        nativeBuildTarget = None
+        nativeBuildTarget = None,
+        nativeLinkerReleaseMode = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -148,7 +153,8 @@ object Platform {
         jvmRuntimeOptions = Options.empty,
         nativeVersion = None,
         nativeGc = None,
-        nativeBuildTarget = None
+        nativeBuildTarget = None,
+        nativeLinkerReleaseMode = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -173,7 +179,8 @@ object Platform {
         jvmRuntimeOptions = Options.empty,
         nativeVersion = Some(nativeVersion),
         nativeGc = nativeGc,
-        nativeBuildTarget = None
+        nativeBuildTarget = None,
+        nativeLinkerReleaseMode = None
       )
 
     def unapply(x: Platform): Option[Platform] =

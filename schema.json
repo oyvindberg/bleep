@@ -274,8 +274,16 @@
           "type": "string",
           "enum": [
             "application",
-            "dynamic",
-            "static"
+            "libraryDynamic",
+            "libraryStatic"
+          ]
+        },
+        "nativeReleaseMode": {
+          "type": "string",
+          "enum": [
+            "release-fast",
+            "release-size",
+            "release-full"
           ]
         },
         "nativeGc": {

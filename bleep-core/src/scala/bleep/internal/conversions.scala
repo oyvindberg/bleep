@@ -4,6 +4,9 @@ import bleep.model
 import bloop.config.Config
 import bloop.config.Config.ModuleSplitStyleJS.{FewestModules, SmallModulesFor, SmallestModules}
 import bloop.config.Config.NativeBuildTarget.{Application, LibraryDynamic, LibraryStatic}
+import bloop.config.Config.NativeLinkerReleaseMode.ReleaseFast
+import bloop.config.Config.NativeLinkerReleaseMode.ReleaseFull
+import bloop.config.Config.NativeLinkerReleaseMode.ReleaseSize
 
 object conversions {
   trait Bijection[T1, T2] {
@@ -69,6 +72,24 @@ object conversions {
       case model.NativeBuildTarget.Application    => Config.NativeBuildTarget.Application
       case model.NativeBuildTarget.LibraryDynamic => Config.NativeBuildTarget.LibraryDynamic
       case model.NativeBuildTarget.LibraryStatic  => Config.NativeBuildTarget.LibraryStatic
+    }
+
+  }
+
+  object nativeLinkerReleaseMode extends Bijection[Config.NativeLinkerReleaseMode, model.NativeLinkerReleaseMode] {
+
+    override def to(t1: Config.NativeLinkerReleaseMode): model.NativeLinkerReleaseMode = t1 match {
+      case ReleaseFast => model.NativeLinkerReleaseMode.ReleaseFast
+      case ReleaseFull => model.NativeLinkerReleaseMode.ReleaseFull
+
+      case ReleaseSize => model.NativeLinkerReleaseMode.ReleaseSize
+
+    }
+
+    override def from(t2: model.NativeLinkerReleaseMode): Config.NativeLinkerReleaseMode = t2 match {
+      case model.NativeLinkerReleaseMode.ReleaseFast => Config.NativeLinkerReleaseMode.ReleaseFast
+      case model.NativeLinkerReleaseMode.ReleaseFull => Config.NativeLinkerReleaseMode.ReleaseFull
+      case model.NativeLinkerReleaseMode.ReleaseSize => Config.NativeLinkerReleaseMode.ReleaseSize
     }
 
   }
