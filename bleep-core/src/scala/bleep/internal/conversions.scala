@@ -7,6 +7,8 @@ import bloop.config.Config.NativeBuildTarget.{Application, LibraryDynamic, Libra
 import bloop.config.Config.NativeLinkerReleaseMode.ReleaseFast
 import bloop.config.Config.NativeLinkerReleaseMode.ReleaseFull
 import bloop.config.Config.NativeLinkerReleaseMode.ReleaseSize
+import bloop.config.Config.NativeLTO.Full
+import bloop.config.Config.NativeLTO.Thin
 
 object conversions {
   trait Bijection[T1, T2] {
@@ -90,6 +92,22 @@ object conversions {
       case model.NativeLinkerReleaseMode.ReleaseFast => Config.NativeLinkerReleaseMode.ReleaseFast
       case model.NativeLinkerReleaseMode.ReleaseFull => Config.NativeLinkerReleaseMode.ReleaseFull
       case model.NativeLinkerReleaseMode.ReleaseSize => Config.NativeLinkerReleaseMode.ReleaseSize
+    }
+
+  }
+
+  object nativeLTO extends Bijection[Config.NativeLTO, model.NativeLTO] {
+
+    override def to(t1: Config.NativeLTO): model.NativeLTO = t1 match {
+      case Full                  => model.NativeLTO.Full
+      case Config.NativeLTO.None => model.NativeLTO.None
+      case Thin                  => model.NativeLTO.Thin
+    }
+
+    override def from(t2: model.NativeLTO): Config.NativeLTO = t2 match {
+      case model.NativeLTO.Full => Config.NativeLTO.Full
+      case model.NativeLTO.None => Config.NativeLTO.None
+      case model.NativeLTO.Thin => Config.NativeLTO.Thin
     }
 
   }

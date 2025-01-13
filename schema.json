@@ -286,6 +286,14 @@
             "release-full"
           ]
         },
+        "nativeLTO": {
+          "type": "string",
+          "enum": [
+            "none",
+            "thin",
+            "full"
+          ]
+        },
         "nativeGc": {
           "type": "string"
         }

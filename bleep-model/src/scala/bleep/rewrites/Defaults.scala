@@ -27,7 +27,8 @@ object Defaults {
       nativeVersion = None,
       nativeGc = None,
       nativeBuildTarget = None,
-      nativeLinkerReleaseMode = None
+      nativeLinkerReleaseMode = None,
+      nativeLTO = None
     )
 
   object remove extends BuildRewrite {

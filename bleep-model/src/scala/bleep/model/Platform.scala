@@ -25,7 +25,8 @@ case class Platform(
     nativeVersion: Option[VersionScalaNative],
     nativeGc: Option[String],
     nativeBuildTarget: Option[NativeBuildTarget],
-    nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode]
+    nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode],
+    nativeLTO: Option[NativeLTO]
 
     //      targetTriple: Option[String],
     //      clang: Path,
@@ -55,7 +56,8 @@ case class Platform(
       nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
       nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None,
-      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) nativeLinkerReleaseMode else None
+      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) nativeLinkerReleaseMode else None,
+      nativeLTO = if (nativeLTO == other.nativeLTO) nativeLTO else None
     )
 
   override def removeAll(other: Platform): Platform =
@@ -74,7 +76,8 @@ case class Platform(
       nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
       nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget,
-      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) None else nativeLinkerReleaseMode
+      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) None else nativeLinkerReleaseMode,
+      nativeLTO = if (nativeLTO == other.nativeLTO) None else nativeLTO
     )
 
   override def union(other: Platform): Platform =
@@ -93,7 +96,8 @@ case class Platform(
       nativeVersion = nativeVersion.orElse(other.nativeVersion),
       nativeGc = nativeGc.orElse(other.nativeGc),
       nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget),
-      nativeLinkerReleaseMode = nativeLinkerReleaseMode.orElse(other.nativeLinkerReleaseMode)
+      nativeLinkerReleaseMode = nativeLinkerReleaseMode.orElse(other.nativeLinkerReleaseMode),
+      nativeLTO = nativeLTO.orElse(other.nativeLTO)
     )
 
   override def isEmpty: Boolean =
@@ -119,7 +123,8 @@ object Platform {
         nativeVersion = None,
         nativeGc = None,
         nativeBuildTarget = None,
-        nativeLinkerReleaseMode = None
+        nativeLinkerReleaseMode = None,
+        nativeLTO = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -154,7 +159,8 @@ object Platform {
         nativeVersion = None,
         nativeGc = None,
         nativeBuildTarget = None,
-        nativeLinkerReleaseMode = None
+        nativeLinkerReleaseMode = None,
+        nativeLTO = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -180,7 +186,8 @@ object Platform {
         nativeVersion = Some(nativeVersion),
         nativeGc = nativeGc,
         nativeBuildTarget = None,
-        nativeLinkerReleaseMode = None
+        nativeLinkerReleaseMode = None,
+        nativeLTO = None
       )
 
     def unapply(x: Platform): Option[Platform] =
