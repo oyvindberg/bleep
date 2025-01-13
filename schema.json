@@ -296,6 +296,9 @@
         },
         "nativeGc": {
           "type": "string"
+        },
+        "nativeMultithreading": {
+          "type": "boolean"
         }
       },
       "dependencies": {

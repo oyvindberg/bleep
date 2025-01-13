@@ -28,7 +28,8 @@ object Defaults {
       nativeGc = None,
       nativeBuildTarget = None,
       nativeLinkerReleaseMode = None,
-      nativeLTO = None
+      nativeLTO = None,
+      nativeMultithreading = None
     )
 
   object remove extends BuildRewrite {

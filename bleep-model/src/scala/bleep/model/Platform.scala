@@ -26,7 +26,8 @@ case class Platform(
     nativeGc: Option[String],
     nativeBuildTarget: Option[NativeBuildTarget],
     nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode],
-    nativeLTO: Option[NativeLTO]
+    nativeLTO: Option[NativeLTO],
+    nativeMultithreading: Option[Boolean]
 
     //      targetTriple: Option[String],
     //      clang: Path,
@@ -57,7 +58,8 @@ case class Platform(
       nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None,
       nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) nativeLinkerReleaseMode else None,
-      nativeLTO = if (nativeLTO == other.nativeLTO) nativeLTO else None
+      nativeLTO = if (nativeLTO == other.nativeLTO) nativeLTO else None,
+      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) nativeMultithreading else None
     )
 
   override def removeAll(other: Platform): Platform =
@@ -77,7 +79,8 @@ case class Platform(
       nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget,
       nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) None else nativeLinkerReleaseMode,
-      nativeLTO = if (nativeLTO == other.nativeLTO) None else nativeLTO
+      nativeLTO = if (nativeLTO == other.nativeLTO) None else nativeLTO,
+      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) None else nativeMultithreading
     )
 
   override def union(other: Platform): Platform =
@@ -97,7 +100,8 @@ case class Platform(
       nativeGc = nativeGc.orElse(other.nativeGc),
       nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget),
       nativeLinkerReleaseMode = nativeLinkerReleaseMode.orElse(other.nativeLinkerReleaseMode),
-      nativeLTO = nativeLTO.orElse(other.nativeLTO)
+      nativeLTO = nativeLTO.orElse(other.nativeLTO),
+      nativeMultithreading = nativeMultithreading.orElse(other.nativeMultithreading)
     )
 
   override def isEmpty: Boolean =
@@ -124,7 +128,8 @@ object Platform {
         nativeGc = None,
         nativeBuildTarget = None,
         nativeLinkerReleaseMode = None,
-        nativeLTO = None
+        nativeLTO = None,
+        nativeMultithreading = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -160,7 +165,8 @@ object Platform {
         nativeGc = None,
         nativeBuildTarget = None,
         nativeLinkerReleaseMode = None,
-        nativeLTO = None
+        nativeLTO = None,
+        nativeMultithreading = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -187,7 +193,8 @@ object Platform {
         nativeGc = nativeGc,
         nativeBuildTarget = None,
         nativeLinkerReleaseMode = None,
-        nativeLTO = None
+        nativeLTO = None,
+        nativeMultithreading = None
       )
 
     def unapply(x: Platform): Option[Platform] =

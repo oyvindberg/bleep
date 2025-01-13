@@ -235,6 +235,11 @@ object GenBloopFiles {
           )
         case model.Platform.Native(platform @ _) =>
           val empty = Config.NativeConfig.empty
+          val nativeModeAndLTO = Config.NativeModeAndLTO.empty.copy(
+            nativeLinkerReleaseMode = platform.nativeLinkerReleaseMode.map(conversions.nativeLinkerReleaseMode.from),
+            lto = platform.nativeLTO.map(conversions.nativeLTO.from)
+          )
+          val nativeFlags = Config.NativeFlags.empty.copy(multithreading = platform.nativeMultithreading)
           Config.Platform.Native(
             config = Config.NativeConfig(
               version = require(platform.nativeVersion, "version").scalaNativeVersion,
@@ -249,7 +254,9 @@ object GenBloopFiles {
               check = empty.check,
               dump = empty.dump,
               output = empty.output,
-              buildTarget = empty.buildTarget
+              buildTarget = platform.nativeBuildTarget.map(conversions.nativeBuildTarget.from),
+              nativeModeAndLTO = nativeModeAndLTO,
+              nativeFlags = nativeFlags
             ),
             platform.mainClass
           )
