@@ -23,7 +23,15 @@ jvm:
   name: graalvm-java17:22.2.0
 ```
 
-If you don't, Bleep will fallback to what is discovered through `JAVA_HOME`.
+If you don't, Bleep will fallback to what is discovered through `JAVA_HOME`. Bleep will issue a warning when the JVM is managed externally.
+To disable this warning you can use the managed value for the name key.
+
+```yaml
+jvm:
+  name: managed
+```
+
+This is useful for projects that use other ways of managing the build environment.
 
 ## Bleep manages Node
 

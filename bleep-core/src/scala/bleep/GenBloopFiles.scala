@@ -211,7 +211,7 @@ object GenBloopFiles {
           Config.Platform.Js(
             Config.JsConfig(
               version = require(platform.jsVersion, "version").scalaJsVersion,
-              mode = platform.jsMode.fold(Config.JsConfig.empty.mode)(conversions.linkerMode.from),
+              mode = Config.LinkerMode.Debug,
               kind = platform.jsKind.fold(Config.JsConfig.empty.kind)(conversions.moduleKindJS.from),
               emitSourceMaps = platform.jsEmitSourceMaps.getOrElse(Config.JsConfig.empty.emitSourceMaps),
               jsdom = platform.jsJsdom,
@@ -238,7 +238,7 @@ object GenBloopFiles {
           Config.Platform.Native(
             config = Config.NativeConfig(
               version = require(platform.nativeVersion, "version").scalaNativeVersion,
-              mode = require(platform.nativeMode.map(conversions.linkerMode.from), "nativeMode"),
+              mode = Config.LinkerMode.Debug,
               gc = require(platform.nativeGc, "nativeGc"),
               targetTriple = empty.targetTriple,
               clang = empty.clang,
@@ -248,7 +248,8 @@ object GenBloopFiles {
               linkStubs = empty.linkStubs,
               check = empty.check,
               dump = empty.dump,
-              output = empty.output
+              output = empty.output,
+              buildTarget = empty.buildTarget
             ),
             platform.mainClass
           )

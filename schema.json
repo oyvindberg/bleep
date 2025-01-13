@@ -218,13 +218,6 @@
         "jsVersion": {
           "type": "string"
         },
-        "jsMode": {
-          "type": "string",
-          "enum": [
-            "debug",
-            "release"
-          ]
-        },
         "jsKind": {
           "type": "string",
           "enum": [
@@ -277,11 +270,12 @@
         "nativeVersion": {
           "type": "string"
         },
-        "nativeMode": {
+        "nativeBuildTarget": {
           "type": "string",
           "enum": [
-            "debug",
-            "release"
+            "application",
+            "dynamic",
+            "static"
           ]
         },
         "nativeGc": {

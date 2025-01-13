@@ -294,7 +294,6 @@ templates:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
-      jsMode: debug
       jsNodeVersion: 18.4.0
       jsVersion: 1.8.0
       name: js
@@ -313,7 +312,6 @@ templates:
     platform:
       name: native
       nativeGc: ''
-      nativeMode: debug
       nativeVersion: 0.4.5
     resources:
     - ./js-${PLATFORM}/src/${SCOPE}/resources

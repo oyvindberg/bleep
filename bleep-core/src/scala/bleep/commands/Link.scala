@@ -6,11 +6,8 @@ import bleep.internal.{DoSourceGen, TransitiveProjects}
 import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import scala.jdk.CollectionConverters.*
-import bleep.model.LinkerMode
-import bleep.model.LinkerMode.Debug
-import bleep.model.LinkerMode.Release
 
-case class Link(watch: Boolean, projects: Array[model.CrossProjectName], linkerMode: Option[LinkerMode])
+case class Link(watch: Boolean, projects: Array[model.CrossProjectName], isRelaseMode: Boolean)
     extends BleepCommandRemote(watch)
     with BleepCommandRemote.OnlyChanged {
 
@@ -27,12 +24,7 @@ case class Link(watch: Boolean, projects: Array[model.CrossProjectName], linkerM
       val compileParams = new bsp4j.CompileParams(targets)
       compileParams.setArguments(List("--link").asJava)
 
-      linkerMode.foreach(_ match {
-        case Debug =>
-          compileParams.setArguments(List("--link", "--debug").asJava)
-        case Release =>
-          compileParams.setArguments(List("--link", "--release").asJava)
-      })
+      if (isRelaseMode) compileParams.setArguments(List("--link", "--release").asJava)
 
       val result = bloop.buildTargetCompile(compileParams).get()
 
