@@ -274,11 +274,11 @@
           "type": "string",
           "enum": [
             "application",
-            "libraryDynamic",
-            "libraryStatic"
+            "library-dynamic",
+            "library-static"
           ]
         },
-        "nativeReleaseMode": {
+        "nativeLinkerReleaseMode": {
           "type": "string",
           "enum": [
             "release-fast",

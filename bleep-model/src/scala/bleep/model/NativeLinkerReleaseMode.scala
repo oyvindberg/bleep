@@ -8,21 +8,19 @@ object NativeLinkerReleaseMode {
   case object ReleaseSize extends NativeLinkerReleaseMode("release-size")
   case object ReleaseFull extends NativeLinkerReleaseMode("release-full")
 
-  val All: List[String] =
-    List(ReleaseFast.id, ReleaseSize.id, ReleaseFull.id)
+  val All: List[NativeLinkerReleaseMode] =
+    List(ReleaseFast, ReleaseSize, ReleaseFull)
 
-  implicit val encodeNativeLinkerReleaseMode: Encoder[NativeLinkerReleaseMode] = Encoder.instance {
-    case NativeLinkerReleaseMode.ReleaseFast => Json.obj(("nativeReleaseMode", Json.fromString("release-fast")))
-    case NativeLinkerReleaseMode.ReleaseSize => Json.obj(("nativeReleaseMode", Json.fromString("release-size")))
-    case NativeLinkerReleaseMode.ReleaseFull => Json.obj(("nativeReleaseMode", Json.fromString("release-full")))
+  val AllMap: Map[String, NativeLinkerReleaseMode] =
+    All.map(x => x.id -> x).toMap
+
+  implicit val encodeNativeLinkerReleaseMode: Encoder[NativeLinkerReleaseMode] = Encoder.instance { x =>
+    Json.obj(("nativeLinkerReleaseMode", Json.fromString(x.id)))
   }
 
   implicit val decodeNativeLinkerReleaseMode: Decoder[NativeLinkerReleaseMode] = Decoder.instance { h =>
-    h.get[String]("nativeBuildTarget").flatMap {
-      case "release-fast" => Right(NativeLinkerReleaseMode.ReleaseFast)
-      case "release-size" => Right(NativeLinkerReleaseMode.ReleaseSize)
-      case "release-full" => Right(NativeLinkerReleaseMode.ReleaseFull)
-      case _              => Left(DecodingFailure("NativeLinkerReleaseMode", h.history))
+    h.get[String]("nativeLinkerReleaseMode").flatMap { s =>
+      AllMap.get(s).toRight(DecodingFailure("NativeLinkerReleaseMode", h.history))
     }
   }
 }

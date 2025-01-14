@@ -8,21 +8,19 @@ object NativeLTO {
   case object Thin extends NativeLTO("thin")
   case object Full extends NativeLTO("full")
 
-  val All: List[String] =
-    List(None.id, Thin.id, Full.id)
+  val All: List[NativeLTO] =
+    List(None, Thin, Full)
 
-  implicit val encodeNativeLTO: Encoder[NativeLTO] = Encoder.instance {
-    case NativeLTO.None => Json.obj(("nativeLTO", Json.fromString("none")))
-    case NativeLTO.Thin => Json.obj(("nativeLTO", Json.fromString("thin")))
-    case NativeLTO.Full => Json.obj(("nativeLTO", Json.fromString("full")))
+  val AllMap: Map[String, NativeLTO] =
+    All.map(x => x.id -> x).toMap
+
+  implicit val encodeNativeLTO: Encoder[NativeLTO] = Encoder.instance { x =>
+    Json.obj(("nativeLTO", Json.fromString(x.id)))
   }
 
   implicit val decodeNativeLTO: Decoder[NativeLTO] = Decoder.instance { h =>
-    h.get[String]("nativeBuildTarget").flatMap {
-      case "none" => Right(NativeLTO.None)
-      case "thin" => Right(NativeLTO.Thin)
-      case "full" => Right(NativeLTO.Full)
-      case _      => Left(DecodingFailure("NativeLTO", h.history))
+    h.get[String]("nativeLTO").flatMap { s =>
+      AllMap.get(s).toRight(DecodingFailure("NativeLTO", h.history))
     }
   }
 }
