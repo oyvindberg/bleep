@@ -299,6 +299,15 @@
         },
         "nativeMultithreading": {
           "type": "boolean"
+        },
+        "nativeOptimize": {
+          "type": "boolean"
+        },
+        "nativeEmbedResources": {
+          "type": "boolean"
+        },
+        "nativeUseIncrementalCompilation": {
+          "type": "boolean"
         }
       },
       "dependencies": {

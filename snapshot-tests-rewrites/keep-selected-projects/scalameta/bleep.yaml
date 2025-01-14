@@ -311,7 +311,10 @@ templates:
   template-native:
     platform:
       name: native
+      nativeEmbedResources: false
       nativeGc: ''
+      nativeOptimize: true
+      nativeUseIncrementalCompilation: true
       nativeVersion: 0.4.5
     resources:
     - ./js-${PLATFORM}/src/${SCOPE}/resources

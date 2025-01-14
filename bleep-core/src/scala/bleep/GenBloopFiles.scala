@@ -239,7 +239,12 @@ object GenBloopFiles {
             nativeLinkerReleaseMode = platform.nativeLinkerReleaseMode.map(conversions.nativeLinkerReleaseMode.from),
             lto = platform.nativeLTO.map(conversions.nativeLTO.from)
           )
-          val nativeFlags = Config.NativeFlags.empty.copy(multithreading = platform.nativeMultithreading)
+          val nativeFlags = Config.NativeFlags.empty.copy(
+            multithreading = platform.nativeMultithreading,
+            optimize = platform.nativeOptimize.getOrElse(true),
+            useIncrementalCompilation = platform.nativeUseIncrementalCompilation.getOrElse(true),
+            embedResources = platform.nativeEmbedResources.getOrElse(false)
+          )
           Config.Platform.Native(
             config = Config.NativeConfig(
               version = require(platform.nativeVersion, "version").scalaNativeVersion,

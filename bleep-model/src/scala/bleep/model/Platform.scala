@@ -27,7 +27,10 @@ case class Platform(
     nativeBuildTarget: Option[NativeBuildTarget],
     nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode],
     nativeLTO: Option[NativeLTO],
-    nativeMultithreading: Option[Boolean]
+    nativeMultithreading: Option[Boolean],
+    nativeOptimize: Option[Boolean],
+    nativeEmbedResources: Option[Boolean],
+    nativeUseIncrementalCompilation: Option[Boolean]
 
     //      targetTriple: Option[String],
     //      clang: Path,
@@ -59,7 +62,10 @@ case class Platform(
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None,
       nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) nativeLinkerReleaseMode else None,
       nativeLTO = if (nativeLTO == other.nativeLTO) nativeLTO else None,
-      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) nativeMultithreading else None
+      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) nativeMultithreading else None,
+      nativeOptimize = if (nativeOptimize == other.nativeOptimize) nativeOptimize else None,
+      nativeEmbedResources = if (nativeEmbedResources == other.nativeEmbedResources) nativeEmbedResources else None,
+      nativeUseIncrementalCompilation = if (nativeUseIncrementalCompilation == other.nativeUseIncrementalCompilation) nativeUseIncrementalCompilation else None
     )
 
   override def removeAll(other: Platform): Platform =
@@ -80,7 +86,10 @@ case class Platform(
       nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget,
       nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) None else nativeLinkerReleaseMode,
       nativeLTO = if (nativeLTO == other.nativeLTO) None else nativeLTO,
-      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) None else nativeMultithreading
+      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) None else nativeMultithreading,
+      nativeOptimize = if (nativeOptimize == other.nativeOptimize) None else nativeOptimize,
+      nativeEmbedResources = if (nativeEmbedResources == other.nativeEmbedResources) None else nativeEmbedResources,
+      nativeUseIncrementalCompilation = if (nativeUseIncrementalCompilation == other.nativeUseIncrementalCompilation) None else nativeUseIncrementalCompilation
     )
 
   override def union(other: Platform): Platform =
@@ -101,13 +110,16 @@ case class Platform(
       nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget),
       nativeLinkerReleaseMode = nativeLinkerReleaseMode.orElse(other.nativeLinkerReleaseMode),
       nativeLTO = nativeLTO.orElse(other.nativeLTO),
-      nativeMultithreading = nativeMultithreading.orElse(other.nativeMultithreading)
+      nativeMultithreading = nativeMultithreading.orElse(other.nativeMultithreading),
+      nativeOptimize = nativeOptimize.orElse(other.nativeOptimize),
+      nativeEmbedResources = nativeEmbedResources.orElse(other.nativeEmbedResources),
+      nativeUseIncrementalCompilation = nativeUseIncrementalCompilation.orElse(other.nativeUseIncrementalCompilation)
     )
 
   override def isEmpty: Boolean =
     name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
       jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty &&
-      nativeVersion.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty
+      nativeVersion.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty && nativeLinkerReleaseMode.isEmpty && nativeLTO.isEmpty && nativeMultithreading.isEmpty && nativeOptimize.isEmpty && nativeEmbedResources.isEmpty && nativeUseIncrementalCompilation.isEmpty
 }
 
 object Platform {
@@ -129,7 +141,10 @@ object Platform {
         nativeBuildTarget = None,
         nativeLinkerReleaseMode = None,
         nativeLTO = None,
-        nativeMultithreading = None
+        nativeMultithreading = None,
+        nativeOptimize = None,
+        nativeEmbedResources = None,
+        nativeUseIncrementalCompilation = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -166,7 +181,10 @@ object Platform {
         nativeBuildTarget = None,
         nativeLinkerReleaseMode = None,
         nativeLTO = None,
-        nativeMultithreading = None
+        nativeMultithreading = None,
+        nativeOptimize = None,
+        nativeEmbedResources = None,
+        nativeUseIncrementalCompilation = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -177,7 +195,18 @@ object Platform {
   }
 
   object Native {
-    def apply(nativeVersion: VersionScalaNative, nativeGc: Option[String], nativeMainClass: Option[String]) =
+    def apply(
+        nativeVersion: VersionScalaNative,
+        nativeGc: Option[String],
+        nativeMainClass: Option[String],
+        nativeBuildTarget: Option[NativeBuildTarget],
+        nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode],
+        nativeLTO: Option[NativeLTO],
+        nativeMultithreading: Option[Boolean],
+        nativeOptimize: Option[Boolean],
+        nativeEmbedResources: Option[Boolean],
+        nativeUseIncrementalCompilation: Option[Boolean]
+    ) =
       new Platform(
         name = Some(PlatformId.Native),
         mainClass = nativeMainClass,
@@ -191,10 +220,13 @@ object Platform {
         jvmRuntimeOptions = Options.empty,
         nativeVersion = Some(nativeVersion),
         nativeGc = nativeGc,
-        nativeBuildTarget = None,
-        nativeLinkerReleaseMode = None,
-        nativeLTO = None,
-        nativeMultithreading = None
+        nativeBuildTarget = nativeBuildTarget,
+        nativeLinkerReleaseMode = nativeLinkerReleaseMode,
+        nativeLTO = nativeLTO,
+        nativeMultithreading = nativeMultithreading,
+        nativeOptimize = nativeOptimize,
+        nativeEmbedResources = nativeEmbedResources,
+        nativeUseIncrementalCompilation = nativeUseIncrementalCompilation
       )
 
     def unapply(x: Platform): Option[Platform] =

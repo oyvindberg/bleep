@@ -29,7 +29,10 @@ object Defaults {
       nativeBuildTarget = None,
       nativeLinkerReleaseMode = None,
       nativeLTO = None,
-      nativeMultithreading = None
+      nativeMultithreading = None,
+      nativeOptimize = None,
+      nativeEmbedResources = None,
+      nativeUseIncrementalCompilation = None
     )
 
   object remove extends BuildRewrite {
