@@ -494,7 +494,6 @@ object buildFromBloopFiles {
 
         val translatedPlatform = model.Platform.Js(
           jsVersion = jsVersion,
-          jsMode = Some(conversions.linkerMode.to(config.mode)),
           jsKind = Some(conversions.moduleKindJS.to(config.kind)),
           jsSplitStyle = config.moduleSplitStyle.map(conversions.moduleSplitStyleJS.to),
           jsEmitSourceMaps = Some(config.emitSourceMaps),
@@ -521,9 +520,15 @@ object buildFromBloopFiles {
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
           nativeVersion = model.VersionScalaNative(config.version),
-          nativeMode = Some(conversions.linkerMode.to(config.mode)),
           nativeGc = Some(config.gc),
-          nativeMainClass = mainClass
+          nativeMainClass = mainClass,
+          nativeBuildTarget = config.buildTarget.map(conversions.nativeBuildTarget.to),
+          nativeLinkerReleaseMode = config.nativeModeAndLTO.nativeLinkerReleaseMode.map(conversions.nativeLinkerReleaseMode.to),
+          nativeLTO = config.nativeModeAndLTO.lto.map(conversions.nativeLTO.to),
+          nativeMultithreading = config.nativeFlags.multithreading,
+          nativeOptimize = Some(config.nativeFlags.optimize),
+          nativeEmbedResources = Some(config.nativeFlags.embedResources),
+          nativeUseIncrementalCompilation = Some(config.nativeFlags.useIncrementalCompilation)
         )
         translatedPlatform
     }

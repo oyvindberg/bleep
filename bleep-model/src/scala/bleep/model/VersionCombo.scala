@@ -26,7 +26,7 @@ sealed trait VersionCombo {
 
       case VersionCombo.Native(scalaVersion, scalaNative) =>
         val testLibs = if (isTest) Some(scalaNative.testInterface) else None
-        val libs = if (scalaVersion.is3) scalaNative.scala3Lib else scalaNative.scalaLib
+        val libs = if (scalaVersion.is3) scalaNative.scala3Lib(scalaVersion.scalaVersion) else scalaNative.scalaLib
         List(libs, scalaVersion.library) ++ testLibs.toList
     }
 

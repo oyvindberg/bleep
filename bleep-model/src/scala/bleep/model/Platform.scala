@@ -7,7 +7,6 @@ case class Platform(
     name: Option[PlatformId],
     mainClass: Option[String],
     jsVersion: Option[VersionScalaJs],
-    jsMode: Option[LinkerMode],
     jsKind: Option[ModuleKindJS],
     jsSplitStyle: Option[ModuleSplitStyleJS],
     jsEmitSourceMaps: Option[Boolean],
@@ -24,9 +23,15 @@ case class Platform(
     //        classpath: Option[List[Path]],
     //        resources: Option[List[Path]]
     nativeVersion: Option[VersionScalaNative],
-    nativeMode: Option[LinkerMode],
     nativeGc: Option[String],
-    nativeBuildTarget: Option[NativeBuildTarget]
+    nativeBuildTarget: Option[NativeBuildTarget],
+    nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode],
+    nativeLTO: Option[NativeLTO],
+    nativeMultithreading: Option[Boolean],
+    nativeOptimize: Option[Boolean],
+    nativeEmbedResources: Option[Boolean],
+    nativeUseIncrementalCompilation: Option[Boolean]
+
     //      targetTriple: Option[String],
     //      clang: Path,
     //      clangpp: Path,
@@ -44,7 +49,6 @@ case class Platform(
       name = if (name == other.name) name else None,
       mainClass = if (mainClass == other.mainClass) mainClass else None,
       jsVersion = if (jsVersion == other.jsVersion) jsVersion else None,
-      jsMode = if (jsMode == other.jsMode) jsMode else None,
       jsKind = if (jsKind == other.jsKind) jsKind else None,
       jsSplitStyle = if (jsSplitStyle == other.jsSplitStyle) jsSplitStyle else None,
       jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) jsEmitSourceMaps else None,
@@ -54,9 +58,14 @@ case class Platform(
       jvmOptions = jvmOptions.intersect(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.intersect(other.jvmRuntimeOptions),
       nativeVersion = if (nativeVersion == other.nativeVersion) nativeVersion else None,
-      nativeMode = if (nativeMode == other.nativeMode) nativeMode else None,
       nativeGc = if (nativeGc == other.nativeGc) nativeGc else None,
-      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None
+      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) nativeBuildTarget else None,
+      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) nativeLinkerReleaseMode else None,
+      nativeLTO = if (nativeLTO == other.nativeLTO) nativeLTO else None,
+      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) nativeMultithreading else None,
+      nativeOptimize = if (nativeOptimize == other.nativeOptimize) nativeOptimize else None,
+      nativeEmbedResources = if (nativeEmbedResources == other.nativeEmbedResources) nativeEmbedResources else None,
+      nativeUseIncrementalCompilation = if (nativeUseIncrementalCompilation == other.nativeUseIncrementalCompilation) nativeUseIncrementalCompilation else None
     )
 
   override def removeAll(other: Platform): Platform =
@@ -64,7 +73,6 @@ case class Platform(
       name = if (name == other.name) None else name,
       mainClass = if (mainClass == other.mainClass) None else mainClass,
       jsVersion = if (jsVersion == other.jsVersion) None else jsVersion,
-      jsMode = if (jsMode == other.jsMode) None else jsMode,
       jsKind = if (jsKind == other.jsKind) None else jsKind,
       jsSplitStyle = if (jsSplitStyle == other.jsSplitStyle) None else jsSplitStyle,
       jsEmitSourceMaps = if (jsEmitSourceMaps == other.jsEmitSourceMaps) None else jsEmitSourceMaps,
@@ -74,9 +82,14 @@ case class Platform(
       jvmOptions = jvmOptions.removeAll(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.removeAll(other.jvmRuntimeOptions),
       nativeVersion = if (nativeVersion == other.nativeVersion) None else nativeVersion,
-      nativeMode = if (nativeMode == other.nativeMode) None else nativeMode,
       nativeGc = if (nativeGc == other.nativeGc) None else nativeGc,
-      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget
+      nativeBuildTarget = if (nativeBuildTarget == other.nativeBuildTarget) None else nativeBuildTarget,
+      nativeLinkerReleaseMode = if (nativeLinkerReleaseMode == other.nativeLinkerReleaseMode) None else nativeLinkerReleaseMode,
+      nativeLTO = if (nativeLTO == other.nativeLTO) None else nativeLTO,
+      nativeMultithreading = if (nativeMultithreading == other.nativeMultithreading) None else nativeMultithreading,
+      nativeOptimize = if (nativeOptimize == other.nativeOptimize) None else nativeOptimize,
+      nativeEmbedResources = if (nativeEmbedResources == other.nativeEmbedResources) None else nativeEmbedResources,
+      nativeUseIncrementalCompilation = if (nativeUseIncrementalCompilation == other.nativeUseIncrementalCompilation) None else nativeUseIncrementalCompilation
     )
 
   override def union(other: Platform): Platform =
@@ -84,7 +97,6 @@ case class Platform(
       name = name.orElse(other.name),
       mainClass = mainClass.orElse(other.mainClass),
       jsVersion = jsVersion.orElse(other.jsVersion),
-      jsMode = jsMode.orElse(other.jsMode),
       jsKind = jsKind.orElse(other.jsKind),
       jsSplitStyle = jsSplitStyle.orElse(other.jsSplitStyle),
       jsEmitSourceMaps = jsEmitSourceMaps.orElse(other.jsEmitSourceMaps),
@@ -94,15 +106,20 @@ case class Platform(
       jvmOptions = jvmOptions.union(other.jvmOptions),
       jvmRuntimeOptions = jvmRuntimeOptions.union(other.jvmRuntimeOptions),
       nativeVersion = nativeVersion.orElse(other.nativeVersion),
-      nativeMode = nativeMode.orElse(other.nativeMode),
       nativeGc = nativeGc.orElse(other.nativeGc),
-      nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget)
+      nativeBuildTarget = nativeBuildTarget.orElse(other.nativeBuildTarget),
+      nativeLinkerReleaseMode = nativeLinkerReleaseMode.orElse(other.nativeLinkerReleaseMode),
+      nativeLTO = nativeLTO.orElse(other.nativeLTO),
+      nativeMultithreading = nativeMultithreading.orElse(other.nativeMultithreading),
+      nativeOptimize = nativeOptimize.orElse(other.nativeOptimize),
+      nativeEmbedResources = nativeEmbedResources.orElse(other.nativeEmbedResources),
+      nativeUseIncrementalCompilation = nativeUseIncrementalCompilation.orElse(other.nativeUseIncrementalCompilation)
     )
 
   override def isEmpty: Boolean =
-    name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsMode.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
+    name.isEmpty && mainClass.isEmpty && jsVersion.isEmpty && jsKind.isEmpty && jsEmitSourceMaps.isEmpty && jsJsdom.isEmpty && jsNodeVersion.isEmpty &&
       jvmOptions.isEmpty && jvmRuntimeOptions.isEmpty &&
-      nativeVersion.isEmpty && nativeMode.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty
+      nativeVersion.isEmpty && nativeGc.isEmpty && nativeBuildTarget.isEmpty && nativeLinkerReleaseMode.isEmpty && nativeLTO.isEmpty && nativeMultithreading.isEmpty && nativeOptimize.isEmpty && nativeEmbedResources.isEmpty && nativeUseIncrementalCompilation.isEmpty
 }
 
 object Platform {
@@ -112,7 +129,6 @@ object Platform {
         name = Some(PlatformId.Jvm),
         mainClass = jvmMainClass,
         jsVersion = None,
-        jsMode = None,
         jsKind = None,
         jsSplitStyle = None,
         jsEmitSourceMaps = None,
@@ -121,9 +137,14 @@ object Platform {
         jvmOptions = jvmOptions,
         jvmRuntimeOptions = jvmRuntimeOptions,
         nativeVersion = None,
-        nativeMode = None,
         nativeGc = None,
-        nativeBuildTarget = None
+        nativeBuildTarget = None,
+        nativeLinkerReleaseMode = None,
+        nativeLTO = None,
+        nativeMultithreading = None,
+        nativeOptimize = None,
+        nativeEmbedResources = None,
+        nativeUseIncrementalCompilation = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -137,7 +158,6 @@ object Platform {
   object Js {
     def apply(
         jsVersion: VersionScalaJs,
-        jsMode: Option[LinkerMode],
         jsKind: Option[ModuleKindJS],
         jsSplitStyle: Option[ModuleSplitStyleJS],
         jsEmitSourceMaps: Option[Boolean],
@@ -149,7 +169,6 @@ object Platform {
         name = Some(PlatformId.Js),
         mainClass = jsMainClass,
         jsVersion = Some(jsVersion),
-        jsMode = jsMode,
         jsKind = jsKind,
         jsSplitStyle = jsSplitStyle,
         jsEmitSourceMaps = jsEmitSourceMaps,
@@ -158,9 +177,14 @@ object Platform {
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
         nativeVersion = None,
-        nativeMode = None,
         nativeGc = None,
-        nativeBuildTarget = None
+        nativeBuildTarget = None,
+        nativeLinkerReleaseMode = None,
+        nativeLTO = None,
+        nativeMultithreading = None,
+        nativeOptimize = None,
+        nativeEmbedResources = None,
+        nativeUseIncrementalCompilation = None
       )
 
     def unapply(x: Platform): Option[Platform] =
@@ -171,12 +195,22 @@ object Platform {
   }
 
   object Native {
-    def apply(nativeVersion: VersionScalaNative, nativeMode: Option[LinkerMode], nativeGc: Option[String], nativeMainClass: Option[String]) =
+    def apply(
+        nativeVersion: VersionScalaNative,
+        nativeGc: Option[String],
+        nativeMainClass: Option[String],
+        nativeBuildTarget: Option[NativeBuildTarget],
+        nativeLinkerReleaseMode: Option[NativeLinkerReleaseMode],
+        nativeLTO: Option[NativeLTO],
+        nativeMultithreading: Option[Boolean],
+        nativeOptimize: Option[Boolean],
+        nativeEmbedResources: Option[Boolean],
+        nativeUseIncrementalCompilation: Option[Boolean]
+    ) =
       new Platform(
         name = Some(PlatformId.Native),
         mainClass = nativeMainClass,
         jsVersion = None,
-        jsMode = None,
         jsKind = None,
         jsSplitStyle = None,
         jsEmitSourceMaps = None,
@@ -185,9 +219,14 @@ object Platform {
         jvmOptions = Options.empty,
         jvmRuntimeOptions = Options.empty,
         nativeVersion = Some(nativeVersion),
-        nativeMode = nativeMode,
         nativeGc = nativeGc,
-        nativeBuildTarget = None
+        nativeBuildTarget = nativeBuildTarget,
+        nativeLinkerReleaseMode = nativeLinkerReleaseMode,
+        nativeLTO = nativeLTO,
+        nativeMultithreading = nativeMultithreading,
+        nativeOptimize = nativeOptimize,
+        nativeEmbedResources = nativeEmbedResources,
+        nativeUseIncrementalCompilation = nativeUseIncrementalCompilation
       )
 
     def unapply(x: Platform): Option[Platform] =

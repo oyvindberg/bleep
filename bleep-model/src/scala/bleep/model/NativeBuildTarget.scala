@@ -5,24 +5,22 @@ import io.circe.*
 sealed abstract class NativeBuildTarget(val id: String)
 object NativeBuildTarget {
   case object Application extends NativeBuildTarget("application")
-  case object LibraryDynamic extends NativeBuildTarget("dynamic")
-  case object LibraryStatic extends NativeBuildTarget("static")
+  case object LibraryDynamic extends NativeBuildTarget("library-dynamic")
+  case object LibraryStatic extends NativeBuildTarget("library-static")
 
-  val All: List[String] =
-    List(Application.id, LibraryDynamic.id, LibraryStatic.id)
+  val All: List[NativeBuildTarget] =
+    List(Application, LibraryDynamic, LibraryStatic)
 
-  implicit val encodeNativeBuildTarget: Encoder[NativeBuildTarget] = Encoder.instance {
-    case NativeBuildTarget.Application    => Json.obj(("nativeBuildTarget", Json.fromString("application")))
-    case NativeBuildTarget.LibraryDynamic => Json.obj(("nativeBuildTarget", Json.fromString("dynamic")))
-    case NativeBuildTarget.LibraryStatic  => Json.obj(("nativeBuildTarget", Json.fromString("static")))
+  val AllMap: Map[String, NativeBuildTarget] =
+    All.map(x => x.id -> x).toMap
+
+  implicit val encodeNativeBuildTarget: Encoder[NativeBuildTarget] = Encoder.instance { x =>
+    Json.obj(("nativeBuildTarget", Json.fromString(x.id)))
   }
 
   implicit val decodeNativeBuildTarget: Decoder[NativeBuildTarget] = Decoder.instance { h =>
-    h.get[String]("nativeBuildTarget").flatMap {
-      case "application" => Right(NativeBuildTarget.Application)
-      case "dynamic"     => Right(NativeBuildTarget.LibraryDynamic)
-      case "static"      => Right(NativeBuildTarget.LibraryStatic)
-      case _             => Left(DecodingFailure("NativeBuildTarget", h.history))
+    h.get[String]("nativeBuildTarget").flatMap { s =>
+      AllMap.get(s).toRight(DecodingFailure("NativeBuildTarget", h.history))
     }
   }
 }

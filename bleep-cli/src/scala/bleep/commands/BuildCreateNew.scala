@@ -155,9 +155,10 @@ object BuildCreateNew {
                 model.Platform.Jvm(model.Options.empty, jvmMainClass = Some(exampleFiles.main.cls), jvmRuntimeOptions = model.Options.empty)
               case model.PlatformId.Js =>
                 model.Platform
-                  .Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
+                  .Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
               case model.PlatformId.Native =>
-                model.Platform.Native(model.VersionScalaNative.ScalaNative04, Some(model.LinkerMode.Debug), Some("immix"), Some(exampleFiles.main.cls))
+                model.Platform
+                  .Native(model.VersionScalaNative.ScalaNative04, Some("immix"), Some(exampleFiles.main.cls), None, None, None, None, None, None, None)
             }
           ),
           isTestProject = None,
@@ -184,9 +185,10 @@ object BuildCreateNew {
           scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = model.JsonSet.empty, strict = Some(true))),
           platform = Some(
             platformId match {
-              case model.PlatformId.Jvm    => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)
-              case model.PlatformId.Js     => model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, None, Some(constants.Node), None)
-              case model.PlatformId.Native => model.Platform.Native(model.VersionScalaNative.ScalaNative04, Some(model.LinkerMode.Debug), Some("immix"), None)
+              case model.PlatformId.Jvm => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)
+              case model.PlatformId.Js  => model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
+              case model.PlatformId.Native =>
+                model.Platform.Native(model.VersionScalaNative.ScalaNative04, Some("immix"), None, None, None, None, None, None, None, None)
             }
           ),
           isTestProject = Some(true),
