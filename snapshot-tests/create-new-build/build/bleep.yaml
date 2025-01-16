@@ -4,12 +4,12 @@ jvm:
   name: graalvm-community:23.0.1
 projects:
   myapp:
-    dependencies: com.lihaoyi::fansi:0.3.1
+    dependencies: com.lihaoyi::fansi:0.5.0
     extends: template-cross-all
     platform:
       mainClass: com.foo.App
   tests:
-    dependencies: org.scalatest::scalatest:3.2.13
+    dependencies: org.scalatest::scalatest:3.2.19
     dependsOn: myapp
     extends: template-cross-all
     isTestProject: true
@@ -33,7 +33,7 @@ templates:
   template-js:
     platform:
       jsNodeVersion: 18.4.0
-      jsVersion: 1.13.1
+      jsVersion: 1.19.0
       name: js
   template-jvm:
     platform:

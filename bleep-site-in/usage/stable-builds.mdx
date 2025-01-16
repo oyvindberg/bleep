@@ -9,7 +9,7 @@ Bleep functions as a launcher for itself.
 You specify the version you want in `bleep.yaml`, and it'll automatically download and run the specified version
 
 ```yaml
-$version: 0.0.1-M18
+$version: 0.0.12
 ```
 
 Note that this can be overridden by supplying `--dev` to Bleep, in that case it will run the binary you have.
@@ -20,7 +20,7 @@ You can (optionally) specify a JVM to use for compiling and running your project
 
 ```yaml
 jvm:
-  name: graalvm-java17:22.2.0
+  name: graalvm-community:23.0.1
 ```
 
 If you don't, Bleep will fallback to what is discovered through `JAVA_HOME`. Bleep will issue a warning when the JVM is managed externally.

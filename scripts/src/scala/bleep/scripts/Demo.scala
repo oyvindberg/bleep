@@ -26,6 +26,9 @@ object Demo {
          |# show generated main file
          |bat mycli/src/scala/com/foo/App.scala
          |
+         |# link
+         |$bleep link mycli
+         |
          |# run
          |$bleep run mycli
          |""".stripMargin

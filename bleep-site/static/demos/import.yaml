@@ -1,5 +1,5 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M26
+$version: 0.0.12
 projects:
   example:
     dependencies: com.github.jwt-scala::jwt-core:9.1.0
@@ -12,7 +12,7 @@ projects:
     platform:
       name: jvm
     scala:
-      version: 3.2.0
+      version: 3.3.0
   zhttp:
     cross:
       jvm212:

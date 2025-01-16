@@ -15,7 +15,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
   val Exec = PosixFilePermissions.fromString("rwxrwxr-x")
 
   override def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    val project = started.bloopProject(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm213"))))
+    val project = started.bloopProject(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm3"))))
     val logger = started.logger.syncAccess(GenDemoVideos)
     val ni = new NativeImagePlugin(project, logger, started.jvmCommand)
 

@@ -16,8 +16,8 @@
       
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.3.1/fansi_3-0.3.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.2.8/sourcecode_3-0.2.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.0/fansi_3-0.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.0/scala3-library_3-3.3.0.jar"
     ],
@@ -119,24 +119,24 @@
         {
           "organization": "com.lihaoyi",
           "name": "fansi_3",
-          "version": "0.3.1",
+          "version": "0.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.3.1/fansi_3-0.3.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.0/fansi_3-0.5.0.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
           "name": "sourcecode_3",
-          "version": "0.2.8",
+          "version": "0.4.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_3",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.2.8/sourcecode_3-0.2.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar"
             }
           ]
         }

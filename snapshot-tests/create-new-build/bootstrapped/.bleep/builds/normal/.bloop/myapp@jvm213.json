@@ -18,8 +18,8 @@
       
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.3.1/fansi_2.13-0.3.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.2.8/sourcecode_2.13-0.2.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.5.0/fansi_2.13-0.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.0/sourcecode_2.13-0.4.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm213",
@@ -125,24 +125,24 @@
         {
           "organization": "com.lihaoyi",
           "name": "fansi_2.13",
-          "version": "0.3.1",
+          "version": "0.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.3.1/fansi_2.13-0.3.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.5.0/fansi_2.13-0.5.0.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.13",
-          "version": "0.2.8",
+          "version": "0.4.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.2.8/sourcecode_2.13-0.2.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.4.0/sourcecode_2.13-0.4.0.jar"
             }
           ]
         }
