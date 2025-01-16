@@ -23,7 +23,7 @@ projects:
     - ch.epfl.scala::bloop-config:2.3.1
     - for3Use213: true
       module: ch.epfl.scala::bloop-rifle:2.0.7
-    - com.olvind.ryddig::ryddig:0.0.6
+    - com.olvind.ryddig::ryddig:0.0.6+10-21333f37-SNAPSHOT
     - com.swoval:file-tree-views:2.1.12
     - org.typelevel::scalac-options:0.1.7
     dependsOn:

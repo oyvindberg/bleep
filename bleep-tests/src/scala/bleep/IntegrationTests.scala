@@ -7,7 +7,6 @@ import org.scalatest.funsuite.AnyFunSuite
 import ryddig.*
 
 import java.nio.file.Files
-import java.time.Instant
 import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
@@ -15,7 +14,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   val logger0 = Loggers.decodeJsonStream(
     bleepLoggers.BLEEP_JSON_EVENT,
     Loggers
-      .stdout(LogPatterns.interface(Some(Instant.now), noColor = false), disableProgress = true)
+      .stdout(ExampleLogPatterns.interface(Some(Milliseconds.now), noColor = false), disableProgress = true)
       .acquire()
       .value
       .withMinLogLevel(LogLevel.info)
@@ -38,7 +37,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
 
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
   def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Assertion = {
-    val storingLogger = Loggers.storing()
+    val storingLogger = Loggers.storing
     val stdLogger = logger0.withContext("testName", testName)
     val testTempFolder = Files.createTempDirectory(s"bleep-test-$testName")
 
@@ -88,7 +87,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       )
     ) { (_, commands, storingLogger) =>
       commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 2"))
+      assert(storingLogger.underlying.exists(_.message == "foo was: 2"))
     }
   }
   test("run fallback to jvmOptions") {
@@ -113,7 +112,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       )
     ) { (_, commands, storingLogger) =>
       commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 1"))
+      assert(storingLogger.underlying.exists(_.message == "foo was: 1"))
     }
   }
 
@@ -179,7 +178,7 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
       )
     ) { (_, commands, storingLogger) =>
       commands.run(model.CrossProjectName(model.ProjectName("a"), None))
-      assert(storingLogger.underlying.exists(_.message.plainText == "result: 100"))
+      assert(storingLogger.underlying.exists(_.message == "result: 100"))
     }
   }
 }

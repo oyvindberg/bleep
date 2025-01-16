@@ -3,8 +3,8 @@ package internal
 
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
-import fansi.{Bold, Str}
-import ryddig.{LogLevel, Logger, LoggerFn, TypedLogger}
+import ryddig.fansi2.{Bold, Str}
+import ryddig.{LogLevel, Logger, ProgressLogger, TypedLogger}
 
 import scala.collection.mutable
 
@@ -42,7 +42,7 @@ class BspClientDisplayProgress(
     }
 
   implicit class LoggerOps(logger: Logger) {
-    def progressMonitor: Option[LoggerFn] =
+    def progressMonitor: Option[ProgressLogger] =
       logger match {
         case logger: TypedLogger[?] => logger.progressMonitor
       }
@@ -65,7 +65,7 @@ class BspClientDisplayProgress(
                 s"${percentage.toInt}%"
               case None => "started"
             }
-          Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
+          Str.join(List(renderBuildTarget(buildTargetId), Str(": "), Str(percentage)))
         }
         .mkString("Compiling ", ", ", if (rest.isEmpty) "" else s" +${rest.size}")
 
@@ -119,7 +119,7 @@ class BspClientDisplayProgress(
         case None                                       => LogLevel.info
       }
 
-      val location = Str.join(
+      val location =
         List(
           params.getTextDocument.getUri,
           ":",
@@ -130,8 +130,7 @@ class BspClientDisplayProgress(
           (d.getRange.getEnd.getLine + 1).toString,
           ":",
           d.getRange.getEnd.getCharacter.toString
-        )
-      )
+        ).mkString
 
       logger
         .withOptContext("code", Option(d.getCode))

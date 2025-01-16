@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.{BleepRifleLogger, BspCommandFailed, SetupBloopRifle}
-import bleep.internal.{logException, BspClientDisplayProgress, TransitiveProjects}
+import bleep.internal.{BspClientDisplayProgress, TransitiveProjects, logException}
 import bloop.rifle.*
 import bloop.rifle.BloopRifleConfig.Address
 import bloop.rifle.internal.Operations

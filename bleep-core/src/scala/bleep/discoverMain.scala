@@ -3,6 +3,7 @@ package bleep
 import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import ryddig.Logger
+import ryddig.fansi2.{Color, Str}
 
 import java.util
 import scala.jdk.CollectionConverters.*
@@ -26,7 +27,7 @@ object discoverMain {
 
   case class AmbiguousMain(mainClasses: Seq[String])
       extends BleepException(
-        s"Discovered more than one main class, so you need to specify which one you want with `--class ...`. ${mainClasses.map(fansi.Color.Magenta(_)).mkString("\n", "\n, ", "\n")}"
+        s"Discovered more than one main class, so you need to specify which one you want with `--class ...`. ${mainClasses.map(str => Color.Magenta(Str(str))).mkString("\n", "\n, ", "\n")}"
       )
 
   case class NoMain() extends BleepException(s"No main class found. Specify which one you want with `--class ...`")

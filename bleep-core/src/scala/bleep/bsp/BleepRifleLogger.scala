@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bloop.rifle.BloopRifleLogger
-import ryddig.{Logger, LoggerFn}
+import ryddig.{Logger}
 
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
@@ -37,7 +37,7 @@ class BleepRifleLogger(val logger: Logger) extends BloopRifleLogger {
 }
 
 object BleepRifleLogger {
-  private class Stream(logger: LoggerFn) extends OutputStream {
+  private class Stream(logger: Logger) extends OutputStream {
     val bs = Array.newBuilder[Byte]
     override def write(b: Int): Unit = {
       val NewLine = '\n'.toByte
@@ -45,7 +45,7 @@ object BleepRifleLogger {
         case NewLine =>
           val line = new String(bs.result(), StandardCharsets.UTF_8)
 
-          fansi.Str.Strip(line).plainText.splitAt(4) match {
+          ryddig.fansi2.Str.Strip(line).plainText.splitAt(4) match {
             case ("[E] ", rest) => logger.error(rest)
             case ("[W] ", rest) => logger.warn(rest)
             case ("[I] ", rest) => logger.info(rest)
