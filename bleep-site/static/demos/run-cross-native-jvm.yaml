@@ -1,7 +1,7 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.1-M26
+$version: 0.0.12
 jvm:
-  name: graalvm-java17:22.2.0
+  name: graalvm-community:23.0.1
 projects:
   mycli:
     dependencies: com.lihaoyi::fansi:0.3.1
@@ -37,10 +37,10 @@ templates:
     platform:
       name: native
       nativeGc: immix
-      nativeVersion: 0.4.7
+      nativeVersion: 0.4.12
   template-scala-2:
     scala:
-      version: 2.13.6
+      version: 2.13.10
   template-scala-2.13-jvm:
     extends:
     - template-jvm
@@ -51,7 +51,7 @@ templates:
     - template-scala-2
   template-scala-3:
     scala:
-      version: 3.2.0
+      version: 3.3.0
   template-scala-3-jvm:
     extends:
     - template-jvm

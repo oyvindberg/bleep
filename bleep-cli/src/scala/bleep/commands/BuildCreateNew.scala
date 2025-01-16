@@ -71,7 +71,7 @@ case class BuildCreateNew(
 object BuildCreateNew {
 
   class ExampleFiles(name: String, isCrossLayout: Boolean) {
-    val fansi = model.Dep.Scala("com.lihaoyi", "fansi", "0.3.1")
+    val fansi = model.Dep.Scala("com.lihaoyi", "fansi", "0.5.0")
     val shared: String = if (isCrossLayout) "shared/" else ""
 
     object main {
@@ -92,7 +92,7 @@ object BuildCreateNew {
       val cls = "com.foo.App"
     }
 
-    val scalatest = model.Dep.Scala("org.scalatest", "scalatest", "3.2.13")
+    val scalatest = model.Dep.Scala("org.scalatest", "scalatest", "3.2.19")
     object test {
       val relPath = RelPath.force(s"tests/${shared}src/scala/com/foo/AppTest.scala")
       val contents =
@@ -158,7 +158,7 @@ object BuildCreateNew {
                   .Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, jsNodeVersion = Some(constants.Node), Some(exampleFiles.main.cls))
               case model.PlatformId.Native =>
                 model.Platform
-                  .Native(model.VersionScalaNative.ScalaNative04, Some("immix"), Some(exampleFiles.main.cls), None, None, None, None, None, None, None)
+                  .Native(model.VersionScalaNative.ScalaNative05, Some("immix"), Some(exampleFiles.main.cls), None, None, None, None, None, None, None)
             }
           ),
           isTestProject = None,
@@ -188,7 +188,7 @@ object BuildCreateNew {
               case model.PlatformId.Jvm => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)
               case model.PlatformId.Js  => model.Platform.Js(model.VersionScalaJs.ScalaJs1, None, None, None, None, Some(constants.Node), None)
               case model.PlatformId.Native =>
-                model.Platform.Native(model.VersionScalaNative.ScalaNative04, Some("immix"), None, None, None, None, None, None, None, None)
+                model.Platform.Native(model.VersionScalaNative.ScalaNative05, Some("immix"), None, None, None, None, None, None, None, None)
             }
           ),
           isTestProject = Some(true),
