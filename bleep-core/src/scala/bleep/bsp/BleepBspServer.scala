@@ -167,7 +167,7 @@ class BleepBspServer(
       case Right(started) =>
         val projects = params.getTargets.asScala.toArray.flatMap { target =>
           BleepCommandRemote.projectFromBuildTarget(started)(target).orElse {
-            logger.warn(s"Couldn't find project for target ${target.getUri}. Bleep may have picked up a change you IDE hasn't. Try to reload the build.")
+            logger.warn(s"Couldn't find project for target ${target.getUri}. Bleep may have picked up a change your IDE hasn't. Try to reload the build.")
             None
           }
         }
