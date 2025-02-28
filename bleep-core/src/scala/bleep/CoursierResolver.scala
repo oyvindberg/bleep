@@ -3,7 +3,6 @@ package bleep
 import bleep.depcheck.CheckEvictions
 import bleep.internal.codecs.*
 import bleep.internal.{FileUtils, ShortenAndSortJson}
-import bleep.logging.Logger
 import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core.*
 import coursier.error.CoursierError
@@ -14,6 +13,7 @@ import coursier.util.{Artifact, Task}
 import coursier.{Artifacts, Fetch, Resolution}
 import io.circe.*
 import io.circe.syntax.*
+import ryddig.Logger
 
 import java.io.File
 import java.nio.file.{Files, Path}
@@ -268,7 +268,7 @@ object CoursierResolver {
           case Some(value) => Right(value)
           case None =>
             val depNames = deps.map(_.baseModuleName.value)
-            val ctxLogger = logger.withContext(cachePath).withContext(depNames).withContext(versionCombo.toString)
+            val ctxLogger = logger.withContext("cachePath", cachePath).withContext("depNames", depNames).withContext("versionCombo", versionCombo.toString)
             ctxLogger.debug(s"coursier cache miss")
             underlying.resolve(deps, versionCombo, libraryVersionSchemes).map {
               case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>

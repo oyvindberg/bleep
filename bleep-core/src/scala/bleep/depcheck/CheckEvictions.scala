@@ -1,12 +1,12 @@
 package bleep
 package depcheck
 
-import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import bleep.nosbt.util.ShowLines.*
 import coursier.core.{Configuration, Dependency, Module}
 import coursier.error.CoursierError
 import coursier.{Fetch, ModuleName, Organization}
+import ryddig.Logger
 
 import scala.collection.mutable
 

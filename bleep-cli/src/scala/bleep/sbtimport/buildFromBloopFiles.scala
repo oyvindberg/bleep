@@ -2,11 +2,11 @@ package bleep
 package sbtimport
 
 import bleep.internal.conversions
-import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import bloop.config.Config
-import coursier.core.{Classifier, Configuration, Extension, Module, ModuleName, Organization, Publication, Type}
+import coursier.core.*
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
+import ryddig.Logger
 
 import java.net.URI
 import java.nio.file.{Path, Paths}
@@ -59,8 +59,8 @@ object buildFromBloopFiles {
 
       val folder: Option[RelPath] =
         RelPath.relativeTo(destinationPaths.buildDir, directory) match {
-          case RelPath(List(crossName.name.value)) => None
-          case relPath                             => Some(relPath)
+          case RelPath(Array(crossName.name.value)) => None
+          case relPath                              => Some(relPath)
         }
 
       val dependsOn: model.JsonSet[model.ProjectName] =
@@ -224,7 +224,7 @@ object buildFromBloopFiles {
     val providedDepReprs: Set[String] =
       providedDeps.map(_.repr).toSet
 
-    val ctxLogger = logger.withContext(crossName)
+    val ctxLogger = logger.withContext("crossName", crossName.value)
 
     val all = dependencies.flatMap { moduleId =>
       importModuleId(ctxLogger, moduleId, platformName) match {
@@ -309,7 +309,7 @@ object buildFromBloopFiles {
   }
 
   def importModuleId(logger: Logger, moduleID: librarymanagement.ModuleID, platformId: Option[model.PlatformId]): Either[String, model.Dep] = {
-    val ctxLogger = logger.withContext(moduleID.name)
+    val ctxLogger = logger.withContext("moduleIdName", moduleID.name)
 
     val configuration = moduleID.configurations.fold(Configuration.empty)(Configuration(_))
 
@@ -494,7 +494,6 @@ object buildFromBloopFiles {
 
         val translatedPlatform = model.Platform.Js(
           jsVersion = jsVersion,
-          jsMode = Some(conversions.linkerMode.to(config.mode)),
           jsKind = Some(conversions.moduleKindJS.to(config.kind)),
           jsSplitStyle = config.moduleSplitStyle.map(conversions.moduleSplitStyleJS.to),
           jsEmitSourceMaps = Some(config.emitSourceMaps),
@@ -521,9 +520,15 @@ object buildFromBloopFiles {
       case Config.Platform.Native(config, mainClass) =>
         val translatedPlatform = model.Platform.Native(
           nativeVersion = model.VersionScalaNative(config.version),
-          nativeMode = Some(conversions.linkerMode.to(config.mode)),
           nativeGc = Some(config.gc),
-          nativeMainClass = mainClass
+          nativeMainClass = mainClass,
+          nativeBuildTarget = config.buildTarget.map(conversions.nativeBuildTarget.to),
+          nativeLinkerReleaseMode = config.nativeModeAndLTO.nativeLinkerReleaseMode.map(conversions.nativeLinkerReleaseMode.to),
+          nativeLTO = config.nativeModeAndLTO.lto.map(conversions.nativeLTO.to),
+          nativeMultithreading = config.nativeFlags.multithreading,
+          nativeOptimize = Some(config.nativeFlags.optimize),
+          nativeEmbedResources = Some(config.nativeFlags.embedResources),
+          nativeUseIncrementalCompilation = Some(config.nativeFlags.useIncrementalCompilation)
         )
         translatedPlatform
     }

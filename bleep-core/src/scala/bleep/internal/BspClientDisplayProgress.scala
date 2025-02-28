@@ -1,10 +1,10 @@
 package bleep
 package internal
 
-import bleep.logging.{LogLevel, Logger}
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, MessageType}
 import fansi.{Bold, Str}
+import ryddig.{LogLevel, Logger, LoggerFn, TypedLogger}
 
 import scala.collection.mutable
 
@@ -41,6 +41,13 @@ class BspClientDisplayProgress(
       case _ => None
     }
 
+  implicit class LoggerOps(logger: Logger) {
+    def progressMonitor: Option[LoggerFn] =
+      logger match {
+        case logger: TypedLogger[?] => logger.progressMonitor
+      }
+  }
+
   val DisplayN = 4
   var lastProgress = Option.empty[String]
   def render(): Unit =
@@ -74,10 +81,10 @@ class BspClientDisplayProgress(
     Bold.On(Str(buildTargetId.getUri.split("=").last))
 
   override def onBuildShowMessage(params: bsp4j.ShowMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
+    logger.withOptContext("originId", Option(params.getOriginId)).log(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
 
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit =
-    logger.withOptContext("originId", Option(params.getOriginId)).apply(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
+    logger.withOptContext("originId", Option(params.getOriginId)).log(BspClientDisplayProgress.logLevelFor(params.getType), params.getMessage)
 
   override def onBuildTaskStart(params: bsp4j.TaskStartParams): Unit =
     extract(params.getData).foreach { id =>
@@ -116,20 +123,20 @@ class BspClientDisplayProgress(
         List(
           params.getTextDocument.getUri,
           ":",
-          d.getRange.getStart.getLine.toString,
+          (d.getRange.getStart.getLine + 1).toString,
           ":",
           d.getRange.getStart.getCharacter.toString,
           " until ",
-          d.getRange.getEnd.getLine.toString,
+          (d.getRange.getEnd.getLine + 1).toString,
           ":",
           d.getRange.getEnd.getCharacter.toString
         )
       )
 
       logger
-        .withContext(location)
         .withOptContext("code", Option(d.getCode))
-        .apply(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str(d.getMessage)))
+        .withContext("location", location)
+        .log(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str(d.getMessage)))
     }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)

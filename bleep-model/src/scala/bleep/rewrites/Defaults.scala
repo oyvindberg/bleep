@@ -17,7 +17,6 @@ object Defaults {
       name = None,
       mainClass = None,
       jsVersion = None,
-      jsMode = None,
       jsKind = None,
       jsSplitStyle = None,
       jsEmitSourceMaps = None,
@@ -26,14 +25,20 @@ object Defaults {
       jvmOptions = model.Options(Set(model.Options.Opt.Flag(s"-Duser.dir=${model.Replacements.known.BuildDir}"))),
       jvmRuntimeOptions = model.Options.empty,
       nativeVersion = None,
-      nativeMode = None,
-      nativeGc = None
+      nativeGc = None,
+      nativeBuildTarget = None,
+      nativeLinkerReleaseMode = None,
+      nativeLTO = None,
+      nativeMultithreading = None,
+      nativeOptimize = None,
+      nativeEmbedResources = None,
+      nativeUseIncrementalCompilation = None
     )
 
   object remove extends BuildRewrite {
     override val name = model.BuildRewriteName("defaults-remove")
 
-    protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+    protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.map { case (name, p) => (name, project(p)) }
 
     def project(proj: model.Project): model.Project =
@@ -50,7 +55,7 @@ object Defaults {
   object add extends BuildRewrite {
     override val name = model.BuildRewriteName("defaults-add")
 
-    protected def newExplodedProjects(oldBuild: model.Build): Map[model.CrossProjectName, model.Project] =
+    protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =
       oldBuild.explodedProjects.map { case (name, p) => (name, project(p)) }
 
     def project(proj: model.Project): model.Project =

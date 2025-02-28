@@ -1,9 +1,9 @@
 package bleep
 
-import bleep.logging.Logger
 import com.swoval.files.FileTreeViews.Observer
 import com.swoval.files.{PathWatcher, PathWatchers}
 import com.swoval.functional.Either
+import ryddig.Logger
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -42,7 +42,7 @@ object FileWatching {
           logger.debug(event.toString)
           val path = event.getTypedPath.getPath
           if (path.getFileName.toString.endsWith("~")) {
-            logger.withContext(path).debug("Ignoring change in temporary file")
+            logger.withContext("path", path).debug("Ignoring change in temporary file")
           } else {
             // Find the keys attached to the given path.
             // In order to do that, we need to traverse the file system towards the root until we find a registered directory
@@ -131,7 +131,7 @@ object FileWatching {
       val unregister = mapping.keys.toSet -- newMapping2.keys
       unregister.foreach { path =>
         watcher.unregister(path)
-        logger.withContext(path).debug("unregistered")
+        logger.withContext("path", path).debug("unregistered")
       }
 
       mapping = newMapping2

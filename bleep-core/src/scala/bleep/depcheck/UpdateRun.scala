@@ -1,10 +1,10 @@
 package bleep.depcheck
 
-import bleep.logging.Logger
 import bleep.nosbt.librarymanagement
 import coursier.core.*
 import coursier.core.Resolution.ModuleVersion
 import coursier.util.Print
+import ryddig.Logger
 
 object UpdateRun {
 

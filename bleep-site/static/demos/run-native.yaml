@@ -18,7 +18,6 @@ templates:
     platform:
       name: native
       nativeGc: immix
-      nativeMode: debug
       nativeVersion: 0.4.7
     scala:
       options: -encoding utf8 -feature -unchecked

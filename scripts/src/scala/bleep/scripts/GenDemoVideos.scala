@@ -2,8 +2,8 @@ package bleep
 package scripts
 
 import bleep.internal.{bleepLoggers, FileUtils}
-import bleep.logging.Logger
 import bleep.plugin.nativeimage.NativeImagePlugin
+import ryddig.Logger
 
 import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Path}
@@ -16,7 +16,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
 
   override def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val project = started.bloopProject(model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(model.CrossId("jvm213"))))
-    val logger = started.logger.syncAccess
+    val logger = started.logger.syncAccess(GenDemoVideos)
     val ni = new NativeImagePlugin(project, logger, started.jvmCommand)
 
     val nativeImage =
@@ -76,7 +76,7 @@ object GenDemoVideos extends BleepScript("GenVideos") {
     // nest one level to not include script and output file in file listings
     val workDir = tempDir / "work"
     Files.createDirectories(workDir)
-    logger.withContext(tempDir).debug("using temporary directory")
+    logger.withContext("tempDir", tempDir).debug("using temporary directory")
 
     val scriptFile = tempDir / "script"
     FileUtils.writeString(logger, None, scriptFile, demo.script(Path.of("bleep")))

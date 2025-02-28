@@ -218,13 +218,6 @@
         "jsVersion": {
           "type": "string"
         },
-        "jsMode": {
-          "type": "string",
-          "enum": [
-            "debug",
-            "release"
-          ]
-        },
         "jsKind": {
           "type": "string",
           "enum": [
@@ -277,15 +270,44 @@
         "nativeVersion": {
           "type": "string"
         },
-        "nativeMode": {
+        "nativeBuildTarget": {
           "type": "string",
           "enum": [
-            "debug",
-            "release"
+            "application",
+            "library-dynamic",
+            "library-static"
+          ]
+        },
+        "nativeLinkerReleaseMode": {
+          "type": "string",
+          "enum": [
+            "release-fast",
+            "release-size",
+            "release-full"
+          ]
+        },
+        "nativeLTO": {
+          "type": "string",
+          "enum": [
+            "none",
+            "thin",
+            "full"
           ]
         },
         "nativeGc": {
           "type": "string"
+        },
+        "nativeMultithreading": {
+          "type": "boolean"
+        },
+        "nativeOptimize": {
+          "type": "boolean"
+        },
+        "nativeEmbedResources": {
+          "type": "boolean"
+        },
+        "nativeUseIncrementalCompilation": {
+          "type": "boolean"
         }
       },
       "dependencies": {

@@ -10,13 +10,15 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
     val jvm3 = model.CrossId("jvm3")
     val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(jvm3))
     val project = started.bloopProject(projectName)
-    commands.compile(List(projectName))
+    // commands.compile(List(projectName))
 
     // this is here to pick up the graalvm installed by `graalvm/setup-graalvm@v1` in github actions *on windows*
     // the one we install ourselves does not work
     val jvm = sys.env.get("JAVA_HOME").map(javahome => Path.of(javahome).resolve("bin/java.exe")).filter(Files.exists(_)) match {
       case Some(jvm) =>
-        started.logger.withContext(jvm).warn("hack: picked up external java from JAVA_HOME. this mechanism is meant to fix native image build on windows")
+        started.logger
+          .withContext("jvm", jvm)
+          .warn("hack: picked up external java from JAVA_HOME. this mechanism is meant to fix native image build on windows")
         jvm
       case None => started.jvmCommand
     }

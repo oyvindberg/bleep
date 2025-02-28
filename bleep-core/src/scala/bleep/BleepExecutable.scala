@@ -2,8 +2,8 @@ package bleep
 
 import bleep.internal.compat.*
 import bleep.internal.jvmRunCommand
-import bleep.logging.Logger
 import coursier.core.{ModuleName, Organization}
+import ryddig.Logger
 
 import java.lang.management.ManagementFactory
 import java.nio.file.{Files, Path}
@@ -98,7 +98,7 @@ object BleepExecutable {
     }
 
     ret.foreach { cmd =>
-      logger.withContext(cmd.whole).debug("Can run your current bleep with this command")
+      logger.withContext("cmd", cmd.whole).debug("Can run your current bleep with this command")
     }
 
     ret

@@ -1,7 +1,7 @@
 package bleep
 
 import coursier.cache.{ArchiveCache, CacheLogger, FileCache}
-import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
+import coursier.jvm.{JavaHome, JvmCache, JvmChannel}
 import coursier.util.Task
 
 import java.nio.file.{Files, Path}
@@ -22,10 +22,9 @@ case class FetchJvm(maybeCacheDir: Option[Path], cacheLogger: CacheLogger, ec: E
     val javaBin = maybeCacheDir match {
       case Some(cacheDir) if !model.Jvm.isSystem(jvm) =>
         val cacheFile = {
-          val relPath = RelPath(
-            List(Some(arch), jvm.index, Some(jvm.name)).flatten
-              // somewhat windows safe
-              .map(_.replace(":", "_"))
+          val relPath = RelPath.of(
+            // somewhat windows safe
+            List(Some(arch), jvm.index, Some(jvm.name)).flatten.map(_.replace(":", "_"))*
           )
 
           cacheDir / relPath
@@ -55,7 +54,7 @@ object FetchJvm {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)
     val jvmCache = JvmCache()
       .withArchiveCache(ArchiveCache[Task]().withCache(fileCache))
-      .withIndex(jvm.index.getOrElse(JvmIndex.coursierIndexUrl))
+      .withIndex(jvm.index.getOrElse(JvmChannel.gitHubIndexUrl))
       .withArchitecture(arch)
     val javaBin = Await.result(JavaHome().withCache(jvmCache).javaBin(jvm.name).value(ec), Duration.Inf)
     javaBin

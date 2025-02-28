@@ -38,7 +38,7 @@ case class Scalafmt(check: Boolean) extends BleepBuildCommand {
 
     val scalafmt = FetchScalafmt(started.pre.cacheLogger, started.executionContext, version)
 
-    started.logger.withContext(scalafmt).debug("Using scalafmt")
+    started.logger.withContext("scalafmt", scalafmt).debug("Using scalafmt")
 
     val sourcesDirs: Set[Path] =
       started.build.explodedProjects.keys

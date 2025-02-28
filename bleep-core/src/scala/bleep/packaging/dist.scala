@@ -71,7 +71,7 @@ object dist {
       case _ => ()
     }
 
-    started.logger.withContext(distDir).info("dist complete")
+    started.logger.withContext("distDir", distDir).info("dist complete")
     ()
   }
 

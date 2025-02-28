@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.logging.Logger
+import ryddig.Logger
 import sourcecode.{Enclosing, File, Line}
 
 import java.nio.file.Path
@@ -101,11 +101,11 @@ object cli {
     val exitCode = process.run(processIO).exitValue()
 
     val ctxLogger = logger
-      .withContext(action)
-      .withContext(cwd)
+      .withContext("action", action)
+      .withContext("cwd", cwd)
       .withContext("cmd", patchedCmd)
-      .withContext(env)
-      .withContext(exitCode)
+      .withContext("env", env)
+      .withContext("exitCode", exitCode)
 
     exitCode match {
       case 0 =>

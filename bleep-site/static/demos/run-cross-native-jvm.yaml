@@ -37,7 +37,6 @@ templates:
     platform:
       name: native
       nativeGc: immix
-      nativeMode: debug
       nativeVersion: 0.4.7
   template-scala-2:
     scala:

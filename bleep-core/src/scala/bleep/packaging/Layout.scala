@@ -39,7 +39,7 @@ object IvyLayout {
     apply(p, (), (), (), (), ())
 
   def apply[T](self: Dependency, jarFile: T, sourceFile: T, ivyFile: T, pomFile: T, docFile: T): IvyLayout[RelPath, T] = {
-    val libraryPath = RelPath.force(self.module.organization.value) / self.module.name.value / self.version
+    val libraryPath = RelPath.of(self.module.organization.value, self.module.name.value, self.version)
     IvyLayout(
       jarFile = libraryPath / "jars" / s"${self.module.name.value}.jar" -> jarFile,
       sourceFile = libraryPath / "srcs" / s"${self.module.name.value}-sources.jar" -> sourceFile,

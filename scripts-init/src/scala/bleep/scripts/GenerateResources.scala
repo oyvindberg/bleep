@@ -1,7 +1,7 @@
 package bleep
 package scripts
 
-import bleep.logging.Logger
+import ryddig.Logger
 import bleep.plugin.dynver.DynVerPlugin
 
 import java.nio.file.Files
@@ -18,7 +18,7 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
 
   def writeVersion(target: Target, logger: Logger, version: String): Unit = {
     val to = target.sources / "bleep/model/BleepVersion.scala"
-    logger.withContext(target.project).warn(s"Writing $to")
+    logger.withContext("project", target.project.value).warn(s"Writing $to")
     val content =
       s"""|//
           |// GENERATED FILE!
@@ -45,7 +45,7 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
   }
   def writeJvm(target: Target, logger: Logger, buildJvm: model.Jvm): Unit = {
     val to = target.sources / "bleep/model/Jvm.scala"
-    logger.withContext(target.project).warn(s"Writing $to")
+    logger.withContext("project", target.project.value).warn(s"Writing $to")
     val content =
       s"""|//
           |// GENERATED FILE!

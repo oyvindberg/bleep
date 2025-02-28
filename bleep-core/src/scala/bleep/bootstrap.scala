@@ -15,7 +15,7 @@ object bootstrap {
     val buildPaths = BuildPaths(FileUtils.cwd, buildLoader, buildVariant)
 
     val exitCode: ExitCode =
-      bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).untyped.use { logger =>
+      bleepLoggers.stdoutNoLogFile(bleepConfig, commonOpts).map(l => l.withPath(s"[script $scriptName]")).use { logger =>
         val ec = ExecutionContext.global
         val maybeStarted = for {
           existingBuild <- buildLoader.existing
@@ -53,7 +53,7 @@ object bootstrap {
       try
         pre.existingBuild.buildFile.forceGet.map { buildFile =>
           val resolver = resolverFactory(pre, config, buildFile)
-          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b) }
+          val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b, pre.buildPaths) }
           val bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false))
 
           val activeProjects: Option[Array[model.CrossProjectName]] =

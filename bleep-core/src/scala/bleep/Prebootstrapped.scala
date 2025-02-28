@@ -1,6 +1,6 @@
 package bleep
 
-import bleep.logging.Logger
+import ryddig.Logger
 
 import scala.concurrent.ExecutionContext
 
@@ -28,7 +28,7 @@ case class Prebootstrapped(
           )
           model.Jvm.system
         }
-        fetchJvm(jvm)
+        fetchJvm(if (jvm.name.equalsIgnoreCase("managed")) model.Jvm.system else jvm)
     }
 
   /** Will only reload if there are changes in the json structure, as indicated in the `Option`

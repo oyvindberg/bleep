@@ -1,10 +1,10 @@
 package bleep
 package model
 
+import io.circe.syntax.*
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
-import io.circe.syntax.*
 
 class JsonTest extends AnyFunSuite with TripleEqualsSupport {
   def roundtrip(vc: VersionCombo): Assertion = {

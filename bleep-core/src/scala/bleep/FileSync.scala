@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.FileUtils
-import bleep.logging.Logger
+import ryddig.Logger
 import sourcecode.{Enclosing, File, Line}
 
 import java.nio.charset.StandardCharsets
@@ -31,7 +31,7 @@ object FileSync {
           .map { case (synced, files) => s"$synced: ${files.length}" }
           .mkString(", ")
 
-        logger.withContext(summary).info(msg)
+        logger.withContext("summary", summary).info(msg)
       }
     }
   }
