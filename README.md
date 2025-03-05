@@ -46,8 +46,8 @@ $ bleep setup-dev-script bleep-cli@jvm213
 $ bleep compile bleep-cli@jvm213
 
 $ ./bleep-cli@jvm213.sh
+# .\bleep-cli@jvm213.bat on Windows
 ```
-Generating shell wrapper scripts is currently not implemented on windows, but it's likely easy to add if you want it.
 
 #### Submitting code
 - All changes go through PRs
