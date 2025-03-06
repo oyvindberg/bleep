@@ -36,11 +36,11 @@ projects:
     - io.circe::circe-generic:0.14.10
     - io.circe::circe-yaml-v12:1.15.0
     - for3Use213: true
-      module: io.get-coursier::coursier-jvm:2.1.18
+      module: io.get-coursier::coursier-jvm:2.1.24
     - for3Use213: true
-      module: io.get-coursier::coursier-sbt-maven-repository:2.1.18
+      module: io.get-coursier::coursier-sbt-maven-repository:2.1.24
     - for3Use213: true
-      module: io.get-coursier::coursier:2.1.18
+      module: io.get-coursier::coursier:2.1.24
     - org.snakeyaml:snakeyaml-engine:2.8
     extends: template-cross-all
     sourcegen:
