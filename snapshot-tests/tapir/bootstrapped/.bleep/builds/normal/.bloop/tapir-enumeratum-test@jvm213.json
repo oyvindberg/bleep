@@ -46,9 +46,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.10/scalatest-wordspec_2.13-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum-test/jvm213/classes",

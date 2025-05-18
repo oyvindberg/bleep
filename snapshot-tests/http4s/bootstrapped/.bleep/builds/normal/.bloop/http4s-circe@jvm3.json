@@ -42,12 +42,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_3/0.5.4/simulacrum-scalafix-annotations_3-0.5.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.1.0/vault_3-3.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
-      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/jawn/.jvm/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/jawn/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/jvm3/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-circe/jvm3/classes",

@@ -35,9 +35,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.0/cats-macros_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/logging/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/logging/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/phases/classes",

@@ -99,13 +99,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-exec/1.12/zt-exec-1.12.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloopgun-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/buildpressconfig/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloopgun-core@jvm212/scripts.GenerateForBloopgunCore",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/bloopgun/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/buildpress-config/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/shared/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/buildpressconfig/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/buildpress",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/buildpress/classes",
