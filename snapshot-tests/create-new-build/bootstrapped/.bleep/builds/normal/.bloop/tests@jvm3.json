@@ -37,9 +37,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_3/3.2.13/scalatest-shouldmatchers_3-3.2.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.13/scalatest-wordspec_3-3.2.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.13/scalatest_3-3.2.13.jar",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/jvm/src/resources",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/jvm3/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm3/classes",

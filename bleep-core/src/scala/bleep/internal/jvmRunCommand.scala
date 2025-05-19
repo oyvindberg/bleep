@@ -16,7 +16,7 @@ object jvmRunCommand {
   ): Either[BleepException, List[String]] =
     bloopProject.platform match {
       case Some(jvm: Config.Platform.Jvm) =>
-        val cp = fixedClasspath(bloopProject)
+        val cp = fixedClasspath(bloopProject, false)
         overrideMainClass.orElse(bloopProject.platform.flatMap(_.mainClass)) match {
           case Some(main) =>
             val jvmOptions = jvm.runtimeConfig.getOrElse(jvm.config).options

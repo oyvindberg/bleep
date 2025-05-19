@@ -62,9 +62,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-scalatest_sjs1_2.13/2.1.5/discipline-scalatest_sjs1_2.13-2.1.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.13/0.5.4/simulacrum-scalafix-annotations_2.13-0.5.4.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats-test/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats-test/js213/classes",

@@ -40,9 +40,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_sjs1_2.13/3.2.13/scalatest-shouldmatchers_sjs1_2.13-3.2.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_2.13/3.2.13/scalatest-wordspec_sjs1_2.13-3.2.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_2.13/3.2.13/scalatest_sjs1_2.13-3.2.13.jar",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/js/src/resources",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js213/classes",

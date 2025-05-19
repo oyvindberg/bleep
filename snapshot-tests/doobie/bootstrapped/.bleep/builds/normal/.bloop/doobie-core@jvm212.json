@@ -30,8 +30,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_2.12/2.7.0/cats-free_2.12-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.7.0/cats-kernel_2.12-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm212/classes",

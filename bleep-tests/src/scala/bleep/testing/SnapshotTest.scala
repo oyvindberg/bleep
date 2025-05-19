@@ -45,7 +45,8 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
       from = from.getParent
 
     GitLock.synchronized {
-      cli("git add", from, List("/usr/bin/git", "add", in.toString), logger, out = cli.Out.ViaLogger(logger), env = List(("PATH", sys.env("PATH")))).discard()
+      cli("git add", from, List("/usr/bin/env", "git", "add", in.toString), logger, out = cli.Out.ViaLogger(logger), env = List(("PATH", sys.env("PATH"))))
+        .discard()
     }
 
     if (Properties.isWin) succeed // let's deal with this later
@@ -54,7 +55,7 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
         cli(
           "git diff",
           from,
-          List("/usr/bin/git", "diff", "--exit-code", "HEAD", in.toString),
+          List("/usr/bin/env", "git", "diff", "--exit-code", "HEAD", in.toString),
           logger,
           out = cli.Out.ViaLogger(logger),
           env = List(("PATH", sys.env("PATH")))

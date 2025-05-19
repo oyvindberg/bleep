@@ -78,11 +78,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-lambda/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/serverless/aws/lambda/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/js213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-examples/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-examples/js213/classes",

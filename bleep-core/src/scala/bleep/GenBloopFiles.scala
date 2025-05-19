@@ -333,7 +333,7 @@ object GenBloopFiles {
 
     val classPath: model.JsonSet[Path] =
       model.JsonSet.fromIterable(
-        allTransitiveTranslated.values.flatMap(x => x.project.classesDir :: x.project.resources.getOrElse(Nil)) ++ resolvedRuntimeDependencies.jars
+        allTransitiveTranslated.values.map(_.project.classesDir) ++ resolvedRuntimeDependencies.jars
       )
 
     val configuredScala: Option[Config.Scala] =

@@ -96,14 +96,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server-tests/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/zio-http-server/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server-test/jvm212/classes",
