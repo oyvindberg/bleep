@@ -151,6 +151,11 @@
         },
         {
           "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        },
+        {
+          "names": [
             "zio.test.sbt.ZTestFramework"
           ]
         }

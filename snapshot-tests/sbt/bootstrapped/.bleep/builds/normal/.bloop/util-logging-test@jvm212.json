@@ -159,6 +159,11 @@
         },
         {
           "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        },
+        {
+          "names": [
             "hedgehog.sbt.Framework",
             "verify.runner.Framework"
           ]
