@@ -72,15 +72,7 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-hikari/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-scalatest/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm212/scripts.GenerateForDoobieCore",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/hikari/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/scalatest/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/specs2/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/example/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/example/jvm212/classes",

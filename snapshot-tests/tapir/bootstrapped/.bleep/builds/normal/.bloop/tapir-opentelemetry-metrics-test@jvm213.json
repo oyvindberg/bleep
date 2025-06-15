@@ -60,10 +60,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatestplus/scalacheck-1-15_2.13/3.2.10.0/scalacheck-1-15_2.13-3.2.10.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/test/resources",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics-test/jvm213/classes",

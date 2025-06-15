@@ -118,12 +118,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.1/cats-macros_2.12-2.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.15/zt-zip-1.15.jar",
       "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-backend/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/generated-resources/bloop-backend/scripts.GenerateForBloopBackend",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/backend/src/main/resources",
-      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/shared/src/main/resources"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-backend-test",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-backend-test/classes",
