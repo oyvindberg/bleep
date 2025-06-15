@@ -201,6 +201,11 @@
           "names": [
             "munit.Framework"
           ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
         }
       ],
       "options": {
