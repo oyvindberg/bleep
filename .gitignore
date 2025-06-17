@@ -9,3 +9,4 @@ target
 sbt-build
 bleep-site/docs
 .vscode
+bleep-cli@jvm*.sh
