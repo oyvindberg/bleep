@@ -140,7 +140,8 @@ object BleepCommandRemote {
 
   case class FailedToStartBloop(cause: Throwable, readLog: Option[String])
       extends BleepException(
-        readLog.foldLeft(cause.getMessage)((msg, log) => s"$msg\nRead log file:\n$log")
+        readLog.foldLeft(cause.getMessage)((msg, log) => s"$msg\nRead log file:\n$log"),
+        cause
       )
 
   def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier = {
