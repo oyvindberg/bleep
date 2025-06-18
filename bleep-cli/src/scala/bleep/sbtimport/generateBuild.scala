@@ -57,6 +57,7 @@ object generateBuild {
             // avoid picking scala 3 versions lower than what is used to compile the bleep artifacts
             .filter {
               case x if x.is3 && x.scalaVersion < model.VersionScala.Scala3.scalaVersion => false
+              case x if x.is212                                                          => false // we don't support 2.12 anymore
               case _                                                                     => true
             }
             .orElse(Some(model.VersionScala.Scala3))

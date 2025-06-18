@@ -6,7 +6,9 @@ import io.circe.{Decoder, Encoder}
 case class VersionScala(scalaVersion: String) {
   require(scalaVersion.nonEmpty)
 
-  val is3 = scalaVersion.startsWith("3.")
+  def is3 = scalaVersion.startsWith("3.")
+  def is213 = scalaVersion.startsWith("2.13")
+  def is212 = scalaVersion.startsWith("2.12")
 
   val epoch = scalaVersion.head
 
