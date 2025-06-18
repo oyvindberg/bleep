@@ -46,7 +46,7 @@ object SetupBloopRifle {
     val dep = model.Dep.Scala("ch.epfl.scala", "bloop-frontend", bloopVersion)
     resolver
       .updatedParams(_.copy(downloadSources = false))
-      .resolve(Set(dep), versionCombo, libraryVersionSchemes = SortedSet(parallelCollectionAlways)) match {
+      .resolve(Set(dep), versionCombo, libraryVersionSchemes = SortedSet(parallelCollectionAlways), model.IgnoreEvictionErrors.No) match {
       case Left(coursierError) =>
         Left(new BleepException.ResolveError(coursierError, "installing bloop"))
       case Right(value) =>

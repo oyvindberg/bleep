@@ -21,7 +21,8 @@ case class Project(
     isTestProject: Option[Boolean],
     testFrameworks: JsonSet[TestFrameworkName],
     sourcegen: JsonSet[ScriptDef],
-    libraryVersionSchemes: JsonSet[LibraryVersionScheme]
+    libraryVersionSchemes: JsonSet[LibraryVersionScheme],
+    ignoreEvictionErrors: Option[IgnoreEvictionErrors]
 ) extends SetLike[Project] {
   override def intersect(other: Project): Project =
     Project(
@@ -40,7 +41,8 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
       testFrameworks = testFrameworks.intersect(other.testFrameworks),
       sourcegen = sourcegen.intersect(other.sourcegen),
-      libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes)
+      libraryVersionSchemes = libraryVersionSchemes.intersect(other.libraryVersionSchemes),
+      ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) ignoreEvictionErrors else None
     )
 
   override def removeAll(other: Project): Project =
@@ -63,7 +65,8 @@ case class Project(
       isTestProject = if (isTestProject == other.isTestProject) None else isTestProject,
       testFrameworks = testFrameworks.removeAll(other.testFrameworks),
       sourcegen = sourcegen.removeAll(other.sourcegen),
-      libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes)
+      libraryVersionSchemes = libraryVersionSchemes.removeAll(other.libraryVersionSchemes),
+      ignoreEvictionErrors = if (ignoreEvictionErrors == other.ignoreEvictionErrors) None else ignoreEvictionErrors
     )
 
   override def union(other: Project): Project =
@@ -84,7 +87,8 @@ case class Project(
       isTestProject = isTestProject.orElse(other.isTestProject),
       testFrameworks = testFrameworks.union(other.testFrameworks),
       sourcegen = sourcegen.union(other.sourcegen),
-      libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes)
+      libraryVersionSchemes = libraryVersionSchemes.union(other.libraryVersionSchemes),
+      ignoreEvictionErrors = ignoreEvictionErrors.orElse(other.ignoreEvictionErrors)
     )
 
   override def isEmpty: Boolean = this match {
@@ -104,7 +108,8 @@ case class Project(
           isTestProject,
           testFrameworks,
           sourceGeneratorsScripts,
-          libraryVersionSchemes
+          libraryVersionSchemes,
+          ignoreEvictionErrors
         ) =>
       extends_.isEmpty &&
       cross.isEmpty &&
@@ -121,7 +126,8 @@ case class Project(
       isTestProject.isEmpty &&
       testFrameworks.isEmpty &&
       sourceGeneratorsScripts.isEmpty &&
-      libraryVersionSchemes.isEmpty
+      libraryVersionSchemes.isEmpty &&
+      ignoreEvictionErrors.isEmpty
   }
 }
 
@@ -142,7 +148,8 @@ object Project {
     isTestProject = None,
     testFrameworks = JsonSet.empty,
     sourcegen = JsonSet.empty,
-    libraryVersionSchemes = JsonSet.empty
+    libraryVersionSchemes = JsonSet.empty,
+    ignoreEvictionErrors = None
   )
 
   implicit def decodes(implicit templateIdDecoder: Decoder[TemplateId], projectNameDecoder: Decoder[ProjectName]): Decoder[Project] = {

@@ -98,7 +98,7 @@ object runSbt {
         tempAddBloopPlugin,
         s"""
   addSbtPlugin("ch.epfl.scala" % "sbt-bloop" % "1.5.6")
-  addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.3.0")
+  addSbtPlugin("build.bleep" % "sbt-export-dependencies" % "0.4.0")
   """
       )
 
