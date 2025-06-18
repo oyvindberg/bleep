@@ -3,6 +3,7 @@ package sbtimport
 
 import bleep.nosbt.librarymanagement.syntax.ExclusionRule
 import bleep.nosbt.librarymanagement.{CrossVersion, ModuleID, ScalaVersion}
+import bleep.nosbt.util.Level
 import sjsonnew.support.scalajson.unsafe.{Converter, Parser}
 import sjsonnew.{Builder, JsonFormat, Unbuilder}
 
@@ -27,17 +28,37 @@ object ReadSbtExportFile {
       autoScalaLibrary: Boolean,
       excludeDependencies: Seq[ExclusionRule],
       crossVersion: CrossVersion,
-      libraryDependencySchemes: Seq[ModuleID]
+      libraryDependencySchemes: Seq[ModuleID],
+      evictionErrorLevel: Level.Value
   )
 
   object ExportedProject {
+
     import bleep.nosbt.librarymanagement.LibraryManagementCodec.*
+
+    implicit val levelFormat: JsonFormat[Level.Value] = new JsonFormat[Level.Value] {
+      override def read[J](jsOpt: Option[J], unbuilder: Unbuilder[J]): Level.Value =
+        jsOpt match {
+          case Some(j) =>
+            val levelString = unbuilder.readString(j)
+            Level.values
+              .find(_.toString == levelString)
+              .getOrElse(
+                sjsonnew.deserializationError(s"Unknown level: $levelString")
+              )
+          case None =>
+            sjsonnew.deserializationError("expected a level value")
+        }
+
+      override def write[J](obj: Level.Value, builder: Builder[J]): Unit =
+        builder.writeString(obj.toString)
+    }
 
     implicit val format: JsonFormat[ExportedProject] = new JsonFormat[ExportedProject] {
       override def read[J](jsOpt: Option[J], unbuilder: Unbuilder[J]): ExportedProject =
         jsOpt match {
           case Some(j) =>
-            unbuilder.beginObject(j).discard()
+            unbuilder.beginObject(j)
             val organization = unbuilder.readField[String]("organization")
             val bloopName = unbuilder.readField[String]("bloopName")
             val sbtName = unbuilder.readField[String]("sbtName")
@@ -48,6 +69,7 @@ object ReadSbtExportFile {
             val excludeDependencies = unbuilder.readField[Seq[ExclusionRule]]("excludeDependencies")
             val crossVersion = unbuilder.readField[CrossVersion]("crossVersion")
             val libraryDependencySchemes = unbuilder.readField[Seq[ModuleID]]("libraryDependencySchemes")
+            val evictionErrorLevel = unbuilder.readField[Level.Value]("evictionErrorLevel")
             unbuilder.endObject()
 
             ExportedProject(
@@ -59,7 +81,8 @@ object ReadSbtExportFile {
               autoScalaLibrary,
               excludeDependencies,
               crossVersion,
-              libraryDependencySchemes
+              libraryDependencySchemes,
+              evictionErrorLevel
             )
           case None =>
             sjsonnew.deserializationError("expected a json value to read")
@@ -77,9 +100,9 @@ object ReadSbtExportFile {
         builder.addField("excludeDependencies", obj.excludeDependencies)
         builder.addField("crossVersion", obj.crossVersion)
         builder.addField("libraryDependencySchemes", obj.libraryDependencySchemes)
+        builder.addField("evictionErrorLevel", obj.evictionErrorLevel)
         builder.endObject()
       }
     }
   }
-
 }

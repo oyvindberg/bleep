@@ -79,7 +79,8 @@ object generateBuild {
           isTestProject = None,
           testFrameworks = model.JsonSet.empty,
           sourcegen = model.JsonSet.empty,
-          libraryVersionSchemes = model.JsonSet.empty
+          libraryVersionSchemes = model.JsonSet.empty,
+          ignoreEvictionErrors = None
         )
 
         val buildWithScript = buildFile1.copy(

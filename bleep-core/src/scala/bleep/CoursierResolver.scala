@@ -30,29 +30,33 @@ trait CoursierResolver {
   def direct(
       deps: SortedSet[model.Dep],
       versionCombo: model.VersionCombo,
-      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+      ignoreEvictionErrors: model.IgnoreEvictionErrors
   ): Either[CoursierError, Fetch.Result]
 
   def resolve(
       deps: SortedSet[model.Dep],
       versionCombo: model.VersionCombo,
-      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+      ignoreEvictionErrors: model.IgnoreEvictionErrors
   ): Either[CoursierError, CoursierResolver.Result]
 
   final def resolve(
       deps: Iterable[model.Dep],
       versionCombo: model.VersionCombo,
-      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+      ignoreEvictionErrors: model.IgnoreEvictionErrors
   ): Either[CoursierError, CoursierResolver.Result] =
-    resolve(SortedSet.empty[model.Dep] ++ deps, versionCombo, libraryVersionSchemes)
+    resolve(SortedSet.empty[model.Dep] ++ deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
 
   final def force(
       deps: Set[model.Dep],
       versionCombo: model.VersionCombo,
       libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
-      context: String
+      context: String,
+      ignoreEvictionErrors: model.IgnoreEvictionErrors
   ): CoursierResolver.Result =
-    resolve(deps, versionCombo, libraryVersionSchemes) match {
+    resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors) match {
       case Left(err)    => throw new BleepException.ResolveError(err, context)
       case Right(value) => value
     }
@@ -179,7 +183,8 @@ object CoursierResolver {
     override def direct(
         bleepDeps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, Fetch.Result] = {
       val maybeCoursierDependencies: Either[CoursierError, List[Dependency]] =
         asCoursierDeps(bleepDeps, versionCombo)
@@ -210,16 +215,17 @@ object CoursierResolver {
       for {
         deps <- maybeCoursierDependencies
         res <- go(deps, remainingAttempts = 3)
-        _ <- CheckEvictions(versionCombo, deps, libraryVersionSchemes.toList, res, logger)
+        _ <- CheckEvictions(versionCombo, deps, libraryVersionSchemes.toList, res, logger, Some(ignoreEvictionErrors))
       } yield res
     }
 
     override def resolve(
         bleepDeps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, CoursierResolver.Result] =
-      direct(bleepDeps, versionCombo, libraryVersionSchemes)
+      direct(bleepDeps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
         .map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))
   }
 
@@ -243,9 +249,10 @@ object CoursierResolver {
     override def resolve(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, CoursierResolver.Result] =
-      if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes)
+      if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
       else {
         val request = Cached.Request(deps, underlying.params, versionCombo, libraryVersionSchemes)
         val digest = request.asJson.foldWith(ShortenAndSortJson(Nil)).noSpaces.hashCode // should hopefully be stable
@@ -270,7 +277,7 @@ object CoursierResolver {
             val depNames = deps.map(_.baseModuleName.value)
             val ctxLogger = logger.withContext("cachePath", cachePath).withContext("depNames", depNames).withContext("versionCombo", versionCombo.toString)
             ctxLogger.debug(s"coursier cache miss")
-            underlying.resolve(deps, versionCombo, libraryVersionSchemes).map {
+            underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors).map {
               case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
                 ctxLogger.info("Not caching because result is changing")
                 changingResult
@@ -284,9 +291,10 @@ object CoursierResolver {
     override def direct(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, Fetch.Result] =
-      underlying.direct(deps, versionCombo, libraryVersionSchemes)
+      underlying.direct(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
   }
 
   object Cached {
@@ -323,16 +331,18 @@ object CoursierResolver {
     override def resolve(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, Result] =
-      underlying.resolve(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes)
+      underlying.resolve(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
 
     override def direct(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, Fetch.Result] =
-      underlying.direct(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes)
+      underlying.direct(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
 
     def rewriteDeps(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): SortedSet[model.Dep] = {
       val replacements = model.Replacements.versions(maybeWantedBleepVersion, versionCombo, includeEpoch = true, includeBinVersion = true)

@@ -13,6 +13,13 @@ import java.nio.file.{Path, Paths}
 import scala.jdk.CollectionConverters.IteratorHasAsScala
 
 object buildFromBloopFiles {
+  def convertEvictionErrorLevel(level: bleep.nosbt.util.Level.Value): Option[model.IgnoreEvictionErrors] =
+    level match {
+      case bleep.nosbt.util.Level.Error => Some(model.IgnoreEvictionErrors.No)
+      case bleep.nosbt.util.Level.Warn  => Some(model.IgnoreEvictionErrors.Warn)
+      case bleep.nosbt.util.Level.Info | bleep.nosbt.util.Level.Debug => Some(model.IgnoreEvictionErrors.Yes)
+    }
+
   val includedTestFramework: Set[String] =
     Config.Test.defaultConfiguration.frameworks.flatMap(_.names).toSet
 
@@ -184,7 +191,8 @@ object buildFromBloopFiles {
         isTestProject = if (projectType.testLike) Some(true) else None,
         testFrameworks = testFrameworks,
         sourcegen = model.JsonSet.empty,
-        libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes)
+        libraryVersionSchemes = model.JsonSet.fromIterable(libraryVersionSchemes),
+        ignoreEvictionErrors = convertEvictionErrorLevel(inputProject.sbtExportFile.evictionErrorLevel)
       )
     }
 

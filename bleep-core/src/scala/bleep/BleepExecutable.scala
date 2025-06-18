@@ -46,7 +46,8 @@ object BleepExecutable {
             Set(bleepCliDep),
             model.VersionCombo.Jvm(model.VersionScala.Scala213),
             libraryVersionSchemes = SortedSet.empty,
-            context = s"resolving bleep ${latestRelease.value} from maven central"
+            context = s"resolving bleep ${latestRelease.value} from maven central",
+            model.IgnoreEvictionErrors.No
           )
 
           DownloadedJava(

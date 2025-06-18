@@ -23,16 +23,17 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
   override def resolve(
       deps: SortedSet[model.Dep],
       versionCombo: model.VersionCombo,
-      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+      ignoreEvictionErrors: model.IgnoreEvictionErrors
   ): Either[CoursierError, CoursierResolver.Result] =
-    if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes)
+    if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
     else {
       val request = CoursierResolver.Cached.Request(deps, underlying.params, versionCombo, libraryVersionSchemes)
 
       inMemoryCache.get(request) match {
         case Some(value) => Right(value)
         case None =>
-          underlying.resolve(deps, versionCombo, libraryVersionSchemes).map {
+          underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors).map {
             case changingResult if changingResult.fullDetailedArtifacts.exists { case (_, _, artifact, _) => artifact.changing } =>
               sys.error("tests are not allowed to use changing artifacts as it will be too slow")
             case result =>
@@ -45,9 +46,10 @@ class TestResolver(underlying: CoursierResolver, inMemoryCache: mutable.Map[Cour
   override def direct(
       deps: SortedSet[model.Dep],
       versionCombo: model.VersionCombo,
-      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+      libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+      ignoreEvictionErrors: model.IgnoreEvictionErrors
   ): Either[CoursierError, Fetch.Result] =
-    underlying.direct(deps, versionCombo, libraryVersionSchemes)
+    underlying.direct(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
 }
 
 object TestResolver {
@@ -60,14 +62,16 @@ object TestResolver {
     override def resolve(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, CoursierResolver.Result] =
       Left(complain)
 
     override def direct(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
-        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, Fetch.Result] =
       Left(complain)
   }

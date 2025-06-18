@@ -379,3 +379,7 @@ This maintenance process ensures our liberated projects stay current while prese
 - Model definitions: `bleep-model/src/scala/bleep/model/`
 - Example scripts: `scripts/src/scala/bleep/scripts/`
 - Liberated projects: `liberated/*/` for real-world examples
+
+## Developer Tips and Notes
+
+- You can just compile with "bleep". To use that script you're referring to we need to create it with bleep setup-dev-script or something like that, and compile and then run. It's useful for testing bleep itself
