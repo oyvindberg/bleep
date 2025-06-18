@@ -1,5 +1,6 @@
 package bleep.model
 
+import coursier.ModuleName
 import io.circe.*
 import io.circe.syntax.*
 
@@ -26,7 +27,19 @@ sealed trait VersionCombo {
 
       case VersionCombo.Native(scalaVersion, scalaNative) =>
         val testLibs = if (isTest) Some(scalaNative.testInterface) else None
-        val libs = if (scalaVersion.is3) scalaNative.scala3Lib(scalaVersion.scalaVersion) else scalaNative.scalaLib
+
+        val libs = {
+          val version: String =
+            if (scalaNative.majorVersionNum < 0.5) scalaNative.scalaNativeVersion
+            else s"${scalaVersion.scalaVersion}+${scalaNative.scalaNativeVersion}"
+
+          Dep.ScalaDependency(
+            VersionScalaNative.org,
+            ModuleName(if (scalaVersion.is3) "scala3lib" else "scalalib"),
+            version,
+            fullCrossVersion = false
+          )
+        }
         List(libs, scalaVersion.library) ++ testLibs.toList
     }
 
