@@ -63,9 +63,20 @@ sealed trait Build {
                   thatPlatformName == thisPlatformName
                 }
 
+              def compatibleAndSamePlatform: Option[CrossProjectName] =
+                depCrossVersions.find { crossName =>
+                  val depCross = explodedProjects(crossName)
+                  val thatScala3Or213 = depCross.scala.flatMap(_.version).map(_.is3Or213)
+                  val thatPlatformName = depCross.platform.flatMap(_.name)
+
+                  thatScala3Or213 == thisScalaVersion.map(_.is3Or213) &&
+                  thatPlatformName == thisPlatformName
+                }
+
               sameCrossId
                 .orElse(sameScalaAndPlatform)
                 .orElse(sameScalaBinVersionAndPlatform)
+                .orElse(compatibleAndSamePlatform)
                 .toRight {
                   s"$crossProjectName: Couldn't figure out which of ${depCrossVersions.map(_.value).mkString(", ")}"
                 }
