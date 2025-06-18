@@ -9,6 +9,7 @@ case class VersionScala(scalaVersion: String) {
   def is3 = scalaVersion.startsWith("3.")
   def is213 = scalaVersion.startsWith("2.13")
   def is212 = scalaVersion.startsWith("2.12")
+  def is3Or213 = is3 || is213
 
   val epoch = scalaVersion.head
 
