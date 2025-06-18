@@ -10,7 +10,8 @@ case class ImportOptions(
     skipSbt: Boolean,
     skipGeneratedResourcesScript: Boolean,
     jvm: model.Jvm,
-    sbtPath: Option[String]
+    sbtPath: Option[String],
+    xmx: Option[String]
 )
 
 object ImportOptions {
@@ -46,6 +47,11 @@ object ImportOptions {
       .option[String]("sbt-path", "optional path to sbt executable if sbt provided by coursier can not be used.")
       .orNone
 
+  val xmx: Opts[Option[String]] =
+    Opts
+      .option[String]("xmx", "JVM heap size for sbt processes (e.g., '4g', '8g'). Default is '4g'.")
+      .orNone
+
   val opts: Opts[ImportOptions] =
-    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath).mapN(ImportOptions.apply)
+    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath, xmx).mapN(ImportOptions.apply)
 }
