@@ -17,7 +17,7 @@ case class Import(
   override def run(): Either[BleepException, Unit] = {
     if (!options.skipSbt) {
       val resolvedJvm = fetchJvm(options.jvm)
-      sbtimport.runSbt(logger, sbtBuildDir, destinationPaths, resolvedJvm, options.sbtPath, options.xmx)
+      sbtimport.runSbt(logger, sbtBuildDir, destinationPaths, resolvedJvm, options.sbtPath, options.xmx, options.filtering)
     }
 
     val inputData = sbtimport.ImportInputData.collectFromFileSystem(destinationPaths, logger)

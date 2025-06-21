@@ -36,9 +36,11 @@ sealed trait Build {
     explodedProjects.map { case (crossProjectName, p) =>
       val resolvedDependsOn: SortedSet[CrossProjectName] =
         p.dependsOn.values.map { depName =>
-          byName(depName) match {
-            case unambiguous if unambiguous.size == 1 => unambiguous.head
-            case depCrossVersions =>
+          byName.get(depName) match {
+            case None =>
+              throw new BleepException.Text(s"$crossProjectName: depends on non-existing project $depName")
+            case Some(unambiguous) if unambiguous.size == 1 => unambiguous.head
+            case Some(depCrossVersions) =>
               val sameCrossId = depCrossVersions.find(_.crossId == crossProjectName.crossId)
 
               val thisScalaVersion = p.scala.flatMap(_.version)
