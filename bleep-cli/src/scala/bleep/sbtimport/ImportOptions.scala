@@ -1,7 +1,7 @@
 package bleep
 package sbtimport
 
-import cats.data.{Validated, ValidatedNel}
+import cats.data.{NonEmptyList, Validated, ValidatedNel}
 import cats.syntax.apply.*
 import com.monovore.decline.{Argument, Opts}
 
@@ -11,7 +11,8 @@ case class ImportOptions(
     skipGeneratedResourcesScript: Boolean,
     jvm: model.Jvm,
     sbtPath: Option[String],
-    xmx: Option[String]
+    xmx: Option[String],
+    filtering: ImportFiltering
 )
 
 object ImportOptions {
@@ -52,6 +53,43 @@ object ImportOptions {
       .option[String]("xmx", "JVM heap size for sbt processes (e.g., '4g', '8g'). Default is '4g'.")
       .orNone
 
+  val excludeProjects: Opts[Set[model.ProjectName]] = Opts
+    .options[String](
+      "exclude-project",
+      "exclude specific projects from import and all their downstream dependencies (can be specified multiple times)",
+      "x"
+    )
+    .orEmpty
+    .map(_.map(model.ProjectName.apply))
+    .map(_.toSet)
+
+  val possibleScalaVersions: Map[String, model.VersionScala] =
+    List(model.VersionScala.Scala3, model.VersionScala.Scala213, model.VersionScala.Scala212).map(v => (v.binVersion.replace("\\.", ""), v)).toMap
+
+  val filterPlatforms: Opts[Option[NonEmptyList[model.PlatformId]]] = Opts
+    .options("platform", "only import projects for specified platform(s)", metavar = "platform", short = "p")(
+      Argument.fromMap("platform", model.PlatformId.All.map(p => (p.value, p)).toMap)
+    )
+    .orNone
+
+  val filterScalaVersions: Opts[Option[NonEmptyList[model.VersionScala]]] = Opts
+    .options("scala", "only import projects for specified scala version(s)", "s", "scala version")(
+      Argument.fromMap("scala version", possibleScalaVersions)
+    )
+    .orNone
+
   val opts: Opts[ImportOptions] =
-    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath, xmx).mapN(ImportOptions.apply)
+    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions).mapN { 
+      (ignore, skipSbt, skipScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions) =>
+        ImportOptions(
+          ignore, 
+          skipSbt, 
+          skipScript, 
+          jvm, 
+          sbtPath, 
+          xmx, 
+          ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
+        )
+    }
+
 }
