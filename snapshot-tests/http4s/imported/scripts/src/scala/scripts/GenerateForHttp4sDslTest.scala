@@ -17,7 +17,7 @@ object GenerateForHttp4sDslTest extends BleepCodegenScript("GenerateForHttp4sDsl
       |
       |import _root_.munit._
       |
-      |class andDoctest extends FunSuite {
+      |class `andDoctest` extends FunSuite {
       |
       |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
       |    val _ = () => (a1, a2)
@@ -28,32 +28,30 @@ object GenerateForHttp4sDslTest extends BleepCodegenScript("GenerateForHttp4sDsl
       |  }
       |
       |  test("and.scala:19: &") {
-      |    import org.http4s.dsl.&
-      |
       |    object Even { def unapply(i: Int) = (i % 2) == 0 }
       |
       |    object Positive { def unapply(i: Int) = i > 0 }
       |
       |    def describe(i: Int) = i match {
-      |      case Even() & Positive() => "even and positive"
+      |      case org.http4s.dsl.&(Even(), Positive()) => "even and positive"
       |      case Even() => "even but not positive"
       |      case Positive() => "positive but not even"
       |      case _ => "neither even nor positive"
       |    }
       |
-      |    //example at line 31: describe(-1)
+      |    //example at line 30: describe(-1)
       |    sbtDoctestTypeEquals(describe(-1))((describe(-1)): String)
       |      assertEquals(sbtDoctestReplString(describe(-1)), "neither even nor positive")
       |
-      |    //example at line 33: describe(0)
+      |    //example at line 32: describe(0)
       |    sbtDoctestTypeEquals(describe(0))((describe(0)): String)
       |      assertEquals(sbtDoctestReplString(describe(0)), "even but not positive")
       |
-      |    //example at line 35: describe(1)
+      |    //example at line 34: describe(1)
       |    sbtDoctestTypeEquals(describe(1))((describe(1)): String)
       |      assertEquals(sbtDoctestReplString(describe(1)), "positive but not even")
       |
-      |    //example at line 37: describe(2)
+      |    //example at line 36: describe(2)
       |    sbtDoctestTypeEquals(describe(2))((describe(2)): String)
       |      assertEquals(sbtDoctestReplString(describe(2)), "even and positive")
       |  }

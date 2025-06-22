@@ -84,6 +84,16 @@
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-opt-inline-from:org.scalablytyped.converter.internal.**",
+        "-opt-warnings",
+        "-opt:box-unbox",
+        "-opt:compact-locals",
+        "-opt:copy-propagation",
+        "-opt:l:inline",
+        "-opt:l:method",
+        "-opt:nullness-tracking",
+        "-opt:redundant-casts",
+        "-opt:simplify-jumps",
         "-unchecked"
       ],
       "jars": [

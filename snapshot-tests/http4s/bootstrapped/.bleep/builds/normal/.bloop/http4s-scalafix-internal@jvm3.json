@@ -1,0 +1,137 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "http4s-scalafix-internal@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm3",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/scala-3"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm3",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm3/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.4",
+      "options": [
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:params",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Ykind-projector",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-java-output-version",
+        "8",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.4/scala3-compiler_3-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.4/scala3-interfaces-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.4/tasty-core_3-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.6.0-scala-1/scala-asm-9.6.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.9.6/compiler-interface-1.9.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.25.1/jline-reader-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.25.1/jline-terminal-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.25.1/jline-terminal-jna-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.9.8/util-interface-1.9.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.25.1/jline-native-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm3/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "8",
+        "-Xlint:all",
+        "-encoding",
+        "utf8"
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.typelevel",
+          "name": "scalac-compat-annotation_3",
+          "version": "0.1.4",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "scalac-compat-annotation_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

@@ -6,6 +6,8 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/scala-2.12",
@@ -15,39 +17,37 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/scalajvm-2.12"
     ],
     "dependencies": [
-      "tapir-core@jvm212"
+      "tapir-core@jvm212",
+      "tapir-server@jvm212"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-metrics/1.9.1-alpha/opentelemetry-api-metrics-1.9.1-alpha.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.9.1/opentelemetry-api-1.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.9.1/opentelemetry-context-1.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.9.1/opentelemetry-sdk-common-1.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.9.1/opentelemetry-sdk-trace-1.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.9.1/opentelemetry-sdk-1.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.9.1-alpha/opentelemetry-semconv-1.9.1-alpha.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes"
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.51.0/opentelemetry-api-1.51.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.51.0/opentelemetry-context-1.51.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/semconv/opentelemetry-semconv/1.34.0/opentelemetry-semconv-1.34.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics/jvm212/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/opentelemetry-metrics/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.20",
       "options": [
-        "-Xcheckinit",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
         "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
         "-Xlint:doc-detached",
         "-Xlint:inaccessible",
         "-Xlint:infer-any",
@@ -61,7 +61,7 @@
         "-Xlint:stars-align",
         "-Xlint:type-parameter-shadow",
         "-Xlint:unsound-match",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
         "-Yno-adapted-args",
         "-Ypartial-unification",
         "-Ywarn-dead-code",
@@ -73,6 +73,7 @@
         "-Ywarn-unused:implicits",
         "-Ywarn-unused:imports",
         "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
         "-Ywarn-unused:params",
         "-Ywarn-unused:patvars",
         "-Ywarn-unused:privates",
@@ -80,19 +81,19 @@
         "-deprecation",
         "-encoding",
         "utf8",
-        "-explaintypes",
         "-feature",
         "-language:existentials",
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-target:jvm-1.8",
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-opentelemetry-metrics/jvm212/inc_compile.zip",
       "setup": {
@@ -123,158 +124,98 @@
     "resolution": {
       "modules": [
         {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-api-metrics",
-          "version": "1.9.1-alpha",
+          "organization": "io.opentelemetry.semconv",
+          "name": "opentelemetry-semconv",
+          "version": "1.34.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "opentelemetry-api-metrics",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api-metrics/1.9.1-alpha/opentelemetry-api-metrics-1.9.1-alpha.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "mercator_2.12",
-          "version": "0.2.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "mercator_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+              "name": "opentelemetry-semconv",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/semconv/opentelemetry-semconv/1.34.0/opentelemetry-semconv-1.34.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
-          "version": "1.4.18",
+          "version": "1.7.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
             }
           ]
         },
         {
-          "organization": "com.propensive",
+          "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
-          "version": "0.17.0",
+          "version": "1.1.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
             }
           ]
         },
         {
           "organization": "io.opentelemetry",
           "name": "opentelemetry-api",
-          "version": "1.9.1",
+          "version": "1.51.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "opentelemetry-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.9.1/opentelemetry-api-1.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-api/1.51.0/opentelemetry-api-1.51.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.15",
+          "version": "2.12.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-common",
-          "version": "1.9.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "opentelemetry-sdk-common",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-common/1.9.1/opentelemetry-sdk-common-1.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "io.opentelemetry",
           "name": "opentelemetry-context",
-          "version": "1.9.1",
+          "version": "1.51.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "opentelemetry-context",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.9.1/opentelemetry-context-1.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-context/1.51.0/opentelemetry-context-1.51.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk-trace",
-          "version": "1.9.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "opentelemetry-sdk-trace",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk-trace/1.9.1/opentelemetry-sdk-trace-1.9.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-sdk",
-          "version": "1.9.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "opentelemetry-sdk",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-sdk/1.9.1/opentelemetry-sdk-1.9.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.opentelemetry",
-          "name": "opentelemetry-semconv",
-          "version": "1.9.1-alpha",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "opentelemetry-semconv",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/opentelemetry/opentelemetry-semconv/1.9.1-alpha/opentelemetry-semconv-1.9.1-alpha.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
             }
           ]
         }

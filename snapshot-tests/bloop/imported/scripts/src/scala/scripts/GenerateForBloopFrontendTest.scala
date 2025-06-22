@@ -20,6 +20,8 @@ object GenerateForBloopFrontendTest extends BleepCodegenScript("GenerateForBloop
       |case object BuildTestInfo {
       |  /** The value is new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/test/resources/source-generator.py"). */
       |  val sampleSourceGenerator: java.io.File = new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/src/test/resources/source-generator.py")
+      |  /** The value is "4.9.9". */
+      |  val semanticdbVersion: String = "4.9.9"
       |  /** The value is scala.collection.immutable.Seq("<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.3/junit-interface-0.13.3.jar", "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar", "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"). */
       |  val junitTestJars: scala.collection.immutable.Seq[String] = scala.collection.immutable.Seq("<COURSIER>/https/repo1.maven.org/maven2/com/github/sbt/junit-interface/0.13.3/junit-interface-0.13.3.jar", "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar", "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar")
       |  /** The value is new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/frontend/target/stable/bloop-coursier.json"). */
@@ -27,8 +29,8 @@ object GenerateForBloopFrontendTest extends BleepCodegenScript("GenerateForBloop
       |  /** The value is new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build"). */
       |  val baseDirectory: java.io.File = new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build")
       |  override val toString: String = {
-      |    "sampleSourceGenerator: %s, junitTestJars: %s, bloopCoursierJson: %s, baseDirectory: %s".format(
-      |      sampleSourceGenerator, junitTestJars, bloopCoursierJson, baseDirectory
+      |    "sampleSourceGenerator: %s, semanticdbVersion: %s, junitTestJars: %s, bloopCoursierJson: %s, baseDirectory: %s".format(
+      |      sampleSourceGenerator, semanticdbVersion, junitTestJars, bloopCoursierJson, baseDirectory
       |    )
       |  }
       |}

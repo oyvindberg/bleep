@@ -1,0 +1,267 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-zio-metrics@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-metrics/jvm212",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scala-2.13-",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/scalajvm-2.12"
+    ],
+    "dependencies": [
+      "tapir-core@jvm212",
+      "tapir-server@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.19/zio-internal-macros_2.12-2.1.19.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-metrics/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-metrics/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/metrics/zio-metrics/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.20",
+      "options": [
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Ywarn-dead-code",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-macros:after",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:implicits",
+        "-Ywarn-unused:imports",
+        "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
+        "-Ywarn-unused:params",
+        "-Ywarn-unused:patvars",
+        "-Ywarn-unused:privates",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-target:jvm-1.8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-metrics/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_2.12",
+          "version": "2.1.19",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_2.12/2.1.19/zio_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_2.12",
+          "version": "2.1.19",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-internal-macros_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_2.12/2.1.19/zio-internal-macros_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_2.12",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_2.12/3.0.1/izumi-reflect_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_2.12",
+          "version": "2.1.19",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_2.12/2.1.19/zio-stacktracer_2.12-2.1.19.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.13.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.13.0/scala-collection-compat_2.12-2.13.0.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

@@ -6,6 +6,8 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/javajs",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/scala-2.12",
@@ -15,39 +17,61 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/scalajs-2.12"
     ],
     "dependencies": [
+      "tapir-client@js212",
       "tapir-core@js212"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.12/0.17.0/magnolia_sjs1_2.12-0.17.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_sjs1_2.12/3.3.18/core_sjs1_2.12-3.3.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.4.18/core_sjs1_2.12-1.4.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.2.7/core_sjs1_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.2.7/ws_sjs1_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/2.7.0/cldr-api_sjs1_2.12-2.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.2.0/scala-java-locales_sjs1_2.12-1.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.3.0/scala-java-time_sjs1_2.12-2.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.1/portable-scala-reflect_sjs1_2.12-1.1.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.0.0/scalajs-dom_sjs1_2.12-2.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.8.0/scalajs-library_2.12-1.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_sjs1_2.12/3.10.0/fs2-core_sjs1_2.12-3.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.12/1.1.10/magnolia_sjs1_2.12-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_sjs1_2.12/3.11.0/core_sjs1_2.12-3.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.7.14/core_sjs1_2.12-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.5.0/core_sjs1_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_sjs1_2.12/1.5.0/fs2_sjs1_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.5.0/ws_sjs1_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_sjs1_2.12/1.5.0/zio_sjs1_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_sjs1_2.12/3.0.1/izumi-reflect_sjs1_2.12-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_sjs1_2.12/2.1.16/zio-internal-macros_sjs1_2.12-2.1.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_sjs1_2.12/2.1.16/zio-stacktracer_sjs1_2.12-2.1.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_sjs1_2.12/2.1.16/zio-streams_sjs1_2.12-2.1.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_sjs1_2.12/2.1.16/zio_sjs1_2.12-2.1.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/4.5.0/cldr-api_sjs1_2.12-4.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.5.4/scala-java-locales_sjs1_2.12-1.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.6.0/scala-java-time_sjs1_2.12-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.3/portable-scala-reflect_sjs1_2.12-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_2.12/1.1.1/scala-js-macrotask-executor_sjs1_2.12-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.8.0/scalajs-dom_sjs1_2.12-2.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-java-securerandom_sjs1_2.12/1.0.0/scalajs-java-securerandom_sjs1_2.12-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.19.0/scalajs-library_2.12-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.19.0/scalajs-scalalib_2.12-2.12.20%2B1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-weakreferences_sjs1_2.12/1.0.0/scalajs-weakreferences_sjs1_2.12-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_2.12/1.1.38/scodec-bits_sjs1_2.12-1.1.38.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.12/2.10.0/cats-core_sjs1_2.12-2.10.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_sjs1_2.12/3.5.4/cats-effect-kernel_sjs1_2.12-3.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_sjs1_2.12/3.5.4/cats-effect-std_sjs1_2.12-3.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_sjs1_2.12/3.5.4/cats-effect_sjs1_2.12-3.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.12/2.10.0/cats-kernel_sjs1_2.12-2.10.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js212/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.20",
       "options": [
-        "-Xcheckinit",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
         "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
         "-Xlint:doc-detached",
         "-Xlint:inaccessible",
         "-Xlint:infer-any",
@@ -61,8 +85,8 @@
         "-Xlint:stars-align",
         "-Xlint:type-parameter-shadow",
         "-Xlint:unsound-match",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.15/1.8.0/scalajs-compiler_2.12.15-1.8.0.jar",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.20/1.19.0/scalajs-compiler_2.12.20-1.19.0.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
         "-Yno-adapted-args",
         "-Ypartial-unification",
         "-Ywarn-dead-code",
@@ -74,6 +98,7 @@
         "-Ywarn-unused:implicits",
         "-Ywarn-unused:imports",
         "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
         "-Ywarn-unused:params",
         "-Ywarn-unused:patvars",
         "-Ywarn-unused:privates",
@@ -81,7 +106,6 @@
         "-deprecation",
         "-encoding",
         "utf8",
-        "-explaintypes",
         "-feature",
         "-language:existentials",
         "-language:experimental.macros",
@@ -90,10 +114,10 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/js212/inc_compile.zip",
       "setup": {
@@ -113,7 +137,7 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "1.8.0",
+        "version": "1.19.0",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,
@@ -130,158 +154,386 @@
     "resolution": {
       "modules": [
         {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_sjs1_2.12",
-          "version": "1.2.7",
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_sjs1_2.12",
+          "version": "1.1.10",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "ws_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.2.7/ws_sjs1_2.12-1.2.7.jar"
+              "name": "magnolia_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.12/1.1.10/magnolia_sjs1_2.12-1.1.10.jar"
             }
           ]
         },
         {
-          "organization": "com.propensive",
-          "name": "mercator_2.12",
-          "version": "0.2.1",
+          "organization": "org.typelevel",
+          "name": "cats-effect_sjs1_2.12",
+          "version": "3.5.4",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "mercator_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
+              "name": "cats-effect_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_sjs1_2.12/3.5.4/cats-effect_sjs1_2.12-3.5.4.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.12",
-          "version": "2.7.0",
+          "version": "4.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/2.7.0/cldr-api_sjs1_2.12-2.7.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/4.5.0/cldr-api_sjs1_2.12-4.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_sjs1_2.12",
+          "version": "2.10.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_sjs1_2.12/2.10.0/cats-core_sjs1_2.12-2.10.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.15",
+          "version": "2.12.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
         {
-          "organization": "com.propensive",
-          "name": "magnolia_sjs1_2.12",
-          "version": "0.17.0",
+          "organization": "org.scodec",
+          "name": "scodec-bits_sjs1_2.12",
+          "version": "1.1.38",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "magnolia_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.12/0.17.0/magnolia_sjs1_2.12-0.17.0.jar"
+              "name": "scodec-bits_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_sjs1_2.12/1.1.38/scodec-bits_sjs1_2.12-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_sjs1_2.12",
+          "version": "2.1.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_sjs1_2.12/2.1.16/zio_sjs1_2.12-2.1.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "fs2_sjs1_2.12",
+          "version": "1.5.0",
+          "configurations": "optional",
+          "artifacts": [
+            {
+              "name": "fs2_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_sjs1_2.12/1.5.0/fs2_sjs1_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_sjs1_2.12",
+          "version": "2.10.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_sjs1_2.12/2.10.0/cats-kernel_sjs1_2.12-2.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_sjs1_2.12",
+          "version": "3.10.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_sjs1_2.12/3.10.0/fs2-core_sjs1_2.12-3.10.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_sjs1_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.5.0/ws_sjs1_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_sjs1_2.12",
+          "version": "3.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_sjs1_2.12/3.5.4/cats-effect-kernel_sjs1_2.12-3.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_sjs1_2.12",
+          "version": "2.1.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-streams_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_sjs1_2.12/2.1.16/zio-streams_sjs1_2.12-2.1.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-scalalib_2.12",
+          "version": "2.12.20+1.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-scalalib_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.19.0/scalajs-scalalib_2.12-2.12.20%2B1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_sjs1_2.12",
+          "version": "2.1.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_sjs1_2.12/2.1.16/zio-stacktracer_sjs1_2.12-2.1.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-java-securerandom_sjs1_2.12",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-java-securerandom_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-java-securerandom_sjs1_2.12/1.0.0/scalajs-java-securerandom_sjs1_2.12-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scala-js-macrotask-executor_sjs1_2.12",
+          "version": "1.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-js-macrotask-executor_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scala-js-macrotask-executor_sjs1_2.12/1.1.1/scala-js-macrotask-executor_sjs1_2.12-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-weakreferences_sjs1_2.12",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-weakreferences_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-weakreferences_sjs1_2.12/1.0.0/scalajs-weakreferences_sjs1_2.12-1.0.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_sjs1_2.12",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.2.7/core_sjs1_2.12-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.5.0/core_sjs1_2.12-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.12",
-          "version": "1.2.0",
+          "version": "1.5.4",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.2.0/scala-java-locales_sjs1_2.12-1.2.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.5.4/scala-java-locales_sjs1_2.12-1.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_sjs1_2.12",
+          "version": "3.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_sjs1_2.12/3.5.4/cats-effect-std_sjs1_2.12-3.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_sjs1_2.12",
+          "version": "2.1.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-internal-macros_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_sjs1_2.12/2.1.16/zio-internal-macros_sjs1_2.12-2.1.16.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.12",
-          "version": "2.3.0",
+          "version": "2.6.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.3.0/scala-java-time_sjs1_2.12-2.3.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.6.0/scala-java-time_sjs1_2.12-2.6.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-js",
           "name": "scalajs-library_2.12",
-          "version": "1.8.0",
+          "version": "1.19.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.8.0/scalajs-library_2.12-1.8.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.19.0/scalajs-library_2.12-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_sjs1_2.12",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_sjs1_2.12/3.0.1/izumi-reflect_sjs1_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "zio_sjs1_2.12",
+          "version": "1.5.0",
+          "configurations": "optional",
+          "artifacts": [
+            {
+              "name": "zio_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/zio_sjs1_2.12/1.5.0/zio_sjs1_2.12-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.12",
-          "version": "2.0.0",
+          "version": "2.8.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.0.0/scalajs-dom_sjs1_2.12-2.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.8.0/scalajs-dom_sjs1_2.12-2.8.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.12",
-          "version": "1.4.18",
+          "version": "1.7.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.4.18/core_sjs1_2.12-1.4.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.7.14/core_sjs1_2.12-1.7.14.jar"
             }
           ]
         },
         {
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.12",
-          "version": "1.1.1",
+          "version": "1.1.3",
           "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.1/portable-scala-reflect_sjs1_2.12-1.1.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.3/portable-scala-reflect_sjs1_2.12-1.1.3.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.client3",
           "name": "core_sjs1_2.12",
-          "version": "3.3.18",
+          "version": "3.11.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_sjs1_2.12/3.3.18/core_sjs1_2.12-3.3.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/client3/core_sjs1_2.12/3.11.0/core_sjs1_2.12-3.11.0.jar"
             }
           ]
         }

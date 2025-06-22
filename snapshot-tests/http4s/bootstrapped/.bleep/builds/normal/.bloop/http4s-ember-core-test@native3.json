@@ -1,0 +1,966 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "http4s-ember-core-test@native3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/native3",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-native/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-native/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm-native/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm-native/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/native/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/native/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/native/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/scala-3"
+    ],
+    "dependencies": [
+      "http4s-core@native3",
+      "http4s-ember-core@native3",
+      "http4s-laws@native3",
+      "http4s-tests@native3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_native0.4_3/3.11.0/fs2-core_native0.4_3-3.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_native0.4_3/3.11.0/fs2-io_native0.4_3-3.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/armanbilge/epollcat_native0.4_3/0.1.6/epollcat_native0.4_3-0.1.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_native0.4_3/3.6.0/ip4s-core_native0.4_3-3.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-test-kit_native0.4_3/3.6.0/ip4s-test-kit_native0.4_3-3.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.4_3/4.4.0/cldr-api_native0.4_3-4.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/locales-minimal-en_us-db_native0.4_3/1.5.1/locales-minimal-en_us-db_native0.4_3-1.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.4_3/1.5.3/scala-java-locales_native0.4_3-1.5.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.4_3/2.5.0/scala-java-time_native0.4_3-2.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/hpack_native0.4_3/1.0.4/hpack_native0.4_3-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.4_2.13/1.1.2/portable-scala-reflect_native0.4_2.13-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.4_3/0.4.17/auxlib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.4_3/0.4.17/clib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.4_3/0.4.17/javalib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/junit-runtime_native0.4_3/0.4.17/junit-runtime_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.4_3/0.4.17/nativelib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.4_3/0.4.17/posixlib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.4_3/0.4.17/scala3lib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.4_2.13/0.4.17/scalalib_native0.4_2.13-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.4_3/0.4.17/test-interface-sbt-defs_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface_native0.4_3/0.4.17/test-interface_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.4_3/0.4.17/windowslib_native0.4_3-0.4.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_native0.4_3/1.17.1/scalacheck_native0.4_3-1.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_native0.4_3/1.0.0/munit-diff_native0.4_3-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_native0.4_3/1.0.0-M6/munit-scalacheck_native0.4_3-1.0.0-M6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_native0.4_3/1.0.0/munit_native0.4_3-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_native0.4_3/1.1.38/scodec-bits_native0.4_3-1.1.38.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_native0.4_3/1.4.2/case-insensitive-testing_native0.4_3-1.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_native0.4_3/1.4.2/case-insensitive_native0.4_3-1.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_native0.4_3/2.11.0/cats-core_native0.4_3-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_native0.4_3/3.5.7/cats-effect-kernel-testkit_native0.4_3-3.5.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_native0.4_3/3.5.7/cats-effect-kernel_native0.4_3-3.5.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_native0.4_3/3.5.7/cats-effect-std_native0.4_3-3.5.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_native0.4_3/3.5.7/cats-effect-testkit_native0.4_3-3.5.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_native0.4_3/3.5.7/cats-effect_native0.4_3-3.5.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_native0.4_3/2.9.0/cats-free_native0.4_3-2.9.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_native0.4_3/2.11.0/cats-kernel-laws_native0.4_3-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_native0.4_3/2.11.0/cats-kernel_native0.4_3-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_native0.4_3/2.11.0/cats-laws_native0.4_3-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_native0.4_3/1.3.0/cats-mtl_native0.4_3-1.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_native0.4_3/1.0.0/cats-parse_native0.4_3-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_native0.4_3/1.2.0/coop_native0.4_3-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_native0.4_3/1.6.0/discipline-core_native0.4_3-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_native0.4_3/2.0.0-M3/discipline-munit_native0.4_3-2.0.0-M3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_native0.4_3/0.0.1/idna4s-core_native0.4_3-0.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_native0.4_3/1.1.0/literally_native0.4_3-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_native0.4_3/2.7.0/log4cats-core_native0.4_3-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-noop_native0.4_3/2.7.0/log4cats-noop_native0.4_3-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-testing_native0.4_3/2.7.0/log4cats-testing_native0.4_3-2.7.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_native0.4_3/2.0.0/munit-cats-effect_native0.4_3-2.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_native0.4_3/2.0.0-M2/scalacheck-effect-munit_native0.4_3-2.0.0-M2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_native0.4_3/2.0.0-M2/scalacheck-effect_native0.4_3-2.0.0-M2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_native0.4_3/3.6.0/vault_native0.4_3-3.6.0.jar",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/native3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/native3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/native3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/native3/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/native3",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/native3/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm-native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.4",
+      "options": [
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:params",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_3.3.4/0.4.17/nscplugin_3.3.4-0.4.17.jar",
+        "-Ykind-projector",
+        "-deprecation",
+        "-encoding",
+        "UTF-8",
+        "-feature",
+        "-java-output-version",
+        "8",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.4/scala3-compiler_3-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.4/scala3-interfaces-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.4/tasty-core_3-3.3.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.6.0-scala-1/scala-asm-9.6.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.9.6/compiler-interface-1.9.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.25.1/jline-reader-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.25.1/jline-terminal-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.25.1/jline-terminal-jna-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.9.8/util-interface-1.9.8.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.25.1/jline-native-3.25.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core-test/native3/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        "--release",
+        "8",
+        "-Xlint:all",
+        "-encoding",
+        "utf8"
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        },
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "native",
+      "config": {
+        "version": "0.4.17",
+        "mode": "debug",
+        "gc": "",
+        "clang": "",
+        "clangpp": "",
+        "toolchain": [
+          
+        ],
+        "options": {
+          "linker": [
+            
+          ],
+          "compiler": [
+            
+          ]
+        },
+        "linkStubs": false,
+        "check": false,
+        "dump": false
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.typelevel",
+          "name": "discipline-core_native0.4_3",
+          "version": "1.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "discipline-core_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-core_native0.4_3/1.6.0/discipline-core_native0.4_3-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_native0.4_3",
+          "version": "1.5.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java-locales_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.4_3/1.5.3/scala-java-locales_native0.4_3-1.5.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "junit-runtime_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "junit-runtime_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/junit-runtime_native0.4_3/0.4.17/junit-runtime_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-parse_native0.4_3",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-parse_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-parse_native0.4_3/1.0.0/cats-parse_native0.4_3-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "idna4s-core_native0.4_3",
+          "version": "0.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "idna4s-core_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/idna4s-core_native0.4_3/0.0.1/idna4s-core_native0.4_3-0.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel-laws_native0.4_3",
+          "version": "2.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel-laws_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel-laws_native0.4_3/2.11.0/cats-kernel-laws_native0.4_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_native0.4_3",
+          "version": "4.4.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cldr-api_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.4_3/4.4.0/cldr-api_native0.4_3-4.4.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "log4cats-noop_native0.4_3",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "log4cats-noop_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-noop_native0.4_3/2.7.0/log4cats-noop_native0.4_3-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "clib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "clib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.4_3/0.4.17/clib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalac-compat-annotation_3",
+          "version": "0.1.4",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "scalac-compat-annotation_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface-sbt-defs_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "test-interface-sbt-defs_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.4_3/0.4.17/test-interface-sbt-defs_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-core",
+          "version": "1.2.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.6/logback-core-1.2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit_native0.4_3",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "munit_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit_native0.4_3/1.0.0/munit_native0.4_3-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "munit-cats-effect_native0.4_3",
+          "version": "2.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "munit-cats-effect_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/munit-cats-effect_native0.4_3/2.0.0/munit-cats-effect_native0.4_3-2.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive-testing_native0.4_3",
+          "version": "1.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "case-insensitive-testing_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive-testing_native0.4_3/1.4.2/case-insensitive-testing_native0.4_3-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-core_native0.4_3",
+          "version": "3.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-core_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_native0.4_3/3.11.0/fs2-core_native0.4_3-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel_native0.4_3",
+          "version": "3.5.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_native0.4_3/3.5.7/cats-effect-kernel_native0.4_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-std_native0.4_3",
+          "version": "3.5.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-std_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_native0.4_3/3.5.7/cats-effect-std_native0.4_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "case-insensitive_native0.4_3",
+          "version": "1.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "case-insensitive_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/case-insensitive_native0.4_3/1.4.2/case-insensitive_native0.4_3-1.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.armanbilge",
+          "name": "epollcat_native0.4_3",
+          "version": "0.1.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "epollcat_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/armanbilge/epollcat_native0.4_3/0.1.6/epollcat_native0.4_3-0.1.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "windowslib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "windowslib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.4_3/0.4.17/windowslib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.32",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.http4s",
+          "name": "hpack_native0.4_3",
+          "version": "1.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "hpack_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/hpack_native0.4_3/1.0.4/hpack_native0.4_3-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_native0.4_3",
+          "version": "2.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_native0.4_3/2.11.0/cats-core_native0.4_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-free_native0.4_3",
+          "version": "2.9.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-free_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-free_native0.4_3/2.9.0/cats-free_native0.4_3-2.9.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "coop_native0.4_3",
+          "version": "1.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coop_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/coop_native0.4_3/1.2.0/coop_native0.4_3-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "ch.qos.logback",
+          "name": "logback-classic",
+          "version": "1.2.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "logback-classic",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.6/logback-classic-1.2.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "log4cats-testing_native0.4_3",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "log4cats-testing_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-testing_native0.4_3/2.7.0/log4cats-testing_native0.4_3-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.4_3/0.4.17/auxlib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "log4cats-core_native0.4_3",
+          "version": "2.7.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "log4cats-core_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_native0.4_3/2.7.0/log4cats-core_native0.4_3-2.7.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scodec",
+          "name": "scodec-bits_native0.4_3",
+          "version": "1.1.38",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scodec-bits_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_native0.4_3/1.1.38/scodec-bits_native0.4_3-1.1.38.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.4_3/0.4.17/nativelib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scala3lib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3lib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.4_3/0.4.17/scala3lib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scalalib_native0.4_2.13",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalalib_native0.4_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.4_2.13/0.4.17/scalalib_native0.4_2.13-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalacheck-effect-munit_native0.4_3",
+          "version": "2.0.0-M2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalacheck-effect-munit_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect-munit_native0.4_3/2.0.0-M2/scalacheck-effect-munit_native0.4_3-2.0.0-M2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-kernel_native0.4_3",
+          "version": "2.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-kernel_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_native0.4_3/2.11.0/cats-kernel_native0.4_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "test-interface_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface_native0.4_3/0.4.17/test-interface_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-core_native0.4_3",
+          "version": "3.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ip4s-core_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_native0.4_3/3.6.0/ip4s-core_native0.4_3-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-testkit_native0.4_3",
+          "version": "3.5.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-testkit_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-testkit_native0.4_3/3.5.7/cats-effect-testkit_native0.4_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect_native0.4_3",
+          "version": "3.5.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_native0.4_3/3.5.7/cats-effect_native0.4_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "literally_native0.4_3",
+          "version": "1.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "literally_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_native0.4_3/1.1.0/literally_native0.4_3-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-laws_native0.4_3",
+          "version": "2.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-laws_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-laws_native0.4_3/2.11.0/cats-laws_native0.4_3-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalacheck",
+          "name": "scalacheck_native0.4_3",
+          "version": "1.17.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalacheck_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalacheck/scalacheck_native0.4_3/1.17.1/scalacheck_native0.4_3-1.17.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit-diff_native0.4_3",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "munit-diff_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_native0.4_3/1.0.0/munit-diff_native0.4_3-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "javalib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "javalib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.4_3/0.4.17/javalib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_native0.4_2.13",
+          "version": "1.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_native0.4_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.4_2.13/1.1.2/portable-scala-reflect_native0.4_2.13-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "discipline-munit_native0.4_3",
+          "version": "2.0.0-M3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "discipline-munit_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/discipline-munit_native0.4_3/2.0.0-M3/discipline-munit_native0.4_3-2.0.0-M3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_native0.4_3",
+          "version": "2.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java-time_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.4_3/2.5.0/scala-java-time_native0.4_3-2.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.comcast",
+          "name": "ip4s-test-kit_native0.4_3",
+          "version": "3.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ip4s-test-kit_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-test-kit_native0.4_3/3.6.0/ip4s-test-kit_native0.4_3-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit-scalacheck_native0.4_3",
+          "version": "1.0.0-M6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "munit-scalacheck_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-scalacheck_native0.4_3/1.0.0-M6/munit-scalacheck_native0.4_3-1.0.0-M6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "co.fs2",
+          "name": "fs2-io_native0.4_3",
+          "version": "3.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fs2-io_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_native0.4_3/3.11.0/fs2-io_native0.4_3-3.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-mtl_native0.4_3",
+          "version": "1.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-mtl_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_native0.4_3/1.3.0/cats-mtl_native0.4_3-1.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-effect-kernel-testkit_native0.4_3",
+          "version": "3.5.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-effect-kernel-testkit_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_native0.4_3/3.5.7/cats-effect-kernel-testkit_native0.4_3-3.5.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.4_3",
+          "version": "0.4.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.4_3/0.4.17/posixlib_native0.4_3-0.4.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "scalacheck-effect_native0.4_3",
+          "version": "2.0.0-M2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalacheck-effect_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_native0.4_3/2.0.0-M2/scalacheck-effect_native0.4_3-2.0.0-M2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "vault_native0.4_3",
+          "version": "3.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "vault_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_native0.4_3/3.6.0/vault_native0.4_3-3.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "locales-minimal-en_us-db_native0.4_3",
+          "version": "1.5.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "locales-minimal-en_us-db_native0.4_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/locales-minimal-en_us-db_native0.4_3/1.5.1/locales-minimal-en_us-db_native0.4_3-1.5.1.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "test"
+    ]
+  }
+}

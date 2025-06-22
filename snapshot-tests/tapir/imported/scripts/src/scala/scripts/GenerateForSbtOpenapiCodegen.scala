@@ -13,7 +13,7 @@ object GenerateForSbtOpenapiCodegen extends BleepCodegenScript("GenerateForSbtOp
       if (Set("sbt-openapi-codegen").contains(target.project.value)) {
         val to = target.resources.resolve("sbt/sbt.autoplugins")
         started.logger.withContext(target.project).warn(s"Writing $to")
-        val content = s"""|OpenapiCodegenPlugin""".stripMargin
+        val content = s"""|sttp.tapir.sbt.OpenapiCodegenPlugin""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

@@ -1,0 +1,167 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "scalameta@jvm3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm3",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/contrib/jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/contrib/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/contrib/shared/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-jvm/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm-native/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm-native/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/scala-3"
+    ],
+    "dependencies": [
+      "common@jvm213",
+      "io@jvm213",
+      "parsers@jvm3",
+      "trees@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm213/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm3",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm3/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.6",
+      "options": [
+        "-Wconf:cat=deprecation:silent",
+        "-Xfatal-warnings",
+        "-feature",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.6/scala3-compiler_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.6/scala3-interfaces-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.6/tasty-core_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.4/compiler-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm3/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_3",
+          "version": "3.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fastparse_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_3/3.1.1/fastparse_3-3.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_3",
+          "version": "0.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sourcecode_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.2/sourcecode_3-0.4.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_3",
+          "version": "1.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "geny_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_3/1.1.0/geny_3-1.1.0.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

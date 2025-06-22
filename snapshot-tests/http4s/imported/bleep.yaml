@@ -1,32 +1,14 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
-  http4s-async-http-client:
-    dependencies:
-    - co.fs2::fs2-reactive-streams:3.2.5
-    - io.netty:netty-buffer:4.1.74.Final
-    - io.netty:netty-codec-http:4.1.74.Final
-    - org.asynchttpclient:async-http-client:2.12.3
-    - org.reactivestreams:reactive-streams:1.0.3
-    dependsOn: http4s-client
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/async-http-client
-  http4s-async-http-client-test:
-    dependsOn:
-    - http4s-async-http-client
-    - http4s-client-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/async-http-client
   http4s-bench:
     dependencies:
-    - io.circe::circe-parser:0.15.0-M1
-    - org.openjdk.jmh:jmh-core:1.32
-    - org.openjdk.jmh:jmh-generator-bytecode:1.32
-    - org.openjdk.jmh:jmh-generator-reflection:1.32
+    - io.circe::circe-parser:0.14.8
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    - configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn:
     - http4s-circe
     - http4s-ember-core
@@ -34,84 +16,20 @@ projects:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/bench
-  http4s-blaze-client:
-    dependsOn:
-    - http4s-blaze-core
-    - http4s-client
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/blaze-client
-  http4s-blaze-client-test:
-    dependsOn:
-    - http4s-blaze-client
-    - http4s-blaze-core-test
-    - http4s-client-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/blaze-client
-  http4s-blaze-core:
-    dependencies: org.http4s::blaze-http:0.15.3
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/blaze-core
-  http4s-blaze-core-test:
-    dependsOn:
-    - http4s-blaze-core
-    - http4s-testing-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/blaze-core
-  http4s-blaze-server:
-    dependsOn:
-    - http4s-blaze-core
-    - http4s-server
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/blaze-server
-  http4s-blaze-server-test:
-    dependsOn:
-    - http4s-blaze-core-test
-    - http4s-blaze-server
-    - http4s-server-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/blaze-server
-  http4s-boopickle:
-    dependencies: io.suzaku::boopickle:1.4.0
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-all
-    folder: ../sbt-build/boopickle
-    source-layout: cross-pure
-  http4s-boopickle-test:
-    dependsOn:
-    - http4s-boopickle
-    - http4s-testing-test
-    extends:
-    - template-common-test
-    - template-cross-all
-    folder: ../sbt-build/boopickle
-    source-layout: cross-pure
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-circe:
     dependencies:
-    - io.circe::circe-core:0.15.0-M1
-    - io.circe::circe-jawn:0.15.0-M1
+    - io.circe::circe-core:0.14.8
+    - io.circe::circe-jawn:0.14.8
     dependsOn: http4s-jawn
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/circe
     source-layout: cross-pure
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-circe-test:
-    dependencies: io.circe::circe-testing:0.15.0-M1
+    dependencies: io.circe::circe-testing:0.14.8
     dependsOn:
     - http4s-circe
     - http4s-jawn-test
@@ -120,70 +38,413 @@ projects:
     - template-cross-all
     folder: ../sbt-build/circe
     source-layout: cross-pure
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-client:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: org.http4s::http4s-crypto:0.2.4
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/client
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-client-test:
     cross:
       js213:
-        dependsOn: http4s-node-serverless
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
       js3:
-        dependsOn: http4s-node-serverless
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
       jvm213:
         dependencies:
-        - io.netty:netty-buffer:4.1.74.Final
-        - io.netty:netty-codec-http:4.1.74.Final
+        - io.netty:netty-buffer:4.1.115.Final
+        - io.netty:netty-codec-http:4.1.115.Final
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
       jvm3:
         dependencies:
-        - io.netty:netty-buffer:4.1.74.Final
-        - io.netty:netty-codec-http:4.1.74.Final
+        - io.netty:netty-buffer:4.1.115.Final
+        - io.netty:netty-codec-http:4.1.115.Final
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: ch.qos.logback:logback-classic:1.2.6
     dependsOn:
     - http4s-client
     - http4s-dsl
     - http4s-server
-    - http4s-testing-test
+    - http4s-tests
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/client
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
+  http4s-client-testkit:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        dependencies:
+        - io.netty:netty-buffer:4.1.115.Final
+        - io.netty:netty-codec-http:4.1.115.Final
+        - org.typelevel::log4cats-slf4j:2.7.0
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        dependencies:
+        - io.netty:netty-buffer:4.1.115.Final
+        - io.netty:netty-codec-http:4.1.115.Final
+        - org.typelevel::log4cats-slf4j:2.7.0
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies:
+    - org.scalameta::munit:1.0.0
+    - org.typelevel::munit-cats-effect:2.0.0
+    dependsOn:
+    - http4s-client
+    - http4s-dsl
+    - http4s-server
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/client-testkit
+    source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
+  http4s-client-testkit-test:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: ch.qos.logback:logback-classic:1.2.6
+    dependsOn:
+    - http4s-client-testkit
+    - http4s-tests
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/client-testkit
+    source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-core:
     cross:
       js213:
         dependencies:
-        - io.github.cquiroz::locales-minimal-en_us-db:1.3.0
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::locales-minimal-en_us-db:1.5.1
+        - io.github.cquiroz::scala-java-time:2.5.0
+        - forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-        - org.slf4j:slf4j-api:1.7.36
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
       js3:
         dependencies:
-        - io.github.cquiroz::locales-minimal-en_us-db:1.3.0
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::locales-minimal-en_us-db:1.5.1
+        - io.github.cquiroz::scala-java-time:2.5.0
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
       jvm213:
         dependencies:
+          configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        dependencies:
+        - io.github.cquiroz::locales-minimal-en_us-db:1.5.1
+        - io.github.cquiroz::scala-java-time:2.5.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-        - org.slf4j:slf4j-api:1.7.36
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        dependencies:
+        - io.github.cquiroz::locales-minimal-en_us-db:1.5.1
+        - io.github.cquiroz::scala-java-time:2.5.0
+        - forceJvm: true
+          module: org.scala-lang::scala3-library:${SCALA_VERSION}
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
     dependencies:
-    - co.fs2::fs2-core:3.2.5
-    - co.fs2::fs2-io:3.2.5
-    - com.comcast::ip4s-core:3.1.2
-    - org.http4s::http4s-crypto:0.2.2
-    - org.log4s::log4s:1.10.0
-    - org.scodec::scodec-bits:1.1.30
-    - org.typelevel::case-insensitive:1.2.0
-    - org.typelevel::cats-core:2.7.0
-    - org.typelevel::cats-effect-std:3.3.6
+    - co.fs2::fs2-core:3.11.0
+    - co.fs2::fs2-io:3.11.0
+    - com.comcast::ip4s-core:3.6.0
+    - org.scodec::scodec-bits:1.1.38
+    - org.typelevel::case-insensitive:1.4.2
+    - org.typelevel::cats-core:2.11.0
+    - org.typelevel::cats-effect-std:3.5.7
     - exclusions:
         org.typelevel: cats-core_2.13
-      module: org.typelevel::cats-parse:0.3.6
-    - org.typelevel::literally:1.0.2
-    - org.typelevel::vault:3.1.0
+      module: org.typelevel::cats-parse:1.0.0
+    - org.typelevel::literally:1.1.0
+    - org.typelevel::log4cats-core:2.7.0
+    - org.typelevel::vault:3.6.0
     extends:
     - template-common-main
     - template-cross-all
@@ -192,46 +453,41 @@ projects:
     sourcegen:
       main: scripts.GenerateForHttp4sCore
       project: scripts
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-core-test:
     cross:
       jvm213:
         dependencies:
           configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
     dependencies:
     - ch.qos.logback:logback-classic:1.2.6
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalameta::munit:0.7.29
-    - org.typelevel::cats-laws:2.7.0
+    - org.scalacheck::scalacheck:1.17.1
+    - org.scalameta::munit:1.0.0
+    - org.typelevel::cats-laws:2.11.0
+    - configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn: http4s-core
     extends:
     - template-common-test
     - template-cross-jvm-all
     folder: ../sbt-build/core
+    resources:
+    - ./${PLATFORM}-native/src/${SCOPE}/resources
+    - ./js-${PLATFORM}/src/${SCOPE}/resources
     source-layout: cross-full
     sourcegen:
       main: scripts.GenerateForHttp4sCoreTest
       project: scripts
-  http4s-dropwizard-metrics:
-    dependencies:
-    - io.dropwizard.metrics:metrics-core:4.2.8
-    - io.dropwizard.metrics:metrics-json:4.2.8
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/dropwizard-metrics
-  http4s-dropwizard-metrics-test:
-    dependsOn:
-    - http4s-client
-    - http4s-dropwizard-metrics
-    - http4s-dsl
-    - http4s-server
-    - http4s-testing-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/dropwizard-metrics
+    sources:
+    - ./${PLATFORM}-native/src/${SCOPE}/scala
+    - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./js-${PLATFORM}/src/${SCOPE}/scala
+    - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    - ./shared/src/${SCOPE}/scala-2.13+
   http4s-dsl:
     dependsOn: http4s-core
     extends:
@@ -239,10 +495,15 @@ projects:
     - template-cross-all
     folder: ../sbt-build/dsl
     source-layout: cross-pure
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-dsl-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+    dependencies: ch.qos.logback:logback-classic:1.2.6
     dependsOn:
     - http4s-dsl
-    - http4s-testing-test
+    - http4s-tests
     extends:
     - template-common-test
     - template-cross-all
@@ -251,17 +512,70 @@ projects:
     sourcegen:
       main: scripts.GenerateForHttp4sDslTest
       project: scripts
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-ember-client:
     cross:
       js213:
-        dependencies: org.typelevel::log4cats-noop:2.2.0
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
       js3:
-        dependencies: org.typelevel::log4cats-noop:2.2.0
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
       jvm213:
-        dependencies: org.typelevel::log4cats-slf4j:2.2.0
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
       jvm3:
-        dependencies: org.typelevel::log4cats-slf4j:2.2.0
-    dependencies: org.typelevel::keypool:0.4.7
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: org.typelevel::keypool:0.4.10
     dependsOn:
     - http4s-client
     - http4s-ember-core
@@ -270,9 +584,71 @@ projects:
     - template-cross-all
     folder: ../sbt-build/ember-client
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-ember-client-test:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
     dependsOn:
-    - http4s-client-test
+    - http4s-client-testkit
     - http4s-ember-client
     - http4s-ember-core-test
     extends:
@@ -280,43 +656,220 @@ projects:
     - template-cross-all
     folder: ../sbt-build/ember-client
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-ember-core:
     cross:
       js213:
-        dependencies: org.http4s::hpack:1.0.3
+        dependencies: org.http4s::hpack:1.0.4
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
       js3:
-        dependencies: org.http4s::hpack:1.0.3
+        dependencies: org.http4s::hpack:1.0.4
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
       jvm213:
         dependencies: com.twitter:hpack:1.0.2
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
       jvm3:
         dependencies: com.twitter:hpack:1.0.2
-    dependencies: org.typelevel::log4cats-core:2.2.0
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        dependencies: org.http4s::hpack:1.0.4
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        dependencies: org.http4s::hpack:1.0.4
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/ember-core
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-ember-core-test:
-    dependencies: org.typelevel::log4cats-testing:2.2.0
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies:
+    - ch.qos.logback:logback-classic:1.2.6
+    - org.typelevel::log4cats-noop:2.7.0
+    - org.typelevel::log4cats-testing:2.7.0
     dependsOn:
     - http4s-ember-core
-    - http4s-testing-test
+    - http4s-tests
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/ember-core
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-ember-server:
     cross:
       js213:
-        dependencies: org.typelevel::log4cats-noop:2.2.0
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
       js3:
-        dependencies: org.typelevel::log4cats-noop:2.2.0
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
       jvm213:
-        dependencies: org.typelevel::log4cats-slf4j:2.2.0
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
       jvm3:
-        dependencies: org.typelevel::log4cats-slf4j:2.2.0
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
     dependsOn:
     - http4s-ember-core
     - http4s-server
@@ -325,16 +878,75 @@ projects:
     - template-cross-all
     folder: ../sbt-build/ember-server
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-ember-server-test:
     cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
       jvm213:
         dependencies:
-        - com.github.jnr:jnr-unixsocket:0.38.17
-        - org.java-websocket:Java-WebSocket:1.5.2
+        - com.github.jnr:jnr-unixsocket:0.38.23
+        - org.java-websocket:Java-WebSocket:1.5.7
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
       jvm3:
         dependencies:
-        - com.github.jnr:jnr-unixsocket:0.38.17
-        - org.java-websocket:Java-WebSocket:1.5.2
+        - com.github.jnr:jnr-unixsocket:0.38.23
+        - org.java-websocket:Java-WebSocket:1.5.7
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
     dependsOn:
     - http4s-ember-client
     - http4s-ember-core-test
@@ -345,40 +957,40 @@ projects:
     - template-cross-all
     folder: ../sbt-build/ember-server
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-examples:
     dependencies:
     - ch.qos.logback:logback-classic:1.2.6
-    - io.circe::circe-generic:0.15.0-M1
+    - io.circe::circe-generic:0.14.8
+    - configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn:
     - http4s-circe
-    - http4s-dropwizard-metrics
     - http4s-dsl
-    - http4s-scala-xml
     - http4s-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/examples
-  http4s-examples-blaze:
-    dependsOn:
-    - http4s-blaze-client
-    - http4s-blaze-server
-    - http4s-examples
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/examples/blaze
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-examples-docker:
+    dependencies:
+    - org.typelevel::log4cats-slf4j:2.7.0
+    - configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn:
-    - http4s-blaze-server
     - http4s-dsl
+    - http4s-ember-server
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/examples/docker
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-examples-ember:
+    dependencies:
+    - org.typelevel::log4cats-slf4j:2.7.0
+    - configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn:
     - http4s-ember-client
     - http4s-ember-server
@@ -389,232 +1001,216 @@ projects:
     folder: ../sbt-build/examples/ember
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-  http4s-examples-ember-client-h2:
-    dependsOn:
-    - http4s-dsl
-    - http4s-ember-client
-    extends:
-    - template-common-main
-    - template-cross-js-all
-    folder: ../sbt-build/examples/ember-client-h2
-  http4s-examples-ember-server-h2:
-    dependsOn:
-    - http4s-dsl
-    - http4s-ember-server
-    extends:
-    - template-common-main
-    - template-cross-js-all
-    folder: ../sbt-build/examples/ember-server-h2
-  http4s-examples-jetty:
-    dependsOn:
-    - http4s-examples
-    - http4s-jetty-server
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/examples/jetty
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
-  http4s-examples-tomcat:
-    dependsOn:
-    - http4s-examples
-    - http4s-tomcat-server
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/examples/tomcat
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
-  http4s-examples-war:
-    dependencies:
-      configuration: provided
-      module: javax.servlet:javax.servlet-api:3.1.0
-    dependsOn:
-    - http4s-examples
-    - http4s-servlet
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/examples/war
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-jawn:
     dependencies:
-    - org.typelevel::jawn-fs2:2.2.0
-    - org.typelevel::jawn-parser:1.3.2
+    - org.typelevel::jawn-fs2:2.4.0
+    - org.typelevel::jawn-parser:1.5.1
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/jawn
     source-layout: cross-pure
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-jawn-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+    dependencies: ch.qos.logback:logback-classic:1.2.6
     dependsOn:
     - http4s-jawn
-    - http4s-testing-test
+    - http4s-tests
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/jawn
     source-layout: cross-pure
-  http4s-jetty-client:
+    sources: ./src/${SCOPE}/scala-2.13+
+  http4s-js-artifact-size+test-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
     dependencies:
-    - org.eclipse.jetty:jetty-client:9.4.45.v20220203
-    - org.eclipse.jetty:jetty-http:9.4.45.v20220203
-    - org.eclipse.jetty:jetty-util:9.4.45.v20220203
-    dependsOn: http4s-client
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/jetty-client
-  http4s-jetty-client-test:
+    - ch.qos.logback:logback-classic:1.2.6
+    - org.scalacheck::scalacheck:1.17.1
+    - org.typelevel::cats-laws:2.11.0
     dependsOn:
-    - http4s-client-test
-    - http4s-jetty-client
+    - http4s-circe
+    - http4s-client
     extends:
     - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/jetty-client
-  http4s-jetty-server:
-    dependencies:
-    - org.eclipse.jetty.http2:http2-server:9.4.45.v20220203
-    - org.eclipse.jetty:jetty-server:9.4.45.v20220203
-    - org.eclipse.jetty:jetty-servlet:9.4.45.v20220203
-    - org.eclipse.jetty:jetty-util:9.4.45.v20220203
-    dependsOn: http4s-servlet
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/jetty-server
-  http4s-jetty-server-test:
-    dependsOn:
-    - http4s-dsl-test
-    - http4s-jetty-server
-    - http4s-servlet-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/jetty-server
+    - template-cross-js-all
+    folder: ../sbt-build/js-artifact-size-test
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-laws:
     dependencies:
-    - com.comcast::ip4s-test-kit:3.1.2
-    - org.scalacheck::scalacheck:1.15.4
-    - org.typelevel::case-insensitive-testing:1.2.0
-    - org.typelevel::cats-effect-testkit:3.3.6
-    - org.typelevel::cats-effect:3.3.6
-    - org.typelevel::cats-laws:2.7.0
-    - org.typelevel::discipline-core:1.4.0
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - com.comcast::ip4s-test-kit:3.6.0
+    - org.scalacheck::scalacheck:1.17.1
+    - org.typelevel::case-insensitive-testing:1.4.2
+    - org.typelevel::cats-effect-testkit:3.5.7
+    - org.typelevel::cats-effect:3.5.7
+    - org.typelevel::cats-laws:2.11.0
+    - org.typelevel::discipline-core:1.6.0
+    - org.typelevel::munit-cats-effect:2.0.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/laws
     source-layout: cross-pure
-  http4s-node-serverless:
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-js-all
-    folder: ../sbt-build/node-serverless
-  http4s-okhttp-client:
+    sources: ./src/${SCOPE}/scala-2.13+
+  http4s-scalafix-internal:
+    cross:
+      jvm213:
+        dependencies: ch.epfl.scala::scalafix-core:0.13.0
     dependencies:
-    - com.squareup.okhttp3:okhttp:4.9.3
-    - com.squareup.okio:okio:2.10.0
-    dependsOn: http4s-client
+      configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     extends:
     - template-common-main
     - template-cross-jvm-all
-    folder: ../sbt-build/okhttp-client
-  http4s-okhttp-client-test:
-    dependsOn:
-    - http4s-client-test
-    - http4s-okhttp-client
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/okhttp-client
-  http4s-play-json:
-    dependencies:
-      for3Use213: true
-      module: com.typesafe.play::play-json:2.9.2
-    dependsOn: http4s-jawn
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/play-json
-  http4s-play-json-test:
-    dependsOn:
-    - http4s-jawn-test
-    - http4s-play-json
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/play-json
-  http4s-prometheus-metrics:
-    dependencies:
-    - io.prometheus:simpleclient:0.15.0
-    - io.prometheus:simpleclient_common:0.15.0
-    - io.prometheus:simpleclient_hotspot:0.15.0
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/prometheus-metrics
-  http4s-prometheus-metrics-test:
-    dependsOn:
-    - http4s-client
-    - http4s-dsl
-    - http4s-prometheus-metrics
-    - http4s-server
-    - http4s-testing-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/prometheus-metrics
-  http4s-scala-xml:
-    dependencies: org.scala-lang.modules::scala-xml:2.0.1
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/scala-xml
-  http4s-scala-xml-test:
-    dependsOn:
-    - http4s-scala-xml
-    - http4s-testing-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/scala-xml
-  http4s-scalatags:
-    dependencies: com.lihaoyi::scalatags:0.11.1
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/scalatags
-  http4s-scalatags-test:
-    dependsOn:
-    - http4s-scalatags
-    - http4s-testing-test
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/scalatags
+    folder: ../sbt-build/scalafix-internal/rules
+    sources: ./src/${SCOPE}/scala-2.13+
   http4s-server:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: org.http4s::http4s-crypto:0.2.4
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/server
     source-layout: cross-full
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   http4s-server-test:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: ch.qos.logback:logback-classic:1.2.6
     dependsOn:
     - http4s-dsl
     - http4s-server
-    - http4s-testing-test
+    - http4s-tests
     extends:
     - template-common-test
     - template-cross-all
@@ -623,146 +1219,196 @@ projects:
     sourcegen:
       main: scripts.GenerateForHttp4sServerTest
       project: scripts
-  http4s-servlet:
+    sources: ./shared/src/${SCOPE}/scala-2.13+
+  http4s-tests:
+    cross:
+      js213:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+      js3:
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        dependencies: com.armanbilge::epollcat:0.1.6
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        dependencies: com.armanbilge::epollcat:0.1.6
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
     dependencies:
-      configuration: provided
-      module: javax.servlet:javax.servlet-api:3.1.0
-    dependsOn: http4s-server
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/servlet
-  http4s-servlet-test:
-    dependencies:
-    - configuration: provided
-      module: javax.servlet:javax.servlet-api:3.1.0
-    - org.asynchttpclient:async-http-client:2.12.3
-    - org.eclipse.jetty:jetty-server:9.4.45.v20220203
-    - org.eclipse.jetty:jetty-servlet:9.4.45.v20220203
-    dependsOn:
-    - http4s-server-test
-    - http4s-servlet
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/servlet
-  http4s-testing:
+    - org.typelevel::discipline-munit:2.0.0-M3
+    - org.typelevel::scalacheck-effect:2.0.0-M2
     dependsOn: http4s-laws
     extends:
     - template-common-main
     - template-cross-all
-    folder: ../sbt-build/testing
+    folder: ../sbt-build/tests
     source-layout: cross-full
-  http4s-testing-test:
+    sources: ./shared/src/${SCOPE}/scala-2.13+
+  http4s-tests-test:
     cross:
       js213:
-        dependencies: io.github.cquiroz::scala-java-time-tzdb:2.3.0
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-2
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
       js3:
-        dependencies:
-        - io.github.cquiroz::scala-java-time-tzdb:2.3.0
-        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
-    dependencies:
-    - ch.qos.logback:logback-classic:1.2.6
-    - org.typelevel::cats-effect-laws:3.3.6
-    - org.typelevel::discipline-munit:1.0.9
-    - org.typelevel::scalacheck-effect:1.0.3
-    dependsOn: http4s-testing
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        resources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/resources
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala
+        - ./${PLATFORM}-jvm/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      jvm213:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-2
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+      jvm3:
+        resources:
+        - ./${PLATFORM}-native/src/${SCOPE}/resources
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./${PLATFORM}-native/src/${SCOPE}/scala
+        - ./${PLATFORM}-native/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+      native213:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-2
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-2
+      native3:
+        resources:
+        - ./js-${PLATFORM}/src/${SCOPE}/resources
+        - ./jvm-${PLATFORM}/src/${SCOPE}/resources
+        sources:
+        - ./js-${PLATFORM}/src/${SCOPE}/scala
+        - ./js-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala
+        - ./jvm-${PLATFORM}/src/${SCOPE}/scala-${SCALA_BIN_VERSION}
+    dependencies: ch.qos.logback:logback-classic:1.2.6
+    dependsOn: http4s-tests
     extends:
     - template-common-test
-    - template-cross-all
-    folder: ../sbt-build/testing
-    source-layout: cross-full
-  http4s-tests:
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
     - template-cross-all
     folder: ../sbt-build/tests
     source-layout: cross-full
-  http4s-tests-test:
-    dependsOn:
-    - http4s-testing-test
-    - http4s-tests
-    extends:
-    - template-common-test
-    - template-cross-all
-    folder: ../sbt-build/tests
-    source-layout: cross-full
-  http4s-tomcat-server:
-    dependencies:
-    - org.apache.tomcat:tomcat-catalina:9.0.58
-    - org.apache.tomcat:tomcat-coyote:9.0.58
-    - org.apache.tomcat:tomcat-util-scan:9.0.58
-    dependsOn: http4s-servlet
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/tomcat-server
-  http4s-tomcat-server-test:
-    dependsOn:
-    - http4s-servlet-test
-    - http4s-tomcat-server
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/tomcat-server
-  http4s-twirl:
-    dependencies:
-      for3Use213: true
-      module: com.typesafe.play::twirl-api:1.5.1
-    dependsOn: http4s-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/twirl
-  http4s-twirl-test:
-    dependsOn:
-    - http4s-testing-test
-    - http4s-twirl
-    extends:
-    - template-common-test
-    - template-cross-jvm-all
-    folder: ../sbt-build/twirl
-    sourcegen:
-      main: scripts.GenerateForHttp4sTwirlTest
-      project: scripts
+    sources: ./shared/src/${SCOPE}/scala-2.13+
   scalafixinternalinput:
+    dependencies:
+      configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/scalafix-internal/input
+    sources: ./src/${SCOPE}/scala-2.13+
   scalafixinternaloutput:
+    dependencies:
+      configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn: http4s-core
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/scalafix-internal/output
-  scalafixinternalrules:
-    cross:
-      jvm213:
-        dependencies: ch.epfl.scala::scalafix-core:0.9.34
-    extends:
-    - template-common-main
-    - template-cross-jvm-all
-    folder: ../sbt-build/scalafix-internal/rules
+    sources: ./src/${SCOPE}/scala-2.13+
   scalafixinternaltests:
     cross:
       jvm3:
         scala:
           options: -Yrangepos
-    dependsOn: scalafixinternalrules
+    dependencies:
+      configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
+    dependsOn: http4s-scalafix-internal
     extends:
     - template-common-main
     - template-cross-jvm-all
     folder: ../sbt-build/scalafix-internal/tests
+    sources: ./src/${SCOPE}/scala-2.13+
   scalafixinternaltests-test:
     cross:
       jvm213:
-        dependencies: ch.epfl.scala:::scalafix-testkit:0.9.34
+        dependencies: ch.epfl.scala:::scalafix-testkit:0.13.0
       jvm3:
         scala:
           options: -Yrangepos
+    dependencies:
+      configuration: provided
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     dependsOn: scalafixinternaltests
     extends:
     - template-common-test
@@ -771,18 +1417,24 @@ projects:
     sourcegen:
       main: scripts.GenerateForScalafixinternaltestsTest
       project: scripts
+    sources: ./src/${SCOPE}/scala-2.13+
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.1-M20
+    dependencies: build.bleep::bleep-core:0.0.12
     platform:
       name: jvm
     scala:
-      version: 3.3.0
+      version: 3.3.4
 templates:
   template-common:
+    ignoreEvictionErrors: no
     java:
-      options: -Xlint:all -encoding utf8
+      options: --release 8 -Xlint:all -encoding utf8
     scala:
-      options: -deprecation -encoding UTF-8 -feature -unchecked
+      options: -Wvalue-discard -deprecation -encoding UTF-8 -feature -unchecked
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
   template-common-main:
     extends: template-common
     sbt-scope: main
@@ -790,7 +1442,26 @@ templates:
     extends: template-common
     isTestProject: true
     sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
   template-cross-all:
+    cross:
+      jvm213:
+        dependencies:
+          configuration: provided
+          forceJvm: true
+          module: org.typelevel::scalac-compat-annotation:0.1.4
+      jvm3:
+        dependencies:
+          configuration: provided
+          forceJvm: true
+          module: org.typelevel::scalac-compat-annotation:0.1.4
+      native213:
+        extends: template-scala-2.13-native
+      native3:
+        extends: template-scala-3-native
     extends:
     - template-cross-js-all
     - template-cross-jvm-all
@@ -807,30 +1478,45 @@ templates:
       jvm3:
         extends: template-scala-3-jvm
   template-js:
+    dependencies:
+      configuration: provided
+      forceJvm: true
+      module: org.typelevel::scalac-compat-annotation:0.1.4
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
       jsNodeVersion: 18.4.0
-      jsVersion: 1.9.0
+      jsVersion: 1.16.0
       name: js
   template-jvm:
     platform:
       name: jvm
+  template-native:
+    dependencies:
+      configuration: provided
+      forceJvm: true
+      module: org.typelevel::scalac-compat-annotation:0.1.4
+    platform:
+      name: native
+      nativeEmbedResources: false
+      nativeGc: ''
+      nativeOptimize: true
+      nativeUseIncrementalCompilation: true
+      nativeVersion: 0.4.17
   template-scala-2:
     scala:
       compilerPlugins:
       - com.olegpy::better-monadic-for:0.3.1
-      - org.typelevel:::kind-projector:0.13.2
-      options: -Wdead-code -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits
-        -Wunused:imports -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars
-        -Wunused:privates -Wvalue-discard -Xlint:deprecation -Ybackend-parallelism
-        10 -Yrangepos -Ywarn-dead-code -Ywarn-numeric-widen -language:_
-      version: 2.13.8
+      - org.typelevel:::kind-projector:0.13.3
+      options: -Wconf:cat=scala3-migration:s -Wdead-code -Wextra-implicit -Wnumeric-widen
+        -Wunused -Xlint:_,-implicit-recursion,-recurse-with-default,-unused,-byname-implicit
+        -Xsource:3 -Ybackend-parallelism 10 -Yrangepos -language:_ -release 8
+      version: 2.13.15
   template-scala-2-js:
     extends: template-js
     scala:
-      options: -P:scalajs:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/
+      options: -P:scalajs:mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/v1.0.0-M44/
   template-scala-2.13-js:
     extends:
     - template-scala-2
@@ -839,17 +1525,27 @@ templates:
     extends:
     - template-jvm
     - template-scala-2
+  template-scala-2.13-native:
+    extends:
+    - template-native
+    - template-scala-2
   template-scala-3:
     scala:
-      options: -Ykind-projector -language:implicitConversions -source:3.0-migration
-      version: 3.1.1
+      options: -Wunused:explicits -Wunused:implicits -Wunused:imports -Wunused:locals
+        -Wunused:params -Wunused:privates -Ykind-projector -java-output-version 8
+        -language:implicitConversions
+      version: 3.3.4
   template-scala-3-js:
     extends:
     - template-js
     - template-scala-3
     scala:
-      options: -scalajs-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/bc0662792fd0c4d8462c247f634c01fee0dd5712/
+      options: -scalajs-mapSourceURI:file:${BUILD_DIR}/->https://raw.githubusercontent.com/http4s/http4s/v1.0.0-M44/
   template-scala-3-jvm:
     extends:
     - template-jvm
+    - template-scala-3
+  template-scala-3-native:
+    extends:
+    - template-native
     - template-scala-3

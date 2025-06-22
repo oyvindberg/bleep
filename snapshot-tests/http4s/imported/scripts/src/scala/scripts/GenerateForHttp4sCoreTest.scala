@@ -17,7 +17,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |
       |import _root_.munit._
       |
-      |class FormDataDecoderDoctest extends FunSuite {
+      |class `FormDataDecoderDoctest` extends FunSuite {
       |
       |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
       |    val _ = () => (a1, a2)
@@ -34,8 +34,6 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |
       |    import org.http4s.FormDataDecoder._
       |
-      |    import org.http4s.ParseFailure
-      |
       |    case class Foo(a: String, b: Boolean)
       |
       |    case class Bar(fs: List[Foo], f: Foo, d: Boolean)
@@ -51,7 +49,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |      field[Boolean]("d")
       |    ).mapN(Bar.apply)
       |
-      |    //example at line 48: barMapper( ...
+      |    //example at line 47: barMapper( ...
       |    sbtDoctestTypeEquals(barMapper(
       |  Map(
       |   "fs[].a" -> Chain("a1", "a2"),
@@ -86,7 +84,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213").contains(target.project.value)) {
+      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/HeadersDoctest.scala")
         started.logger.withContext(target.project).warn(s"Writing $to")
         val content = s"""|package org.http4s
@@ -147,7 +145,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |
       |import _root_.munit._
       |
-      |class HttpVersionDoctest extends FunSuite {
+      |class `HttpVersionDoctest` extends FunSuite {
       |
       |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
       |    val _ = () => (a1, a2)
@@ -157,30 +155,30 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |    if (s.headOption == Some('\\\\n')) s.tail else s
       |  }
       |
-      |  test("HttpVersion.scala:51: render") {
-      |    //example at line 54: HttpVersion.`HTTP/1.1`.renderString
+      |  test("HttpVersion.scala:47: render") {
+      |    //example at line 50: HttpVersion.`HTTP/1.1`.renderString
       |    
       |      assertEquals(sbtDoctestReplString(HttpVersion.`HTTP/1.1`.renderString), "HTTP/1.1")
       |  }
       |
-      |  test("HttpVersion.scala:60: compare") {
-      |    //example at line 63: List(HttpVersion.`HTTP/1.0`, HttpVersion.`HTTP/1.1`, HttpVer ...
+      |  test("HttpVersion.scala:56: compare") {
+      |    //example at line 59: List(HttpVersion.`HTTP/1.0`, HttpVersion.`HTTP/1.1`, HttpVer ...
       |    
       |      assertEquals(sbtDoctestReplString(List(HttpVersion.`HTTP/1.0`, HttpVersion.`HTTP/1.1`, HttpVersion.`HTTP/0.9`).sorted), "List(HTTP/0.9, HTTP/1.0, HTTP/1.1)")
       |  }
       |
-      |  test("HttpVersion.scala:159: fromString") {
-      |    //example at line 162: HttpVersion.fromString(\\\\"HTTP/1.1\\\\")
+      |  test("HttpVersion.scala:152: fromString") {
+      |    //example at line 155: HttpVersion.fromString(\\\\"HTTP/1.1\\\\")
       |    
       |      assertEquals(sbtDoctestReplString(HttpVersion.fromString("HTTP/1.1")), "Right(HTTP/1.1)")
       |  }
       |
-      |  test("HttpVersion.scala:184: fromVersion") {
-      |    //example at line 187: HttpVersion.fromVersion(1, 1)
+      |  test("HttpVersion.scala:177: fromVersion") {
+      |    //example at line 180: HttpVersion.fromVersion(1, 1)
       |    
       |      assertEquals(sbtDoctestReplString(HttpVersion.fromVersion(1, 1)), "Right(HTTP/1.1)")
       |
-      |    //example at line 190: HttpVersion.fromVersion(1, 10)
+      |    //example at line 183: HttpVersion.fromVersion(1, 10)
       |    
       |      assertEquals(sbtDoctestReplString(HttpVersion.fromVersion(1, 10)), "Left(org.http4s.ParseFailure: Invalid HTTP version: major must be <= 9: 10)")
       |  }
@@ -201,7 +199,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |
       |import _root_.munit._
       |
-      |class MessageDoctest extends FunSuite {
+      |class `MessageDoctest` extends FunSuite {
       |
       |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
       |    val _ = () => (a1, a2)
@@ -211,38 +209,34 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |    if (s.headOption == Some('\\\\n')) s.tail else s
       |  }
       |
-      |  test("Message.scala:134: putHeaders") {
-      |    import cats.effect.IO
-      |
+      |  test("Message.scala:142: putHeaders") {
       |    import org.http4s.headers.Accept
       |
-      |    val req = Request[IO]().putHeaders(Accept(MediaRange.`application/*`))
+      |    val req = Request().putHeaders(Accept(MediaRange.`application/*`))
       |
-      |    //example at line 142: req.headers.get[Accept]
+      |    //example at line 149: req.headers.get[Accept]
       |    
       |      assertEquals(sbtDoctestReplString(req.headers.get[Accept]), "Some(Accept(NonEmptyList(application/*)))")
       |
       |    val req2 = req.putHeaders(Accept(MediaRange.`text/*`))
       |
-      |    //example at line 146: req2.headers.get[Accept]
+      |    //example at line 153: req2.headers.get[Accept]
       |    
       |      assertEquals(sbtDoctestReplString(req2.headers.get[Accept]), "Some(Accept(NonEmptyList(text/*)))")
       |  }
       |
-      |  test("Message.scala:154: addHeader") {
-      |    import cats.effect.IO
-      |
+      |  test("Message.scala:161: addHeader") {
       |    import org.http4s.headers.Accept
       |
-      |    val req = Request[IO]().addHeader(Accept(MediaRange.`application/*`))
+      |    val req = Request().addHeader(Accept(MediaRange.`application/*`))
       |
-      |    //example at line 163: req.headers.get[Accept]
+      |    //example at line 169: req.headers.get[Accept]
       |    
       |      assertEquals(sbtDoctestReplString(req.headers.get[Accept]), "Some(Accept(NonEmptyList(application/*)))")
       |
       |    val req2 = req.addHeader(Accept(MediaRange.`text/*`))
       |
-      |    //example at line 167: req2.headers.get[Accept]
+      |    //example at line 173: req2.headers.get[Accept]
       |    
       |      assertEquals(sbtDoctestReplString(req2.headers.get[Accept]), "Some(Accept(NonEmptyList(application/*, text/*)))")
       |  }
@@ -263,7 +257,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |
       |import _root_.munit._
       |
-      |class QueryOpsDoctest extends FunSuite {
+      |class `QueryOpsDoctest` extends FunSuite {
       |
       |  def sbtDoctestTypeEquals[A](a1: => A)(a2: => A): _root_.scala.Unit = {
       |    val _ = () => (a1, a2)
@@ -273,10 +267,10 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |    if (s.headOption == Some('\\\\n')) s.tail else s
       |  }
       |
-      |  test("QueryOps.scala:56: ++?") {
+      |  test("QueryOps.scala:59: ++?") {
       |    import org.http4s.implicits._
       |
-      |    //example at line 60: uri\\\\"www.scala.com\\\\".++?(\\\\"key\\\\" -> List(\\\\"value1\\\\", \\\\"value2\\\\", \\\\"va ...
+      |    //example at line 63: uri\\\\"www.scala.com\\\\".++?(\\\\"key\\\\" -> List(\\\\"value1\\\\", \\\\"value2\\\\", \\\\"va ...
       |    sbtDoctestTypeEquals(uri"www.scala.com".++?("key" -> List("value1", "value2", "value3")))((uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))): Uri)
       |      assertEquals(sbtDoctestReplString(uri"www.scala.com".++?("key" -> List("value1", "value2", "value3"))), "www.scala.com?key=value1&key=value2&key=value3")
       |  }
@@ -290,7 +284,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
 
 
     targets.foreach { target =>
-      if (Set("http4s-core-test@jvm213").contains(target.project.value)) {
+      if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/headers/Transfer-EncodingDoctest.scala")
         started.logger.withContext(target.project).warn(s"Writing $to")
         val content = s"""|package org.http4s.headers
@@ -307,16 +301,16 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
       |    if (s.headOption == Some('\\\\n')) s.tail else s
       |  }
       |
-      |  test("Transfer-Encoding.scala:54: filter") {
+      |  test("Transfer-Encoding.scala:53: filter") {
       |    import org.http4s._
       |
       |    val te = `Transfer-Encoding`(TransferCoding.chunked, TransferCoding.gzip)
       |
-      |    //example at line 60: te.filter(_ != TransferCoding.chunked)
+      |    //example at line 59: te.filter(_ != TransferCoding.chunked)
       |    sbtDoctestTypeEquals(te.filter(_ != TransferCoding.chunked))((te.filter(_ != TransferCoding.chunked)): Option[`Transfer-Encoding`])
       |      assertEquals(sbtDoctestReplString(te.filter(_ != TransferCoding.chunked)), "Some(Transfer-Encoding(NonEmptyList(TransferCoding(gzip))))")
       |
-      |    //example at line 62: te.filter(_ => false)
+      |    //example at line 61: te.filter(_ => false)
       |    sbtDoctestTypeEquals(te.filter(_ => false))((te.filter(_ => false)): Option[`Transfer-Encoding`])
       |      assertEquals(sbtDoctestReplString(te.filter(_ => false)), "None")
       |  }

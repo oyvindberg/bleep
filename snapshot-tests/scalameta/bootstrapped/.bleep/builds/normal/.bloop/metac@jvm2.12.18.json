@@ -1,0 +1,244 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "metac@jvm2.12.18",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/metac/jvm2.12.18",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/scala-2.12.18"
+    ],
+    "dependencies": [
+      "common@jvm212",
+      "io@jvm212",
+      "parsers@jvm212",
+      "scalameta@jvm212",
+      "semanticdb-scalac-core@jvm2.12.18",
+      "semanticdb-shared@jvm212",
+      "trees@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.6/protobuf-java-3.19.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.12/3.1.0/fastparse_2.12-3.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.12/0.11.17/lenses_2.12-0.11.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.12/0.11.17/scalapb-runtime_2.12-0.11.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.12.0/scala-collection-compat_2.12-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.18/scala-compiler-2.12.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.18/scala-library-2.12.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.18/scala-reflect-2.12.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.12.18/scalap-2.12.18.jar",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-scalac-core/jvm2.12.18/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-shared/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/metac/jvm2.12.18",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/metac/jvm2.12.18/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.18",
+      "options": [
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.18/2.1.1/paradise_2.12.18-2.1.1.jar",
+        "-feature",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.18/scala-compiler-2.12.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.18/scala-library-2.12.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.18/scala-reflect-2.12.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/metac/jvm2.12.18/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_2.12",
+          "version": "1.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "geny_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_2.12/1.1.0/geny_2.12-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.12",
+          "version": "2.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.12/2.12.0/scala-collection-compat_2.12-2.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.12.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.18/scala-compiler-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scalap",
+          "version": "2.12.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalap",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scalap/2.12.18/scalap-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "scalapb-runtime_2.12",
+          "version": "0.11.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalapb-runtime_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.12/0.11.17/scalapb-runtime_2.12-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.12.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.18/scala-reflect-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fastparse_2.12",
+          "version": "3.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fastparse_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_2.12/3.1.0/fastparse_2.12-3.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "3.19.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.19.6/protobuf-java-3.19.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.18/scala-library-2.12.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.12",
+          "version": "0.11.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "lenses_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.12/0.11.17/lenses_2.12-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.12",
+          "version": "2.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.1.0/scala-xml_2.12-2.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_2.12",
+          "version": "0.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sourcecode_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.12/0.4.2/sourcecode_2.12-0.4.2.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

@@ -7,114 +7,92 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scripts/src/java",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scripts/src/scala",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scripts/src/scala-2",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scripts/src/scala-2.13"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scripts/src/scala-3"
     ],
     "dependencies": [
       
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-core_2.13/0.0.1-M20/bleep-core_2.13-0.0.1-M20.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-model_2.13/0.0.1-M20/bleep-model_2.13-0.0.1-M20.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.13/1.5.4/bloop-config_2.13-1.5.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_2.13/0.7.0/gigahorse-apache-http_2.13-0.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.13/0.7.0/gigahorse-core_2.13-0.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpasyncclient/0.7.0/shaded-apache-httpasyncclient-0.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/0.9.1/shaded-jawn-parser_2.13-0.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-core_3/0.0.12/bleep-core_3-0.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-model_3/0.0.12/bleep-model_3-0.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-nosbt_3/0.0.12/bleep-nosbt_3-0.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_3/2.3.1/bloop-config_3-2.3.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-rifle_2.13/2.0.7/bloop-rifle_2.13-2.0.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.1/bsp4j-2.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/libdaemon_2.13/0.0.12/libdaemon_2.13-0.0.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/1.3.2/shaded-jawn-parser_2.13-1.3.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-scalajson_2.13/1.0.0-M4/shaded-scalajson_2.13-1.0.0-M4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.9.1/sjson-new-core_2.13-0.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.13/0.9.1/sjson-new-murmurhash_2.13-0.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.9.1/sjson-new-scalajson_2.13-0.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.3_2.13/1.3.1/argonaut-shapeless_6.3_2.13-1.3.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.2-4/zstd-jni-1.5.2-4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5/jsoniter-scala-core_2.13-2.13.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.13.1/sjson-new-core_2.13-0.13.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.13.1/sjson-new-scalajson_2.13-0.13.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.5-11/zstd-jni-1.5.5-11.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5.2/jsoniter-scala-core_2.13-2.13.5.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_3/2.13.5.2/jsoniter-scala-core_3-2.13.5.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/30.1-jre/guava-30.1-jre.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.4.0/fansi_2.13-0.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.13/6.3.8/argonaut_2.13-6.3.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.3/circe-core_2.13-0.14.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.2/circe-generic_2.13-0.14.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.2/circe-jawn_2.13-0.14.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.3/circe-numbers_2.13-0.14.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.2/circe-parser_2.13-0.14.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.2/circe-yaml_2.13-0.14.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.0-M7-39-gb8f3d7532/coursier-cache_2.13-2.1.0-M7-39-gb8f3d7532.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.0-M7-39-gb8f3d7532/coursier-core_2.13-2.1.0-M7-39-gb8f3d7532.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.0-M7-39-gb8f3d7532/coursier-env_2.13-2.1.0-M7-39-gb8f3d7532.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.0-M7-39-gb8f3d7532/coursier-jvm_2.13-2.1.0-M7-39-gb8f3d7532.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.0-M7-39-gb8f3d7532/coursier-proxy-setup-2.1.0-M7-39-gb8f3d7532.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.0-M7-39-gb8f3d7532/coursier-util_2.13-2.1.0-M7-39-gb8f3d7532.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.0-M7-39-gb8f3d7532/coursier_2.13-2.1.0-M7-39-gb8f3d7532.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.0/fansi_3-0.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_3/0.1.12/unroll-annotation_3-0.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/olvind/ryddig/ryddig_3/0.0.6/ryddig_3-0.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.10/circe-core_3-0.14.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.10/circe-generic_3-0.14.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.10/circe-jawn_3-0.14.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.10/circe-numbers_3-0.14.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.10/circe-parser_3-0.14.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_3/1.15.0/circe-yaml-common_3-1.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-v12_3/1.15.0/circe-yaml-v12_3-1.15.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/cache-util/2.1.18/cache-util-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.18/coursier-cache_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.18/coursier-core_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.18/coursier-env_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.18/coursier-jvm_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.18/coursier-proxy-setup-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-sbt-maven-repository_2.13/2.1.18/coursier-sbt-maven-repository_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.18/coursier-util_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.18/coursier_2.13-2.1.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/dependency_2.13/0.3.1/dependency_2.13-0.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/jniutils/<MASKED_OS>-jni-utils/0.3.3/<MASKED_OS>-jni-utils-0.3.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/libdaemon/libdaemon_2.13/0.0.10/libdaemon_2.13-0.0.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/scala-cli/snailgun/snailgun-core_2.13/0.4.1-sc2/snailgun-core_2.13-0.4.1-sc2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.4/<MASKED_OS>-ansi-0.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.5/<MASKED_OS>-ansi-0.0.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.26.1/commons-compress-1.26.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/xbean/xbean-reflect/3.7/xbean-reflect-3.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.5.0/plexus-archiver-4.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.9.2/plexus-archiver-4.9.2.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-classworlds/2.6.0/plexus-classworlds-2.6.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-container-default/2.1.1/plexus-container-default-2.1.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.0/plexus-io-3.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.4.2/plexus-utils-3.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.2/plexus-io-3.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/4.0.0/plexus-utils-4.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.20.1/org.eclipse.lsp4j.generator-0.20.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.20.1/org.eclipse.lsp4j.jsonrpc-0.20.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.28.0/org.eclipse.xtend.lib.macro-2.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.28.0/org.eclipse.xtend.lib-2.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.28.0/org.eclipse.xtext.xbase.lib-2.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.18/jansi-1.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/iq80/snappy/snappy/0.4/snappy-0.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jansi/3.19.0/jline-terminal-jansi-3.19.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.8.1/scala-collection-compat_2.13-2.8.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/0.2.0/scala-parallel-collections_2.13-0.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.13/1.7.1/collections_2.13-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_2.13/1.7.1/core-macros_2.13-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.7.0/io_2.13-1.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.0/launcher-interface-1.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.13/1.7.1/librarymanagement-core_2.13-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.13/1.7.1/util-cache_2.13-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.7.1/util-interface-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_2.13/1.7.1/util-logging_2.13-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.13/1.7.1/util-position_2.13-1.7.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.3.0/scala-xml_2.13-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.3.0/scala-xml_3-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.1/scala3-library_3-3.7.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.5/snakeyaml-engine-2.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.8/snakeyaml-engine-2.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/tukaani/xz/1.9/xz-1.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.8.0/cats-core_2.13-2.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.8.0/cats-kernel_2.13-2.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/bloop-rifle_2.13/0.1.16/bloop-rifle_2.13-0.1.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/0.1.16/config_2.13-0.1.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.12.0/cats-core_3-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.12.0/cats-kernel_3-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.6.0/jawn-parser_3-1.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-options_3/0.1.7/scalac-options_3-0.1.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/1.1.3/config_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/specification-level_2.13/1.1.3/specification-level_2.13-1.1.3.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scripts",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scripts/classes",
@@ -123,17 +101,24 @@
     ],
     "scala": {
       "organization": "org.scala-lang",
-      "name": "scala-compiler",
-      "version": "2.13.8",
+      "name": "scala3-compiler_3",
+      "version": "3.7.1",
       "options": [
         
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.7.1/scala3-compiler_3-3.7.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.7.1/scala3-interfaces-3.7.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.1/scala3-library_3-3.7.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.7.1/tasty-core_3-3.7.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.7/compiler-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.29.0/jline-reader-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.29.0/jline-terminal-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.29.0/jline-terminal-jni-3.29.0.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.7/util-interface-1.10.7.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.29.0/jline-native-3.29.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scripts/inc_compile.zip",
       "setup": {
@@ -164,134 +149,86 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.snakeyaml",
-          "name": "snakeyaml-engine",
-          "version": "2.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "snakeyaml-engine",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.5/snakeyaml-engine-2.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "gigahorse-core_2.13",
-          "version": "0.7.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "gigahorse-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-core_2.13/0.7.0/gigahorse-core_2.13-0.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "librarymanagement-core_2.13",
-          "version": "1.7.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "librarymanagement-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/librarymanagement-core_2.13/1.7.1/librarymanagement-core_2.13-1.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.github.alexarchambault",
-          "name": "argonaut-shapeless_6.3_2.13",
-          "version": "1.3.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "argonaut-shapeless_6.3_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/alexarchambault/argonaut-shapeless_6.3_2.13/1.3.1/argonaut-shapeless_6.3_2.13-1.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.jcraft",
-          "name": "jsch",
-          "version": "0.1.54",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jsch",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/jcraft/jsch/0.1.54/jsch-0.1.54.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "fansi_2.13",
-          "version": "0.4.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "fansi_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_2.13/0.4.0/fansi_2.13-0.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-parser_2.13",
-          "version": "0.14.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "circe-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_2.13/0.14.2/circe-parser_2.13-0.14.2.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
-          "version": "2.1.0",
+          "version": "2.3.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.1.0/scala-xml_2.13-2.1.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.3.0/scala-xml_2.13-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.7.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.1/scala3-library_3-3.7.1.jar"
             }
           ]
         },
         {
           "organization": "ch.epfl.scala",
-          "name": "bloop-config_2.13",
-          "version": "1.5.4",
+          "name": "libdaemon_2.13",
+          "version": "0.0.12",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "bloop-config_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_2.13/1.5.4/bloop-config_2.13-1.5.4.jar"
+              "name": "libdaemon_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/libdaemon_2.13/0.0.12/libdaemon_2.13-0.0.12.jar"
             }
           ]
         },
         {
-          "organization": "org.jline",
-          "name": "jline-terminal",
-          "version": "3.19.0",
+          "organization": "io.circe",
+          "name": "circe-yaml-v12_3",
+          "version": "1.15.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jline-terminal",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar"
+              "name": "circe-yaml-v12_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-v12_3/1.15.0/circe-yaml-v12_3-1.15.0.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-sbt.jline",
-          "name": "jline",
-          "version": "2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493",
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "1.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jline",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/jline/jline/2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493/jline-2.14.7-sbt-a1b0ffbb8f64bb820f4f84a0c07a0c0964507493.jar"
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.plexus",
+          "name": "plexus-utils",
+          "version": "4.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "plexus-utils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/4.0.0/plexus-utils-4.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_3",
+          "version": "2.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_3/2.3.0/scala-xml_3-2.3.0.jar"
             }
           ]
         },
@@ -310,12 +247,24 @@
         {
           "organization": "io.get-coursier",
           "name": "coursier-cache_2.13",
-          "version": "2.1.0-M7-39-gb8f3d7532",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-cache_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.0-M7-39-gb8f3d7532/coursier-cache_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-cache_2.13/2.1.18/coursier-cache_2.13-2.1.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-generic_3",
+          "version": "0.14.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-generic_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_3/0.14.10/circe-generic_3-0.14.10.jar"
             }
           ]
         },
@@ -334,12 +283,12 @@
         {
           "organization": "ch.epfl.scala",
           "name": "bsp4j",
-          "version": "2.1.0-M3",
+          "version": "2.1.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "bsp4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.0-M3/bsp4j-2.1.0-M3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bsp4j/2.1.1/bsp4j-2.1.1.jar"
             }
           ]
         },
@@ -356,134 +305,158 @@
           ]
         },
         {
-          "organization": "org.scala-sbt",
-          "name": "collections_2.13",
-          "version": "1.7.1",
+          "organization": "org.snakeyaml",
+          "name": "snakeyaml-engine",
+          "version": "2.8",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "collections_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/collections_2.13/1.7.1/collections_2.13-1.7.1.jar"
+              "name": "snakeyaml-engine",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/snakeyaml/snakeyaml-engine/2.8/snakeyaml-engine-2.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "jawn-parser_3",
+          "version": "1.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jawn-parser_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.6.0/jawn-parser_3-1.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "build.bleep",
+          "name": "bleep-nosbt_3",
+          "version": "0.0.12",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "bleep-nosbt_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-nosbt_3/0.0.12/bleep-nosbt_3-0.0.12.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.lsp4j",
           "name": "org.eclipse.lsp4j.jsonrpc",
-          "version": "0.12.0",
+          "version": "0.20.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.lsp4j.jsonrpc",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.12.0/org.eclipse.lsp4j.jsonrpc-0.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.20.1/org.eclipse.lsp4j.jsonrpc-0.20.1.jar"
             }
           ]
         },
         {
-          "organization": "org.jline",
-          "name": "jline",
-          "version": "3.21.0",
+          "organization": "build.bleep",
+          "name": "bleep-model_3",
+          "version": "0.0.12",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jline",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar"
+              "name": "bleep-model_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-model_3/0.0.12/bleep-model_3-0.0.12.jar"
             }
           ]
         },
         {
-          "organization": "org.reactivestreams",
-          "name": "reactive-streams",
-          "version": "1.0.3",
+          "organization": "org.typelevel",
+          "name": "scalac-options_3",
+          "version": "0.1.7",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "reactive-streams",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
+              "name": "scalac-options_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-options_3/0.1.7/scalac-options_3-0.1.7.jar"
             }
           ]
         },
         {
-          "organization": "com.eed3si9n",
-          "name": "sjson-new-murmurhash_2.13",
-          "version": "0.9.1",
+          "organization": "build.bleep",
+          "name": "bleep-core_3",
+          "version": "0.0.12",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "sjson-new-murmurhash_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-murmurhash_2.13/0.9.1/sjson-new-murmurhash_2.13-0.9.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "core-macros_2.13",
-          "version": "1.7.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "core-macros_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/core-macros_2.13/1.7.1/core-macros_2.13-1.7.1.jar"
+              "name": "bleep-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-core_3/0.0.12/bleep-core_3-0.0.12.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.xtend",
           "name": "org.eclipse.xtend.lib",
-          "version": "2.24.0",
+          "version": "2.28.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtend.lib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.24.0/org.eclipse.xtend.lib-2.24.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib/2.28.0/org.eclipse.xtend.lib-2.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "fansi_3",
+          "version": "0.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "fansi_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fansi_3/0.5.0/fansi_3-0.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "commons-codec",
+          "name": "commons-codec",
+          "version": "1.16.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-codec/commons-codec/1.16.1/commons-codec-1.16.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-yaml-common_3",
+          "version": "1.15.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-yaml-common_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml-common_3/1.15.0/circe-yaml-common_3-1.15.0.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "coursier_2.13",
-          "version": "2.1.0-M7-39-gb8f3d7532",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "coursier_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.0-M7-39-gb8f3d7532/coursier_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier_2.13/2.1.18/coursier_2.13-2.1.18.jar"
             }
           ]
         },
         {
           "organization": "com.google.guava",
           "name": "guava",
-          "version": "27.1-jre",
+          "version": "30.1-jre",
           "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/27.1-jre/guava-27.1-jre.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.get-coursier",
-          "name": "coursier-core_2.13",
-          "version": "2.1.0-M7-39-gb8f3d7532",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "coursier-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.0-M7-39-gb8f3d7532/coursier-core_2.13-2.1.0-M7-39-gb8f3d7532.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lmax",
-          "name": "disruptor",
-          "version": "3.4.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "disruptor",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lmax/disruptor/3.4.2/disruptor-3.4.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/30.1-jre/guava-30.1-jre.jar"
             }
           ]
         },
@@ -500,74 +473,62 @@
           ]
         },
         {
+          "organization": "io.get-coursier",
+          "name": "coursier-core_2.13",
+          "version": "2.1.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "coursier-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-core_2.13/2.1.18/coursier-core_2.13-2.1.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.typelevel",
+          "name": "cats-core_3",
+          "version": "2.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cats-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_3/2.12.0/cats-core_3-2.12.0.jar"
+            }
+          ]
+        },
+        {
           "organization": "org.fusesource.jansi",
           "name": "jansi",
-          "version": "2.1.0",
+          "version": "1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jansi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/2.1.0/jansi-2.1.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/fusesource/jansi/jansi/1.18/jansi-1.18.jar"
             }
           ]
         },
         {
           "organization": "io.github.alexarchambault.<MASKED_OS>-ansi",
           "name": "<MASKED_OS>-ansi",
-          "version": "0.0.4",
+          "version": "0.0.5",
           "configurations": "default",
           "artifacts": [
             {
               "name": "<MASKED_OS>-ansi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.4/<MASKED_OS>-ansi-0.0.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.argonaut",
-          "name": "argonaut_2.13",
-          "version": "6.3.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "argonaut_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/argonaut/argonaut_2.13/6.3.8/argonaut_2.13-6.3.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.13.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.8/scala-compiler-2.13.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/<MASKED_OS>-ansi/<MASKED_OS>-ansi/0.0.5/<MASKED_OS>-ansi-0.0.5.jar"
             }
           ]
         },
         {
           "organization": "com.google.code.gson",
           "name": "gson",
-          "version": "[2.8.6,2.9)",
+          "version": "[2.9.1,2.11)",
           "configurations": "default",
           "artifacts": [
             {
               "name": "gson",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.8.9/gson-2.8.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "launcher-interface",
-          "version": "1.0.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "launcher-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/launcher-interface/1.0.0/launcher-interface-1.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar"
             }
           ]
         },
@@ -586,72 +547,48 @@
         {
           "organization": "com.swoval",
           "name": "file-tree-views",
-          "version": "2.1.9",
+          "version": "2.1.12",
           "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.9/file-tree-views-2.1.9.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/swoval/file-tree-views/2.1.12/file-tree-views-2.1.12.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.xtend",
           "name": "org.eclipse.xtend.lib.macro",
-          "version": "2.24.0",
+          "version": "2.28.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtend.lib.macro",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.24.0/org.eclipse.xtend.lib.macro-2.24.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtend/org.eclipse.xtend.lib.macro/2.28.0/org.eclipse.xtend.lib.macro-2.28.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
-          "version": "2.8.1",
+          "version": "2.12.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.8.1/scala-collection-compat_2.13-2.8.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "coursier-env_2.13",
-          "version": "2.1.0-M7-39-gb8f3d7532",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-env_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.0-M7-39-gb8f3d7532/coursier-env_2.13-2.1.0-M7-39-gb8f3d7532.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.yaml",
-          "name": "snakeyaml",
-          "version": "1.33",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "snakeyaml",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/1.33/snakeyaml-1.33.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "io_2.13",
-          "version": "1.7.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "io_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.13/1.7.0/io_2.13-1.7.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-env_2.13/2.1.18/coursier-env_2.13-2.1.18.jar"
             }
           ]
         },
@@ -670,60 +607,48 @@
         {
           "organization": "org.eclipse.lsp4j",
           "name": "org.eclipse.lsp4j.generator",
-          "version": "0.12.0",
+          "version": "0.20.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.lsp4j.generator",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.12.0/org.eclipse.lsp4j.generator-0.12.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.generator/0.20.1/org.eclipse.lsp4j.generator-0.20.1.jar"
             }
           ]
         },
         {
-          "organization": "org.apache.logging.log4j",
-          "name": "log4j-api",
-          "version": "2.17.1",
+          "organization": "io.circe",
+          "name": "circe-parser_3",
+          "version": "0.14.10",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "log4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.17.1/log4j-api-2.17.1.jar"
+              "name": "circe-parser_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-parser_3/0.14.10/circe-parser_3-0.14.10.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "coursier-jvm_2.13",
-          "version": "2.1.0-M7-39-gb8f3d7532",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-jvm_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.0-M7-39-gb8f3d7532/coursier-jvm_2.13-2.1.0-M7-39-gb8f3d7532.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.virtuslab.scala-cli",
-          "name": "bloop-rifle_2.13",
-          "version": "0.1.16",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "bloop-rifle_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/bloop-rifle_2.13/0.1.16/bloop-rifle_2.13-0.1.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-jvm_2.13/2.1.18/coursier-jvm_2.13-2.1.18.jar"
             }
           ]
         },
         {
           "organization": "org.checkerframework",
           "name": "checker-qual",
-          "version": "2.5.2",
+          "version": "3.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.5.2/checker-qual-2.5.2.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.5.0/checker-qual-3.5.0.jar"
             }
           ]
         },
@@ -740,110 +665,50 @@
           ]
         },
         {
-          "organization": "build.bleep",
-          "name": "bleep-model_2.13",
-          "version": "0.0.1-M20",
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_3",
+          "version": "0.4.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "bleep-model_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-model_2.13/0.0.1-M20/bleep-model_2.13-0.0.1-M20.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.alexarchambault.libdaemon",
-          "name": "libdaemon_2.13",
-          "version": "0.0.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "libdaemon_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/libdaemon/libdaemon_2.13/0.0.10/libdaemon_2.13-0.0.10.jar"
+              "name": "sourcecode_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_3/0.4.0/sourcecode_3-0.4.0.jar"
             }
           ]
         },
         {
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.13",
-          "version": "0.9.1",
+          "version": "0.13.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.9.1/sjson-new-scalajson_2.13-0.9.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-parallel-collections_2.13",
-          "version": "0.2.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-parallel-collections_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parallel-collections_2.13/0.2.0/scala-parallel-collections_2.13-0.2.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-scalajson_2.13/0.13.1/sjson-new-scalajson_2.13-0.13.1.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "coursier-util_2.13",
-          "version": "2.1.0-M7-39-gb8f3d7532",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-util_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.0-M7-39-gb8f3d7532/coursier-util_2.13-2.1.0-M7-39-gb8f3d7532.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-util_2.13/2.1.18/coursier-util_2.13-2.1.18.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.13",
-          "version": "2.8.0",
+          "organization": "org.virtuslab.scala-cli",
+          "name": "specification-level_2.13",
+          "version": "1.1.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "cats-kernel_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.13/2.8.0/cats-kernel_2.13-2.8.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.8",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.8/scala-reflect-2.13.8.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "ssl-config-core_2.13",
-          "version": "0.6.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "ssl-config-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.13",
-          "version": "2.8.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "cats-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.13/2.8.0/cats-core_2.13-2.8.0.jar"
+              "name": "specification-level_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/specification-level_2.13/1.1.3/specification-level_2.13-1.1.3.jar"
             }
           ]
         },
@@ -862,60 +727,60 @@
         {
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.13",
-          "version": "2.13.5",
+          "version": "2.13.5.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5/jsoniter-scala-core_2.13-2.13.5.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_2.13/2.13.5.2/jsoniter-scala-core_2.13-2.13.5.2.jar"
             }
           ]
         },
         {
           "organization": "org.virtuslab.scala-cli",
           "name": "config_2.13",
-          "version": "0.1.16",
+          "version": "1.1.3",
           "configurations": "default",
           "artifacts": [
             {
               "name": "config_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/0.1.16/config_2.13-0.1.16.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/virtuslab/scala-cli/config_2.13/1.1.3/config_2.13-1.1.3.jar"
             }
           ]
         },
         {
           "organization": "org.apache.commons",
           "name": "commons-compress",
-          "version": "1.21",
+          "version": "1.26.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "commons-compress",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-compress/1.26.1/commons-compress-1.26.1.jar"
             }
           ]
         },
         {
           "organization": "commons-io",
           "name": "commons-io",
-          "version": "2.11.0",
+          "version": "2.15.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "commons-io",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
-          "name": "circe-yaml_2.13",
-          "version": "0.14.2",
+          "name": "circe-core_3",
+          "version": "0.14.10",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "circe-yaml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-yaml_2.13/0.14.2/circe-yaml_2.13-0.14.2.jar"
+              "name": "circe-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_3/0.14.10/circe-core_3-0.14.10.jar"
             }
           ]
         },
@@ -932,110 +797,122 @@
           ]
         },
         {
-          "organization": "com.eed3si9n",
-          "name": "sjson-new-core_2.13",
-          "version": "0.9.1",
+          "organization": "ch.epfl.scala",
+          "name": "bloop-config_3",
+          "version": "2.3.1",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "sjson-new-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.9.1/sjson-new-core_2.13-0.9.1.jar"
+              "name": "bloop-config_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-config_3/2.3.1/bloop-config_3-2.3.1.jar"
             }
           ]
         },
         {
-          "organization": "org.jline",
-          "name": "jline-terminal-jansi",
-          "version": "3.19.0",
+          "organization": "com.olvind.ryddig",
+          "name": "ryddig_3",
+          "version": "0.0.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jline-terminal-jansi",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jansi/3.19.0/jline-terminal-jansi-3.19.0.jar"
+              "name": "ryddig_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/olvind/ryddig/ryddig_3/0.0.6/ryddig_3-0.0.6.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_2.13",
-          "version": "0.3.0",
+          "name": "unroll-annotation_3",
+          "version": "0.1.12",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "sourcecode_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_2.13/0.3.0/sourcecode_2.13-0.3.0.jar"
+              "name": "unroll-annotation_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/unroll-annotation_3/0.1.12/unroll-annotation_3-0.1.12.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.commons",
+          "name": "commons-lang3",
+          "version": "3.14.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "commons-lang3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/commons/commons-lang3/3.14.0/commons-lang3-3.14.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.eed3si9n",
+          "name": "sjson-new-core_2.13",
+          "version": "0.13.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "sjson-new-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/sjson-new-core_2.13/0.13.1/sjson-new-core_2.13-0.13.1.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.8",
+          "version": "2.13.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "jawn-parser_2.13",
-          "version": "1.3.2",
+          "organization": "ch.epfl.scala",
+          "name": "bloop-rifle_2.13",
+          "version": "2.0.7",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jawn-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_2.13/1.3.2/jawn-parser_2.13-1.3.2.jar"
+              "name": "bloop-rifle_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/epfl/scala/bloop-rifle_2.13/2.0.7/bloop-rifle_2.13-2.0.7.jar"
             }
           ]
         },
         {
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.13",
-          "version": "0.9.1",
+          "version": "1.3.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/0.9.1/shaded-jawn-parser_2.13-0.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-jawn-parser_2.13/1.3.2/shaded-jawn-parser_2.13-1.3.2.jar"
             }
           ]
         },
         {
           "organization": "io.get-coursier",
           "name": "coursier-proxy-setup",
-          "version": "2.1.0-M7-39-gb8f3d7532",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-proxy-setup",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.0-M7-39-gb8f3d7532/coursier-proxy-setup-2.1.0-M7-39-gb8f3d7532.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-proxy-setup/2.1.18/coursier-proxy-setup-2.1.18.jar"
             }
           ]
         },
         {
-          "organization": "io.circe",
-          "name": "circe-generic_2.13",
-          "version": "0.14.2",
+          "organization": "org.typelevel",
+          "name": "cats-kernel_3",
+          "version": "2.12.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "circe-generic_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-generic_2.13/0.14.2/circe-generic_2.13-0.14.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.java.dev.jna",
-          "name": "jna",
-          "version": "5.12.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jna",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.12.0/jna-5.12.0.jar"
+              "name": "cats-kernel_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.12.0/cats-kernel_3-2.12.0.jar"
             }
           ]
         },
@@ -1048,66 +925,6 @@
             {
               "name": "listenablefuture",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "gigahorse-apache-http_2.13",
-          "version": "0.7.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "gigahorse-apache-http_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/gigahorse-apache-http_2.13/0.7.0/gigahorse-apache-http_2.13-0.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "util-interface",
-          "version": "1.7.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "util-interface",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.7.1/util-interface-1.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.circe",
-          "name": "circe-core_2.13",
-          "version": "0.14.3",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "circe-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-core_2.13/0.14.3/circe-core_2.13-0.14.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.j2objc",
-          "name": "j2objc-annotations",
-          "version": "1.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "j2objc-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.1/j2objc-annotations-1.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.codehaus.mojo",
-          "name": "animal-sniffer-annotations",
-          "version": "1.17",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "animal-sniffer-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.17/animal-sniffer-annotations-1.17.jar"
             }
           ]
         },
@@ -1136,74 +953,62 @@
           ]
         },
         {
-          "organization": "com.typesafe",
-          "name": "config",
-          "version": "1.4.2",
+          "organization": "io.get-coursier",
+          "name": "coursier-sbt-maven-repository_2.13",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
+              "name": "coursier-sbt-maven-repository_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/coursier-sbt-maven-repository_2.13/2.1.18/coursier-sbt-maven-repository_2.13-2.1.18.jar"
             }
           ]
         },
         {
           "organization": "org.codehaus.plexus",
           "name": "plexus-archiver",
-          "version": "4.5.0",
+          "version": "4.9.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-archiver",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.5.0/plexus-archiver-4.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-archiver/4.9.2/plexus-archiver-4.9.2.jar"
             }
           ]
         },
         {
-          "organization": "io.circe",
-          "name": "circe-jawn_2.13",
-          "version": "0.14.2",
+          "organization": "io.get-coursier",
+          "name": "cache-util",
+          "version": "2.1.18",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "circe-jawn_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_2.13/0.14.2/circe-jawn_2.13-0.14.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.chuusai",
-          "name": "shapeless_2.13",
-          "version": "2.3.9",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "shapeless_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.9/shapeless_2.13-2.3.9.jar"
-            }
-          ]
-        },
-        {
-          "organization": "net.java.dev.jna",
-          "name": "jna-platform",
-          "version": "5.12.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jna-platform",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna-platform/5.12.0/jna-platform-5.12.0.jar"
+              "name": "cache-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/cache-util/2.1.18/cache-util-2.1.18.jar"
             }
           ]
         },
         {
           "organization": "org.eclipse.xtext",
           "name": "org.eclipse.xtext.xbase.lib",
-          "version": "2.24.0",
+          "version": "2.28.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtext.xbase.lib",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.24.0/org.eclipse.xtext.xbase.lib-2.24.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/eclipse/xtext/org.eclipse.xtext.xbase.lib/2.28.0/org.eclipse.xtext.xbase.lib-2.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.circe",
+          "name": "circe-jawn_3",
+          "version": "0.14.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "circe-jawn_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-jawn_3/0.14.10/circe-jawn_3-0.14.10.jar"
             }
           ]
         },
@@ -1220,146 +1025,50 @@
           ]
         },
         {
-          "organization": "org.apache.logging.log4j",
-          "name": "log4j-core",
-          "version": "2.17.1",
+          "organization": "com.github.plokhotnyuk.jsoniter-scala",
+          "name": "jsoniter-scala-core_3",
+          "version": "2.13.5.2",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "log4j-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.17.1/log4j-core-2.17.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "util-logging_2.13",
-          "version": "1.7.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "util-logging_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-logging_2.13/1.7.1/util-logging_2.13-1.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.eed3si9n",
-          "name": "shaded-apache-httpasyncclient",
-          "version": "0.7.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "shaded-apache-httpasyncclient",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/eed3si9n/shaded-apache-httpasyncclient/0.7.0/shaded-apache-httpasyncclient-0.7.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "build.bleep",
-          "name": "bleep-core_2.13",
-          "version": "0.0.1-M20",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "bleep-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/build/bleep/bleep-core_2.13/0.0.1-M20/bleep-core_2.13-0.0.1-M20.jar"
+              "name": "jsoniter-scala-core_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/plokhotnyuk/jsoniter-scala/jsoniter-scala-core_3/2.13.5.2/jsoniter-scala-core_3-2.13.5.2.jar"
             }
           ]
         },
         {
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
-          "version": "2.2.0",
+          "version": "2.3.4",
           "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.2.0/error_prone_annotations-2.2.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar"
             }
           ]
         },
         {
           "organization": "io.circe",
-          "name": "circe-numbers_2.13",
-          "version": "0.14.3",
+          "name": "circe-numbers_3",
+          "version": "0.14.10",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "circe-numbers_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_2.13/0.14.3/circe-numbers_2.13-0.14.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.jline",
-          "name": "jline-terminal-jna",
-          "version": "3.19.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jline-terminal-jna",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "util-cache_2.13",
-          "version": "1.7.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "util-cache_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-cache_2.13/1.7.1/util-cache_2.13-1.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.codehaus.plexus",
-          "name": "plexus-utils",
-          "version": "3.4.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "plexus-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-utils/3.4.2/plexus-utils-3.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-sbt",
-          "name": "util-position_2.13",
-          "version": "1.7.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "util-position_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-position_2.13/1.7.1/util-position_2.13-1.7.1.jar"
+              "name": "circe-numbers_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/circe/circe-numbers_3/0.14.10/circe-numbers_3-0.14.10.jar"
             }
           ]
         },
         {
           "organization": "org.codehaus.plexus",
           "name": "plexus-io",
-          "version": "3.4.0",
+          "version": "3.4.2",
           "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-io",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.0/plexus-io-3.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.github.luben",
-          "name": "zstd-jni",
-          "version": "1.5.2-4",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "zstd-jni",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.2-4/zstd-jni-1.5.2-4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/plexus/plexus-io/3.4.2/plexus-io-3.4.2.jar"
             }
           ]
         },
@@ -1372,6 +1081,30 @@
             {
               "name": "concurrent-reference-hash-map",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/alexarchambault/concurrent-reference-hash-map/1.1.0/concurrent-reference-hash-map-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.github.luben",
+          "name": "zstd-jni",
+          "version": "1.5.5-11",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zstd-jni",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/github/luben/zstd-jni/1.5.5-11/zstd-jni-1.5.5-11.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.get-coursier",
+          "name": "dependency_2.13",
+          "version": "0.3.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "dependency_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/get-coursier/dependency_2.13/0.3.1/dependency_2.13-0.3.1.jar"
             }
           ]
         }

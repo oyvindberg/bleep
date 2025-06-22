@@ -1,0 +1,759 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-json-zio-test@native3",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio-test/native3",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/javanative",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/scala-3",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/scala-3-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/scalanative",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/scalanative-3"
+    ],
+    "dependencies": [
+      "tapir-core@native3",
+      "tapir-json-zio@native3"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_native0.5_3/1.3.18/magnolia_native0.5_3-1.3.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_native0.5_3/1.7.14/core_native0.5_3-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_native0.5_3/1.5.0/core_native0.5_3-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_native0.5_3/1.5.0/ws_native0.5_3-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_native0.5_3/3.0.1/izumi-reflect_native0.5_3-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_native0.5_3/2.1.17/zio-internal-macros_native0.5_3-2.1.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_native0.5_3/0.7.43/zio-json_native0.5_3-0.7.43.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_native0.5_3/2.1.17/zio-stacktracer_native0.5_3-2.1.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_native0.5_3/2.1.17/zio-streams_native0.5_3-2.1.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_native0.5_3/2.1.17/zio_native0.5_3-2.1.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_3/4.5.0/cldr-api_native0.5_3-4.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_3/1.5.4/scala-java-locales_native0.5_3-1.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_3/2.6.0/scala-java-time_native0.5_3-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_native0.5_3/2.3.0/scala-xml_native0.5_3-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_3/0.5.8/auxlib_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_3/0.5.8/clib_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_3/0.5.8/javalib_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_3/0.5.8/nativelib_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_3/0.5.8/posixlib_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.5_3/3.3.6%2B0.5.8/scala3lib_native0.5_3-3.3.6%2B0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.8/scalalib_native0.5_2.13-2.13.16%2B0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_3/0.5.8/test-interface-sbt-defs_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface_native0.5_3/0.5.8/test-interface_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_3/0.5.8/windowslib_native0.5_3-0.5.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_native0.5_3/3.2.18/scalactic_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_native0.5_3/3.2.18/scalatest-core_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_native0.5_3/3.2.18/scalatest-diagrams_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_native0.5_3/3.2.18/scalatest-featurespec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_native0.5_3/3.2.18/scalatest-flatspec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_native0.5_3/3.2.18/scalatest-freespec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_native0.5_3/3.2.18/scalatest-funspec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_native0.5_3/3.2.18/scalatest-funsuite_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_native0.5_3/3.2.18/scalatest-matchers-core_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_native0.5_3/3.2.18/scalatest-mustmatchers_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_native0.5_3/3.2.18/scalatest-propspec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_native0.5_3/3.2.18/scalatest-refspec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_native0.5_3/3.2.18/scalatest-shouldmatchers_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_native0.5_3/3.2.18/scalatest-wordspec_native0.5_3-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_native0.5_3/3.2.18/scalatest_native0.5_3-3.2.18.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio/native3/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio-test/native3",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio-test/native3/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/test/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala3-compiler_3",
+      "version": "3.3.6",
+      "options": [
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/scalanative-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/${SCOPE}/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio-test/native3/src_managed/${SCOPE}",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/scala;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/java;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/protobuf;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/scalanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/scalanative-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/javanative;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/scala-3;<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/zio/src/main/scala-3-2.13+;<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio-test/native3/src_managed/main",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.Assertion:s",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.compatible.Assertion:s",
+        "-Wnonunit-statement",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:params",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xmax-inlines",
+        "64",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_3.3.6/0.5.8/nscplugin_3.3.6-0.5.8.jar",
+        "-Ykind-projector",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-compiler_3/3.3.6/scala3-compiler_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-interfaces/3.3.6/scala3-interfaces-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/tasty-core_3/3.3.6/tasty-core_3-3.3.6.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/compiler-interface/1.10.4/compiler-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.27.1/jline-reader-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.27.1/jline-terminal-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jni/3.27.1/jline-terminal-jni-3.27.1.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.10.4/util-interface-1.10.4.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.27.1/jline-native-3.27.1.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio-test/native3/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "test": {
+      "frameworks": [
+        {
+          "names": [
+            "com.novocode.junit.JUnitFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalatest.tools.Framework",
+            "org.scalatest.tools.ScalaTestFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.scalacheck.ScalaCheckFramework"
+          ]
+        },
+        {
+          "names": [
+            "org.specs.runner.SpecsFramework",
+            "org.specs2.runner.Specs2Framework",
+            "org.specs2.runner.SpecsFramework"
+          ]
+        },
+        {
+          "names": [
+            "utest.runner.Framework"
+          ]
+        },
+        {
+          "names": [
+            "munit.Framework"
+          ]
+        },
+        {
+          "names": [
+            "mill.testng.TestNGFramework"
+          ]
+        },
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
+        }
+      ],
+      "options": {
+        "excludes": [
+          
+        ],
+        "arguments": [
+          {
+            "args": [
+              "-v",
+              "-a"
+            ],
+            "framework": {
+              "names": [
+                "com.novocode.junit.JUnitFramework"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "platform": {
+      "name": "native",
+      "config": {
+        "version": "0.5.8",
+        "mode": "debug",
+        "gc": "",
+        "clang": "",
+        "clangpp": "",
+        "toolchain": [
+          
+        ],
+        "options": {
+          "linker": [
+            
+          ],
+          "compiler": [
+            
+          ]
+        },
+        "linkStubs": false,
+        "check": false,
+        "dump": false
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-native",
+          "name": "nativelib_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "nativelib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_3/0.5.8/nativelib_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_native0.5_3",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_native0.5_3/1.5.0/core_native0.5_3-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scala3lib_native0.5_3",
+          "version": "3.3.6+0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3lib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scala3lib_native0.5_3/3.3.6%2B0.5.8/scala3lib_native0.5_3-3.3.6%2B0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-freespec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-freespec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_native0.5_3/3.2.18/scalatest-freespec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_3",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3/3.0.1/izumi-reflect-thirdparty-boopickle-shaded_native0.5_3-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "posixlib_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "posixlib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_3/0.5.8/posixlib_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-streams_native0.5_3",
+          "version": "2.1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-streams_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-streams_native0.5_3/2.1.17/zio-streams_native0.5_3-2.1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "windowslib_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "windowslib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_3/0.5.8/windowslib_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-diagrams_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-diagrams_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_native0.5_3/3.2.18/scalatest-diagrams_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "izumi-reflect_native0.5_3",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "izumi-reflect_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/izumi-reflect_native0.5_3/3.0.1/izumi-reflect_native0.5_3-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala3-library_3",
+          "version": "3.3.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala3-library_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-stacktracer_native0.5_3",
+          "version": "2.1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-stacktracer_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-stacktracer_native0.5_3/2.1.17/zio-stacktracer_native0.5_3-2.1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-flatspec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-flatspec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_native0.5_3/3.2.18/scalatest-flatspec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-mustmatchers_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-mustmatchers_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_native0.5_3/3.2.18/scalatest-mustmatchers_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_native0.5_3",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_native0.5_3/1.5.0/ws_native0.5_3-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_native0.5_3/3.2.18/scalatest-matchers-core_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-json_native0.5_3",
+          "version": "0.7.43",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-json_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-json_native0.5_3/0.7.43/zio-json_native0.5_3-0.7.43.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-featurespec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-featurespec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_native0.5_3/3.2.18/scalatest-featurespec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_native0.5_3/3.2.18/scalatest-funspec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "javalib_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "javalib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_3/0.5.8/javalib_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-core_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-core_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_native0.5_3/3.2.18/scalatest-core_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_3/0.5.8/auxlib_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_native0.5_3/3.2.18/scalatest-wordspec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_native0.5_3",
+          "version": "1.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java-locales_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_native0.5_3/1.5.4/scala-java-locales_native0.5_3-1.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalactic_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_native0.5_3/3.2.18/scalactic_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio-internal-macros_native0.5_3",
+          "version": "2.1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio-internal-macros_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio-internal-macros_native0.5_3/2.1.17/zio-internal-macros_native0.5_3-2.1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "test-interface_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface_native0.5_3/0.5.8/test-interface_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "dev.zio",
+          "name": "zio_native0.5_3",
+          "version": "2.1.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "zio_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/dev/zio/zio_native0.5_3/2.1.17/zio_native0.5_3-2.1.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.portable-scala",
+          "name": "portable-scala-reflect_native0.5_2.13",
+          "version": "1.1.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "portable-scala-reflect_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.5_2.13/1.1.3/portable-scala-reflect_native0.5_2.13-1.1.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "clib_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "clib_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_3/0.5.8/clib_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "cldr-api_native0.5_3",
+          "version": "4.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "cldr-api_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_native0.5_3/4.5.0/cldr-api_native0.5_3-4.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_native0.5_3",
+          "version": "2.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java-time_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_native0.5_3/2.6.0/scala-java-time_native0.5_3-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_native0.5_3/3.2.18/scalatest-propspec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_native0.5_3/3.2.18/scalatest-shouldmatchers_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_native0.5_3",
+          "version": "1.7.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_native0.5_3/1.7.14/core_native0.5_3-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "test-interface-sbt-defs_native0.5_3",
+          "version": "0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "test-interface-sbt-defs_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.5_3/0.5.8/test-interface-sbt-defs_native0.5_3-0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_native0.5_3",
+          "version": "2.3.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_native0.5_3/2.3.0/scala-xml_native0.5_3-2.3.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "scalalib_native0.5_2.13",
+          "version": "2.13.16+0.5.8",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalalib_native0.5_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.13/2.13.16%2B0.5.8/scalalib_native0.5_2.13-2.13.16%2B0.5.8.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_native0.5_3/3.2.18/scalatest_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_native0.5_3/3.2.18/scalatest-funsuite_native0.5_3-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_3",
+          "name": "magnolia_native0.5_3",
+          "version": "1.3.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_3/magnolia_native0.5_3/1.3.18/magnolia_native0.5_3-1.3.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-refspec_native0.5_3",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-refspec_native0.5_3",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-refspec_native0.5_3/3.2.18/scalatest-refspec_native0.5_3-3.2.18.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "test"
+    ]
+  }
+}

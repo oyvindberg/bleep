@@ -1,79 +1,86 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
+  iron-examples:
+    dependsOn:
+    - tapir-iron
+    - tapir-json-circe
+    - tapir-netty-server-cats
+    - tapir-sttp-client4
+    extends:
+    - template-common-main
+    - template-scala-3-jvm
+    folder: ../sbt-build/integrations/iron/examples
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/ironExamples3
+    scala:
+      version: 3.6.4
   sbt-openapi-codegen:
     dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-yaml:0.14.1
-    - configuration: provided
-      module: org.scala-sbt:sbt:1.5.5
+      configuration: provided
+      module: org.scala-sbt:sbt:1.11.0
+    dependsOn: tapir-openapi-codegen-core
     extends:
     - template-common-main
     - template-scala-2.12-jvm
-    folder: ../sbt-build/sbt/sbt-openapi-codegen
+    folder: ../sbt-build/openapi-codegen/sbt-plugin
     scala:
-      options: -Wconf:cat=unused-nowarn:s
+      options: -Wconf:cat=unused-nowarn:s -Xsource:3
     sourcegen:
       main: scripts.GenerateForSbtOpenapiCodegen
       project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
-  sbt-openapi-codegen-test:
-    dependencies:
-    - com.47deg::scalacheck-toolbox-datetime:0.6.0
-    - org.scala-lang:scala-compiler:${SCALA_VERSION}
-    - configuration: provided
-      module: org.scala-sbt:sbt:1.5.5
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - org.scalatestplus::scalacheck-1-15:3.2.10.0
-    dependsOn:
-    - sbt-openapi-codegen
-    - tapir-json-circe
-    extends:
-    - template-common-test
-    - template-scala-2.12-jvm
-    folder: ../sbt-build/sbt/sbt-openapi-codegen
-    scala:
-      options: -Wconf:cat=unused-nowarn:s
-    sources: ./src/${SCOPE}/scala-sbt-1.0
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.1-M20
+    dependencies: build.bleep::bleep-core:0.0.12
     platform:
       name: jvm
     scala:
-      version: 3.3.0
+      version: 3.6.4
   sttp-mock-server:
     dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-parser:0.14.1
-    dependsOn: tapir-sttp-client
+    - io.circe::circe-core:0.14.14
+    - io.circe::circe-generic:0.14.14
+    - io.circe::circe-parser:0.14.14
+    dependsOn:
+    - tapir-server
+    - tapir-sttp-client4
     extends:
     - template-common-main
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/sttp-mock-server
   sttp-mock-server-test:
-    dependencies: io.circe::circe-literal:0.14.1
+    dependencies:
+    - io.circe::circe-literal:0.14.14
+    - org.mock-server:mockserver-netty:5.15.0
     dependsOn:
     - sttp-mock-server
     - tapir-server-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/sttp-mock-server
+  tapir-akka-grpc-server:
+    dependencies: com.lightbend.akka.grpc::akka-grpc-runtime:2.1.6
+    dependsOn: tapir-akka-http-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/server/akka-grpc-server
   tapir-akka-http-server:
     dependencies:
-    - com.softwaremill.sttp.shared::akka:1.2.7
-    - com.typesafe.akka::akka-http:10.2.7
-    - com.typesafe.akka::akka-stream:2.6.17
-    dependsOn: tapir-core
+    - com.softwaremill.sttp.shared::akka:1.5.0
+    - com.typesafe.akka::akka-http:10.2.10
+    - com.typesafe.akka::akka-slf4j:2.6.20
+    - com.typesafe.akka::akka-stream:2.6.20
+    dependsOn: tapir-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
     folder: ../sbt-build/server/akka-http-server
   tapir-akka-http-server-test:
-    dependencies: com.softwaremill.sttp.client3::akka-http-backend:3.3.18
+    dependencies: com.softwaremill.sttp.client4::akka-http-backend:4.0.8
     dependsOn:
     - tapir-akka-http-server
     - tapir-server-tests
@@ -82,142 +89,259 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/server/akka-http-server
   tapir-apispec-docs:
-    dependsOn:
-    - tapir-apispec-model
-    - tapir-core
-    extends:
-    - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/docs/apispec-docs
-  tapir-apispec-model:
-    extends:
-    - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/apispec-model
-  tapir-asyncapi-circe:
     dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-parser:0.14.1
-    dependsOn: tapir-asyncapi-model
+      forceJvm: true
+      module: com.softwaremill.sttp.apispec::asyncapi-model:0.11.9
+    dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/asyncapi-circe
-  tapir-asyncapi-circe-yaml:
-    dependencies: io.circe::circe-yaml:0.14.1
-    dependsOn: tapir-asyncapi-circe
-    extends:
-    - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/asyncapi-circe-yaml
-  tapir-asyncapi-docs:
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/docs/apispec-docs
+  tapir-apispec-docs-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+    dependencies:
+    - forceJvm: true
+      module: com.softwaremill.sttp.apispec::jsonschema-circe:0.11.9
+    - forceJvm: true
+      module: io.circe::circe-literal:0.14.14
     dependsOn:
     - tapir-apispec-docs
-    - tapir-asyncapi-model
+    - tapir-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/docs/apispec-docs
+  tapir-armeria-server:
+    dependencies:
+    - com.linecorp.armeria:armeria:1.32.5
+    - com.softwaremill.sttp.shared::armeria:1.5.0
+    - org.scala-lang.modules::scala-java8-compat:1.0.2
+    dependsOn: tapir-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/armeria-server
+  tapir-armeria-server-cats:
+    dependencies:
+    - co.fs2::fs2-reactive-streams:3.12.0
+    - com.softwaremill.sttp.shared::fs2:1.5.0
+    dependsOn:
+    - tapir-armeria-server
+    - tapir-cats
+    - tapir-cats-effect
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/armeria-server/cats
+  tapir-armeria-server-cats-test:
+    dependsOn:
+    - tapir-armeria-server-cats
+    - tapir-armeria-server-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/armeria-server/cats
+  tapir-armeria-server-test:
+    dependsOn:
+    - tapir-armeria-server
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/armeria-server
+  tapir-armeria-server-zio:
+    dependencies: dev.zio::zio-interop-reactivestreams:2.0.2
+    dependsOn:
+    - tapir-armeria-server
+    - tapir-zio
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/armeria-server/zio
+  tapir-armeria-server-zio-test:
+    dependsOn:
+    - tapir-armeria-server-test
+    - tapir-armeria-server-zio
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/armeria-server/zio
+  tapir-asyncapi-docs:
+    dependencies: com.softwaremill.sttp.apispec::asyncapi-model:0.11.9
+    dependsOn: tapir-apispec-docs
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/asyncapi-docs
   tapir-asyncapi-docs-test:
     dependencies:
-    - com.softwaremill.sttp.shared::akka:1.2.7
-    - com.typesafe.akka::akka-stream:2.6.17
+    - com.softwaremill.sttp.apispec::asyncapi-circe-yaml:0.11.9
+    - com.softwaremill.sttp.shared::akka:1.5.0
+    - com.typesafe.akka::akka-stream:2.6.20
     dependsOn:
-    - tapir-asyncapi-circe-yaml
     - tapir-asyncapi-docs
     - tapir-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/asyncapi-docs
-  tapir-asyncapi-model:
-    dependsOn: tapir-apispec-model
+  tapir-aws-cdk:
+    dependencies:
+    - io.circe::circe-parser:0.14.14
+    - io.circe::circe-yaml:0.15.2
+    dependsOn: tapir-aws-lambda
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/asyncapi-model
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/serverless/aws/cdk
+  tapir-aws-cdk-test:
+    dependsOn:
+    - tapir-aws-cdk
+    - tapir-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/serverless/aws/cdk
+  tapir-aws-cdk-tests:
+    dependsOn:
+    - tapir-aws-cdk
+    - tapir-server-tests
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/serverless/aws/cdk-tests
+  tapir-aws-cdk-tests-test:
+    dependsOn: tapir-aws-cdk-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/serverless/aws/cdk-tests
   tapir-aws-examples:
     cross:
+      js212:
+        dependsOn: tapir-aws-lambda
+      js213:
+        dependsOn: tapir-aws-lambda
       jvm212:
-        dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
         dependsOn:
+        - tapir-aws-cdk
         - tapir-aws-sam
         - tapir-aws-terraform
       jvm213:
-        dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
         dependsOn:
+        - tapir-aws-cdk
         - tapir-aws-sam
         - tapir-aws-terraform
-    dependencies: com.softwaremill.sttp.client3::cats:3.3.18
-    dependsOn: tapir-aws-lambda
+    dependencies: com.softwaremill.sttp.client4::cats:4.0.8
     extends:
     - template-common-main
     - template-cross-jvm-212-213-js-212-213
     folder: ../sbt-build/serverless/aws/examples
   tapir-aws-lambda:
-    cross:
-      js212:
-        sources: ./src/${SCOPE}/scalajvm-2
-      js213:
-        sources: ./src/${SCOPE}/scalajvm-2
     dependencies:
-    - ch.qos.logback:logback-classic:1.2.7
-    - ch.qos.logback:logback-core:1.2.7
+    - com.amazonaws:aws-lambda-java-runtime-interface-client:2.6.0
     - forceJvm: true
-      module: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
-    - forceJvm: true
-      module: com.typesafe.scala-logging::scala-logging:3.9.4
+      module: com.softwaremill.sttp.client4::fs2:4.0.8
+    - org.slf4j:slf4j-api:2.0.17
     dependsOn:
+    - tapir-aws-lambda-core
     - tapir-cats
-    - tapir-json-circe
+    - tapir-cats-effect
     extends:
     - template-common-main
     - template-cross-jvm-all-js-212-213
-    folder: ../sbt-build/serverless/aws/lambda
+    folder: ../sbt-build/serverless/aws/lambda-cats-effect
+  tapir-aws-lambda-cats-effect-tests:
+    dependsOn:
+    - tapir-aws-lambda
+    - tapir-aws-sam
+    - tapir-server-tests
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/serverless/aws/lambda-cats-effect-tests
+  tapir-aws-lambda-cats-effect-tests-test:
+    dependsOn: tapir-aws-lambda-cats-effect-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/serverless/aws/lambda-cats-effect-tests
+  tapir-aws-lambda-core:
+    dependsOn:
+    - tapir-json-circe
+    - tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-all-js-212-213
+    folder: ../sbt-build/serverless/aws/lambda-core
+  tapir-aws-lambda-core-test:
+    dependsOn:
+    - tapir-aws-lambda-core
+    - tapir-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/serverless/aws/lambda-core
   tapir-aws-lambda-test:
-    dependencies:
-    - com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
-    - com.typesafe.scala-logging::scala-logging:3.9.4
+    dependencies: com.softwaremill.sttp.client4::fs2:4.0.8
     dependsOn:
     - tapir-aws-lambda
     - tapir-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/serverless/aws/lambda
-  tapir-aws-lambda-tests:
-    dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.0.0
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/serverless/aws/lambda-cats-effect
+  tapir-aws-lambda-zio:
+    dependencies: com.amazonaws:aws-lambda-java-runtime-interface-client:2.6.0
     dependsOn:
-    - tapir-aws-lambda
-    - tapir-aws-sam
-    - tapir-server-tests
-    - tapir-sttp-stub-server
+    - tapir-aws-lambda-core
+    - tapir-zio-http-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ../sbt-build/serverless/aws/lambda-tests
-  tapir-aws-lambda-tests-test:
-    dependsOn: tapir-aws-lambda-tests
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/serverless/aws/lambda-zio
+  tapir-aws-lambda-zio-tests:
+    dependencies: dev.zio::zio-interop-cats:23.1.0.5
+    dependsOn:
+    - tapir-aws-lambda-zio
+    - tapir-aws-sam
+    - tapir-server-tests
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/serverless/aws/lambda-zio-tests
+  tapir-aws-lambda-zio-tests-test:
+    dependsOn: tapir-aws-lambda-zio-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ../sbt-build/serverless/aws/lambda-tests
+    folder: ../sbt-build/serverless/aws/lambda-zio-tests
   tapir-aws-sam:
     dependencies:
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-yaml:0.14.1
+    - io.circe::circe-generic:0.14.14
+    - io.circe::circe-yaml:0.15.2
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/serverless/aws/sam
   tapir-aws-sam-test:
     dependsOn:
@@ -226,14 +350,14 @@ projects:
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/serverless/aws/sam
   tapir-aws-terraform:
     dependencies:
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-literal:0.14.1
-    - io.circe::circe-yaml:0.14.1
-    - org.typelevel::jawn-parser:1.3.0
+    - io.circe::circe-generic:0.14.14
+    - io.circe::circe-literal:0.14.14
+    - io.circe::circe-yaml:0.15.2
+    - org.typelevel::jawn-parser:1.6.0
     dependsOn: tapir-core
     extends:
     - template-common-main
@@ -248,89 +372,161 @@ projects:
     - template-cross-jvm-212-213
     folder: ../sbt-build/serverless/aws/terraform
   tapir-cats:
-    dependencies:
-    - org.typelevel::cats-core:2.7.0
-    - org.typelevel::cats-effect:3.3.0
+    cross:
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies: org.typelevel::cats-core:2.13.0
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-all
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/integrations/cats
+  tapir-cats-effect:
+    dependencies:
+    - org.typelevel::cats-core:2.13.0
+    - org.typelevel::cats-effect:3.6.1
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/integrations/cats-effect
   tapir-cats-test:
     cross:
       js212:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js213:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js3:
         dependencies:
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::scala-java-time:2.6.0
         - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
     dependencies:
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - org.scalatestplus::scalacheck-1-15:3.2.10.0
-    - org.typelevel::cats-laws:2.7.0
-    - org.typelevel::discipline-scalatest:2.1.5
+    - org.scalacheck::scalacheck:1.18.1
+    - org.scalatest::scalatest:3.2.18
+    - org.scalatestplus::scalacheck-1-18:3.2.19.0
+    - org.typelevel::cats-laws:2.13.0
+    - org.typelevel::discipline-scalatest:2.3.0
     dependsOn: tapir-cats
     extends:
     - template-common-test
-    - template-cross-all
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/integrations/cats
-  tapir-client-tests:
+  tapir-client:
     cross:
-      js212:
-        sources: ./src/${SCOPE}/scalajvm-2
-      js213:
-        sources: ./src/${SCOPE}/scalajvm-2
-      js3:
-        sources: ./src/${SCOPE}/scalajvm-${SCALA_BIN_VERSION}
-    dependencies:
-    - forceJvm: true
-      module: org.http4s::http4s-blaze-server:0.23.7
-    - forceJvm: true
-      module: org.http4s::http4s-circe:0.23.7
-    - forceJvm: true
-      module: org.http4s::http4s-dsl:0.23.7
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-all-native-3-js-all
+    folder: ../sbt-build/client/core
+  tapir-client-tests:
     dependsOn: tapir-tests
     extends:
     - template-common-main
-    - template-cross-all
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/client/tests
+  tapir-codegen:
+    dependencies:
+    - com.monovore::decline-effect:2.5.0
+    - com.monovore::decline:2.5.0
+    - org.scala-lang.modules::scala-collection-compat:2.13.0
+    dependsOn: tapir-openapi-codegen-core
+    extends:
+    - template-common-main
+    - template-scala-2.12-jvm
+    folder: ../sbt-build/openapi-codegen/cli
+    sourcegen:
+      main: scripts.GenerateForTapirCodegen
+      project: scripts
   tapir-core:
     cross:
       js212:
         dependencies:
-        - com.propensive::magnolia:0.17.0
-        - org.scala-js::scalajs-dom:2.0.0
+        - com.softwaremill.magnolia1_2::magnolia:1.1.10
+        - org.scala-js::scalajs-dom:2.8.0
+        - forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       js213:
         dependencies:
-        - com.propensive::magnolia:0.17.0
-        - org.scala-js::scalajs-dom:2.0.0
+        - com.softwaremill.magnolia1_2::magnolia:1.1.10
+        - org.scala-js::scalajs-dom:2.8.0
+        - forceJvm: true
+          module: org.scala-js::scalajs-scalalib:${SCALA_VERSION}+${PLATFORM_VERSION}
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       js3:
         dependencies:
-        - com.softwaremill.magnolia1_3::magnolia:1.0.0-M7
-        - org.scala-js::scalajs-dom:2.0.0
+        - com.softwaremill.magnolia1_3::magnolia:1.3.18
+        - org.scala-js::scalajs-dom:2.8.0
       jvm212:
         dependencies:
-        - com.propensive::magnolia:0.17.0
+        - com.softwaremill.magnolia1_2::magnolia:1.1.10
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       jvm213:
         dependencies:
-        - com.propensive::magnolia:0.17.0
+        - com.softwaremill.magnolia1_2::magnolia:1.1.10
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       jvm3:
-        dependencies: com.softwaremill.magnolia1_3::magnolia:1.0.0-M7
+        dependencies: com.softwaremill.magnolia1_3::magnolia:1.3.18
+      native212:
+        dependencies:
+        - com.softwaremill.magnolia1_2::magnolia:1.1.10
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        - org.scala-native::auxlib:${PLATFORM_VERSION}
+        - org.scala-native::clib:${PLATFORM_VERSION}
+        - org.scala-native::javalib:${PLATFORM_VERSION}
+        - org.scala-native::nativelib:${PLATFORM_VERSION}
+        - org.scala-native::posixlib:${PLATFORM_VERSION}
+        - org.scala-native::windowslib:${PLATFORM_VERSION}
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${PROJECT_DIR}/src/${SCOPE}/boilerplate-gen;${TARGET_DIR}/src_managed/${SCOPE}
+      native213:
+        dependencies:
+        - com.softwaremill.magnolia1_2::magnolia:1.1.10
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        - org.scala-native::auxlib:${PLATFORM_VERSION}
+        - org.scala-native::clib:${PLATFORM_VERSION}
+        - org.scala-native::javalib:${PLATFORM_VERSION}
+        - org.scala-native::nativelib:${PLATFORM_VERSION}
+        - org.scala-native::posixlib:${PLATFORM_VERSION}
+        - org.scala-native::windowslib:${PLATFORM_VERSION}
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${PROJECT_DIR}/src/${SCOPE}/boilerplate-gen;${TARGET_DIR}/src_managed/${SCOPE}
+      native3:
+        dependencies:
+        - com.softwaremill.magnolia1_3::magnolia:1.3.18
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - forceJvm: true
+          module: org.scala-lang::scala3-library:${SCALA_VERSION}
+        - org.scala-native::auxlib:${PLATFORM_VERSION}
+        - org.scala-native::clib:${PLATFORM_VERSION}
+        - org.scala-native::javalib:${PLATFORM_VERSION}
+        - org.scala-native::nativelib:${PLATFORM_VERSION}
+        - org.scala-native::posixlib:${PLATFORM_VERSION}
+        - org.scala-native::windowslib:${PLATFORM_VERSION}
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${PROJECT_DIR}/src/${SCOPE}/boilerplate-gen;${TARGET_DIR}/src_managed/${SCOPE}
     dependencies:
-    - com.softwaremill.sttp.model::core:1.4.18
-    - com.softwaremill.sttp.shared::core:1.2.7
-    - com.softwaremill.sttp.shared::ws:1.2.7
+    - com.softwaremill.sttp.model::core:1.7.14
+    - com.softwaremill.sttp.shared::core:1.5.0
+    - com.softwaremill.sttp.shared::ws:1.5.0
     extends:
     - template-common-main
     - template-cross-all
@@ -340,42 +536,76 @@ projects:
     cross:
       js212:
         dependencies:
-        - com.47deg::scalacheck-toolbox-datetime:0.6.0
-        - io.github.cquiroz::scala-java-time-tzdb:2.3.0
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::scala-java-time-tzdb:2.6.0
+        - io.github.cquiroz::scala-java-time:2.6.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       js213:
         dependencies:
-        - com.47deg::scalacheck-toolbox-datetime:0.6.0
-        - io.github.cquiroz::scala-java-time-tzdb:2.3.0
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::scala-java-time-tzdb:2.6.0
+        - io.github.cquiroz::scala-java-time:2.6.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       js3:
         dependencies:
-        - io.github.cquiroz::scala-java-time-tzdb:2.3.0
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::scala-java-time-tzdb:2.6.0
+        - io.github.cquiroz::scala-java-time:2.6.0
         - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
       jvm212:
         dependencies:
-        - com.47deg::scalacheck-toolbox-datetime:0.6.0
-        - configuration: provided
+          configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
       jvm213:
         dependencies:
-        - com.47deg::scalacheck-toolbox-datetime:0.6.0
+          configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+      native212:
+        dependencies:
+        - io.github.cquiroz::scala-java-time-tzdb:2.6.0
         - configuration: provided
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.12;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.12;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13-;${PROJECT_DIR}/src/main/boilerplate-gen;${TARGET_DIR}/src_managed/main
+      native213:
+        dependencies:
+        - io.github.cquiroz::scala-java-time-tzdb:2.6.0
+        - configuration: provided
+          module: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.13;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.13;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13+;${PROJECT_DIR}/src/main/scala-3-2.13+;${PROJECT_DIR}/src/main/boilerplate-gen;${TARGET_DIR}/src_managed/main
+      native3:
+        dependencies: io.github.cquiroz::scala-java-time-tzdb:2.6.0
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${PROJECT_DIR}/src/main/boilerplate-gen;${TARGET_DIR}/src_managed/main
     dependencies:
-    - org.scalacheck::scalacheck:1.15.4
-    - org.scalatest::scalatest:3.2.10
-    - org.scalatestplus::scalacheck-1-15:3.2.10.0
+    - org.scalacheck::scalacheck:1.18.1
+    - org.scalatest::scalatest:3.2.18
+    - org.scalatestplus::scalacheck-1-18:3.2.19.0
     dependsOn: tapir-core
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/core
+  tapir-datadog-metrics:
+    dependencies: com.datadoghq:java-dogstatsd-client:4.4.4
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/metrics/datadog-metrics
+  tapir-datadog-metrics-test:
+    dependsOn:
+    - tapir-datadog-metrics
+    - tapir-server-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/metrics/datadog-metrics
   tapir-derevo:
     cross:
       jvm212:
@@ -387,7 +617,7 @@ projects:
     dependencies:
     - configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-    - tf.tofu::derevo-core:0.12.8
+    - tf.tofu::derevo-core:0.14.0
     dependsOn: tapir-newtype
     extends:
     - template-common-main
@@ -404,335 +634,670 @@ projects:
     dependencies:
     - configuration: provided
       module: org.scala-lang:scala-reflect:${SCALA_VERSION}
-    - org.scalatest::scalatest:3.2.10
+    - org.scalatest::scalatest:3.2.18
     dependsOn: tapir-derevo
     extends:
     - template-common-test
     - template-cross-jvm-212-213
     folder: ../sbt-build/integrations/derevo
   tapir-enumeratum:
-    dependencies: com.beachape::enumeratum:1.7.0
+    dependencies: com.beachape::enumeratum:1.7.6
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/integrations/enumeratum
   tapir-enumeratum-test:
     cross:
       js212:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js213:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
-    dependencies: org.scalatest::scalatest:3.2.10
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        scala:
+          options: -Yretain-trees
+      jvm3:
+        scala:
+          options: -Yretain-trees
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: tapir-enumeratum
     extends:
     - template-common-test
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/integrations/enumeratum
   tapir-examples:
     dependencies:
-    - com.pauldijou::jwt-circe:5.0.0
-    - com.softwaremill.sttp.client3::akka-http-backend:3.3.18
-    - com.softwaremill.sttp.client3::async-http-client-backend-cats:3.3.18
-    - com.softwaremill.sttp.client3::async-http-client-backend-fs2:3.3.18
-    - com.softwaremill.sttp.client3::async-http-client-backend-zio:3.3.18
-    - org.http4s::http4s-circe:0.23.7
-    - org.http4s::http4s-dsl:0.23.7
+    - ch.qos.logback:logback-classic:1.5.18
+    - com.github.jwt-scala::jwt-circe:10.0.4
+    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.35.3
+    - com.softwaremill.sttp.apispec::asyncapi-circe-yaml:0.11.9
+    - com.softwaremill.sttp.client4::cats:4.0.8
+    - com.softwaremill.sttp.client4::circe:4.0.8
+    - com.softwaremill.sttp.client4::fs2:4.0.8
+    - com.softwaremill.sttp.client4::pekko-http-backend:4.0.8
+    - com.softwaremill.sttp.client4::zio:4.0.8
+    - io.opentelemetry:opentelemetry-exporter-otlp:1.51.0
+    - io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.51.0
+    - io.opentelemetry:opentelemetry-sdk-metrics:1.51.0
+    - io.opentelemetry:opentelemetry-sdk:1.51.0
+    - org.http4s::http4s-blaze-server:0.23.17
+    - org.http4s::http4s-circe:0.23.30
+    - org.http4s::http4s-dsl:0.23.30
+    - org.mock-server:mockserver-netty:5.15.0
+    - org.scalatest::scalatest:3.2.18
     dependsOn:
     - sttp-mock-server
-    - tapir-akka-http-server
-    - tapir-asyncapi-circe-yaml
+    - tapir-armeria-server
     - tapir-asyncapi-docs
+    - tapir-datadog-metrics
     - tapir-http4s-client
+    - tapir-http4s-server-zio
+    - tapir-jdkhttp-server
     - tapir-json-circe
-    - tapir-json-play
+    - tapir-json-pickler
     - tapir-json-zio
-    - tapir-netty-server
+    - tapir-jsoniter-scala
+    - tapir-netty-server-cats
+    - tapir-netty-server-sync
+    - tapir-netty-server-zio
+    - tapir-opentelemetry-metrics
+    - tapir-opentelemetry-tracing
+    - tapir-otel4s-tracing
+    - tapir-pekko-http-server
     - tapir-prometheus-metrics
     - tapir-redoc-bundle
-    - tapir-sttp-stub-server
+    - tapir-sttp-stub4-server
     - tapir-swagger-ui-bundle
+    - tapir-vertx-server
     - tapir-zio-http-server
-    - tapir-zio-http4s-server
+    - tapir-zio-metrics
     extends:
     - template-common-main
-    - template-scala-2.13-jvm
+    - template-scala-3-jvm
     folder: ../sbt-build/examples
-  tapir-finatra-server:
-    dependencies:
-    - com.twitter::finatra-http:21.2.0
-    - org.apache.httpcomponents:httpmime:4.5.13
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/examples3
+    scala:
+      version: 3.3.6
+  tapir-files:
+    cross:
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
     dependsOn: tapir-core
     extends:
     - template-common-main
+    - template-cross-jvm-all-native-3-js-all
+    folder: ../sbt-build/files
+  tapir-files-test:
+    dependencies: org.scalatest::scalatest:3.2.18
+    dependsOn: tapir-files
+    extends:
+    - template-common-test
     - template-cross-jvm-212-213
-    folder: ../sbt-build/server/finatra-server
-  tapir-finatra-server-cats:
-    dependencies: org.typelevel::cats-effect:3.3.0
-    dependsOn: tapir-finatra-server
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/files
+  tapir-grpc-examples:
+    cross:
+      jvm212:
+        dependencies: com.lightbend.akka.grpc:akka-grpc-runtime_2.12:2.1.4
+        platform:
+          jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/grpcExamples2_12
+      jvm213:
+        dependencies: com.lightbend.akka.grpc:akka-grpc-runtime_2.13:2.1.4
+        platform:
+          jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/grpcExamples
+    dependencies:
+    - com.thesamet.scalapb::scalapb-runtime:0.11.17
+    - com.typesafe.akka::akka-discovery:2.6.20
+    - io.grpc:grpc-stub:1.45.0
+    dependsOn:
+    - tapir-akka-grpc-server
+    - tapir-grpc-protobuf
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ../sbt-build/server/finatra-server/finatra-server-cats
-  tapir-finatra-server-cats-test:
-    dependsOn:
-    - tapir-finatra-server-cats
-    - tapir-finatra-server-test
+    folder: ../sbt-build/grpc/examples
+    resources: ./src/${SCOPE}/proto
+    sourcegen:
+      main: scripts.GenerateForTapirGrpcExamples
+      project: scripts
+    sources: ./src/${SCOPE}/proto
+  tapir-grpc-protobuf:
+    dependencies: org.slf4j:slf4j-api:2.0.17
+    dependsOn: tapir-protobuf-pbdirect
     extends:
-    - template-common-test
+    - template-common-main
     - template-cross-jvm-212-213
-    folder: ../sbt-build/server/finatra-server/finatra-server-cats
-  tapir-finatra-server-test:
+    folder: ../sbt-build/grpc/protobuf
+  tapir-grpc-protobuf-test:
     dependencies:
-    - module: com.twitter::finatra-http:21.2.0
-      publication:
-        classifier: tests
-        ext: jar
-        name: finatra-http
-        type: jar
-    - com.twitter::inject-app:21.2.0
-    - module: com.twitter::inject-app:21.2.0
-      publication:
-        classifier: tests
-        ext: jar
-        name: inject-app
-        type: jar
-    - com.twitter::inject-core:21.2.0
-    - module: com.twitter::inject-core:21.2.0
-      publication:
-        classifier: tests
-        ext: jar
-        name: inject-core
-        type: jar
-    - com.twitter::inject-modules:21.2.0
-    - module: com.twitter::inject-modules:21.2.0
-      publication:
-        classifier: tests
-        ext: jar
-        name: inject-modules
-        type: jar
-    - com.twitter::inject-server:21.2.0
-    - module: com.twitter::inject-server:21.2.0
-      publication:
-        classifier: tests
-        ext: jar
-        name: inject-server
-        type: jar
-    dependsOn:
-    - tapir-finatra-server
-    - tapir-server-tests
+    - ch.qos.logback:logback-classic:1.5.18
+    - org.scalacheck::scalacheck:1.18.1
+    - org.scalatest::scalatest:3.2.18
+    - org.scalatestplus::scalacheck-1-18:3.2.19.0
+    dependsOn: tapir-grpc-protobuf
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    folder: ../sbt-build/server/finatra-server
+    folder: ../sbt-build/grpc/protobuf
   tapir-http4s-client:
     dependencies:
     - configuration: optional
-      module: com.softwaremill.sttp.shared::fs2:1.2.7
-    - org.http4s::http4s-core:0.23.7
-    dependsOn: tapir-core
+      module: com.softwaremill.sttp.shared::fs2:1.5.0
+    - org.http4s::http4s-core:0.23.30
+    dependsOn: tapir-client
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/client/http4s-client
   tapir-http4s-client-test:
     dependencies:
     - configuration: optional
-      module: com.softwaremill.sttp.shared::fs2:1.2.7
-    - org.http4s::http4s-blaze-client:0.23.7
+      module: com.softwaremill.sttp.shared::fs2:1.5.0
+    - org.http4s::http4s-blaze-client:0.23.17
     dependsOn:
     - tapir-client-tests
     - tapir-http4s-client
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/client/http4s-client
   tapir-http4s-server:
     dependencies:
-    - com.softwaremill.sttp.shared::fs2:1.2.7
-    - org.http4s::http4s-blaze-server:0.23.7
-    dependsOn: tapir-cats
+    - com.softwaremill.sttp.shared::fs2:1.5.0
+    - org.http4s::http4s-server:0.23.30
+    dependsOn:
+    - tapir-cats
+    - tapir-cats-effect
+    - tapir-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/http4s-server
   tapir-http4s-server-test:
+    dependencies: org.http4s::http4s-blaze-server:0.23.17
     dependsOn:
     - tapir-http4s-server
     - tapir-server-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/http4s-server
-  tapir-json-circe:
-    dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-parser:0.14.1
+  tapir-http4s-server-zio:
+    dependencies: dev.zio::zio-interop-cats:23.1.0.5
+    dependsOn:
+    - tapir-http4s-server
+    - tapir-zio
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/http4s-server/zio
+  tapir-http4s-server-zio-test:
+    dependencies: org.http4s::http4s-blaze-server:0.23.17
+    dependsOn:
+    - tapir-http4s-server-zio
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/http4s-server/zio
+  tapir-iron:
+    cross:
+      jvm3:
+        extends: template-scala-3-jvm
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies: io.github.iltotore::iron:3.0.1
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-all
+    - template-cross-jvm-3-native-3-js-3
+    folder: ../sbt-build/integrations/iron
+    scala:
+      version: 3.6.4
+  tapir-iron-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      jvm3:
+        extends: template-scala-3-jvm
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependencies: org.scalatest::scalatest:3.2.18
+    dependsOn: tapir-iron
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-native-3-js-3
+    folder: ../sbt-build/integrations/iron
+    scala:
+      version: 3.6.4
+  tapir-jdkhttp-server:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependencies: org.apache.httpcomponents:httpmime:4.5.14
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/jdkhttp-server
+  tapir-jdkhttp-server-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependsOn:
+    - tapir-jdkhttp-server
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/jdkhttp-server
+  tapir-json-circe:
+    cross:
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies:
+    - io.circe::circe-core:0.14.14
+    - io.circe::circe-generic:0.14.14
+    - forceJvm: true
+      module: io.circe::circe-parser:0.14.14
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/json/circe
   tapir-json-circe-test:
-    dependencies: org.scalatest::scalatest:3.2.10
+    dependencies:
+    - io.circe::circe-parser:0.14.14
+    - org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-circe
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/json/circe
   tapir-json-json4s:
-    dependencies: org.json4s::json4s-core:4.0.3
+    dependencies: org.json4s::json4s-core:4.0.7
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/json/json4s
   tapir-json-json4s-test:
     dependencies:
-    - org.json4s::json4s-jackson:4.0.3
-    - org.scalatest::scalatest:3.2.10
+    - org.json4s::json4s-jackson:4.0.7
+    - org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-json4s
     extends:
     - template-common-test
     - template-cross-jvm-212-213
     folder: ../sbt-build/json/json4s
-  tapir-json-play:
-    dependencies: com.typesafe.play::play-json:2.9.2
+  tapir-json-pickler:
+    cross:
+      jvm3:
+        extends: template-scala-3-jvm
+    dependencies: com.lihaoyi::upickle:3.3.1
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-3-js-3
+    folder: ../sbt-build/json/pickler
+    scala:
+      version: 3.3.6
+  tapir-json-pickler-test:
+    cross:
+      jvm3:
+        extends: template-scala-3-jvm
+    dependsOn:
+    - tapir-core-test
+    - tapir-json-pickler
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-js-3
+    folder: ../sbt-build/json/pickler
+    scala:
+      version: 3.3.6
+  tapir-json-play:
+    dependencies: org.playframework::play-json:3.0.1
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/json/playjson
   tapir-json-play-test:
     cross:
       js212:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js213:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
-    dependencies: org.scalatest::scalatest:3.2.10
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-play
     extends:
     - template-common-test
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/json/playjson
+  tapir-json-play29:
+    dependencies: org.playframework::play-json:3.0.4
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/json/play29json
+    sources: ../playjson/src/${SCOPE}/scala
+  tapir-json-play29-test:
+    cross:
+      js212:
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+        sources: ../playjson/src/${SCOPE}/scalajs
+      js213:
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+        sources: ../playjson/src/${SCOPE}/scalajs
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+        sources: ../playjson/src/${SCOPE}/scalajs
+      jvm212:
+        sources: ../playjson/src/${SCOPE}/scalajvm
+      jvm213:
+        sources: ../playjson/src/${SCOPE}/scalajvm
+      jvm3:
+        sources: ../playjson/src/${SCOPE}/scalajvm
+    dependencies: org.scalatest::scalatest:3.2.18
+    dependsOn: tapir-json-play29
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/json/play29json
+    sources: ../playjson/src/${SCOPE}/scala
   tapir-json-spray:
     dependencies: io.spray::spray-json:1.3.6
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/json/sprayjson
   tapir-json-spray-test:
-    dependencies: org.scalatest::scalatest:3.2.10
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-spray
     extends:
     - template-common-test
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/json/sprayjson
   tapir-json-tethys:
     dependencies:
-    - com.tethys-json::tethys-core:0.25.0
-    - com.tethys-json::tethys-jackson:0.25.0
+    - com.tethys-json::tethys-core:0.29.5
+    - com.tethys-json::tethys-jackson213:0.29.5
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/json/tethys
   tapir-json-tethys-test:
     dependencies:
-    - com.tethys-json::tethys-derivation:0.25.0
-    - org.scalatest::scalatest:3.2.10
+    - com.tethys-json::tethys-derivation:0.29.5
+    - org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-tethys
     extends:
     - template-common-test
     - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/json/tethys
   tapir-json-upickle:
-    dependencies: com.lihaoyi::upickle:1.4.3
+    cross:
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies: com.lihaoyi::upickle:3.3.1
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/json/upickle
   tapir-json-upickle-test:
     cross:
       js212:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js213:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
-    dependencies: org.scalatest::scalatest:3.2.10
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-upickle
     extends:
     - template-common-test
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/json/upickle
   tapir-json-zio:
-    dependencies:
-      forceJvm: true
-      module: dev.zio::zio-json:0.2.0-M3
+    cross:
+      native212:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies: dev.zio::zio-json:0.7.43
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-all-js-212-213
+    - template-cross-all
     folder: ../sbt-build/json/zio
   tapir-json-zio-test:
-    dependencies:
-    - dev.zio::zio-json:0.2.0-M3
-    - org.scalatest::scalatest:3.2.10
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      native212:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.12;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.12;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13-;${TARGET_DIR}/src_managed/main
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.13;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.13;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13+;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: tapir-json-zio
     extends:
     - template-common-test
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-all
     folder: ../sbt-build/json/zio
   tapir-jsoniter-scala:
-    dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.12.0
+    cross:
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.35.3
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/json/jsoniter
   tapir-jsoniter-scala-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
     dependencies:
-    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.12.0
-    - org.scalatest::scalatest:3.2.10
+    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.35.3
+    - org.scalatest::scalatest:3.2.18
     dependsOn: tapir-jsoniter-scala
     extends:
     - template-common-test
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-all-native-3-js-all
     folder: ../sbt-build/json/jsoniter
-  tapir-netty-server:
-    dependencies:
-    - ch.qos.logback:logback-classic:1.2.7
-    - ch.qos.logback:logback-core:1.2.7
-    - configuration: optional
-      module: com.softwaremill.sttp.shared::fs2:1.2.7
-    - com.typesafe.scala-logging::scala-logging:3.9.4
-    - io.netty:netty-all:4.1.68.Final
+  tapir-monix-newtype:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        scala:
+          options: -Ymacro-annotations
+    dependencies: io.monix::newtypes-core:0.3.0
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/server/netty-server
-  tapir-netty-server-test:
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/integrations/monix-newtype
+  tapir-monix-newtype-test:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      jvm212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        scala:
+          options: -Ymacro-annotations
+    dependencies: org.scalatest::scalatest:3.2.18
+    dependsOn: tapir-monix-newtype
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/integrations/monix-newtype
+  tapir-netty-server:
     dependencies:
-      configuration: optional
-      module: com.softwaremill.sttp.shared::fs2:1.2.7
+    - io.netty:netty-all:4.2.0.Final
+    - org.playframework.netty:netty-reactive-streams-http:3.0.4
+    - org.slf4j:slf4j-api:2.0.17
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/netty-server
+    sourcegen:
+      main: scripts.GenerateForTapirNettyServer
+      project: scripts
+  tapir-netty-server-cats:
+    dependencies:
+    - co.fs2::fs2-reactive-streams:3.12.0
+    - com.softwaremill.sttp.shared::fs2:1.5.0
+    dependsOn:
+    - tapir-cats-effect
+    - tapir-netty-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/netty-server/cats
+  tapir-netty-server-cats-test:
+    dependsOn:
+    - tapir-netty-server-cats
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/netty-server/cats
+  tapir-netty-server-sync:
+    dependencies:
+    - com.softwaremill.ox::core:0.6.0
+    - com.softwaremill.ox::flow-reactive-streams:0.6.0
+    dependsOn: tapir-netty-server
+    extends:
+    - template-common-main
+    - template-scala-3-jvm
+    folder: ../sbt-build/server/netty-server/sync
+    scala:
+      version: 3.3.6
+  tapir-netty-server-sync-test:
+    dependsOn:
+    - tapir-netty-server-sync
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-scala-3-jvm
+    folder: ../sbt-build/server/netty-server/sync
+    scala:
+      version: 3.3.6
+  tapir-netty-server-test:
     dependsOn:
     - tapir-netty-server
     - tapir-server-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/netty-server
+  tapir-netty-server-zio:
+    dependencies:
+    - dev.zio::zio-interop-cats:23.1.0.5
+    - dev.zio::zio-interop-reactivestreams:2.0.2
+    dependsOn:
+    - tapir-netty-server
+    - tapir-zio
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/netty-server/zio
+  tapir-netty-server-zio-test:
+    dependsOn:
+    - tapir-netty-server-zio
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/netty-server/zio
   tapir-newtype:
     cross:
       js212:
@@ -767,452 +1332,1108 @@ projects:
       jvm213:
         scala:
           options: -Ymacro-annotations
-    dependencies: org.scalatest::scalatest:3.2.10
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: tapir-newtype
     extends:
     - template-common-test
     - template-cross-jvm-212-213-js-212-213
     folder: ../sbt-build/integrations/newtype
-  tapir-openapi-circe:
+  tapir-nima-server:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
     dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-generic:0.14.1
-    - io.circe::circe-parser:0.14.1
-    dependsOn: tapir-openapi-model
+    - io.helidon.logging:helidon-logging-slf4j:4.0.10
+    - io.helidon.webserver:helidon-webserver:4.0.10
+    dependsOn: tapir-server
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/openapi-circe
-  tapir-openapi-circe-yaml:
-    dependencies: io.circe::circe-yaml:0.14.1
-    dependsOn: tapir-openapi-circe
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/nima-server
+  tapir-nima-server-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependsOn:
+    - tapir-nima-server
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/nima-server
+  tapir-openapi-codegen-core:
+    dependencies:
+    - configuration: provided
+      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.36.4
+    - io.circe::circe-core:0.14.14
+    - io.circe::circe-generic:0.14.14
+    - io.circe::circe-yaml:0.15.2
+    - org.scala-lang:scala-reflect:${SCALA_VERSION}
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/openapi-circe-yaml
+    - template-scala-2.12-jvm
+    folder: ../sbt-build/openapi-codegen/core
+  tapir-openapi-codegen-core-test:
+    dependencies:
+    - com.47deg::scalacheck-toolbox-datetime:0.7.0
+    - com.beachape::enumeratum-circe:1.7.5
+    - com.beachape::enumeratum:1.7.6
+    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.36.4
+    - configuration: provided
+      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.36.4
+    - org.scala-lang:scala-compiler:${SCALA_VERSION}
+    - org.scalacheck::scalacheck:1.18.1
+    - org.scalatest::scalatest:3.2.18
+    - org.scalatestplus::scalacheck-1-18:3.2.19.0
+    dependsOn:
+    - tapir-json-circe
+    - tapir-json-zio
+    - tapir-jsoniter-scala
+    - tapir-openapi-codegen-core
+    extends:
+    - template-common-test
+    - template-scala-2.12-jvm
+    folder: ../sbt-build/openapi-codegen/core
   tapir-openapi-docs:
     cross:
       jvm212:
         dependsOn: tapir-enumeratum
       jvm213:
         dependsOn: tapir-enumeratum
-    dependsOn:
-    - tapir-apispec-docs
-    - tapir-openapi-model
+    dependencies:
+    - com.softwaremill.quicklens::quicklens:1.9.12
+    - forceJvm: true
+      module: com.softwaremill.sttp.apispec::openapi-model:0.11.9
+    dependsOn: tapir-apispec-docs
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/docs/openapi-docs
   tapir-openapi-docs-test:
+    dependencies:
+    - com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.9
+    - com.softwaremill.sttp.apispec::openapi-model:0.11.9
     dependsOn:
-    - tapir-openapi-circe-yaml
     - tapir-openapi-docs
     - tapir-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/openapi-docs
-  tapir-openapi-model:
-    dependsOn: tapir-apispec-model
+  tapir-openapi-verifier:
+    dependencies:
+    - forceJvm: true
+      module: com.softwaremill.sttp.apispec::openapi-circe:0.11.9
+    - forceJvm: true
+      module: io.circe::circe-parser:0.14.14
+    - forceJvm: true
+      module: io.circe::circe-yaml:0.15.2
+    dependsOn: tapir-openapi-docs
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/openapi-model
-  tapir-openapi-model-test:
-    dependencies: org.scalatest::scalatest:3.2.10
-    dependsOn: tapir-openapi-model
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/docs/openapi-verifier
+  tapir-openapi-verifier-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+    dependencies:
+      forceJvm: true
+      module: com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.9
+    dependsOn:
+    - tapir-openapi-verifier
+    - tapir-tests
     extends:
     - template-common-test
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/apispec/openapi-model
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/docs/openapi-verifier
   tapir-opentelemetry-metrics:
     dependencies:
-    - io.opentelemetry:opentelemetry-api:1.9.1
-    - io.opentelemetry:opentelemetry-sdk:1.9.1
-    dependsOn: tapir-core
+    - io.opentelemetry.semconv:opentelemetry-semconv:1.34.0
+    - io.opentelemetry:opentelemetry-api:1.51.0
+    dependsOn: tapir-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/metrics/opentelemetry-metrics
   tapir-opentelemetry-metrics-test:
-    dependencies: io.opentelemetry:opentelemetry-sdk-metrics:1.5.0-alpha
+    dependencies:
+    - io.opentelemetry:opentelemetry-sdk-metrics:1.51.0
+    - io.opentelemetry:opentelemetry-sdk-testing:1.51.0
+    - io.opentelemetry:opentelemetry-sdk:1.51.0
     dependsOn:
-    - tapir-core-test
     - tapir-opentelemetry-metrics
+    - tapir-server-test
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/metrics/opentelemetry-metrics
-  tapir-play-client:
+  tapir-opentelemetry-tracing:
     dependencies:
-    - configuration: optional
-      module: com.softwaremill.sttp.shared::akka:1.2.7
-    - configuration: optional
-      module: com.typesafe.akka::akka-stream:2.6.17
-    - com.typesafe.play::play-ahc-ws-standalone:2.1.6
-    dependsOn: tapir-core
+    - io.opentelemetry.semconv:opentelemetry-semconv:1.34.0
+    - io.opentelemetry:opentelemetry-api:1.51.0
+    dependsOn: tapir-server
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    folder: ../sbt-build/client/play-client
-  tapir-play-client-test:
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/tracing/opentelemetry-tracing
+  tapir-opentelemetry-tracing-test:
+    dependencies:
+    - io.opentelemetry:opentelemetry-sdk-testing:1.51.0
+    - io.opentelemetry:opentelemetry-sdk-trace:1.51.0
+    - io.opentelemetry:opentelemetry-sdk:1.51.0
+    dependsOn:
+    - tapir-opentelemetry-tracing
+    - tapir-server-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/tracing/opentelemetry-tracing
+  tapir-otel4s-tracing:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependencies:
+    - io.opentelemetry.semconv:opentelemetry-semconv:1.34.0
+    - org.typelevel::otel4s-oteljava:0.12.0
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/tracing/otel4s-tracing
+  tapir-otel4s-tracing-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependencies: org.typelevel::otel4s-oteljava-testkit:0.12.0
+    dependsOn:
+    - tapir-cats-effect
+    - tapir-otel4s-tracing
+    - tapir-server-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/tracing/otel4s-tracing
+  tapir-pekko-grpc-examples:
+    cross:
+      jvm212:
+        dependencies: org.apache.pekko:pekko-grpc-runtime_2.12:1.1.1
+        platform:
+          jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/pekkoGrpcExamples2_12
+      jvm213:
+        dependencies: org.apache.pekko:pekko-grpc-runtime_2.13:1.1.1
+        platform:
+          jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/pekkoGrpcExamples
+    dependencies:
+    - com.thesamet.scalapb::scalapb-runtime:0.11.17
+    - io.grpc:grpc-stub:1.67.1
+    - org.apache.pekko::pekko-discovery:1.1.4
+    dependsOn:
+    - tapir-grpc-protobuf
+    - tapir-pekko-grpc-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    folder: ../sbt-build/grpc/pekko-examples
+    resources: ./src/${SCOPE}/proto
+    sourcegen:
+      main: scripts.GenerateForTapirPekkoGrpcExamples
+      project: scripts
+    sources: ./src/${SCOPE}/proto
+  tapir-pekko-grpc-server:
+    dependencies: org.apache.pekko::pekko-grpc-runtime:1.1.1
+    dependsOn: tapir-pekko-http-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/pekko-grpc-server
+  tapir-pekko-http-server:
+    dependencies:
+    - com.softwaremill.sttp.shared::pekko:1.5.0
+    - org.apache.pekko::pekko-http:1.2.0
+    - org.apache.pekko::pekko-slf4j:1.1.4
+    - org.apache.pekko::pekko-stream:1.1.4
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/pekko-http-server
+  tapir-pekko-http-server-test:
+    dependencies: com.softwaremill.sttp.client4::pekko-http-backend:4.0.8
+    dependsOn:
+    - tapir-pekko-http-server
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/pekko-http-server
+  tapir-perf-tests:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.18
+    - com.fasterxml.jackson.module::jackson-module-scala:2.19.1
+    - io.github.classgraph:classgraph:4.8.179
+    - org.http4s::http4s-blaze-server:0.23.17
+    - org.http4s::http4s-core:0.23.30
+    - org.http4s::http4s-dsl:0.23.30
+    dependsOn:
+    - tapir-http4s-server
+    - tapir-json-circe
+    - tapir-netty-server-cats
+    - tapir-nima-server
+    - tapir-pekko-http-server
+    - tapir-play-server
+    - tapir-vertx-server-cats
+    extends:
+    - template-common-main
+    - template-scala-2.13-jvm
+    folder: ../sbt-build/perf-tests
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/perfTests -XX:+AlwaysPreTouch
+        -Xms16g -Xmx16g
+  tapir-perf-tests-test:
+    dependencies:
+    - com.lihaoyi::scalatags:0.13.1
+    - exclusions:
+        com.fasterxml.jackson.core: jackson-databind
+      module: io.gatling.highcharts:gatling-charts-highcharts:3.11.5
+    - exclusions:
+        com.fasterxml.jackson.core: jackson-databind
+      module: io.gatling:gatling-test-framework:3.11.5
+    - nl.grons::metrics4-scala:4.3.5
+    dependsOn:
+    - tapir-perf-tests
+    - tapir-vertx-server-test
+    extends:
+    - template-common-test
+    - template-scala-2.13-jvm
+    folder: ../sbt-build/perf-tests
+    platform:
+      jvmOptions: -Duser.dir=${BUILD_DIR}/.sbt/matrix/perfTests
+  tapir-play-client:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
     dependencies:
     - configuration: optional
-      module: com.softwaremill.sttp.shared::akka:1.2.7
+      module: com.softwaremill.sttp.shared::pekko:1.5.0
     - configuration: optional
-      module: com.typesafe.akka::akka-stream:2.6.17
+      module: org.apache.pekko::pekko-stream:1.1.4
+    - org.playframework::play-ahc-ws-standalone:3.0.6
+    dependsOn: tapir-client
+    extends:
+    - template-common-main
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/client/play-client
+  tapir-play-client-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependencies:
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::pekko:1.5.0
+    - configuration: optional
+      module: org.apache.pekko::pekko-stream:1.1.4
     dependsOn:
     - tapir-client-tests
     - tapir-play-client
     extends:
     - template-common-test
-    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/client/play-client
   tapir-play-server:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
     dependencies:
-    - com.softwaremill.sttp.shared::akka:1.2.7
-    - com.typesafe.play::play-akka-http-server:2.8.7
-    - com.typesafe.play::play-server:2.8.7
-    - com.typesafe.play::play:2.8.7
-    dependsOn: tapir-core
+    - com.softwaremill.sttp.shared::pekko:1.5.0
+    - org.playframework::play-pekko-http-server:3.0.6
+    - org.playframework::play-server:3.0.6
+    - org.playframework::play:3.0.6
+    - org.scala-lang.modules::scala-collection-compat:2.13.0
+    dependsOn: tapir-server
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/play-server
   tapir-play-server-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
     dependsOn:
     - tapir-play-server
     - tapir-server-tests
     extends:
     - template-common-test
-    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/play-server
+  tapir-play29-client:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependencies:
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::akka:1.5.0
+    - configuration: optional
+      module: com.typesafe.akka::akka-stream:2.6.20
+    - com.typesafe.play::play-ahc-ws-standalone:2.2.11
+    dependsOn: tapir-client
+    extends:
+    - template-common-main
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/client/play29-client
+  tapir-play29-client-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependencies:
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::akka:1.5.0
+    - configuration: optional
+      module: com.typesafe.akka::akka-stream:2.6.20
+    dependsOn:
+    - tapir-client-tests
+    - tapir-play29-client
+    extends:
+    - template-common-test
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/client/play29-client
+  tapir-play29-server:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+      jvm3:
+        dependencies:
+        - for3Use213: true
+          module: com.fasterxml.jackson.module::jackson-module-scala:2.14.3
+        - for3Use213: true
+          module: com.typesafe.akka::akka-actor-typed:2.6.21
+        - for3Use213: true
+          module: com.typesafe.akka::akka-actor:2.6.21
+        - for3Use213: true
+          module: com.typesafe.akka::akka-serialization-jackson:2.6.21
+        - for3Use213: true
+          module: com.typesafe.akka::akka-slf4j:2.6.21
+        - for3Use213: true
+          module: com.typesafe.akka::akka-stream:2.6.21
+        - for3Use213: true
+          module: com.typesafe::ssl-config-core:0.6.1
+    dependencies:
+    - com.softwaremill.sttp.shared::akka:1.5.0
+    - com.typesafe.play::play-akka-http-server:2.9.7
+    - com.typesafe.play::play-server:2.9.7
+    - com.typesafe.play::play:2.9.7
+    - org.scala-lang.modules::scala-collection-compat:2.13.0
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/play29-server
+  tapir-play29-server-test:
+    cross:
+      jvm213:
+        extends: template-scala-2.13-jvm
+    dependsOn:
+    - tapir-play29-server
+    - tapir-server-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/play29-server
   tapir-prometheus-metrics:
-    dependencies: io.prometheus:simpleclient_common:0.12.0
+    dependencies:
+    - io.prometheus:prometheus-metrics-core:1.3.8
+    - io.prometheus:prometheus-metrics-exposition-formats:1.3.8
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/metrics/prometheus-metrics
+  tapir-prometheus-metrics-test:
+    dependsOn:
+    - tapir-prometheus-metrics
+    - tapir-server-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/metrics/prometheus-metrics
+  tapir-protobuf-pbdirect:
+    dependencies: com.47deg::pbdirect:0.7.0
     dependsOn: tapir-core
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/metrics/prometheus-metrics
-  tapir-prometheus-metrics-test:
-    dependsOn:
-    - tapir-core-test
-    - tapir-prometheus-metrics
-    extends:
-    - template-common-test
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/metrics/prometheus-metrics
+    folder: ../sbt-build/grpc/pbdirect
   tapir-redoc:
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/docs/redoc
   tapir-redoc-bundle:
+    dependencies: com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.9
     dependsOn:
-    - tapir-openapi-circe-yaml
     - tapir-openapi-docs
     - tapir-redoc
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/docs/redoc-bundle
+  tapir-redoc-bundle-test:
+    dependencies:
+    - org.http4s::http4s-blaze-server:0.23.17
+    - org.scalatest::scalatest:3.2.18
+    dependsOn:
+    - tapir-http4s-server
+    - tapir-redoc-bundle
+    - tapir-sttp-client4
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/redoc-bundle
   tapir-refined:
-    dependencies: eu.timepit::refined:0.9.28
+    dependencies: eu.timepit::refined:0.11.3
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/integrations/refined
   tapir-refined-test:
     cross:
       js212:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js213:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
     dependencies:
-    - io.circe::circe-refined:0.14.1
-    - org.scalatest::scalatest:3.2.10
+    - io.circe::circe-refined:0.15.1
+    - org.scalatest::scalatest:3.2.18
     dependsOn:
     - tapir-json-circe
     - tapir-refined
     extends:
     - template-common-test
-    - template-cross-jvm-212-213-js-212-213
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/integrations/refined
+  tapir-server:
+    cross:
+      native212:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/server/core
+  tapir-server-test:
+    cross:
+      native212:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.12;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.12;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13-;${TARGET_DIR}/src_managed/main
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.13;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.13;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13+;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependsOn:
+    - tapir-core-test
+    - tapir-server
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/server/core
   tapir-server-tests:
-    dependencies: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
-    dependsOn: tapir-tests
+    dependencies: com.softwaremill.sttp.client4::fs2:4.0.8
+    dependsOn:
+    - tapir-enumeratum
+    - tapir-sttp-stub4-server
+    - tapir-tests
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/tests
   tapir-sttp-client:
     cross:
       jvm212:
         dependencies:
         - configuration: optional
-          module: com.softwaremill.sttp.shared::akka:1.2.7
+          module: com.softwaremill.sttp.shared::akka:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::fs2:1.2.7
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::zio:1.2.7
+          module: com.typesafe.akka::akka-stream:2.6.20
         - configuration: optional
-          module: com.typesafe.akka::akka-stream:2.6.17
+          module: org.apache.pekko::pekko-stream:1.1.4
       jvm213:
         dependencies:
         - configuration: optional
-          module: com.softwaremill.sttp.shared::akka:1.2.7
+          module: com.softwaremill.sttp.shared::akka:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::fs2:1.2.7
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::zio:1.2.7
+          module: com.typesafe.akka::akka-stream:2.6.20
         - configuration: optional
-          module: com.typesafe.akka::akka-stream:2.6.17
+          module: org.apache.pekko::pekko-stream:1.1.4
       jvm3:
         dependencies:
         - configuration: optional
-          module: com.softwaremill.sttp.shared::fs2:1.2.7
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::zio:1.2.7
-    dependencies: com.softwaremill.sttp.client3::core:3.3.18
-    dependsOn: tapir-core
+          module: org.apache.pekko::pekko-stream:1.1.4
+    dependencies:
+    - com.softwaremill.sttp.client3::core:3.11.0
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::fs2:1.5.0
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::zio:1.5.0
+    dependsOn: tapir-client
     extends:
     - template-common-main
-    - template-cross-all
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/client/sttp-client
   tapir-sttp-client-test:
     cross:
       js212:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js213:
-        dependencies: io.github.cquiroz::scala-java-time:2.3.0
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
       js3:
         dependencies:
-        - io.github.cquiroz::scala-java-time:2.3.0
+        - io.github.cquiroz::scala-java-time:2.6.0
         - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
       jvm212:
         dependencies:
-        - com.softwaremill.sttp.client3::akka-http-backend:3.3.18
-        - forceJvm: true
-          module: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
-        - com.softwaremill.sttp.client3::httpclient-backend-zio:3.3.18
+        - com.softwaremill.sttp.client3::akka-http-backend:3.11.0
+        - com.softwaremill.sttp.client3::async-http-client-backend-fs2:3.11.0
+        - com.softwaremill.sttp.client3::pekko-http-backend:3.11.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::akka:1.2.7
+          module: com.softwaremill.sttp.shared::akka:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::fs2:1.2.7
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::zio:1.2.7
+          module: com.typesafe.akka::akka-stream:2.6.20
         - configuration: optional
-          module: com.typesafe.akka::akka-stream:2.6.17
+          module: org.apache.pekko::pekko-stream:1.1.4
       jvm213:
         dependencies:
-        - com.softwaremill.sttp.client3::akka-http-backend:3.3.18
-        - forceJvm: true
-          module: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
-        - com.softwaremill.sttp.client3::httpclient-backend-zio:3.3.18
+        - com.softwaremill.sttp.client3::akka-http-backend:3.11.0
+        - com.softwaremill.sttp.client3::async-http-client-backend-fs2:3.11.0
+        - com.softwaremill.sttp.client3::pekko-http-backend:3.11.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::akka:1.2.7
+          module: com.softwaremill.sttp.shared::akka:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::fs2:1.2.7
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::zio:1.2.7
+          module: com.typesafe.akka::akka-stream:2.6.20
         - configuration: optional
-          module: com.typesafe.akka::akka-stream:2.6.17
+          module: org.apache.pekko::pekko-stream:1.1.4
       jvm3:
         dependencies:
-        - forceJvm: true
-          module: com.softwaremill.sttp.client3::httpclient-backend-fs2:3.3.18
-        - com.softwaremill.sttp.client3::httpclient-backend-zio:3.3.18
+        - com.softwaremill.sttp.client3::async-http-client-backend-fs2:3.11.0
+        - com.softwaremill.sttp.client3::pekko-http-backend:3.11.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::fs2:1.2.7
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
         - configuration: optional
-          module: com.softwaremill.sttp.shared::zio:1.2.7
+          module: org.apache.pekko::pekko-stream:1.1.4
+    dependencies:
+    - com.softwaremill.sttp.client3::fs2:3.11.0
+    - com.softwaremill.sttp.client3::zio:3.11.0
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::fs2:1.5.0
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::zio:1.5.0
     dependsOn:
     - tapir-client-tests
     - tapir-sttp-client
     extends:
     - template-common-test
-    - template-cross-all
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
     folder: ../sbt-build/client/sttp-client
+  tapir-sttp-client4:
+    cross:
+      jvm212:
+        dependencies:
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::akka:1.5.0
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
+        - configuration: optional
+          module: com.typesafe.akka::akka-stream:2.6.20
+        - configuration: optional
+          module: org.apache.pekko::pekko-stream:1.1.4
+      jvm213:
+        dependencies:
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::akka:1.5.0
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
+        - configuration: optional
+          module: com.typesafe.akka::akka-stream:2.6.20
+        - configuration: optional
+          module: org.apache.pekko::pekko-stream:1.1.4
+      jvm3:
+        dependencies:
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
+        - configuration: optional
+          module: org.apache.pekko::pekko-stream:1.1.4
+    dependencies:
+    - com.softwaremill.sttp.client4::core:4.0.8
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::fs2:1.5.0
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::zio:1.5.0
+    dependsOn: tapir-client
+    extends:
+    - template-common-main
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/client/sttp-client4
+  tapir-sttp-client4-test:
+    cross:
+      js212:
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+      js213:
+        dependencies: io.github.cquiroz::scala-java-time:2.6.0
+      js3:
+        dependencies:
+        - io.github.cquiroz::scala-java-time:2.6.0
+        - org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      jvm212:
+        dependencies:
+        - com.softwaremill.sttp.client4::akka-http-backend:4.0.8
+        - com.softwaremill.sttp.client4::pekko-http-backend:4.0.8
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::akka:1.5.0
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
+        - configuration: optional
+          module: com.typesafe.akka::akka-stream:2.6.20
+        - configuration: optional
+          module: org.apache.pekko::pekko-stream:1.1.4
+      jvm213:
+        dependencies:
+        - com.softwaremill.sttp.client4::akka-http-backend:4.0.8
+        - com.softwaremill.sttp.client4::pekko-http-backend:4.0.8
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::akka:1.5.0
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
+        - configuration: optional
+          module: com.typesafe.akka::akka-stream:2.6.20
+        - configuration: optional
+          module: org.apache.pekko::pekko-stream:1.1.4
+      jvm3:
+        dependencies:
+        - com.softwaremill.sttp.client4::pekko-http-backend:4.0.8
+        - configuration: optional
+          module: com.softwaremill.sttp.shared::pekko:1.5.0
+        - configuration: optional
+          module: org.apache.pekko::pekko-stream:1.1.4
+    dependencies:
+    - forceJvm: true
+      module: com.softwaremill.sttp.client4::fs2:4.0.8
+    - com.softwaremill.sttp.client4::zio:4.0.8
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::fs2:1.5.0
+    - configuration: optional
+      module: com.softwaremill.sttp.shared::zio:1.5.0
+    dependsOn:
+    - tapir-client-tests
+    - tapir-sttp-client4
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/client/sttp-client4
   tapir-sttp-stub-server:
-    dependsOn: tapir-sttp-client
+    dependsOn:
+    - tapir-server
+    - tapir-sttp-client
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/sttp-stub-server
   tapir-sttp-stub-server-test:
     dependsOn:
-    - tapir-server-tests
     - tapir-sttp-stub-server
+    - tapir-tests
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/sttp-stub-server
+  tapir-sttp-stub4-server:
+    dependsOn:
+    - tapir-server
+    - tapir-sttp-client4
+    extends:
+    - template-common-main
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/server/sttp-stub4-server
+  tapir-sttp-stub4-server-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+    dependsOn:
+    - tapir-sttp-stub4-server
+    - tapir-tests
+    extends:
+    - template-common-test
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/server/sttp-stub4-server
   tapir-swagger-ui:
-    dependencies: org.webjars:swagger-ui:4.1.3
-    dependsOn: tapir-core
+    dependencies: org.webjars:swagger-ui:5.24.1-1
+    dependsOn: tapir-files
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/swagger-ui
   tapir-swagger-ui-bundle:
+    dependencies: com.softwaremill.sttp.apispec::openapi-circe-yaml:0.11.9
     dependsOn:
-    - tapir-openapi-circe-yaml
     - tapir-openapi-docs
     - tapir-swagger-ui
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/swagger-ui-bundle
   tapir-swagger-ui-bundle-test:
-    dependencies: org.scalatest::scalatest:3.2.10
+    dependencies:
+    - org.http4s::http4s-blaze-server:0.23.17
+    - org.scalatest::scalatest:3.2.18
     dependsOn:
     - tapir-http4s-server
-    - tapir-sttp-client
+    - tapir-sttp-client4
     - tapir-swagger-ui-bundle
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/docs/swagger-ui-bundle
-  tapir-tests:
-    dependencies:
-    - ch.qos.logback:logback-classic:1.2.7
-    - ch.qos.logback:logback-core:1.2.7
-    - com.softwaremill.common::tagging:2.3.2
-    - forceJvm: true
-      module: com.typesafe.scala-logging::scala-logging:3.9.4
-    - org.scalatest::scalatest:3.2.10
-    dependsOn:
-    - tapir-cats
-    - tapir-json-circe
+  tapir-swagger-ui-test:
+    dependencies: org.scalatest::scalatest:3.2.18
+    dependsOn: tapir-swagger-ui
     extends:
-    - template-common-main
-    - template-cross-all
-    folder: ../sbt-build/tests
-  tapir-vertx-server:
-    dependencies:
-    - configuration: optional
-      module: com.softwaremill.sttp.shared::fs2:1.2.7
-    - configuration: optional
-      module: com.softwaremill.sttp.shared::zio:1.2.7
-    - io.vertx:vertx-web:4.2.1
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/docs/swagger-ui
+  tapir-testing:
+    cross:
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
     dependsOn: tapir-core
     extends:
     - template-common-main
+    - template-cross-jvm-all-native-3-js-all
+    folder: ../sbt-build/testing
+  tapir-testing-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.18
+    - org.scalatest::scalatest:3.2.18
+    dependsOn:
+    - tapir-json-circe
+    - tapir-testing
+    extends:
+    - template-common-test
+    - template-cross-jvm-all-native-3-js-all
+    folder: ../sbt-build/testing
+  tapir-tests:
+    dependencies:
+    - ch.qos.logback:logback-classic:1.5.18
+    - com.softwaremill.common::tagging:2.3.5
+    - org.scalatest::scalatest:3.2.18
+    - org.typelevel::cats-effect:3.6.1
+    dependsOn:
+    - tapir-cats
+    - tapir-files
+    - tapir-json-circe
+    extends:
+    - template-common-main
+    - template-cross-jvm-3-js-3
+    - template-cross-jvm-all-js-all
+    folder: ../sbt-build/tests
+  tapir-vertx-server:
+    dependencies:
+    - configuration: provided
+      module: io.vertx:vertx-codegen:4.5.15
+    - io.vertx:vertx-web:4.5.15
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/server/vertx
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/vertx-server
+  tapir-vertx-server-cats:
+    dependencies:
+    - co.fs2::fs2-reactive-streams:3.12.0
+    - com.softwaremill.sttp.shared::fs2:1.5.0
+    dependsOn: tapir-vertx-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/vertx-server/cats
+  tapir-vertx-server-cats-test:
+    dependsOn:
+    - tapir-cats-effect
+    - tapir-vertx-server-cats
+    - tapir-vertx-server-test
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/vertx-server/cats
   tapir-vertx-server-test:
     dependencies:
-    - configuration: optional
-      module: com.softwaremill.sttp.shared::fs2:1.2.7
-    - configuration: optional
-      module: com.softwaremill.sttp.shared::zio:1.2.7
-    - dev.zio::zio-interop-cats:3.2.9.0
+      configuration: provided
+      module: io.vertx:vertx-codegen:4.5.15
     dependsOn:
     - tapir-server-tests
     - tapir-vertx-server
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/server/vertx
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/vertx-server
+  tapir-vertx-server-zio:
+    dependsOn:
+    - tapir-vertx-server
+    - tapir-zio
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/vertx-server/zio
+  tapir-vertx-server-zio-test:
+    dependencies: dev.zio::zio-interop-cats:23.1.0.5
+    dependsOn:
+    - tapir-vertx-server-test
+    - tapir-vertx-server-zio
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/server/vertx-server/zio
   tapir-zio:
+    cross:
+      native212:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
     dependencies:
-    - com.softwaremill.sttp.shared::zio:1.2.7
-    - dev.zio::zio-streams:1.0.12
-    - dev.zio::zio:1.0.12
+    - com.softwaremill.sttp.shared::zio:1.5.0
+    - dev.zio::zio-streams:2.1.19
+    - dev.zio::zio:2.1.19
     dependsOn: tapir-core
     extends:
     - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-all
     folder: ../sbt-build/integrations/zio
   tapir-zio-http-server:
-    dependencies: io.d11::zhttp:1.0.0.0-RC17
-    dependsOn: tapir-zio
+    dependencies: dev.zio::zio-http:3.3.3
+    dependsOn:
+    - tapir-server
+    - tapir-zio
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/zio-http-server
   tapir-zio-http-server-test:
-    dependencies: dev.zio::zio-interop-cats:3.2.9.0
+    dependencies: dev.zio::zio-interop-cats:23.1.0.5
     dependsOn:
     - tapir-server-tests
     - tapir-zio-http-server
     extends:
     - template-common-test
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/server/zio-http-server
-  tapir-zio-http4s-server:
-    dependencies: dev.zio::zio-interop-cats:3.2.9.0
+  tapir-zio-metrics:
+    dependencies: dev.zio::zio:2.1.19
+    dependsOn: tapir-server
+    extends:
+    - template-common-main
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/metrics/zio-metrics
+  tapir-zio-metrics-test:
+    dependencies:
+    - dev.zio::zio-test-sbt:2.1.19
+    - dev.zio::zio-test:2.1.19
     dependsOn:
-    - tapir-http4s-server
+    - tapir-server-test
+    - tapir-zio-metrics
+    extends:
+    - template-common-test
+    - template-cross-jvm-212-213
+    - template-cross-jvm-213-3
+    folder: ../sbt-build/metrics/zio-metrics
+  tapir-zio-prelude:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      jvm212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        scala:
+          options: -Ymacro-annotations
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -Ymacro-annotations
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+    dependencies: dev.zio::zio-prelude:1.0.0-RC41
+    dependsOn: tapir-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/integrations/zio-prelude
+  tapir-zio-prelude-test:
+    cross:
+      js212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      js213:
+        scala:
+          options: -Ymacro-annotations
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      jvm212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+      jvm213:
+        scala:
+          options: -Ymacro-annotations
+      native212:
+        scala:
+          compilerPlugins: org.scalamacros:::paradise:2.1.1
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.12;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.12;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13-;${TARGET_DIR}/src_managed/main
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.13;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.13;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13+;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+            -Ymacro-annotations
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependencies: org.scalatest::scalatest:3.2.18
+    dependsOn: tapir-zio-prelude
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/integrations/zio-prelude
+  tapir-zio-test:
+    cross:
+      js3:
+        dependencies: org.scala-js:scalajs-test-bridge_2.13:${PLATFORM_VERSION}
+      native212:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.12;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.12;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13-;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.12;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.12;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13-;${TARGET_DIR}/src_managed/main
+      native213:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-2.13;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-2.13;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-2;${PROJECT_DIR}/src/${SCOPE}/scala-2.13+;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-2.13;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-2.13;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-2;${PROJECT_DIR}/src/main/scala-2.13+;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+      native3:
+        scala:
+          options: -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/${SCOPE}/scala;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/java;${PROJECT_DIR}/src/${SCOPE}/protobuf;${PROJECT_DIR}/src/${SCOPE}/scalanative;${PROJECT_DIR}/src/${SCOPE}/scalanative-3;${PROJECT_DIR}/src/${SCOPE}/javanative;${PROJECT_DIR}/src/${SCOPE}/scala-3;${PROJECT_DIR}/src/${SCOPE}/scala-3-2.13+;${TARGET_DIR}/src_managed/${SCOPE}
+            -P:scalanative:positionRelativizationPaths:${PROJECT_DIR}/src/main/scala;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/java;${PROJECT_DIR}/src/main/protobuf;${PROJECT_DIR}/src/main/scalanative;${PROJECT_DIR}/src/main/scalanative-3;${PROJECT_DIR}/src/main/javanative;${PROJECT_DIR}/src/main/scala-3;${PROJECT_DIR}/src/main/scala-3-2.13+;${TARGET_DIR}/src_managed/main
+    dependencies:
+    - dev.zio::zio-test-sbt:2.1.19
+    - dev.zio::zio-test:2.1.19
+    dependsOn:
+    - tapir-server
     - tapir-zio
     extends:
-    - template-common-main
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/server/zio-http4s-server
-  tapir-zio-http4s-server-test:
-    dependsOn:
-    - tapir-server-tests
-    - tapir-zio-http4s-server
-    extends:
     - template-common-test
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
-    folder: ../sbt-build/server/zio-http4s-server
-  tapir-zio-test:
-    dependencies:
-    - dev.zio::zio-test-sbt:1.0.12
-    - dev.zio::zio-test:1.0.12
-    dependsOn: tapir-zio
-    extends:
-    - template-common-test
-    - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-all
     folder: ../sbt-build/integrations/zio
-    testFrameworks: zio.test.sbt.ZTestFramework
   testing-server:
     dependencies:
-    - ch.qos.logback:logback-classic:1.2.7
-    - ch.qos.logback:logback-core:1.2.7
-    - com.typesafe.scala-logging::scala-logging:3.9.4
-    - org.http4s::http4s-blaze-server:0.23.7
-    - org.http4s::http4s-circe:0.23.7
-    - org.http4s::http4s-dsl:0.23.7
+    - ch.qos.logback:logback-classic:1.5.18
+    - org.http4s::http4s-blaze-server:0.23.17
+    - org.http4s::http4s-circe:0.23.30
+    - org.http4s::http4s-dsl:0.23.30
     extends:
     - template-common-main
     - template-cross-jvm-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
     folder: ../sbt-build/client/testserver
 templates:
   template-common:
+    ignoreEvictionErrors: yes
+    resources: ./src/${SCOPE}/protobuf
     scala:
-      options: -Ywarn-macros:after
+      strict: true
     source-layout: sbt-matrix
+    sources: ./src/${SCOPE}/protobuf
   template-common-main:
     extends: template-common
     sbt-scope: main
@@ -1220,11 +2441,20 @@ templates:
     extends: template-common
     isTestProject: true
     sbt-scope: test
+    scala:
+      options: -Wconf:msg=unused value of type org.scalatest.Assertion:s -Wconf:msg=unused
+        value of type org.scalatest.compatible.Assertion:s
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
   template-cross-all:
     cross:
-      js3:
-        extends: template-scala-3-js
-    extends: template-cross-jvm-all-js-212-213
+      native212:
+        extends: template-scala-2.12-native
+      native213:
+        extends: template-scala-2.13-native
+    extends: template-cross-jvm-all-native-3-js-all
   template-cross-jvm-212-213:
     cross:
       jvm212:
@@ -1238,43 +2468,73 @@ templates:
       js213:
         extends: template-scala-2.13-js
     extends: template-cross-jvm-212-213
-  template-cross-jvm-all:
+  template-cross-jvm-213-3:
     cross:
       jvm3:
         extends: template-scala-3-jvm
+        scala:
+          version: 3.3.6
+  template-cross-jvm-3-js-3:
+    cross:
+      js3:
+        extends: template-scala-3-js
+  template-cross-jvm-3-native-3-js-3:
+    cross:
+      native3:
+        extends: template-scala-3-native
+    extends: template-cross-jvm-3-js-3
   template-cross-jvm-all-js-212-213:
     extends:
     - template-cross-jvm-212-213-js-212-213
-    - template-cross-jvm-all
+    - template-cross-jvm-213-3
+  template-cross-jvm-all-js-all:
+    cross:
+      js3:
+        scala:
+          version: 3.3.6
+    extends: template-cross-jvm-all-js-212-213
+  template-cross-jvm-all-native-3-js-all:
+    cross:
+      native3:
+        scala:
+          version: 3.3.6
+    extends:
+    - template-cross-jvm-3-native-3-js-3
+    - template-cross-jvm-all-js-all
   template-js:
     platform:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
       jsNodeVersion: 18.4.0
-      jsVersion: 1.8.0
+      jsVersion: 1.19.0
       name: js
+    sources: ./src/${SCOPE}/javajs
   template-jvm:
     platform:
       name: jvm
+    sources: ./src/${SCOPE}/javajvm
+  template-native:
+    platform:
+      name: native
+      nativeEmbedResources: false
+      nativeGc: ''
+      nativeOptimize: true
+      nativeUseIncrementalCompilation: true
+      nativeVersion: 0.5.8
+    sources: ./src/${SCOPE}/javanative
   template-scala-2:
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.2
-      options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
-        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
-        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
-        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -encoding
-        utf8 -explaintypes -language:existentials -language:experimental.macros -language:higherKinds
-        -language:implicitConversions -unchecked
+      compilerPlugins: org.typelevel:::kind-projector:0.13.3
+      options: -Ywarn-macros:after
+  template-scala-2-jvm:
+    extends: template-jvm
+    scala:
+      options: -target:jvm-1.8
   template-scala-2.12:
     extends: template-scala-2
     scala:
-      options: -Xlint:by-name-right-associative -Xlint:nullary-override -Xlint:unsound-match
-        -Yno-adapted-args -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit
-        -Ywarn-nullary-override -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits
-        -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
-        -Ywarn-unused:privates -Ywarn-value-discard -deprecation
-      version: 2.12.15
+      version: 2.12.20
     sources: ./src/${SCOPE}/scala-2.13-
   template-scala-2.12-js:
     extends:
@@ -1282,30 +2542,45 @@ templates:
     - template-scala-2.12
   template-scala-2.12-jvm:
     extends:
-    - template-jvm
+    - template-scala-2-jvm
+    - template-scala-2.12
+  template-scala-2.12-native:
+    extends:
+    - template-native
     - template-scala-2.12
   template-scala-2.13:
     extends: template-scala-2
     scala:
-      options: -Vimplicits -Vtype-diffs -Wconf:cat=other-match-analysis:error -Wdead-code
-        -Wextra-implicit -Wnumeric-widen -Wunused:explicits -Wunused:implicits -Wunused:imports
-        -Wunused:locals -Wunused:nowarn -Wunused:params -Wunused:patvars -Wunused:privates
-        -Wvalue-discard -Xlint:-byname-implicit -Xlint:deprecation -Xlint:strict-unsealed-patmat
-      version: 2.13.6
-    sources: ./src/${SCOPE}/scala-2.13+
+      options: -Wconf:cat=other-match-analysis:error
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+      version: 2.13.16
+    sources:
+    - ./src/${SCOPE}/scala-2.13+
+    - ./src/${SCOPE}/scala-3-2.13+
   template-scala-2.13-js:
     extends:
     - template-js
     - template-scala-2.13
   template-scala-2.13-jvm:
     extends:
-    - template-jvm
+    - template-scala-2-jvm
+    - template-scala-2.13
+    sources: ./src/${SCOPE}/scalajvm-3-2.13+
+  template-scala-2.13-native:
+    extends:
+    - template-native
     - template-scala-2.13
   template-scala-3:
     scala:
-      options: -explain -explain-types
-      strict: true
-      version: 3.1.0
+      options: -Xmax-inlines 64
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+    sources: ./src/${SCOPE}/scala-${SCALA_BIN_VERSION}-2.13+
   template-scala-3-js:
     extends:
     - template-js
@@ -1313,4 +2588,8 @@ templates:
   template-scala-3-jvm:
     extends:
     - template-jvm
+    - template-scala-3
+  template-scala-3-native:
+    extends:
+    - template-native
     - template-scala-3

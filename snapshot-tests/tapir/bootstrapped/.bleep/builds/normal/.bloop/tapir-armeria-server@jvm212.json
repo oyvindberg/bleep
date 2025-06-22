@@ -1,0 +1,791 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-armeria-server@jvm212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm212",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scala-2.13-",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/scalajvm-2.12"
+    ],
+    "dependencies": [
+      "tapir-core@jvm212",
+      "tapir-server@jvm212"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/brotli4j/1.18.0/brotli4j-1.18.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/native-osx-aarch64/1.18.0/native-osx-aarch64-1.18.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/service/1.18.0/service-1.18.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.18.2/jackson-annotations-2.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.18.2/jackson-core-2.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.18.2/jackson-databind-2.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.18.2/jackson-datatype-jdk8-2.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.18.2/jackson-datatype-jsr310-2.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/linecorp/armeria/armeria/1.32.5/armeria-1.32.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/armeria_2.12/1.5.0/armeria_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.14.4/micrometer-commons-1.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.14.4/micrometer-core-1.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.14.4/micrometer-observation-1.14.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.118.Final/netty-buffer-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.118.Final/netty-codec-dns-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-haproxy/4.1.118.Final/netty-codec-haproxy-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.118.Final/netty-codec-http-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.118.Final/netty-codec-http2-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.118.Final/netty-codec-socks-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.118.Final/netty-codec-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.118.Final/netty-common-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.118.Final/netty-handler-proxy-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.118.Final/netty-handler-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.1.118.Final/netty-resolver-dns-classes-macos-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.118.Final/netty-resolver-dns-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.118.Final/netty-resolver-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.70.Final/netty-tcnative-classes-2.0.70.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.1.118.Final/netty-transport-classes-epoll-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.1.118.Final/netty-transport-classes-kqueue-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.118.Final/netty-transport-4.1.118.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/armeria-server/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.20",
+      "options": [
+        "-Xlint:adapted-args",
+        "-Xlint:by-name-right-associative",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-override",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:type-parameter-shadow",
+        "-Xlint:unsound-match",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
+        "-Yno-adapted-args",
+        "-Ypartial-unification",
+        "-Ywarn-dead-code",
+        "-Ywarn-extra-implicit",
+        "-Ywarn-macros:after",
+        "-Ywarn-nullary-override",
+        "-Ywarn-nullary-unit",
+        "-Ywarn-numeric-widen",
+        "-Ywarn-unused:implicits",
+        "-Ywarn-unused:imports",
+        "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
+        "-Ywarn-unused:params",
+        "-Ywarn-unused:patvars",
+        "-Ywarn-unused:privates",
+        "-Ywarn-value-discard",
+        "-deprecation",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-target:jvm-1.8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jsr310",
+          "version": "2.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jsr310",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.18.2/jackson-datatype-jsr310-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.18.2/jackson-databind-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-commons",
+          "version": "1.14.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "micrometer-commons",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-commons/1.14.4/micrometer-commons-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.1.118.Final/netty-transport-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.1.118.Final/netty-resolver-dns-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.1.118.Final/netty-buffer-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-dns",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.1.118.Final/netty-codec-dns-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.hdrhistogram",
+          "name": "HdrHistogram",
+          "version": "2.2.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "HdrHistogram",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/hdrhistogram/HdrHistogram/2.2.2/HdrHistogram-2.2.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.linecorp.armeria",
+          "name": "armeria",
+          "version": "1.32.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "armeria",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/linecorp/armeria/armeria/1.32.5/armeria-1.32.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns-native-macos",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns-native-macos",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-resolver-dns-native-macos",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.1.118.Final/netty-resolver-dns-native-macos-4.1.118.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "armeria_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "armeria_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/armeria_2.12/1.5.0/armeria_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-observation",
+          "version": "1.14.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "micrometer-observation",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-observation/1.14.4/micrometer-observation-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.1.118.Final/netty-codec-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jdk8",
+          "version": "2.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.18.2/jackson-datatype-jdk8-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.12",
+          "version": "1.7.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "service",
+          "version": "1.18.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "service",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/service/1.18.0/service-1.18.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.1.118.Final/netty-resolver-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.1.118.Final/netty-transport-native-epoll-4.1.118.Final-<MASKED_OS>-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "brotli4j",
+          "version": "1.18.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "brotli4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/brotli4j/1.18.0/brotli4j-1.18.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-core",
+          "version": "2.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.18.2/jackson-core-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-tcnative-classes",
+          "version": "2.0.70.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-tcnative-classes",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-classes/2.0.70.Final/netty-tcnative-classes-2.0.70.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.1.118.Final/netty-codec-socks-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.36",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.aayushatharva.brotli4j",
+          "name": "native-osx-aarch64",
+          "version": "1.18.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "native-osx-aarch64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/aayushatharva/brotli4j/native-osx-aarch64/1.18.0/native-osx-aarch64-1.18.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.micrometer",
+          "name": "micrometer-core",
+          "version": "1.14.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "micrometer-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/micrometer/micrometer-core/1.14.4/micrometer-core-1.14.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-unix-common",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-unix-common",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-<MASKED_OS>-aarch_64.jar"
+            },
+            {
+              "name": "netty-transport-native-unix-common",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-unix-common",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final-osx-aarch_64.jar"
+            },
+            {
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.1.118.Final/netty-transport-native-unix-common-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.18.2/jackson-annotations-2.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.1.118.Final/netty-transport-classes-epoll-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.1.118.Final/netty-handler-proxy-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns-classes-macos",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns-classes-macos",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.1.118.Final/netty-resolver-dns-classes-macos-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-tcnative-boringssl-static",
+          "version": "2.0.70.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-<MASKED_OS>-aarch_64.jar"
+            },
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-osx-aarch_64.jar"
+            },
+            {
+              "name": "netty-tcnative-boringssl-static",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-tcnative-boringssl-static/2.0.70.Final/netty-tcnative-boringssl-static-2.0.70.Final-<MASKED_OS>-x86_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.1.118.Final/netty-handler-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.1.118.Final/netty-common-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-kqueue",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.1.118.Final/netty-transport-native-kqueue-4.1.118.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.latencyutils",
+          "name": "LatencyUtils",
+          "version": "2.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "LatencyUtils",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/latencyutils/LatencyUtils/2.0.3/LatencyUtils-2.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.1.118.Final/netty-transport-classes-kqueue-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-haproxy",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-haproxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-haproxy/4.1.118.Final/netty-codec-haproxy-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http2",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-http2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.1.118.Final/netty-codec-http2-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.1.118.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.1.118.Final/netty-codec-http-4.1.118.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-java8-compat_2.12",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java8-compat_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.12/1.0.2/scala-java8-compat_2.12-1.0.2.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

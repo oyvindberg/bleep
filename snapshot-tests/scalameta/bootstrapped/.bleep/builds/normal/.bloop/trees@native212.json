@@ -7,18 +7,19 @@
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/dialects/native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/dialects/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/dialects/shared/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/dialects/shared/src/main/scala-2.12",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/inputs/native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/inputs/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/inputs/shared/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/inputs/shared/src/main/scala-2.12",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/native/src/main/scala",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/scala",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/scala-2.12",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokenizers/native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokenizers/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokenizers/shared/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokenizers/shared/src/main/scala-2.12",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokens/native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokens/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokens/shared/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/tokens/shared/src/main/scala-2.12",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/main/scala-2",
@@ -37,30 +38,26 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/main/scala-2.12"
     ],
     "dependencies": [
-      "common@native212"
+      "common@native212",
+      "io@native212"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.4_2.12/0.6.5/geny_native0.4_2.12-0.6.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_native0.4_2.12/0.3.0/sourcecode_native0.4_2.12-0.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_native0.4_2.12/0.11.11/lenses_native0.4_2.12-0.11.11.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/protobuf-runtime-scala_native0.4_2.12/0.8.13/protobuf-runtime-scala_native0.4_2.12-0.8.13.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_native0.4_2.12/0.11.11/scalapb-runtime_native0.4_2.12-0.11.11.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.4_2.12/2.7.0/scala-collection-compat_native0.4_2.12-2.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.4_2.12/0.4.5/auxlib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.4_2.12/0.4.5/clib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.4_2.12/0.4.5/javalib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/junit-runtime_native0.4_2.12/0.4.4/junit-runtime_native0.4_2.12-0.4.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.4_2.12/0.4.5/nativelib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.4_2.12/0.4.5/posixlib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.4_2.12/0.4.5/scalalib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.4_2.12/0.4.4/test-interface-sbt-defs_native0.4_2.12-0.4.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.4_2.12/0.4.5/windowslib_native0.4_2.12-0.4.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_native0.4_2.12/2.3.1/fastparse-v2_native0.4_2.12-2.3.1.jar",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/native212/classes"
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_native0.5_2.12/3.1.0/fastparse_native0.5_2.12-3.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.5_2.12/1.1.0/geny_native0.5_2.12-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_native0.5_2.12/0.4.2/sourcecode_native0.5_2.12-0.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.12/0.5.6/auxlib_native0.5_2.12-0.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.12/0.5.6/clib_native0.5_2.12-0.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.12/0.5.6/javalib_native0.5_2.12-0.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.12/0.5.6/nativelib_native0.5_2.12-0.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.12/0.5.6/posixlib_native0.5_2.12-0.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.6/scalalib_native0.5_2.12-2.12.20%2B0.5.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.12/0.5.6/windowslib_native0.5_2.12-0.5.6.jar",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/native212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/native212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/native212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/native212/classes",
@@ -74,18 +71,19 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.16",
+      "version": "2.12.20",
       "options": [
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.12.16/0.4.5/nscplugin_2.12.16-0.4.5.jar",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.16/2.1.1/paradise_2.12.16-2.1.1.jar",
+        "-P:scalanative:positionRelativizationPaths:<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/native/src/${SCOPE}/java;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/native/src/${SCOPE}/protobuf;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/jvm-native/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/jvm-native/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/jvm-native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokenizers/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokenizers/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokenizers/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokenizers/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokens/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokens/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokens/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/tokens/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/dialects/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/dialects/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/dialects/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/dialects/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/inputs/shared/src/${SCOPE}/scala-2.12;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/inputs/shared/src/${SCOPE}/scala-2;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/inputs/shared/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/scalameta/inputs/native/src/${SCOPE}/scala;<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/native212/src_managed/${SCOPE}",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_2.12.20/0.5.6/nscplugin_2.12.20-0.5.6.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.20/2.1.1/paradise_2.12.20-2.1.1.jar",
         "-feature",
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/native212/inc_compile.zip",
       "setup": {
@@ -105,7 +103,7 @@
     "platform": {
       "name": "native",
       "config": {
-        "version": "0.4.5",
+        "version": "0.5.6",
         "mode": "debug",
         "gc": "",
         "clang": "",
@@ -133,229 +131,157 @@
       "modules": [
         {
           "organization": "org.scala-native",
-          "name": "javalib_native0.4_2.12",
-          "version": "0.4.5",
+          "name": "scalalib_native0.5_2.12",
+          "version": "2.12.20+0.5.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "javalib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.4_2.12/0.4.5/javalib_native0.4_2.12-0.4.5.jar"
+              "name": "scalalib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.6/scalalib_native0.5_2.12-2.12.20%2B0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-native",
+          "name": "auxlib_native0.5_2.12",
+          "version": "0.5.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "auxlib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.5_2.12/0.5.6/auxlib_native0.5_2.12-0.5.6.jar"
             }
           ]
         },
         {
           "organization": "com.lihaoyi",
-          "name": "sourcecode_native0.4_2.12",
-          "version": "0.3.0",
+          "name": "fastparse_native0.5_2.12",
+          "version": "3.1.0",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "sourcecode_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_native0.4_2.12/0.3.0/sourcecode_native0.4_2.12-0.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "fastparse-v2_native0.4_2.12",
-          "version": "2.3.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "fastparse-v2_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/fastparse-v2_native0.4_2.12/2.3.1/fastparse-v2_native0.4_2.12-2.3.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "protobuf-runtime-scala_native0.4_2.12",
-          "version": "0.8.13",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "protobuf-runtime-scala_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/protobuf-runtime-scala_native0.4_2.12/0.8.13/protobuf-runtime-scala_native0.4_2.12-0.8.13.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.16",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.16/scala-library-2.12.16.jar"
+              "name": "fastparse_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/fastparse_native0.5_2.12/3.1.0/fastparse_native0.5_2.12-3.1.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-native",
-          "name": "nativelib_native0.4_2.12",
-          "version": "0.4.5",
+          "name": "nativelib_native0.5_2.12",
+          "version": "0.5.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "nativelib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.4_2.12/0.4.5/nativelib_native0.4_2.12-0.4.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "scalapb-runtime_native0.4_2.12",
-          "version": "0.11.11",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalapb-runtime_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_native0.4_2.12/0.11.11/scalapb-runtime_native0.4_2.12-0.11.11.jar"
+              "name": "nativelib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nativelib_native0.5_2.12/0.5.6/nativelib_native0.5_2.12-0.5.6.jar"
             }
           ]
         },
         {
           "organization": "org.scala-native",
-          "name": "auxlib_native0.4_2.12",
-          "version": "0.4.5",
+          "name": "windowslib_native0.5_2.12",
+          "version": "0.5.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "auxlib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.4_2.12/0.4.5/auxlib_native0.4_2.12-0.4.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.lihaoyi",
-          "name": "geny_native0.4_2.12",
-          "version": "0.6.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "geny_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.4_2.12/0.6.5/geny_native0.4_2.12-0.6.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-compiler",
-          "version": "2.12.16",
-          "configurations": "provided",
-          "artifacts": [
-            {
-              "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.16/scala-compiler-2.12.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-native",
-          "name": "posixlib_native0.4_2.12",
-          "version": "0.4.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "posixlib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.4_2.12/0.4.5/posixlib_native0.4_2.12-0.4.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-collection-compat_native0.4_2.12",
-          "version": "2.7.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-collection-compat_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_native0.4_2.12/2.7.0/scala-collection-compat_native0.4_2.12-2.7.0.jar"
+              "name": "windowslib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.12/0.5.6/windowslib_native0.5_2.12-0.5.6.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.12.16",
+          "version": "2.12.20",
           "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.16/scala-reflect-2.12.16.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.thesamet.scalapb",
-          "name": "lenses_native0.4_2.12",
-          "version": "0.11.11",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "lenses_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_native0.4_2.12/0.11.11/lenses_native0.4_2.12-0.11.11.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
             }
           ]
         },
         {
           "organization": "org.scala-native",
-          "name": "clib_native0.4_2.12",
-          "version": "0.4.5",
+          "name": "javalib_native0.5_2.12",
+          "version": "0.5.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "clib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.4_2.12/0.4.5/clib_native0.4_2.12-0.4.5.jar"
+              "name": "javalib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/javalib_native0.5_2.12/0.5.6/javalib_native0.5_2.12-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.lihaoyi",
+          "name": "geny_native0.5_2.12",
+          "version": "1.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "geny_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/geny_native0.5_2.12/1.1.0/geny_native0.5_2.12-1.1.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-native",
-          "name": "windowslib_native0.4_2.12",
-          "version": "0.4.5",
+          "name": "clib_native0.5_2.12",
+          "version": "0.5.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "windowslib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.4_2.12/0.4.5/windowslib_native0.4_2.12-0.4.5.jar"
+              "name": "clib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.5_2.12/0.5.6/clib_native0.5_2.12-0.5.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-compiler",
+          "version": "2.12.20",
+          "configurations": "provided",
+          "artifacts": [
+            {
+              "name": "scala-compiler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar"
             }
           ]
         },
         {
           "organization": "org.scala-native",
-          "name": "junit-runtime_native0.4_2.12",
-          "version": "0.4.4",
+          "name": "posixlib_native0.5_2.12",
+          "version": "0.5.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "junit-runtime_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/junit-runtime_native0.4_2.12/0.4.4/junit-runtime_native0.4_2.12-0.4.4.jar"
+              "name": "posixlib_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.12/0.5.6/posixlib_native0.5_2.12-0.5.6.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-native",
-          "name": "test-interface-sbt-defs_native0.4_2.12",
-          "version": "0.4.4",
+          "organization": "com.lihaoyi",
+          "name": "sourcecode_native0.5_2.12",
+          "version": "0.4.2",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "test-interface-sbt-defs_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/test-interface-sbt-defs_native0.4_2.12/0.4.4/test-interface-sbt-defs_native0.4_2.12-0.4.4.jar"
+              "name": "sourcecode_native0.5_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/lihaoyi/sourcecode_native0.5_2.12/0.4.2/sourcecode_native0.5_2.12-0.4.2.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-native",
-          "name": "scalalib_native0.4_2.12",
-          "version": "0.4.5",
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scalalib_native0.4_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.4_2.12/0.4.5/scalalib_native0.4_2.12-0.4.5.jar"
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         }

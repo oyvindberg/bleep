@@ -1,0 +1,147 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "io@js212",
+    "directory": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/js212",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/scala-2.12",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/scala-2.12"
+    ],
+    "dependencies": [
+      
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.18.2/scalajs-javalib-1.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.18.2/scalajs-library_2.12-1.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.18.2/scalajs-scalalib_2.12-2.12.20%2B1.18.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/js212",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/js212/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.12.20",
+      "options": [
+        "-P:scalajs:mapSourceURI:file:<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/->https://raw.githubusercontent.com/scalameta/scalameta/v4.13.7-SNAPSHOT/",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.20/1.18.2/scalajs-compiler_2.12.20-1.18.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scalamacros/paradise_2.12.20/2.1.1/paradise_2.12.20-2.1.1.jar",
+        "-feature",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/js212/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": true,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": true,
+        "filterLibraryFromClasspath": true
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "js",
+      "config": {
+        "version": "1.18.2",
+        "mode": "debug",
+        "kind": "none",
+        "emitSourceMaps": false,
+        "jsdom": false,
+        "nodePath": "<COURSIER_ARC>/https/nodejs.org/dist/v18.4.0/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>.tar.gz/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>/bin/node",
+        "toolchain": [
+          
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-scalalib_2.12",
+          "version": "2.12.20+1.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-scalalib_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.18.2/scalajs-scalalib_2.12-2.12.20%2B1.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-library_2.12",
+          "version": "1.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-library_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.18.2/scalajs-library_2.12-1.18.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.18.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.18.2/scalajs-javalib-1.18.2.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}
