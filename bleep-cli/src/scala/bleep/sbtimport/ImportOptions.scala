@@ -79,15 +79,15 @@ object ImportOptions {
     .orNone
 
   val opts: Opts[ImportOptions] =
-    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions).mapN { 
+    (ignoreWhenInferringTemplates, skipSbt, skipGeneratedResourcesScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions).mapN {
       (ignore, skipSbt, skipScript, jvm, sbtPath, xmx, excludeProjects, filterPlatforms, filterScalaVersions) =>
         ImportOptions(
-          ignore, 
-          skipSbt, 
-          skipScript, 
-          jvm, 
-          sbtPath, 
-          xmx, 
+          ignore,
+          skipSbt,
+          skipScript,
+          jvm,
+          sbtPath,
+          xmx,
           ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
         )
     }
