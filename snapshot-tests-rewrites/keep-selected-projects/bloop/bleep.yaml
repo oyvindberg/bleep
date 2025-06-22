@@ -1,78 +1,91 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
-  bloop-launcher-core:
-    dependsOn:
-    - bloopgun-core
-    - sockets
-    extends: template-cross-all
-    folder: ../sbt-build/launcher-core
-  bloopgun-core:
+  bloop-cli:
     dependencies:
+    - com.github.alexarchambault::case-app:2.1.0-M30
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.13.3.2
     - configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    - io.get-coursier:interface-svm-subs:1.0.16
-    - io.get-coursier:interface:1.0.16
-    - me.vican.jorge::snailgun-cli:0.4.0
-    - org.slf4j:slf4j-nop:2.0.7
-    - org.zeroturnaround:zt-exec:1.12
-    extends: template-cross-all
-    folder: ../sbt-build/bloopgun
+    - com.lihaoyi::os-lib:0.11.4
+    - io.get-coursier.util:directories-jni:0.1.3
+    - io.get-coursier::coursier-jvm:2.1.24
+    - io.get-coursier::coursier:2.1.24
+    - io.get-coursier::dependency:0.3.2
+    - configuration: provided
+      module: org.graalvm.nativeimage:svm:24.2.1
+    dependsOn: bloop-rifle
+    extends:
+    - template-common-main
+    - template-scala-2.13
+    folder: ../sbt-build/cli
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
-    sourcegen:
-      main: scripts.GenerateForBloopgunCore
-      project: scripts
-  scripts:
-    dependencies: build.bleep::bleep-core:0.0.1-M20
-    platform:
-      name: jvm
-    scala:
-      version: 2.13.8
-  sockets:
-    dependencies:
-    - net.java.dev.jna:jna-platform:5.13.0
-    - net.java.dev.jna:jna:5.13.0
-    extends: template-common-main
-    folder: ../sbt-build/sockets
-    java:
-      options: -source 1.8 -target 1.8
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
-    scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
-templates:
-  template-common:
+    sourcegen:
+      main: scripts.GenerateForBloopCli
+      project: scripts
+  bloop-rifle:
+    dependencies:
+    - ch.epfl.scala::libdaemon:0.0.12
+    - ch.epfl.scala:bsp4j:2.1.1
+    - io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2
+    - org.scala-lang.modules::scala-collection-compat:2.13.0
+    extends:
+    - template-common-main
+    - template-scala-2.13
+    folder: ../sbt-build/bloop-rifle
+    resources:
+    - ../LICENSE.md
+    - ../NOTICE.md
+    sourcegen:
+      main: scripts.GenerateForBloopRifle
+      project: scripts
+  bloop-rifle-test:
+    dependencies:
+    - com.eed3si9n.expecty::expecty:0.17.0
+    - org.scalameta::munit:1.1.1
+    dependsOn: bloop-rifle
+    extends:
+    - template-common-test
+    - template-scala-2.13
+    folder: ../sbt-build/bloop-rifle
+    sbt-scope: test
+  scripts:
+    dependencies: build.bleep::bleep-core:0.0.12
     platform:
       name: jvm
+    scala:
+      version: 2.13.16
+templates:
+  template-common:
+    ignoreEvictionErrors: no
+    platform:
+      name: jvm
+    scala:
+      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
+        -feature -language:existentials -language:higherKinds -language:implicitConversions
+        -unchecked
   template-common-main:
     extends: template-common
     sbt-scope: main
   template-common-test:
     extends: template-common
     isTestProject: true
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  template-scala-2.12:
     scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -feature -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
-    testFrameworks: zio.test.sbt.ZTestFramework
-  template-cross-all:
-    cross:
-      jvm213:
-        extends: template-scala-2.13
-    extends: template-common-main
+      options: -Yno-adapted-args -deprecation
+      version: 2.12.20
   template-scala-2.13:
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
     scala:
-      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
-        -feature -language:existentials -language:higherKinds -language:implicitConversions
-        -unchecked
-      version: 2.13.8
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+      version: 2.13.16

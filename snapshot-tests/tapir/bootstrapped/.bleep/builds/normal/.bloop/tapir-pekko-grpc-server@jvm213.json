@@ -1,0 +1,700 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-pekko-grpc-server@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-grpc-server/jvm213",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scala-3-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scalajvm-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/scalajvm-3-2.13+"
+    ],
+    "dependencies": [
+      "tapir-core@jvm213",
+      "tapir-pekko-http-server@jvm213",
+      "tapir-server@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/api/grpc/proto-google-common-protos/2.41.0/proto-google-common-protos-2.41.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.2.1-android/guava-33.2.1-android.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.13/1.5.0/pekko_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-api/1.67.1/grpc-api-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-context/1.67.1/grpc-context-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-core/1.67.1/grpc-core-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-netty-shaded/1.67.1/grpc-netty-shaded-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf-lite/1.67.1/grpc-protobuf-lite-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf/1.67.1/grpc-protobuf-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-util/1.67.1/grpc-util-1.67.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/perfmark/perfmark-api/0.27.0/perfmark-api-0.27.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.13/1.1.4/pekko-actor_2.13-1.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-discovery_2.13/1.1.2/pekko-discovery_2.13-1.1.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-grpc-runtime_2.13/1.1.1/pekko-grpc-runtime_2.13-1.1.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.13/1.2.0/pekko-http-core_2.13-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-cors_2.13/1.1.0/pekko-http-cors_2.13-1.1.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http_2.13/1.2.0/pekko-http_2.13-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.13/1.2.0/pekko-parsing_2.13-1.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.13/1.1.4/pekko-protobuf-v3_2.13-1.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.13/1.1.4/pekko-slf4j_2.13-1.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_2.13/1.1.4/pekko-stream_2.13-1.1.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.24/animal-sniffer-annotations-1.24.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_2.13/2.5.1/parboiled_2.13-2.5.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-http-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-grpc-server/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-grpc-server/jvm213/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-grpc-server/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.16",
+      "options": [
+        "-Wconf:cat=other-match-analysis:error",
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnonunit-statement",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:implicit-not-found",
+        "-Xlint:implicit-recursion",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
+        "-Ywarn-macros:after",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-target:jvm-1.8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-grpc-server/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http-core_2.13",
+          "version": "1.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-http-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.13/1.2.0/pekko-http-core_2.13-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.findbugs",
+          "name": "jsr305",
+          "version": "3.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jsr305",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http-cors_2.13",
+          "version": "1.1.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-http-cors_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-cors_2.13/1.1.0/pekko-http-cors_2.13-1.1.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.perfmark",
+          "name": "perfmark-api",
+          "version": "0.27.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "perfmark-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/perfmark/perfmark-api/0.27.0/perfmark-api-0.27.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-util",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-util/1.67.1/grpc-util-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.protobuf",
+          "name": "protobuf-java",
+          "version": "3.25.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "protobuf-java",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.25.5/protobuf-java-3.25.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.android",
+          "name": "annotations",
+          "version": "4.1.1.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/android/annotations/4.1.1.4/annotations-4.1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "lenses_2.13",
+          "version": "0.11.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "lenses_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/lenses_2.13/0.11.17/lenses_2.13-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "33.2.1-android",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/33.2.1-android/guava-33.2.1-android.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.thesamet.scalapb",
+          "name": "scalapb-runtime_2.13",
+          "version": "0.11.17",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalapb-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/thesamet/scalapb/scalapb-runtime_2.13/0.11.17/scalapb-runtime_2.13-0.11.17.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.parboiled",
+          "name": "parboiled_2.13",
+          "version": "2.5.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "parboiled_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_2.13/2.5.1/parboiled_2.13-2.5.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-netty-shaded",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-netty-shaded",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-netty-shaded/1.67.1/grpc-netty-shaded-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.code.gson",
+          "name": "gson",
+          "version": "2.11.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "gson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "pekko_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.13/1.5.0/pekko_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-api",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-api/1.67.1/grpc-api-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.12.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.12.0/scala-collection-compat_2.13-2.12.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.api.grpc",
+          "name": "proto-google-common-protos",
+          "version": "2.41.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "proto-google-common-protos",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/api/grpc/proto-google-common-protos/2.41.0/proto-google-common-protos-2.41.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.42.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.42.0/checker-qual-3.42.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.13",
+          "version": "0.6.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-discovery_2.13",
+          "version": "1.1.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-discovery_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-discovery_2.13/1.1.2/pekko-discovery_2.13-1.1.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-protobuf",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-protobuf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf/1.67.1/grpc-protobuf-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http_2.13",
+          "version": "1.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-http_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http_2.13/1.2.0/pekko-http_2.13-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-stream_2.13",
+          "version": "1.1.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-stream_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_2.13/1.1.4/pekko-stream_2.13-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-protobuf-v3_2.13",
+          "version": "1.1.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-protobuf-v3_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.13/1.1.4/pekko-protobuf-v3_2.13-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-actor_2.13",
+          "version": "1.1.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-actor_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.13/1.1.4/pekko-actor_2.13-1.1.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "listenablefuture",
+          "version": "9999.0-empty-to-avoid-conflict-with-guava",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "listenablefuture",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-core",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-core/1.67.1/grpc-core-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.j2objc",
+          "name": "j2objc-annotations",
+          "version": "3.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "j2objc-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/3.0.0/j2objc-annotations-3.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.codehaus.mojo",
+          "name": "animal-sniffer-annotations",
+          "version": "1.24",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "animal-sniffer-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/codehaus/mojo/animal-sniffer-annotations/1.24/animal-sniffer-annotations-1.24.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.2/failureaccess-1.0.2.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-parsing_2.13",
+          "version": "1.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-parsing_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.13/1.2.0/pekko-parsing_2.13-1.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.errorprone",
+          "name": "error_prone_annotations",
+          "version": "2.28.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "error_prone_annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.28.0/error_prone_annotations-2.28.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-grpc-runtime_2.13",
+          "version": "1.1.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-grpc-runtime_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-grpc-runtime_2.13/1.1.1/pekko-grpc-runtime_2.13-1.1.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-protobuf-lite",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-protobuf-lite",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-protobuf-lite/1.67.1/grpc-protobuf-lite-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.grpc",
+          "name": "grpc-context",
+          "version": "1.67.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "grpc-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/grpc/grpc-context/1.67.1/grpc-context-1.67.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-slf4j_2.13",
+          "version": "1.1.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-slf4j_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.13/1.1.4/pekko-slf4j_2.13-1.1.4.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}

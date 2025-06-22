@@ -5,7 +5,10 @@
     "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server/jvm212",
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-sources/tapir-netty-server@jvm212/scripts.GenerateForTapirNettyServer",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/scala-2.12",
@@ -15,50 +18,82 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/scalajvm-2.12"
     ],
     "dependencies": [
-      "tapir-core@jvm212"
+      "tapir-core@jvm212",
+      "tapir-server@jvm212"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.1.6/fs2-core_2.12-3.1.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.1.6/fs2-io_2.12-3.1.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.0.4/ip4s-core_2.12-3.0.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.12/1.2.7/fs2_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.68.Final/netty-all-4.1.68.Final.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.29/scodec-bits_2.12-1.1.29.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.6.1/cats-core_2.12-2.6.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.2.9/cats-effect-kernel_2.12-3.2.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.2.9/cats-effect-std_2.12-3.2.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.2.9/cats-effect_2.12-3.2.9.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.6.1/cats-kernel_2.12-2.6.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes"
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.2.0.Final/netty-all-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.0.Final/netty-buffer-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.0.Final/netty-codec-base-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.0.Final/netty-codec-compression-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.2.0.Final/netty-codec-dns-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-haproxy/4.2.0.Final/netty-codec-haproxy-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.0.Final/netty-codec-http-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.2.0.Final/netty-codec-http2-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-marshalling/4.2.0.Final/netty-codec-marshalling-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-memcache/4.2.0.Final/netty-codec-memcache-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-mqtt/4.2.0.Final/netty-codec-mqtt-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-protobuf/4.2.0.Final/netty-codec-protobuf-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-redis/4.2.0.Final/netty-codec-redis-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-smtp/4.2.0.Final/netty-codec-smtp-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.0.Final/netty-codec-socks-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-stomp/4.2.0.Final/netty-codec-stomp-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-xml/4.2.0.Final/netty-codec-xml-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.2.0.Final/netty-codec-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.0.Final/netty-common-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.0.Final/netty-handler-proxy-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-ssl-ocsp/4.2.0.Final/netty-handler-ssl-ocsp-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.0.Final/netty-handler-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.0.Final/netty-resolver-dns-classes-macos-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.0.Final/netty-resolver-dns-native-macos-4.2.0.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.0.Final/netty-resolver-dns-native-macos-4.2.0.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.2.0.Final/netty-resolver-dns-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.0.Final/netty-resolver-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.0.Final/netty-transport-classes-epoll-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-io_uring/4.2.0.Final/netty-transport-classes-io_uring-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.0.Final/netty-transport-classes-kqueue-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.0.Final/netty-transport-native-epoll-4.2.0.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.0.Final/netty-transport-native-epoll-4.2.0.Final-<MASKED_OS>-riscv64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.0.Final/netty-transport-native-epoll-4.2.0.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.0.Final/netty-transport-native-io_uring-4.2.0.Final-<MASKED_OS>-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.0.Final/netty-transport-native-io_uring-4.2.0.Final-<MASKED_OS>-riscv64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.0.Final/netty-transport-native-io_uring-4.2.0.Final-<MASKED_OS>-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.0.Final/netty-transport-native-kqueue-4.2.0.Final-osx-aarch_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.0.Final/netty-transport-native-kqueue-4.2.0.Final-osx-x86_64.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.0.Final/netty-transport-native-unix-common-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-rxtx/4.2.0.Final/netty-transport-rxtx-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-sctp/4.2.0.Final/netty-transport-sctp-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-udt/4.2.0.Final/netty-transport-udt-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.0.Final/netty-transport-4.2.0.Final.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams-http/3.0.4/netty-reactive-streams-http-3.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams/3.0.4/netty-reactive-streams-3.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server/jvm212/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-netty-server@jvm212/scripts.GenerateForTapirNettyServer",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.20",
       "options": [
-        "-Xcheckinit",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
         "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
         "-Xlint:doc-detached",
         "-Xlint:inaccessible",
         "-Xlint:infer-any",
@@ -72,7 +107,7 @@
         "-Xlint:stars-align",
         "-Xlint:type-parameter-shadow",
         "-Xlint:unsound-match",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
         "-Yno-adapted-args",
         "-Ypartial-unification",
         "-Ywarn-dead-code",
@@ -84,6 +119,7 @@
         "-Ywarn-unused:implicits",
         "-Ywarn-unused:imports",
         "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
         "-Ywarn-unused:params",
         "-Ywarn-unused:patvars",
         "-Ywarn-unused:privates",
@@ -91,19 +127,19 @@
         "-deprecation",
         "-encoding",
         "utf8",
-        "-explaintypes",
         "-feature",
         "-language:existentials",
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-target:jvm-1.8",
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server/jvm212/inc_compile.zip",
       "setup": {
@@ -134,290 +170,588 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.typelevel",
-          "name": "cats-effect-std_2.12",
-          "version": "3.2.9",
+          "organization": "io.netty",
+          "name": "netty-codec-redis",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "cats-effect-std_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-std_2.12/3.2.9/cats-effect-std_2.12-3.2.9.jar"
+              "name": "netty-codec-redis",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-redis/4.2.0.Final/netty-codec-redis-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport/4.2.0.Final/netty-transport-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver/4.2.0.Final/netty-resolver-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-epoll",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.0.Final/netty-transport-native-epoll-4.2.0.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.0.Final/netty-transport-native-epoll-4.2.0.Final-<MASKED_OS>-aarch_64.jar"
+            },
+            {
+              "name": "netty-transport-native-epoll",
+              "classifier": "<MASKED_OS>-riscv64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-epoll/4.2.0.Final/netty-transport-native-epoll-4.2.0.Final-<MASKED_OS>-riscv64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-stomp",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-stomp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-stomp/4.2.0.Final/netty-codec-stomp-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns/4.2.0.Final/netty-resolver-dns-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler/4.2.0.Final/netty-handler-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-buffer",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-buffer",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-buffer/4.2.0.Final/netty-buffer-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-smtp",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-smtp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-smtp/4.2.0.Final/netty-codec-smtp-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-native-kqueue",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.0.Final/netty-transport-native-kqueue-4.2.0.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-kqueue",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-kqueue/4.2.0.Final/netty-transport-native-kqueue-4.2.0.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http/4.2.0.Final/netty-codec-http-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-xml",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-xml",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-xml/4.2.0.Final/netty-codec-xml-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.netty",
+          "name": "netty-reactive-streams-http",
+          "version": "3.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-reactive-streams-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams-http/3.0.4/netty-reactive-streams-http-3.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-mqtt",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-mqtt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-mqtt/4.2.0.Final/netty-codec-mqtt-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec/4.2.0.Final/netty-codec-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-marshalling",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-marshalling",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-marshalling/4.2.0.Final/netty-codec-marshalling-4.2.0.Final.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
-          "version": "1.4.18",
+          "version": "1.7.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.4.18/core_2.12-1.4.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.12/1.7.14/core_2.12-1.7.14.jar"
             }
           ]
         },
         {
-          "organization": "com.propensive",
-          "name": "magnolia_2.12",
-          "version": "0.17.0",
+          "organization": "io.netty",
+          "name": "netty-transport-native-io_uring",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "magnolia_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.12/0.17.0/magnolia_2.12-0.17.0.jar"
+              "name": "netty-transport-native-io_uring",
+              "classifier": "<MASKED_OS>-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.0.Final/netty-transport-native-io_uring-4.2.0.Final-<MASKED_OS>-x86_64.jar"
+            },
+            {
+              "name": "netty-transport-native-io_uring",
+              "classifier": "<MASKED_OS>-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.0.Final/netty-transport-native-io_uring-4.2.0.Final-<MASKED_OS>-aarch_64.jar"
+            },
+            {
+              "name": "netty-transport-native-io_uring",
+              "classifier": "<MASKED_OS>-riscv64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-io_uring/4.2.0.Final/netty-transport-native-io_uring-4.2.0.Final-<MASKED_OS>-riscv64.jar"
             }
           ]
         },
         {
-          "organization": "com.comcast",
-          "name": "ip4s-core_2.12",
-          "version": "3.0.4",
+          "organization": "io.netty",
+          "name": "netty-codec-protobuf",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "ip4s-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/comcast/ip4s-core_2.12/3.0.4/ip4s-core_2.12-3.0.4.jar"
+              "name": "netty-codec-protobuf",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-protobuf/4.2.0.Final/netty-codec-protobuf-4.2.0.Final.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-effect-kernel_2.12",
-          "version": "3.2.9",
+          "organization": "io.netty",
+          "name": "netty-codec-compression",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "cats-effect-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel_2.12/3.2.9/cats-effect-kernel_2.12-3.2.9.jar"
+              "name": "netty-codec-compression",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-compression/4.2.0.Final/netty-codec-compression-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-udt",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-udt",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-udt/4.2.0.Final/netty-transport-udt-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-socks",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-socks",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-socks/4.2.0.Final/netty-codec-socks-4.2.0.Final.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "slf4j-api",
-          "version": "1.7.32",
+          "version": "2.0.17",
           "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.32/slf4j-api-1.7.32.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar"
             }
           ]
         },
         {
-          "organization": "org.scodec",
-          "name": "scodec-bits_2.12",
-          "version": "1.1.29",
+          "organization": "io.netty",
+          "name": "netty-codec-memcache",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scodec-bits_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scodec/scodec-bits_2.12/1.1.29/scodec-bits_2.12-1.1.29.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "simulacrum-scalafix-annotations_2.12",
-          "version": "0.5.4",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "simulacrum-scalafix-annotations_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-core_2.12",
-          "version": "2.6.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "cats-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-core_2.12/2.6.1/cats-core_2.12-2.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.typelevel",
-          "name": "cats-kernel_2.12",
-          "version": "2.6.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "cats-kernel_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.6.1/cats-kernel_2.12-2.6.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "co.fs2",
-          "name": "fs2-core_2.12",
-          "version": "3.1.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "fs2-core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-core_2.12/3.1.6/fs2-core_2.12-3.1.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.12",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "core_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.2.7/core_2.12-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "mercator_2.12",
-          "version": "0.2.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "mercator_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "ch.qos.logback",
-          "name": "logback-core",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "logback-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.7/logback-core-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.scala-logging",
-          "name": "scala-logging_2.12",
-          "version": "3.9.4",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-logging_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/scala-logging/scala-logging_2.12/3.9.4/scala-logging_2.12-3.9.4.jar"
+              "name": "netty-codec-memcache",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-memcache/4.2.0.Final/netty-codec-memcache-4.2.0.Final.jar"
             }
           ]
         },
         {
           "organization": "io.netty",
           "name": "netty-all",
-          "version": "4.1.68.Final",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
               "name": "netty-all",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.1.68.Final/netty-all-4.1.68.Final.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-all/4.2.0.Final/netty-all-4.2.0.Final.jar"
             }
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.12.15",
+          "organization": "io.netty",
+          "name": "netty-transport-native-unix-common",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
+              "name": "netty-transport-native-unix-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-native-unix-common/4.2.0.Final/netty-transport-native-unix-common-4.2.0.Final.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "cats-effect_2.12",
-          "version": "3.2.9",
+          "organization": "io.netty",
+          "name": "netty-codec-base",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "cats-effect_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.2.9/cats-effect_2.12-3.2.9.jar"
+              "name": "netty-codec-base",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-base/4.2.0.Final/netty-codec-base-4.2.0.Final.jar"
             }
           ]
         },
         {
-          "organization": "ch.qos.logback",
-          "name": "logback-classic",
-          "version": "1.2.7",
+          "organization": "io.netty",
+          "name": "netty-transport-sctp",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "logback-classic",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.7/logback-classic-1.2.7.jar"
+              "name": "netty-transport-sctp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-sctp/4.2.0.Final/netty-transport-sctp-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.12",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.12/1.1.10/magnolia_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-epoll",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-epoll",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-epoll/4.2.0.Final/netty-transport-classes-epoll-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-proxy",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler-proxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-proxy/4.2.0.Final/netty-handler-proxy-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns-classes-macos",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns-classes-macos",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-classes-macos/4.2.0.Final/netty-resolver-dns-classes-macos-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.netty",
+          "name": "netty-reactive-streams",
+          "version": "3.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/netty/netty-reactive-streams/3.0.4/netty-reactive-streams-3.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-dns",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-dns",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-dns/4.2.0.Final/netty-codec-dns-4.2.0.Final.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.12.15",
+          "version": "2.12.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
             }
           ]
         },
         {
-          "organization": "co.fs2",
-          "name": "fs2-io_2.12",
-          "version": "3.1.6",
+          "organization": "io.netty",
+          "name": "netty-common",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "fs2-io_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/co/fs2/fs2-io_2.12/3.1.6/fs2-io_2.12-3.1.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "fs2_2.12",
-          "version": "1.2.7",
-          "configurations": "optional",
-          "artifacts": [
-            {
-              "name": "fs2_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/fs2_2.12/1.2.7/fs2_2.12-1.2.7.jar"
+              "name": "netty-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-common/4.2.0.Final/netty-common-4.2.0.Final.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.2.7/ws_2.12-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.12/1.5.0/ws_2.12-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "org.typelevel",
-          "name": "literally_2.12",
-          "version": "1.0.2",
+          "organization": "io.netty",
+          "name": "netty-transport-rxtx",
+          "version": "4.2.0.Final",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "literally_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.0.2/literally_2.12-1.0.2.jar"
+              "name": "netty-transport-rxtx",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-rxtx/4.2.0.Final/netty-transport-rxtx-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-kqueue",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-kqueue",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-kqueue/4.2.0.Final/netty-transport-classes-kqueue-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-haproxy",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-haproxy",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-haproxy/4.2.0.Final/netty-codec-haproxy-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-resolver-dns-native-macos",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-resolver-dns-native-macos",
+              "classifier": "osx-x86_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.0.Final/netty-resolver-dns-native-macos-4.2.0.Final-osx-x86_64.jar"
+            },
+            {
+              "name": "netty-resolver-dns-native-macos",
+              "classifier": "osx-aarch_64",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-resolver-dns-native-macos/4.2.0.Final/netty-resolver-dns-native-macos-4.2.0.Final-osx-aarch_64.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-transport-classes-io_uring",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-transport-classes-io_uring",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-transport-classes-io_uring/4.2.0.Final/netty-transport-classes-io_uring-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-handler-ssl-ocsp",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-handler-ssl-ocsp",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-handler-ssl-ocsp/4.2.0.Final/netty-handler-ssl-ocsp-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.netty",
+          "name": "netty-codec-http2",
+          "version": "4.2.0.Final",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "netty-codec-http2",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/netty/netty-codec-http2/4.2.0.Final/netty-codec-http2-4.2.0.Final.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.12/1.5.0/core_2.12-1.5.0.jar"
             }
           ]
         }

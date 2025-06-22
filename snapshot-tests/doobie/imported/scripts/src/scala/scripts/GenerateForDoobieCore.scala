@@ -17,10 +17,10 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
       |
       |/** Auto-generated build information. */
       |object buildinfo {
-      |  /** Current version of doobie (1.0-5d0957d-20230529T103009Z-SNAPSHOT). */
-      |  val version = "1.0-5d0957d-20230529T103009Z-SNAPSHOT"
-      |  /** Build date (Mon May 29 12:30:12 CEST 2023). */
-      |  val date    = new java.util.Date(1685356212429L)
+      |  /** Current version of doobie (1.0-e3adc5d-20250621T223125Z-SNAPSHOT). */
+      |  val version = "1.0-e3adc5d-20250621T223125Z-SNAPSHOT"
+      |  /** Build date (Sun Jun 22 00:31:29 CEST 2025). */
+      |  val date    = new java.util.Date(1750545089647L)
       |}""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
@@ -37,10 +37,10 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
       |
       |/** Auto-generated build information. */
       |object buildinfo {
-      |  /** Current version of doobie (1.0-5d0957d-20230529T102848Z-SNAPSHOT). */
-      |  val version = "1.0-5d0957d-20230529T102848Z-SNAPSHOT"
-      |  /** Build date (Mon May 29 12:28:52 CEST 2023). */
-      |  val date    = new java.util.Date(1685356132602L)
+      |  /** Current version of doobie (1.0-e3adc5d-20250621T223051Z-SNAPSHOT). */
+      |  val version = "1.0-e3adc5d-20250621T223051Z-SNAPSHOT"
+      |  /** Build date (Sun Jun 22 00:30:56 CEST 2025). */
+      |  val date    = new java.util.Date(1750545056040L)
       |}""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
@@ -57,10 +57,10 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
       |
       |/** Auto-generated build information. */
       |object buildinfo {
-      |  /** Current version of doobie (1.0-5d0957d-20230529T102924Z-SNAPSHOT). */
-      |  val version = "1.0-5d0957d-20230529T102924Z-SNAPSHOT"
-      |  /** Build date (Mon May 29 12:29:26 CEST 2023). */
-      |  val date    = new java.util.Date(1685356166948L)
+      |  /** Current version of doobie (1.0-e3adc5d-20250621T223107Z-SNAPSHOT). */
+      |  val version = "1.0-e3adc5d-20250621T223107Z-SNAPSHOT"
+      |  /** Build date (Sun Jun 22 00:31:11 CEST 2025). */
+      |  val date    = new java.util.Date(1750545071456L)
       |}""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)

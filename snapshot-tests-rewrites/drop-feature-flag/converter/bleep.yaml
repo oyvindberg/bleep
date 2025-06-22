@@ -23,10 +23,14 @@ projects:
   importer:
     dependencies:
     - ch.epfl.scala::bloop-frontend:1.5.4
-    - io.get-coursier::coursier:2.1.0
+    - io.get-coursier::coursier:2.1.0-RC1
     dependsOn: importer-portable
     extends: template-common-main
     folder: ../sbt-build/importer
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
   importer-portable:
     dependsOn:
     - phases
@@ -34,11 +38,15 @@ projects:
     - ts
     extends: template-common-main
     folder: ../sbt-build/importer-portable
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
     sourcegen:
       main: scripts.GenerateForImporterPortable
       project: scripts
   importer-test:
-    dependencies: org.scalatest::scalatest:3.2.15
+    dependencies: org.scalatest::scalatest:3.2.14
     dependsOn: importer
     extends: template-common
     folder: ../sbt-build/importer
@@ -46,6 +54,10 @@ projects:
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
     sbt-scope: test
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
     testFrameworks: zio.test.sbt.ZTestFramework
   logging:
     dependencies:
@@ -59,12 +71,16 @@ projects:
     - logging
     extends: template-common-main
     folder: ../sbt-build/phases
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
   sbt-converter:
     dependencies:
     - isSbtPlugin: true
       module: ch.epfl.scala:sbt-scalajs-bundler:0.21.1
     - configuration: provided
-      module: org.scala-sbt:sbt:1.8.2
+      module: org.scala-sbt:sbt:1.8.0
     - software.amazon.awssdk:s3:2.15.28
     dependsOn: importer-portable
     extends: template-common-main
@@ -82,12 +98,16 @@ projects:
     - logging
     extends: template-common-main
     folder: ../sbt-build/scalajs
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.1-M20
+    dependencies: build.bleep::bleep-core:0.0.12
     platform:
       name: jvm
     scala:
-      version: 2.12.17
+      version: 3.3.0
   ts:
     dependencies: org.scala-lang.modules::scala-parser-combinators:1.1.2
     dependsOn:
@@ -95,11 +115,16 @@ projects:
     - logging
     extends: template-common-main
     folder: ../sbt-build/ts
+    scala:
+      options: -opt-inline-from:org.scalablytyped.converter.internal.** -opt-warnings
+        -opt:box-unbox -opt:compact-locals -opt:copy-propagation -opt:l:inline -opt:l:method
+        -opt:nullness-tracking -opt:redundant-casts -opt:simplify-jumps
 resolvers:
   type: ivy
   uri: https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/
 templates:
   template-common:
+    ignoreEvictionErrors: no
     libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     platform:
       name: jvm

@@ -22,25 +22,29 @@ object GenerateForBloopFrontend extends BleepCodegenScript("GenerateForBloopFron
       |  val organization: String = "ch.epfl.scala"
       |  /** The value is "bloop". */
       |  val bloopName: String = "bloop"
-      |  /** The value is "1.5.6-217-cc04a065-20230529-1250-SNAPSHOT". */
-      |  val version: String = "1.5.6-217-cc04a065-20230529-1250-SNAPSHOT"
-      |  /** The value is "2.12.17". */
-      |  val scalaVersion: String = "2.12.17"
-      |  /** The value is new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/nailgun/pynailgun/ng.py"). */
-      |  val nailgunClientLocation: java.io.File = new java.io.File("<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/nailgun/pynailgun/ng.py")
-      |  /** The value is "1.8.1". */
-      |  val zincVersion: String = "1.8.1"
-      |  /** The value is "2.1.0-M3". */
-      |  val bspVersion: String = "2.1.0-M3"
+      |  /** The value is "2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT". */
+      |  val version: String = "2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT"
+      |  /** The value is "2.12.20". */
+      |  val scalaVersion: String = "2.12.20"
+      |  /** The value is "1.10.8". */
+      |  val zincVersion: String = "1.10.8"
+      |  /** The value is "2.1.1". */
+      |  val bspVersion: String = "2.1.1"
       |  /** The value is "bloop-native-bridge-0-4_2.12". */
       |  val nativeBridge04: String = "bloop-native-bridge-0-4_2.12"
+      |  /** The value is "bloop-native-bridge-0-5_2.12". */
+      |  val nativeBridge05: String = "bloop-native-bridge-0-5_2.12"
       |  /** The value is "bloop-js-bridge-0-6_2.12". */
       |  val jsBridge06: String = "bloop-js-bridge-0-6_2.12"
       |  /** The value is "bloop-js-bridge-1_2.12". */
       |  val jsBridge1: String = "bloop-js-bridge-1_2.12"
+      |  /** The value is Map(("2.12.12" -> "4.8.4"), ("2.13.7" -> "4.8.4"), ("2.13.10" -> "4.9.3"), ("2.13.4" -> "4.8.4"), ("2.13.12" -> "4.12.3"), ("2.12.20" -> "4.13.7"), ("2.12.16" -> "4.9.9"), ("2.12.18" -> "4.13.7"), ("2.13.8" -> "4.8.10"), ("2.13.11" -> "4.9.9"), ("2.12.11" -> "4.8.4"), ("2.12.10" -> "4.8.4"), ("2.13.5" -> "4.8.4"), ("2.12.19" -> "4.13.7"), ("2.12.15" -> "4.9.0"), ("2.13.16" -> "4.13.7"), ("2.13.2" -> "4.8.4"), ("2.13.15" -> "4.13.7"), ("2.12.17" -> "4.13.7"), ("2.13.1" -> "4.8.4"), ("2.11.12" -> "4.13.7"), ("2.12.14" -> "4.8.4"), ("2.13.14" -> "4.13.7"), ("2.12.13" -> "4.8.4"), ("2.13.3" -> "4.8.4"), ("2.13.6" -> "4.8.4"), ("2.13.13" -> "4.13.7"), ("2.12.9" -> "4.8.4"), ("2.13.9" -> "4.9.0")). */
+      |  val lastSupportedSemanticdb: Map[String, String] = Map(("2.12.12" -> "4.8.4"), ("2.13.7" -> "4.8.4"), ("2.13.10" -> "4.9.3"), ("2.13.4" -> "4.8.4"), ("2.13.12" -> "4.12.3"), ("2.12.20" -> "4.13.7"), ("2.12.16" -> "4.9.9"), ("2.12.18" -> "4.13.7"), ("2.13.8" -> "4.8.10"), ("2.13.11" -> "4.9.9"), ("2.12.11" -> "4.8.4"), ("2.12.10" -> "4.8.4"), ("2.13.5" -> "4.8.4"), ("2.12.19" -> "4.13.7"), ("2.12.15" -> "4.9.0"), ("2.13.16" -> "4.13.7"), ("2.13.2" -> "4.8.4"), ("2.13.15" -> "4.13.7"), ("2.12.17" -> "4.13.7"), ("2.13.1" -> "4.8.4"), ("2.11.12" -> "4.13.7"), ("2.12.14" -> "4.8.4"), ("2.13.14" -> "4.13.7"), ("2.12.13" -> "4.8.4"), ("2.13.3" -> "4.8.4"), ("2.13.6" -> "4.8.4"), ("2.13.13" -> "4.13.7"), ("2.12.9" -> "4.8.4"), ("2.13.9" -> "4.9.0"))
+      |  /** The value is "0.12.7". */
+      |  val millVersion: String = "0.12.7"
       |  override val toString: String = {
-      |    "organization: %s, bloopName: %s, version: %s, scalaVersion: %s, nailgunClientLocation: %s, zincVersion: %s, bspVersion: %s, nativeBridge04: %s, jsBridge06: %s, jsBridge1: %s".format(
-      |      organization, bloopName, version, scalaVersion, nailgunClientLocation, zincVersion, bspVersion, nativeBridge04, jsBridge06, jsBridge1
+      |    "organization: %s, bloopName: %s, version: %s, scalaVersion: %s, zincVersion: %s, bspVersion: %s, nativeBridge04: %s, nativeBridge05: %s, jsBridge06: %s, jsBridge1: %s, lastSupportedSemanticdb: %s, millVersion: %s".format(
+      |      organization, bloopName, version, scalaVersion, zincVersion, bspVersion, nativeBridge04, nativeBridge05, jsBridge06, jsBridge1, lastSupportedSemanticdb, millVersion
       |    )
       |  }
       |}

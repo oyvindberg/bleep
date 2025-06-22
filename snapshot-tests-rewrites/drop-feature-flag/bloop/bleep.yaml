@@ -3,97 +3,120 @@ $version: dev
 projects:
   benchmarks:
     dependencies:
-    - org.openjdk.jmh:jmh-core:1.21
-    - org.openjdk.jmh:jmh-generator-bytecode:1.21
-    - org.openjdk.jmh:jmh-generator-reflection:1.21
-    - pl.project13.scala:sbt-jmh-extras:0.3.7
-    dependsOn:
-    - bloop-frontend-it
-    - compilation
-    extends: template-common-main
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    dependsOn: bloop-frontend-it
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/benchmarks
     platform:
-      jvmOptions: -DbloopRef=1.5.6-217-cc04a065-20230529-1250-SNAPSHOT -DbloopVersion=1.5.6-217-cc04a065-20230529-1250-SNAPSHOT
-        -Dgit.localdir=${BUILD_DIR} -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.8.3/sbt-1.8.3.zip/sbt/bin/sbt-launch.jar
+      jvmOptions: -DbloopRef=2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT -DbloopVersion=2.0.10-0-051ce0a1-20250622-0035-SNAPSHOT
+        -Dgit.localdir=${BUILD_DIR} -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.zip/sbt/bin/sbt-launch.jar
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
     scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
       main: scripts.GenerateForBenchmarks
       project: scripts
   bloop-backend:
     dependencies:
     - ch.epfl.scala:directory-watcher:0.8.0+6-f651bd93
-    - ch.epfl.scala:nailgun-server:ee3c4343
     - com.googlecode.java-diff-utils:diffutils:1.3.0
-    - com.lihaoyi::pprint:0.8.1
-    - com.lihaoyi::sourcecode:0.3.0
-    - io.get-coursier:interface:1.0.16
+    - com.lihaoyi::pprint:0.9.0
+    - com.lihaoyi::sourcecode:0.4.2
+    - io.github.alexarchambault.bleep:nailgun-server:1.0.7
     - io.monix::monix:3.2.0
-    - io.zipkin.brave:brave:5.16.0
-    - io.zipkin.reporter2:zipkin-sender-urlconnection:2.16.4
-    - org.ow2.asm:asm-util:9.5
-    - org.ow2.asm:asm:9.5
-    - org.scala-sbt::librarymanagement-ivy:1.8.0
-    - org.scalaz::scalaz-core:7.3.7
-    - org.zeroturnaround:zt-zip:1.15
+    - io.zipkin.brave:brave:5.18.1
+    - io.zipkin.reporter2:zipkin-sender-urlconnection:2.17.2
+    - org.ow2.asm:asm-util:9.8
+    - org.ow2.asm:asm:9.8
+    - org.scala-sbt::librarymanagement-ivy:1.10.4
+    - org.scalaz::scalaz-core:7.3.8
+    - org.zeroturnaround:zt-zip:1.17
     dependsOn: bloop-shared
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/backend
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
     scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
       main: scripts.GenerateForBloopBackend
       project: scripts
   bloop-backend-test:
     dependencies:
     - com.github.sbt:junit-interface:0.13.3
-    - com.lihaoyi::utest:0.8.1
+    - com.lihaoyi::utest:0.8.5
     dependsOn: bloop-backend
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-scala-2.12
     folder: ../sbt-build/backend
     sbt-scope: test
     scala:
       options: -Xlint:unused -Yrangepos -Ywarn-unused
+  bloop-cli:
+    dependencies:
+    - com.github.alexarchambault::case-app:2.1.0-M30
+    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.13.3.2
+    - configuration: provided
+      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
+    - com.lihaoyi::os-lib:0.11.4
+    - io.get-coursier.util:directories-jni:0.1.3
+    - io.get-coursier::coursier-jvm:2.1.24
+    - io.get-coursier::coursier:2.1.24
+    - io.get-coursier::dependency:0.3.2
+    - configuration: provided
+      module: org.graalvm.nativeimage:svm:24.2.1
+    dependsOn: bloop-rifle
+    extends:
+    - template-common-main
+    - template-scala-2.13
+    folder: ../sbt-build/cli
+    platform:
+      jvmOptions: -Duser.dir=${PROJECT_DIR}
+    resources:
+    - ../LICENSE.md
+    - ../NOTICE.md
+    sourcegen:
+      main: scripts.GenerateForBloopCli
+      project: scripts
   bloop-docs:
-    dependencies: org.scalameta::mdoc:2.3.7
+    dependencies: org.scalameta::mdoc:2.7.1
     dependsOn: bloop-frontend
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/docs-gen
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
     - ../docs
     scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
       main: scripts.GenerateForBloopDocs
       project: scripts
   bloop-frontend:
     dependencies:
-    - ch.epfl.scala::bloop-config:1.5.5
-    - ch.epfl.scala::scala-debug-adapter:3.1.3
+    - ch.epfl.scala::bloop-config:2.3.2
+    - ch.epfl.scala::libdaemon:0.0.12
+    - ch.epfl.scala::scala-debug-adapter:4.2.5
+    - ch.qos.logback:logback-classic:1.5.18
     - com.github.alexarchambault::case-app:2.0.6
     - configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    dependsOn:
-    - bloop-backend
-    - sockets
-    extends: template-common-main
+    dependsOn: bloop-backend
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/frontend
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
@@ -102,10 +125,7 @@ projects:
     - ../LICENSE.md
     - ../NOTICE.md
     scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
     sourcegen:
       main: scripts.GenerateForBloopFrontend
       project: scripts
@@ -114,11 +134,13 @@ projects:
     - configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
     - com.github.sbt:junit-interface:0.13.3
-    - com.lihaoyi::utest:0.8.1
+    - com.lihaoyi::utest:0.8.5
     dependsOn:
     - bloop-frontend
     - buildpressconfig
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-scala-2.12
     folder: ../sbt-build/frontend
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
@@ -133,7 +155,9 @@ projects:
     dependsOn:
     - bloop-backend-test
     - bloop-frontend
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-scala-2.12
     folder: ../sbt-build/frontend
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
@@ -153,16 +177,13 @@ projects:
     - configuration: provided
       module: org.scala-js::scalajs-tools:0.6.33
     dependsOn: bloop-frontend
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/bridges/scalajs-0.6
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
-    scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
   bloop-js-bridge-0-6-test:
     dependencies:
     - configuration: provided
@@ -174,11 +195,14 @@ projects:
     dependsOn:
     - bloop-frontend-test
     - bloop-js-bridge-0-6
-    extends: template-common-test
+    extends:
+    - template-common-test
+    - template-scala-2.12
     folder: ../sbt-build/bridges/scalajs-0.6
     sbt-scope: test
   bloop-js-bridge-1:
     dependencies:
+    - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
       module: org.scala-js::scalajs-env-jsdom-nodejs:1.1.0
     - configuration: provided
@@ -186,162 +210,107 @@ projects:
     - configuration: provided
       module: org.scala-js::scalajs-js-envs:1.1.1
     - configuration: provided
-      module: org.scala-js::scalajs-linker:1.13.1
+      module: org.scala-js::scalajs-linker:1.19.0
     - configuration: provided
       module: org.scala-js::scalajs-logging:1.1.1
     - configuration: provided
-      module: org.scala-js::scalajs-sbt-test-adapter:1.13.1
-    dependsOn: bloop-frontend
-    extends: template-common-main
+      module: org.scala-js::scalajs-sbt-test-adapter:1.19.0
+    dependsOn: bloop-shared
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/bridges/scalajs-1
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
-    scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
-  bloop-js-bridge-1-test:
+  bloop-native-bridge-0-4:
     dependencies:
+    - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
-      module: org.scala-js::scalajs-env-jsdom-nodejs:1.1.0
+      module: org.scala-native::tools:0.4.17
+    dependsOn: bloop-shared
+    extends:
+    - template-common-main
+    - template-scala-2.12
+    folder: ../sbt-build/bridges/scala-native-0.4
+    resources:
+    - ../../LICENSE.md
+    - ../../NOTICE.md
+  bloop-native-bridge-0-5:
+    dependencies:
+    - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
-      module: org.scala-js::scalajs-env-nodejs:1.1.1
-    - configuration: provided
-      module: org.scala-js::scalajs-js-envs:1.1.1
-    - configuration: provided
-      module: org.scala-js::scalajs-linker:1.13.1
-    - configuration: provided
-      module: org.scala-js::scalajs-logging:1.1.1
-    - configuration: provided
-      module: org.scala-js::scalajs-sbt-test-adapter:1.13.1
-    dependsOn:
-    - bloop-frontend-test
-    - bloop-js-bridge-1
-    extends: template-common-test
-    folder: ../sbt-build/bridges/scalajs-1
-    sbt-scope: test
-  bloop-launcher+test:
-    dependsOn: bloop-launcher-core
-    extends: template-common-main
-    folder: ../sbt-build/launcher-test
+      module: org.scala-native::tools:0.5.7
+    dependsOn: bloop-shared
+    extends:
+    - template-common-main
+    - template-scala-2.12
+    folder: ../sbt-build/bridges/scala-native-0.5
+    resources:
+    - ../../LICENSE.md
+    - ../../NOTICE.md
+  bloop-rifle:
+    dependencies:
+    - ch.epfl.scala::libdaemon:0.0.12
+    - ch.epfl.scala:bsp4j:2.1.1
+    - io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2
+    - org.scala-lang.modules::scala-collection-compat:2.13.0
+    extends:
+    - template-common-main
+    - template-scala-2.13
+    folder: ../sbt-build/bloop-rifle
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
-    scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
-  bloop-launcher+test-test:
-    dependsOn:
-    - bloop-frontend-test
-    - bloop-launcher+test
-    extends: template-common-test
-    folder: ../sbt-build/launcher-test
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
-    sbt-scope: test
-    scala:
-      options: -Xlint:unused -Yrangepos -Ywarn-unused
-  bloop-launcher-core:
-    dependsOn:
-    - bloopgun-core
-    - sockets
-    extends: template-cross-all
-    folder: ../sbt-build/launcher-core
-  bloop-native-bridge-0-4:
+    sourcegen:
+      main: scripts.GenerateForBloopRifle
+      project: scripts
+  bloop-rifle-test:
     dependencies:
-      configuration: provided
-      module: org.scala-native::tools:0.4.12
-    dependsOn: bloop-frontend
-    extends: template-common-main
-    folder: ../sbt-build/bridges/scala-native-0.4
-    resources:
-    - ../../LICENSE.md
-    - ../../NOTICE.md
-    scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
-  bloop-native-bridge-0-4-test:
-    dependencies:
-      configuration: provided
-      module: org.scala-native::tools:0.4.12
-    dependsOn:
-    - bloop-frontend-test
-    - bloop-native-bridge-0-4
-    extends: template-common-test
-    folder: ../sbt-build/bridges/scala-native-0.4
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR} -XX:MaxInlineLevel=20 -XX:ReservedCodeCacheSize=512m
-        -Xms1g -Xmx3g
+    - com.eed3si9n.expecty::expecty:0.17.0
+    - org.scalameta::munit:1.1.1
+    dependsOn: bloop-rifle
+    extends:
+    - template-common-test
+    - template-scala-2.13
+    folder: ../sbt-build/bloop-rifle
     sbt-scope: test
   bloop-shared:
     dependencies:
     - exclusions:
         com.github.plokhotnyuk.jsoniter-scala: '*'
-      module: ch.epfl.scala::bsp4s:2.1.0-M3
+        me.vican.jorge: '*'
+      module: ch.epfl.scala::bsp4s:2.1.1
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.13.3.2
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    - dev.dirs:directories:26
+    - io.get-coursier.util:directories-jni:0.1.2
+    - io.get-coursier:interface:1.0.28
+    - io.github.alexarchambault.bleep::jsonrpc4s:0.1.1
+    - net.java.dev.jna:jna:5.17.0
     - net.jpountz.lz4:lz4:1.3.0
-    - org.apache.logging.log4j:log4j-core:2.20.0
-    - org.scala-sbt::zinc:1.8.1
-    - org.scala-sbt:test-agent:1.8.3
+    - org.apache.logging.log4j:log4j-core:2.23.0
+    - org.scala-sbt::zinc:1.10.8
+    - org.scala-sbt:test-agent:1.10.11
     - org.scala-sbt:test-interface:1.0
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/shared
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
     scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
-  bloop4j:
-    dependencies:
-    - ch.epfl.scala::bloop-config:1.5.5
-    - ch.epfl.scala:bsp4j:2.1.0-M3
-    extends: template-common-main
-    folder: ../sbt-build/bloop4j
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
-  bloopgun-core:
-    dependencies:
-    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.13.3.2
-    - configuration: provided
-      module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    - io.get-coursier:interface-svm-subs:1.0.16
-    - io.get-coursier:interface:1.0.16
-    - me.vican.jorge::snailgun-cli:0.4.0
-    - org.slf4j:slf4j-nop:2.0.7
-    - org.zeroturnaround:zt-exec:1.12
-    extends: template-cross-all
-    folder: ../sbt-build/bloopgun
-    platform:
-      jvmOptions: -Duser.dir=${PROJECT_DIR}
-    sourcegen:
-      main: scripts.GenerateForBloopgunCore
-      project: scripts
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
   buildpress:
-    dependencies: com.github.alexarchambault::case-app:2.0.6
+    dependencies:
+    - com.github.alexarchambault::case-app:2.0.6
+    - org.zeroturnaround:zt-exec:1.12
     dependsOn:
     - bloop-shared
-    - bloopgun-core
     - buildpressconfig
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/buildpress
     platform:
       jvmOptions: -Duser.dir=${PROJECT_DIR}
@@ -349,154 +318,73 @@ projects:
     - ../LICENSE.md
     - ../NOTICE.md
     scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
   buildpressconfig:
     dependencies:
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.13.3.2
     - configuration: provided
       module: com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.13.3.2
-    extends: template-common-main
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/buildpress-config
     resources:
     - ../LICENSE.md
     - ../NOTICE.md
     scala:
       compilerPlugins: org.scalamacros:::paradise:2.1.1
-      options: -Xfuture -Xlint:unused -Yno-adapted-args -Yrangepos -Ywarn-numeric-widen
-        -Ywarn-unused -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials
-        -language:higherKinds -language:implicitConversions -unchecked
-      version: 2.12.17
-  compilation:
-    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
-    dependsOn: infrastructure
-    extends: template-common-main
-    folder: ../sbt-build/benchmark-bridge/compilation
-    platform:
-      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.8.3/sbt-1.8.3.zip/sbt/bin/sbt-launch.jar
-        -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${BUILD_DIR}/benchmark-bridge
-    scala:
-      version: 2.12.15
-    sources: ./src/${SCOPE}/scalac
-  infrastructure:
-    dependencies:
-    - ch.qos.logback:logback-classic:1.2.1
-    - com.google.guava:guava:21.0
-    - com.typesafe:config:1.3.1
-    - org.apache.commons:commons-lang3:3.5
-    - org.eclipse.jgit:org.eclipse.jgit:4.6.0.201612231935-r
-    - org.influxdb:influxdb-java:2.5
-    - org.openjdk.jmh:jmh-core:1.20
-    - org.openjdk.jmh:jmh-generator-bytecode:1.20
-    - org.openjdk.jmh:jmh-generator-reflection:1.20
-    - org.slf4j:log4j-over-slf4j:1.7.24
-    - org.slf4j:slf4j-api:1.7.24
-    - pl.project13.scala:sbt-jmh-extras:0.3.3
-    extends: template-common-main
-    folder: ../sbt-build/benchmark-bridge/infrastructure
-    platform:
-      jvmOptions: -Duser.dir=${BUILD_DIR}/benchmark-bridge
-    scala:
-      version: 2.12.15
-  jvm:
-    dependsOn: infrastructure
-    extends: template-common-main
-    folder: ../sbt-build/benchmark-bridge
-    platform:
-      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.8.3/sbt-1.8.3.zip/sbt/bin/sbt-launch.jar
-        -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${PROJECT_DIR}
-    scala:
-      version: 2.12.15
-    source-layout: cross-full
-  micro:
-    dependencies: org.scala-lang:scala-compiler:${SCALA_VERSION}
-    dependsOn: infrastructure
-    extends: template-common-main
-    folder: ../sbt-build/benchmark-bridge/micro
-    platform:
-      jvmOptions: -Dgit.localdir=. -Dsbt.launcher=${COURSIER_ARC_CACHE_DIR}/https/github.com/sbt/sbt/releases/download/v1.8.3/sbt-1.8.3.zip/sbt/bin/sbt-launch.jar
-        -DscalaRef=v2.12.15 -DscalaVersion=2.12.15 -Duser.dir=${BUILD_DIR}/benchmark-bridge
-    scala:
-      version: 2.12.15
+      options: -Xlint:unused -Yrangepos -Ywarn-unused
   sbt-bloop:
     dependencies:
-    - ch.epfl.scala::bloop-config:1.5.5
+    - ch.epfl.scala::bloop-config:2.3.2
     - configuration: provided
-      module: org.scala-sbt:sbt:1.3.3
-    extends: template-common-main
+      module: org.scala-sbt:sbt:1.5.8
+    extends:
+    - template-common-main
+    - template-scala-2.12
     folder: ../sbt-build/integrations/sbt-bloop
     resources:
     - ../../LICENSE.md
     - ../../NOTICE.md
     scala:
-      options: -Wconf:cat=unused-nowarn:s -Xfuture -Xsource:3 -Yno-adapted-args -Ywarn-numeric-widen
-        -Ywarn-value-discard -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
+      options: -Wconf:cat=unused-nowarn:s -Xsource:3
     sourcegen:
       main: scripts.GenerateForSbtBloop
       project: scripts
     sources: ./src/${SCOPE}/scala-sbt-1.0
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.1-M20
+    dependencies: build.bleep::bleep-core:0.0.12
     platform:
       name: jvm
     scala:
-      version: 2.13.8
-  sockets:
-    dependencies:
-    - net.java.dev.jna:jna-platform:5.13.0
-    - net.java.dev.jna:jna:5.13.0
-    extends: template-common-main
-    folder: ../sbt-build/sockets
-    java:
-      options: -source 1.8 -target 1.8
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
-    scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
+      version: 2.13.16
 templates:
   template-common:
+    ignoreEvictionErrors: no
     platform:
       name: jvm
+    scala:
+      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
+        -language:existentials -language:higherKinds -language:implicitConversions
+        -unchecked
   template-common-main:
     extends: template-common
     sbt-scope: main
   template-common-test:
     extends: template-common
     isTestProject: true
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
+  template-scala-2.12:
     scala:
-      options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-        -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-        -language:implicitConversions -unchecked
-      version: 2.12.17
-    testFrameworks: zio.test.sbt.ZTestFramework
-  template-cross-all:
-    cross:
-      jvm212:
-        resources:
-        - ../LICENSE.md
-        - ../NOTICE.md
-        scala:
-          options: -Xfuture -Yno-adapted-args -Ywarn-numeric-widen -Ywarn-value-discard
-            -deprecation -encoding UTF-8 -language:existentials -language:higherKinds
-            -language:implicitConversions -unchecked
-          version: 2.12.17
-      jvm213:
-        extends: template-scala-2.13
-    extends: template-common-main
+      options: -Yno-adapted-args -deprecation
+      version: 2.12.20
   template-scala-2.13:
-    resources:
-    - ../LICENSE.md
-    - ../NOTICE.md
     scala:
-      options: -Xfuture -Ywarn-numeric-widen -Ywarn-value-discard -encoding UTF-8
-        -language:existentials -language:higherKinds -language:implicitConversions
-        -unchecked
-      version: 2.13.8
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+      version: 2.13.16

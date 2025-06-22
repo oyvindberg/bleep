@@ -6,6 +6,7 @@ resolvers:
   uri: https://repo.scala-sbt.org/scalasbt/sbt-plugin-releases/
 templates:
   template-common:
+    ignoreEvictionErrors: no
     libraryVersionSchemes: org.scala-lang.modules::scala-xml:always
     platform:
       name: jvm

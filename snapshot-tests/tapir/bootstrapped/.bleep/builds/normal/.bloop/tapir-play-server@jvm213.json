@@ -6,93 +6,97 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala-2.13",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scala-3-2.13+",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-2",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-2.13"
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/scalajvm-3-2.13+"
     ],
     "dependencies": [
-      "tapir-core@jvm213"
+      "tapir-core@jvm213",
+      "tapir-server@jvm213"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.5/jackson-annotations-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.5/jackson-core-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.5.1/jackson-databind-2.10.5.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.10.5/jackson-dataformat-cbor-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.10.5/jackson-datatype-jdk8-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.10.5/jackson-datatype-jsr310-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.10.5/jackson-module-parameter-names-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.10.5/jackson-module-paranamer-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.10.5/jackson-module-scala_2.13-2.10.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.3/jackson-annotations-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.14.3/jackson-dataformat-cbor-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.14.3/jackson-module-parameter-names-2.14.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.14.3/jackson-module-scala_2.13-2.14.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/code/findbugs/jsr305/3.0.2/jsr305-3.0.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/28.2-jre/guava-28.2-jre.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/32.1.3-jre/guava-32.1.3-jre.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.2.7/akka_2.13-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.13/1.5.0/pekko_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/thoughtworks/paranamer/paranamer/2.8/paranamer-2.8.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor-typed_2.13/2.6.10/akka-actor-typed_2.13-2.6.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.10/akka-actor_2.13-2.6.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.1.13/akka-http-core_2.13-10.1.13.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.1.13/akka-parsing_2.13-10.1.13.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.10/akka-protobuf-v3_2.13-2.6.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-serialization-jackson_2.13/2.6.10/akka-serialization-jackson_2.13-2.6.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-slf4j_2.13/2.6.10/akka-slf4j_2.13-2.6.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.10/akka-stream_2.13-2.6.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/build-link/2.8.7/build-link-2.8.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-akka-http-server_2.13/2.8.7/play-akka-http-server_2.13-2.8.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-exceptions/2.8.7/play-exceptions-2.8.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_2.13/2.8.1/play-functional_2.13-2.8.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_2.13/2.8.1/play-json_2.13-2.8.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-server_2.13/2.8.7/play-server_2.13-2.8.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-streams_2.13/2.8.7/play-streams_2.13-2.8.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play_2.13/2.8.7/play_2.13-2.8.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/twirl-api_2.13/1.5.0/twirl-api_2.13-1.5.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.2/ssl-config-core_2.13-0.4.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt/0.9.1/jjwt-0.9.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/1.3.3/jakarta.transaction-api-1.3.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/2.3.3/jakarta.xml.bind-api-2.3.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-api/0.11.5/jjwt-api-0.11.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-impl/0.11.5/jjwt-impl-0.11.5.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-jackson/0.11.5/jjwt-jackson-0.11.5.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.5/joda-time-2.10.5.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.10.0/checker-qual-2.10.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.7.1/lz4-java-1.7.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/0.9.1/scala-java8-compat_2.13-0.9.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor-typed_2.13/1.0.3/pekko-actor-typed_2.13-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.13/1.0.3/pekko-actor_2.13-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.13/1.0.1/pekko-http-core_2.13-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.13/1.0.1/pekko-parsing_2.13-1.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.13/1.0.3/pekko-protobuf-v3_2.13-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-serialization-jackson_2.13/1.0.3/pekko-serialization-jackson_2.13-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.13/1.0.3/pekko-slf4j_2.13-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_2.13/1.0.3/pekko-stream_2.13-1.0.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_2.13/2.5.0/parboiled_2.13-2.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-build-link/3.0.6/play-build-link-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-configuration_2.13/3.0.6/play-configuration_2.13-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-exceptions/3.0.6/play-exceptions-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_2.13/3.0.4/play-functional_2.13-3.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_2.13/3.0.4/play-json_2.13-3.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-pekko-http-server_2.13/3.0.6/play-pekko-http-server_2.13-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-server_2.13/3.0.6/play-server_2.13-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-streams_2.13/3.0.6/play-streams_2.13-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play_2.13/3.0.6/play_2.13-3.0.6.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_2.13/2.0.7/twirl-api_2.13-2.0.7.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.2.0/scala-xml_2.13-1.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.2.0/scala-xml_2.13-2.2.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.16/jcl-over-slf4j-2.0.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.16/jul-to-slf4j-2.0.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play-server/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play-server/jvm213/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.13.6",
+      "version": "2.13.16",
       "options": [
-        "-Vimplicits",
-        "-Vtype-diffs",
         "-Wconf:cat=other-match-analysis:error",
         "-Wdead-code",
         "-Wextra-implicit",
+        "-Wnonunit-statement",
         "-Wnumeric-widen",
         "-Wunused:explicits",
         "-Wunused:implicits",
@@ -103,13 +107,14 @@
         "-Wunused:patvars",
         "-Wunused:privates",
         "-Wvalue-discard",
-        "-Xcheckinit",
         "-Xlint:-byname-implicit",
         "-Xlint:adapted-args",
         "-Xlint:constant",
         "-Xlint:delayedinit-select",
         "-Xlint:deprecation",
         "-Xlint:doc-detached",
+        "-Xlint:implicit-not-found",
+        "-Xlint:implicit-recursion",
         "-Xlint:inaccessible",
         "-Xlint:infer-any",
         "-Xlint:missing-interpolator",
@@ -121,33 +126,33 @@
         "-Xlint:stars-align",
         "-Xlint:strict-unsealed-patmat",
         "-Xlint:type-parameter-shadow",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.6/0.13.2/kind-projector_2.13.6-0.13.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
         "-Ywarn-macros:after",
         "-encoding",
         "utf8",
-        "-explaintypes",
         "-feature",
         "-language:existentials",
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-target:jvm-1.8",
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play-server/jvm213/inc_compile.zip",
       "setup": {
         "order": "mixed",
-        "addLibraryToBootClasspath": true,
+        "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,
-        "manageBootClasspath": true,
-        "filterLibraryFromClasspath": true
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
       }
     },
     "java": {
@@ -169,122 +174,26 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-xml_2.13",
-          "version": "1.2.0",
+          "organization": "org.playframework",
+          "name": "play-pekko-http-server_2.13",
+          "version": "3.0.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scala-xml_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/1.2.0/scala-xml_2.13-1.2.0.jar"
+              "name": "play-pekko-http-server_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-pekko-http-server_2.13/3.0.6/play-pekko-http-server_2.13-3.0.6.jar"
             }
           ]
         },
         {
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
-          "version": "2.10.5",
+          "version": "2.14.3",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.10.5/jackson-datatype-jsr310-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.guava",
-          "name": "guava",
-          "version": "28.2-jre",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "guava",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/28.2-jre/guava-28.2-jre.jar"
-            }
-          ]
-        },
-        {
-          "organization": "javax.inject",
-          "name": "javax.inject",
-          "version": "1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "javax.inject",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-core",
-          "version": "2.10.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jackson-core",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.10.5/jackson-core-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-annotations",
-          "version": "2.10.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jackson-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.10.5/jackson-annotations-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-serialization-jackson_2.13",
-          "version": "2.6.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-serialization-jackson_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-serialization-jackson_2.13/2.6.10/akka-serialization-jackson_2.13-2.6.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-stream_2.13",
-          "version": "2.6.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-stream_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.10/akka-stream_2.13-2.6.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.module",
-          "name": "jackson-module-scala_2.13",
-          "version": "2.10.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jackson-module-scala_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.10.5/jackson-module-scala_2.13-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "twirl-api_2.13",
-          "version": "1.5.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "twirl-api_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/twirl-api_2.13/1.5.0/twirl-api_2.13-1.5.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jsr310/2.14.3/jackson-datatype-jsr310-2.14.3.jar"
             }
           ]
         },
@@ -301,230 +210,38 @@
           ]
         },
         {
+          "organization": "org.playframework",
+          "name": "play-functional_2.13",
+          "version": "3.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-functional_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_2.13/3.0.4/play-functional_2.13-3.0.4.jar"
+            }
+          ]
+        },
+        {
           "organization": "com.fasterxml.jackson.core",
-          "name": "jackson-databind",
-          "version": "2.10.5.1",
+          "name": "jackson-core",
+          "version": "2.14.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jackson-databind",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.10.5.1/jackson-databind-2.10.5.1.jar"
+              "name": "jackson-core",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-core/2.14.3/jackson-core-2.14.3.jar"
             }
           ]
         },
         {
-          "organization": "com.fasterxml.jackson.module",
-          "name": "jackson-module-parameter-names",
-          "version": "2.10.5",
+          "organization": "io.jsonwebtoken",
+          "name": "jjwt-jackson",
+          "version": "0.11.5",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jackson-module-parameter-names",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.10.5/jackson-module-parameter-names-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "akka_2.13",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.2.7/akka_2.13-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-parsing_2.13",
-          "version": "10.1.13",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-parsing_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.1.13/akka-parsing_2.13-10.1.13.jar"
-            }
-          ]
-        },
-        {
-          "organization": "jakarta.activation",
-          "name": "jakarta.activation-api",
-          "version": "1.2.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jakarta.activation-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/activation/jakarta.activation-api/1.2.2/jakarta.activation-api-1.2.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.reactivestreams",
-          "name": "reactive-streams",
-          "version": "1.0.3",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "reactive-streams",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "play-akka-http-server_2.13",
-          "version": "2.8.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "play-akka-http-server_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-akka-http-server_2.13/2.8.7/play-akka-http-server_2.13-2.8.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.fasterxml.jackson.datatype",
-          "name": "jackson-datatype-jdk8",
-          "version": "2.10.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jackson-datatype-jdk8",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.10.5/jackson-datatype-jdk8-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.checkerframework",
-          "name": "checker-qual",
-          "version": "2.10.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "checker-qual",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/2.10.0/checker-qual-2.10.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.slf4j",
-          "name": "slf4j-api",
-          "version": "1.7.30",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "slf4j-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.30/slf4j-api-1.7.30.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-reflect",
-          "version": "2.13.6",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "ssl-config-core_2.13",
-          "version": "0.4.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "ssl-config-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.2/ssl-config-core_2.13-0.4.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-slf4j_2.13",
-          "version": "2.6.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-slf4j_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-slf4j_2.13/2.6.10/akka-slf4j_2.13-2.6.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "play-json_2.13",
-          "version": "2.8.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "play-json_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_2.13/2.8.1/play-json_2.13-2.8.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_2.13",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "play-exceptions",
-          "version": "2.8.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "play-exceptions",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-exceptions/2.8.7/play-exceptions-2.8.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-http-core_2.13",
-          "version": "10.1.13",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-http-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.1.13/akka-http-core_2.13-10.1.13.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-actor-typed_2.13",
-          "version": "2.6.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-actor-typed_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor-typed_2.13/2.6.10/akka-actor-typed_2.13-2.6.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-protobuf-v3_2.13",
-          "version": "2.6.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-protobuf-v3_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.10/akka-protobuf-v3_2.13-2.6.10.jar"
+              "name": "jjwt-jackson",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-jackson/0.11.5/jjwt-jackson-0.11.5.jar"
             }
           ]
         },
@@ -541,74 +258,386 @@
           ]
         },
         {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.13.6",
+          "organization": "org.apache.pekko",
+          "name": "pekko-serialization-jackson_2.13",
+          "version": "1.0.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+              "name": "pekko-serialization-jackson_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-serialization-jackson_2.13/1.0.3/pekko-serialization-jackson_2.13-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "failureaccess",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "failureaccess",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.3/config-1.4.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-xml_2.13",
+          "version": "2.2.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-xml_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.13/2.2.0/scala-xml_2.13-2.2.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-http-core_2.13",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-http-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-http-core_2.13/1.0.1/pekko-http-core_2.13-1.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-databind",
+          "version": "2.14.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-databind",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.14.3/jackson-databind-2.14.3.jar"
             }
           ]
         },
         {
           "organization": "com.fasterxml.jackson.module",
-          "name": "jackson-module-paranamer",
-          "version": "2.10.5",
+          "name": "jackson-module-parameter-names",
+          "version": "2.14.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jackson-module-paranamer",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-paranamer/2.10.5/jackson-module-paranamer-2.10.5.jar"
+              "name": "jackson-module-parameter-names",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-parameter-names/2.14.3/jackson-module-parameter-names-2.14.3.jar"
             }
           ]
         },
         {
-          "organization": "jakarta.transaction",
-          "name": "jakarta.transaction-api",
-          "version": "1.3.3",
+          "organization": "org.reactivestreams",
+          "name": "reactive-streams",
+          "version": "1.0.4",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jakarta.transaction-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/transaction/jakarta.transaction-api/1.3.3/jakarta.transaction-api-1.3.3.jar"
+              "name": "reactive-streams",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.4/reactive-streams-1.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.datatype",
+          "name": "jackson-datatype-jdk8",
+          "version": "2.14.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-datatype-jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/datatype/jackson-datatype-jdk8/2.14.3/jackson-datatype-jdk8-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.google.guava",
+          "name": "guava",
+          "version": "32.1.3-jre",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "guava",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/guava/32.1.3-jre/guava-32.1.3-jre.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.parboiled",
+          "name": "parboiled_2.13",
+          "version": "2.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "parboiled_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/parboiled/parboiled_2.13/2.5.0/parboiled_2.13-2.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "pekko_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/pekko_2.13/1.5.0/pekko_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-json_2.13",
+          "version": "3.0.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-json_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_2.13/3.0.4/play-json_2.13-3.0.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang.modules",
+          "name": "scala-collection-compat_2.13",
+          "version": "2.13.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-collection-compat_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-collection-compat_2.13/2.13.0/scala-collection-compat_2.13-2.13.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "javax.inject",
+          "name": "javax.inject",
+          "version": "1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "javax.inject",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.checkerframework",
+          "name": "checker-qual",
+          "version": "3.37.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "checker-qual",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/checkerframework/checker-qual/3.37.0/checker-qual-3.37.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play_2.13",
+          "version": "3.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play_2.13/3.0.6/play_2.13-3.0.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-exceptions",
+          "version": "3.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-exceptions",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-exceptions/3.0.6/play-exceptions-3.0.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-reflect",
+          "version": "2.13.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-reflect",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.13",
+          "version": "0.6.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.6.1/ssl-config-core_2.13-0.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.fasterxml.jackson.core",
+          "name": "jackson-annotations",
+          "version": "2.14.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jackson-annotations",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.14.3/jackson-annotations-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-actor-typed_2.13",
+          "version": "1.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-actor-typed_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor-typed_2.13/1.0.3/pekko-actor-typed_2.13-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-server_2.13",
+          "version": "3.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-server_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-server_2.13/3.0.6/play-server_2.13-3.0.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "jul-to-slf4j",
-          "version": "1.7.30",
+          "version": "2.0.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jul-to-slf4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/1.7.30/jul-to-slf4j-1.7.30.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.16/jul-to-slf4j-2.0.16.jar"
             }
           ]
         },
         {
-          "organization": "jakarta.xml.bind",
-          "name": "jakarta.xml.bind-api",
-          "version": "2.3.3",
+          "organization": "org.apache.pekko",
+          "name": "pekko-stream_2.13",
+          "version": "1.0.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "jakarta.xml.bind-api",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/xml/bind/jakarta.xml.bind-api/2.3.3/jakarta.xml.bind-api-2.3.3.jar"
+              "name": "pekko-stream_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-stream_2.13/1.0.3/pekko-stream_2.13-1.0.3.jar"
             }
           ]
         },
         {
-          "organization": "com.typesafe.play",
-          "name": "play-functional_2.13",
-          "version": "2.8.1",
+          "organization": "org.apache.pekko",
+          "name": "pekko-protobuf-v3_2.13",
+          "version": "1.0.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "play-functional_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_2.13/2.8.1/play-functional_2.13-2.8.1.jar"
+              "name": "pekko-protobuf-v3_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-protobuf-v3_2.13/1.0.3/pekko-protobuf-v3_2.13-1.0.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.jsonwebtoken",
+          "name": "jjwt-impl",
+          "version": "0.11.5",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jjwt-impl",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-impl/0.11.5/jjwt-impl-0.11.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-actor_2.13",
+          "version": "1.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-actor_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-actor_2.13/1.0.3/pekko-actor_2.13-1.0.3.jar"
             }
           ]
         },
@@ -627,204 +656,156 @@
         {
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
-          "version": "1.3",
+          "version": "2.8",
           "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/1.3/j2objc-annotations-1.3.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/j2objc/j2objc-annotations/2.8/j2objc-annotations-2.8.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "1.4.18",
+          "version": "1.7.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
             }
           ]
         },
         {
           "organization": "org.lz4",
           "name": "lz4-java",
-          "version": "1.7.1",
+          "version": "1.8.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "lz4-java",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.7.1/lz4-java-1.7.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.google.guava",
-          "name": "failureaccess",
-          "version": "1.0.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "failureaccess",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/guava/failureaccess/1.0.1/failureaccess-1.0.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.jsonwebtoken",
-          "name": "jjwt",
-          "version": "0.9.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jjwt",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt/0.9.1/jjwt-0.9.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "joda-time",
-          "name": "joda-time",
-          "version": "2.10.5",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "joda-time",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/joda-time/joda-time/2.10.5/joda-time-2.10.5.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "config",
-          "version": "1.4.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "magnolia_2.13",
-          "version": "0.17.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "mercator_2.13",
-          "version": "0.2.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "mercator_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang.modules",
-          "name": "scala-java8-compat_2.13",
-          "version": "0.9.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-java8-compat_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/0.9.1/scala-java8-compat_2.13-0.9.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/lz4/lz4-java/1.8.0/lz4-java-1.8.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
             }
           ]
         },
         {
-          "organization": "com.typesafe.play",
-          "name": "build-link",
-          "version": "2.8.7",
+          "organization": "org.playframework",
+          "name": "play-streams_2.13",
+          "version": "3.0.6",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "build-link",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/build-link/2.8.7/build-link-2.8.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.akka",
-          "name": "akka-actor_2.13",
-          "version": "2.6.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "akka-actor_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.10/akka-actor_2.13-2.6.10.jar"
+              "name": "play-streams_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-streams_2.13/3.0.6/play-streams_2.13-3.0.6.jar"
             }
           ]
         },
         {
           "organization": "org.slf4j",
           "name": "jcl-over-slf4j",
-          "version": "1.7.30",
+          "version": "2.0.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jcl-over-slf4j",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/1.7.30/jcl-over-slf4j-1.7.30.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jcl-over-slf4j/2.0.16/jcl-over-slf4j-2.0.16.jar"
             }
           ]
         },
         {
-          "organization": "com.typesafe.play",
-          "name": "play_2.13",
-          "version": "2.8.7",
+          "organization": "io.jsonwebtoken",
+          "name": "jjwt-api",
+          "version": "0.11.5",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "play_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play_2.13/2.8.7/play_2.13-2.8.7.jar"
+              "name": "jjwt-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/jsonwebtoken/jjwt-api/0.11.5/jjwt-api-0.11.5.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-build-link",
+          "version": "3.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-build-link",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-build-link/3.0.6/play-build-link-3.0.6.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-parsing_2.13",
+          "version": "1.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-parsing_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-parsing_2.13/1.0.1/pekko-parsing_2.13-1.0.1.jar"
             }
           ]
         },
         {
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
-          "version": "2.3.4",
+          "version": "2.21.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.3.4/error_prone_annotations-2.3.4.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/google/errorprone/error_prone_annotations/2.21.1/error_prone_annotations-2.21.1.jar"
             }
           ]
         },
         {
-          "organization": "com.typesafe.play",
-          "name": "play-streams_2.13",
-          "version": "2.8.7",
+          "organization": "com.fasterxml.jackson.module",
+          "name": "jackson-module-scala_2.13",
+          "version": "2.14.3",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "play-streams_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-streams_2.13/2.8.7/play-streams_2.13-2.8.7.jar"
+              "name": "jackson-module-scala_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/module/jackson-module-scala_2.13/2.14.3/jackson-module-scala_2.13-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework.twirl",
+          "name": "twirl-api_2.13",
+          "version": "2.0.7",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "twirl-api_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/twirl/twirl-api_2.13/2.0.7/twirl-api_2.13-2.0.7.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-configuration_2.13",
+          "version": "3.0.6",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-configuration_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-configuration_2.13/3.0.6/play-configuration_2.13-3.0.6.jar"
             }
           ]
         },
@@ -841,26 +822,26 @@
           ]
         },
         {
-          "organization": "com.typesafe.play",
-          "name": "play-server_2.13",
-          "version": "2.8.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "play-server_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-server_2.13/2.8.7/play-server_2.13-2.8.7.jar"
-            }
-          ]
-        },
-        {
           "organization": "com.fasterxml.jackson.dataformat",
           "name": "jackson-dataformat-cbor",
-          "version": "2.10.5",
+          "version": "2.14.3",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-dataformat-cbor",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.10.5/jackson-dataformat-cbor-2.10.5.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/fasterxml/jackson/dataformat/jackson-dataformat-cbor/2.14.3/jackson-dataformat-cbor-2.14.3.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.apache.pekko",
+          "name": "pekko-slf4j_2.13",
+          "version": "1.0.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "pekko-slf4j_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/apache/pekko/pekko-slf4j_2.13/1.0.3/pekko-slf4j_2.13-1.0.3.jar"
             }
           ]
         }

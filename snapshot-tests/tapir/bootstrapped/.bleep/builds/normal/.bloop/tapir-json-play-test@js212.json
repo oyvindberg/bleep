@@ -6,6 +6,8 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/javajs",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/scala-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/scala-2.12",
@@ -19,55 +21,68 @@
       "tapir-json-play@js212"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.12/0.17.0/magnolia_sjs1_2.12-0.17.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.4.18/core_sjs1_2.12-1.4.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.2.7/core_sjs1_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.2.7/ws_sjs1_2.12-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_sjs1_2.12/2.9.2/play-functional_sjs1_2.12-2.9.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_sjs1_2.12/2.9.2/play-json_sjs1_2.12-2.9.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/2.7.0/cldr-api_sjs1_2.12-2.7.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.2.0/scala-java-locales_sjs1_2.12-1.2.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.3.0/scala-java-time_sjs1_2.12-2.3.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.1/portable-scala-reflect_sjs1_2.12-1.1.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.0.0/scalajs-dom_sjs1_2.12-2.0.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.8.0/scalajs-library_2.12-1.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.8.0/scalajs-test-bridge_2.12-1.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.8.0/scalajs-test-interface_2.12-1.8.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_sjs1_2.12/3.2.10/scalactic_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_sjs1_2.12/3.2.10/scalatest-core_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_sjs1_2.12/3.2.10/scalatest-diagrams_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_sjs1_2.12/3.2.10/scalatest-featurespec_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_sjs1_2.12/3.2.10/scalatest-flatspec_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_sjs1_2.12/3.2.10/scalatest-freespec_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_sjs1_2.12/3.2.10/scalatest-funspec_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_sjs1_2.12/3.2.10/scalatest-funsuite_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_sjs1_2.12/3.2.10/scalatest-matchers-core_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_sjs1_2.12/3.2.10/scalatest-mustmatchers_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_sjs1_2.12/3.2.10/scalatest-propspec_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_sjs1_2.12/3.2.10/scalatest-shouldmatchers_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_2.12/3.2.10/scalatest-wordspec_sjs1_2.12-3.2.10.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_2.12/3.2.10/scalatest_sjs1_2.12-3.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.12/1.1.10/magnolia_sjs1_2.12-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.7.14/core_sjs1_2.12-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.5.0/core_sjs1_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.5.0/ws_sjs1_2.12-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/4.5.0/cldr-api_sjs1_2.12-4.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.5.4/scala-java-locales_sjs1_2.12-1.5.4.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.6.0/scala-java-time_sjs1_2.12-2.6.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_sjs1_2.12/3.0.1/play-functional_sjs1_2.12-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_sjs1_2.12/3.0.1/play-json_sjs1_2.12-3.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.3/portable-scala-reflect_sjs1_2.12-1.1.3.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.8.0/scalajs-dom_sjs1_2.12-2.8.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-java-securerandom_sjs1_2.12/1.0.0/scalajs-java-securerandom_sjs1_2.12-1.0.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.19.0/scalajs-library_2.12-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.19.0/scalajs-scalalib_2.12-2.12.20%2B1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.19.0/scalajs-test-bridge_2.12-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.19.0/scalajs-test-interface_2.12-1.19.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_sjs1_2.12/3.2.18/scalactic_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_sjs1_2.12/3.2.18/scalatest-core_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_sjs1_2.12/3.2.18/scalatest-diagrams_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_sjs1_2.12/3.2.18/scalatest-featurespec_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_sjs1_2.12/3.2.18/scalatest-flatspec_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_sjs1_2.12/3.2.18/scalatest-freespec_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_sjs1_2.12/3.2.18/scalatest-funspec_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_sjs1_2.12/3.2.18/scalatest-funsuite_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_sjs1_2.12/3.2.18/scalatest-matchers-core_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_sjs1_2.12/3.2.18/scalatest-mustmatchers_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_sjs1_2.12/3.2.18/scalatest-propspec_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_sjs1_2.12/3.2.18/scalatest-shouldmatchers_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_2.12/3.2.18/scalatest-wordspec_sjs1_2.12-3.2.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_2.12/3.2.18/scalatest_sjs1_2.12-3.2.18.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-play/js212/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-play-test/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-play-test/js212/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/playjson/src/test/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.12.15",
+      "version": "2.12.20",
       "options": [
-        "-Xcheckinit",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.Assertion:s",
+        "-Wconf:msg=unused",
+        "value",
+        "of",
+        "type",
+        "org.scalatest.compatible.Assertion:s",
         "-Xlint:adapted-args",
         "-Xlint:by-name-right-associative",
         "-Xlint:constant",
         "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
         "-Xlint:doc-detached",
         "-Xlint:inaccessible",
         "-Xlint:infer-any",
@@ -81,8 +96,8 @@
         "-Xlint:stars-align",
         "-Xlint:type-parameter-shadow",
         "-Xlint:unsound-match",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.15/1.8.0/scalajs-compiler_2.12.15-1.8.0.jar",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.15/0.13.2/kind-projector_2.12.15-0.13.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.12.20/1.19.0/scalajs-compiler_2.12.20-1.19.0.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.12.20/0.13.3/kind-projector_2.12.20-0.13.3.jar",
         "-Yno-adapted-args",
         "-Ypartial-unification",
         "-Ywarn-dead-code",
@@ -94,6 +109,7 @@
         "-Ywarn-unused:implicits",
         "-Ywarn-unused:imports",
         "-Ywarn-unused:locals",
+        "-Ywarn-unused:nowarn",
         "-Ywarn-unused:params",
         "-Ywarn-unused:patvars",
         "-Ywarn-unused:privates",
@@ -101,7 +117,6 @@
         "-deprecation",
         "-encoding",
         "utf8",
-        "-explaintypes",
         "-feature",
         "-language:existentials",
         "-language:experimental.macros",
@@ -110,10 +125,10 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.15/scala-compiler-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-xml_2.12/2.3.0/scala-xml_2.12-2.3.0.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-play-test/js212/inc_compile.zip",
       "setup": {
@@ -169,6 +184,13 @@
           "names": [
             "mill.testng.TestNGFramework"
           ]
+        },
+        {
+          "names": [
+            "hedgehog.sbt.Framework",
+            "weaver.framework.CatsEffect",
+            "zio.test.sbt.ZTestFramework"
+          ]
         }
       ],
       "options": {
@@ -193,7 +215,7 @@
     "platform": {
       "name": "js",
       "config": {
-        "version": "1.8.0",
+        "version": "1.19.0",
         "mode": "debug",
         "kind": "none",
         "emitSourceMaps": false,
@@ -210,374 +232,398 @@
     "resolution": {
       "modules": [
         {
-          "organization": "org.scalactic",
-          "name": "scalactic_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalactic_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_sjs1_2.12/3.2.10/scalactic_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_sjs1_2.12",
-          "version": "3.2.10",
+          "version": "3.2.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_sjs1_2.12/3.2.10/scalatest-diagrams_sjs1_2.12-3.2.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-diagrams_sjs1_2.12/3.2.18/scalatest-diagrams_sjs1_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
           "name": "scalatest-freespec_sjs1_2.12",
-          "version": "3.2.10",
+          "version": "3.2.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_sjs1_2.12/3.2.10/scalatest-freespec_sjs1_2.12-3.2.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-freespec_sjs1_2.12/3.2.18/scalatest-freespec_sjs1_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.12",
-          "version": "2.7.0",
+          "version": "4.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/2.7.0/cldr-api_sjs1_2.12-2.7.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/cldr-api_sjs1_2.12/4.5.0/cldr-api_sjs1_2.12-4.5.0.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-reflect",
-          "version": "2.12.15",
+          "version": "2.12.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.15/scala-reflect-2.12.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
           "name": "scalatest-core_sjs1_2.12",
-          "version": "3.2.10",
+          "version": "3.2.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_sjs1_2.12/3.2.10/scalatest-core_sjs1_2.12-3.2.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-core_sjs1_2.12/3.2.18/scalatest-core_sjs1_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.12",
-          "version": "1.8.0",
+          "version": "1.19.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.8.0/scalajs-test-interface_2.12-1.8.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funsuite_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest-funsuite_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_sjs1_2.12/3.2.10/scalatest-funsuite_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-funspec_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest-funspec_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_sjs1_2.12/3.2.10/scalatest-funspec_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "play-functional_sjs1_2.12",
-          "version": "2.9.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "play-functional_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-functional_sjs1_2.12/2.9.2/play-functional_sjs1_2.12-2.9.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "ws_sjs1_2.12",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "ws_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.2.7/ws_sjs1_2.12-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-test-bridge_2.12",
-          "version": "1.8.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalajs-test-bridge_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.8.0/scalajs-test-bridge_2.12-1.8.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-matchers-core_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest-matchers-core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_sjs1_2.12/3.2.10/scalatest-matchers-core_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-wordspec_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest-wordspec_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_2.12/3.2.10/scalatest-wordspec_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "mercator_2.12",
-          "version": "0.2.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "mercator_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.12/0.2.1/mercator_2.12-0.2.1.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe.play",
-          "name": "play-json_sjs1_2.12",
-          "version": "2.9.2",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "play-json_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/play/play-json_sjs1_2.12/2.9.2/play-json_sjs1_2.12-2.9.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_2.12/3.2.10/scalatest_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-propspec_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest-propspec_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_sjs1_2.12/3.2.10/scalatest-propspec_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.softwaremill.sttp.shared",
-          "name": "core_sjs1_2.12",
-          "version": "1.2.7",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.2.7/core_sjs1_2.12-1.2.7.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-locales_sjs1_2.12",
-          "version": "1.2.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-java-locales_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.2.0/scala-java-locales_sjs1_2.12-1.2.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-lang",
-          "name": "scala-library",
-          "version": "2.12.15",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.15/scala-library-2.12.15.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalatest",
-          "name": "scalatest-shouldmatchers_sjs1_2.12",
-          "version": "3.2.10",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalatest-shouldmatchers_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_sjs1_2.12/3.2.10/scalatest-shouldmatchers_sjs1_2.12-3.2.10.jar"
-            }
-          ]
-        },
-        {
-          "organization": "io.github.cquiroz",
-          "name": "scala-java-time_sjs1_2.12",
-          "version": "2.3.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scala-java-time_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.3.0/scala-java-time_sjs1_2.12-2.3.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scala-js",
-          "name": "scalajs-library_2.12",
-          "version": "1.8.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "scalajs-library_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.8.0/scalajs-library_2.12-1.8.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "magnolia_sjs1_2.12",
-          "version": "0.17.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "magnolia_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_sjs1_2.12/0.17.0/magnolia_sjs1_2.12-0.17.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-interface_2.12/1.19.0/scalajs-test-interface_2.12-1.19.0.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_sjs1_2.12",
-          "version": "3.2.10",
+          "version": "3.2.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_sjs1_2.12/3.2.10/scalatest-featurespec_sjs1_2.12-3.2.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-featurespec_sjs1_2.12/3.2.18/scalatest-featurespec_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funspec_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funspec_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funspec_sjs1_2.12/3.2.18/scalatest-funspec_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_sjs1_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_sjs1_2.12/1.5.0/ws_sjs1_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-test-bridge_2.12",
+          "version": "1.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-test-bridge_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-test-bridge_2.12/1.19.0/scalajs-test-bridge_2.12-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-javalib",
+          "version": "1.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-javalib",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-matchers-core_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-matchers-core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-matchers-core_sjs1_2.12/3.2.18/scalatest-matchers-core_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-wordspec_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-wordspec_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_2.12/3.2.18/scalatest-wordspec_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalactic",
+          "name": "scalactic_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalactic_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalactic/scalactic_sjs1_2.12/3.2.18/scalactic_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_sjs1_2.12",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_sjs1_2.12/1.1.10/magnolia_sjs1_2.12-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-json_sjs1_2.12",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-json_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_sjs1_2.12/3.0.1/play-json_sjs1_2.12-3.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-scalalib_2.12",
+          "version": "2.12.20+1.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-scalalib_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.12/2.12.20%2B1.19.0/scalajs-scalalib_2.12-2.12.20%2B1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-java-securerandom_sjs1_2.12",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-java-securerandom_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-java-securerandom_sjs1_2.12/1.0.0/scalajs-java-securerandom_sjs1_2.12-1.0.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_2.12/3.2.18/scalatest_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-propspec_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-propspec_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-propspec_sjs1_2.12/3.2.18/scalatest-propspec_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_sjs1_2.12",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_sjs1_2.12/1.5.0/core_sjs1_2.12-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-locales_sjs1_2.12",
+          "version": "1.5.4",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java-locales_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-locales_sjs1_2.12/1.5.4/scala-java-locales_sjs1_2.12-1.5.4.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.12.20",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-shouldmatchers_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-shouldmatchers_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_sjs1_2.12/3.2.18/scalatest-shouldmatchers_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.github.cquiroz",
+          "name": "scala-java-time_sjs1_2.12",
+          "version": "2.6.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-java-time_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/cquiroz/scala-java-time_sjs1_2.12/2.6.0/scala-java-time_sjs1_2.12-2.6.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-js",
+          "name": "scalajs-library_2.12",
+          "version": "1.19.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalajs-library_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.12/1.19.0/scalajs-library_2.12-1.19.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalatest",
+          "name": "scalatest-funsuite_sjs1_2.12",
+          "version": "3.2.18",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scalatest-funsuite_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-funsuite_sjs1_2.12/3.2.18/scalatest-funsuite_sjs1_2.12-3.2.18.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.playframework",
+          "name": "play-functional_sjs1_2.12",
+          "version": "3.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "play-functional_sjs1_2.12",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-functional_sjs1_2.12/3.0.1/play-functional_sjs1_2.12-3.0.1.jar"
             }
           ]
         },
         {
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.12",
-          "version": "2.0.0",
+          "version": "2.8.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.0.0/scalajs-dom_sjs1_2.12-2.0.0.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-dom_sjs1_2.12/2.8.0/scalajs-dom_sjs1_2.12-2.8.0.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.12",
-          "version": "1.4.18",
+          "version": "1.7.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.4.18/core_sjs1_2.12-1.4.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_sjs1_2.12/1.7.14/core_sjs1_2.12-1.7.14.jar"
             }
           ]
         },
         {
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.12",
-          "version": "1.1.1",
+          "version": "1.1.3",
           "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.1/portable-scala-reflect_sjs1_2.12-1.1.1.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_sjs1_2.12/1.1.3/portable-scala-reflect_sjs1_2.12-1.1.3.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_sjs1_2.12",
-          "version": "3.2.10",
+          "version": "3.2.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_sjs1_2.12/3.2.10/scalatest-mustmatchers_sjs1_2.12-3.2.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-mustmatchers_sjs1_2.12/3.2.18/scalatest-mustmatchers_sjs1_2.12-3.2.18.jar"
             }
           ]
         },
         {
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_sjs1_2.12",
-          "version": "3.2.10",
+          "version": "3.2.18",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_sjs1_2.12",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_sjs1_2.12/3.2.10/scalatest-flatspec_sjs1_2.12-3.2.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-flatspec_sjs1_2.12/3.2.18/scalatest-flatspec_sjs1_2.12-3.2.18.jar"
             }
           ]
         }

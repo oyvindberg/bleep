@@ -6,53 +6,60 @@
     "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
     "sources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scala",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scala-2",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scala-2.13",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scala-3-2.13+",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scalajvm",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scalajvm-2",
-      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scalajvm-2.13"
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scalajvm-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/scalajvm-3-2.13+"
     ],
     "dependencies": [
-      "tapir-core@jvm213"
+      "tapir-core@jvm213",
+      "tapir-server@jvm213"
     ],
     "classpath": [
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.2.7/akka_2.13-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.17/akka-actor_2.13-2.6.17.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.7/akka-http-core_2.13-10.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http_2.13/10.2.7/akka-http_2.13-10.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.2.7/akka-parsing_2.13-10.2.7.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.17/akka-protobuf-v3_2.13-2.6.17.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.17/akka-stream_2.13-2.6.17.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.2/ssl-config-core_2.13-0.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.0/akka_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.20/akka-actor_2.13-2.6.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.10/akka-http-core_2.13-10.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http_2.13/10.2.10/akka-http_2.13-10.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.2.10/akka-parsing_2.13-10.2.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.20/akka-protobuf-v3_2.13-2.6.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-slf4j_2.13/2.6.20/akka-slf4j_2.13-2.6.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.20/akka-stream_2.13-2.6.20.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.3/ssl-config-core_2.13-0.4.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/reactivestreams/reactive-streams/1.0.3/reactive-streams-1.0.3.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-java8-compat_2.13/1.0.0/scala-java8-compat_2.13-1.0.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-akka-http-server/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-akka-http-server/jvm213/classes",
     "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/resources"
     ],
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.13.6",
+      "version": "2.13.16",
       "options": [
-        "-Vimplicits",
-        "-Vtype-diffs",
         "-Wconf:cat=other-match-analysis:error",
         "-Wdead-code",
         "-Wextra-implicit",
+        "-Wnonunit-statement",
         "-Wnumeric-widen",
         "-Wunused:explicits",
         "-Wunused:implicits",
@@ -63,13 +70,14 @@
         "-Wunused:patvars",
         "-Wunused:privates",
         "-Wvalue-discard",
-        "-Xcheckinit",
         "-Xlint:-byname-implicit",
         "-Xlint:adapted-args",
         "-Xlint:constant",
         "-Xlint:delayedinit-select",
         "-Xlint:deprecation",
         "-Xlint:doc-detached",
+        "-Xlint:implicit-not-found",
+        "-Xlint:implicit-recursion",
         "-Xlint:inaccessible",
         "-Xlint:infer-any",
         "-Xlint:missing-interpolator",
@@ -81,33 +89,33 @@
         "-Xlint:stars-align",
         "-Xlint:strict-unsealed-patmat",
         "-Xlint:type-parameter-shadow",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.6/0.13.2/kind-projector_2.13.6-0.13.2.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
         "-Ywarn-macros:after",
         "-encoding",
         "utf8",
-        "-explaintypes",
         "-feature",
         "-language:existentials",
         "-language:experimental.macros",
         "-language:higherKinds",
         "-language:implicitConversions",
+        "-target:jvm-1.8",
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.6/scala-compiler-2.13.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.6/scala-reflect-2.13.6.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.19.0/jline-3.19.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-akka-http-server/jvm213/inc_compile.zip",
       "setup": {
         "order": "mixed",
-        "addLibraryToBootClasspath": true,
+        "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,
-        "manageBootClasspath": true,
-        "filterLibraryFromClasspath": true
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
       }
     },
     "java": {
@@ -141,134 +149,182 @@
           ]
         },
         {
-          "organization": "com.typesafe",
-          "name": "ssl-config-core_2.13",
-          "version": "0.4.2",
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "1.7.36",
           "configurations": "default",
           "artifacts": [
             {
-              "name": "ssl-config-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.2/ssl-config-core_2.13-0.4.2.jar"
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
           "name": "akka-http_2.13",
-          "version": "10.2.7",
+          "version": "10.2.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http_2.13/10.2.7/akka-http_2.13-10.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http_2.13/10.2.10/akka-http_2.13-10.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe.akka",
+          "name": "akka-slf4j_2.13",
+          "version": "2.6.20",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "akka-slf4j_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-slf4j_2.13/2.6.20/akka-slf4j_2.13-2.6.20.jar"
             }
           ]
         },
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.6",
+          "version": "2.13.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.6/scala-library-2.13.6.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.13",
-          "version": "2.6.17",
+          "version": "2.6.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka-stream_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.17/akka-stream_2.13-2.6.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-stream_2.13/2.6.20/akka-stream_2.13-2.6.20.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
-          "version": "1.4.18",
+          "version": "1.7.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.4.18/core_2.13-1.4.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "config",
+          "version": "1.4.2",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.2/config-1.4.2.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.13",
-          "version": "2.6.17",
+          "version": "2.6.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.17/akka-actor_2.13-2.6.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-actor_2.13/2.6.20/akka-actor_2.13-2.6.20.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.13",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.2.7/akka_2.13-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/akka_2.13/1.5.0/akka_2.13-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
           "name": "akka-parsing_2.13",
-          "version": "10.2.7",
+          "version": "10.2.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka-parsing_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.2.7/akka-parsing_2.13-10.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-parsing_2.13/10.2.10/akka-parsing_2.13-10.2.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.typesafe",
+          "name": "ssl-config-core_2.13",
+          "version": "0.4.3",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ssl-config-core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/ssl-config-core_2.13/0.4.3/ssl-config-core_2.13-0.4.3.jar"
             }
           ]
         },
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.2.7/core_2.13-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
           "name": "akka-http-core_2.13",
-          "version": "10.2.7",
+          "version": "10.2.10",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http-core_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.7/akka-http-core_2.13-10.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-http-core_2.13/10.2.10/akka-http-core_2.13-10.2.10.jar"
             }
           ]
         },
         {
           "organization": "com.typesafe.akka",
           "name": "akka-protobuf-v3_2.13",
-          "version": "2.6.17",
+          "version": "2.6.20",
           "configurations": "default",
           "artifacts": [
             {
               "name": "akka-protobuf-v3_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.17/akka-protobuf-v3_2.13-2.6.17.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/akka/akka-protobuf-v3_2.13/2.6.20/akka-protobuf-v3_2.13-2.6.20.jar"
             }
           ]
         },
@@ -281,42 +337,6 @@
             {
               "name": "scala-parser-combinators_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/modules/scala-parser-combinators_2.13/1.1.2/scala-parser-combinators_2.13-1.1.2.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.typesafe",
-          "name": "config",
-          "version": "1.4.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "config",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/typesafe/config/1.4.0/config-1.4.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "magnolia_2.13",
-          "version": "0.17.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "magnolia_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/magnolia_2.13/0.17.0/magnolia_2.13-0.17.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "com.propensive",
-          "name": "mercator_2.13",
-          "version": "0.2.1",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "mercator_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/propensive/mercator_2.13/0.2.1/mercator_2.13-0.2.1.jar"
             }
           ]
         },
@@ -335,12 +355,12 @@
         {
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
-          "version": "1.2.7",
+          "version": "1.5.0",
           "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.2.7/ws_2.13-1.2.7.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
             }
           ]
         }

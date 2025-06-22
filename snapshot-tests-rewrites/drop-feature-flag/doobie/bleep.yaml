@@ -2,69 +2,95 @@ $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
 $version: dev
 projects:
   bench:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
-    - org.openjdk.jmh:jmh-core:1.32
-    - org.openjdk.jmh:jmh-generator-bytecode:1.32
-    - org.openjdk.jmh:jmh-generator-reflection:1.32
-    dependsOn: doobie-postgres
+    - org.openjdk.jmh:jmh-core:1.37
+    - org.openjdk.jmh:jmh-generator-bytecode:1.37
+    - org.openjdk.jmh:jmh-generator-reflection:1.37
+    dependsOn:
+    - doobie-hikari
+    - doobie-postgres
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/bench
-    scala:
-      options: -Xfatal-warnings
   doobie-core:
     cross:
       jvm212:
-        dependencies: com.chuusai::shapeless:2.3.7
+        dependencies:
+        - com.chuusai::shapeless:2.3.13
+        - org.scala-lang.modules::scala-collection-compat:2.13.0
         sources: ./src/${SCOPE}/scala-2.13-
       jvm213:
-        dependencies: com.chuusai::shapeless:2.3.7
+        dependencies: com.chuusai::shapeless:2.3.13
+        scala:
+          strict: true
         sources: ./src/${SCOPE}/scala-2.13+
       jvm3:
         sources: ./src/${SCOPE}/scala-2.13+
-    dependencies: org.tpolecat::typename:1.0.0
+    dependencies: org.tpolecat::typename:1.1.0
     dependsOn: doobie-free
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/core
-    scala:
-      options: -Xfatal-warnings -Yno-predef
     sourcegen:
       main: scripts.GenerateForDoobieCore
       project: scripts
   doobie-core-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
     - com.h2database:h2:1.4.200
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: doobie-core
+    - org.postgresql:postgresql:42.7.5
+    dependsOn:
+    - doobie-core
+    - testutils-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/core
-    scala:
-      options: -Yno-predef
   doobie-free:
     cross:
       jvm212:
         dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
       jvm213:
         dependencies: org.scala-lang:scala-reflect:${SCALA_VERSION}
+        scala:
+          strict: true
     dependencies:
-    - co.fs2::fs2-core:3.2.4
-    - org.scala-lang.modules::scala-collection-compat:2.6.0
-    - org.typelevel::cats-core:2.7.0
-    - org.typelevel::cats-effect:3.3.5
-    - org.typelevel::cats-free:2.7.0
+    - co.fs2::fs2-core:3.12.0
+    - org.typelevel::cats-core:2.13.0
+    - org.typelevel::cats-effect:3.6.1
+    - org.typelevel::cats-free:2.13.0
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/free
-    scala:
-      options: -Yno-predef
+  doobie-free-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies:
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
+    dependsOn: doobie-free
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/modules/free
   doobie-h2:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies: com.h2database:h2:1.4.200
     dependsOn: doobie-core
     extends:
@@ -72,26 +98,37 @@ projects:
     - template-cross-all
     folder: ../sbt-build/modules/h2
   doobie-h2-circe:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-parser:0.14.1
+    - io.circe::circe-core:0.14.12
+    - io.circe::circe-parser:0.14.12
     dependsOn: doobie-h2
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/h2-circe
-    scala:
-      options: -Xfatal-warnings
   doobie-h2-circe-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn: doobie-h2-circe
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/h2-circe
   doobie-h2-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependsOn:
     - doobie-core-test
     - doobie-h2
@@ -100,24 +137,49 @@ projects:
     - template-cross-all
     folder: ../sbt-build/modules/h2
   doobie-hikari:
+    cross:
+      jvm213:
+        scala:
+          options: -Wdead-code -Wextra-implicit -Wnonunit-statement -Wnumeric-widen
+            -Wunused:explicits -Wunused:implicits -Wunused:imports -Wunused:locals
+            -Wunused:params -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit
+            -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
+            -Xlint:doc-detached -Xlint:implicit-not-found -Xlint:implicit-recursion
+            -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator -Xlint:nullary-unit
+            -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+            -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat
+            -Xlint:type-parameter-shadow -encoding utf8 -language:existentials -language:experimental.macros
+            -language:higherKinds -language:implicitConversions -unchecked
     dependencies:
     - exclusions:
         org.slf4j: slf4j-api
-      module: com.zaxxer:HikariCP:4.0.3
+      module: com.zaxxer:HikariCP:6.3.0
     - org.slf4j:slf4j-api:1.7.36
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/hikari
-    scala:
-      options: -Xfatal-warnings
   doobie-hikari-test:
+    cross:
+      jvm213:
+        scala:
+          options: -Wdead-code -Wextra-implicit -Wnonunit-statement -Wnumeric-widen
+            -Wunused:explicits -Wunused:implicits -Wunused:imports -Wunused:locals
+            -Wunused:params -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit
+            -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select -Xlint:deprecation
+            -Xlint:doc-detached -Xlint:implicit-not-found -Xlint:implicit-recursion
+            -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator -Xlint:nullary-unit
+            -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
+            -Xlint:private-shadow -Xlint:stars-align -Xlint:strict-unsealed-patmat
+            -Xlint:type-parameter-shadow -encoding utf8 -language:existentials -language:experimental.macros
+            -language:higherKinds -language:implicitConversions -unchecked
     dependencies:
     - com.h2database:h2:1.4.200
     - org.slf4j:slf4j-nop:1.7.36
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn:
     - doobie-hikari
     - doobie-postgres
@@ -125,60 +187,119 @@ projects:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/hikari
+  doobie-log4cats:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies: org.typelevel::log4cats-core:2.7.0
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/modules/log4cats
   doobie-munit:
-    dependencies: org.scalameta::munit:0.7.29
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies: org.scalameta::munit:1.1.0
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/munit
-    scala:
-      options: -Xfatal-warnings
   doobie-munit-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
     - com.h2database:h2:1.4.200
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn: doobie-munit
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/munit
+  doobie-mysql:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies: com.mysql:mysql-connector-j:9.2.0
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/modules/mysql
+  doobie-mysql-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependsOn:
+    - doobie-core-test
+    - doobie-mysql
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/modules/mysql
   doobie-postgres:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
-    - co.fs2::fs2-io:3.2.4
+    - co.fs2::fs2-io:3.12.0
     - configuration: provided
-      module: net.postgis:postgis-jdbc:2.5.1
-    - org.postgresql:postgresql:42.3.2
+      module: net.postgis:postgis-jdbc:2024.1.0
+    - org.postgresql:postgresql:42.7.5
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/postgres
   doobie-postgres-circe:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
-    - io.circe::circe-core:0.14.1
-    - io.circe::circe-parser:0.14.1
+    - io.circe::circe-core:0.14.12
+    - io.circe::circe-parser:0.14.12
     dependsOn: doobie-postgres
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/postgres-circe
-    scala:
-      options: -Xfatal-warnings
   doobie-postgres-circe-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn: doobie-postgres-circe
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/postgres-circe
   doobie-postgres-test:
+    cross:
+      jvm213:
+        dependencies: org.scala-lang.modules::scala-collection-compat:2.13.0
+        scala:
+          strict: true
+      jvm3:
+        dependencies: org.scala-lang.modules::scala-collection-compat:2.13.0
     dependencies:
       configuration: provided
-      module: net.postgis:postgis-jdbc:2.5.1
+      module: net.postgis:postgis-jdbc:2024.1.0
     dependsOn:
     - doobie-core-test
     - doobie-postgres
@@ -187,38 +308,52 @@ projects:
     - template-cross-all
     folder: ../sbt-build/modules/postgres
   doobie-refined:
-    dependencies: eu.timepit::refined:0.9.28
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies: eu.timepit::refined:0.11.3
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/refined
-    scala:
-      options: -Xfatal-warnings
   doobie-refined-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
     - com.h2database:h2:1.4.200
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn: doobie-refined
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/refined
   doobie-scalatest:
-    dependencies: org.scalatest::scalatest:3.2.10
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies: org.scalatest::scalatest:3.2.18
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/scalatest
-    scala:
-      options: -Xfatal-warnings
   doobie-scalatest-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependencies:
     - com.h2database:h2:1.4.200
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
     dependsOn: doobie-scalatest
     extends:
     - template-common-test
@@ -226,35 +361,59 @@ projects:
     folder: ../sbt-build/modules/scalatest
   doobie-specs2:
     cross:
-      jvm212:
-        dependencies: org.specs2::specs2-core:4.13.2
       jvm213:
-        dependencies: org.specs2::specs2-core:4.13.2
+        scala:
+          strict: true
+    dependencies: org.specs2::specs2-core:4.21.0
     dependsOn: doobie-core
     extends:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/specs2
-    scala:
-      options: -Xfatal-warnings
   doobie-specs2-test:
     cross:
-      jvm212:
-        dependencies:
-        - org.typelevel::munit-cats-effect-3:1.0.7
-        - org.typelevel::scalacheck-effect-munit:1.0.3
       jvm213:
-        dependencies:
-        - org.typelevel::munit-cats-effect-3:1.0.7
-        - org.typelevel::scalacheck-effect-munit:1.0.3
+        scala:
+          strict: true
     dependsOn:
     - doobie-h2
     - doobie-specs2
+    - testutils-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/specs2
+  doobie-weaver:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies: com.disneystreaming::weaver-cats:0.8.4
+    dependsOn: doobie-core
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/modules/weaver
+  doobie-weaver-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies:
+    - com.h2database:h2:1.4.200
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
+    dependsOn: doobie-weaver
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/modules/weaver
   example:
+    cross:
+      jvm213:
+        scala:
+          strict: true
     dependsOn:
     - doobie-h2
     - doobie-hikari
@@ -265,27 +424,54 @@ projects:
     - template-common-main
     - template-cross-all
     folder: ../sbt-build/modules/example
-    scala:
-      options: -Xfatal-warnings
   example-test:
-    dependencies:
-    - org.typelevel::munit-cats-effect-3:1.0.7
-    - org.typelevel::scalacheck-effect-munit:1.0.3
-    dependsOn: example
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependsOn:
+    - example
+    - testutils-test
     extends:
     - template-common-test
     - template-cross-all
     folder: ../sbt-build/modules/example
   scripts:
-    dependencies: build.bleep::bleep-core:0.0.1-M20
+    dependencies: build.bleep::bleep-core:0.0.12
     platform:
       name: jvm
     scala:
-      version: 3.3.0
+      version: 3.3.5
+  testutils:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    extends:
+    - template-common-main
+    - template-cross-all
+    folder: ../sbt-build/modules/testutils
+  testutils-test:
+    cross:
+      jvm213:
+        scala:
+          strict: true
+    dependencies:
+    - org.typelevel::cats-effect-testkit:3.6.1
+    - org.typelevel::munit-cats-effect:2.1.0
+    - org.typelevel::scalacheck-effect-munit:2.0.0-M2
+    dependsOn: testutils
+    extends:
+    - template-common-test
+    - template-cross-all
+    folder: ../sbt-build/modules/testutils
 templates:
   template-common:
+    ignoreEvictionErrors: no
     platform:
       name: jvm
+    scala:
+      options: -Wconf:cat=unused-nowarn:s
   template-common-main:
     extends: template-common
     sbt-scope: main
@@ -293,6 +479,10 @@ templates:
     extends: template-common
     isTestProject: true
     sbt-scope: test
+    testFrameworks:
+    - hedgehog.sbt.Framework
+    - weaver.framework.CatsEffect
+    - zio.test.sbt.ZTestFramework
   template-cross-all:
     cross:
       jvm212:
@@ -303,32 +493,29 @@ templates:
         extends: template-scala-3
   template-scala-2:
     scala:
-      compilerPlugins: org.typelevel:::kind-projector:0.13.2
-      options: -Xcheckinit -Xlint:adapted-args -Xlint:constant -Xlint:delayedinit-select
-        -Xlint:doc-detached -Xlint:inaccessible -Xlint:infer-any -Xlint:missing-interpolator
-        -Xlint:nullary-unit -Xlint:option-implicit -Xlint:package-object-classes -Xlint:poly-implicit-overload
-        -Xlint:private-shadow -Xlint:stars-align -Xlint:type-parameter-shadow -encoding
-        utf8 -explaintypes -language:existentials -language:experimental.macros -language:higherKinds
-        -language:implicitConversions -unchecked
+      compilerPlugins:
+      - com.olegpy::better-monadic-for:0.3.1
+      - org.typelevel:::kind-projector:0.13.3
+      options: -Xsource:3
   template-scala-2.12:
     extends: template-scala-2
     scala:
-      options: -Xlint:by-name-right-associative -Xlint:nullary-override -Xlint:unsound-match
-        -Yno-adapted-args -Ypartial-unification -Ywarn-dead-code -Ywarn-extra-implicit
-        -Ywarn-nullary-override -Ywarn-nullary-unit -Ywarn-numeric-widen -Ywarn-unused:implicits
-        -Ywarn-unused:imports -Ywarn-unused:locals -Ywarn-unused:params -Ywarn-unused:patvars
-        -Ywarn-unused:privates -Ywarn-value-discard -deprecation
-      version: 2.12.15
+      strict: true
+      version: 2.12.20
   template-scala-2.13:
     extends: template-scala-2
     scala:
-      options: -Vimplicits -Vtype-diffs -Wdead-code -Wextra-implicit -Wnumeric-widen
-        -Wunused:explicits -Wunused:implicits -Wunused:imports -Wunused:locals -Wunused:nowarn
-        -Wunused:params -Wunused:patvars -Wunused:privates -Wvalue-discard -Xlint:-byname-implicit
-        -Xlint:deprecation -Xlint:strict-unsealed-patmat
-      version: 2.13.8
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
+      version: 2.13.16
   template-scala-3:
     scala:
-      options: -explain -explain-types
+      options: -Xmax-inlines 64 -language:adhocExtensions -source:future
+      setup:
+        addLibraryToBootClasspath: false
+        filterLibraryFromClasspath: false
+        manageBootClasspath: false
       strict: true
-      version: 3.1.1
+      version: 3.3.5

@@ -1,0 +1,581 @@
+{
+  "version": "1.4.0",
+  "project": {
+    "name": "tapir-nima-server@jvm213",
+    "directory": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-nima-server/jvm213",
+    "workspaceDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped",
+    "sources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/java",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/javajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scala",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scala-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scala-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scala-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scala-3-2.13+",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scalajvm",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scalajvm-2",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scalajvm-2.13",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/scalajvm-3-2.13+"
+    ],
+    "dependencies": [
+      "tapir-core@jvm213",
+      "tapir-server@jvm213"
+    ],
+    "classpath": [
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/builder/helidon-builder-api/4.0.10/helidon-builder-api-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/features/helidon-common-features-api/4.0.10/helidon-common-features-api-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/features/helidon-common-features/4.0.10/helidon-common-features-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-buffers/4.0.10/helidon-common-buffers-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-config/4.0.10/helidon-common-config-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-configurable/4.0.10/helidon-common-configurable-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-context/4.0.10/helidon-common-context-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-key-util/4.0.10/helidon-common-key-util-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-mapper/4.0.10/helidon-common-mapper-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-media-type/4.0.10/helidon-common-media-type-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-parameters/4.0.10/helidon-common-parameters-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-security/4.0.10/helidon-common-security-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-socket/4.0.10/helidon-common-socket-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-task/4.0.10/helidon-common-task-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-tls/4.0.10/helidon-common-tls-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-types/4.0.10/helidon-common-types-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-uri/4.0.10/helidon-common-uri-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common/4.0.10/helidon-common-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/config/helidon-config/4.0.10/helidon-config-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/helidon/4.0.10/helidon-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/http/encoding/helidon-http-encoding/4.0.10/helidon-http-encoding-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/http/helidon-http/4.0.10/helidon-http-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/http/media/helidon-http-media/4.0.10/helidon-http-media-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/inject/helidon-inject-api/4.0.10/helidon-inject-api-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/logging/helidon-logging-common/4.0.10/helidon-logging-common-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/logging/helidon-logging-slf4j/4.0.10/helidon-logging-slf4j-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/webserver/helidon-webserver/4.0.10/helidon-webserver-4.0.10.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-jdk-platform-logging/2.0.9/slf4j-jdk-platform-logging-2.0.9.jar",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
+    ],
+    "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-nima-server/jvm213",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-nima-server/jvm213/classes",
+    "resources": [
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/resources"
+    ],
+    "scala": {
+      "organization": "org.scala-lang",
+      "name": "scala-compiler",
+      "version": "2.13.16",
+      "options": [
+        "-Wconf:cat=other-match-analysis:error",
+        "-Wdead-code",
+        "-Wextra-implicit",
+        "-Wnonunit-statement",
+        "-Wnumeric-widen",
+        "-Wunused:explicits",
+        "-Wunused:implicits",
+        "-Wunused:imports",
+        "-Wunused:locals",
+        "-Wunused:nowarn",
+        "-Wunused:params",
+        "-Wunused:patvars",
+        "-Wunused:privates",
+        "-Wvalue-discard",
+        "-Xlint:-byname-implicit",
+        "-Xlint:adapted-args",
+        "-Xlint:constant",
+        "-Xlint:delayedinit-select",
+        "-Xlint:deprecation",
+        "-Xlint:doc-detached",
+        "-Xlint:implicit-not-found",
+        "-Xlint:implicit-recursion",
+        "-Xlint:inaccessible",
+        "-Xlint:infer-any",
+        "-Xlint:missing-interpolator",
+        "-Xlint:nullary-unit",
+        "-Xlint:option-implicit",
+        "-Xlint:package-object-classes",
+        "-Xlint:poly-implicit-overload",
+        "-Xlint:private-shadow",
+        "-Xlint:stars-align",
+        "-Xlint:strict-unsealed-patmat",
+        "-Xlint:type-parameter-shadow",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/kind-projector_2.13.16/0.13.3/kind-projector_2.13.16-0.13.3.jar",
+        "-Ywarn-macros:after",
+        "-encoding",
+        "utf8",
+        "-feature",
+        "-language:existentials",
+        "-language:experimental.macros",
+        "-language:higherKinds",
+        "-language:implicitConversions",
+        "-target:jvm-1.8",
+        "-unchecked"
+      ],
+      "jars": [
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
+      ],
+      "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-nima-server/jvm213/inc_compile.zip",
+      "setup": {
+        "order": "mixed",
+        "addLibraryToBootClasspath": false,
+        "addCompilerToClasspath": false,
+        "addExtraJarsToClasspath": false,
+        "manageBootClasspath": false,
+        "filterLibraryFromClasspath": false
+      }
+    },
+    "java": {
+      "options": [
+        
+      ]
+    },
+    "platform": {
+      "name": "jvm",
+      "config": {
+        "options": [
+          "-Duser.dir=<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped"
+        ]
+      },
+      "mainClass": [
+        
+      ]
+    },
+    "resolution": {
+      "modules": [
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-mapper",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-mapper",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-mapper/4.0.10/helidon-common-mapper-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.http",
+          "name": "helidon-http",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-http",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/http/helidon-http/4.0.10/helidon-http-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-security",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-security",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-security/4.0.10/helidon-common-security-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-uri",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-uri",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-uri/4.0.10/helidon-common-uri-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.inject",
+          "name": "helidon-inject-api",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/inject/helidon-inject-api/4.0.10/helidon-inject-api-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon",
+          "name": "helidon",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/helidon/4.0.10/helidon-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-task",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-task",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-task/4.0.10/helidon-common-task-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-api",
+          "version": "2.0.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-key-util",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-key-util",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-key-util/4.0.10/helidon-common-key-util-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common.features",
+          "name": "helidon-common-features-api",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-features-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/features/helidon-common-features-api/4.0.10/helidon-common-features-api-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.model",
+          "name": "core_2.13",
+          "version": "1.7.14",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/model/core_2.13/1.7.14/core_2.13-1.7.14.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.config",
+          "name": "helidon-config",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/config/helidon-config/4.0.10/helidon-config-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-context",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-context",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-context/4.0.10/helidon-common-context-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-socket",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-socket",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-socket/4.0.10/helidon-common-socket-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.http.media",
+          "name": "helidon-http-media",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-http-media",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/http/media/helidon-http-media/4.0.10/helidon-http-media-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-configurable",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-configurable",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-configurable/4.0.10/helidon-common-configurable-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-buffers",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-buffers",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-buffers/4.0.10/helidon-common-buffers-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.magnolia1_2",
+          "name": "magnolia_2.13",
+          "version": "1.1.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "magnolia_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/magnolia1_2/magnolia_2.13/1.1.10/magnolia_2.13-1.1.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.http.encoding",
+          "name": "helidon-http-encoding",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-http-encoding",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/http/encoding/helidon-http-encoding/4.0.10/helidon-http-encoding-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.logging",
+          "name": "helidon-logging-slf4j",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-logging-slf4j",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/logging/helidon-logging-slf4j/4.0.10/helidon-logging-slf4j-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common/4.0.10/helidon-common-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "core_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "core_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/core_2.13/1.5.0/core_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.webserver",
+          "name": "helidon-webserver",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-webserver",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/webserver/helidon-webserver/4.0.10/helidon-webserver-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "jakarta.inject",
+          "name": "jakarta.inject-api",
+          "version": "2.0.1",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "jakarta.inject-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/jakarta/inject/jakarta.inject-api/2.0.1/jakarta.inject-api-2.0.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scala-lang",
+          "name": "scala-library",
+          "version": "2.13.16",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "scala-library",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-parameters",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-parameters",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-parameters/4.0.10/helidon-common-parameters-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.slf4j",
+          "name": "slf4j-jdk-platform-logging",
+          "version": "2.0.9",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "slf4j-jdk-platform-logging",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-jdk-platform-logging/2.0.9/slf4j-jdk-platform-logging-2.0.9.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-media-type",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-media-type",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-media-type/4.0.10/helidon-common-media-type-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.builder",
+          "name": "helidon-builder-api",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-builder-api",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/builder/helidon-builder-api/4.0.10/helidon-builder-api-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.logging",
+          "name": "helidon-logging-common",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-logging-common",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/logging/helidon-logging-common/4.0.10/helidon-logging-common-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "com.softwaremill.sttp.shared",
+          "name": "ws_2.13",
+          "version": "1.5.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "ws_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/com/softwaremill/sttp/shared/ws_2.13/1.5.0/ws_2.13-1.5.0.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-config",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-config",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-config/4.0.10/helidon-common-config-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common.features",
+          "name": "helidon-common-features",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-features",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/features/helidon-common-features/4.0.10/helidon-common-features-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-tls",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-tls",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-tls/4.0.10/helidon-common-tls-4.0.10.jar"
+            }
+          ]
+        },
+        {
+          "organization": "io.helidon.common",
+          "name": "helidon-common-types",
+          "version": "4.0.10",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "helidon-common-types",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/helidon/common/helidon-common-types/4.0.10/helidon-common-types-4.0.10.jar"
+            }
+          ]
+        }
+      ]
+    },
+    "tags": [
+      "library"
+    ]
+  }
+}
