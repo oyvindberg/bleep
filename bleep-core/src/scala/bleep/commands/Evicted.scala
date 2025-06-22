@@ -15,7 +15,12 @@ case class Evicted(projectNames: Array[model.CrossProjectName]) extends BleepBui
 
         val res = for {
           coursierDeps <- CoursierResolver.asCoursierDeps(bleepDeps, versionCombo)
-          resolved <- started.resolver.direct(bleepDeps, versionCombo, project.libraryVersionSchemes.values, project.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No))
+          resolved <- started.resolver.direct(
+            bleepDeps,
+            versionCombo,
+            project.libraryVersionSchemes.values,
+            project.ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
+          )
         } yield CheckEvictions.warnings(
           ewo = librarymanagement.EvictionWarningOptions.full,
           versionCombo = versionCombo,

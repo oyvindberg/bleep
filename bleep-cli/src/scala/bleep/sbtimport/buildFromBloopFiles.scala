@@ -15,8 +15,8 @@ import scala.jdk.CollectionConverters.IteratorHasAsScala
 object buildFromBloopFiles {
   def convertEvictionErrorLevel(level: bleep.nosbt.util.Level.Value): Option[model.IgnoreEvictionErrors] =
     level match {
-      case bleep.nosbt.util.Level.Error => Some(model.IgnoreEvictionErrors.No)
-      case bleep.nosbt.util.Level.Warn  => Some(model.IgnoreEvictionErrors.Warn)
+      case bleep.nosbt.util.Level.Error                               => Some(model.IgnoreEvictionErrors.No)
+      case bleep.nosbt.util.Level.Warn                                => Some(model.IgnoreEvictionErrors.Warn)
       case bleep.nosbt.util.Level.Info | bleep.nosbt.util.Level.Debug => Some(model.IgnoreEvictionErrors.Yes)
     }
 

@@ -7,7 +7,7 @@ sealed abstract class IgnoreEvictionErrors(val value: String)
 
 object IgnoreEvictionErrors {
   case object Yes extends IgnoreEvictionErrors("yes")
-  case object Warn extends IgnoreEvictionErrors("warn") 
+  case object Warn extends IgnoreEvictionErrors("warn")
   case object No extends IgnoreEvictionErrors("no")
 
   val All: List[IgnoreEvictionErrors] = List(Yes, Warn, No)
@@ -18,9 +18,7 @@ object IgnoreEvictionErrors {
 
   implicit val decoder: Decoder[IgnoreEvictionErrors] =
     Decoder.instance { c =>
-      c.as[String].flatMap(str => 
-        fromString(str).left.map(err => DecodingFailure(err, c.history))
-      )
+      c.as[String].flatMap(str => fromString(str).left.map(err => DecodingFailure(err, c.history)))
     }
 
   implicit val encoder: Encoder[IgnoreEvictionErrors] =

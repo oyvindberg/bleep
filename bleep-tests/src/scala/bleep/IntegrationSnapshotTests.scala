@@ -23,7 +23,8 @@ class IntegrationSnapshotTests extends SnapshotTest {
     // has a dependency it's impossible to resolve with coursier. need to investigate why it works in sbt
     val finatraServer = model.ProjectName("tapir-finatra-server")
     testIn(
-      "tapir", "https://github.com/softwaremill/tapir.git",
+      "tapir",
+      "https://github.com/softwaremill/tapir.git",
       "fdf0f99",
       xmx = "12g",
       filtering = sbtimport.ImportFiltering.empty.copy(excludeProjects = Set(finatraServer))
@@ -43,27 +44,33 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   test("sbt") {
-    testIn("sbt", "https://github.com/sbt/sbt.git", "0045c34", jvm = jvm8, postCheckoutCallback = { sbtBuildDir =>
-      // Fix Scala 3 wildcard import syntax issue
-      val sonaFile = sbtBuildDir / "main-actions" / "src" / "main" / "scala" / "sbt" / "internal" / "sona" / "Sona.scala"
-      if (Files.exists(sonaFile)) {
-        val content = Files.readString(sonaFile)
-        val fixedContent = content.replace(
-          "import sbt.internal.sona.codec.JsonProtocol.{ *, given }",
-          "import sbt.internal.sona.codec.JsonProtocol.*"
-        )
-        Files.writeString(sonaFile, fixedContent)
+    testIn(
+      "sbt",
+      "https://github.com/sbt/sbt.git",
+      "0045c34",
+      jvm = jvm8,
+      postCheckoutCallback = { sbtBuildDir =>
+        // Fix Scala 3 wildcard import syntax issue
+        val sonaFile = sbtBuildDir / "main-actions" / "src" / "main" / "scala" / "sbt" / "internal" / "sona" / "Sona.scala"
+        if (Files.exists(sonaFile)) {
+          val content = Files.readString(sonaFile)
+          val fixedContent = content.replace(
+            "import sbt.internal.sona.codec.JsonProtocol.{ *, given }",
+            "import sbt.internal.sona.codec.JsonProtocol.*"
+          )
+          Files.writeString(sonaFile, fixedContent)
+        }
+
+        // Also fix build.sbt to prevent OOM during compilation
+        val buildSbt = sbtBuildDir / "build.sbt"
+        if (Files.exists(buildSbt)) {
+          Files.writeString(
+            buildSbt,
+            Files.readString(buildSbt).linesIterator.filterNot(_.contains("scalafmtOnCompile := ")).mkString("\n")
+          )
+        }
       }
-      
-      // Also fix build.sbt to prevent OOM during compilation
-      val buildSbt = sbtBuildDir / "build.sbt"
-      if (Files.exists(buildSbt)) {
-        Files.writeString(
-          buildSbt,
-          Files.readString(buildSbt).linesIterator.filterNot(_.contains("scalafmtOnCompile := ")).mkString("\n")
-        )
-      }
-    })
+    )
   }
 
   test("scalameta") {
@@ -75,10 +82,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
   }
 
   def testIn(
-      project: String, 
-      repo: String, 
-      sha: String, 
-      jvm: model.Jvm = model.Jvm.graalvm, 
+      project: String,
+      repo: String,
+      sha: String,
+      jvm: model.Jvm = model.Jvm.graalvm,
       xmx: String = "4g",
       filtering: sbtimport.ImportFiltering = sbtimport.ImportFiltering.empty,
       postCheckoutCallback: Path => Unit = _ => ()
@@ -113,7 +120,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         cli(action = "git reset", cwd = sbtBuildDir, cmd = List("git", "reset", "--hard", sha), logger = logger, out = cliOut).discard()
         cli(action = "git submodule init", cwd = sbtBuildDir, cmd = List("git", "submodule", "init"), logger = logger, out = cliOut).discard()
         cli(action = "git submodule update", sbtBuildDir, List("git", "submodule", "update"), logger = logger, out = cliOut).discard()
-        
+
         // Apply any post-checkout fixes
         postCheckoutCallback(sbtBuildDir)
 
@@ -209,7 +216,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
           val replacements = model.Replacements.targetDir(targetDir) ++
             model.Replacements.ofReplacements(List(("sbt-build", "bootstrapped"))) ++
-            model.Replacements.scope(if isMain then "main" else "test")
+            model.Replacements.scope(if (isMain) "main" else "test")
 
           val original = project.scala.map(_.options).getOrElse(Nil)
           val all = model.Options.parse(original, Some(replacements)).values.toList.sorted.flatMap {

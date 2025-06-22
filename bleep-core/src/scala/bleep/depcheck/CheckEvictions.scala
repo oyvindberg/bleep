@@ -20,21 +20,21 @@ object CheckEvictions {
       ignoreEvictionErrors: Option[model.IgnoreEvictionErrors]
   ): Either[BleepEvictionError, Unit] = {
     val ignoreLevel = ignoreEvictionErrors.getOrElse(model.IgnoreEvictionErrors.No)
-    
+
     val ee = librarymanagement.EvictionError(
       report = updateRun(dependencies, res, logger),
       module = dummyModuleDescriptor(versionCombo),
       schemes = versionSchemes.map(asModule(versionCombo))
     )
-    
+
     if (ee.incompatibleEvictions.nonEmpty) {
       ignoreLevel match {
-        case model.IgnoreEvictionErrors.Yes => 
+        case model.IgnoreEvictionErrors.Yes =>
           Right(())
-        case model.IgnoreEvictionErrors.Warn => 
+        case model.IgnoreEvictionErrors.Warn =>
           ee.lines.foreach(logger.warn(_))
           Right(())
-        case model.IgnoreEvictionErrors.No => 
+        case model.IgnoreEvictionErrors.No =>
           Left(BleepEvictionError(ee.lines))
       }
     } else Right(())
