@@ -8,6 +8,7 @@ import coursier.Classifier
 import coursier.core.{Configuration, Extension}
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
 
+import java.io.File
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}
 import scala.collection.immutable.{ListSet, SortedMap, SortedSet}
@@ -372,18 +373,21 @@ object GenBloopFiles {
         val compilerPlugins: model.Options = {
           val deps: Set[model.Dep] =
             (versionCombo.compilerPlugin.toSet ++ maybeScala.fold(Set.empty[model.Dep])(_.compilerPlugins.values))
-              .map(_.withTransitive(false).mapScala(_.copy(forceJvm = true)))
+              .map(_.mapScala(_.copy(forceJvm = true)))
 
-          val jars: Seq[Path] =
-            resolver
-              .force(deps, versionCombo, explodedProject.libraryVersionSchemes.values, crossName.value, model.IgnoreEvictionErrors.No)
-              .fullDetailedArtifacts
-              .collect { case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath }
-
-          val relevantJars: Seq[Path] =
-            jars.filterNot(resolvedScalaCompiler.toSet)
-
-          model.Options.fromIterable(relevantJars.map(p => model.Options.Opt.Flag(s"${constants.ScalaPluginPrefix}:$p")))
+          model.Options.fromIterable(
+            deps.toSeq.map { dep =>
+              model.Options.Opt.Flag(
+                s"${constants.ScalaPluginPrefix}:" +
+                  resolver
+                    .force(Set(dep), versionCombo, explodedProject.libraryVersionSchemes.values, crossName.value, model.IgnoreEvictionErrors.No)
+                    .fullDetailedArtifacts
+                    .collect { case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath }
+                    .filterNot(resolvedScalaCompiler.toSet)
+                    .mkString(File.pathSeparator)
+              )
+            }
+          )
         }
 
         val scalacOptions: model.Options =
