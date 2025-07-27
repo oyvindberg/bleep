@@ -31,8 +31,7 @@ object Publish extends BleepScript("Publish") {
       sonatypeBundleDirectory = started.buildPaths.dotBleepDir / "sonatype-bundle",
       sonatypeProfileName = groupId,
       bundleName = "bleep",
-      version = dynVer.version,
-      sonatypeCredentialHost = Sonatype.sonatype01
+      version = dynVer.version
     )
     val ciRelease = new CiReleasePlugin(started.logger, sonatype, dynVer, pgp)
 
