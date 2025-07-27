@@ -82,7 +82,7 @@
     },
     "java": {
       "options": [
-        
+        "-proc:none"
       ]
     },
     "platform": {

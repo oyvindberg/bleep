@@ -290,7 +290,7 @@
     },
     "java": {
       "options": [
-        
+        "-proc:none"
       ]
     },
     "test": {

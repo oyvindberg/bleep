@@ -91,6 +91,82 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       assert(storingLogger.underlying.exists(_.message.plainText == "foo was: 2"))
     }
   }
+  test("annotation processing disabled by default") {
+    runTest(
+      "annotation processing disabled by default",
+      """projects:
+        |  a:
+        |    dependencies: org.projectlombok:lombok:1.18.30
+        |    source-layout: java
+        |    java:
+        |      options: -Xlint:all
+        |""".stripMargin,
+      Map(
+        RelPath.force("./a/src/main/java/test/Person.java") ->
+          """package test;
+            |
+            |import lombok.Data;
+            |
+            |@Data
+            |public class Person {
+            |    private String name;
+            |    private int age;
+            |}""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val bloopConfig = started.bloopFiles(projectName).forceGet("test")
+
+      // Should have -proc:none in java options
+      assert(bloopConfig.project.java.exists(_.options.contains("-proc:none")))
+      assert(bloopConfig.project.java.exists(_.options.contains("-Xlint:all")))
+
+      // Generated sources directory should not be in sources
+      assert(!bloopConfig.project.sources.exists(_.toString.contains("generated-sources")))
+    }
+  }
+
+  test("annotation processing enabled") {
+    runTest(
+      "annotation processing enabled",
+      """projects:
+        |  a:
+        |    dependencies: org.projectlombok:lombok:1.18.30
+        |    source-layout: java
+        |    java:
+        |      options: -Xlint:all
+        |      annotationProcessing:
+        |        enabled: true
+        |""".stripMargin,
+      Map(
+        RelPath.force("./a/src/main/java/test/Person.java") ->
+          """package test;
+            |
+            |import lombok.Data;
+            |
+            |@Data
+            |public class Person {
+            |    private String name;
+            |    private int age;
+            |}""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      val projectName = model.CrossProjectName(model.ProjectName("a"), None)
+      val bloopConfig = started.bloopFiles(projectName).forceGet("test")
+
+      // Should have -s option with generated sources directory
+      val javaOptions = bloopConfig.project.java.map(_.options).getOrElse(Nil)
+      assert(javaOptions.exists(_.contains("-s")))
+      assert(javaOptions.exists(_.contains("generated-sources")))
+      assert(javaOptions.exists(_.contains("annotations")))
+      assert(!javaOptions.contains("-proc:none"))
+      assert(javaOptions.contains("-Xlint:all"))
+
+      // Generated sources directory should be in sources
+      assert(bloopConfig.project.sources.exists(_.toString.contains("generated-sources")))
+    }
+  }
+
   test("run fallback to jvmOptions") {
     runTest(
       "run fallback to jvmOptions",

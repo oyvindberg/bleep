@@ -12,7 +12,7 @@ case class Clean(projects: Array[model.CrossProjectName]) extends BleepBuildComm
       projects
         .flatMap { projectName =>
           val paths = started.projectPaths(projectName)
-          List(paths.targetDir) ++ paths.sourcesDirs.generated.values ++ paths.resourcesDirs.generated.values
+          List(paths.targetDir) ++ paths.sourcesDirs.cleanable ++ paths.resourcesDirs.cleanable
         }
         .filter(Files.exists(_))
 

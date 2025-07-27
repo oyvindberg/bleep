@@ -125,7 +125,8 @@
         "8",
         "-Xlint:all",
         "-encoding",
-        "utf8"
+        "utf8",
+        "-proc:none"
       ]
     },
     "platform": {

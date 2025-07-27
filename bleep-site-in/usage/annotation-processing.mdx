@@ -1,0 +1,217 @@
+---
+title: Java Annotation Processing
+---
+
+Bleep supports Java annotation processors, allowing you to use tools like Lombok, MapStruct, Dagger, and other compile-time code generators.
+
+## Overview
+
+Annotation processing in Bleep is:
+- **Disabled by default** - Must be explicitly enabled
+- **Simple to configure** - Just one boolean flag
+- **Automatic discovery** - Uses Java's ServiceLoader mechanism
+- **Clean separation** - Generated sources go to a dedicated directory
+
+## Basic Configuration
+
+To enable annotation processing, add the `annotationProcessing` configuration to your project's `java` section:
+
+```yaml
+projects:
+  my-app:
+    dependencies:
+      - org.projectlombok:lombok:1.18.30
+    java:
+      annotationProcessing:
+        enabled: true
+```
+
+That's it! Bleep will automatically discover and run annotation processors found in your dependencies.
+
+## Common Use Cases
+
+### Lombok
+
+[Lombok](https://projectlombok.org/) reduces boilerplate code by generating getters, setters, constructors, and more:
+
+```yaml
+projects:
+  my-app:
+    dependencies:
+      - org.projectlombok:lombok:1.18.30
+    source-layout: java
+    java:
+      annotationProcessing:
+        enabled: true
+```
+
+Example Java code:
+```java
+import lombok.Data;
+
+@Data
+public class Person {
+    private String name;
+    private int age;
+}
+```
+
+### MapStruct
+
+[MapStruct](https://mapstruct.org/) generates type-safe mappers between Java beans:
+
+```yaml
+projects:
+  my-app:
+    dependencies:
+      - org.mapstruct:mapstruct:1.6.0
+      - org.mapstruct:mapstruct-processor:1.6.0
+    java:
+      annotationProcessing:
+        enabled: true
+```
+
+### Dagger
+
+[Dagger](https://dagger.dev/) is a compile-time dependency injection framework:
+
+```yaml
+projects:
+  my-app:
+    dependencies:
+      - com.google.dagger:dagger:2.51
+      - com.google.dagger:dagger-compiler:2.51
+    java:
+      annotationProcessing:
+        enabled: true
+```
+
+### Multiple Processors
+
+You can use multiple annotation processors in the same project:
+
+```yaml
+projects:
+  my-app:
+    dependencies:
+      - org.projectlombok:lombok:1.18.30
+      - org.mapstruct:mapstruct:1.6.0
+      - org.mapstruct:mapstruct-processor:1.6.0
+      - com.google.dagger:dagger:2.51
+      - com.google.dagger:dagger-compiler:2.51
+    java:
+      annotationProcessing:
+        enabled: true
+```
+
+## Generated Sources
+
+When annotation processing is enabled, generated Java sources are placed in:
+```
+.bleep/generated-sources/{project-name}/annotations/
+```
+
+This directory is:
+- Automatically created when needed
+- Added to the project's source paths
+- Cleaned on `bleep clean`
+- Excluded from version control (via `.gitignore`)
+
+## How It Works
+
+When `annotationProcessing.enabled = true`:
+- Bleep adds `-s .bleep/generated-sources/{project}/annotations/` to javac options
+- The Java compiler discovers processors via ServiceLoader
+- Generated sources are compiled along with your code
+
+When `annotationProcessing.enabled = false` (default):
+- Bleep adds `-proc:none` to javac options
+- Annotation processors are not run, even if present on classpath
+- No generated sources directory is created
+
+## Validation
+
+Bleep validates your configuration to prevent conflicts. You cannot manually specify `-proc:*` or `-s` javac options when using the `annotationProcessing` configuration:
+
+```yaml
+# This will fail with an error
+projects:
+  my-app:
+    java:
+      options: -proc:only -s target/generated  # ❌ Conflicts!
+      annotationProcessing:
+        enabled: true
+```
+
+## Troubleshooting
+
+### Processors Not Running
+
+If your annotation processors aren't running:
+1. Ensure `annotationProcessing.enabled: true` is set
+2. Check that processor dependencies are included
+3. Verify processors use standard ServiceLoader registration
+
+### IDE Integration
+
+Most IDEs will automatically recognize the generated sources directory. If not:
+- In IntelliJ IDEA: Mark `.bleep/generated-sources/{project}/annotations/` as "Generated Sources Root"
+- In VS Code with Metals: Sources should be recognized automatically
+
+### Compilation Errors
+
+If you see compilation errors related to generated code:
+1. Run `bleep clean` to remove stale generated files
+2. Ensure all required processor dependencies are included
+3. Check processor-specific documentation for configuration requirements
+
+## Migration from Other Build Tools
+
+### From Maven
+
+Maven typically runs annotation processors automatically. In Bleep, you must explicitly enable them:
+
+```xml
+<!-- Maven (runs automatically) -->
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <version>1.18.30</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+```yaml
+# Bleep (must enable explicitly)
+projects:
+  my-app:
+    dependencies:
+      - org.projectlombok:lombok:1.18.30
+    java:
+      annotationProcessing:
+        enabled: true
+```
+
+### From Gradle
+
+Gradle uses `annotationProcessor` configuration. In Bleep, use regular dependencies:
+
+```gradle
+// Gradle
+dependencies {
+    implementation 'com.google.dagger:dagger:2.51'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.51'
+}
+```
+
+```yaml
+# Bleep
+projects:
+  my-app:
+    dependencies:
+      - com.google.dagger:dagger:2.51
+      - com.google.dagger:dagger-compiler:2.51
+    java:
+      annotationProcessing:
+        enabled: true
+```

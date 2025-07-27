@@ -38,6 +38,16 @@
         }
       ]
     },
+    "AnnotationProcessing": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable annotation processing for Java sources"
+        }
+      }
+    },
     "ProjectName": {
       "type": "string"
     },
@@ -163,6 +173,9 @@
       "properties": {
         "options": {
           "$ref": "#/$defs/Options"
+        },
+        "annotationProcessing": {
+          "$ref": "#/$defs/AnnotationProcessing"
         }
       }
     },
