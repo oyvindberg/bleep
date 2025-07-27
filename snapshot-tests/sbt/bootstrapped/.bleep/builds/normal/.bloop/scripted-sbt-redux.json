@@ -187,6 +187,7 @@
       "options": [
         "-Xlint",
         "-Xlint:-serial",
+        "-proc:none",
         "-source",
         "1.8",
         "-target",

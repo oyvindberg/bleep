@@ -56,7 +56,8 @@
     },
     "java": {
       "options": [
-        "-parameters"
+        "-parameters",
+        "-proc:none"
       ]
     },
     "platform": {

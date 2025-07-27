@@ -423,13 +423,20 @@ object GenBloopFiles {
         case _                                            => bloop.config.Tag.Library
       }
 
+    val annotationProcessingGenSourcesDir = explodedJava.flatMap(_.annotationProcessing) match {
+      case Some(model.AnnotationProcessing(true)) =>
+        Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
+      case _ =>
+        None
+    }
+
     Config.File(
       "1.4.0",
       Config.Project(
         name = crossName.value,
         directory = projectPaths.targetDir,
         workspaceDir = Some(pre.buildPaths.buildDir),
-        sources = projectPaths.sourcesDirs.all.toList,
+        sources = projectPaths.sourcesDirs.all.toList ++ annotationProcessingGenSourcesDir.toList,
         sourcesGlobs = None,
         sourceRoots = None,
         dependencies = model.JsonSet.fromIterable(allTransitiveTranslated.keys.map(_.value)).values.toList,
@@ -438,7 +445,28 @@ object GenBloopFiles {
         classesDir = projectPaths.classes,
         resources = Some(projectPaths.resourcesDirs.all.toList),
         scala = configuredScala,
-        java = Some(Config.Java(options = templateDirs.fill.opts(explodedJava.map(_.options).getOrElse(model.Options.empty)).render)),
+        java = Some {
+          val baseOptions = explodedJava.map(_.options).getOrElse(model.Options.empty)
+
+          // Validate conflicting options
+          explodedJava.flatMap(_.annotationProcessing).foreach { _ =>
+            val renderedOptions = baseOptions.values.mkString(" ")
+            if (renderedOptions.contains("-proc:") || renderedOptions.contains(" -s ")) {
+              sys.error(s"Cannot use manual -proc or -s options when java.annotationProcessing is configured for project ${crossName.value}")
+            }
+          }
+
+          val options = explodedJava.flatMap(_.annotationProcessing) match {
+            case Some(model.AnnotationProcessing(true)) =>
+              // Annotation processing enabled - add generated sources directory
+              val genSourcesDir = pre.buildPaths.generatedSourcesDir(crossName, "annotations")
+              baseOptions.union(model.Options.parse(List("-s", genSourcesDir.toString), maybeRelativize = None))
+            case _ =>
+              // Annotation processing disabled (default) - explicitly disable it
+              baseOptions.union(model.Options.parse(List("-proc:none"), maybeRelativize = None))
+          }
+          Config.Java(options = templateDirs.fill.opts(options).render)
+        },
         sbt = None,
         test = if (explodedProject.isTestProject.getOrElse(false)) {
           val default = Config.Test.defaultConfiguration

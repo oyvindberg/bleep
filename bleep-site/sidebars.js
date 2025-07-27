@@ -40,6 +40,11 @@ const sidebars = {
                 },
                 {
                     type: "doc",
+                    label: "Java Annotation Processing",
+                    id: "usage/annotation-processing",
+                },
+                {
+                    type: "doc",
                     label: "Selecting projects",
                     id: "usage/selecting-projects",
                 },
