@@ -24,7 +24,7 @@ object Publish extends BleepScript("Publish") {
       interactionService = InteractionService.DoesNotMaskYourPasswordExclamationOneOne
     ) {
       // pick one of the keys from `gpg --list-keys`
-      override def pgpSigningKey() = Some("0BC13EB20EDBE20BE51010A04F1C4835C3551931")
+      override def pgpSigningKey() = Some("9979E0BA41F01ADE0BBAEF6012374915FB3D4C63")
     }
     val sonatype = new Sonatype(
       logger = started.logger,
