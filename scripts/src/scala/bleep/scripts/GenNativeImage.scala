@@ -37,6 +37,7 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         "--initialize-at-build-time=scala.runtime.Statics$VM",
         "--initialize-at-build-time=scala.Symbol",
         "--initialize-at-build-time=scala.Symbol$",
+        "-H:+ForeignAPISupport",
         "--native-image-info"
       ),
       env = sys.env.toList

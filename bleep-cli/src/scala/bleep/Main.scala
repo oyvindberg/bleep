@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{bleepLoggers, fatal, logException, FileUtils, TerminalInfo}
+import bleep.internal.{bleepLoggers, fatal, logException, FileUtils}
 import bleep.packaging.ManifestCreator
 import cats.data.NonEmptyList
 import cats.syntax.apply.*
@@ -484,9 +484,9 @@ object Main {
   def _main(_args: Array[String]): ExitCode = {
     val userPaths = UserPaths.fromAppDirs
 
-    // Initialize terminal info early with a temporary logger
+    // Enable ANSI support on Windows
     try
-      TerminalInfo.initialize(bleepLoggers.stderrWarn(CommonOpts(false, false, None, false, false, false)))
+      io.github.alexarchambault.nativeterm.NativeTerminal.setupAnsi()
     catch {
       case _: Exception => // Ignore any failures during initialization
     }
