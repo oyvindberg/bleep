@@ -1,50 +1,43 @@
 package bleep
 package internal
 
+import io.github.alexarchambault.nativeterm.NativeTerminal
 import ryddig.Logger
-import scala.util.Try
 
 object TerminalInfo {
   private var terminalWidth: Option[Int] = None
+  private var initialized: Boolean = false
 
-  def initialize(logger: Logger): Unit =
+  def initialize(logger: Logger): Unit = {
+    if (initialized) return
+    initialized = true
+
     try {
-      // Try to get terminal width from system
-      terminalWidth = getTerminalWidth()
-      logger.debug(s"Terminal width detected: ${terminalWidth.getOrElse("unknown")}")
+      // Enable ANSI support on Windows
+      NativeTerminal.setupAnsi()
+
+      // Get terminal size using native-terminal
+      val size = NativeTerminal.getSize()
+      if (size != null && size.getWidth() > 0) {
+        terminalWidth = Some(size.getWidth())
+        logger.debug(s"Terminal width detected: ${size.getWidth()}")
+      } else {
+        logger.debug(s"Terminal size not available or invalid: $size")
+        // Try to get a sensible default from environment
+        sys.env.get("COLUMNS").flatMap(_.toIntOption).filter(_ > 0) match {
+          case Some(cols) =>
+            terminalWidth = Some(cols)
+            logger.debug(s"Using COLUMNS env var: $cols")
+          case None =>
+            logger.debug("No COLUMNS env var found")
+        }
+      }
     } catch {
       case e: Exception =>
-        logger.debug(s"Failed to detect terminal width: ${e.getMessage}")
+        logger.debug(s"Failed to initialize native-terminal: ${e.getMessage}")
       // Continue without terminal info
     }
-
-  private def getTerminalWidth(): Option[Int] =
-    // Try different methods to get terminal width
-    getWidthFromEnv()
-      .orElse(getWidthFromTput())
-      .orElse(getWidthFromStty())
-
-  private def getWidthFromEnv(): Option[Int] =
-    sys.env.get("COLUMNS").flatMap(s => Try(s.toInt).toOption)
-
-  private def getWidthFromTput(): Option[Int] =
-    try {
-      import sys.process._
-      val result = "tput cols".!!.trim
-      Try(result.toInt).toOption
-    } catch {
-      case _: Exception => None
-    }
-
-  private def getWidthFromStty(): Option[Int] =
-    try {
-      import sys.process._
-      val result = "stty size".!!.trim
-      val parts = result.split(" ")
-      if (parts.length >= 2) Try(parts(1).toInt).toOption else None
-    } catch {
-      case _: Exception => None
-    }
+  }
 
   def getWidth: Option[Int] = terminalWidth
 
