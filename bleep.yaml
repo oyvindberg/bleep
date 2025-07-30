@@ -7,6 +7,7 @@ projects:
     dependencies:
     - com.lihaoyi::pprint:0.9.0
     - com.monovore::decline:2.5.0
+    - io.github.alexarchambault.native-terminal:native-terminal:0.0.7
     - org.gnieh::diffson-circe:4.6.0
     - org.scalameta:svm-subs:101.0.0
       # note: weird binary incompatibility when bumping this for scala3
@@ -25,6 +26,7 @@ projects:
       module: ch.epfl.scala::bloop-rifle:2.0.10
     - com.olvind.ryddig::ryddig:0.0.6
     - com.swoval:file-tree-views:2.1.12
+    - io.github.alexarchambault.native-terminal:native-terminal:0.0.7
     - org.typelevel::scalac-options:0.1.8
     dependsOn:
     - bleep-model

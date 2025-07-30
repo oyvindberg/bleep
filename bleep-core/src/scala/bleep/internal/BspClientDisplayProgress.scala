@@ -55,7 +55,7 @@ class BspClientDisplayProgress(
       val byMostProgress = active.toList.sortBy(_._2.fold(0L)(-_.getProgress))
       val rest = byMostProgress.drop(DisplayN)
 
-      val progress = byMostProgress
+      val progressItems = byMostProgress
         .take(DisplayN)
         .map { case (buildTargetId, maybeProgress) =>
           val percentage: String =
@@ -67,7 +67,48 @@ class BspClientDisplayProgress(
             }
           Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
-        .mkString("Compiling ", ", ", if (rest.isEmpty) "" else s" +${rest.size}")
+
+      val prefix = "Compiling "
+      val suffix = if (rest.isEmpty) "" else s" +${rest.size}"
+      val separator = ", "
+
+      // Calculate available width for progress items
+      val termWidth = TerminalInfo.getWidthOrDefault(80)
+      val fixedWidth = prefix.length + suffix.length
+      val availableWidth = (termWidth - fixedWidth).max(20) // Ensure at least 20 chars for content
+
+      // Build progress string that fits terminal width
+      val progressStr = {
+        val items = new StringBuilder
+        var currentWidth = 0
+        var first = true
+        var itemCount = 0
+
+        for (item <- progressItems) {
+          val itemStr = item.render
+          val itemWidth = if (first) itemStr.length else separator.length + itemStr.length
+
+          if (currentWidth + itemWidth <= availableWidth) {
+            if (!first) items.append(separator)
+            items.append(itemStr)
+            currentWidth += itemWidth
+            first = false
+            itemCount += 1
+          }
+        }
+
+        // If we couldn't fit all items, adjust the suffix
+        val actualSuffix = if (itemCount < progressItems.length) {
+          val hiddenCount = progressItems.length - itemCount + rest.size
+          s" +$hiddenCount"
+        } else {
+          suffix
+        }
+
+        prefix + items.toString + actualSuffix
+      }
+
+      val progress = progressStr
 
       // avoid duplicate lines. very visible on web-based terminals which don't erase lines
       if (lastProgress.contains(progress)) ()
