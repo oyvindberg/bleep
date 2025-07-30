@@ -2,17 +2,12 @@ package bleep
 package internal
 
 import org.scalatest.funsuite.AnyFunSuite
-import ryddig.{Logger, LogLevel}
+import ryddig.{LogLevel, Loggers}
 import scala.util.Try
 
 class TerminalInfoTest extends AnyFunSuite {
   
-  private val silentLogger = new Logger {
-    override def apply(logLevel: LogLevel, message: => String): Unit = ()
-    override def withPath(path: String): Logger = this
-    override def withOptContext(key: String, value: Option[String]): Logger = this
-    override def withContext(key: String, value: String): Logger = this
-  }
+  private val silentLogger = Loggers.stdout(ryddig.LogPatterns.logFile, disableProgress = true).acquire().value.withMinLogLevel(LogLevel.error)
   
   test("TerminalInfo.getWidthOrDefault returns positive value") {
     // Should always return a positive width
