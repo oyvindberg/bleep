@@ -37,6 +37,8 @@ object GenNativeImage extends BleepScript("GenNativeImage") {
         "--initialize-at-build-time=scala.runtime.Statics$VM",
         "--initialize-at-build-time=scala.Symbol",
         "--initialize-at-build-time=scala.Symbol$",
+        "--enable-native-access=ALL-UNNAMED",
+        "-J--sun-misc-unsafe-memory-access=allow",
         "-H:+ForeignAPISupport",
         "--native-image-info"
       ),
