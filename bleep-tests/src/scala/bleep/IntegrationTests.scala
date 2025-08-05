@@ -161,7 +161,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       assert(javaOptions.exists(_.contains("annotations")))
       assert(!javaOptions.contains("-proc:none"))
       assert(javaOptions.contains("-Xlint:all"))
-      
+
       // Should have -processor option with the correct annotation processor
       assert(javaOptions.contains("-processor"))
       val processorIndex = javaOptions.indexOf("-processor")
