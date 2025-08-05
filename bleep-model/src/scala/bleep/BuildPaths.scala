@@ -53,7 +53,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
       val fromSourceLayout = sourceLayout.sources(scalaVersion, maybePlatformId, p.`sbt-scope`).values.map(dir / _)
       val fromJson = p.sources.values.map(relPath => (relPath, dir / replacements.fill.relPath(relPath))).toMap
       val generated = p.sourcegen.values.iterator.map(sourceGen => (sourceGen, generatedSourcesDir(crossName, sourceGen.folderName))).toMap
-      val annotationProcessing = p.java.flatMap(_.annotationProcessing).filter(_.enabled).map(_ => generatedSourcesDir(crossName, "annotations"))
+      val annotationProcessing = p.java.filter(_.annotationProcessors.values.nonEmpty).map(_ => generatedSourcesDir(crossName, "annotations"))
       ProjectPaths.DirsByOrigin(fromSourceLayout, fromJson, generated, annotationProcessing)
     }
 

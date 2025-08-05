@@ -68,7 +68,31 @@ projects:
           jsVersion: 1.13.2
 ```
 
-### 4. Scripts (Replacing sbt Tasks/Plugins)
+### 4. Java Annotation Processors
+
+Bleep supports Java annotation processors with explicit configuration:
+
+```yaml
+projects:
+  myapp:
+    dependencies:
+      - org.projectlombok:lombok:1.18.30
+    java:
+      annotationProcessors:
+        - className: lombok.launch.AnnotationProcessorHider$AnnotationProcessor
+        - className: com.google.auto.value.processor.AutoValueProcessor
+```
+
+Key points:
+- Annotation processors must be explicitly listed by their fully qualified class names
+- Processors must be available on the runtime classpath (via dependencies)
+- When processors are configured, bleep automatically:
+  - Creates a generated sources directory at `.bleep/generated-sources/<build>/<project>/annotations`
+  - Passes `-processor` option to javac with comma-separated list of processors
+  - Adds `-s` option pointing to the generated sources directory
+- Without any processors configured, bleep adds `-proc:none` to disable annotation processing
+
+### 5. Scripts (Replacing sbt Tasks/Plugins)
 
 Scripts are regular Scala programs that replace sbt's task system:
 

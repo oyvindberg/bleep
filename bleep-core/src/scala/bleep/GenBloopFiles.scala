@@ -423,8 +423,8 @@ object GenBloopFiles {
         case _                                            => bloop.config.Tag.Library
       }
 
-    val annotationProcessingGenSourcesDir = explodedJava.flatMap(_.annotationProcessing) match {
-      case Some(model.AnnotationProcessing(true)) =>
+    val annotationProcessingGenSourcesDir = explodedJava match {
+      case Some(java) if java.annotationProcessors.values.nonEmpty =>
         Some(pre.buildPaths.generatedSourcesDir(crossName, "annotations"))
       case _ =>
         None
@@ -449,20 +449,24 @@ object GenBloopFiles {
           val baseOptions = explodedJava.map(_.options).getOrElse(model.Options.empty)
 
           // Validate conflicting options
-          explodedJava.flatMap(_.annotationProcessing).foreach { _ =>
-            val renderedOptions = baseOptions.values.mkString(" ")
-            if (renderedOptions.contains("-proc:") || renderedOptions.contains(" -s ")) {
-              sys.error(s"Cannot use manual -proc or -s options when java.annotationProcessing is configured for project ${crossName.value}")
+          explodedJava.foreach { java =>
+            if (java.annotationProcessors.values.nonEmpty) {
+              val renderedOptions = baseOptions.values.mkString(" ")
+              if (renderedOptions.contains("-proc:") || renderedOptions.contains(" -s ")) {
+                sys.error(s"Cannot use manual -proc or -s options when java.annotationProcessors is configured for project ${crossName.value}")
+              }
             }
           }
 
-          val options = explodedJava.flatMap(_.annotationProcessing) match {
-            case Some(model.AnnotationProcessing(true)) =>
-              // Annotation processing enabled - add generated sources directory
+          val options = explodedJava match {
+            case Some(java) if java.annotationProcessors.values.nonEmpty =>
+              // Annotation processing enabled - add generated sources directory and processor options
               val genSourcesDir = pre.buildPaths.generatedSourcesDir(crossName, "annotations")
-              baseOptions.union(model.Options.parse(List("-s", genSourcesDir.toString), maybeRelativize = None))
+              val processorClassNames = java.annotationProcessors.values.map(_.className).mkString(",")
+              val apOptions = List("-s", genSourcesDir.toString, "-processor", processorClassNames)
+              baseOptions.union(model.Options.parse(apOptions, maybeRelativize = None))
             case _ =>
-              // Annotation processing disabled (default) - explicitly disable it
+              // No annotation processors configured - explicitly disable annotation processing
               baseOptions.union(model.Options.parse(List("-proc:none"), maybeRelativize = None))
           }
           Config.Java(options = templateDirs.fill.opts(options).render)

@@ -135,8 +135,8 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
         |    source-layout: java
         |    java:
         |      options: -Xlint:all
-        |      annotationProcessing:
-        |        enabled: true
+        |      annotationProcessors:
+        |        - className: lombok.launch.AnnotationProcessorHider$AnnotationProcessor
         |""".stripMargin,
       Map(
         RelPath.force("./a/src/main/java/test/Person.java") ->
@@ -161,6 +161,12 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       assert(javaOptions.exists(_.contains("annotations")))
       assert(!javaOptions.contains("-proc:none"))
       assert(javaOptions.contains("-Xlint:all"))
+      
+      // Should have -processor option with the correct annotation processor
+      assert(javaOptions.contains("-processor"))
+      val processorIndex = javaOptions.indexOf("-processor")
+      assert(processorIndex >= 0 && processorIndex + 1 < javaOptions.length)
+      assert(javaOptions(processorIndex + 1) == "lombok.launch.AnnotationProcessorHider$AnnotationProcessor")
 
       // Generated sources directory should be in sources
       assert(bloopConfig.project.sources.exists(_.toString.contains("generated-sources")))
