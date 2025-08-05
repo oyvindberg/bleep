@@ -38,13 +38,13 @@
         }
       ]
     },
-    "AnnotationProcessing": {
+    "AnnotationProcessor": {
       "type": "object",
+      "required": ["className"],
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable annotation processing for Java sources"
+        "className": {
+          "type": "string",
+          "description": "Fully qualified class name of the annotation processor. Must be available on the runtime classpath."
         }
       }
     },
@@ -174,8 +174,12 @@
         "options": {
           "$ref": "#/$defs/Options"
         },
-        "annotationProcessing": {
-          "$ref": "#/$defs/AnnotationProcessing"
+        "annotationProcessors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AnnotationProcessor"
+          },
+          "description": "Annotation processors to run during compilation"
         }
       }
     },
