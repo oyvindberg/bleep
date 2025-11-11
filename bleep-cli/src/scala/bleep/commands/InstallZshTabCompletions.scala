@@ -21,7 +21,7 @@ case class InstallZshTabCompletions(userPaths: UserPaths, logger: Logger, stdout
       s"""#compdef _$programName $programName
          |
          |function _$programName {
-         |  eval "$$($programName _complete-zsh $$CURRENT $$words[@])"
+         |  eval "$$($programName _complete-zsh $$CURRENT $$words[@] 2>/dev/null)"
          |}
          |""".stripMargin
 
