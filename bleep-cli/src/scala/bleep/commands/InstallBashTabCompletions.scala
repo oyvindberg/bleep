@@ -17,7 +17,7 @@ case class InstallBashTabCompletions(logger: Logger, stdout: Boolean) extends Bl
 
     val completionScript =
       s"""_${programName}_completions() {
-        |  COMPREPLY=($$(bleep _complete "$${COMP_LINE}" "$${COMP_CWORD}" "$${COMP_POINT}"))
+        |  COMPREPLY=($$(bleep _complete "$${COMP_LINE}" "$${COMP_CWORD}" "$${COMP_POINT}" 2>/dev/null))
         |}
         |
         |complete -F _${programName}_completions $programName""".stripMargin
