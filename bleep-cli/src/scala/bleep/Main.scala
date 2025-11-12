@@ -271,6 +271,7 @@ object Main {
           },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
+          mcpCommands(started),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),
@@ -413,6 +414,14 @@ object Main {
       ).mapN { case (platforms, scalas, name) =>
         commands.BuildCreateNew(logger, userPaths, cwd, platforms, scalas, name, model.BleepVersion.current, CoursierResolver.Factory.default)
       }
+    )
+
+  def mcpCommands(started: Started): Opts[BleepCommand] =
+    Opts.subcommand("mcp", "Setup and run MCP server")(
+      List(
+        Opts.subcommand("stdin", "run mcp server with stdin")(Opts(commands.McpStdinServer(started))),
+        Opts.subcommand("config", "configure MCP")(Opts(commands.McpSetup(started.logger)))
+      ).foldK
     )
 
   // there is a flag to change build directory. we need to intercept that very early

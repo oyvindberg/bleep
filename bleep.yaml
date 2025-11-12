@@ -26,6 +26,7 @@ projects:
     - com.olvind.ryddig::ryddig:0.0.6
     - com.swoval:file-tree-views:2.1.12
     - org.typelevel::scalac-options:0.1.8
+    - com.github.ingarabr.mcp::server:0.0.0+10-0bfcbb22+20251112-0121-SNAPSHOT
     dependsOn:
     - bleep-model
     - bleep-nosbt
@@ -182,10 +183,10 @@ templates:
       strict: true
   template-cross-all:
     cross:
-      jvm213:
-        scala:
-          options: -Xsource:3
-          version: 2.13.11
+#      jvm213:
+#        scala:
+#          options: -Xsource:3
+#          version: 2.13.11
       jvm3:
         extends: template-scala-3
     extends: template-common
