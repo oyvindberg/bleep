@@ -114,7 +114,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           distribution: 'graalvm-community' # See 'Options' section below for all available distributions
-          java-version: '21.0.2'
+          java-version: '25.0.1'
           native-image-job-reports: 'true'
       - name: Build native image 3 (windows)
         run: bleep native-image ${{ matrix.file_name }}
