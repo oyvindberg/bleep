@@ -38,6 +38,7 @@ object Main {
     val hasSourceGenProject = "project name (with sourcegen)"
     val platformName = "platform name"
     val scalaVersion = "scala version"
+    val projectOrScriptName = "project or script name"
   }
 
   val commonOpts: Opts[CommonOpts] =
@@ -240,14 +241,37 @@ object Main {
               commands.ListTests(projectNames)
             }
           ),
-          Opts.subcommand("run", "run project")(
+          Opts.subcommand("run", "run project or script")(
             (
-              projectName,
+              Opts.argument[String](metavars.projectOrScriptName)(
+                Argument.fromMap(
+                  metavars.projectOrScriptName,
+                  started.globs.exactProjectMap.map { case (k, _) => k -> k } ++
+                    started.build.scripts.keys.map(s => s.value -> s.value)
+                )
+              ),
               mainClass,
               Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty),
               watch
-            ).mapN { case (projectName, mainClass, arguments, watch) =>
-              commands.Run(projectName, mainClass, arguments, raw = true, watch = watch)
+            ).mapN { case (nameArg, mainClass, arguments, watch) =>
+              // Check if the argument is a script name first
+              started.build.scripts.keys.find(_.value == nameArg) match {
+                case Some(scriptName) =>
+                  // Run as script
+                  commands.Script(scriptName, arguments, watch)
+                case None =>
+                  // Run as project
+                  started.globs.exactProjectMap.get(nameArg) match {
+                    case Some(projectName) =>
+                      commands.Run(projectName, mainClass, arguments, raw = true, watch = watch)
+                    case None =>
+                      // Return a command that will fail with a helpful error
+                      new BleepBuildCommand {
+                        override def run(started: Started): Either[BleepException, Unit] =
+                          Left(new BleepException.Text(s"'$nameArg' is not a valid project or script name"))
+                      }
+                  }
+              }
             }
           ),
           Opts.subcommand("setup-ide", "generate ./bsp/bleep.json so IDEs can import build")(
@@ -604,13 +628,14 @@ object Main {
 
             case Right(started) =>
               val completer = new Completer({
-                case metavars.platformName       => model.PlatformId.All.map(_.value)
-                case metavars.scalaVersion       => possibleScalaVersions.keys.toList
-                case metavars.projectNameExact   => started.globs.exactProjectMap.keys.toList
-                case metavars.projectNameNoCross => started.globs.projectNamesNoCrossMap.keys.toList
-                case metavars.projectName        => started.globs.projectNameMap.keys.toList
-                case metavars.testProjectName    => started.globs.testProjectNameMap.keys.toList
-                case _                           => Nil
+                case metavars.platformName        => model.PlatformId.All.map(_.value)
+                case metavars.scalaVersion        => possibleScalaVersions.keys.toList
+                case metavars.projectNameExact    => started.globs.exactProjectMap.keys.toList
+                case metavars.projectNameNoCross  => started.globs.projectNamesNoCrossMap.keys.toList
+                case metavars.projectName         => started.globs.projectNameMap.keys.toList
+                case metavars.testProjectName     => started.globs.testProjectNameMap.keys.toList
+                case metavars.projectOrScriptName => started.globs.exactProjectMap.keys.toList ++ started.build.scripts.keys.map(_.value)
+                case _                            => Nil
               })
               completer.completeOpts(restArgs)(hasBuildOpts(started))
           }
