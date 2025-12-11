@@ -484,6 +484,13 @@ object Main {
   def _main(_args: Array[String]): ExitCode = {
     val userPaths = UserPaths.fromAppDirs
 
+    // Enable ANSI support on Windows
+    try
+      io.github.alexarchambault.nativeterm.NativeTerminal.setupAnsi()
+    catch {
+      case _: Exception => // Ignore any failures during initialization
+    }
+
     val exitCode: ExitCode = _args.toList match {
       case "_complete-zsh" :: current :: words =>
         // accept -d after completion point

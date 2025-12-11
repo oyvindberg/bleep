@@ -10,8 +10,10 @@ import scala.collection.mutable
 
 // a bsp client which will display compilation diagnostics and progress to a logger
 object BspClientDisplayProgress {
-  def apply(logger: Logger): BspClientDisplayProgress =
-    new BspClientDisplayProgress(logger.withPath("BSP"), mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty)
+  def apply(logger: Logger): BspClientDisplayProgress = {
+    val terminalSizeCache = new io.github.alexarchambault.nativeterm.TerminalSizeCache()
+    new BspClientDisplayProgress(logger.withPath("BSP"), mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty, terminalSizeCache)
+  }
 
   def logLevelFor(messageType: MessageType): LogLevel =
     messageType match {
@@ -20,12 +22,61 @@ object BspClientDisplayProgress {
       case bsp4j.MessageType.INFO    => LogLevel.info
       case bsp4j.MessageType.LOG     => LogLevel.debug
     }
+
+  /** Renders progress items to fit within the given terminal width
+    * @param progressItems
+    *   List of progress items to render
+    * @param remainingCount
+    *   Number of items not shown
+    * @param terminalWidth
+    *   Terminal width in columns
+    * @return
+    *   Rendered progress string
+    */
+  def renderProgress(progressItems: List[fansi.Str], remainingCount: Int, terminalWidth: Int): String = {
+    val prefix = "Compiling "
+    val suffix = if (remainingCount == 0) "" else s" +$remainingCount"
+    val separator = ", "
+
+    val fixedWidth = prefix.length + suffix.length
+    val availableWidth = (terminalWidth - fixedWidth).max(20) // Ensure at least 20 chars for content
+
+    // Build progress string that fits terminal width
+    val items = new StringBuilder
+    var currentWidth = 0
+    var first = true
+    var itemCount = 0
+
+    for (item <- progressItems) {
+      val itemStr = item.render
+      val itemWidth = if (first) itemStr.length else separator.length + itemStr.length
+
+      if (currentWidth + itemWidth <= availableWidth) {
+        if (!first) items.append(separator)
+        items.append(itemStr)
+        currentWidth += itemWidth
+        first = false
+        itemCount += 1
+      }
+    }
+
+    // If we couldn't fit all items, adjust the suffix
+    val actualSuffix = if (itemCount < progressItems.length) {
+      val hiddenCount = progressItems.length - itemCount + remainingCount
+      s" +$hiddenCount"
+    } else {
+      suffix
+    }
+
+    prefix + items.toString + actualSuffix
+  }
 }
 
 class BspClientDisplayProgress(
     logger: Logger,
     active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]],
-    var failed: mutable.ListBuffer[bsp4j.BuildTargetIdentifier]
+    var failed: mutable.ListBuffer[bsp4j.BuildTargetIdentifier],
+    terminalSizeCache: io.github.alexarchambault.nativeterm.TerminalSizeCache
 ) extends bsp4j.BuildClient {
   def extract(anyRef: AnyRef): Option[BuildTargetIdentifier] =
     anyRef match {
@@ -55,7 +106,7 @@ class BspClientDisplayProgress(
       val byMostProgress = active.toList.sortBy(_._2.fold(0L)(-_.getProgress))
       val rest = byMostProgress.drop(DisplayN)
 
-      val progress = byMostProgress
+      val progressItems = byMostProgress
         .take(DisplayN)
         .map { case (buildTargetId, maybeProgress) =>
           val percentage: String =
@@ -67,7 +118,17 @@ class BspClientDisplayProgress(
             }
           Str.join(List(renderBuildTarget(buildTargetId), ": ", percentage))
         }
-        .mkString("Compiling ", ", ", if (rest.isEmpty) "" else s" +${rest.size}")
+
+      // Calculate available width for progress items
+      val termWidth =
+        try {
+          val size = terminalSizeCache.getSize()
+          if (size != null && size.getWidth() > 0) size.getWidth() else 80
+        } catch {
+          case _: Exception => 80
+        }
+
+      val progress = BspClientDisplayProgress.renderProgress(progressItems, rest.size, termWidth)
 
       // avoid duplicate lines. very visible on web-based terminals which don't erase lines
       if (lastProgress.contains(progress)) ()
