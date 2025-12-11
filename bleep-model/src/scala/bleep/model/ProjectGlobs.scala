@@ -21,8 +21,15 @@ class ProjectGlobs(activeProjectsFromPath: Option[Array[CrossProjectName]], expl
           }
         }
         .collect { case (Some(crossId), names) => (crossId.value, names) }
+    val javaProjects: Map[String, Array[CrossProjectName]] = {
+      val javaOnly = projects.filter { name =>
+        val p = explodedProjects(name)
+        p.scala.flatMap(_.version).isEmpty
+      }
+      if (javaOnly.nonEmpty) Map("java" -> javaOnly) else Map.empty
+    }
 
-    crossIds ++ projectNames ++ crossNames
+    javaProjects ++ crossIds ++ projectNames ++ crossNames
   }
 
   def exactProjectMap: Map[String, CrossProjectName] =
