@@ -193,6 +193,37 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     }
   }
 
+  // Scala 3.8 introduces a major change: the standard library is now compiled with Scala 3
+  // instead of Scala 2.13. This test verifies that bleep can handle Scala 3.8 projects correctly.
+  // See: https://github.com/scala/scala3/releases/tag/3.8.0-RC3
+  test("scala 3.8 with new stdlib") {
+    runTest(
+      "scala 3.8 with new stdlib",
+      """projects:
+      a:
+        platform:
+          name: jvm
+          mainClass: test.Main
+        scala:
+          version: 3.8.0-RC3
+""",
+      Map(
+        RelPath.force("./a/src/scala/Main.scala") ->
+          """package test
+        |object Main {
+        |  def main(args: Array[String]): Unit = {
+        |    // Use stdlib collections to verify they work
+        |    val list = List(1, 2, 3).map(_ * 2)
+        |    println("result: " + list.sum)
+        |  }
+        |}""".stripMargin
+      )
+    ) { (_, commands, storingLogger) =>
+      commands.run(model.CrossProjectName(model.ProjectName("a"), None))
+      assert(storingLogger.underlying.exists(_.message.plainText == "result: 12"))
+    }
+  }
+
   test("resource generator") {
     val bleepYaml = """
 projects:
