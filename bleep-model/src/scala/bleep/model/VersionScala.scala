@@ -11,6 +11,13 @@ case class VersionScala(scalaVersion: String) {
   def is212 = scalaVersion.startsWith("2.12")
   def is3Or213 = is3 || is213
 
+  // Scala 3.8+ has stdlib compiled with Scala 3, using scala-library version 3.x
+  // For Scala 3.0-3.7, stdlib uses scala-library from Scala 2.13
+  val is38OrLater: Boolean = scalaVersion match {
+    case VersionScala.Version("3", minor, _) => minor.toIntOption.exists(_ >= 8)
+    case _                                   => false
+  }
+
   val epoch = scalaVersion.head
 
   val scalaOrganization: String =
@@ -21,7 +28,8 @@ case class VersionScala(scalaVersion: String) {
     else Dep.Java(scalaOrganization, "scala-compiler", scalaVersion)
 
   val library: Dep =
-    if (is3) VersionScala.Scala213.library
+    if (is38OrLater) Dep.Java(scalaOrganization, "scala-library", scalaVersion)
+    else if (is3) VersionScala.Scala213.library
     else Dep.Java(scalaOrganization, "scala-library", scalaVersion)
 
   val scala3Library: Option[Dep] =
