@@ -131,9 +131,38 @@ class BleepBspServer(
           new ResponseErrorException(new ResponseError(ResponseErrorCode.jsonrpcReservedErrorRangeEnd, "couldn't refresh the build", new Object))
         )
       case Right(_) =>
-        bloopServer.workspaceBuildTargets().handle(fatalExceptionHandler("workspaceBuildTargets"))
+        bloopServer
+          .workspaceBuildTargets()
+          .handle(fatalExceptionHandler("workspaceBuildTargets"))
+          .thenApply(fixJavaOnlyTargets)
     }
   }
+
+  /** Bloop doesn't set dataKind for Java-only targets, but IntelliJ requires dataKind=jvm to request javacOptions. This fixes up the response to add the
+    * missing dataKind.
+    */
+  private def fixJavaOnlyTargets(result: bsp4j.WorkspaceBuildTargetsResult): bsp4j.WorkspaceBuildTargetsResult =
+    buildChangeTracker.current match {
+      case Left(_) => result
+      case Right(started) =>
+        val resolvedJvm = started.resolvedJvm.forceGet
+        val javaHome = resolvedJvm.javaBin.getParent.getParent
+        result.getTargets.asScala.foreach { target =>
+          val isJavaOnly = target.getLanguageIds.contains("java") && !target.getLanguageIds.contains("scala")
+          val hasNoDataKind = target.getDataKind == null || target.getDataKind.isEmpty
+          if (isJavaOnly && hasNoDataKind) {
+            target.setDataKind(bsp4j.BuildTargetDataKind.JVM)
+            // Create minimal JvmBuildTarget data if none exists
+            if (target.getData == null) {
+              val jvmTarget = new bsp4j.JvmBuildTarget()
+              jvmTarget.setJavaHome(javaHome.toUri.toASCIIString)
+              jvmTarget.setJavaVersion(resolvedJvm.jvm.name)
+              target.setData(jvmTarget)
+            }
+          }
+        }
+        result
+    }
 
   override def onBuildInitialized(): Unit = {
     logger.debug("onBuildInitialized")
