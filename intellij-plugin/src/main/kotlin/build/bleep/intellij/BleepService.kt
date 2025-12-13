@@ -32,10 +32,7 @@ class BleepService(private val project: Project) : Disposable {
 
     private var bleepExecutable: File? = null
     private var config: BleepConfig? = null
-    private var cachedProjectGraph: ProjectGraphOutput? = null
-    private var cachedProjectGroups: ProjectGroupsOutput? = null
-    private var cachedScripts: ScriptsOutput? = null
-    private var cachedSourceGen: SourceGenOutput? = null
+    private var cachedAllData: AllOutput? = null
     private val selectedProjects = ConcurrentHashMap.newKeySet<String>()
 
     // Listeners for config changes (tool window refresh)
@@ -83,10 +80,7 @@ class BleepService(private val project: Project) : Disposable {
 
     fun reloadConfig() {
         config = projectBasePath?.let { BleepConfig.forDirectory(it) }
-        cachedProjectGraph = null
-        cachedProjectGroups = null
-        cachedScripts = null
-        cachedSourceGen = null
+        cachedAllData = null
     }
 
     /**
@@ -269,31 +263,34 @@ class BleepService(private val project: Project) : Disposable {
     )
 
     /**
-     * Get the project graph using bleep extract-info project-graph.
+     * Loads all project data in a single bleep command.
+     * This is more efficient than loading data individually.
      */
-    fun getProjectGraph(indicator: ProgressIndicator? = null): ProjectGraphOutput? {
-        cachedProjectGraph?.let { return it }
+    private fun loadAllData(indicator: ProgressIndicator? = null): AllOutput? {
+        cachedAllData?.let { return it }
 
         val bleep = ensureBleep(indicator) ?: return null
         val basePath = projectBasePath ?: return null
 
-        val graph = BleepProjectData.fetchProjectGraph(bleep, basePath)
-        cachedProjectGraph = graph
-        return graph
+        val data = BleepProjectData.fetchAll(bleep, basePath)
+        cachedAllData = data
+        return data
     }
 
     /**
-     * Get the project groups using bleep extract-info project-groups.
+     * Get the project graph using bleep extract-info all.
+     */
+    fun getProjectGraph(indicator: ProgressIndicator? = null): ProjectGraphOutput? {
+        val data = loadAllData(indicator) ?: return null
+        return ProjectGraphOutput(data.projects)
+    }
+
+    /**
+     * Get the project groups using bleep extract-info all.
      */
     fun getProjectGroups(indicator: ProgressIndicator? = null): ProjectGroupsOutput? {
-        cachedProjectGroups?.let { return it }
-
-        val bleep = ensureBleep(indicator) ?: return null
-        val basePath = projectBasePath ?: return null
-
-        val groups = BleepProjectData.fetchProjectGroups(bleep, basePath)
-        cachedProjectGroups = groups
-        return groups
+        val data = loadAllData(indicator) ?: return null
+        return ProjectGroupsOutput(data.groups)
     }
 
     /**
@@ -324,31 +321,19 @@ class BleepService(private val project: Project) : Disposable {
     }
 
     /**
-     * Get the scripts using bleep extract-info scripts.
+     * Get the scripts using bleep extract-info all.
      */
     fun getScripts(indicator: ProgressIndicator? = null): ScriptsOutput? {
-        cachedScripts?.let { return it }
-
-        val bleep = ensureBleep(indicator) ?: return null
-        val basePath = projectBasePath ?: return null
-
-        val scripts = BleepProjectData.fetchScripts(bleep, basePath)
-        cachedScripts = scripts
-        return scripts
+        val data = loadAllData(indicator) ?: return null
+        return ScriptsOutput(data.scripts)
     }
 
     /**
-     * Get the sourcegen definitions using bleep extract-info sourcegen.
+     * Get the sourcegen definitions using bleep extract-info all.
      */
     fun getSourceGen(indicator: ProgressIndicator? = null): SourceGenOutput? {
-        cachedSourceGen?.let { return it }
-
-        val bleep = ensureBleep(indicator) ?: return null
-        val basePath = projectBasePath ?: return null
-
-        val sourcegen = BleepProjectData.fetchSourceGen(bleep, basePath)
-        cachedSourceGen = sourcegen
-        return sourcegen
+        val data = loadAllData(indicator) ?: return null
+        return SourceGenOutput(data.sourcegens)
     }
 
     /**

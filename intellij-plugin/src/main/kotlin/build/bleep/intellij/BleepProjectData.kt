@@ -71,6 +71,17 @@ data class SourceGenOutput(
 )
 
 /**
+ * Aggregated output from extract-info all command.
+ * Contains all project data in a single response.
+ */
+data class AllOutput(
+    val projects: List<ProjectInfo>,
+    val groups: List<GroupInfo>,
+    val scripts: List<ScriptInfo>,
+    val sourcegens: List<SourceGenInfo>
+)
+
+/**
  * Fetches project data from bleep extract-info commands.
  */
 object BleepProjectData {
@@ -81,53 +92,18 @@ object BleepProjectData {
     // Set to null to use the downloaded bleep binary
     var hardcodedBleepPath: String? = "/Users/oyvind/bleep/bleep-cli@jvm3.sh"
 
-    fun fetchProjectGraph(bleepPath: File, projectDir: File): ProjectGraphOutput? {
+    /**
+     * Fetches all project data in a single bleep command.
+     * This is more efficient than calling individual fetch methods.
+     */
+    fun fetchAll(bleepPath: File, projectDir: File): AllOutput? {
         val effectivePath = hardcodedBleepPath?.let { File(it) } ?: bleepPath
-        val json = runBleepCommand(effectivePath, projectDir, "extract-info", "project-graph")
+        val json = runBleepCommand(effectivePath, projectDir, "extract-info", "all")
         return json?.let {
             try {
-                gson.fromJson(it, ProjectGraphOutput::class.java)
+                gson.fromJson(it, AllOutput::class.java)
             } catch (e: Exception) {
-                LOG.warn("Failed to parse project-graph JSON", e)
-                null
-            }
-        }
-    }
-
-    fun fetchProjectGroups(bleepPath: File, projectDir: File): ProjectGroupsOutput? {
-        val effectivePath = hardcodedBleepPath?.let { File(it) } ?: bleepPath
-        val json = runBleepCommand(effectivePath, projectDir, "extract-info", "project-groups")
-        return json?.let {
-            try {
-                gson.fromJson(it, ProjectGroupsOutput::class.java)
-            } catch (e: Exception) {
-                LOG.warn("Failed to parse project-groups JSON", e)
-                null
-            }
-        }
-    }
-
-    fun fetchScripts(bleepPath: File, projectDir: File): ScriptsOutput? {
-        val effectivePath = hardcodedBleepPath?.let { File(it) } ?: bleepPath
-        val json = runBleepCommand(effectivePath, projectDir, "extract-info", "scripts")
-        return json?.let {
-            try {
-                gson.fromJson(it, ScriptsOutput::class.java)
-            } catch (e: Exception) {
-                LOG.warn("Failed to parse scripts JSON", e)
-                null
-            }
-        }
-    }
-
-    fun fetchSourceGen(bleepPath: File, projectDir: File): SourceGenOutput? {
-        val effectivePath = hardcodedBleepPath?.let { File(it) } ?: bleepPath
-        val json = runBleepCommand(effectivePath, projectDir, "extract-info", "sourcegen")
-        return json?.let {
-            try {
-                gson.fromJson(it, SourceGenOutput::class.java)
-            } catch (e: Exception) {
-                LOG.warn("Failed to parse sourcegen JSON", e)
+                LOG.warn("Failed to parse extract-info all JSON", e)
                 null
             }
         }
