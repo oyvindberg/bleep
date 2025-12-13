@@ -287,6 +287,25 @@ object Main {
           ),
           Opts.subcommand("projects-test", "show test projects under current directory")(
             testProjectNames.map(projectNames => _ => Right(projectNames.map(_.value).sorted.foreach(started.logger.info(_))))
+          ),
+          Opts.subcommand("extract-info", "JSON output for IDE integration")(
+            List(
+              Opts.subcommand("all", "output all info in a single JSON object")(
+                Opts(commands.ExtractInfo.All)
+              ),
+              Opts.subcommand("project-graph", "output all projects with their dependencies")(
+                Opts(commands.ExtractInfo.ProjectGraph)
+              ),
+              Opts.subcommand("project-groups", "output project groups for bulk selection")(
+                Opts(commands.ExtractInfo.ProjectGroups)
+              ),
+              Opts.subcommand("scripts", "output all scripts with project and main class")(
+                Opts(commands.ExtractInfo.Scripts)
+              ),
+              Opts.subcommand("sourcegen", "output all sourcegen definitions")(
+                Opts(commands.ExtractInfo.SourceGen)
+              )
+            ).foldK
           ), {
             // edge case: import an sbt build in a folder underneath one where you have a bleep build
             val buildLoader = BuildLoader.nonExisting(started.buildPaths.cwd)
