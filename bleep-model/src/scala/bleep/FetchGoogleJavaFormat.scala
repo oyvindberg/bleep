@@ -8,7 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext}
 
 object FetchGoogleJavaFormat {
-  val DefaultVersion = "1.24.0"
+  val DefaultVersion = "1.33.0"
 
   def apply(cacheLogger: CacheLogger, ec: ExecutionContext, version: String): Path = {
     val fileCache = FileCache[Task]().withLogger(cacheLogger)

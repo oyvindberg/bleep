@@ -44,15 +44,29 @@ case class Fmt(check: Boolean) extends BleepBuildCommand {
     val scalaFiles = Fmt.findSourceFiles(sourcesDirs, ".scala")
     val javaFiles = Fmt.findSourceFiles(sourcesDirs, ".java")
 
-    if (scalaFiles.nonEmpty) {
-      formatScala(started, sourcesDirs)
-    }
+    val scalaResult: Option[BleepException] =
+      if (scalaFiles.nonEmpty) {
+        scala.util.Try(formatScala(started, sourcesDirs)).failed.toOption.map {
+          case e: BleepException => e
+          case e => new BleepException.Text(e.getMessage)
+        }
+      } else None
 
-    if (javaFiles.nonEmpty) {
-      formatJava(started, javaFiles)
-    }
+    val javaResult: Option[BleepException] =
+      if (javaFiles.nonEmpty) {
+        scala.util.Try(formatJava(started, javaFiles)).failed.toOption.map {
+          case e: BleepException => e
+          case e => new BleepException.Text(e.getMessage)
+        }
+      } else None
 
-    Right(())
+    (scalaResult, javaResult) match {
+      case (Some(scalaErr), Some(javaErr)) =>
+        Left(new BleepException.Text(s"Formatting failed:\n- Scala: ${scalaErr.getMessage}\n- Java: ${javaErr.getMessage}"))
+      case (Some(err), None) => Left(err)
+      case (None, Some(err)) => Left(err)
+      case (None, None) => Right(())
+    }
   }
 
   private def formatScala(started: Started, sourcesDirs: Set[Path]): Unit = {
@@ -95,8 +109,17 @@ case class Fmt(check: Boolean) extends BleepBuildCommand {
 
     val javaCmd = started.jvmCommand.toString
 
+    val jvmFlags = List(
+      "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+    )
+
     val cmd =
-      List(javaCmd, "-jar", googleJavaFormat.toString) ++
+      List(javaCmd) ++ jvmFlags ++ List("-jar", googleJavaFormat.toString) ++
         (if (check) List("--dry-run", "--set-exit-if-changed") else List("--replace")) ++
         javaFiles.map(_.toString)
 
