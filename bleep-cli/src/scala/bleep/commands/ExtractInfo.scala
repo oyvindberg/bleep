@@ -47,6 +47,14 @@ object ExtractInfo {
       sourcegens: List[SourceGenInfo]
   )
 
+  /** Aggregated output containing all extract-info data */
+  case class AllOutput(
+      projects: List[ProjectInfo],
+      groups: List[GroupInfo],
+      scripts: List[ScriptInfo],
+      sourcegens: List[SourceGenInfo]
+  )
+
   implicit val projectInfoEncoder: Encoder[ProjectInfo] =
     Encoder.forProduct3("name", "dependsOn", "isTest")(p => (p.name, p.dependsOn, p.isTest))
 
@@ -70,6 +78,9 @@ object ExtractInfo {
 
   implicit val sourceGenOutputEncoder: Encoder[SourceGenOutput] =
     Encoder.forProduct1("sourcegens")(_.sourcegens)
+
+  implicit val allOutputEncoder: Encoder[AllOutput] =
+    Encoder.forProduct4("projects", "groups", "scripts", "sourcegens")(o => (o.projects, o.groups, o.scripts, o.sourcegens))
 
   /** Outputs project graph as JSON - all projects with their direct dependencies */
   case object ProjectGraph extends BleepBuildCommand {
@@ -159,6 +170,71 @@ object ExtractInfo {
       }
 
       val output = SourceGenOutput(sourcegens = sourcegens)
+      println(output.asJson.noSpaces)
+      Right(())
+    }
+  }
+
+  /** Outputs all extract-info data as a single JSON object */
+  case object All extends BleepBuildCommand {
+    override def run(started: Started): Either[BleepException, Unit] = {
+      val build = started.build
+      val globs = started.globs
+
+      // Projects
+      val projects = build.explodedProjects.toList.sortBy(_._1.value).map { case (crossName, project) =>
+        val deps = build.resolvedDependsOn.getOrElse(crossName, Set.empty).toList.map(_.value).sorted
+        ProjectInfo(
+          name = crossName.value,
+          dependsOn = deps,
+          isTest = project.isTestProject.getOrElse(false)
+        )
+      }
+
+      // Groups
+      val projectNameMap = globs.projectNameMap
+      val allProjectNames = build.explodedProjects.keys.map(_.value).toSet
+      val groups = projectNameMap.toList
+        .filter { case (groupName, projectArray) =>
+          val projectCount = projectArray.length
+          projectCount > 1 || (projectCount == 1 && !allProjectNames.contains(groupName))
+        }
+        .sortBy { case (name, projects) => (-projects.length, name) }
+        .map { case (groupName, projectArray) =>
+          GroupInfo(
+            name = groupName,
+            projects = projectArray.map(_.value).sorted.toList
+          )
+        }
+
+      // Scripts
+      val scripts = build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
+        scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _) =>
+          ScriptInfo(
+            name = scriptName.value,
+            project = project.value,
+            mainClass = main
+          )
+        }
+      }
+
+      // SourceGens
+      val sourcegens = build.explodedProjects.toList.sortBy(_._1.value).flatMap { case (crossName, project) =>
+        project.sourcegen.values.toList.collect { case model.ScriptDef.Main(sourceGenProject, main, _) =>
+          SourceGenInfo(
+            project = crossName.value,
+            sourceGenProject = sourceGenProject.value,
+            mainClass = main
+          )
+        }
+      }
+
+      val output = AllOutput(
+        projects = projects,
+        groups = groups,
+        scripts = scripts,
+        sourcegens = sourcegens
+      )
       println(output.asJson.noSpaces)
       Right(())
     }

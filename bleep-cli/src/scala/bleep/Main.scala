@@ -290,6 +290,9 @@ object Main {
           ),
           Opts.subcommand("extract-info", "JSON output for IDE integration")(
             List(
+              Opts.subcommand("all", "output all info in a single JSON object")(
+                Opts(commands.ExtractInfo.All)
+              ),
               Opts.subcommand("project-graph", "output all projects with their dependencies")(
                 Opts(commands.ExtractInfo.ProjectGraph)
               ),
