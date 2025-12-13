@@ -1,0 +1,73 @@
+<idea-plugin>
+    <id>build.bleep.intellij</id>
+    <name>Bleep</name>
+    <vendor email="oyvindberg@gmail.com" url="https://github.com/oyvindberg/bleep">oyvindberg</vendor>
+
+    <description><![CDATA[
+    <p>IntelliJ IDEA integration for the <a href="https://bleep.build">Bleep</a> Java and Scala build tool.</p>
+
+    <h3>Features</h3>
+    <ul>
+        <li>Auto-detect bleep projects and initialize BSP</li>
+        <li>Project selector for choosing which projects to mount</li>
+        <li>Automatic bleep binary download</li>
+        <li>Dedicated Bleep tool window for BSP status and controls</li>
+        <li>JSON Schema support for bleep.yaml</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.intellij.scala</depends>
+    <depends>org.jetbrains.plugins.yaml</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Project-level service -->
+        <projectService serviceImplementation="build.bleep.intellij.BleepService"/>
+        <projectService serviceImplementation="build.bleep.intellij.BleepBspListener"/>
+
+        <!-- Project detection - order="first" to appear before Gradle -->
+        <projectOpenProcessor implementation="build.bleep.intellij.BleepProjectOpenProcessor" order="first"/>
+
+        <!-- Startup activity -->
+        <postStartupActivity implementation="build.bleep.intellij.BleepStartupActivity"/>
+
+        <!-- Tool window -->
+        <toolWindow id="Bleep"
+                    anchor="right"
+                    icon="/icons/bleep.svg"
+                    factoryClass="build.bleep.intellij.BleepToolWindowFactory"/>
+
+        <!-- Notifications -->
+        <notificationGroup id="Bleep"
+                           displayType="BALLOON"
+                           toolWindowId="Bleep"/>
+    </extensions>
+
+    <extensions defaultExtensionNs="JavaScript">
+        <JsonSchema.ProviderFactory implementation="build.bleep.intellij.BleepYamlSchemaProviderFactory"/>
+    </extensions>
+
+    <actions>
+        <action id="Bleep.RefreshBsp"
+                class="build.bleep.intellij.actions.RefreshBspAction"
+                text="Refresh BSP Connection"
+                description="Refresh the BSP connection for bleep"
+                icon="AllIcons.Actions.Refresh">
+            <add-to-group group-id="BuildMenu" anchor="last"/>
+        </action>
+
+        <action id="Bleep.SetupIde"
+                class="build.bleep.intellij.actions.SetupIdeAction"
+                text="Setup Bleep IDE"
+                description="Run bleep setup-ide to configure BSP">
+            <add-to-group group-id="BuildMenu" anchor="last"/>
+        </action>
+
+        <action id="Bleep.UnlinkGradle"
+                class="build.bleep.intellij.actions.UnlinkGradleAction"
+                text="Switch from Gradle to Bleep BSP"
+                description="Unlink Gradle and configure Bleep BSP instead">
+            <add-to-group group-id="BuildMenu" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
