@@ -351,8 +351,8 @@ object Main {
               commands.Dist(started, watch, options)
             }
           },
-          Opts.subcommand("fmt", "runs scalafmt") {
-            Opts.flag("check", "ensure that all files are already formatted").orFalse.map(commands.Scalafmt.apply)
+          Opts.subcommand("fmt", "format Scala and Java source files") {
+            Opts.flag("check", "ensure that all files are already formatted").orFalse.map(commands.Fmt.apply)
           },
           Opts.subcommand("setup-dev-script", "setup a bash script which can run the code bleep has compiled")(
             (projectName, Opts.option[String]("main-class", "override main class").orNone).mapN { case (projectNames, main) =>
