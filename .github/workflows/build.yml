@@ -45,6 +45,19 @@ jobs:
                 "schema.json": [ "**/bleep.yaml" ]
             }
 
+  build-intellij-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Build IntelliJ Plugin
+        working-directory: intellij-plugin
+        run: ./gradlew build
+
   build-native-image:
     name: Native image build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -147,7 +160,7 @@ jobs:
   release:
     timeout-minutes: 15
     runs-on: ubuntu-22.04
-    needs: [ build, build-native-image, yaml-ls-check ]
+    needs: [ build, build-native-image, yaml-ls-check, build-intellij-plugin ]
     if: "startsWith(github.ref, 'refs/tags/v')"
     steps:
       - uses: actions/checkout@v6
