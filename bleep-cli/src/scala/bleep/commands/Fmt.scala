@@ -48,7 +48,7 @@ case class Fmt(check: Boolean) extends BleepBuildCommand {
       if (scalaFiles.nonEmpty) {
         scala.util.Try(formatScala(started, sourcesDirs)).failed.toOption.map {
           case e: BleepException => e
-          case e => new BleepException.Text(e.getMessage)
+          case e                 => new BleepException.Text(e.getMessage)
         }
       } else None
 
@@ -56,7 +56,7 @@ case class Fmt(check: Boolean) extends BleepBuildCommand {
       if (javaFiles.nonEmpty) {
         scala.util.Try(formatJava(started, javaFiles)).failed.toOption.map {
           case e: BleepException => e
-          case e => new BleepException.Text(e.getMessage)
+          case e                 => new BleepException.Text(e.getMessage)
         }
       } else None
 
@@ -65,7 +65,7 @@ case class Fmt(check: Boolean) extends BleepBuildCommand {
         Left(new BleepException.Text(s"Formatting failed:\n- Scala: ${scalaErr.getMessage}\n- Java: ${javaErr.getMessage}"))
       case (Some(err), None) => Left(err)
       case (None, Some(err)) => Left(err)
-      case (None, None) => Right(())
+      case (None, None)      => Right(())
     }
   }
 
