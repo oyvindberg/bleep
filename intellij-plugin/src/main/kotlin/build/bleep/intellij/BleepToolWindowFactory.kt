@@ -14,6 +14,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.JBColor
+import com.intellij.ui.RoundedLineBorder
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
@@ -28,15 +29,45 @@ import com.intellij.terminal.TerminalExecutionConsole
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.execution.ui.RunContentDescriptor
 import com.intellij.execution.ui.RunContentManager
+import com.intellij.util.ui.JBUI
+import com.intellij.ui.SimpleTextAttributes
 import java.awt.BorderLayout
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.RenderingHints
 import javax.swing.*
-import javax.swing.border.TitledBorder
 import javax.swing.tree.DefaultTreeModel
+
+/**
+ * A small colored status dot indicator.
+ */
+private class StatusDot(initialColor: java.awt.Color = JBColor.GRAY) : JPanel() {
+    var dotColor: java.awt.Color = initialColor
+        set(value) {
+            field = value
+            repaint()
+        }
+
+    init {
+        isOpaque = false
+        preferredSize = JBUI.size(8, 8)
+        minimumSize = JBUI.size(8, 8)
+        maximumSize = JBUI.size(8, 8)
+    }
+
+    override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        val g2 = g as Graphics2D
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+        g2.color = dotColor
+        g2.fillOval(0, 0, width, height)
+    }
+}
 
 /**
  * Tool window factory for the Bleep panel.
@@ -82,41 +113,53 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             updateUIForState()
         }
 
-    // UI components
-    private val statusLabel = JBLabel("Initializing...")
-    private val versionLabel = JBLabel("")
-    private val bspStatusLabel = JBLabel("BSP: checking...")
+    // UI components - Modern design
+    private val statusLabel = JBLabel("Initializing...").apply {
+        foreground = JBColor.GRAY
+    }
+    private val versionLabel = JBLabel("").apply {
+        font = font.deriveFont(java.awt.Font.BOLD)
+    }
+    private val bspStatusDot = StatusDot(JBColor.GRAY)
+    private val bspStatusLabel = JBLabel("checking...")
+    private val statusDot = StatusDot(JBColor.GRAY)
     private val errorPanel = JPanel(BorderLayout()).apply {
         isVisible = false
-        background = JBColor(0xFFE0E0, 0x5C3030)
-        border = BorderFactory.createCompoundBorder(
-            BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.RED),
-            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        background = JBColor(0xFFF3CD, 0x664D03)
+        border = JBUI.Borders.compound(
+            JBUI.Borders.customLine(JBColor(0xFFECB5, 0x997404), 0, 0, 1, 0),
+            JBUI.Borders.empty(8, 12)
         )
     }
     private val errorLabel = JBLabel().apply {
-        foreground = JBColor(0xCC0000, 0xFF6B6B)
+        foreground = JBColor(0x664D03, 0xFFE69C)
+        icon = AllIcons.General.Warning
     }
-    private val errorDismissButton = JButton("X").apply {
+    private val errorDismissButton = JButton(AllIcons.Actions.Close).apply {
         isBorderPainted = false
         isContentAreaFilled = false
+        preferredSize = JBUI.size(20, 20)
         toolTipText = "Dismiss"
         addActionListener { clearError() }
     }
 
     // Timer for polling BSP status
     private val bspPollTimer = Timer(2000) { checkBspStatus() }
-    private val groupsPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
-    private val scriptsPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
-    private val sourceGenPanel = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2))
+    private val groupsPanel = JPanel(FlowLayout(FlowLayout.LEFT, 4, 4))
+    private val scriptsPanel = JPanel(FlowLayout(FlowLayout.LEFT, 4, 4))
+    private val sourceGenPanel = JPanel(FlowLayout(FlowLayout.LEFT, 4, 4))
     private val projectTree: CheckboxTree
     private val rootNode = CheckedTreeNode("Projects")
     private lateinit var treeWrapper: JPanel
-    private val setupButton = JButton(AllIcons.Actions.Execute).apply {
-        toolTipText = "Setup IDE / Reload BSP"
+    private val playButton = JButton("Sync").apply {
+        icon = AllIcons.Actions.Refresh
+        toolTipText = "Setup IDE / Reload BSP with selected projects"
+        putClientProperty("JButton.buttonType", "borderless")
     }
-    private val stopBspButton = JButton(AllIcons.Actions.Suspend).apply {
+    private val stopBspButton = JButton().apply {
+        icon = AllIcons.Actions.Suspend
         toolTipText = "Stop BSP Server"
+        putClientProperty("JButton.buttonType", "borderless")
     }
 
     private var allProjects: List<ProjectInfo> = emptyList()
@@ -183,49 +226,82 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
         errorPanel.add(errorLabel, BorderLayout.CENTER)
         errorPanel.add(errorDismissButton, BorderLayout.EAST)
 
-        // === Header panel (error + status + buttons at top) ===
+        // === Header panel (modern design) ===
         val headerPanel = JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
+            border = JBUI.Borders.empty(8, 12, 4, 12)
 
             // Error row (hidden by default)
             errorPanel.alignmentX = java.awt.Component.LEFT_ALIGNMENT
             add(errorPanel)
 
-            // Status row
-            val statusRow = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2)).apply {
+            // Top row: Version + Status indicators + Actions
+            val topRow = JPanel(BorderLayout()).apply {
                 alignmentX = java.awt.Component.LEFT_ALIGNMENT
-                add(versionLabel)
-                add(Box.createHorizontalStrut(10))
-                add(bspStatusLabel)
-                add(Box.createHorizontalStrut(10))
-                add(statusLabel)
-            }
-            add(statusRow)
+                isOpaque = false
 
-            // Button row
-            val buttonRow = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2)).apply {
-                alignmentX = java.awt.Component.LEFT_ALIGNMENT
-                add(setupButton)
-                add(stopBspButton)
+                // Left side: Version + Status
+                val leftPanel = JPanel().apply {
+                    layout = BoxLayout(this, BoxLayout.X_AXIS)
+                    isOpaque = false
+
+                    add(versionLabel)
+                    add(Box.createHorizontalStrut(16))
+
+                    // BSP status with dot
+                    add(bspStatusDot)
+                    add(Box.createHorizontalStrut(4))
+                    add(JBLabel("BSP").apply { foreground = JBColor.GRAY })
+                    add(Box.createHorizontalStrut(4))
+                    add(bspStatusLabel)
+
+                    add(Box.createHorizontalStrut(16))
+
+                    // Build status with dot
+                    add(statusDot)
+                    add(Box.createHorizontalStrut(4))
+                    add(statusLabel)
+                }
+                add(leftPanel, BorderLayout.WEST)
+
+                // Right side: Action buttons
+                val rightPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 4, 0)).apply {
+                    isOpaque = false
+                    add(playButton)
+                    add(stopBspButton)
+                }
+                add(rightPanel, BorderLayout.EAST)
             }
-            add(buttonRow)
+            add(topRow)
+            add(Box.createVerticalStrut(4))
         }
 
         // === TAB 1: Projects ===
         val projectsTab = JPanel(BorderLayout()).apply {
-            // Groups section (compact)
+            border = JBUI.Borders.empty(8)
+
+            // Groups section (compact chips)
             val groupsWrapper = JPanel(BorderLayout()).apply {
-                border = BorderFactory.createTitledBorder("Groups")
+                border = JBUI.Borders.empty(0, 0, 8, 0)
+                isOpaque = false
                 add(JBScrollPane(groupsPanel).apply {
-                    preferredSize = java.awt.Dimension(0, 40)
-                    minimumSize = java.awt.Dimension(0, 40)
+                    preferredSize = JBUI.size(0, 44)
+                    minimumSize = JBUI.size(0, 44)
+                    border = JBUI.Borders.empty()
+                    viewport.isOpaque = false
+                    isOpaque = false
                 }, BorderLayout.CENTER)
             }
 
             // Project tree
             treeWrapper = JPanel(BorderLayout()).apply {
-                border = BorderFactory.createTitledBorder("Projects (0 / 0)")
-                add(JBScrollPane(projectTree), BorderLayout.CENTER)
+                border = JBUI.Borders.compound(
+                    RoundedLineBorder(JBColor.border(), 8),
+                    JBUI.Borders.empty(4)
+                )
+                add(JBScrollPane(projectTree).apply {
+                    border = JBUI.Borders.empty()
+                }, BorderLayout.CENTER)
             }
 
             add(groupsWrapper, BorderLayout.NORTH)
@@ -234,34 +310,45 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
         // === TAB 2: Scripts & Source Generators (single scrollable list) ===
         val scriptsTab = JPanel(BorderLayout()).apply {
+            border = JBUI.Borders.empty(8)
+
             val contentPanel = JPanel().apply {
                 layout = BoxLayout(this, BoxLayout.Y_AXIS)
+                isOpaque = false
 
-                // Scripts header
+                // Scripts section
                 add(JBLabel("Scripts").apply {
-                    font = font.deriveFont(java.awt.Font.BOLD)
-                    border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                    font = font.deriveFont(java.awt.Font.BOLD, 12f)
+                    foreground = JBColor.GRAY
+                    border = JBUI.Borders.empty(0, 4, 8, 0)
                     alignmentX = java.awt.Component.LEFT_ALIGNMENT
                 })
                 scriptsPanel.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+                scriptsPanel.isOpaque = false
                 add(scriptsPanel)
 
-                add(Box.createVerticalStrut(15))
+                add(Box.createVerticalStrut(16))
 
-                // Source Generators header
+                // Source Generators section
                 add(JBLabel("Source Generators").apply {
-                    font = font.deriveFont(java.awt.Font.BOLD)
-                    border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                    font = font.deriveFont(java.awt.Font.BOLD, 12f)
+                    foreground = JBColor.GRAY
+                    border = JBUI.Borders.empty(0, 4, 8, 0)
                     alignmentX = java.awt.Component.LEFT_ALIGNMENT
                 })
                 sourceGenPanel.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+                sourceGenPanel.isOpaque = false
                 add(sourceGenPanel)
 
                 // Push content to top
                 add(Box.createVerticalGlue())
             }
 
-            add(JBScrollPane(contentPanel), BorderLayout.CENTER)
+            add(JBScrollPane(contentPanel).apply {
+                border = JBUI.Borders.empty()
+                viewport.isOpaque = false
+                isOpaque = false
+            }, BorderLayout.CENTER)
         }
 
         // === TAB 3: Actions (build commands) ===
@@ -356,53 +443,6 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
                     }
                 ))
 
-                // diff exploded - optional cross-projects + revision
-                add(createCommandPanel(
-                    command = "diff exploded",
-                    description = "Diff exploded projects compared to git HEAD or revision",
-                    inputsBuilder = { panel, argsCollector ->
-                        addTextField(panel, argsCollector, "Git revision (optional, default HEAD):", "revision", false, "-r")
-                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
-                    }
-                ))
-
-                // diff bloop - optional cross-projects + revision
-                add(createCommandPanel(
-                    command = "diff bloop",
-                    description = "Diff bloop projects compared to git HEAD or revision",
-                    inputsBuilder = { panel, argsCollector ->
-                        addTextField(panel, argsCollector, "Git revision (optional, default HEAD):", "revision", false, "-r")
-                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
-                    }
-                ))
-
-                // show short - required project names (uses ProjectName, shows YAML definition)
-                add(createCommandPanel(
-                    command = "show short",
-                    description = "Show projects as written in YAML",
-                    inputsBuilder = { panel, argsCollector ->
-                        addProjectMultiSelect(panel, argsCollector, "Projects:", true, ProjectNameType.PROJECT_NAME)
-                    }
-                ))
-
-                // show exploded - optional cross-projects
-                add(createCommandPanel(
-                    command = "show exploded",
-                    description = "Show projects after templates have been applied",
-                    inputsBuilder = { panel, argsCollector ->
-                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
-                    }
-                ))
-
-                // show bloop - optional cross-projects
-                add(createCommandPanel(
-                    command = "show bloop",
-                    description = "Show projects as they appear to bloop with absolute paths",
-                    inputsBuilder = { panel, argsCollector ->
-                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
-                    }
-                ))
-
                 add(Box.createVerticalGlue())
             }
 
@@ -412,7 +452,7 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
         // === Tabbed pane ===
         val tabbedPane = JBTabbedPane().apply {
             addTab("Project Picker", projectsTab)
-            addTab("Run", scriptsTab)
+            addTab("Run Scripts", scriptsTab)
             addTab("Build Actions", actionsTab)
         }
 
@@ -422,7 +462,7 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             add(tabbedPane, BorderLayout.CENTER)
         })
 
-        setupButton.addActionListener { onSetupIde() }
+        playButton.addActionListener { onSetupIde() }
         stopBspButton.addActionListener { onStopBsp() }
 
         // Start BSP status polling
@@ -454,46 +494,49 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             when (state) {
                 PanelState.INITIALIZING -> {
                     statusLabel.text = "Initializing..."
-                    statusLabel.foreground = JBColor.GRAY
-                    setupButton.isEnabled = false
+                    statusDot.dotColor = JBColor.GRAY
+                    playButton.isEnabled = false
                     stopBspButton.isEnabled = false
                     projectTree.isEnabled = false
                 }
                 PanelState.LOADING -> {
-                    statusLabel.text = "Loading projects..."
-                    statusLabel.foreground = JBColor.GRAY
-                    setupButton.isEnabled = false
+                    statusLabel.text = "Loading..."
+                    statusDot.dotColor = JBColor(0x3574F0, 0x5B9BD5) // Blue
+                    playButton.isEnabled = false
                     stopBspButton.isEnabled = true
                     projectTree.isEnabled = false
                 }
                 PanelState.READY -> {
                     statusLabel.text = "Ready"
-                    statusLabel.foreground = JBColor.GREEN
-                    setupButton.isEnabled = true
-                    setupButton.toolTipText = "Reload BSP"
+                    statusDot.dotColor = JBColor(0x59A869, 0x499C54) // Green
+                    playButton.isEnabled = true
+                    playButton.text = "Sync"
+                    playButton.toolTipText = "Sync BSP"
                     stopBspButton.isEnabled = true
                     projectTree.isEnabled = true
                 }
                 PanelState.DIRTY -> {
-                    statusLabel.text = "Changes pending - click play to apply"
-                    statusLabel.foreground = JBColor.ORANGE
-                    setupButton.isEnabled = true
-                    setupButton.toolTipText = "Apply changes and reload BSP"
+                    statusLabel.text = "Pending"
+                    statusDot.dotColor = JBColor(0xE9A343, 0xD9A343) // Orange
+                    playButton.isEnabled = true
+                    playButton.text = "Apply"
+                    playButton.toolTipText = "Apply changes and sync BSP"
                     stopBspButton.isEnabled = true
                     projectTree.isEnabled = true
                 }
                 PanelState.APPLYING -> {
-                    statusLabel.text = "Setting up IDE..."
-                    statusLabel.foreground = JBColor.GRAY
-                    setupButton.isEnabled = false
+                    statusLabel.text = "Syncing..."
+                    statusDot.dotColor = JBColor(0x3574F0, 0x5B9BD5) // Blue
+                    playButton.isEnabled = false
                     stopBspButton.isEnabled = false
                     projectTree.isEnabled = false
                 }
                 PanelState.ERROR -> {
                     statusLabel.text = "Error"
-                    statusLabel.foreground = JBColor.RED
-                    setupButton.isEnabled = true
-                    setupButton.toolTipText = "Retry setup"
+                    statusDot.dotColor = JBColor(0xDB5860, 0xC75450) // Red
+                    playButton.isEnabled = true
+                    playButton.text = "Retry"
+                    playButton.toolTipText = "Retry sync"
                     stopBspButton.isEnabled = true
                     projectTree.isEnabled = true
                 }
@@ -582,25 +625,25 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
             ApplicationManager.getApplication().invokeLater {
                 if (aliveCount == 0) {
-                    bspStatusLabel.text = "BSP: not running"
-                    bspStatusLabel.foreground = JBColor.GRAY
+                    bspStatusLabel.text = "stopped"
+                    bspStatusDot.dotColor = JBColor.GRAY
                     service.bspStatus = BleepService.BspStatus.NOT_CONFIGURED
                 } else {
-                    bspStatusLabel.text = "BSP: $aliveCount alive"
-                    bspStatusLabel.foreground = JBColor.GREEN
+                    bspStatusLabel.text = "connected"
+                    bspStatusDot.dotColor = JBColor(0x59A869, 0x499C54) // Green
                     service.bspStatus = BleepService.BspStatus.CONNECTED
                 }
             }
         } catch (e: ClassNotFoundException) {
             ApplicationManager.getApplication().invokeLater {
-                bspStatusLabel.text = "BSP: n/a"
-                bspStatusLabel.foreground = JBColor.GRAY
+                bspStatusLabel.text = "n/a"
+                bspStatusDot.dotColor = JBColor.GRAY
             }
         } catch (e: Exception) {
             LOG.warn("Failed to check BSP status: ${e.message}", e)
             ApplicationManager.getApplication().invokeLater {
-                bspStatusLabel.text = "BSP: error"
-                bspStatusLabel.foreground = JBColor.RED
+                bspStatusLabel.text = "error"
+                bspStatusDot.dotColor = JBColor(0xDB5860, 0xC75450) // Red
             }
         }
     }
@@ -653,10 +696,10 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
     }
 
     private fun updateCountLabel() {
-        val selected = service.getSelectedProjects().size
-        val total = allProjects.size
-        treeWrapper.border = BorderFactory.createTitledBorder("Projects ($selected / $total)")
         checkDirtyState()
+        // Refresh scripts/source gens to update button enabled states
+        if (scripts.isNotEmpty()) populateScripts()
+        if (sourceGens.isNotEmpty()) populateSourceGens()
     }
 
     private fun refreshProjects() {
@@ -896,8 +939,12 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             insets = java.awt.Insets(2, 4, 2, 4)
         }
 
+        val selectedProjects = service.getSelectedProjects()
+
         scripts.sortedBy { it.name }.forEachIndexed { index, script ->
             gbc.gridy = index
+
+            val isProjectSelected = script.project in selectedProjects
 
             // Name column
             gbc.gridx = 0
@@ -905,6 +952,9 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             gbc.fill = GridBagConstraints.HORIZONTAL
             scriptsPanel.add(JBLabel(script.name).apply {
                 toolTipText = "Project: ${script.project}\nMain: ${script.mainClass}"
+                if (!isProjectSelected) {
+                    foreground = JBColor.GRAY
+                }
             }, gbc)
 
             // Run button
@@ -912,14 +962,16 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             gbc.weightx = 0.0
             gbc.fill = GridBagConstraints.NONE
             scriptsPanel.add(JButton(AllIcons.Actions.Execute).apply {
-                toolTipText = "Run ${script.name}"
+                toolTipText = if (isProjectSelected) "Run ${script.name}" else "Select project '${script.project}' first"
+                isEnabled = isProjectSelected
                 addActionListener { runScript(script, debug = false) }
             }, gbc)
 
             // Debug button
             gbc.gridx = 2
             scriptsPanel.add(JButton(AllIcons.Actions.StartDebugger).apply {
-                toolTipText = "Debug ${script.name}"
+                toolTipText = if (isProjectSelected) "Debug ${script.name}" else "Select project '${script.project}' first"
+                isEnabled = isProjectSelected
                 addActionListener { runScript(script, debug = true) }
             }, gbc)
         }
@@ -943,16 +995,24 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             insets = java.awt.Insets(2, 4, 2, 4)
         }
 
+        val selectedProjects = service.getSelectedProjects()
+
         uniqueSourceGens.forEachIndexed { index, (sourceGen, targetProjects) ->
             val displayName = sourceGen.mainClass.substringAfterLast('.')
             gbc.gridy = index
+
+            // Enable if the sourceGenProject is selected
+            val isProjectSelected = sourceGen.sourceGenProject in selectedProjects
 
             // Name column
             gbc.gridx = 0
             gbc.weightx = 1.0
             gbc.fill = GridBagConstraints.HORIZONTAL
             sourceGenPanel.add(JBLabel(displayName).apply {
-                toolTipText = "Generator: ${sourceGen.mainClass}\nTargets: ${targetProjects.take(5).joinToString(", ")}${if (targetProjects.size > 5) "..." else ""}"
+                toolTipText = "Generator: ${sourceGen.mainClass}\nProject: ${sourceGen.sourceGenProject}\nTargets: ${targetProjects.take(5).joinToString(", ")}${if (targetProjects.size > 5) "..." else ""}"
+                if (!isProjectSelected) {
+                    foreground = JBColor.GRAY
+                }
             }, gbc)
 
             // Run button
@@ -960,14 +1020,16 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             gbc.weightx = 0.0
             gbc.fill = GridBagConstraints.NONE
             sourceGenPanel.add(JButton(AllIcons.Actions.Execute).apply {
-                toolTipText = "Run $displayName"
+                toolTipText = if (isProjectSelected) "Run $displayName" else "Select project '${sourceGen.sourceGenProject}' first"
+                isEnabled = isProjectSelected
                 addActionListener { runSourceGen(sourceGen, targetProjects, debug = false) }
             }, gbc)
 
             // Debug button
             gbc.gridx = 2
             sourceGenPanel.add(JButton(AllIcons.Actions.StartDebugger).apply {
-                toolTipText = "Debug $displayName"
+                toolTipText = if (isProjectSelected) "Debug $displayName" else "Select project '${sourceGen.sourceGenProject}' first"
+                isEnabled = isProjectSelected
                 addActionListener { runSourceGen(sourceGen, targetProjects, debug = true) }
             }, gbc)
         }
