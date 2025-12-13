@@ -21,6 +21,7 @@ import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.content.ContentFactory
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.execution.runners.ExecutionEnvironmentBuilder
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -91,12 +92,13 @@ class BleepToolWindowFactory : ToolWindowFactory, DumbAware {
  * Panel state machine states.
  */
 enum class PanelState {
-    INITIALIZING,  // Reading bleep.yaml
-    LOADING,       // Loading projects/scripts from bleep CLI
-    READY,         // Loaded, no pending changes
-    DIRTY,         // User changed selection, not yet applied
-    APPLYING,      // Running bleep setup-ide
-    ERROR          // Something failed
+    INITIALIZING,     // Reading bleep.yaml
+    VERSION_TOO_OLD,  // Bleep version is too old, need upgrade
+    LOADING,          // Loading projects/scripts from bleep CLI
+    READY,            // Loaded, no pending changes
+    DIRTY,            // User changed selection, not yet applied
+    APPLYING,         // Running bleep setup-ide
+    ERROR             // Something failed
 }
 
 /**
@@ -141,6 +143,24 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
         preferredSize = JBUI.size(20, 20)
         toolTipText = "Dismiss"
         addActionListener { clearError() }
+    }
+
+    // Version warning panel
+    private val versionWarningPanel = JPanel(BorderLayout()).apply {
+        isVisible = false
+        background = JBColor(0xFFF3CD, 0x664D03)
+        border = JBUI.Borders.compound(
+            JBUI.Borders.customLine(JBColor(0xFFECB5, 0x997404), 0, 0, 1, 0),
+            JBUI.Borders.empty(8, 12)
+        )
+    }
+    private val versionWarningLabel = JBLabel().apply {
+        foreground = JBColor(0x664D03, 0xFFE69C)
+        icon = AllIcons.General.Warning
+    }
+    private val bumpVersionButton = JButton("Bump Version").apply {
+        toolTipText = "Update \$version in bleep.yaml to ${BleepConfig.MINIMUM_VERSION}"
+        addActionListener { onBumpVersion() }
     }
 
     // Timer for polling BSP status
@@ -226,10 +246,18 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
         errorPanel.add(errorLabel, BorderLayout.CENTER)
         errorPanel.add(errorDismissButton, BorderLayout.EAST)
 
+        // === Version warning panel setup ===
+        versionWarningPanel.add(versionWarningLabel, BorderLayout.CENTER)
+        versionWarningPanel.add(bumpVersionButton, BorderLayout.EAST)
+
         // === Header panel (modern design) ===
         val headerPanel = JPanel().apply {
             layout = BoxLayout(this, BoxLayout.Y_AXIS)
             border = JBUI.Borders.empty(8, 12, 4, 12)
+
+            // Version warning row (hidden by default)
+            versionWarningPanel.alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            add(versionWarningPanel)
 
             // Error row (hidden by default)
             errorPanel.alignmentX = java.awt.Component.LEFT_ALIGNMENT
@@ -491,10 +519,20 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
      */
     private fun updateUIForState() {
         ApplicationManager.getApplication().invokeLater {
+            // Hide version warning unless in VERSION_TOO_OLD state
+            versionWarningPanel.isVisible = (state == PanelState.VERSION_TOO_OLD)
+
             when (state) {
                 PanelState.INITIALIZING -> {
                     statusLabel.text = "Initializing..."
                     statusDot.dotColor = JBColor.GRAY
+                    playButton.isEnabled = false
+                    stopBspButton.isEnabled = false
+                    projectTree.isEnabled = false
+                }
+                PanelState.VERSION_TOO_OLD -> {
+                    statusLabel.text = "Version too old"
+                    statusDot.dotColor = JBColor(0xE9A343, 0xD9A343) // Orange
                     playButton.isEnabled = false
                     stopBspButton.isEnabled = false
                     projectTree.isEnabled = false
@@ -703,6 +741,23 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
     }
 
     private fun refreshProjects() {
+        // Check version first
+        when (val versionCheck = service.checkVersion()) {
+            is BleepService.VersionCheckResult.TooOld -> {
+                versionWarningLabel.text = "Bleep version ${versionCheck.current} is too old. Requires ${versionCheck.required} or higher."
+                versionLabel.text = "Bleep ${versionCheck.current}"
+                state = PanelState.VERSION_TOO_OLD
+                return
+            }
+            is BleepService.VersionCheckResult.NoConfig -> {
+                showError("Could not read bleep.yaml")
+                return
+            }
+            is BleepService.VersionCheckResult.Ok -> {
+                // Continue to load projects
+            }
+        }
+
         state = PanelState.LOADING
         rootNode.removeAllChildren()
         groupsPanel.removeAll()
@@ -726,7 +781,9 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
                     ApplicationManager.getApplication().invokeLater {
                         if (graph == null) {
-                            showError("Failed to load project graph from bleep CLI")
+                            val errorMsg = service.lastBleepError
+                                ?: "Failed to load project data from bleep CLI"
+                            showError(errorMsg)
                             return@invokeLater
                         }
 
@@ -1117,6 +1174,19 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
         }
     }
 
+    private fun onBumpVersion() {
+        if (service.bumpVersion()) {
+            // Refresh VFS to detect the file change
+            LocalFileSystem.getInstance().refreshAndFindFileByPath(
+                service.bleepConfig?.file?.absolutePath ?: return
+            )?.refresh(false, false)
+            // Reload with new version
+            refreshProjects()
+        } else {
+            showError("Failed to update bleep version in bleep.yaml")
+        }
+    }
+
     // === Actions tab helper methods ===
 
     /**
@@ -1484,12 +1554,15 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
     private fun runBleepInTerminal(command: String, args: List<String>) {
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Preparing bleep command", false) {
             override fun run(indicator: ProgressIndicator) {
-                val bleep = service.ensureBleep(indicator)
-                if (bleep == null) {
-                    ApplicationManager.getApplication().invokeLater {
-                        showError("Failed to locate bleep executable")
+                val bleepResult = service.ensureBleep(indicator)
+                val bleep = when (bleepResult) {
+                    is BleepService.BleepResult.Success -> bleepResult.executable
+                    is BleepService.BleepResult.Error -> {
+                        ApplicationManager.getApplication().invokeLater {
+                            showError(bleepResult.message)
+                        }
+                        return
                     }
-                    return
                 }
 
                 val basePath = service.projectBasePath ?: return

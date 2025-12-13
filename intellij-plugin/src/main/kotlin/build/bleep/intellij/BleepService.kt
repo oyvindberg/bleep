@@ -33,6 +33,10 @@ class BleepService(private val project: Project) : Disposable {
     private var bleepExecutable: File? = null
     private var config: BleepConfig? = null
     private var cachedAllData: AllOutput? = null
+
+    /** Last error message from ensureBleep, for UI display */
+    var lastBleepError: String? = null
+        private set
     private val selectedProjects = ConcurrentHashMap.newKeySet<String>()
 
     // Listeners for config changes (tool window refresh)
@@ -159,39 +163,92 @@ class BleepService(private val project: Project) : Disposable {
     }
 
     /**
-     * Ensures bleep is downloaded and returns the path to the executable.
+     * Result of version check.
      */
-    fun ensureBleep(indicator: ProgressIndicator? = null): File? {
-        // Check for hardcoded path first (for testing)
-        BleepProjectData.hardcodedBleepPath?.let { path ->
-            val file = File(path)
-            if (file.exists()) {
-                bleepExecutable = file
-                return file
-            }
-        }
+    sealed class VersionCheckResult {
+        object Ok : VersionCheckResult()
+        data class TooOld(val current: String, val required: String) : VersionCheckResult()
+        object NoConfig : VersionCheckResult()
+    }
 
+    /**
+     * Result of ensuring bleep is available.
+     */
+    sealed class BleepResult {
+        data class Success(val executable: File) : BleepResult()
+        data class Error(val message: String) : BleepResult()
+    }
+
+    /**
+     * Check if the bleep version meets the minimum requirement.
+     */
+    fun checkVersion(): VersionCheckResult {
+        val config = bleepConfig ?: return VersionCheckResult.NoConfig
+        return if (config.meetsMinimumVersion()) {
+            VersionCheckResult.Ok
+        } else {
+            VersionCheckResult.TooOld(config.version, BleepConfig.MINIMUM_VERSION)
+        }
+    }
+
+    /**
+     * Bump the bleep version in bleep.yaml to the minimum required version.
+     * Returns true if successful.
+     */
+    fun bumpVersion(): Boolean {
+        val config = bleepConfig ?: return false
+        val success = config.updateVersion(BleepConfig.MINIMUM_VERSION)
+        if (success) {
+            reloadConfig()
+            // Clear cached executable since version changed
+            bleepExecutable = null
+        }
+        return success
+    }
+
+    /**
+     * Ensures bleep is downloaded and returns the path to the executable.
+     * Returns BleepResult with specific error message if it fails.
+     */
+    fun ensureBleep(indicator: ProgressIndicator? = null): BleepResult {
         if (bleepExecutable?.exists() == true) {
-            return bleepExecutable
+            return BleepResult.Success(bleepExecutable!!)
         }
 
-        val version = bleepConfig?.version ?: return null
+        val config = bleepConfig
+            ?: return BleepResult.Error("No bleep.yaml found in project")
+
+        // Check version requirement
+        if (!config.meetsMinimumVersion()) {
+            LOG.warn("Bleep version ${config.version} is too old, need ${BleepConfig.MINIMUM_VERSION}")
+            return BleepResult.Error("Bleep version ${config.version} is too old (requires ${BleepConfig.MINIMUM_VERSION})")
+        }
+
+        val version = config.version
 
         // Check cache first
         val cached = BleepDownloader.getCachedBleep(version)
         if (cached != null) {
             bleepExecutable = cached
-            return cached
+            return BleepResult.Success(cached)
         }
 
         // Download
         return try {
             val downloaded = BleepDownloader.downloadBleep(version, indicator)
             bleepExecutable = downloaded
-            downloaded
+            BleepResult.Success(downloaded)
         } catch (e: Exception) {
-            LOG.error("Failed to download bleep $version", e)
-            null
+            LOG.warn("Failed to download bleep $version: ${e.message}")
+            val errorMsg = when {
+                e.message?.contains("404") == true || e.message?.contains("Not Found") == true ->
+                    "Bleep version $version not found. This version may not be released yet."
+                e.message?.contains("connect") == true || e.message?.contains("timeout") == true ->
+                    "Failed to download bleep $version: Network error (${e.message})"
+                else ->
+                    "Failed to download bleep $version: ${e.message}"
+            }
+            BleepResult.Error(errorMsg)
         }
     }
 
@@ -206,10 +263,13 @@ class BleepService(private val project: Project) : Disposable {
         ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Setting up Bleep IDE", true) {
             override fun run(indicator: ProgressIndicator) {
                 indicator.text = "Ensuring bleep is available..."
-                val bleep = ensureBleep(indicator)
-                if (bleep == null) {
-                    onComplete(false, "Failed to download or locate bleep executable")
-                    return
+                val bleepResult = ensureBleep(indicator)
+                val bleep = when (bleepResult) {
+                    is BleepResult.Success -> bleepResult.executable
+                    is BleepResult.Error -> {
+                        onComplete(false, bleepResult.message)
+                        return
+                    }
                 }
 
                 indicator.text = "Running bleep setup-ide..."
@@ -269,7 +329,17 @@ class BleepService(private val project: Project) : Disposable {
     private fun loadAllData(indicator: ProgressIndicator? = null): AllOutput? {
         cachedAllData?.let { return it }
 
-        val bleep = ensureBleep(indicator) ?: return null
+        val bleepResult = ensureBleep(indicator)
+        val bleep = when (bleepResult) {
+            is BleepResult.Success -> {
+                lastBleepError = null
+                bleepResult.executable
+            }
+            is BleepResult.Error -> {
+                lastBleepError = bleepResult.message
+                return null
+            }
+        }
         val basePath = projectBasePath ?: return null
 
         val data = BleepProjectData.fetchAll(bleep, basePath)

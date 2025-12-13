@@ -88,17 +88,12 @@ object BleepProjectData {
     private val LOG = Logger.getInstance(BleepProjectData::class.java)
     private val gson = Gson()
 
-    // TODO: Remove this hardcoded path after testing
-    // Set to null to use the downloaded bleep binary
-    var hardcodedBleepPath: String? = "/Users/oyvind/bleep/bleep-cli@jvm3.sh"
-
     /**
      * Fetches all project data in a single bleep command.
      * This is more efficient than calling individual fetch methods.
      */
     fun fetchAll(bleepPath: File, projectDir: File): AllOutput? {
-        val effectivePath = hardcodedBleepPath?.let { File(it) } ?: bleepPath
-        val json = runBleepCommand(effectivePath, projectDir, "extract-info", "all")
+        val json = runBleepCommand(bleepPath, projectDir, "extract-info", "all")
         return json?.let {
             try {
                 gson.fromJson(it, AllOutput::class.java)
