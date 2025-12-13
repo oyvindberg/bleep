@@ -38,6 +38,21 @@ class BleepService(private val project: Project) : Disposable {
     private var cachedSourceGen: SourceGenOutput? = null
     private val selectedProjects = ConcurrentHashMap.newKeySet<String>()
 
+    // Listeners for config changes (tool window refresh)
+    private val configChangeListeners = mutableListOf<() -> Unit>()
+
+    fun addConfigChangeListener(listener: () -> Unit) {
+        configChangeListeners.add(listener)
+    }
+
+    fun removeConfigChangeListener(listener: () -> Unit) {
+        configChangeListeners.remove(listener)
+    }
+
+    private fun notifyConfigChanged() {
+        configChangeListeners.forEach { it() }
+    }
+
     enum class BspStatus {
         NOT_CONFIGURED, CONFIGURED, CONNECTED, ERROR
     }
@@ -282,11 +297,30 @@ class BleepService(private val project: Project) : Disposable {
     }
 
     /**
-     * Legacy method - get project names as simple list.
+     * Get cross-project names (full names like "typo@jvm3").
+     * Use for commands that operate on build targets: compile, test, diff, create-directories, show exploded/bloop.
      */
-    fun getProjects(indicator: ProgressIndicator? = null): List<String> {
+    fun getCrossProjectNames(indicator: ProgressIndicator? = null): List<String> {
         val graph = getProjectGraph(indicator) ?: return emptyList()
         return graph.projects.map { it.name }.sorted()
+    }
+
+    /**
+     * Get distinct project names (base names like "typo" without cross suffix).
+     * Use for commands that operate on project structure: project-rename, project-merge-into, projects-move, show short.
+     */
+    fun getProjectNames(indicator: ProgressIndicator? = null): List<String> {
+        val graph = getProjectGraph(indicator) ?: return emptyList()
+        return graph.projects.map { it.projectName }.distinct().sorted()
+    }
+
+    /**
+     * Legacy method - get project names as simple list.
+     * @deprecated Use getCrossProjectNames() or getProjectNames() instead for clarity
+     */
+    @Deprecated("Use getCrossProjectNames() or getProjectNames() instead", ReplaceWith("getCrossProjectNames(indicator)"))
+    fun getProjects(indicator: ProgressIndicator? = null): List<String> {
+        return getCrossProjectNames(indicator)
     }
 
     /**
@@ -371,11 +405,12 @@ class BleepService(private val project: Project) : Disposable {
 
     /**
      * Trigger a BSP sync after bleep.yaml changes.
-     * This reloads the config and refreshes the BSP project.
+     * This reloads the config, notifies listeners, and refreshes the BSP project.
      */
     fun triggerBspSync() {
         LOG.info("Triggering BSP sync (bleep.yaml changed)")
         reloadConfig()
+        notifyConfigChanged()
         refreshBsp { success, errorMessage ->
             if (success) {
                 LOG.info("BSP sync completed successfully")

@@ -9,12 +9,33 @@ import java.io.InputStreamReader
 
 /**
  * Data classes for parsing bleep extract-info JSON output.
+ *
+ * Note: Bleep distinguishes between:
+ * - CrossProjectName: Full name like "typo@jvm3" (project with cross-build suffix)
+ * - ProjectName: Base name like "typo" (the name without cross-build suffix)
+ *
+ * Commands that operate on project structure (rename, merge, move) use ProjectName.
+ * Commands that operate on build targets (compile, test, diff) use CrossProjectName.
  */
 data class ProjectInfo(
-    val name: String,
+    val name: String,  // This is the CrossProjectName (e.g., "typo@jvm3")
     val dependsOn: List<String>,
     val isTest: Boolean
-)
+) {
+    /**
+     * The base project name without the cross-build suffix.
+     * e.g., "typo@jvm3" -> "typo", "myproject" -> "myproject"
+     */
+    val projectName: String
+        get() = name.substringBefore('@')
+
+    /**
+     * The cross-build suffix, if any.
+     * e.g., "typo@jvm3" -> "jvm3", "myproject" -> null
+     */
+    val crossId: String?
+        get() = if (name.contains('@')) name.substringAfter('@') else null
+}
 
 data class GroupInfo(
     val name: String,

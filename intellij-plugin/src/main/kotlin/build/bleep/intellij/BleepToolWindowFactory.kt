@@ -20,11 +20,22 @@ import com.intellij.ui.components.JBTabbedPane
 import com.intellij.ui.content.ContentFactory
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.Disposer
+import com.intellij.execution.executors.DefaultRunExecutor
+import com.intellij.execution.runners.ExecutionEnvironmentBuilder
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.execution.process.ProcessHandlerFactory
+import com.intellij.terminal.TerminalExecutionConsole
+import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.execution.ui.RunContentDescriptor
+import com.intellij.execution.ui.RunContentManager
 import java.awt.BorderLayout
+import java.awt.Cursor
+import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.*
+import javax.swing.border.TitledBorder
 import javax.swing.tree.DefaultTreeModel
 
 /**
@@ -126,6 +137,14 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
     // Flag to prevent recursive updates
     private var updatingTree = false
+
+    // Listener for config changes (bleep.yaml modified)
+    private val configChangeListener: () -> Unit = {
+        ApplicationManager.getApplication().invokeLater {
+            LOG.info("bleep.yaml changed, refreshing projects")
+            refreshProjects()
+        }
+    }
 
     init {
         @Suppress("DEPRECATION")
@@ -245,10 +264,156 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             add(JBScrollPane(contentPanel), BorderLayout.CENTER)
         }
 
+        // === TAB 3: Actions (build commands) ===
+        val actionsTab = JPanel(BorderLayout()).apply {
+            val actionsPanel = JPanel().apply {
+                layout = BoxLayout(this, BoxLayout.Y_AXIS)
+                border = BorderFactory.createEmptyBorder(5, 5, 5, 5)
+
+                // normalize - no args
+                add(createCommandPanel(
+                    command = "normalize",
+                    description = "Normalize build (deduplicate, sort, etc.)",
+                    inputsBuilder = null
+                ))
+
+                // templates-reapply - no args
+                add(createCommandPanel(
+                    command = "templates-reapply",
+                    description = "Apply existing templates again",
+                    inputsBuilder = null
+                ))
+
+                // templates-generate-new - no args
+                add(createCommandPanel(
+                    command = "templates-generate-new",
+                    description = "Throw away existing templates and infer new",
+                    inputsBuilder = null
+                ))
+
+                // move-files-into-bleep-layout - no args
+                add(createCommandPanel(
+                    command = "move-files-into-bleep-layout",
+                    description = "Move source files from sbt layout to bleep layout",
+                    inputsBuilder = null
+                ))
+
+                // create-directories - optional cross-project list
+                add(createCommandPanel(
+                    command = "create-directories",
+                    description = "Create all source and resource folders for project(s)",
+                    inputsBuilder = { panel, argsCollector ->
+                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional):", false, ProjectNameType.CROSS_PROJECT_NAME)
+                    }
+                ))
+
+                // update-deps - optional flags
+                add(createCommandPanel(
+                    command = "update-deps",
+                    description = "Update to newest versions of all dependencies",
+                    inputsBuilder = { panel, argsCollector ->
+                        addUpdateDepsFlags(panel, argsCollector)
+                    }
+                ))
+
+                // update-dep - required dep + optional flags
+                add(createCommandPanel(
+                    command = "update-dep",
+                    description = "Update a single dependency or organization to newest version",
+                    inputsBuilder = { panel, argsCollector ->
+                        addTextField(panel, argsCollector, "Dependency (org:module or org):", "dependency", true)
+                        addUpdateDepsFlags(panel, argsCollector)
+                    }
+                ))
+
+                // project-rename - from project name, to name (uses ProjectName, not cross)
+                add(createCommandPanel(
+                    command = "project-rename",
+                    description = "Rename a project",
+                    inputsBuilder = { panel, argsCollector ->
+                        addProjectDropdown(panel, argsCollector, "Project to rename:", "from", true, ProjectNameType.PROJECT_NAME)
+                        addTextField(panel, argsCollector, "New name:", "to", true)
+                    }
+                ))
+
+                // project-merge-into - from project name, into project name (uses ProjectName, not cross)
+                add(createCommandPanel(
+                    command = "project-merge-into",
+                    description = "Merge first project into second",
+                    inputsBuilder = { panel, argsCollector ->
+                        addProjectDropdown(panel, argsCollector, "Merge from:", "from", true, ProjectNameType.PROJECT_NAME)
+                        addProjectDropdown(panel, argsCollector, "Into:", "into", true, ProjectNameType.PROJECT_NAME)
+                    }
+                ))
+
+                // projects-move - folder + project names (uses ProjectName, not cross)
+                add(createCommandPanel(
+                    command = "projects-move",
+                    description = "Move projects to a new parent folder",
+                    inputsBuilder = { panel, argsCollector ->
+                        addTextField(panel, argsCollector, "New parent folder:", "folder", true)
+                        addProjectMultiSelect(panel, argsCollector, "Projects to move:", true, ProjectNameType.PROJECT_NAME)
+                    }
+                ))
+
+                // diff exploded - optional cross-projects + revision
+                add(createCommandPanel(
+                    command = "diff exploded",
+                    description = "Diff exploded projects compared to git HEAD or revision",
+                    inputsBuilder = { panel, argsCollector ->
+                        addTextField(panel, argsCollector, "Git revision (optional, default HEAD):", "revision", false, "-r")
+                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
+                    }
+                ))
+
+                // diff bloop - optional cross-projects + revision
+                add(createCommandPanel(
+                    command = "diff bloop",
+                    description = "Diff bloop projects compared to git HEAD or revision",
+                    inputsBuilder = { panel, argsCollector ->
+                        addTextField(panel, argsCollector, "Git revision (optional, default HEAD):", "revision", false, "-r")
+                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
+                    }
+                ))
+
+                // show short - required project names (uses ProjectName, shows YAML definition)
+                add(createCommandPanel(
+                    command = "show short",
+                    description = "Show projects as written in YAML",
+                    inputsBuilder = { panel, argsCollector ->
+                        addProjectMultiSelect(panel, argsCollector, "Projects:", true, ProjectNameType.PROJECT_NAME)
+                    }
+                ))
+
+                // show exploded - optional cross-projects
+                add(createCommandPanel(
+                    command = "show exploded",
+                    description = "Show projects after templates have been applied",
+                    inputsBuilder = { panel, argsCollector ->
+                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
+                    }
+                ))
+
+                // show bloop - optional cross-projects
+                add(createCommandPanel(
+                    command = "show bloop",
+                    description = "Show projects as they appear to bloop with absolute paths",
+                    inputsBuilder = { panel, argsCollector ->
+                        addProjectMultiSelect(panel, argsCollector, "Cross-projects (optional, default all):", false, ProjectNameType.CROSS_PROJECT_NAME)
+                    }
+                ))
+
+                add(Box.createVerticalGlue())
+            }
+
+            add(JBScrollPane(actionsPanel), BorderLayout.CENTER)
+        }
+
         // === Tabbed pane ===
         val tabbedPane = JBTabbedPane().apply {
             addTab("Project Picker", projectsTab)
             addTab("Run", scriptsTab)
+            addTab("Build Actions", actionsTab)
         }
 
         // === Main layout ===
@@ -267,6 +432,9 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
         // Register for disposal
         Disposer.register(service, this)
 
+        // Subscribe to config changes (bleep.yaml modifications)
+        service.addConfigChangeListener(configChangeListener)
+
         // Initial load - state machine starts at INITIALIZING
         state = PanelState.INITIALIZING
         refreshProjects()
@@ -275,6 +443,7 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
     override fun dispose() {
         bspPollTimer.stop()
+        service.removeConfigChangeListener(configChangeListener)
     }
 
     /**
@@ -884,6 +1053,424 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             LOG.error("Failed to stop BSP server", e)
             showError("Failed to stop BSP server: ${e.message}")
         }
+    }
+
+    // === Actions tab helper methods ===
+
+    /**
+     * Whether to use base project names or full cross-project names.
+     * ProjectName: Base name like "typo" - for commands that modify project structure
+     * CrossProjectName: Full name like "typo@jvm3" - for commands that operate on build targets
+     */
+    private enum class ProjectNameType {
+        PROJECT_NAME,       // Base name without @suffix (e.g., "typo")
+        CROSS_PROJECT_NAME  // Full name with @suffix (e.g., "typo@jvm3")
+    }
+
+    /**
+     * Type alias for collecting command arguments.
+     */
+    private class ArgsCollector {
+        val args = mutableListOf<String>()
+        val flags = mutableMapOf<String, () -> Boolean>()
+        val values = mutableMapOf<String, () -> String>()
+        val flaggedValues = mutableMapOf<String, () -> List<String>>()  // For --flag value pairs
+        val multiValues = mutableMapOf<String, () -> List<String>>()
+        var required = mutableMapOf<String, () -> Boolean>()
+
+        fun isValid(): Boolean {
+            for ((_, checker) in required) {
+                if (!checker()) return false
+            }
+            return true
+        }
+
+        fun collectArgs(): List<String> {
+            val result = mutableListOf<String>()
+            // Add flags
+            for ((flag, getter) in flags) {
+                if (getter()) result.add(flag)
+            }
+            // Add flagged values (--flag value pairs)
+            for ((_, getter) in flaggedValues) {
+                result.addAll(getter())
+            }
+            // Add single values
+            for ((_, getter) in values) {
+                val v = getter()
+                if (v.isNotBlank()) result.add(v)
+            }
+            // Add multi values
+            for ((_, getter) in multiValues) {
+                result.addAll(getter())
+            }
+            return result
+        }
+    }
+
+    /**
+     * Create an expandable command panel.
+     */
+    private fun createCommandPanel(
+        command: String,
+        description: String,
+        inputsBuilder: ((JPanel, ArgsCollector) -> Unit)?
+    ): JPanel {
+        val argsCollector = ArgsCollector()
+        val hasInputs = inputsBuilder != null
+
+        return JPanel().apply {
+            layout = BorderLayout()
+            border = BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, JBColor.border()),
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)
+            )
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            maximumSize = Dimension(Int.MAX_VALUE, if (hasInputs) Int.MAX_VALUE else 40)
+
+            // Content panel (inputs + run button) - initially hidden if has inputs
+            val contentPanel = JPanel().apply {
+                layout = BoxLayout(this, BoxLayout.Y_AXIS)
+                border = BorderFactory.createEmptyBorder(5, 20, 5, 5)
+                isVisible = !hasInputs // Start expanded only for simple commands
+            }
+
+            // Build inputs
+            if (inputsBuilder != null) {
+                inputsBuilder(contentPanel, argsCollector)
+            }
+
+            // Run button (in content area for commands with inputs, in header for simple ones)
+            val runButton = JButton("Run").apply {
+                icon = AllIcons.Actions.Execute
+                addActionListener {
+                    if (!hasInputs || argsCollector.isValid()) {
+                        val args = argsCollector.collectArgs()
+                        runBleepInTerminal("build $command", args)
+                    }
+                }
+            }
+
+            if (hasInputs) {
+                // Add run button at bottom of content panel
+                val buttonPanel = JPanel(FlowLayout(FlowLayout.LEFT)).apply {
+                    alignmentX = java.awt.Component.LEFT_ALIGNMENT
+                    add(runButton)
+                }
+                contentPanel.add(Box.createVerticalStrut(5))
+                contentPanel.add(buttonPanel)
+            }
+
+            // Header panel (clickable to expand/collapse)
+            val headerPanel = JPanel(BorderLayout()).apply {
+                border = BorderFactory.createEmptyBorder(3, 5, 3, 5)
+
+                val expandIcon = if (hasInputs) {
+                    JBLabel(AllIcons.General.ArrowRight).apply {
+                        border = BorderFactory.createEmptyBorder(0, 0, 0, 5)
+                    }
+                } else null
+
+                val titleLabel = JBLabel(command).apply {
+                    font = font.deriveFont(java.awt.Font.BOLD)
+                }
+
+                val descLabel = JBLabel(" - $description").apply {
+                    foreground = JBColor.GRAY
+                }
+
+                val leftPanel = JPanel(FlowLayout(FlowLayout.LEFT, 0, 0)).apply {
+                    if (expandIcon != null) add(expandIcon)
+                    add(titleLabel)
+                    add(descLabel)
+                }
+
+                add(leftPanel, BorderLayout.CENTER)
+
+                // For simple commands, put run button in header
+                if (!hasInputs) {
+                    add(runButton, BorderLayout.EAST)
+                }
+
+                // Make clickable for commands with inputs
+                if (hasInputs) {
+                    cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                    addMouseListener(object : java.awt.event.MouseAdapter() {
+                        override fun mouseClicked(e: java.awt.event.MouseEvent) {
+                            contentPanel.isVisible = !contentPanel.isVisible
+                            expandIcon?.icon = if (contentPanel.isVisible) {
+                                AllIcons.General.ArrowDown
+                            } else {
+                                AllIcons.General.ArrowRight
+                            }
+                            revalidate()
+                            repaint()
+                        }
+                    })
+                }
+            }
+
+            add(headerPanel, BorderLayout.NORTH)
+            add(contentPanel, BorderLayout.CENTER)
+        }
+    }
+
+    /**
+     * Add a text field input to the panel.
+     */
+    private fun addTextField(
+        panel: JPanel,
+        argsCollector: ArgsCollector,
+        label: String,
+        key: String,
+        required: Boolean,
+        flagPrefix: String? = null
+    ) {
+        val textField = JTextField(20)
+
+        val row = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2)).apply {
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            add(JBLabel(label))
+            add(textField)
+            if (required) {
+                add(JBLabel("*").apply { foreground = JBColor.RED })
+            }
+        }
+        panel.add(row)
+
+        if (flagPrefix != null) {
+            // For flagged fields, add both flag and value if non-empty
+            argsCollector.flaggedValues[key] = {
+                val v = textField.text.trim()
+                if (v.isNotBlank()) listOf(flagPrefix, v) else emptyList()
+            }
+        } else {
+            argsCollector.values[key] = { textField.text.trim() }
+        }
+        if (required) {
+            argsCollector.required[key] = { textField.text.trim().isNotBlank() }
+        }
+    }
+
+    /**
+     * Add a project dropdown to the panel.
+     * Uses DefaultComboBoxModel so it can be refreshed when projects are loaded.
+     * @param nameType Whether to show base project names or full cross-project names
+     */
+    private fun addProjectDropdown(
+        panel: JPanel,
+        argsCollector: ArgsCollector,
+        label: String,
+        key: String,
+        required: Boolean,
+        nameType: ProjectNameType
+    ) {
+        val model = javax.swing.DefaultComboBoxModel<String>()
+        val combo = com.intellij.openapi.ui.ComboBox(model)
+
+        // Refresh model when combo becomes visible (projects may have loaded since panel created)
+        combo.addHierarchyListener { e ->
+            if ((e.changeFlags and java.awt.event.HierarchyEvent.SHOWING_CHANGED.toLong()) != 0L && combo.isShowing) {
+                val currentProjects = when (nameType) {
+                    ProjectNameType.PROJECT_NAME -> allProjects.map { it.projectName }.distinct().sorted()
+                    ProjectNameType.CROSS_PROJECT_NAME -> allProjects.map { it.name }.sorted()
+                }
+                val modelItems = (0 until model.size).map { model.getElementAt(it) }
+                if (currentProjects != modelItems) {
+                    val selected = combo.selectedItem
+                    model.removeAllElements()
+                    currentProjects.forEach { model.addElement(it) }
+                    if (selected != null && selected in currentProjects) {
+                        combo.selectedItem = selected
+                    }
+                }
+            }
+        }
+
+        val row = JPanel(FlowLayout(FlowLayout.LEFT, 5, 2)).apply {
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            add(JBLabel(label))
+            add(combo)
+            if (required) {
+                add(JBLabel("*").apply { foreground = JBColor.RED })
+            }
+        }
+        panel.add(row)
+
+        argsCollector.values[key] = { (combo.selectedItem as? String) ?: "" }
+        if (required) {
+            argsCollector.required[key] = { combo.selectedItem != null }
+        }
+    }
+
+    /**
+     * Add a multi-select for projects (checkboxes in a scrollable list).
+     * Refreshes when panel becomes visible.
+     * @param nameType Whether to show base project names or full cross-project names
+     */
+    private fun addProjectMultiSelect(
+        panel: JPanel,
+        argsCollector: ArgsCollector,
+        label: String,
+        required: Boolean,
+        nameType: ProjectNameType
+    ) {
+        val checkboxes = mutableListOf<JCheckBox>()
+
+        val checkboxPanel = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.Y_AXIS)
+        }
+
+        val scrollPane = JBScrollPane(checkboxPanel).apply {
+            preferredSize = Dimension(300, 100)
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+        }
+
+        // Refresh checkboxes when scrollPane becomes visible
+        scrollPane.addHierarchyListener { e ->
+            if ((e.changeFlags and java.awt.event.HierarchyEvent.SHOWING_CHANGED.toLong()) != 0L && scrollPane.isShowing) {
+                val currentProjects = when (nameType) {
+                    ProjectNameType.PROJECT_NAME -> allProjects.map { it.projectName }.distinct().sorted()
+                    ProjectNameType.CROSS_PROJECT_NAME -> allProjects.map { it.name }.sorted()
+                }
+                val existingNames = checkboxes.map { it.text }
+                if (currentProjects != existingNames) {
+                    val selectedNames = checkboxes.filter { it.isSelected }.map { it.text }.toSet()
+                    checkboxes.clear()
+                    checkboxPanel.removeAll()
+                    currentProjects.forEach { name ->
+                        val cb = JCheckBox(name).apply {
+                            // Pre-select if previously selected or if the corresponding cross-project is in selection
+                            val isInSelection = when (nameType) {
+                                ProjectNameType.PROJECT_NAME -> service.getSelectedProjects().any { it.substringBefore('@') == name }
+                                ProjectNameType.CROSS_PROJECT_NAME -> name in service.getSelectedProjects()
+                            }
+                            isSelected = name in selectedNames || isInSelection
+                        }
+                        checkboxes.add(cb)
+                        checkboxPanel.add(cb)
+                    }
+                    checkboxPanel.revalidate()
+                    checkboxPanel.repaint()
+                }
+            }
+        }
+
+        val labelRow = JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            add(JBLabel(label))
+            if (required) {
+                add(JBLabel("*").apply { foreground = JBColor.RED })
+            }
+        }
+
+        // Select all / deselect all buttons
+        val selectAllBtn = JButton("All").apply {
+            addActionListener {
+                checkboxes.forEach { it.isSelected = true }
+            }
+        }
+        val deselectAllBtn = JButton("None").apply {
+            addActionListener {
+                checkboxes.forEach { it.isSelected = false }
+            }
+        }
+
+        val buttonRow = JPanel(FlowLayout(FlowLayout.LEFT, 5, 0)).apply {
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            add(selectAllBtn)
+            add(deselectAllBtn)
+        }
+
+        panel.add(labelRow)
+        panel.add(buttonRow)
+        panel.add(scrollPane)
+
+        argsCollector.multiValues["projects"] = {
+            checkboxes.filter { it.isSelected }.map { it.text }
+        }
+
+        if (required) {
+            argsCollector.required["projects"] = {
+                checkboxes.any { it.isSelected }
+            }
+        }
+    }
+
+    /**
+     * Add update-deps flags (--steward, --prerelease).
+     */
+    private fun addUpdateDepsFlags(panel: JPanel, argsCollector: ArgsCollector) {
+        val stewardCheckbox = JCheckBox("--steward (use Scala Steward upgrade strategy)")
+        val prereleaseCheckbox = JCheckBox("--prerelease (allow prerelease versions)")
+
+        val row = JPanel().apply {
+            layout = BoxLayout(this, BoxLayout.Y_AXIS)
+            alignmentX = java.awt.Component.LEFT_ALIGNMENT
+            add(stewardCheckbox)
+            add(prereleaseCheckbox)
+        }
+        panel.add(row)
+
+        argsCollector.flags["--steward"] = { stewardCheckbox.isSelected }
+        argsCollector.flags["--prerelease"] = { prereleaseCheckbox.isSelected }
+    }
+
+    /**
+     * Run a bleep command in a terminal window.
+     */
+    private fun runBleepInTerminal(command: String, args: List<String>) {
+        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Preparing bleep command", false) {
+            override fun run(indicator: ProgressIndicator) {
+                val bleep = service.ensureBleep(indicator)
+                if (bleep == null) {
+                    ApplicationManager.getApplication().invokeLater {
+                        showError("Failed to locate bleep executable")
+                    }
+                    return
+                }
+
+                val basePath = service.projectBasePath ?: return
+
+                ApplicationManager.getApplication().invokeLater {
+                    try {
+                        // Build command line
+                        val fullArgs = mutableListOf(bleep.absolutePath, "-d", basePath.absolutePath)
+                        fullArgs.addAll(command.split(" "))
+                        fullArgs.addAll(args)
+
+                        val commandLine = GeneralCommandLine(fullArgs)
+                            .withWorkDirectory(basePath)
+                            .withCharset(Charsets.UTF_8)
+
+                        LOG.info("Running in terminal: ${commandLine.commandLineString}")
+
+                        // Create process handler
+                        val processHandler = ProcessHandlerFactory.getInstance()
+                            .createColoredProcessHandler(commandLine)
+
+                        // Create run content descriptor and show in Run tool window
+                        val console = com.intellij.execution.impl.ConsoleViewImpl(project, true)
+                        console.attachToProcess(processHandler)
+
+                        val descriptor = RunContentDescriptor(
+                            console,
+                            processHandler,
+                            console.component,
+                            "bleep $command"
+                        )
+
+                        val executor = DefaultRunExecutor.getRunExecutorInstance()
+                        RunContentManager.getInstance(project).showRunContent(executor, descriptor)
+
+                        processHandler.startNotify()
+                    } catch (e: Exception) {
+                        LOG.error("Failed to run bleep command", e)
+                        showError("Failed to run command: ${e.message}")
+                    }
+                }
+            }
+        })
     }
 }
 
