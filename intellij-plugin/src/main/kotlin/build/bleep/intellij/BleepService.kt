@@ -272,13 +272,27 @@ class BleepService(private val project: Project) : Disposable {
                     }
                 }
 
+                indicator.text = "Validating project selection..."
+
+                // Get valid project names from the build to filter out stale selections
+                val validProjectNames = getCrossProjectNames(indicator).toSet()
+                val validatedProjects = if (selectedProjects.isNotEmpty() && validProjectNames.isNotEmpty()) {
+                    val valid = selectedProjects.filter { it in validProjectNames }
+                    val invalid = selectedProjects.filter { it !in validProjectNames }
+                    if (invalid.isNotEmpty()) {
+                        LOG.warn("Removing ${invalid.size} stale project selections: ${invalid.take(5)}...")
+                        // Update the stored selection to remove invalid projects
+                        setSelectedProjects(valid.toSet())
+                        saveProjectSelection()
+                    }
+                    valid
+                } else {
+                    selectedProjects.toList()
+                }
+
                 indicator.text = "Running bleep setup-ide..."
 
-                val projectArgs = if (selectedProjects.isNotEmpty()) {
-                    selectedProjects.toList()
-                } else {
-                    emptyList()
-                }
+                val projectArgs = validatedProjects
 
                 val basePath = projectBasePath
                 if (basePath == null) {

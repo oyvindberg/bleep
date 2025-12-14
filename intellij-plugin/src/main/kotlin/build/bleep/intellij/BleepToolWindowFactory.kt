@@ -789,7 +789,18 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
                         allProjects = graph.projects
                         buildDependencyMaps()
-                        populateProjectTree(selected)
+
+                        // Validate and clean up stale project selections
+                        val validProjectNames = allProjects.map { it.name }.toSet()
+                        val validatedSelected = selected.filter { it in validProjectNames }.toSet()
+                        if (validatedSelected.size < selected.size) {
+                            val stale = selected - validatedSelected
+                            LOG.warn("Removed ${stale.size} stale project selections: ${stale.take(5)}...")
+                            service.setSelectedProjects(validatedSelected)
+                            service.saveProjectSelection()
+                        }
+
+                        populateProjectTree(validatedSelected)
 
                         if (groupsData != null) {
                             groups = groupsData.groups.filter { !isCrossProjectGroup(it) }
@@ -806,8 +817,8 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
                             populateSourceGens()
                         }
 
-                        // Set initial applied selection
-                        appliedSelection = selected
+                        // Set initial applied selection (use validated set)
+                        appliedSelection = validatedSelected
                         updateCountLabel()
 
                         val config = service.bleepConfig
@@ -1137,6 +1148,9 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
     private fun onSetupIde() {
         state = PanelState.APPLYING
+
+        // Open the Build tool window so user can see BSP sync progress
+        ToolWindowManager.getInstance(project).getToolWindow("Build")?.show()
 
         service.setupIde { success, errorMessage ->
             ApplicationManager.getApplication().invokeLater {
