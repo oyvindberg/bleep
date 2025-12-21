@@ -5,9 +5,12 @@ import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.Presentation
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
+import com.intellij.openapi.externalSystem.model.task.ExternalSystemTaskType
+import com.intellij.openapi.externalSystem.service.internal.ExternalSystemProcessingManager
 import com.intellij.openapi.externalSystem.service.project.ExternalProjectRefreshCallback
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.externalSystem.importing.ImportSpecBuilder
@@ -310,7 +313,12 @@ class BleepService(private val project: Project) : Disposable {
                     bspStatus = BspStatus.CONFIGURED
                     indicator.text = "Importing BSP project..."
                     // Trigger BSP import on the EDT
-                    com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
+                    ApplicationManager.getApplication().invokeLater {
+                        if (project.isDisposed) {
+                            LOG.warn("Project disposed before BSP import could start")
+                            onComplete(false, "Project was disposed")
+                            return@invokeLater
+                        }
                         refreshBsp { bspSuccess, bspError ->
                             if (bspSuccess) {
                                 onComplete(true, null)
@@ -477,6 +485,30 @@ class BleepService(private val project: Project) : Disposable {
      * This reloads the config, notifies listeners, and refreshes the BSP project.
      */
     fun triggerBspSync() {
+        // Early disposal check
+        if (project.isDisposed) {
+            LOG.warn("Cannot trigger BSP sync: project is disposed")
+            return
+        }
+
+        // Check if sync already running using IntelliJ's built-in mechanism
+        val basePath = projectBasePath?.absolutePath
+        if (basePath != null) {
+            val processingManager = ApplicationManager.getApplication()
+                .getService(ExternalSystemProcessingManager::class.java)
+
+            val existingTask = processingManager?.findTask(
+                ExternalSystemTaskType.RESOLVE_PROJECT,
+                BSP_SYSTEM_ID,
+                basePath
+            )
+
+            if (existingTask != null) {
+                LOG.info("BSP sync already in progress for $basePath, skipping duplicate request")
+                return
+            }
+        }
+
         LOG.info("Triggering BSP sync (bleep.yaml changed)")
         reloadConfig()
         notifyConfigChanged()
@@ -494,6 +526,13 @@ class BleepService(private val project: Project) : Disposable {
      * Callback receives (success, errorMessage).
      */
     fun refreshBsp(onComplete: (Boolean, String?) -> Unit) {
+        // Early disposal check before any work
+        if (project.isDisposed) {
+            LOG.warn("Cannot refresh BSP: project is disposed")
+            onComplete(false, "Project is disposed")
+            return
+        }
+
         val basePath = projectBasePath ?: run {
             onComplete(false, "Project base path not found")
             return
@@ -558,16 +597,30 @@ class BleepService(private val project: Project) : Disposable {
                     .use(ProgressExecutionMode.IN_BACKGROUND_ASYNC)
                     .callback(object : ExternalProjectRefreshCallback {
                         override fun onSuccess(externalProject: com.intellij.openapi.externalSystem.model.DataNode<com.intellij.openapi.externalSystem.model.project.ProjectData>?) {
+                            if (project.isDisposed) {
+                                LOG.warn("BSP refresh completed but project was disposed")
+                                return
+                            }
                             LOG.info("BSP project refresh succeeded")
                             bspStatus = BspStatus.CONNECTED
                             onComplete(true, null)
                         }
 
                         override fun onFailure(errorMessage: String, errorDetails: String?) {
-                            LOG.warn("BSP project refresh failed: $errorMessage\nDetails: $errorDetails")
-                            bspStatus = BspStatus.ERROR
-                            val fullError = if (errorDetails != null) "$errorMessage: $errorDetails" else errorMessage
-                            onComplete(false, "BSP import failed: $fullError")
+                            if (project.isDisposed) {
+                                LOG.warn("BSP refresh failed and project was disposed")
+                                return
+                            }
+                            // Check if failure was due to already running sync
+                            if (errorMessage.contains("already.running") || errorMessage.contains("already running")) {
+                                LOG.info("BSP sync already running (detected in callback): $errorMessage")
+                                onComplete(false, "BSP sync already in progress")
+                            } else {
+                                LOG.warn("BSP project refresh failed: $errorMessage\nDetails: $errorDetails")
+                                bspStatus = BspStatus.ERROR
+                                val fullError = if (errorDetails != null) "$errorMessage: $errorDetails" else errorMessage
+                                onComplete(false, "BSP import failed: $fullError")
+                            }
                         }
                     })
                     .build()
