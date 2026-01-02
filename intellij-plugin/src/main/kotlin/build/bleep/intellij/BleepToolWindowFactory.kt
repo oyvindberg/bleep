@@ -43,6 +43,50 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import javax.swing.*
 import javax.swing.tree.DefaultTreeModel
+import java.awt.Container
+
+/**
+ * A FlowLayout that properly calculates preferred size when content wraps.
+ */
+private class WrapLayout(align: Int, hgap: Int, vgap: Int) : FlowLayout(align, hgap, vgap) {
+    override fun preferredLayoutSize(target: Container): Dimension {
+        return layoutSize(target, true)
+    }
+
+    override fun minimumLayoutSize(target: Container): Dimension {
+        return layoutSize(target, false)
+    }
+
+    private fun layoutSize(target: Container, preferred: Boolean): Dimension {
+        synchronized(target.treeLock) {
+            val targetWidth = if (target.width > 0) target.width else Int.MAX_VALUE
+            val insets = target.insets
+            val maxWidth = targetWidth - insets.left - insets.right - hgap * 2
+
+            var width = 0
+            var height = insets.top + insets.bottom + vgap * 2
+            var rowWidth = 0
+            var rowHeight = 0
+
+            for (comp in target.components) {
+                if (comp.isVisible) {
+                    val d = if (preferred) comp.preferredSize else comp.minimumSize
+                    if (rowWidth + d.width > maxWidth && rowWidth > 0) {
+                        width = maxOf(width, rowWidth)
+                        height += rowHeight + vgap
+                        rowWidth = 0
+                        rowHeight = 0
+                    }
+                    rowWidth += d.width + hgap
+                    rowHeight = maxOf(rowHeight, d.height)
+                }
+            }
+            width = maxOf(width, rowWidth)
+            height += rowHeight
+            return Dimension(insets.left + insets.right + width, height)
+        }
+    }
+}
 
 /**
  * A small colored status dot indicator.
@@ -263,42 +307,25 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
             errorPanel.alignmentX = java.awt.Component.LEFT_ALIGNMENT
             add(errorPanel)
 
-            // Top row: Version + Status indicators + Actions
-            val topRow = JPanel(BorderLayout()).apply {
+            // Top row: Version + Status indicators + Actions (all in wrap layout)
+            val topRow = JPanel(WrapLayout(FlowLayout.LEFT, 8, 4)).apply {
                 alignmentX = java.awt.Component.LEFT_ALIGNMENT
                 isOpaque = false
 
-                // Left side: Version + Status
-                val leftPanel = JPanel().apply {
-                    layout = BoxLayout(this, BoxLayout.X_AXIS)
-                    isOpaque = false
+                add(versionLabel)
 
-                    add(versionLabel)
-                    add(Box.createHorizontalStrut(16))
+                // BSP status with dot
+                add(bspStatusDot)
+                add(JBLabel("BSP").apply { foreground = JBColor.GRAY })
+                add(bspStatusLabel)
 
-                    // BSP status with dot
-                    add(bspStatusDot)
-                    add(Box.createHorizontalStrut(4))
-                    add(JBLabel("BSP").apply { foreground = JBColor.GRAY })
-                    add(Box.createHorizontalStrut(4))
-                    add(bspStatusLabel)
+                // Build status with dot
+                add(statusDot)
+                add(statusLabel)
 
-                    add(Box.createHorizontalStrut(16))
-
-                    // Build status with dot
-                    add(statusDot)
-                    add(Box.createHorizontalStrut(4))
-                    add(statusLabel)
-                }
-                add(leftPanel, BorderLayout.WEST)
-
-                // Right side: Action buttons
-                val rightPanel = JPanel(FlowLayout(FlowLayout.RIGHT, 4, 0)).apply {
-                    isOpaque = false
-                    add(playButton)
-                    add(stopBspButton)
-                }
-                add(rightPanel, BorderLayout.EAST)
+                // Action buttons (inline with the rest)
+                add(playButton)
+                add(stopBspButton)
             }
             add(topRow)
             add(Box.createVerticalStrut(4))
@@ -789,7 +816,18 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
                         allProjects = graph.projects
                         buildDependencyMaps()
-                        populateProjectTree(selected)
+
+                        // Validate and clean up stale project selections
+                        val validProjectNames = allProjects.map { it.name }.toSet()
+                        val validatedSelected = selected.filter { it in validProjectNames }.toSet()
+                        if (validatedSelected.size < selected.size) {
+                            val stale = selected - validatedSelected
+                            LOG.warn("Removed ${stale.size} stale project selections: ${stale.take(5)}...")
+                            service.setSelectedProjects(validatedSelected)
+                            service.saveProjectSelection()
+                        }
+
+                        populateProjectTree(validatedSelected)
 
                         if (groupsData != null) {
                             groups = groupsData.groups.filter { !isCrossProjectGroup(it) }
@@ -806,8 +844,8 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
                             populateSourceGens()
                         }
 
-                        // Set initial applied selection
-                        appliedSelection = selected
+                        // Set initial applied selection (use validated set)
+                        appliedSelection = validatedSelected
                         updateCountLabel()
 
                         val config = service.bleepConfig
@@ -1137,6 +1175,9 @@ class BleepToolWindowPanel(private val project: Project) : SimpleToolWindowPanel
 
     private fun onSetupIde() {
         state = PanelState.APPLYING
+
+        // Open the Build tool window so user can see BSP sync progress
+        ToolWindowManager.getInstance(project).getToolWindow("Build")?.show()
 
         service.setupIde { success, errorMessage ->
             ApplicationManager.getApplication().invokeLater {
