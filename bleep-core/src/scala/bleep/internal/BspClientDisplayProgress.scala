@@ -11,7 +11,11 @@ import scala.collection.mutable
 // a bsp client which will display compilation diagnostics and progress to a logger
 object BspClientDisplayProgress {
   def apply(logger: Logger): BspClientDisplayProgress = {
-    val terminalSizeCache = new io.github.alexarchambault.nativeterm.TerminalSizeCache()
+    // TerminalSizeCache constructor registers a SIGWINCH handler which doesn't exist on Windows.
+    // Wrap in try-catch to handle this gracefully.
+    val terminalSizeCache: Option[io.github.alexarchambault.nativeterm.TerminalSizeCache] =
+      try Some(new io.github.alexarchambault.nativeterm.TerminalSizeCache())
+      catch { case _: Exception => None }
     new BspClientDisplayProgress(logger.withPath("BSP"), mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty, terminalSizeCache)
   }
 
@@ -76,7 +80,7 @@ class BspClientDisplayProgress(
     logger: Logger,
     active: mutable.SortedMap[bsp4j.BuildTargetIdentifier, Option[bsp4j.TaskProgressParams]],
     var failed: mutable.ListBuffer[bsp4j.BuildTargetIdentifier],
-    terminalSizeCache: io.github.alexarchambault.nativeterm.TerminalSizeCache
+    terminalSizeCache: Option[io.github.alexarchambault.nativeterm.TerminalSizeCache]
 ) extends bsp4j.BuildClient {
   def extract(anyRef: AnyRef): Option[BuildTargetIdentifier] =
     anyRef match {
@@ -121,11 +125,15 @@ class BspClientDisplayProgress(
 
       // Calculate available width for progress items
       val termWidth =
-        try {
-          val size = terminalSizeCache.getSize()
-          if (size != null && size.getWidth() > 0) size.getWidth() else 80
-        } catch {
-          case _: Exception => 80
+        terminalSizeCache match {
+          case Some(cache) =>
+            try {
+              val size = cache.getSize()
+              if (size != null && size.getWidth() > 0) size.getWidth() else 80
+            } catch {
+              case _: Exception => 80
+            }
+          case None => 80
         }
 
       val progress = BspClientDisplayProgress.renderProgress(progressItems, rest.size, termWidth)
