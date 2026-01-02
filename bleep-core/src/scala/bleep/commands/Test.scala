@@ -6,6 +6,7 @@ import bleep.internal.{DoSourceGen, TransitiveProjects}
 import bloop.rifle.BuildServer
 import cats.data.NonEmptyList
 import ch.epfl.scala.bsp4j
+import ch.epfl.scala.bsp4j.CompileParams
 
 import java.util
 import scala.jdk.CollectionConverters.*
@@ -33,12 +34,23 @@ case class Test(
           case (None, None) =>
             Right(new bsp4j.TestParams(allTargets))
           case _ =>
-            val allTestSuitesResult: bsp4j.ScalaTestClassesResult =
-              bloop.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(allTargets)).get()
+            val classesParams = new bsp4j.ScalaTestClassesParams(allTargets)
 
-            Test
-              .testParamsWithFilter(allTestSuitesResult, testSuitesOnly, testSuitesExclude)
-              .toRight(Test.NoTestSuitesFound)
+            def getTestClasses = bloop.buildTargetScalaTestClasses(classesParams)
+
+            Test.testParamsWithFilter(getTestClasses.get(), testSuitesOnly, testSuitesExclude) match {
+              case Some(testParams) => Right(testParams)
+              case None =>
+                started.logger.info("No matching test suites discovered yet; compiling and retrying test discovery")
+                bloop.buildTargetCompile(new CompileParams(allTargets)).get().getStatusCode match {
+                  case bsp4j.StatusCode.OK =>
+                    Test
+                      .testParamsWithFilter(getTestClasses.get(), testSuitesOnly, testSuitesExclude)
+                      .toRight(Test.NoTestSuitesFound)
+                  case errorCode =>
+                    Left(new BspCommandFailed("compile", projects, BspCommandFailed.StatusCode(errorCode)))
+                }
+            }
         }
 
       maybeTestParams.flatMap { testParams =>
