@@ -330,4 +330,27 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
       assert(storingLogger.underlying.exists(_.message.plainText.contains("Tests succeeded")))
     }
   }
+
+  test("Require scalaVersion to be at least as high as the dependencies' scala-library") {
+    // zio:2.1.24 depends on scala-library:2.13.18, but scala.version is 2.13.16.
+    // It should fail with a clear message telling the user to upgrade scala.version.
+
+    val thrown = intercept[BleepException.ResolveError] {
+      runTest(
+        "Require scalaVersion to be at least as high as the dependencies' scala-library",
+        // language=yaml
+        """projects:
+        |  mytest:
+        |    dependencies: dev.zio::zio:2.1.24
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 2.13.16
+        |""".stripMargin,
+        Map.empty
+      )((_, _, _) => succeed)
+    }
+
+    assert(thrown.getCause.getMessage.contains("scala.version needs to be upgraded to 2.13.18"))
+  }
 }
