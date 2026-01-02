@@ -121,6 +121,12 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
 
+      - name: Verify compile works (windows)
+        # This verifies the SIGWINCH fix - compile triggers BSP which uses TerminalSizeCache
+        run: bleep compile bleep-tests@jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
+
       - name: Build native image 3 (windows)
         uses: graalvm/setup-graalvm@v1
         if: runner.os == 'Windows'
