@@ -151,7 +151,7 @@ jobs:
         if: runner.os == 'Windows'
 
       - name: Temporarily save package
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact_name }}
           path: ${{ matrix.file_name }}
