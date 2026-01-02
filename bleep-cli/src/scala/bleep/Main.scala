@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.bsp.BspImpl
-import bleep.internal.{bleepLoggers, fatal, logException, FileUtils}
+import bleep.internal.{bleepLoggers, fatal, logException, BspClientDisplayProgress, FileUtils}
 import bleep.packaging.ManifestCreator
 import cats.data.NonEmptyList
 import cats.syntax.apply.*
@@ -558,7 +558,10 @@ object Main {
       case "selftest" :: Nil =>
         // checks that JNI libraries are successfully loaded
         val (commonOpts, _) = CommonOpts.parse(Nil)
-        FileWatching(bleepLoggers.stderrWarn(commonOpts), Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        val logger = bleepLoggers.stderrWarn(commonOpts)
+        FileWatching(logger, Map(FileUtils.cwd -> List(())))(println(_)).run(FileWatching.StopWhen.Immediately)
+        // verify TerminalSizeCache initialization works (SIGWINCH doesn't exist on Windows)
+        BspClientDisplayProgress(logger).discard()
         println("OK")
         ExitCode.Success
 
