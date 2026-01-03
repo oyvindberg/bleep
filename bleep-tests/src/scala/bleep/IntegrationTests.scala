@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.{bleepLoggers, FileUtils}
+import cats.data.NonEmptyList
 import org.scalactic.TripleEqualsSupport
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
@@ -287,6 +288,46 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
     ) { (_, commands, storingLogger) =>
       commands.run(model.CrossProjectName(model.ProjectName("a"), None))
       assert(storingLogger.underlying.exists(_.message.plainText == "result: 100"))
+    }
+  }
+
+  test("test --only works before compilation") {
+    runTest(
+      "test --only works before compilation",
+      // language=yaml
+      """projects:
+        |  mytest:
+        |    dependencies: org.scalatest::scalatest:3.2.15
+        |    isTestProject: true
+        |    platform:
+        |      name: jvm
+        |    scala:
+        |      version: 3.3.3
+        |""".stripMargin,
+      Map(
+        RelPath.of("mytest/src/scala/MyTest.scala") ->
+          // language=scala
+          """package example
+            |
+            |import org.scalatest.funsuite.AnyFunSuite
+            |
+            |class MyTest extends AnyFunSuite {
+            |  test("dummy test") {
+            |    assert(1 + 1 == 2)
+            |  }
+            |}
+            |""".stripMargin
+      )
+    ) { (started, commands, storingLogger) =>
+      commands.test(
+        projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
+        watch = false,
+        testOnlyClasses = Some(NonEmptyList.of("MyTest")),
+        testExcludeClasses = None
+      )
+
+      // Verify test actually ran
+      assert(storingLogger.underlying.exists(_.message.plainText.contains("Tests succeeded")))
     }
   }
 }
