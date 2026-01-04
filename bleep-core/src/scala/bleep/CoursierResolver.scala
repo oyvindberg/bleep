@@ -192,15 +192,42 @@ object CoursierResolver {
       def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
+        // SIP-51: For Scala 2.13 and 3, don't force scala-library version to match scala.version.
+        // This allows dependency resolution to upgrade scala-library when dependencies need it,
+        // implementing backwards-only binary compatibility. For older Scala versions (2.12, etc),
+        // we still force the version to maintain forward binary compatibility.
+        //
+        // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480):
+        // autoScalaLibrary.value && !ScalaArtifacts.isScala3(sv) && !Classpaths.isScala213(sv)
+        val shouldForceScalaVersion = versionCombo.asScala.exists(!_.scalaVersion.is3Or213)
+
+        // SIP-51: For Scala 2.13 and 3, add a SameVersion rule to ensure all Scala artifacts
+        // (scala-library, scala-reflect, scala-compiler) stay at the same version. This is
+        // necessary because of Scala's inlining - having different versions of these artifacts
+        // can cause runtime errors.
+        //
+        // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480 lines 9-11):
+        // csrSameVersions := Seq(ScalaArtifacts.Artifacts.map(a => InclExclRule(scalaOrganization.value, a)).toSet)
+        val resolutionParams = versionCombo.asScala match {
+          case Some(sv) if sv.scalaVersion.is3Or213 =>
+            // For Scala 2.13/3: disable forceScalaVersion to allow scala-library upgrades.
+            // We still set scalaVersionOpt so Coursier knows how to handle cross-versioned deps (_2.13).
+            // The key is that we DON'T add scala-library as an explicit dependency (see GenBloopFiles.scala),
+            // so it comes only from transitive deps and Coursier can choose the highest version.
+            ResolutionParams()
+              .withForceScalaVersion(false)
+              .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+          case _ =>
+            ResolutionParams()
+              .withForceScalaVersion(shouldForceScalaVersion)
+              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
+        }
+
         Fetch[Task](fileCache)
           .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
           .withRepositories(repos)
           .withDependencies(deps)
-          .withResolutionParams(
-            ResolutionParams()
-              .withForceScalaVersion(versionCombo.asScala.nonEmpty)
-              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
-          )
+          .withResolutionParams(resolutionParams)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
           .eitherResult() match {
