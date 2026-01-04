@@ -23,13 +23,17 @@ projects:
     - ch.epfl.scala::bloop-config:2.3.3
     - for3Use213: true
       module: ch.epfl.scala::bloop-rifle:2.0.17
+    - co.fs2::fs2-core:3.10.2
     - com.olvind.ryddig::ryddig:0.0.6
+    - com.olvind.tui::tui:0.0.7
     - com.swoval:file-tree-views:2.1.12
     - io.github.alexarchambault.native-terminal:native-terminal:0.0.9.1
+    - org.typelevel::cats-effect:3.5.4
     - org.typelevel::scalac-options:0.1.8
     dependsOn:
     - bleep-model
     - bleep-nosbt
+    - bleep-test-runner
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
   bleep-model:
@@ -128,6 +132,14 @@ projects:
     - template-cross-all
     - template-parcollection-ok
     sources: ../liberated/sbt-sonatype/src/main/scala
+  bleep-test-runner:
+    dependencies:
+      - org.scala-sbt:test-interface:1.0
+      - net.aichler:jupiter-interface:0.11.1
+    java:
+      options: -source 8 -target 8
+    platform:
+      name: jvm
   bleep-tests:
     dependencies: org.scalatest::scalatest:3.2.19
     dependsOn: bleep-cli

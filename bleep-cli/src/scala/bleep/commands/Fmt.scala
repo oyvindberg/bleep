@@ -42,7 +42,9 @@ case class Fmt(check: Boolean) extends BleepBuildCommand {
         .filter(Files.exists(_))
 
     val scalaFiles = Fmt.findSourceFiles(sourcesDirs, ".scala")
-    val javaFiles = Fmt.findSourceFiles(sourcesDirs, ".java")
+    // Exclude Java files from liberated directories - they are external projects with their own style
+    val liberatedDir = started.buildPaths.buildDir.resolve("liberated")
+    val javaFiles = Fmt.findSourceFiles(sourcesDirs, ".java").filterNot(_.startsWith(liberatedDir))
 
     val scalaResult: Option[BleepException] =
       if (scalaFiles.nonEmpty) {

@@ -236,6 +236,35 @@ object Main {
               commands.Test(watch, projectNames, testSuitesOnly, testSuitesExclude)
             }
           ),
+          Opts.subcommand("test-reactive", "test projects in parallel with reactive test runner")(
+            (
+              watch,
+              testProjectNames,
+              // Parallelism options - fixed takes precedence over ratio
+              Opts.option[Int]("parallel", "max parallel JVMs (fixed number)", "j").orNone,
+              Opts.option[Double]("parallel-ratio", "max parallel JVMs as ratio of cores (e.g., 0.5 = half cores)").orNone,
+              // Other config options
+              Opts.option[Int]("jvms-per-project", "max JVMs per project (default: 2)").orNone,
+              Opts.option[Int]("jvm-startup-timeout", "JVM startup timeout in seconds (default: 30)").orNone,
+              Opts.option[Int]("suite-timeout", "suite execution timeout in minutes (default: 2)").orNone,
+              // Multiple aliases for disabling TUI - for different use cases
+              (
+                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
+                Opts.flag("quiet", "alias for --no-tui", "q").orFalse,
+                Opts.flag("summary-only", "alias for --no-tui").orFalse
+              ).mapN(_ || _ || _),
+              Opts.options[String]("jvm-opt", "JVM options for forked test processes").orEmpty,
+              Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty
+            ).mapN { case (watch, projectNames, parallel, parallelRatio, jvmsPerProject, jvmStartupTimeout, suiteTimeout, noTui, jvmOpts, testArgs) =>
+              val config = commands.TestConfig(
+                parallelism = commands.Parallelism.fromOptions(parallel, parallelRatio),
+                jvmsPerProject = jvmsPerProject.getOrElse(commands.TestConfig.default.jvmsPerProject),
+                jvmStartupTimeoutSeconds = jvmStartupTimeout.getOrElse(commands.TestConfig.default.jvmStartupTimeoutSeconds),
+                suiteTimeoutMinutes = suiteTimeout.getOrElse(commands.TestConfig.default.suiteTimeoutMinutes)
+              )
+              commands.TestReactive(watch, projectNames, config, commands.DisplayMode.fromFlags(noTui), jvmOpts.toList, testArgs.toList)
+            }
+          ),
           Opts.subcommand("list-tests", "list tests in projects")(
             testProjectNames.map { projectNames =>
               commands.ListTests(projectNames)
