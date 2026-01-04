@@ -5,8 +5,8 @@ import bleep.nosbt.librarymanagement.ScalaArtifacts
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
-import coursier.Classifier
-import coursier.core.{Configuration, Extension}
+import coursier.{Classifier, ModuleName}
+import coursier.core.{Configuration, Extension, Organization}
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
 
 import java.io.File
@@ -272,8 +272,19 @@ object GenBloopFiles {
       }
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
-      val fromPlatform =
-        versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      // SIP-51: For Scala 2.13/3, don't add scala-library as an explicit dependency.
+      // Let it come from transitive dependencies so Coursier can upgrade it when needed.
+      val fromPlatform = versionCombo match {
+        case scala: model.VersionCombo.Scala if scala.scalaVersion.is3Or213 =>
+          // For 2.13/3: Only include platform libraries OTHER than scala-library
+          // (e.g., scala3-library, scalajs libraries, native libraries, test frameworks)
+          versionCombo
+            .libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+            .filterNot(dep => dep.organization == Organization("org.scala-lang") && dep.baseModuleName == ModuleName("scala-library"))
+        case _ =>
+          // For other Scala versions and Java: include all platform libraries as before
+          versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      }
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
