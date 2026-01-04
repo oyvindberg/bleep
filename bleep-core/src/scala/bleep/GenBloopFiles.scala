@@ -1,6 +1,7 @@
 package bleep
 
 import bleep.internal.{conversions, rewriteDependentData}
+import bleep.nosbt.librarymanagement.ScalaArtifacts
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
@@ -359,7 +360,35 @@ object GenBloopFiles {
             .jars
 
         val setup = {
-          val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
+          // SIP-51 (Drop Forwards Binary Compatibility) for Scala 2.13 and 3:
+          //
+          // When scala-library is on the bootclasspath (addLibraryToBootClasspath=true) and
+          // filtered from the regular classpath (filterLibraryFromClasspath=true), dependency
+          // resolution cannot upgrade it. This breaks when dependencies compiled with newer
+          // 2.13.x need methods not present in scala.version's 2.13.y (where y < x), causing
+          // NoSuchMethodError at runtime.
+          //
+          // Solution: Place scala-library on the regular classpath where dependency resolution
+          // can upgrade it to match what dependencies need. The compiler version stays at
+          // scala.version, but the library version can float higher, implementing backwards-only
+          // binary compatibility: code compiled with 2.13.x works with library 2.13.y where y >= x.
+          //
+          // This matches sbt's behavior (https://github.com/sbt/sbt/pull/7480):
+          // - Use ClasspathOptionsUtil.noboot instead of .boot for 2.13/3
+          // - This sets autoBoot=false (our addLibraryToBootClasspath=false)
+          // - And filterLibrary=false (our filterLibraryFromClasspath=false)
+          //
+          // See: https://docs.scala-lang.org/sips/drop-stdlib-forwards-bin-compat.html
+          def defaultSetup =
+            if (scalaVersion.is3Or213)
+              Defaults.DefaultCompileSetup.copy(
+                addLibraryToBootClasspath = Some(false),
+                filterLibraryFromClasspath = Some(false)
+              )
+            else
+              Defaults.DefaultCompileSetup
+
+          val provided = maybeScala.flatMap(_.setup).getOrElse(defaultSetup)
           Config.CompileSetup(
             order = conversions.compileOrder.from(provided.order.get),
             addLibraryToBootClasspath = provided.addLibraryToBootClasspath.get,
