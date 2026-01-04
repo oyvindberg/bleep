@@ -13,6 +13,17 @@ object bleepLoggers {
   // all log events will start with this string following 0.0.1-M26.
   val BLEEP_JSON_EVENT = "BLEEP_JSON_EVENT:"
 
+  /** Create a logger that only writes to a file (no stdout/stderr output). Useful when running TUI that needs exclusive control of the terminal.
+    */
+  def fileOnly(logFile: java.nio.file.Path): LoggerResource[BufferedWriter] =
+    Loggers.path(logFile, LogPatterns.logFile)
+
+  /** Create a silent logger that discards all output. Useful when running TUI that handles its own display. Uses storing logger which captures logs in memory
+    * instead of outputting.
+    */
+  def silent: Logger =
+    Loggers.storing()
+
   def stdoutNoLogFile(bleepConfig: model.BleepConfig, commonOpts: CommonOpts): LoggerResource[PrintStream] =
     if (commonOpts.logAsJson) LoggerResource.flushable(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.out))
     else baseStdout(bleepConfig, commonOpts).map(Loggers.decodeJsonStream(BLEEP_JSON_EVENT, _))

@@ -3,6 +3,18 @@
     "includes": [
       {
         "pattern": "\\Qnative/x86_64/libswoval-files0.dylib\\E"
+      },
+      {
+        "pattern": "\\Qlibnative-x86_64-darwin-crossterm.dylib\\E"
+      },
+      {
+        "pattern": "\\Qlibnative-arm64-darwin-crossterm.dylib\\E"
+      },
+      {
+        "pattern": "\\Qlibnative-x86_64-linux-crossterm.so\\E"
+      },
+      {
+        "pattern": "\\Qnative-x86_64-windows-crossterm.dll\\E"
       }
     ]
   },

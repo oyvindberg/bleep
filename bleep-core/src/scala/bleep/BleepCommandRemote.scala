@@ -19,6 +19,9 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
 
   def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit]
 
+  /** Override to wrap the build client with custom behavior (e.g., for reactive testing) */
+  def wrapBuildClient(started: Started, client: BspClientDisplayProgress): bsp4j.BuildClient = client
+
   override final def run(started: Started): Either[BleepException, Unit] = {
     started.config.compileServerModeOrDefault match {
       case model.CompileServerMode.NewEachInvocation =>
@@ -36,8 +39,11 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
         bleepRifleLogger
       )
 
-    val buildClient: BspClientDisplayProgress =
+    val displayClient: BspClientDisplayProgress =
       BspClientDisplayProgress(started.logger)
+
+    val buildClient: bsp4j.BuildClient =
+      wrapBuildClient(started, displayClient)
 
     def mkServer(retriesLeft: Int): BloopServer =
       try
@@ -109,7 +115,7 @@ abstract class BleepCommandRemote(watch: Boolean) extends BleepBuildCommand {
       } else {
         for {
           _ <- runWithServer(started, server.server)
-          res <- buildClient.failed match {
+          res <- displayClient.failed match {
             case empty if empty.isEmpty => Right(())
             case failed =>
               val projects = failed.flatMap(BleepCommandRemote.projectFromBuildTarget(started)).toArray

@@ -12,10 +12,14 @@ import scala.collection.mutable
 object BspClientDisplayProgress {
   def apply(logger: Logger): BspClientDisplayProgress = {
     // TerminalSizeCache constructor registers a SIGWINCH handler which doesn't exist on Windows.
-    // Wrap in try-catch to handle this gracefully.
+    // Check for Windows first to avoid even loading the class which triggers static initialization.
+    val isWindows = System.getProperty("os.name", "").toLowerCase.contains("win")
     val terminalSizeCache: Option[io.github.alexarchambault.nativeterm.TerminalSizeCache] =
-      try Some(new io.github.alexarchambault.nativeterm.TerminalSizeCache())
-      catch { case _: Exception => None }
+      if (isWindows) None
+      else {
+        try Some(new io.github.alexarchambault.nativeterm.TerminalSizeCache())
+        catch { case _: Throwable => None }
+      }
     new BspClientDisplayProgress(logger.withPath("BSP"), mutable.SortedMap.empty(Ordering.by(_.getUri)), mutable.ListBuffer.empty, terminalSizeCache)
   }
 
