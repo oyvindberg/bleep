@@ -365,10 +365,44 @@ object GenBloopFiles {
       scalaVersion.map { scalaVersion =>
         val compiler = scalaVersion.compiler.mapScala(_.copy(forceJvm = true)).asJava(versionCombo).getOrElse(sys.error("unexpected"))
 
-        val resolvedScalaCompiler: List[Path] =
-          resolver
+        val resolvedScalaCompiler: List[Path] = {
+          val compilerJars = resolver
             .force(Set(compiler), versionCombo = versionCombo, libraryVersionSchemes = SortedSet.empty, crossName.value, model.IgnoreEvictionErrors.No)
             .jars
+
+          // SIP-51: For Scala 3, update scala-library.jar in the compiler's runtime classpath
+          // to match the version resolved from project dependencies. This prevents
+          // NoSuchMethodException during macro expansion when macros were compiled against
+          // a newer scala-library than what the compiler is using.
+          //
+          // See: https://github.com/sbt/sbt/pull/7480
+          if (scalaVersion.is3) {
+            // Find scala-library from resolved dependencies
+            val resolvedScalaLibrary = resolvedDependencies.fullDetailedArtifacts.collectFirst {
+              case (dep, _, _, Some(file))
+                  if dep.module.organization == Organization(ScalaArtifacts.Organization) &&
+                    dep.module.name == ModuleName(ScalaArtifacts.LibraryID) &&
+                    file.getName.endsWith(".jar") =>
+                file.toPath
+            }
+
+            resolvedScalaLibrary match {
+              case Some(newLibraryJar) =>
+                // Replace scala-library.jar in compiler jars with the version from dependencies
+                compilerJars.map { jar =>
+                  if (jar.getFileName.toString.startsWith("scala-library") && jar.getFileName.toString.endsWith(".jar"))
+                    newLibraryJar
+                  else
+                    jar
+                }
+              case None =>
+                // No scala-library in dependencies, use compiler's version
+                compilerJars
+            }
+          } else {
+            compilerJars
+          }
+        }
 
         val setup = {
           // SIP-51 (Drop Forwards Binary Compatibility) for Scala 2.13 and 3:
