@@ -6,6 +6,8 @@ import bleep.internal.{DoSourceGen, TransitiveProjects}
 import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 
+import scala.jdk.CollectionConverters.*
+
 case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
 
   override def watchableProjects(started: Started): TransitiveProjects =
@@ -18,7 +20,9 @@ case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) exte
     DoSourceGen(started, bloop, watchableProjects(started)).flatMap { _ =>
       val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
 
-      val result = bloop.buildTargetCompile(new bsp4j.CompileParams(targets)).get()
+      val params = new bsp4j.CompileParams(targets)
+      params.setArguments(List("--show-rendered-message").asJava)
+      val result = bloop.buildTargetCompile(params).get()
 
       result.getStatusCode match {
         case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
