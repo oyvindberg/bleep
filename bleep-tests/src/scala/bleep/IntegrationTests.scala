@@ -333,24 +333,32 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
 
   test("Require scalaVersion to be at least as high as the dependencies' scala-library") {
     // zio:2.1.24 depends on scala-library:2.13.18, but scala.version is 2.13.16.
-    // It should fail with a clear message telling the user to upgrade scala.version.
+    // Build should load successfully, but compilation should fail with a clear message.
 
-    val thrown = intercept[BleepException.ResolveError] {
-      runTest(
-        "Require scalaVersion to be at least as high as the dependencies' scala-library",
-        // language=yaml
-        """projects:
-        |  mytest:
-        |    dependencies: dev.zio::zio:2.1.24
-        |    platform:
-        |      name: jvm
-        |    scala:
-        |      version: 2.13.16
-        |""".stripMargin,
-        Map.empty
-      )((_, _, _) => succeed)
+    runTest(
+      "Require scalaVersion to be at least as high as the dependencies' scala-library",
+      // language=yaml
+      """projects:
+      |  mytest:
+      |    dependencies: dev.zio::zio:2.1.24
+      |    platform:
+      |      name: jvm
+      |    scala:
+      |      version: 2.13.16
+      |""".stripMargin,
+      Map.empty
+    ) { (started, commands, _) =>
+      // Build should load successfully
+      assert(started.build.explodedProjects.contains(model.CrossProjectName("mytest")))
+
+      // But compilation should fail with SIP-51 validation error
+      val thrown = intercept[BleepException.Text] {
+        commands.compile(List(model.CrossProjectName("mytest"))).orThrow
+      }
+
+      assert(thrown.getMessage.contains("scala.version needs to be upgraded to 2.13.18"))
+      assert(thrown.getMessage.contains("bleep evicted"))
+      succeed
     }
-
-    assert(thrown.getCause.getMessage.contains("scala.version needs to be upgraded to 2.13.18"))
   }
 }

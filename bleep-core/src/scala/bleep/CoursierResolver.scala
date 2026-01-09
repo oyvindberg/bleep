@@ -313,7 +313,6 @@ object CoursierResolver {
       for {
         fetchResult <- direct(bleepDeps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
         result = CoursierResolver.Result(fetchResult.fullDetailedArtifacts, fetchResult.fullExtraArtifacts)
-        _ <- CoursierResolver.validateScalaVersionForSIP51(versionCombo, result, logger)
       } yield result
   }
 
