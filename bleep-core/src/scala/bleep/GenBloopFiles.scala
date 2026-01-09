@@ -1,11 +1,12 @@
 package bleep
 
 import bleep.internal.{conversions, rewriteDependentData}
+import bleep.nosbt.librarymanagement.ScalaArtifacts
 import bleep.rewrites.Defaults
 import bloop.config.{Config, ConfigCodecs}
 import com.github.plokhotnyuk.jsoniter_scala.core.{writeToString, WriterConfig}
-import coursier.Classifier
-import coursier.core.{Configuration, Extension}
+import coursier.{Classifier, ModuleName}
+import coursier.core.{Configuration, Extension, Organization}
 import org.typelevel.sbt.tpolecat.{DevMode, TpolecatPlugin}
 
 import java.io.File
@@ -271,8 +272,19 @@ object GenBloopFiles {
       }
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
-      val fromPlatform =
-        versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      // SIP-51: For Scala 2.13/3, don't add scala-library as an explicit dependency.
+      // Let it come from transitive dependencies so Coursier can upgrade it when needed.
+      val fromPlatform = versionCombo match {
+        case scala: model.VersionCombo.Scala if scala.scalaVersion.is3Or213 =>
+          // For 2.13/3: Only include platform libraries OTHER than scala-library
+          // (e.g., scala3-library, scalajs libraries, native libraries, test frameworks)
+          versionCombo
+            .libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+            .filterNot(dep => dep.organization == Organization("org.scala-lang") && dep.baseModuleName == ModuleName("scala-library"))
+        case _ =>
+          // For other Scala versions and Java: include all platform libraries as before
+          versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      }
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -353,13 +365,75 @@ object GenBloopFiles {
       scalaVersion.map { scalaVersion =>
         val compiler = scalaVersion.compiler.mapScala(_.copy(forceJvm = true)).asJava(versionCombo).getOrElse(sys.error("unexpected"))
 
-        val resolvedScalaCompiler: List[Path] =
-          resolver
+        val resolvedScalaCompiler: List[Path] = {
+          val compilerJars = resolver
             .force(Set(compiler), versionCombo = versionCombo, libraryVersionSchemes = SortedSet.empty, crossName.value, model.IgnoreEvictionErrors.No)
             .jars
 
+          // SIP-51: For Scala 3, update scala-library.jar in the compiler's runtime classpath
+          // to match the version resolved from project dependencies. This prevents
+          // NoSuchMethodException during macro expansion when macros were compiled against
+          // a newer scala-library than what the compiler is using.
+          //
+          // See: https://github.com/sbt/sbt/pull/7480
+          if (scalaVersion.is3) {
+            // Find scala-library from resolved dependencies
+            val resolvedScalaLibrary = resolvedDependencies.fullDetailedArtifacts.collectFirst {
+              case (dep, _, _, Some(file))
+                  if dep.module.organization == Organization(ScalaArtifacts.Organization) &&
+                    dep.module.name == ModuleName(ScalaArtifacts.LibraryID) &&
+                    file.getName.endsWith(".jar") =>
+                file.toPath
+            }
+
+            resolvedScalaLibrary match {
+              case Some(newLibraryJar) =>
+                // Replace scala-library.jar in compiler jars with the version from dependencies
+                compilerJars.map { jar =>
+                  if (jar.getFileName.toString.startsWith("scala-library") && jar.getFileName.toString.endsWith(".jar"))
+                    newLibraryJar
+                  else
+                    jar
+                }
+              case None =>
+                // No scala-library in dependencies, use compiler's version
+                compilerJars
+            }
+          } else {
+            compilerJars
+          }
+        }
+
         val setup = {
-          val provided = maybeScala.flatMap(_.setup).getOrElse(Defaults.DefaultCompileSetup)
+          // SIP-51 (Drop Forwards Binary Compatibility) for Scala 2.13 and 3:
+          //
+          // When scala-library is on the bootclasspath (addLibraryToBootClasspath=true) and
+          // filtered from the regular classpath (filterLibraryFromClasspath=true), dependency
+          // resolution cannot upgrade it. This breaks when dependencies compiled with newer
+          // 2.13.x need methods not present in scala.version's 2.13.y (where y < x), causing
+          // NoSuchMethodError at runtime.
+          //
+          // Solution: Place scala-library on the regular classpath where dependency resolution
+          // can upgrade it to match what dependencies need. The compiler version stays at
+          // scala.version, but the library version can float higher, implementing backwards-only
+          // binary compatibility: code compiled with 2.13.x works with library 2.13.y where y >= x.
+          //
+          // This matches sbt's behavior (https://github.com/sbt/sbt/pull/7480):
+          // - Use ClasspathOptionsUtil.noboot instead of .boot for 2.13/3
+          // - This sets autoBoot=false (our addLibraryToBootClasspath=false)
+          // - And filterLibrary=false (our filterLibraryFromClasspath=false)
+          //
+          // See: https://docs.scala-lang.org/sips/drop-stdlib-forwards-bin-compat.html
+          def defaultSetup =
+            if (scalaVersion.is3Or213)
+              Defaults.DefaultCompileSetup.copy(
+                addLibraryToBootClasspath = Some(false),
+                filterLibraryFromClasspath = Some(false)
+              )
+            else
+              Defaults.DefaultCompileSetup
+
+          val provided = maybeScala.flatMap(_.setup).getOrElse(defaultSetup)
           Config.CompileSetup(
             order = conversions.compileOrder.from(provided.order.get),
             addLibraryToBootClasspath = provided.addLibraryToBootClasspath.get,

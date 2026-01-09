@@ -172,6 +172,64 @@ object CoursierResolver {
 
   case class InvalidVersionCombo(message: String) extends CoursierError(message)
 
+  // SIP-51 validation: For Scala 2.13 and 3, fail if scala.version < resolved scala-library version.
+  //
+  // With backwards-only binary compatibility, the Scala compiler cannot be older than the
+  // scala-library on the dependency classpath. This validation ensures that if dependencies
+  // force an upgrade of scala-library (which is now allowed since it's on the regular classpath),
+  // the user is informed and asked to upgrade their scala.version.
+  //
+  // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480 lines 63-79)
+  def validateScalaVersionForSIP51(
+      versionCombo: model.VersionCombo,
+      result: CoursierResolver.Result,
+      logger: Logger
+  ): Either[CoursierError, Unit] =
+    versionCombo.asScala match {
+      case Some(sv) if sv.scalaVersion.is3Or213 =>
+        import bleep.nosbt.librarymanagement.ScalaArtifacts
+        import coursier.core.Version
+
+        // Check each Scala artifact to see if it was upgraded beyond scala.version
+        val scalaVersionStr = sv.scalaVersion.scalaVersion
+        val scalaVersionParsed = Version(scalaVersionStr)
+
+        ScalaArtifacts.Artifacts.iterator
+          .flatMap { artifactName =>
+            result.fullDetailedArtifacts.collectFirst {
+              case (dep, _, _, _)
+                  if dep.module.organization == Organization(ScalaArtifacts.Organization) &&
+                    dep.module.name == ModuleName(artifactName) =>
+                val resolvedVersion = dep.version
+                val resolvedParsed = Version(resolvedVersion)
+                // If resolved version > scala.version, that's an error
+                if (resolvedParsed > scalaVersionParsed)
+                  Some((artifactName, resolvedVersion))
+                else
+                  None
+            }.flatten
+          }
+          .toList
+          .headOption match {
+          case Some((artifactName, resolvedVersion)) =>
+            Left(
+              InvalidVersionCombo(
+                s"""|scala.version needs to be upgraded to $resolvedVersion. To support backwards-only
+                    |binary compatibility (SIP-51), the Scala compiler cannot be older than $artifactName
+                    |on the dependency classpath. The current scala.version is $scalaVersionStr, but
+                    |$artifactName was resolved to $resolvedVersion by dependency management.
+                    |
+                    |Please upgrade scala.version to $resolvedVersion or higher.
+                    |""".stripMargin
+              )
+            )
+          case None =>
+            Right(())
+        }
+      case _ =>
+        Right(())
+    }
+
   class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params) extends CoursierResolver {
 
     val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
@@ -192,15 +250,42 @@ object CoursierResolver {
       def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
+        // SIP-51: For Scala 2.13 and 3, don't force scala-library version to match scala.version.
+        // This allows dependency resolution to upgrade scala-library when dependencies need it,
+        // implementing backwards-only binary compatibility. For older Scala versions (2.12, etc),
+        // we still force the version to maintain forward binary compatibility.
+        //
+        // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480):
+        // autoScalaLibrary.value && !ScalaArtifacts.isScala3(sv) && !Classpaths.isScala213(sv)
+        val shouldForceScalaVersion = versionCombo.asScala.exists(!_.scalaVersion.is3Or213)
+
+        // SIP-51: For Scala 2.13 and 3, add a SameVersion rule to ensure all Scala artifacts
+        // (scala-library, scala-reflect, scala-compiler) stay at the same version. This is
+        // necessary because of Scala's inlining - having different versions of these artifacts
+        // can cause runtime errors.
+        //
+        // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480 lines 9-11):
+        // csrSameVersions := Seq(ScalaArtifacts.Artifacts.map(a => InclExclRule(scalaOrganization.value, a)).toSet)
+        val resolutionParams = versionCombo.asScala match {
+          case Some(sv) if sv.scalaVersion.is3Or213 =>
+            // For Scala 2.13/3: disable forceScalaVersion to allow scala-library upgrades.
+            // We still set scalaVersionOpt so Coursier knows how to handle cross-versioned deps (_2.13).
+            // The key is that we DON'T add scala-library as an explicit dependency (see GenBloopFiles.scala),
+            // so it comes only from transitive deps and Coursier can choose the highest version.
+            ResolutionParams()
+              .withForceScalaVersion(false)
+              .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+          case _ =>
+            ResolutionParams()
+              .withForceScalaVersion(shouldForceScalaVersion)
+              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
+        }
+
         Fetch[Task](fileCache)
           .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
           .withRepositories(repos)
           .withDependencies(deps)
-          .withResolutionParams(
-            ResolutionParams()
-              .withForceScalaVersion(versionCombo.asScala.nonEmpty)
-              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
-          )
+          .withResolutionParams(resolutionParams)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
           .eitherResult() match {
@@ -225,8 +310,10 @@ object CoursierResolver {
         libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
         ignoreEvictionErrors: model.IgnoreEvictionErrors
     ): Either[CoursierError, CoursierResolver.Result] =
-      direct(bleepDeps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
-        .map(res => CoursierResolver.Result(res.fullDetailedArtifacts, res.fullExtraArtifacts))
+      for {
+        fetchResult <- direct(bleepDeps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
+        result = CoursierResolver.Result(fetchResult.fullDetailedArtifacts, fetchResult.fullExtraArtifacts)
+      } yield result
   }
 
   def asCoursierDeps(bleepDeps: SortedSet[model.Dep], versionCombo: model.VersionCombo): Either[CoursierError, List[Dependency]] =
@@ -272,7 +359,10 @@ object CoursierResolver {
           } else None
 
         cachedResult match {
-          case Some(value) => Right(value)
+          case Some(value) =>
+            // Even for cached results, validate SIP-51 constraints since cache may contain
+            // results from before SIP-51 support was enabled
+            CoursierResolver.validateScalaVersionForSIP51(versionCombo, value, logger).map(_ => value)
           case None =>
             val depNames = deps.map(_.baseModuleName.value)
             val ctxLogger = logger.withContext("cachePath", cachePath).withContext("depNames", depNames).withContext("versionCombo", versionCombo.toString)

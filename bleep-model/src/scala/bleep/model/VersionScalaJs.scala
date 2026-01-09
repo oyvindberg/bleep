@@ -29,7 +29,7 @@ case class VersionScalaJs(scalaJsVersion: String) {
 
 object VersionScalaJs {
   val org = Organization("org.scala-js")
-  val ScalaJs1 = VersionScalaJs("1.19.0")
+  val ScalaJs1 = VersionScalaJs("1.20.2")
 
   implicit val decodes: Decoder[VersionScalaJs] = Decoder[String].map(VersionScalaJs.apply)
   implicit val encodes: Encoder[VersionScalaJs] = Encoder[String].contramap(_.scalaJsVersion)
