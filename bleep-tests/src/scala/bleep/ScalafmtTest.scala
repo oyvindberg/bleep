@@ -6,19 +6,19 @@ import org.scalatest.funsuite.AnyFunSuite
 
 class ScalafmtTest extends AnyFunSuite with TripleEqualsSupport {
 
-  test("Fmt.getScalafmtVersion parses Fmt.defaultScalafmtConfig") {
-    val actual = Fmt.getScalafmtVersion(Fmt.defaultScalafmtConfig)
+  test("Fmt.ScalaFmt.getVersion parses Fmt.ScalaFmt.defaultConfig") {
+    val actual = Fmt.ScalaFmt.getVersion(Fmt.ScalaFmt.defaultConfig)
     val expected = Some("3.5.9")
     assert(actual === expected)
   }
 
-  test("Fmt.getScalafmtVersion parses config with spaces and double-quotes") {
+  test("Fmt.ScalaFmt.getVersion parses config with spaces and double-quotes") {
     val input =
       """version = "3.5.9"
         |maxColumn = 160
         |runner.dialect = scala213
         |""".stripMargin
-    val actual = Fmt.getScalafmtVersion(input)
+    val actual = Fmt.ScalaFmt.getVersion(input)
     val expected = Some("3.5.9")
     assert(actual === expected)
   }
