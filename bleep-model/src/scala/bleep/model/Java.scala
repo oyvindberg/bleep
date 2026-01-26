@@ -3,34 +3,31 @@ package bleep.model
 import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 
-case class Java(options: Options, annotationProcessing: Option[AnnotationProcessing] = None) extends SetLike[Java] {
+case class Java(
+    options: Options,
+    annotationProcessors: JsonSet[AnnotationProcessor] = JsonSet.empty
+) extends SetLike[Java] {
   override def intersect(other: Java): Java =
     Java(
       options = options.intersect(other.options),
-      annotationProcessing = (annotationProcessing, other.annotationProcessing) match {
-        case (Some(a), Some(b)) => Some(AnnotationProcessing(a.enabled && b.enabled))
-        case _                  => None
-      }
+      annotationProcessors = annotationProcessors.intersect(other.annotationProcessors)
     )
 
   override def removeAll(other: Java): Java =
     Java(
       options = options.removeAll(other.options),
-      annotationProcessing = (annotationProcessing, other.annotationProcessing) match {
-        case (Some(a), Some(b)) if a == b => None
-        case _                            => annotationProcessing
-      }
+      annotationProcessors = annotationProcessors.removeAll(other.annotationProcessors)
     )
 
   override def union(other: Java): Java =
     Java(
       options = options.union(other.options),
-      annotationProcessing = other.annotationProcessing.orElse(annotationProcessing)
+      annotationProcessors = annotationProcessors.union(other.annotationProcessors)
     )
 
   def isEmpty: Boolean =
     this match {
-      case Java(options, annotationProcessing) => options.isEmpty && annotationProcessing.isEmpty
+      case Java(options, annotationProcessors) => options.isEmpty && annotationProcessors.isEmpty
     }
 }
 
