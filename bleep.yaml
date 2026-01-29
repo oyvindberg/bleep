@@ -7,6 +7,7 @@ projects:
     dependencies:
     - com.lihaoyi::pprint:0.9.6
     - com.monovore::decline:2.5.0
+    - com.typesafe:config:1.4.5
     - org.gnieh::diffson-circe:4.6.1
     - org.scalameta:svm-subs:101.0.0
       # note: weird binary incompatibility when bumping this for scala3

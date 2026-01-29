@@ -31,27 +31,6 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
-/** Display mode for test output */
-sealed trait DisplayMode
-object DisplayMode {
-
-  /** Full TUI with live updates, spinners, progress bars */
-  case object Tui extends DisplayMode
-
-  /** Simple output, just failures and summary (for CI/agents) */
-  case object NoTui extends DisplayMode
-
-  /** Smart constructor - checks if TUI is supported */
-  def resolve(requested: DisplayMode): DisplayMode = requested match {
-    case Tui if !bleep.testing.FancyTestDisplay.isSupported => NoTui
-    case other                                              => other
-  }
-
-  /** Parse from CLI flags */
-  def fromFlags(noTui: Boolean): DisplayMode =
-    if (noTui) NoTui else Tui
-}
-
 /** How to compute max parallel JVMs */
 sealed trait Parallelism {
   def resolve: Int

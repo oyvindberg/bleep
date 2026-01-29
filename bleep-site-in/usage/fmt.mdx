@@ -1,0 +1,67 @@
+
+# Code Formatting
+
+Bleep provides a unified `fmt` command that formats both Scala and Java source files in your project.
+
+## Basic Usage
+
+```shell
+# Format all source files
+bleep fmt
+
+# Check formatting without making changes (useful for CI)
+bleep fmt --check
+```
+
+## Scala Formatting
+
+Bleep uses [scalafmt](https://scalameta.org/scalafmt/) for Scala code formatting.
+
+Configuration is done via `.scalafmt.conf` in your build directory. If no config exists, bleep creates a default one.
+
+For full configuration options, see the [scalafmt documentation](https://scalameta.org/scalafmt/docs/configuration.html).
+
+**Example `.scalafmt.conf`:**
+```hocon
+version = 3.8.6
+maxColumn = 120
+runner.dialect = scala3
+```
+
+## Java Formatting
+
+Bleep uses [google-java-format](https://github.com/google/google-java-format) for Java code formatting.
+
+Configuration is optional via `.javafmt.conf` in your build directory. If no config file exists, defaults are used.
+
+### Configuration Properties
+
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `enabled` | boolean | `true` | Whether Java formatting is enabled |
+| `version` | string | `1.33.0` | Version of google-java-format to use |
+| `style` | string | `google` | Formatting style: `google` (2-space indent) or `aosp` (4-space indent) |
+| `skipSortingImports` | boolean | `false` | Don't sort import statements |
+| `skipRemovingUnusedImports` | boolean | `false` | Keep unused import statements |
+| `fixImportsOnly` | boolean | `false` | Only fix imports, don't reformat code |
+| `skipReflowingLongStrings` | boolean | `false` | Don't reformat long strings |
+| `skipJavadocFormatting` | boolean | `false` | Don't reformat Javadoc comments |
+| `excludePaths` | list | `[]` | Glob patterns for files to exclude |
+
+**Example `.javafmt.conf`:**
+```hocon
+version = 1.33.0
+style = aosp
+
+# Skip Javadoc formatting
+skipJavadocFormatting = true
+
+# Exclude generated files
+excludePaths = ["glob:**/generated/**", "glob:**/build/**"]
+```
+
+### Notes
+
+- Line length is fixed at 100 characters (google-java-format design decision)
+- Indentation is fixed per style (2-space for Google, 4-space for AOSP)
+- Files in `liberated/` directories are automatically excluded

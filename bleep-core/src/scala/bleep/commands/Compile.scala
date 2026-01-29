@@ -8,6 +8,8 @@ import bloop.rifle.BuildServer
 import ch.epfl.scala.bsp4j
 import coursier.core.Version
 
+import scala.jdk.CollectionConverters.*
+
 case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) extends BleepCommandRemote(watch) with BleepCommandRemote.OnlyChanged {
 
   override def watchableProjects(started: Started): TransitiveProjects =
@@ -20,10 +22,12 @@ case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) exte
     for {
       _ <- DoSourceGen(started, bloop, watchableProjects(started))
 
-      _ <- Compile.validateSIP51(started, projects)
+      _ <- commands.Compile.validateSIP51(started, projects)
 
       targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
-      result = bloop.buildTargetCompile(new bsp4j.CompileParams(targets)).get()
+      params = new bsp4j.CompileParams(targets)
+      _ = params.setArguments(List("--show-rendered-message").asJava)
+      result = bloop.buildTargetCompile(params).get()
       res <- result.getStatusCode match {
         case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
         case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))

@@ -209,7 +209,7 @@ class BspClientDisplayProgress(
       logger
         .withOptContext("code", Option(d.getCode))
         .withContext("location", location)
-        .log(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str(d.getMessage)))
+        .log(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str("\n" + d.getMessage + "\n")))
     }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)

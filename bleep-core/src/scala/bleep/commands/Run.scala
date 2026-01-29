@@ -61,6 +61,7 @@ case class Run(
   def bspRun(started: Started, bloop: BuildServer, main: String): Either[BleepException, Unit] =
     DoSourceGen(started, bloop, watchableProjects(started)).flatMap { case () =>
       val params = new bsp4j.RunParams(BleepCommandRemote.buildTarget(started.buildPaths, project))
+      params.setArguments(List("--show-rendered-message").asJava)
       val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
 
       val env = sys.env.updated(bleepLoggers.CallerProcessAcceptsJsonEvents, "true")
