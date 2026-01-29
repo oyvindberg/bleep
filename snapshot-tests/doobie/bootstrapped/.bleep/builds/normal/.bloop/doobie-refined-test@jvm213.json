@@ -20,12 +20,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.13/shapeless_2.13-2.3.13.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/com/h2database/h2/1.4.200/h2-1.4.200.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/eu/timepit/refined_2.13/0.11.3/refined_2.13-0.11.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.26.3/jline-3.26.3.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.15/scala-compiler-2.13.15.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar",
@@ -237,12 +236,13 @@
         {
           "organization": "org.jline",
           "name": "jline",
-          "version": "3.26.3",
+          "version": "3.27.1",
           "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.26.3/jline-3.26.3.jar"
+              "classifier": "jdk8",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
             }
           ]
         },
@@ -303,6 +303,18 @@
             {
               "name": "cats-effect-kernel-testkit_2.13",
               "path": "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect-kernel-testkit_2.13/3.6.1/cats-effect-kernel-testkit_2.13-3.6.1.jar"
+            }
+          ]
+        },
+        {
+          "organization": "org.scalameta",
+          "name": "munit-diff_2.13",
+          "version": "1.0.0",
+          "configurations": "default",
+          "artifacts": [
+            {
+              "name": "munit-diff_2.13",
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_2.13/1.0.0/munit-diff_2.13-1.0.0.jar"
             }
           ]
         },
@@ -417,12 +429,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-compiler",
-          "version": "2.13.15",
+          "version": "2.13.16",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.15/scala-compiler-2.13.15.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar"
             }
           ]
         },
@@ -499,30 +511,6 @@
           ]
         },
         {
-          "organization": "net.java.dev.jna",
-          "name": "jna",
-          "version": "5.14.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "jna",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
-            }
-          ]
-        },
-        {
-          "organization": "org.scalameta",
-          "name": "munit-diff_2.13",
-          "version": "1.0.0",
-          "configurations": "default",
-          "artifacts": [
-            {
-              "name": "munit-diff_2.13",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/munit-diff_2.13/1.0.0/munit-diff_2.13-1.0.0.jar"
-            }
-          ]
-        },
-        {
           "organization": "org.typelevel",
           "name": "scalacheck-effect_2.13",
           "version": "2.0.0-M2",
@@ -585,12 +573,12 @@
         {
           "organization": "io.github.java-diff-utils",
           "name": "java-diff-utils",
-          "version": "4.12",
+          "version": "4.15",
           "configurations": "default",
           "artifacts": [
             {
               "name": "java-diff-utils",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar"
             }
           ]
         },

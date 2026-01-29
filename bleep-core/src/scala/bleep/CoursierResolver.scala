@@ -9,6 +9,8 @@ import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
 import coursier.maven.SbtMavenRepository
 import coursier.params.ResolutionParams
+import coursier.params.rule.SameVersion
+import coursier.util.ModuleMatcher
 import coursier.util.{Artifact, Task}
 import coursier.{Artifacts, Fetch, Resolution}
 import io.circe.*
@@ -208,15 +210,24 @@ object CoursierResolver {
         //
         // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480 lines 9-11):
         // csrSameVersions := Seq(ScalaArtifacts.Artifacts.map(a => InclExclRule(scalaOrganization.value, a)).toSet)
+        // Create matchers for the Scala artifacts that must stay at the same version
+        val scalaArtifactsSameVersionRule = SameVersion(Set(
+          ModuleMatcher(Organization("org.scala-lang"), ModuleName("scala-library")),
+          ModuleMatcher(Organization("org.scala-lang"), ModuleName("scala-reflect")),
+          ModuleMatcher(Organization("org.scala-lang"), ModuleName("scala-compiler"))
+        ))
+
         val resolutionParams = versionCombo.asScala match {
           case Some(sv) if sv.scalaVersion.is3Or213 =>
             // For Scala 2.13/3: disable forceScalaVersion to allow scala-library upgrades.
             // We still set scalaVersionOpt so Coursier knows how to handle cross-versioned deps (_2.13).
-            // The key is that we DON'T add scala-library as an explicit dependency (see GenBloopFiles.scala),
-            // so it comes only from transitive deps and Coursier can choose the highest version.
+            // scala-library IS added as an explicit dependency in GenBloopFiles.scala with scalaVersion,
+            // which acts as a floor constraint. The SameVersion rule ensures all Scala artifacts
+            // (library, reflect, compiler) stay aligned at the same version.
             ResolutionParams()
               .withForceScalaVersion(false)
               .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+              .addRule(scalaArtifactsSameVersionRule)
           case _ =>
             ResolutionParams()
               .withForceScalaVersion(shouldForceScalaVersion)
