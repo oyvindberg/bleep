@@ -272,14 +272,28 @@ object GenBloopFiles {
       }
 
     val (resolvedDependencies, resolvedRuntimeDependencies) = {
-      // SIP-51: For Scala 2.13/3, scala-library IS included as an explicit dependency.
-      // This provides a floor constraint - Coursier will resolve to max(scalaVersion, transitive needs).
-      // Combined with forceScalaVersion=false in CoursierResolver, this allows scala-library
-      // to float up when dependencies need a higher version while ensuring it's never lower
-      // than scalaVersion.
+      // SIP-51: scala-library floor constraint handling.
       //
+      // For Scala 2.13: scala-library IS included as an explicit dependency with scalaVersion,
+      // providing a floor constraint. Coursier resolves to max(scalaVersion, transitive needs).
+      //
+      // For Scala 3 before 3.8: scala-library is EXCLUDED from explicit dependencies because
+      // VersionScala hardcodes it to 2.13.18 (via Scala213 constant) which is too high for most
+      // Scala 3 versions. Instead, the correct scala-library version comes from scala3-library's
+      // transitive dependencies.
+      //
+      // For Scala 3.8+: scala-library version matches scalaVersion, so it's included as floor.
+      //
+      // Combined with forceScalaVersion=false and the SameVersion rule in CoursierResolver.
       // See: https://github.com/sbt/sbt/pull/7480
-      val fromPlatform = versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      val fromPlatform = versionCombo match {
+        case scala: model.VersionCombo.Scala if scala.scalaVersion.is3 && !scala.scalaVersion.is38OrLater =>
+          versionCombo
+            .libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+            .filterNot(dep => dep.organization == Organization("org.scala-lang") && dep.baseModuleName == ModuleName("scala-library"))
+        case _ =>
+          versionCombo.libraries(isTest = explodedProject.isTestProject.getOrElse(false))
+      }
 
       val inherited =
         build.transitiveDependenciesFor(crossName).flatMap { case (_, p) => p.dependencies.values }
@@ -455,6 +469,13 @@ object GenBloopFiles {
                     .fullDetailedArtifacts
                     .collect { case (_, pub, _, Some(file)) if pub.classifier != Classifier.sources && pub.ext == Extension.jar => file.toPath }
                     .filterNot(resolvedScalaCompiler.toSet)
+                    // Filter out scala-library/reflect/compiler from plugin classpath - they're already
+                    // on the project classpath. The SameVersion rule can cause them to resolve to a
+                    // different version than in resolvedScalaCompiler, bypassing the path-based filter above.
+                    .filterNot { path =>
+                      val name = path.getFileName.toString
+                      name.startsWith("scala-library-") || name.startsWith("scala-reflect-") || name.startsWith("scala-compiler-")
+                    }
                     .mkString(File.pathSeparator)
               )
             }

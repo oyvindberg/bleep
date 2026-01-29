@@ -45,7 +45,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/hpack_native0.4_3/1.0.4/hpack_native0.4_3-1.0.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/http4s/http4s-crypto_native0.4_3/0.2.4/http4s-crypto_native0.4_3-0.2.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/portable-scala/portable-scala-reflect_native0.4_2.13/1.1.2/portable-scala-reflect_native0.4_2.13-1.1.2.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.4/scala3-library_3-3.3.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/auxlib_native0.4_3/0.4.17/auxlib_native0.4_3-0.4.17.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/clib_native0.4_3/0.4.17/clib_native0.4_3-0.4.17.jar",
@@ -124,7 +124,7 @@
         "-Wunused:params",
         "-Wunused:privates",
         "-Wvalue-discard",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_3.3.4/0.4.17/nscplugin_3.3.4-0.4.17.jar:<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/nscplugin_3.3.4/0.4.17/nscplugin_3.3.4-0.4.17.jar",
         "-Ykind-projector",
         "-deprecation",
         "-encoding",
@@ -145,7 +145,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.25.1/jline-reader-3.25.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.25.1/jline-terminal-3.25.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.25.1/jline-terminal-jna-3.25.1.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.9.8/util-interface-1.9.8.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-native/3.25.1/jline-native-3.25.1.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar"
@@ -749,12 +749,12 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.18",
+          "version": "2.13.14",
           "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.18/scala-library-2.13.18.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.14/scala-library-2.13.14.jar"
             }
           ]
         },
