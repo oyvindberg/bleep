@@ -21,16 +21,17 @@ case class Compile(watch: Boolean, projects: Array[model.CrossProjectName]) exte
   override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] =
     for {
       _ <- DoSourceGen(started, bloop, watchableProjects(started))
+      _ <- Compile.validateSIP51(started, projects)
+      res <- {
+        val targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
+        val params = new bsp4j.CompileParams(targets)
+        params.setArguments(List("--show-rendered-message").asJava)
+        val result = bloop.buildTargetCompile(params).get()
 
-      _ <- commands.Compile.validateSIP51(started, projects)
-
-      targets = BleepCommandRemote.buildTargets(started.buildPaths, projects)
-      params = new bsp4j.CompileParams(targets)
-      _ = params.setArguments(List("--show-rendered-message").asJava)
-      result = bloop.buildTargetCompile(params).get()
-      res <- result.getStatusCode match {
-        case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
-        case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))
+        result.getStatusCode match {
+          case bsp4j.StatusCode.OK => Right(started.logger.info("Compilation succeeded"))
+          case other               => Left(new BspCommandFailed(s"compile", projects, BspCommandFailed.StatusCode(other)))
+        }
       }
     } yield res
 }
