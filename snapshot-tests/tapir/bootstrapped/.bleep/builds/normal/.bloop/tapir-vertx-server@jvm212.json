@@ -47,7 +47,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/io/vertx/vertx-web/4.5.15/vertx-web-4.5.15.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server/jvm212/classes",
@@ -144,7 +148,6 @@
           "organization": "io.vertx",
           "name": "vertx-web-common",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-web-common",
@@ -156,7 +159,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -168,7 +170,6 @@
           "organization": "io.vertx",
           "name": "vertx-bridge-common",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-bridge-common",
@@ -180,7 +181,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.16.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -192,7 +192,6 @@
           "organization": "io.netty",
           "name": "netty-codec-socks",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-socks",
@@ -204,7 +203,6 @@
           "organization": "io.vertx",
           "name": "vertx-codegen",
           "version": "4.5.15",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "vertx-codegen",
@@ -216,7 +214,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -228,7 +225,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns",
@@ -240,7 +236,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -252,7 +247,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -264,7 +258,6 @@
           "organization": "io.netty",
           "name": "netty-codec-dns",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-dns",
@@ -276,7 +269,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -288,7 +280,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -300,7 +291,6 @@
           "organization": "io.netty",
           "name": "netty-codec",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec",
@@ -312,7 +302,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -324,7 +313,6 @@
           "organization": "io.vertx",
           "name": "vertx-core",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-core",
@@ -336,7 +324,6 @@
           "organization": "io.vertx",
           "name": "vertx-auth-common",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-auth-common",
@@ -348,7 +335,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -360,7 +346,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -372,7 +357,6 @@
           "organization": "io.netty",
           "name": "netty-handler-proxy",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
@@ -384,7 +368,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -396,7 +379,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -408,7 +390,6 @@
           "organization": "io.vertx",
           "name": "vertx-web",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-web",
@@ -420,7 +401,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http2",
           "version": "4.1.121.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http2",
@@ -432,7 +412,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -441,9 +420,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

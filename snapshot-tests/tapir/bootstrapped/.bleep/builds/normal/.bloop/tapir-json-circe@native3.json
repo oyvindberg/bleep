@@ -48,7 +48,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_3/2.13.0/cats-kernel_3-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_native0.5_3/2.13.0/cats-kernel_native0.5_3-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/jawn-parser_3/1.6.0/jawn-parser_3-1.6.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native3/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/native3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/native3/classes",
@@ -118,8 +120,8 @@
         "version": "0.5.8",
         "mode": "debug",
         "gc": "",
-        "clang": "",
-        "clangpp": "",
+        "clang": "clang",
+        "clangpp": "clang++",
         "toolchain": [
           
         ],
@@ -145,7 +147,6 @@
           "organization": "org.scala-native",
           "name": "nativelib_native0.5_3",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "nativelib_native0.5_3",
@@ -157,7 +158,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -169,7 +169,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_native0.5_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_native0.5_3",
@@ -181,7 +180,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_3",
@@ -193,7 +191,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_native0.5_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_native0.5_3",
@@ -205,7 +202,6 @@
           "organization": "io.circe",
           "name": "circe-parser_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_3",
@@ -217,7 +213,6 @@
           "organization": "org.scala-native",
           "name": "scala3lib_native0.5_3",
           "version": "3.3.6+0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3lib_native0.5_3",
@@ -229,7 +224,6 @@
           "organization": "org.scala-native",
           "name": "auxlib_native0.5_3",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "auxlib_native0.5_3",
@@ -241,7 +235,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_native0.5_3",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_native0.5_3",
@@ -253,7 +246,6 @@
           "organization": "io.circe",
           "name": "circe-core_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_3",
@@ -265,7 +257,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_native0.5_3",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_native0.5_3",
@@ -277,7 +268,6 @@
           "organization": "org.scala-native",
           "name": "posixlib_native0.5_3",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "posixlib_native0.5_3",
@@ -289,7 +279,6 @@
           "organization": "org.scala-native",
           "name": "scalalib_native0.5_2.13",
           "version": "2.13.16+0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalalib_native0.5_2.13",
@@ -301,7 +290,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_3",
@@ -313,7 +301,6 @@
           "organization": "org.scala-native",
           "name": "windowslib_native0.5_3",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "windowslib_native0.5_3",
@@ -325,7 +312,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_native0.5_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_native0.5_3",
@@ -337,7 +323,6 @@
           "organization": "org.scala-native",
           "name": "javalib_native0.5_3",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javalib_native0.5_3",
@@ -349,7 +334,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -361,7 +345,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_native0.5_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_native0.5_2.13",
@@ -373,7 +356,6 @@
           "organization": "io.circe",
           "name": "circe-core_native0.5_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_native0.5_3",
@@ -385,7 +367,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_native0.5_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_native0.5_3",
@@ -397,7 +378,6 @@
           "organization": "org.scala-native",
           "name": "clib_native0.5_3",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "clib_native0.5_3",
@@ -409,7 +389,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -421,7 +400,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_native0.5_3",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_native0.5_3",
@@ -433,7 +411,6 @@
           "organization": "io.circe",
           "name": "circe-generic_native0.5_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_native0.5_3",
@@ -445,7 +422,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_native0.5_3",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_native0.5_3",
@@ -457,7 +433,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -469,7 +444,6 @@
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_native0.5_3",
           "version": "1.3.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_native0.5_3",
@@ -481,7 +455,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_3",
@@ -493,7 +466,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_native0.5_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_native0.5_3",
@@ -502,9 +474,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

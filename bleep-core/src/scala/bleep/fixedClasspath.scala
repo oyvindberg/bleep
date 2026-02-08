@@ -1,14 +1,12 @@
 package bleep
 
-import bloop.config.Config
-
 import java.nio.file.Path
 
 object fixedClasspath {
-  def apply(bloopProject: Config.Project, includeResources: Boolean): List[Path] =
+  def apply(project: ResolvedProject): List[Path] =
     List(
-      List(bloopProject.classesDir),
-      if (includeResources) bloopProject.resources.getOrElse(Nil) else Nil,
-      bloopProject.classpath
+      List(project.classesDir),
+      project.resources.getOrElse(Nil),
+      project.classpath
     ).flatten
 }

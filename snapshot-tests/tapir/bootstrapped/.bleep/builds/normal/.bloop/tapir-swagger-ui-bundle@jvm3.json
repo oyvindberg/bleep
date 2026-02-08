@@ -51,7 +51,17 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-files/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-docs/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/openapi-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/openapi-docs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle/jvm3/classes",
@@ -130,7 +140,6 @@
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_3",
           "version": "1.3.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_3",
@@ -142,7 +151,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -154,7 +162,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_3",
@@ -166,7 +173,6 @@
           "organization": "io.circe",
           "name": "circe-yaml_3",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml_3",
@@ -178,7 +184,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-common_3",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-common_3",
@@ -190,7 +195,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -202,7 +206,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-circe_3",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-circe_3",
@@ -214,7 +217,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-model_3",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-model_3",
@@ -226,7 +228,6 @@
           "organization": "io.circe",
           "name": "circe-core_3",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_3",
@@ -238,7 +239,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_3",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -250,7 +250,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -262,7 +261,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_3",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_3",
@@ -274,7 +272,6 @@
           "organization": "com.softwaremill.quicklens",
           "name": "quicklens_3",
           "version": "1.9.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "quicklens_3",
@@ -286,7 +283,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_3",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_3",
@@ -298,7 +294,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "apispec-model_3",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "apispec-model_3",
@@ -310,7 +305,6 @@
           "organization": "io.circe",
           "name": "circe-generic_3",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_3",
@@ -322,7 +316,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "jsonschema-circe_3",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsonschema-circe_3",
@@ -334,7 +327,6 @@
           "organization": "org.yaml",
           "name": "snakeyaml",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml",
@@ -346,7 +338,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "asyncapi-model_3",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asyncapi-model_3",
@@ -358,7 +349,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -370,7 +360,6 @@
           "organization": "io.circe",
           "name": "circe-parser_3",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_3",
@@ -382,7 +371,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_3",
@@ -394,7 +382,6 @@
           "organization": "org.webjars",
           "name": "swagger-ui",
           "version": "5.24.1-1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-ui",
@@ -406,7 +393,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-circe-yaml_3",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-circe-yaml_3",
@@ -418,7 +404,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -427,9 +412,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

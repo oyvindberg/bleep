@@ -69,7 +69,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-http-server/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-http-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-http-server/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-grpc-server/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-pekko-grpc-server/jvm212/classes",
@@ -166,7 +172,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "pekko_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko_2.12",
@@ -178,7 +183,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-discovery_2.12",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-discovery_2.12",
@@ -190,7 +194,6 @@
           "organization": "com.google.api.grpc",
           "name": "proto-google-common-protos",
           "version": "2.41.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "proto-google-common-protos",
@@ -202,7 +205,6 @@
           "organization": "io.grpc",
           "name": "grpc-util",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-util",
@@ -214,7 +216,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_2.12",
           "version": "0.11.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalapb-runtime_2.12",
@@ -226,7 +227,6 @@
           "organization": "org.parboiled",
           "name": "parboiled_2.12",
           "version": "2.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "parboiled_2.12",
@@ -238,7 +238,6 @@
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.25.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "protobuf-java",
@@ -250,7 +249,6 @@
           "organization": "com.google.android",
           "name": "annotations",
           "version": "4.1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "annotations",
@@ -262,7 +260,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -274,7 +271,6 @@
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
           "version": "2.28.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
@@ -286,7 +282,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-actor_2.12",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-actor_2.12",
@@ -298,7 +293,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.12",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.12",
@@ -310,7 +304,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -322,7 +315,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -334,7 +326,6 @@
           "organization": "io.perfmark",
           "name": "perfmark-api",
           "version": "0.27.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "perfmark-api",
@@ -346,7 +337,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http-cors_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http-cors_2.12",
@@ -358,7 +348,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -370,7 +359,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -382,7 +370,6 @@
           "organization": "com.google.guava",
           "name": "guava",
           "version": "33.2.1-android",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
@@ -394,7 +381,6 @@
           "organization": "io.grpc",
           "name": "grpc-netty-shaded",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-netty-shaded",
@@ -406,7 +392,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-stream_2.12",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-stream_2.12",
@@ -418,7 +403,6 @@
           "organization": "com.google.code.gson",
           "name": "gson",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gson",
@@ -430,7 +414,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-grpc-runtime_2.12",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-grpc-runtime_2.12",
@@ -442,7 +425,6 @@
           "organization": "io.grpc",
           "name": "grpc-api",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-api",
@@ -454,7 +436,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.42.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -466,7 +447,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -478,7 +458,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -490,7 +469,6 @@
           "organization": "io.grpc",
           "name": "grpc-protobuf",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-protobuf",
@@ -502,7 +480,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-slf4j_2.12",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-slf4j_2.12",
@@ -514,7 +491,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "lenses_2.12",
           "version": "0.11.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lenses_2.12",
@@ -526,7 +502,6 @@
           "organization": "com.google.guava",
           "name": "listenablefuture",
           "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "listenablefuture",
@@ -538,7 +513,6 @@
           "organization": "io.grpc",
           "name": "grpc-core",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-core",
@@ -550,7 +524,6 @@
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
           "version": "3.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
@@ -562,7 +535,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-parsing_2.12",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-parsing_2.12",
@@ -574,7 +546,6 @@
           "organization": "com.google.guava",
           "name": "failureaccess",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "failureaccess",
@@ -586,7 +557,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -598,7 +568,6 @@
           "organization": "org.codehaus.mojo",
           "name": "animal-sniffer-annotations",
           "version": "1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "animal-sniffer-annotations",
@@ -610,7 +579,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -622,7 +590,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-protobuf-v3_2.12",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-protobuf-v3_2.12",
@@ -634,7 +601,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http-core_2.12",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http-core_2.12",
@@ -646,7 +612,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http_2.12",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http_2.12",
@@ -658,7 +623,6 @@
           "organization": "io.grpc",
           "name": "grpc-protobuf-lite",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-protobuf-lite",
@@ -670,7 +634,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -682,7 +645,6 @@
           "organization": "io.grpc",
           "name": "grpc-context",
           "version": "1.67.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-context",
@@ -694,7 +656,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.12",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.12",
@@ -703,9 +664,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

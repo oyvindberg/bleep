@@ -69,7 +69,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-http-server/jvm212/classes",
@@ -166,7 +172,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -178,7 +183,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -190,7 +194,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -202,7 +205,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -214,7 +216,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -226,7 +227,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "zio_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_2.12",
@@ -238,7 +238,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-kqueue",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-kqueue",
@@ -260,7 +259,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -272,7 +270,6 @@
           "organization": "dev.zio",
           "name": "zio-prelude_2.12",
           "version": "1.0.0-RC39",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-prelude_2.12",
@@ -284,7 +281,6 @@
           "organization": "dev.zio",
           "name": "zio-stacktracer_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-stacktracer_2.12",
@@ -296,7 +292,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -308,7 +303,6 @@
           "organization": "dev.zio",
           "name": "zio-json_2.12",
           "version": "0.7.42",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-json_2.12",
@@ -320,7 +314,6 @@
           "organization": "dev.zio",
           "name": "zio-schema-macros_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-schema-macros_2.12",
@@ -332,7 +325,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
@@ -344,7 +336,6 @@
           "organization": "dev.zio",
           "name": "zio-prelude-macros_2.12",
           "version": "1.0.0-RC39",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-prelude-macros_2.12",
@@ -356,7 +347,6 @@
           "organization": "io.netty",
           "name": "netty-codec-compression",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-compression",
@@ -368,7 +358,6 @@
           "organization": "com.lihaoyi",
           "name": "unroll-annotation_2.12",
           "version": "0.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "unroll-annotation_2.12",
@@ -380,7 +369,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-epoll",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-epoll",
@@ -402,7 +390,6 @@
           "organization": "io.netty",
           "name": "netty-codec-socks",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-socks",
@@ -414,7 +401,6 @@
           "organization": "dev.zio",
           "name": "zio-constraintless_2.12",
           "version": "0.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-constraintless_2.12",
@@ -426,7 +412,6 @@
           "organization": "dev.zio",
           "name": "zio-schema-protobuf_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-schema-protobuf_2.12",
@@ -438,7 +423,6 @@
           "organization": "dev.zio",
           "name": "zio_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_2.12",
@@ -450,7 +434,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -462,7 +445,6 @@
           "organization": "io.netty",
           "name": "netty-codec-base",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-base",
@@ -474,7 +456,6 @@
           "organization": "dev.zio",
           "name": "zio-internal-macros_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-internal-macros_2.12",
@@ -486,7 +467,6 @@
           "organization": "dev.zio",
           "name": "zio-schema-json_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-schema-json_2.12",
@@ -498,7 +478,6 @@
           "organization": "dev.zio",
           "name": "zio-streams_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-streams_2.12",
@@ -510,7 +489,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect_2.12",
@@ -522,7 +500,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -534,7 +511,6 @@
           "organization": "io.netty",
           "name": "netty-handler-proxy",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
@@ -546,7 +522,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-epoll",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-epoll",
@@ -558,7 +533,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -570,7 +544,6 @@
           "organization": "dev.zio",
           "name": "zio-http_2.12",
           "version": "3.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-http_2.12",
@@ -582,7 +555,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -594,7 +566,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -606,7 +577,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -618,7 +588,6 @@
           "organization": "dev.zio",
           "name": "zio-schema-derivation_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-schema-derivation_2.12",
@@ -630,7 +599,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-kqueue",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-kqueue",
@@ -642,7 +610,6 @@
           "organization": "dev.zio",
           "name": "zio-schema_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-schema_2.12",
@@ -654,7 +621,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -666,7 +632,6 @@
           "organization": "io.netty",
           "name": "netty-pkitesting",
           "version": "4.2.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-pkitesting",
@@ -675,9 +640,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

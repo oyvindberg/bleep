@@ -71,7 +71,15 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-hikari/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-scalatest/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm213/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/hikari/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/scalatest/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/specs2/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/example/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/example/jvm213/classes",
@@ -167,7 +175,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -179,7 +186,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_2.13",
@@ -191,7 +197,6 @@
           "organization": "org.specs2",
           "name": "specs2-core_2.13",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-core_2.13",
@@ -203,7 +208,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.13",
@@ -215,7 +219,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -227,7 +230,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.13",
@@ -239,7 +241,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.13",
@@ -251,7 +252,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -263,7 +263,6 @@
           "organization": "org.specs2",
           "name": "specs2-matcher_2.13",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-matcher_2.13",
@@ -275,7 +274,6 @@
           "organization": "org.postgresql",
           "name": "postgresql",
           "version": "42.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "postgresql",
@@ -287,7 +285,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -299,7 +296,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -311,7 +307,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -323,7 +318,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.13",
@@ -335,7 +329,6 @@
           "organization": "org.tpolecat",
           "name": "typename_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "typename_2.13",
@@ -347,7 +340,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -359,7 +351,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.13",
@@ -371,7 +362,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.13",
@@ -383,7 +373,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -395,7 +384,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -407,7 +395,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.48.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -419,7 +406,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -431,7 +417,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.13",
@@ -443,7 +428,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -455,7 +439,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -467,7 +450,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.13",
@@ -479,7 +461,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.13",
@@ -491,7 +472,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -503,7 +483,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_2.13",
@@ -515,7 +494,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.13",
@@ -527,7 +505,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.13",
           "version": "2.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.13",
@@ -539,7 +516,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.13",
@@ -551,7 +527,6 @@
           "organization": "org.specs2",
           "name": "specs2-common_2.13",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-common_2.13",
@@ -563,7 +538,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -575,7 +549,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.13",
@@ -587,7 +560,6 @@
           "organization": "org.specs2",
           "name": "specs2-fp_2.13",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-fp_2.13",
@@ -599,7 +571,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.13",
@@ -611,7 +582,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.13",
@@ -623,7 +593,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.13",
@@ -635,7 +604,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -647,7 +615,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.13",
@@ -659,7 +626,6 @@
           "organization": "com.h2database",
           "name": "h2",
           "version": "1.4.200",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "h2",
@@ -671,7 +637,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.13",
@@ -683,7 +648,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -695,7 +659,6 @@
           "organization": "com.zaxxer",
           "name": "HikariCP",
           "version": "6.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "HikariCP",
@@ -704,9 +667,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

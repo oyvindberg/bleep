@@ -114,7 +114,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.1.1/cats-kernel_2.12-2.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.1/cats-macros_2.12-2.1.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/zeroturnaround/zt-zip/1.17/zt-zip-1.17.jar",
-      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes"
+      "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-shared/classes",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/LICENSE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/NOTICE.md",
+      "<BLEEP_GIT>/snapshot-tests/bloop/sbt-build/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-backend",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-backend/classes",
@@ -183,7 +186,6 @@
           "organization": "org.scala-sbt",
           "name": "collections_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "collections_2.12",
@@ -195,7 +197,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -207,7 +208,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.12",
@@ -219,7 +219,6 @@
           "organization": "org.scala-sbt",
           "name": "librarymanagement-core_2.12",
           "version": "1.10.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "librarymanagement-core_2.12",
@@ -231,7 +230,6 @@
           "organization": "org.scala-sbt",
           "name": "test-agent",
           "version": "1.10.11",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-agent",
@@ -243,7 +241,6 @@
           "organization": "org.jline",
           "name": "jline-terminal",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-terminal",
@@ -255,7 +252,6 @@
           "organization": "io.monix",
           "name": "monix-catnap_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix-catnap_2.12",
@@ -267,7 +263,6 @@
           "organization": "org.scala-sbt.jline",
           "name": "jline",
           "version": "2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
@@ -279,7 +274,6 @@
           "organization": "org.scala-sbt",
           "name": "util-cache_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "util-cache_2.12",
@@ -291,7 +285,6 @@
           "organization": "ch.epfl.scala",
           "name": "bsp4s_2.12",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bsp4s_2.12",
@@ -303,7 +296,6 @@
           "organization": "org.scala-sbt",
           "name": "util-relation_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "util-relation_2.12",
@@ -315,7 +307,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.12",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.12",
@@ -327,7 +318,6 @@
           "organization": "org.scala-sbt",
           "name": "compiler-interface",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "compiler-interface",
@@ -339,7 +329,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -351,7 +340,6 @@
           "organization": "org.jline",
           "name": "jline-native",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-native",
@@ -363,7 +351,6 @@
           "organization": "io.monix",
           "name": "monix-eval_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix-eval_2.12",
@@ -375,7 +362,6 @@
           "organization": "org.scala-sbt",
           "name": "core-macros_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core-macros_2.12",
@@ -387,7 +373,6 @@
           "organization": "org.ow2.asm",
           "name": "asm",
           "version": "9.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm",
@@ -399,7 +384,6 @@
           "organization": "org.jctools",
           "name": "jctools-core",
           "version": "2.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jctools-core",
@@ -411,7 +395,6 @@
           "organization": "io.zipkin.zipkin2",
           "name": "zipkin",
           "version": "2.27.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zipkin",
@@ -423,7 +406,6 @@
           "organization": "com.lihaoyi",
           "name": "pprint_2.12",
           "version": "0.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pprint_2.12",
@@ -435,7 +417,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.12",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.12",
@@ -447,7 +428,6 @@
           "organization": "io.monix",
           "name": "monix_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix_2.12",
@@ -459,7 +439,6 @@
           "organization": "io.get-coursier.util",
           "name": "directories",
           "version": "0.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "directories",
@@ -471,7 +450,6 @@
           "organization": "io.get-coursier.util",
           "name": "directories-jni",
           "version": "0.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "directories-jni",
@@ -483,7 +461,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -495,7 +472,6 @@
           "organization": "net.openhft",
           "name": "zero-allocation-hashing",
           "version": "0.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zero-allocation-hashing",
@@ -507,7 +483,6 @@
           "organization": "io.monix",
           "name": "monix-reactive_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix-reactive_2.12",
@@ -519,7 +494,6 @@
           "organization": "com.lmax",
           "name": "disruptor",
           "version": "3.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "disruptor",
@@ -531,7 +505,6 @@
           "organization": "org.fusesource.jansi",
           "name": "jansi",
           "version": "2.4.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jansi",
@@ -543,7 +516,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -555,7 +527,6 @@
           "organization": "net.jpountz.lz4",
           "name": "lz4",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lz4",
@@ -567,7 +538,6 @@
           "organization": "io.github.alexarchambault.bleep",
           "name": "nailgun-server",
           "version": "1.0.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "nailgun-server",
@@ -579,7 +549,6 @@
           "organization": "com.github.mwiede",
           "name": "jsch",
           "version": "0.2.23",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsch",
@@ -591,7 +560,6 @@
           "organization": "org.scala-sbt",
           "name": "launcher-interface",
           "version": "1.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "launcher-interface",
@@ -603,7 +571,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-compile-core_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-compile-core_2.12",
@@ -615,7 +582,6 @@
           "organization": "com.swoval",
           "name": "file-tree-views",
           "version": "2.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
@@ -627,7 +593,6 @@
           "organization": "io.monix",
           "name": "monix-execution_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix-execution_2.12",
@@ -639,7 +604,6 @@
           "organization": "ch.epfl.scala",
           "name": "directory-watcher",
           "version": "0.8.0+6-f651bd93",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "directory-watcher",
@@ -651,7 +615,6 @@
           "organization": "com.outr",
           "name": "moduload_2.12",
           "version": "1.1.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "moduload_2.12",
@@ -663,7 +626,6 @@
           "organization": "io.monix",
           "name": "implicitbox_2.12",
           "version": "0.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "implicitbox_2.12",
@@ -675,7 +637,6 @@
           "organization": "org.apache.logging.log4j",
           "name": "log4j-api",
           "version": "2.23.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4j-api",
@@ -687,7 +648,6 @@
           "organization": "io.monix",
           "name": "monix-java_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix-java_2.12",
@@ -699,7 +659,6 @@
           "organization": "com.eed3si9n",
           "name": "gigahorse-core_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gigahorse-core_2.12",
@@ -711,7 +670,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -723,7 +681,6 @@
           "organization": "org.scala-sbt",
           "name": "util-control_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "util-control_2.12",
@@ -735,7 +692,6 @@
           "organization": "org.scala-sbt.ivy",
           "name": "ivy",
           "version": "2.3.0-sbt-77cc781d727b367d3761f097d89f5a4762771d41",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ivy",
@@ -747,7 +703,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.12",
           "version": "2.13.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_2.12",
@@ -759,7 +714,6 @@
           "organization": "org.scala-sbt",
           "name": "util-position_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "util-position_2.12",
@@ -771,7 +725,6 @@
           "organization": "org.typelevel",
           "name": "cats-macros_2.12",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-macros_2.12",
@@ -783,7 +736,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-macros_2.12",
           "version": "2.13.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-macros_2.12",
@@ -795,7 +747,6 @@
           "organization": "org.scala-sbt",
           "name": "compiler-bridge_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "compiler-bridge_2.12",
@@ -807,7 +758,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -819,7 +769,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.12",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.12",
@@ -831,7 +780,6 @@
           "organization": "io.zipkin.reporter2",
           "name": "zipkin-reporter-brave",
           "version": "2.17.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zipkin-reporter-brave",
@@ -843,7 +791,6 @@
           "organization": "com.googlecode.java-diff-utils",
           "name": "diffutils",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "diffutils",
@@ -855,7 +802,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "2.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -867,7 +813,6 @@
           "organization": "org.zeroturnaround",
           "name": "zt-zip",
           "version": "1.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zt-zip",
@@ -879,7 +824,6 @@
           "organization": "com.outr",
           "name": "scribe_2.12",
           "version": "3.5.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scribe_2.12",
@@ -891,7 +835,6 @@
           "organization": "org.jline",
           "name": "jline-terminal-jni",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-terminal-jni",
@@ -903,7 +846,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-classfile_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-classfile_2.12",
@@ -915,7 +857,6 @@
           "organization": "io.monix",
           "name": "monix-tail_2.12",
           "version": "3.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "monix-tail_2.12",
@@ -927,7 +868,6 @@
           "organization": "io.zipkin.reporter2",
           "name": "zipkin-sender-urlconnection",
           "version": "2.17.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zipkin-sender-urlconnection",
@@ -939,7 +879,6 @@
           "organization": "org.scala-sbt",
           "name": "sbinary_2.12",
           "version": "0.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sbinary_2.12",
@@ -951,7 +890,6 @@
           "organization": "org.scalaz",
           "name": "scalaz-core_2.12",
           "version": "7.3.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalaz-core_2.12",
@@ -963,7 +901,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -975,7 +912,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.12",
@@ -987,7 +923,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_2.12",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.12",
@@ -999,7 +934,6 @@
           "organization": "com.eed3si9n",
           "name": "gigahorse-apache-http_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gigahorse-apache-http_2.12",
@@ -1011,7 +945,6 @@
           "organization": "net.java.dev.jna",
           "name": "jna",
           "version": "5.17.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jna",
@@ -1023,7 +956,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-persist_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-persist_2.12",
@@ -1035,7 +967,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -1047,7 +978,6 @@
           "organization": "org.scala-sbt",
           "name": "util-logging_2.12",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "util-logging_2.12",
@@ -1059,7 +989,6 @@
           "organization": "org.scala-sbt",
           "name": "util-interface",
           "version": "1.10.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "util-interface",
@@ -1071,7 +1000,6 @@
           "organization": "org.scala-sbt",
           "name": "io_2.12",
           "version": "1.10.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "io_2.12",
@@ -1083,7 +1011,6 @@
           "organization": "io.zipkin.brave",
           "name": "brave",
           "version": "5.18.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "brave",
@@ -1095,7 +1022,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -1107,7 +1033,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc_2.12",
@@ -1119,7 +1044,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -1131,7 +1055,6 @@
           "organization": "io.zipkin.reporter2",
           "name": "zipkin-reporter",
           "version": "2.17.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zipkin-reporter",
@@ -1143,7 +1066,6 @@
           "organization": "com.outr",
           "name": "perfolation_2.12",
           "version": "1.2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "perfolation_2.12",
@@ -1155,7 +1077,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-apache-httpasyncclient",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-apache-httpasyncclient",
@@ -1167,7 +1088,6 @@
           "organization": "net.java.dev.jna",
           "name": "jna-platform",
           "version": "4.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jna-platform",
@@ -1179,7 +1099,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-classpath_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-classpath_2.12",
@@ -1191,7 +1110,6 @@
           "organization": "io.get-coursier.jniutils",
           "name": "<MASKED_OS>-jni-utils",
           "version": "0.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "<MASKED_OS>-jni-utils",
@@ -1203,7 +1121,6 @@
           "organization": "org.apache.logging.log4j",
           "name": "log4j-core",
           "version": "2.23.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4j-core",
@@ -1215,7 +1132,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.12",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.12",
@@ -1227,7 +1143,6 @@
           "organization": "org.scala-sbt",
           "name": "librarymanagement-ivy_2.12",
           "version": "1.10.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "librarymanagement-ivy_2.12",
@@ -1239,7 +1154,6 @@
           "organization": "io.github.alexarchambault.bleep",
           "name": "jsonrpc4s_2.12",
           "version": "0.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsonrpc4s_2.12",
@@ -1251,7 +1165,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -1263,7 +1176,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-tree",
           "version": "9.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-tree",
@@ -1275,7 +1187,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-analysis",
           "version": "9.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-analysis",
@@ -1287,7 +1198,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-murmurhash_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-murmurhash_2.12",
@@ -1299,7 +1209,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-core_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-core_2.12",
@@ -1311,7 +1220,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-persist-core-assembly",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-persist-core-assembly",
@@ -1323,7 +1231,6 @@
           "organization": "org.scala-sbt",
           "name": "zinc-apiinfo_2.12",
           "version": "1.10.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zinc-apiinfo_2.12",
@@ -1335,7 +1242,6 @@
           "organization": "io.get-coursier",
           "name": "interface",
           "version": "1.0.28",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "interface",
@@ -1347,7 +1253,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-util",
           "version": "9.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-util",
@@ -1359,7 +1264,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.12",
           "version": "0.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.12",
@@ -1368,9 +1272,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

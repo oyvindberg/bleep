@@ -200,7 +200,31 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client4/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-stub4-server/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-mock-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-stub4-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-stub4-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sttp-mock-server-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/sttp-mock-server-test/jvm3/classes",
@@ -276,44 +300,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -356,7 +342,6 @@
           "organization": "org.mozilla",
           "name": "rhino",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "rhino",
@@ -368,7 +353,6 @@
           "organization": "co.fs2",
           "name": "fs2-reactive-streams_3",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-reactive-streams_3",
@@ -380,7 +364,6 @@
           "organization": "commons-logging",
           "name": "commons-logging",
           "version": "1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-logging",
@@ -392,7 +375,6 @@
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser-core",
           "version": "2.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-parser-core",
@@ -404,7 +386,6 @@
           "organization": "com.github.cliftonlabs",
           "name": "json-simple",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-simple",
@@ -416,7 +397,6 @@
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_3",
           "version": "1.3.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_3",
@@ -428,7 +408,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_3",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -440,7 +419,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_3",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_3",
@@ -452,7 +430,6 @@
           "organization": "net.minidev",
           "name": "accessors-smart",
           "version": "2.4.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "accessors-smart",
@@ -464,7 +441,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_3",
@@ -476,7 +452,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
           "version": "2.14.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
@@ -488,7 +463,6 @@
           "organization": "io.swagger",
           "name": "swagger-compat-spec-parser",
           "version": "1.0.64",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-compat-spec-parser",
@@ -500,7 +474,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -512,7 +485,6 @@
           "organization": "io.circe",
           "name": "circe-generic_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_3",
@@ -524,7 +496,6 @@
           "organization": "com.github.java-json-tools",
           "name": "jackson-coreutils-equivalence",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-coreutils-equivalence",
@@ -536,7 +507,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -548,7 +518,6 @@
           "organization": "com.sun.mail",
           "name": "mailapi",
           "version": "1.6.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mailapi",
@@ -560,7 +529,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -572,7 +540,6 @@
           "organization": "org.ow2.asm",
           "name": "asm",
           "version": "9.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm",
@@ -584,7 +551,6 @@
           "organization": "io.swagger",
           "name": "swagger-core",
           "version": "1.6.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-core",
@@ -596,7 +562,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
           "version": "2.14.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
@@ -608,7 +573,6 @@
           "organization": "io.swagger.core.v3",
           "name": "swagger-core",
           "version": "2.2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-core",
@@ -620,7 +584,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_3",
@@ -632,7 +595,6 @@
           "organization": "com.jcraft",
           "name": "jzlib",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jzlib",
@@ -644,7 +606,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_3",
@@ -656,7 +617,6 @@
           "organization": "org.mock-server",
           "name": "mockserver-netty",
           "version": "5.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mockserver-netty",
@@ -668,7 +628,6 @@
           "organization": "com.github.java-json-tools",
           "name": "json-schema-core",
           "version": "1.2.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-schema-core",
@@ -680,7 +639,6 @@
           "organization": "jakarta.activation",
           "name": "jakarta.activation-api",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jakarta.activation-api",
@@ -692,7 +650,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -704,7 +661,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -716,7 +672,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_3",
@@ -728,7 +683,6 @@
           "organization": "io.netty",
           "name": "netty-codec",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec",
@@ -740,7 +694,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_3",
@@ -752,7 +705,6 @@
           "organization": "net.minidev",
           "name": "json-smart",
           "version": "2.4.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-smart",
@@ -764,7 +716,6 @@
           "organization": "io.swagger.core.v3",
           "name": "swagger-annotations",
           "version": "2.2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-annotations",
@@ -776,7 +727,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_3",
@@ -788,7 +738,6 @@
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser",
           "version": "2.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-parser",
@@ -800,7 +749,6 @@
           "organization": "commons-codec",
           "name": "commons-codec",
           "version": "1.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-codec",
@@ -812,7 +760,6 @@
           "organization": "com.sun.xml.bind",
           "name": "jaxb-impl",
           "version": "4.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jaxb-impl",
@@ -824,7 +771,6 @@
           "organization": "com.google.guava",
           "name": "guava",
           "version": "31.1-jre",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
@@ -836,7 +782,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -848,7 +793,6 @@
           "organization": "jakarta.validation",
           "name": "jakarta.validation-api",
           "version": "2.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jakarta.validation-api",
@@ -860,7 +804,6 @@
           "organization": "com.lmax",
           "name": "disruptor",
           "version": "3.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "disruptor",
@@ -872,7 +815,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -884,7 +826,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_3",
@@ -896,7 +837,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_3",
@@ -908,7 +848,6 @@
           "organization": "org.apache.commons",
           "name": "commons-text",
           "version": "1.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-text",
@@ -920,7 +859,6 @@
           "organization": "org.apache.velocity",
           "name": "velocity-engine-core",
           "version": "2.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "velocity-engine-core",
@@ -932,7 +870,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -944,7 +881,6 @@
           "organization": "net.sf.jopt-simple",
           "name": "jopt-simple",
           "version": "5.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jopt-simple",
@@ -956,7 +892,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_3",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_3",
@@ -968,7 +903,6 @@
           "organization": "io.swagger",
           "name": "swagger-annotations",
           "version": "1.6.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-annotations",
@@ -980,7 +914,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_3",
@@ -992,7 +925,6 @@
           "organization": "io.swagger",
           "name": "swagger-models",
           "version": "1.6.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-models",
@@ -1004,7 +936,6 @@
           "organization": "io.prometheus",
           "name": "simpleclient",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simpleclient",
@@ -1016,7 +947,6 @@
           "organization": "com.fasterxml.uuid",
           "name": "java-uuid-generator",
           "version": "4.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "java-uuid-generator",
@@ -1028,7 +958,6 @@
           "organization": "org.yaml",
           "name": "snakeyaml",
           "version": "1.33",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml",
@@ -1040,7 +969,6 @@
           "organization": "com.jayway.jsonpath",
           "name": "json-path",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-path",
@@ -1052,7 +980,6 @@
           "organization": "io.github.classgraph",
           "name": "classgraph",
           "version": "4.8.154",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "classgraph",
@@ -1064,7 +991,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_3",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_3",
@@ -1076,7 +1002,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -1088,7 +1013,6 @@
           "organization": "io.prometheus",
           "name": "simpleclient_httpserver",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simpleclient_httpserver",
@@ -1100,7 +1024,6 @@
           "organization": "io.netty",
           "name": "netty-tcnative-classes",
           "version": "2.0.56.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-tcnative-classes",
@@ -1112,7 +1035,6 @@
           "organization": "io.circe",
           "name": "circe-parser_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_3",
@@ -1124,7 +1046,6 @@
           "organization": "com.samskivert",
           "name": "jmustache",
           "version": "1.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmustache",
@@ -1136,7 +1057,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.14.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -1148,7 +1068,6 @@
           "organization": "io.netty",
           "name": "netty-codec-socks",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-socks",
@@ -1160,7 +1079,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -1172,7 +1090,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -1184,7 +1101,6 @@
           "organization": "com.github.stephenc.jcip",
           "name": "jcip-annotations",
           "version": "1.0-1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jcip-annotations",
@@ -1196,7 +1112,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_3",
@@ -1208,7 +1123,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_3",
           "version": "1.7.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_3",
@@ -1220,7 +1134,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_3",
@@ -1232,7 +1145,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_3",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_3",
@@ -1244,7 +1156,6 @@
           "organization": "org.bouncycastle",
           "name": "bcpkix-jdk18on",
           "version": "1.72",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bcpkix-jdk18on",
@@ -1256,7 +1167,6 @@
           "organization": "org.typelevel",
           "name": "literally_3",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_3",
@@ -1268,7 +1178,6 @@
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser-v3",
           "version": "2.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-parser-v3",
@@ -1280,7 +1189,6 @@
           "organization": "org.mock-server",
           "name": "mockserver-client-java",
           "version": "5.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mockserver-client-java",
@@ -1292,7 +1200,6 @@
           "organization": "com.github.java-json-tools",
           "name": "json-schema-validator",
           "version": "2.2.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-schema-validator",
@@ -1304,7 +1211,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -1316,7 +1222,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
           "version": "2.14.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
@@ -1328,7 +1233,6 @@
           "organization": "com.github.java-json-tools",
           "name": "btf",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "btf",
@@ -1340,7 +1244,6 @@
           "organization": "commons-beanutils",
           "name": "commons-beanutils",
           "version": "1.9.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-beanutils",
@@ -1352,7 +1255,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -1364,7 +1266,6 @@
           "organization": "commons-io",
           "name": "commons-io",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-io",
@@ -1376,7 +1277,6 @@
           "organization": "net.javacrumbs.json-unit",
           "name": "json-unit-core",
           "version": "2.36.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-unit-core",
@@ -1388,7 +1288,6 @@
           "organization": "io.circe",
           "name": "circe-core_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_3",
@@ -1400,7 +1299,6 @@
           "organization": "org.apache.httpcomponents",
           "name": "httpclient",
           "version": "4.5.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "httpclient",
@@ -1412,7 +1310,6 @@
           "organization": "io.netty",
           "name": "netty-handler-proxy",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
@@ -1424,7 +1321,6 @@
           "organization": "io.netty",
           "name": "netty-tcnative-boringssl-static",
           "version": "2.0.56.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-tcnative-boringssl-static",
@@ -1461,7 +1357,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_3",
@@ -1473,7 +1368,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -1485,7 +1379,6 @@
           "organization": "org.apache.commons",
           "name": "commons-lang3",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-lang3",
@@ -1497,7 +1390,6 @@
           "organization": "com.github.java-json-tools",
           "name": "jackson-coreutils",
           "version": "2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-coreutils",
@@ -1509,7 +1401,6 @@
           "organization": "org.bouncycastle",
           "name": "bcprov-jdk18on",
           "version": "1.72",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bcprov-jdk18on",
@@ -1521,7 +1412,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_3",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -1533,7 +1423,6 @@
           "organization": "com.github.java-json-tools",
           "name": "uri-template",
           "version": "0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "uri-template",
@@ -1545,7 +1434,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -1557,7 +1445,6 @@
           "organization": "io.circe",
           "name": "circe-literal_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-literal_3",
@@ -1569,7 +1456,6 @@
           "organization": "io.swagger.parser.v3",
           "name": "swagger-parser-v2-converter",
           "version": "2.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-parser-v2-converter",
@@ -1581,7 +1467,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_3",
@@ -1593,7 +1478,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_3",
@@ -1605,7 +1489,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -1617,7 +1500,6 @@
           "organization": "com.networknt",
           "name": "json-schema-validator",
           "version": "1.0.76",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-schema-validator",
@@ -1629,7 +1511,6 @@
           "organization": "org.eclipse.angus",
           "name": "angus-activation",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "angus-activation",
@@ -1641,7 +1522,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_3",
@@ -1653,7 +1533,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -1665,7 +1544,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -1677,7 +1555,6 @@
           "organization": "org.xmlunit",
           "name": "xmlunit-core",
           "version": "2.9.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xmlunit-core",
@@ -1689,7 +1566,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest",
@@ -1701,7 +1577,6 @@
           "organization": "jakarta.xml.bind",
           "name": "jakarta.xml.bind-api",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jakarta.xml.bind-api",
@@ -1713,7 +1588,6 @@
           "organization": "org.apache.commons",
           "name": "commons-digester3",
           "version": "3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-digester3",
@@ -1725,7 +1599,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_3",
           "version": "1.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_3",
@@ -1737,7 +1610,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -1749,7 +1621,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_3",
@@ -1761,7 +1632,6 @@
           "organization": "com.google.guava",
           "name": "listenablefuture",
           "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "listenablefuture",
@@ -1773,7 +1643,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_3",
@@ -1785,7 +1654,6 @@
           "organization": "io.prometheus",
           "name": "simpleclient_tracer_otel",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simpleclient_tracer_otel",
@@ -1797,7 +1665,6 @@
           "organization": "org.apache.velocity",
           "name": "velocity-engine-scripting",
           "version": "2.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "velocity-engine-scripting",
@@ -1809,7 +1676,6 @@
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
@@ -1821,7 +1687,6 @@
           "organization": "com.github.java-json-tools",
           "name": "msg-simple",
           "version": "1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "msg-simple",
@@ -1833,7 +1698,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_3",
@@ -1845,7 +1709,6 @@
           "organization": "com.googlecode.libphonenumber",
           "name": "libphonenumber",
           "version": "8.11.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "libphonenumber",
@@ -1857,7 +1720,6 @@
           "organization": "javax.servlet",
           "name": "javax.servlet-api",
           "version": "4.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.servlet-api",
@@ -1869,7 +1731,6 @@
           "organization": "com.google.guava",
           "name": "failureaccess",
           "version": "1.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "failureaccess",
@@ -1881,7 +1742,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_3",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_3",
@@ -1893,7 +1753,6 @@
           "organization": "com.fasterxml.jackson.dataformat",
           "name": "jackson-dataformat-yaml",
           "version": "2.14.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-dataformat-yaml",
@@ -1905,7 +1764,6 @@
           "organization": "org.apache.velocity.tools",
           "name": "velocity-tools-generic",
           "version": "3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "velocity-tools-generic",
@@ -1917,7 +1775,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_3",
@@ -1929,7 +1786,6 @@
           "organization": "io.swagger",
           "name": "swagger-parser",
           "version": "1.0.64",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-parser",
@@ -1941,7 +1797,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_3",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_3",
@@ -1953,7 +1808,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "cats_3",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats_3",
@@ -1965,7 +1819,6 @@
           "organization": "joda-time",
           "name": "joda-time",
           "version": "2.10.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "joda-time",
@@ -1977,7 +1830,6 @@
           "organization": "org.mock-server",
           "name": "mockserver-core",
           "version": "5.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mockserver-core",
@@ -1989,7 +1841,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_3",
@@ -2001,7 +1852,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_3",
@@ -2013,7 +1863,6 @@
           "organization": "commons-collections",
           "name": "commons-collections",
           "version": "3.2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-collections",
@@ -2025,7 +1874,6 @@
           "organization": "com.nimbusds",
           "name": "nimbus-jose-jwt",
           "version": "9.28",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "nimbus-jose-jwt",
@@ -2037,7 +1885,6 @@
           "organization": "io.prometheus",
           "name": "simpleclient_tracer_otel_agent",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simpleclient_tracer_otel_agent",
@@ -2049,7 +1896,6 @@
           "organization": "org.apache.httpcomponents",
           "name": "httpcore",
           "version": "4.4.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "httpcore",
@@ -2061,7 +1907,6 @@
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
@@ -2073,7 +1918,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_3",
@@ -2085,7 +1929,6 @@
           "organization": "org.xmlunit",
           "name": "xmlunit-placeholders",
           "version": "2.9.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xmlunit-placeholders",
@@ -2097,7 +1940,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_3",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_3",
@@ -2109,7 +1951,6 @@
           "organization": "io.swagger.core.v3",
           "name": "swagger-models",
           "version": "2.2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-models",
@@ -2121,7 +1962,6 @@
           "organization": "com.ethlo.time",
           "name": "itu",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "itu",
@@ -2133,7 +1973,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http2",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http2",
@@ -2145,7 +1984,6 @@
           "organization": "com.sun.xml.bind",
           "name": "jaxb-core",
           "version": "4.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jaxb-core",
@@ -2157,7 +1995,6 @@
           "organization": "io.prometheus",
           "name": "simpleclient_tracer_common",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simpleclient_tracer_common",
@@ -2169,7 +2006,6 @@
           "organization": "com.sun.activation",
           "name": "jakarta.activation",
           "version": "2.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jakarta.activation",
@@ -2181,7 +2017,6 @@
           "organization": "org.bouncycastle",
           "name": "bcutil-jdk18on",
           "version": "1.72",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bcutil-jdk18on",
@@ -2193,7 +2028,6 @@
           "organization": "com.github.java-json-tools",
           "name": "json-patch",
           "version": "1.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "json-patch",
@@ -2205,7 +2039,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_3",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_3",
@@ -2217,7 +2050,6 @@
           "organization": "com.softwaremill.common",
           "name": "tagging_3",
           "version": "2.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "tagging_3",
@@ -2229,7 +2061,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.1.86.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -2241,7 +2072,6 @@
           "organization": "io.prometheus",
           "name": "simpleclient_common",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simpleclient_common",
@@ -2250,9 +2080,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

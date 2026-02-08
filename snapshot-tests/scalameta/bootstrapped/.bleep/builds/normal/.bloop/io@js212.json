@@ -94,7 +94,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -106,7 +105,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.12",
           "version": "2.12.20+1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.12",
@@ -118,7 +116,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.12",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.12",
@@ -130,7 +127,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -139,9 +135,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

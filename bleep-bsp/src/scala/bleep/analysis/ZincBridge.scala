@@ -1,0 +1,923 @@
+package bleep.analysis
+
+import cats.effect.IO
+import java.io.File
+import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
+import java.util.Optional
+import scala.jdk.CollectionConverters.*
+import scala.jdk.OptionConverters.*
+import sbt.internal.inc.*
+import sbt.internal.inc.classpath.ClassLoaderCache
+import xsbti.*
+import xsbti.compile.{ScalaInstance as ZincScalaInstance, *}
+
+/** Listener for compilation progress updates */
+trait ProgressListener {
+
+  /** Called when compilation makes progress.
+    * @param current
+    *   current number of units compiled
+    * @param total
+    *   total number of units to compile
+    * @param phase
+    *   current compiler phase
+    * @return
+    *   true to continue, false to cancel
+    */
+  def onProgress(current: Int, total: Int, phase: String): Boolean
+}
+
+object ProgressListener {
+  val noop: ProgressListener = (_, _, _) => true
+}
+
+/** Bridge to Zinc incremental compiler.
+  *
+  * Zinc provides battle-tested incremental compilation for Scala/Java:
+  *   - Name hashing for precise API change detection
+  *   - Transitive dependency invalidation
+  *   - Analysis persistence for cross-session incrementality
+  *
+  * This bridge handles:
+  *   1. Creating Zinc-compatible ScalaInstance from our resolved JARs
+  *   2. Resolving the compiler bridge for each Scala version
+  *   3. Running the incremental compiler
+  *   4. Converting results back to our types
+  */
+object ZincBridge {
+
+  // ─── Cached compiler infrastructure ───────────────────────────────────────
+  // Safe to share: immutable values and stateless objects.
+  // NOT cached: Compilers/AnalyzingCompiler — their ClassLoaderCache uses HashMap
+  // (not thread-safe) so they must be created fresh per compilation.
+  // The Scala compiler classes themselves are cached in ScalaInstance.loader()
+  // (via CompilerResolver.instanceCache), so fresh ClassLoaderCache only re-loads
+  // the small bridge classes, not the full compiler.
+
+  /** Singleton incremental compiler — stateless, thread-safe. */
+  private lazy val incrementalCompiler: IncrementalCompiler = ZincUtil.defaultIncrementalCompiler
+
+  /** Cached ZincScalaInstance per Scala version. Immutable, safe to share. */
+  private val scalaInstanceCache = new java.util.concurrent.ConcurrentHashMap[String, ZincScalaInstance]()
+
+  /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
+  private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
+
+  private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
+  private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
+
+  private[analysis] def debug(msg: String): Unit = {
+    // Only print to stderr if debug is explicitly enabled via -Dbleep.zinc.debug=true
+    if (debugEnabled) {
+      System.err.println(s"[ZincBridge-DEBUG] $msg")
+    }
+    // Write to file for diagnostics (silent failure)
+    try {
+      Files.createDirectories(debugLogFile.getParent)
+      val _ = Files.writeString(
+        debugLogFile,
+        s"[${java.time.LocalDateTime.now}] $msg\n",
+        StandardOpenOption.CREATE,
+        StandardOpenOption.APPEND
+      )
+    } catch {
+      case _: Exception => () // Silent failure for file logging
+    }
+  }
+
+  /** Compile a Scala/Java project using Zinc.
+    *
+    * @param config
+    *   project configuration
+    * @param language
+    *   Scala/Java language settings
+    * @param diagnosticListener
+    *   receives compilation diagnostics
+    * @param cancellationToken
+    *   for cancellation support
+    * @param dependencyAnalyses
+    *   analysis files from dependent projects (keyed by output dir)
+    * @param progressListener
+    *   receives compilation progress updates
+    * @param ecjVersion
+    *   optional ECJ version - if set, uses ECJ instead of javac
+    * @return
+    *   compilation result
+    */
+  def compile(
+      config: ProjectConfig,
+      language: ProjectLanguage.ScalaJava,
+      diagnosticListener: DiagnosticListener,
+      cancellationToken: CancellationToken,
+      dependencyAnalyses: Map[Path, Path],
+      progressListener: ProgressListener,
+      ecjVersion: Option[String] = None
+  ): IO[ProjectCompileResult] = IO.blocking {
+    debug(s"[ZincBridge] compile() called for ${config.name}")
+    Files.createDirectories(config.outputDir)
+
+    val analysisDir = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc"))
+    Files.createDirectories(analysisDir)
+    val analysisFile = analysisDir.resolve("analysis.zip")
+
+    val sources = collectSources(config.sources)
+    if (sources.isEmpty) {
+      ProjectCompileSuccess(config.outputDir, Set.empty, Some(analysisFile))
+    } else {
+      // Always delegate to Zinc for up-to-date detection.
+      // Zinc uses content hashing (farmHash) which is robust across git operations
+      // like rebase that preserve file timestamps.
+      val scalaInstance = getScalaInstance(language.scalaVersion)
+      val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken)
+      val logger = new BleepLogger(diagnosticListener)
+      val reporter = new BleepReporter(diagnosticListener)
+
+      val previousResult = loadPreviousResult(analysisFile)
+      val hasPrevAnalysis = previousResult.analysis().isPresent
+      debug(s"[ZincBridge] ${config.name}: ${sources.length} sources, hasPreviousAnalysis=$hasPrevAnalysis, outputDir=${config.outputDir}")
+
+      // For first compile (no previous analysis), report all source files upfront
+      if (!hasPrevAnalysis) {
+        sources.foreach { vf =>
+          val path = vf match {
+            case pvf: PlainVirtualFile => pvf.path
+            case other                 => Path.of(other.id())
+          }
+          diagnosticListener.onCompileFile(path, Some("zinc-initial"))
+        }
+      }
+
+      val inputs = createInputs(
+        config,
+        sources,
+        language,
+        compilers,
+        previousResult,
+        reporter,
+        dependencyAnalyses,
+        progressListener,
+        cancellationToken,
+        diagnosticListener
+      )
+
+      val compiler = incrementalCompiler
+      val compileResult =
+        try {
+          debug(s"[ZincBridge] Starting compilation for ${config.name}")
+          val result = compiler.compile(inputs, logger)
+          debug(s"[ZincBridge] Compilation done for ${config.name}, hasModified=${result.hasModified}")
+
+          if (result.hasModified) {
+            debug(s"[ZincBridge] Saving analysis for ${config.name}")
+            saveAnalysis(analysisFile, result.analysis, result.setup)
+          }
+
+          val classFiles = collectClassFiles(config.outputDir)
+          ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
+        } catch {
+          case e: xsbti.CompileFailed =>
+            ProjectCompileFailure(e.problems.toList.map(problemToError))
+          case e: Exception =>
+            ProjectCompileFailure(
+              List(
+                CompilerError(
+                  path = None,
+                  line = 0,
+                  column = 0,
+                  message = s"Compilation failed: ${e.getMessage}"
+                )
+              )
+            )
+        }
+
+      // If compilation was cancelled, the output directory may be in an
+      // inconsistent state (partially written class files, deleted files
+      // that the analysis still references). Delete BOTH the analysis file
+      // AND the output directory to force a completely clean rebuild.
+      // Just deleting the analysis is not enough — stale .class files in
+      // the output dir would pollute downstream projects' classpaths.
+      if (cancellationToken.isCancelled) {
+        debug(s"[ZincBridge] Compilation cancelled for ${config.name}, cleaning output and analysis for clean rebuild")
+        Files.deleteIfExists(analysisFile)
+        bleep.internal.FileUtils.deleteDirectory(config.outputDir)
+      }
+
+      compileResult
+    }
+  }
+
+  private def collectSources(sourceDirs: Set[Path]): Array[VirtualFile] =
+    sourceDirs.toArray.flatMap { srcDir =>
+      if (Files.isDirectory(srcDir)) {
+        // Use Using to ensure Files.walk stream is properly closed
+        scala.util
+          .Using(Files.walk(srcDir)) { stream =>
+            stream
+              .iterator()
+              .asScala
+              .filter(p => p.toString.endsWith(".scala") || p.toString.endsWith(".java"))
+              .filter(Files.isRegularFile(_))
+              .map(p => PlainVirtualFile(p))
+              .toArray
+          }
+          .getOrElse(Array.empty[VirtualFile])
+      } else if (Files.exists(srcDir) && (srcDir.toString.endsWith(".scala") || srcDir.toString.endsWith(".java"))) {
+        Array(PlainVirtualFile(srcDir))
+      } else {
+        Array.empty[VirtualFile]
+      }
+    }
+
+  private def collectClassFiles(outputDir: Path): Set[Path] =
+    if (Files.exists(outputDir)) {
+      // Use Using to ensure Files.walk stream is properly closed
+      scala.util
+        .Using(Files.walk(outputDir)) { stream =>
+          stream
+            .iterator()
+            .asScala
+            .filter(p => p.toString.endsWith(".class"))
+            .filter(Files.isRegularFile(_))
+            .toSet
+        }
+        .getOrElse(Set.empty)
+    } else {
+      Set.empty
+    }
+
+  private def getScalaInstance(scalaVersion: String): ZincScalaInstance =
+    scalaInstanceCache.computeIfAbsent(
+      scalaVersion,
+      sv => {
+        val instance = CompilerResolver.getScalaCompiler(sv)
+        val resolvedAllJars = instance.allJars.map(_.toFile).toArray
+
+        val resolvedLibraryJars = resolvedAllJars.filter { f =>
+          f.getName.contains("scala-library") || f.getName.contains("scala3-library")
+        }
+        val resolvedCompilerJars = resolvedAllJars.filter { f =>
+          val name = f.getName
+          name.contains("scala-compiler") || name.contains("scala3-compiler") ||
+          name.contains("tasty-core") || name.contains("scala3-interfaces") ||
+          name.contains("scala-asm") || name.contains("scala-reflect")
+        }
+        val resolvedOtherJars = resolvedAllJars.filterNot(j => resolvedLibraryJars.contains(j) || resolvedCompilerJars.contains(j))
+        val resolvedLoader = instance.loader
+
+        new ZincScalaInstance {
+          override def version(): String = sv
+          override def libraryJars(): Array[File] = resolvedLibraryJars
+          override def compilerJars(): Array[File] = resolvedCompilerJars
+          override def allJars(): Array[File] = resolvedAllJars
+          override def otherJars(): Array[File] = resolvedOtherJars
+          override def loaderLibraryOnly(): ClassLoader = resolvedLoader
+          override def loaderCompilerOnly(): ClassLoader = resolvedLoader
+          override def loader(): ClassLoader = resolvedLoader
+          override def actualVersion(): String = sv
+        }
+      }
+    )
+
+  private def createCompilers(
+      scalaInstance: ZincScalaInstance,
+      language: ProjectLanguage.ScalaJava,
+      ecjVersion: Option[String],
+      cancellationToken: CancellationToken
+  ): Compilers = {
+    val bridgeJar = getBridge(language.scalaVersion)
+    val classpathOptions = ClasspathOptionsUtil.noboot(scalaInstance.version)
+    val cache = new ClassLoaderCache(new java.net.URLClassLoader(Array()))
+
+    val scalaCompiler = new AnalyzingCompiler(
+      scalaInstance,
+      ZincCompilerUtil.constantBridgeProvider(scalaInstance, bridgeJar.toFile),
+      classpathOptions,
+      _ => (),
+      Some(cache)
+    )
+
+    val javaTools = ecjVersion match {
+      case Some(version) =>
+        debug(s"[ZincBridge] Using ECJ version $version for Java compilation")
+        createEcjTools(scalaInstance, classpathOptions, version, cancellationToken)
+      case None =>
+        sbt.internal.inc.javac.JavaTools.directOrFork(
+          scalaInstance,
+          classpathOptions,
+          None // Use system Java
+        )
+    }
+
+    ZincUtil.compilers(javaTools, scalaCompiler)
+  }
+
+  /** Create JavaTools that use ECJ (Eclipse Compiler for Java) instead of javac */
+  private def createEcjTools(
+      scalaInstance: ZincScalaInstance,
+      classpathOptions: ClasspathOptions,
+      ecjVersion: String,
+      cancellationToken: CancellationToken
+  ): xsbti.compile.JavaTools = {
+    // Resolve ECJ jar
+    val ecjJars = resolveEcj(ecjVersion)
+    val ecjClassLoader = new java.net.URLClassLoader(
+      ecjJars.map(_.toUri.toURL).toArray,
+      getClass.getClassLoader
+    )
+
+    // Create a forked Java compiler that uses ECJ
+    val ecjCompiler = new EcjCompiler(ecjJars, ecjClassLoader, cancellationToken)
+
+    // Use standard javadoc (ECJ doesn't include javadoc)
+    val standardJavaTools = sbt.internal.inc.javac.JavaTools.directOrFork(
+      scalaInstance,
+      classpathOptions,
+      None
+    )
+
+    new xsbti.compile.JavaTools {
+      def javac(): xsbti.compile.JavaCompiler = ecjCompiler
+      def javadoc(): xsbti.compile.Javadoc = standardJavaTools.javadoc()
+    }
+  }
+
+  /** Resolve ECJ jars from Maven */
+  private def resolveEcj(version: String): Seq[Path] = {
+    val dep = bleep.model.Dep.Java("org.eclipse.jdt", "ecj", version)
+    val combo = bleep.model.VersionCombo.Java
+    dep.asJava(combo) match {
+      case Right(javaDep) =>
+        coursier
+          .Fetch()
+          .addDependencies(javaDep.dependency)
+          .run()
+          .map(_.toPath)
+      case Left(e) =>
+        throw new RuntimeException(s"Failed to resolve ECJ $version: $e")
+    }
+  }
+
+  private def getBridge(scalaVersion: String): Path =
+    bridgeCache.computeIfAbsent(scalaVersion, resolveBridge)
+
+  private def resolveBridge(scalaVersion: String): Path = {
+    val bridgeDep = if (scalaVersion.startsWith("3.")) {
+      // scala3-sbt-bridge is a Java artifact, not a Scala artifact (no _3 suffix)
+      s"org.scala-lang:scala3-sbt-bridge:$scalaVersion"
+    } else if (scalaVersion.startsWith("2.13")) {
+      s"org.scala-sbt::compiler-bridge:1.10.4"
+    } else if (scalaVersion.startsWith("2.12")) {
+      s"org.scala-sbt::compiler-bridge:1.10.4"
+    } else {
+      throw new IllegalArgumentException(s"Unsupported Scala version: $scalaVersion")
+    }
+
+    val dep = bleep.model.Dep.parse(bridgeDep) match {
+      case Right(d) => d
+      case Left(e)  => throw new RuntimeException(s"Failed to parse bridge dependency: $e")
+    }
+
+    val combo = bleep.model.VersionCombo.Jvm(bleep.model.VersionScala(scalaVersion))
+    val jars = dep.asJava(combo) match {
+      case Right(javaDep) =>
+        coursier
+          .Fetch()
+          .addDependencies(javaDep.dependency)
+          .run()
+          .map(_.toPath)
+      case Left(e) =>
+        throw new RuntimeException(s"Failed to convert bridge dependency: $e")
+    }
+
+    jars
+      .find(_.getFileName.toString.contains("bridge"))
+      .getOrElse(
+        jars.headOption.getOrElse(
+          throw new RuntimeException(s"Could not resolve bridge for Scala $scalaVersion")
+        )
+      )
+  }
+
+  private def createInputs(
+      config: ProjectConfig,
+      sources: Array[VirtualFile],
+      language: ProjectLanguage.ScalaJava,
+      compilers: Compilers,
+      previousResult: PreviousResult,
+      reporter: Reporter,
+      dependencyAnalyses: Map[Path, Path],
+      progressListener: ProgressListener,
+      cancellationToken: CancellationToken,
+      diagnosticListener: DiagnosticListener
+  ): Inputs = {
+    val outputDir = config.outputDir
+    // Include output directory in classpath for incremental Java compilation.
+    // When javac recompiles a subset of files, it needs to find already-compiled
+    // classes from the same project (e.g., TestProtocol.class when compiling ForkedTestRunner.java)
+    val classpathVf = (outputDir +: config.classpath).map(p => PlainVirtualFile(p): VirtualFile).toArray
+
+    val scalacOptions = language.scalaOptions.toArray
+    val releaseOptions = language.javaRelease.map(r => Array(s"--release", r.toString)).getOrElse(Array.empty[String])
+    val javacOptions = releaseOptions ++ language.javaOptions.toArray
+
+    // Load analyses from dependency projects for proper incremental compilation
+    val loadedAnalyses: Map[Path, CompileAnalysis] = dependencyAnalyses.flatMap { case (classDir, analysisFile) =>
+      if (Files.exists(analysisFile)) {
+        try {
+          val store = AnalysisStore.getCachedStore(
+            sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+          )
+          store.get().toScala.map(contents => classDir -> contents.getAnalysis)
+        } catch {
+          case _: Exception => None
+        }
+      } else None
+    }
+
+    val lookup = new PerClasspathEntryLookup {
+      def analysis(classpathEntry: VirtualFile): Optional[CompileAnalysis] = {
+        // Match classpath entry to loaded analysis
+        val entryPath = classpathEntry match {
+          case pvf: PlainVirtualFile => pvf.path
+          case other                 => Path.of(other.id())
+        }
+        loadedAnalyses.get(entryPath).toJava
+      }
+      def definesClass(classpathEntry: VirtualFile): DefinesClass = {
+        // Use analysis to check if class is defined
+        val entryPath = classpathEntry match {
+          case pvf: PlainVirtualFile => pvf.path
+          case other                 => Path.of(other.id())
+        }
+        loadedAnalyses.get(entryPath) match {
+          case Some(analysis) =>
+            (className: String) => {
+              val relations = analysis.asInstanceOf[sbt.internal.inc.Analysis].relations
+              relations.productClassName._2s.contains(className) ||
+              relations.libraryClassName._2s.contains(className)
+            }
+          case None =>
+            (_: String) => false
+        }
+      }
+    }
+
+    // Create a temp cache path (Zinc requires non-null)
+    val cachePath = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc")).resolve("cache")
+
+    // Create progress callback that wraps our listener
+    val progress: CompileProgress = new CompileProgress {
+      override def startUnit(phase: String, unitPath: String): Unit =
+        debug(s"[ZincBridge] startUnit called: phase=$phase, unitPath=$unitPath")
+
+      override def advance(current: Int, total: Int, prevPhase: String, nextPhase: String): Boolean = {
+        val shouldContinue = progressListener.onProgress(current, total, nextPhase)
+        shouldContinue && !cancellationToken.isCancelled
+      }
+    }
+
+    val setup = Setup.of(
+      lookup,
+      false, // skip
+      cachePath,
+      CompilerCache.fresh,
+      IncOptions.of(),
+      reporter,
+      Optional.of(progress),
+      Array.empty[xsbti.T2[String, String]]
+    )
+
+    // sourcePositionMapper: identity function
+    val sourcePositionMapper: java.util.function.Function[Position, Position] = (p: Position) => p
+
+    val options = CompileOptions.of(
+      classpathVf,
+      sources,
+      outputDir,
+      scalacOptions,
+      javacOptions,
+      100, // maxErrors
+      sourcePositionMapper,
+      CompileOrder.Mixed
+    )
+
+    debug(s"[ZincBridge] Current setup: outputDir=$outputDir, order=Mixed")
+    debug(s"[ZincBridge] Current scalacOptions: ${scalacOptions.mkString(", ")}")
+    debug(s"[ZincBridge] Source count: ${sources.length}, classpath count: ${classpathVf.length}")
+    // Log sample source info for debugging
+    if (sources.nonEmpty) {
+      val firstSrc = sources.head
+      debug(s"[ZincBridge] Current source sample: type=${firstSrc.getClass.getName}, id=${firstSrc.id}, hashCode=${firstSrc.hashCode()}")
+    }
+
+    // Check previous MiniSetup if available
+    if (previousResult.setup().isPresent) {
+      val prevSetup = previousResult.setup().get()
+      val prevOutput = prevSetup.output.getSingleOutputAsPath.map(_.toString).orElse("unknown")
+      val prevOrder = prevSetup.order.toString
+      val prevScalacOpts = prevSetup.options.scalacOptions.mkString(", ")
+
+      debug(s"[ZincBridge] COMPARING SETUPS:")
+      debug(s"[ZincBridge]   Previous output: $prevOutput, Current output: $outputDir")
+      debug(s"[ZincBridge]   Previous order: $prevOrder, Current order: Mixed")
+      debug(s"[ZincBridge]   Scalac options match: ${prevScalacOpts == scalacOptions.mkString(", ")}")
+      debug(s"[ZincBridge]   Classpath count: prev=${prevSetup.options.classpathHash.length}, curr=${classpathVf.length}")
+
+      // Check if output dirs match
+      val outputMatch = prevOutput == outputDir.toString
+      debug(s"[ZincBridge]   Output dirs match: $outputMatch")
+    }
+
+    Inputs.of(compilers, options, setup, previousResult)
+  }
+
+  private def loadPreviousResult(analysisFile: Path): PreviousResult = {
+    debug(s"[ZincBridge] Looking for analysis at: $analysisFile, exists=${Files.exists(analysisFile)}")
+    if (Files.exists(analysisFile)) {
+      try {
+        val store = AnalysisStore.getCachedStore(
+          sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+        )
+        val contents = store.get()
+        if (contents.isPresent) {
+          val analysis = contents.get().getAnalysis.asInstanceOf[sbt.internal.inc.Analysis]
+          val miniSetup = contents.get().getMiniSetup
+          debug(s"[ZincBridge] Loaded analysis with ${analysis.apis.internal.size} internal APIs")
+          debug(s"[ZincBridge] Previous MiniSetup: output=${miniSetup.output}, order=${miniSetup.order}, storeApis=${miniSetup.storeApis}")
+          debug(s"[ZincBridge] Previous scalacOptions: ${miniSetup.options.scalacOptions.mkString(", ")}")
+          // Log source stamps to understand invalidation
+          val stamps = analysis.stamps
+          val sourceStamps = stamps.sources
+          debug(s"[ZincBridge] Source stamps count: ${sourceStamps.size}")
+          if (sourceStamps.nonEmpty) {
+            val firstFew = sourceStamps
+              .take(3)
+              .map { case (vf, stamp) =>
+                s"${vf.id}:$stamp"
+              }
+              .mkString(", ")
+            debug(s"[ZincBridge] Sample source stamps: $firstFew")
+            // Log VirtualFileRef types and verify hashCode compatibility
+            val firstVf = sourceStamps.head._1
+            debug(s"[ZincBridge] Stored VirtualFileRef type: ${firstVf.getClass.getName}, id=${firstVf.id}, hashCode=${firstVf.hashCode()}")
+            // Verify that PlainVirtualFile would compute the same hashCode
+            val plainVfHashCode = java.util.Objects.hash("xsbti.BasicVirtualFileRef", firstVf.id)
+            debug(s"[ZincBridge] PlainVirtualFile hashCode would be: $plainVfHashCode (matches stored: ${plainVfHashCode == firstVf.hashCode()})")
+          }
+          // Return the analysis directly - PlainVirtualFile.hashCode() now matches BasicVirtualFileRef.hashCode()
+          // so HashMap lookups work correctly across the serialization boundary
+          PreviousResult.of(
+            Optional.of(analysis),
+            Optional.of(miniSetup)
+          )
+        } else {
+          debug(s"[ZincBridge] Analysis file exists but store.get() returned empty")
+          PreviousResult.of(Optional.empty(), Optional.empty())
+        }
+      } catch {
+        case e: Exception =>
+          debug(s"[ZincBridge] Failed to load analysis: ${e.getMessage}")
+          PreviousResult.of(Optional.empty(), Optional.empty())
+      }
+    } else {
+      debug(s"[ZincBridge] No analysis file found")
+      PreviousResult.of(Optional.empty(), Optional.empty())
+    }
+  }
+
+  private def saveAnalysis(analysisFile: Path, analysis: CompileAnalysis, setup: MiniSetup): Unit = {
+    // Write to a temp file first, then atomic rename.
+    // This prevents corrupted analysis.zip when compilation is cancelled mid-write.
+    val tempFile = analysisFile.resolveSibling(analysisFile.getFileName.toString + ".tmp")
+    try {
+      val cpHashes = setup.options.classpathHash
+      if (cpHashes.nonEmpty) {
+        val sample = cpHashes.take(3).map(fh => s"${fh.file}:${fh.hash}").mkString(", ")
+        debug(s"[ZincBridge] Saving with classpath hashes: $sample")
+      }
+      val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile)
+      store.set(AnalysisContents.create(analysis, setup))
+      Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+    } catch {
+      case e: Exception =>
+        Files.deleteIfExists(tempFile)
+        System.err.println(s"Warning: Failed to save analysis: ${e.getMessage}")
+    }
+  }
+
+  private def problemToError(problem: Problem): CompilerError = {
+    val pos = problem.position()
+    val severity = problem.severity() match {
+      case xsbti.Severity.Error => CompilerError.Severity.Error
+      case xsbti.Severity.Warn  => CompilerError.Severity.Warning
+      case xsbti.Severity.Info  => CompilerError.Severity.Info
+    }
+    CompilerError(
+      path = pos.sourcePath().toScala.map(Path.of(_)),
+      line = pos.line().toScala.map(_.intValue).getOrElse(0),
+      column = pos.pointer().toScala.map(_.intValue).getOrElse(0),
+      message = problem.message(),
+      severity = severity
+    )
+  }
+
+  /** Logger that forwards to DiagnosticListener */
+  private class BleepLogger(listener: DiagnosticListener) extends Logger {
+    def debug(msg: java.util.function.Supplier[String]): Unit = ()
+    def error(msg: java.util.function.Supplier[String]): Unit =
+      listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), CompilerError.Severity.Error))
+    def info(msg: java.util.function.Supplier[String]): Unit = ()
+    def trace(err: java.util.function.Supplier[Throwable]): Unit = ()
+    def warn(msg: java.util.function.Supplier[String]): Unit =
+      listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), CompilerError.Severity.Warning))
+  }
+
+  /** Reporter that forwards problems to DiagnosticListener */
+  private class BleepReporter(listener: DiagnosticListener) extends Reporter {
+    private var problemList = List.empty[Problem]
+
+    def reset(): Unit = problemList = Nil
+    def hasErrors: Boolean = problemList.exists(_.severity == xsbti.Severity.Error)
+    def hasWarnings: Boolean = problemList.exists(_.severity == xsbti.Severity.Warn)
+    def printSummary(): Unit = ()
+    def problems(): Array[Problem] = problemList.toArray
+
+    def log(problem: Problem): Unit = {
+      problemList = problemList :+ problem
+      val error = problemToError(problem)
+      listener.onDiagnostic(error)
+    }
+
+    def comment(pos: Position, msg: String): Unit = ()
+  }
+}
+
+/** ECJ (Eclipse Compiler for Java) wrapper for Zinc.
+  *
+  * Uses ECJ's Compiler API directly with ICompilerRequestor to capture structured error information (file, line, column, message, severity).
+  */
+private class EcjCompiler(ecjJars: Seq[Path], ecjClassLoader: ClassLoader, cancellationToken: CancellationToken) extends xsbti.compile.JavaCompiler {
+  import scala.jdk.OptionConverters.*
+  import scala.collection.mutable
+
+  // Collected problems from compilation
+  private val collectedProblems = mutable.ListBuffer.empty[CapturedProblem]
+
+  case class CapturedProblem(
+      file: String,
+      line: Int,
+      startOffset: Int,
+      endOffset: Int,
+      message: String,
+      isError: Boolean
+  )
+
+  def run(
+      sources: Array[VirtualFile],
+      options: Array[String],
+      output: xsbti.compile.Output,
+      incToolOptions: xsbti.compile.IncToolOptions,
+      reporter: Reporter,
+      log: Logger
+  ): Boolean = {
+    if (sources.isEmpty) return true
+
+    collectedProblems.clear()
+
+    val outputDir = output.getSingleOutputAsPath.toScala.getOrElse(
+      throw new RuntimeException("ECJ requires a single output directory")
+    )
+    Files.createDirectories(outputDir)
+
+    // Build arguments for ECJ batch compiler
+    val args = mutable.ArrayBuffer[String]()
+    args += "-d"
+    args += outputDir.toString
+
+    // Filter and add options (skip -J flags which are for JVM)
+    options.foreach { opt =>
+      if (!opt.startsWith("-J")) {
+        args += opt
+      }
+    }
+
+    // Add source files
+    sources.foreach { vf =>
+      val path = vf match {
+        case pvf: PlainVirtualFile => pvf.path.toString
+        case other                 => other.id()
+      }
+      args += path
+    }
+
+    ZincBridge.debug(s"[ECJ] Compiling ${sources.length} sources with args: ${args.mkString(" ")}")
+
+    // Use ECJ's batch Main class with custom streams to capture output
+    val mainClass = ecjClassLoader.loadClass("org.eclipse.jdt.internal.compiler.batch.Main")
+
+    val errStream = new java.io.ByteArrayOutputStream()
+    val outStream = new java.io.ByteArrayOutputStream()
+    val errPrint = new java.io.PrintWriter(errStream, true)
+    val outPrint = new java.io.PrintWriter(outStream, true)
+
+    val constructor = mainClass.getConstructor(
+      classOf[java.io.PrintWriter],
+      classOf[java.io.PrintWriter],
+      classOf[Boolean]
+    )
+    val ecjMain = constructor.newInstance(outPrint, errPrint, java.lang.Boolean.FALSE)
+
+    // Run ECJ on a dedicated thread so we can interrupt it on cancellation.
+    // ECJ's batch.Main.compile() is a blocking call with no cancellation API —
+    // even Zinc's advance() callback only fires between phases, not during ECJ's
+    // internal loops (e.g. Scope.findMemberType). Thread.interrupt() is the only
+    // way to break out.
+    val compileMethod = mainClass.getMethod("compile", classOf[Array[String]])
+    @volatile var success: java.lang.Boolean = java.lang.Boolean.FALSE
+    @volatile var compileException: Throwable = null
+
+    val compileThread = new Thread("ecj-compiler") {
+      override def run(): Unit =
+        try
+          success = compileMethod.invoke(ecjMain, args.toArray).asInstanceOf[java.lang.Boolean]
+        catch {
+          case _: InterruptedException                                                                         => ()
+          case e: java.lang.reflect.InvocationTargetException if e.getCause.isInstanceOf[InterruptedException] => ()
+          case e: Throwable                                                                                    => compileException = e
+        }
+    }
+
+    cancellationToken.onCancel(() => compileThread.interrupt())
+    compileThread.start()
+    compileThread.join()
+
+    if (cancellationToken.isCancelled) {
+      throw new RuntimeException("ECJ compilation cancelled")
+    }
+
+    if (compileException != null) {
+      throw compileException
+    }
+
+    errPrint.flush()
+    outPrint.flush()
+
+    val errOutput = errStream.toString
+    val outOutput = outStream.toString
+
+    ZincBridge.debug(s"[ECJ] Compile finished: success=$success")
+    if (errOutput.nonEmpty) ZincBridge.debug(s"[ECJ] stderr:\n$errOutput")
+    if (outOutput.nonEmpty) ZincBridge.debug(s"[ECJ] stdout:\n$outOutput")
+
+    // Parse ECJ's structured text output
+    // ECJ format:
+    // ----------
+    // 1. ERROR in /path/to/File.java (at line 10)
+    //     source line here
+    //     ^^^^^
+    // Error message here
+    // ----------
+    val allOutput = outOutput + "\n" + errOutput
+    parseEcjOutput(allOutput, reporter)
+
+    // If compilation failed but we found no errors, report the raw output
+    if (!success && !reporter.hasErrors) {
+      val msg = if (allOutput.trim.nonEmpty) allOutput.trim else "ECJ compilation failed with no error message"
+      reporter.log(createProblem(None, 0, 0, 0, msg, isErr = true))
+    }
+
+    success.booleanValue()
+  }
+
+  /** Parse ECJ's text output format to extract structured errors */
+  private def parseEcjOutput(output: String, reporter: Reporter): Unit = {
+    // ECJ separates problems with "----------"
+    val blocks = output.split("----------").map(_.trim).filter(_.nonEmpty)
+
+    for (block <- blocks) {
+      val lines = block.linesIterator.toList
+      if (lines.nonEmpty) {
+        // First line format: "N. ERROR in /path/file.java (at line M)"
+        // or: "N. WARNING in /path/file.java (at line M)"
+        val headerPattern = """(\d+)\.\s+(ERROR|WARNING)\s+in\s+(.+?)\s+\(at line (\d+)\)""".r
+
+        lines.head match {
+          case headerPattern(_, severityStr, filePath, lineStr) =>
+            val lineNum = lineStr.toInt
+            val isErr = severityStr == "ERROR"
+
+            // Find the message - it's after the source line and caret pointer
+            // Lines: [header, source line, caret line (^^^), message lines...]
+            val messageStartIdx = lines.indexWhere(_.trim.startsWith("^")) + 1
+            val messageLines = if (messageStartIdx > 0 && messageStartIdx < lines.length) {
+              lines.drop(messageStartIdx).takeWhile(_.nonEmpty)
+            } else {
+              // No caret found, try to get message from remaining lines
+              lines.drop(1).filter(l => l.nonEmpty && !l.forall(c => c == '^' || c == ' '))
+            }
+            val message = messageLines.mkString(" ").trim
+
+            if (message.nonEmpty) {
+              reporter.log(createProblem(Some(filePath), lineNum, 0, 0, message, isErr))
+            }
+
+          case _ =>
+            // Not a standard error block, check for other patterns
+            // e.g., "No source files specified" or other global errors
+            val trimmed = block.trim
+            if (trimmed.nonEmpty && !trimmed.forall(c => c == '-' || c.isWhitespace)) {
+              // Check if it looks like an error message
+              if (trimmed.toLowerCase.contains("error") || trimmed.toLowerCase.contains("cannot")) {
+                reporter.log(createProblem(None, 0, 0, 0, trimmed, isErr = true))
+              }
+            }
+        }
+      }
+    }
+  }
+
+  private def createProblem(
+      filePath: Option[String],
+      lineNum: Int,
+      startOff: Int,
+      endOff: Int,
+      msg: String,
+      isErr: Boolean
+  ): xsbti.Problem = {
+    val sev = if (isErr) xsbti.Severity.Error else xsbti.Severity.Warn
+
+    new xsbti.Problem {
+      def category(): String = "ECJ"
+      def severity(): xsbti.Severity = sev
+      def message(): String = msg
+      def position(): xsbti.Position = new xsbti.Position {
+        def line(): Optional[Integer] = if (lineNum > 0) Optional.of(Integer.valueOf(lineNum)) else Optional.empty()
+        def lineContent(): String = ""
+        def offset(): Optional[Integer] = if (startOff > 0) Optional.of(Integer.valueOf(startOff)) else Optional.empty()
+        def pointer(): Optional[Integer] = Optional.empty()
+        def pointerSpace(): Optional[String] = Optional.empty()
+        def sourcePath(): Optional[String] = filePath.map(f => Optional.of[String](f)).getOrElse(Optional.empty())
+        def sourceFile(): Optional[java.io.File] = filePath.map(f => Optional.of[java.io.File](new java.io.File(f))).getOrElse(Optional.empty())
+        override def startOffset(): Optional[Integer] = if (startOff > 0) Optional.of(Integer.valueOf(startOff)) else Optional.empty()
+        override def endOffset(): Optional[Integer] = if (endOff > 0) Optional.of(Integer.valueOf(endOff)) else Optional.empty()
+        override def startLine(): Optional[Integer] = if (lineNum > 0) Optional.of(Integer.valueOf(lineNum)) else Optional.empty()
+        override def startColumn(): Optional[Integer] = Optional.empty()
+        override def endLine(): Optional[Integer] = Optional.empty()
+        override def endColumn(): Optional[Integer] = Optional.empty()
+      }
+      override def rendered(): Optional[String] = {
+        val loc = filePath.map(f => s"$f:$lineNum: ").getOrElse("")
+        Optional.of(s"$loc$msg")
+      }
+      override def diagnosticCode(): Optional[xsbti.DiagnosticCode] = Optional.empty()
+      override def diagnosticRelatedInformation(): java.util.List[xsbti.DiagnosticRelatedInformation] =
+        java.util.Collections.emptyList()
+      override def actions(): java.util.List[xsbti.Action] = java.util.Collections.emptyList()
+    }
+  }
+}
+
+/** Simple VirtualFile implementation wrapping a Path. Implements PathBasedFile so Scala 3 compiler can get the path back.
+  */
+private class PlainVirtualFile(val path: Path) extends VirtualFile with xsbti.PathBasedFile {
+  def id(): String = path.toString
+  def name(): String = path.getFileName.toString
+  def names(): Array[String] = {
+    val count = path.getNameCount
+    (0 until count).map(i => path.getName(i).toString).toArray
+  }
+  def contentHash(): Long =
+    if (Files.exists(path)) {
+      val content = Files.readAllBytes(path)
+      val result = sbt.internal.inc.HashUtil.farmHash(content)
+      // Only log occasionally to avoid spam - just first few calls per session
+      if (path.toString.contains("Build.scala")) {
+        ZincBridge.debug(s"[ZincBridge] contentHash for ${path.getFileName}: $result (hex: ${java.lang.Long.toHexString(result)})")
+      }
+      result
+    } else {
+      0L
+    }
+  def input(): java.io.InputStream = Files.newInputStream(path)
+
+  // PathBasedFile interface - required for Scala 3 compiler bridge
+  def toPath(): Path = path
+
+  override def toString: String = path.toString
+
+  // CRITICAL: hashCode MUST match BasicVirtualFileRef.hashCode() for HashMap lookups to work
+  // BasicVirtualFileRef uses: Objects.hash("xsbti.BasicVirtualFileRef", id)
+  // This allows stamp lookups to work when Zinc serializes analysis with BasicVirtualFileRef
+  // and we query it with PlainVirtualFile
+  override def hashCode(): Int = java.util.Objects.hash("xsbti.BasicVirtualFileRef", id())
+
+  // equals must work across different VirtualFileRef implementations
+  override def equals(obj: Any): Boolean = obj match {
+    case other: VirtualFileRef => id() == other.id()
+    case _                     => false
+  }
+}
+
+object PlainVirtualFile {
+  def apply(path: Path): PlainVirtualFile = new PlainVirtualFile(path)
+}

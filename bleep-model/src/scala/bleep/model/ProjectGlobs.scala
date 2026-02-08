@@ -24,12 +24,19 @@ class ProjectGlobs(activeProjectsFromPath: Option[Array[CrossProjectName]], expl
     val javaProjects: Map[String, Array[CrossProjectName]] = {
       val javaOnly = projects.filter { name =>
         val p = explodedProjects(name)
-        p.scala.flatMap(_.version).isEmpty
+        p.scala.flatMap(_.version).isEmpty && p.kotlin.flatMap(_.version).isEmpty
       }
       if (javaOnly.nonEmpty) Map("java" -> javaOnly) else Map.empty
     }
+    val kotlinProjects: Map[String, Array[CrossProjectName]] = {
+      val kotlinOnly = projects.filter { name =>
+        val p = explodedProjects(name)
+        p.kotlin.flatMap(_.version).isDefined
+      }
+      if (kotlinOnly.nonEmpty) Map("kotlin" -> kotlinOnly) else Map.empty
+    }
 
-    javaProjects ++ crossIds ++ projectNames ++ crossNames
+    javaProjects ++ kotlinProjects ++ crossIds ++ projectNames ++ crossNames
   }
 
   def exactProjectMap: Map[String, CrossProjectName] =

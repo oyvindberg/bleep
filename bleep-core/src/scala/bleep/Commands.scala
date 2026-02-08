@@ -7,11 +7,18 @@ class Commands(started: Started) {
   private def force(cmd: BleepBuildCommand): Unit =
     cmd.run(started).orThrow
 
+  private val noTuiBuildOpts: commands.CommonBuildOpts =
+    commands.CommonBuildOpts(
+      displayMode = commands.DisplayMode.NoTui,
+      flamegraph = false,
+      cancel = false
+    )
+
   def clean(projects: List[model.CrossProjectName]): Unit =
     force(commands.Clean(projects.toArray))
 
   def compile(projects: List[model.CrossProjectName], watch: Boolean = false): Unit =
-    force(commands.Compile(watch, projects.toArray))
+    force(commands.ReactiveBsp.compile(watch, projects.toArray, commands.DisplayMode.NoTui, flamegraph = false, cancel = false))
 
   def run(
       project: model.CrossProjectName,
@@ -20,19 +27,32 @@ class Commands(started: Started) {
       raw: Boolean = false,
       watch: Boolean = false
   ): Unit =
-    force(commands.Run(project, maybeOverriddenMain, args, raw, watch))
+    force(commands.Run(project, maybeOverriddenMain, args, raw, watch, noTuiBuildOpts))
 
   def test(
       projects: List[model.CrossProjectName],
       watch: Boolean = false,
-      testOnlyClasses: Option[NonEmptyList[String]],
-      testExcludeClasses: Option[NonEmptyList[String]]
+      only: Option[NonEmptyList[String]],
+      exclude: Option[NonEmptyList[String]]
   ): Unit =
-    force(commands.Test(watch, projects.toArray, testOnlyClasses, testExcludeClasses))
+    force(
+      commands.ReactiveBsp.test(
+        watch = watch,
+        projects = projects.toArray,
+        displayMode = commands.DisplayMode.NoTui,
+        jvmOptions = Nil,
+        testArgs = Nil,
+        only = only.map(_.toList).getOrElse(Nil),
+        exclude = exclude.map(_.toList).getOrElse(Nil),
+        flamegraph = false,
+        cancel = false,
+        junitReportDir = None
+      )
+    )
 
   def script(name: model.ScriptName, args: List[String], watch: Boolean = false): Unit =
     force(commands.Script(name, args, watch))
 
   def publishLocal(options: PublishLocal.Options, watch: Boolean = false): Unit =
-    force(commands.PublishLocal(watch, options))
+    force(commands.PublishLocal(watch, options, noTuiBuildOpts))
 }

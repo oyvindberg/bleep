@@ -1,18 +1,29 @@
 package bleep.model
 
-import cats.data.NonEmptyList
-
-sealed trait BuildVariant
+sealed trait BuildVariant {
+  def name: String
+}
 
 object BuildVariant {
-  case object Normal extends BuildVariant
-  case object BSP extends BuildVariant
+  case object Normal extends BuildVariant {
+    val name = "normal"
+  }
+  case object BSP extends BuildVariant {
+    val name = "bsp"
+  }
 
-  case class Rewritten(rewrites: NonEmptyList[BuildRewriteName]) extends BuildVariant
+  /** Simplified: store the variant name as a string (directory-safe) */
+  case class Rewritten(name: String) extends BuildVariant
 
+  /** Factory for creating from rewrite names (used by bootstrap.scala) */
   def apply(rewrites: List[BuildRewriteName]): BuildVariant =
-    NonEmptyList.fromList(rewrites) match {
-      case Some(nonEmpty) => Rewritten(nonEmpty)
-      case None           => Normal
-    }
+    if (rewrites.isEmpty) Normal
+    else Rewritten(rewrites.map(_.value).mkString("__"))
+
+  /** Factory for parsing from string (used by BSP server) */
+  def fromName(name: String): BuildVariant = name match {
+    case "normal" => Normal
+    case "bsp"    => BSP
+    case other    => Rewritten(other)
+  }
 }

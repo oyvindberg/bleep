@@ -79,6 +79,7 @@ object generateBuild {
           dependencies = model.JsonSet(model.Dep.Scala("build.bleep", "bleep-core", bleepTasksVersion.value)),
           java = None,
           scala = Some(model.Scala(scalaVersion, model.Options.empty, None, model.JsonSet.empty, strict = None)),
+          kotlin = None,
           platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
           isTestProject = None,
           testFrameworks = model.JsonSet.empty,

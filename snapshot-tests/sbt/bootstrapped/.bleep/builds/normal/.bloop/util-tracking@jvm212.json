@@ -23,7 +23,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/io_2.12/1.10.5/io_2.12-1.10.5.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-cache/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-cache/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/util-cache/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/util-cache/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-tracking/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-tracking/jvm212/classes",
@@ -105,7 +108,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.12",
@@ -117,7 +119,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.12",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.12",
@@ -129,7 +130,6 @@
           "organization": "com.swoval",
           "name": "file-tree-views",
           "version": "2.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
@@ -141,7 +141,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -153,7 +152,6 @@
           "organization": "org.scala-sbt",
           "name": "io_2.12",
           "version": "1.10.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "io_2.12",
@@ -165,7 +163,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.12",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.12",
@@ -177,7 +174,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-murmurhash_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-murmurhash_2.12",
@@ -189,7 +185,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -201,7 +196,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.12",
@@ -210,9 +204,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

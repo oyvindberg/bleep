@@ -79,7 +79,39 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit/js212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/js212/classes"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/js212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@js212/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/parsers@js212/scripts.GenerateForParsers",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests/js212/classes",
@@ -146,7 +178,6 @@
           "organization": "org.virtuslab.scala-cli",
           "name": "config_2.12",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config_2.12",
@@ -158,7 +189,6 @@
           "organization": "org.apache.xbean",
           "name": "xbean-reflect",
           "version": "3.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xbean-reflect",
@@ -170,7 +200,6 @@
           "organization": "javax.inject",
           "name": "javax.inject",
           "version": "1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.inject",
@@ -182,7 +211,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -194,7 +222,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.12",
           "version": "2.13.5.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_2.12",
@@ -206,7 +233,6 @@
           "organization": "org.apache.commons",
           "name": "commons-lang3",
           "version": "3.14.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-lang3",
@@ -218,7 +244,6 @@
           "organization": "io.get-coursier.jniutils",
           "name": "<MASKED_OS>-jni-utils",
           "version": "0.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "<MASKED_OS>-jni-utils",
@@ -230,7 +255,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -242,7 +266,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-utils",
           "version": "4.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-utils",
@@ -254,7 +277,6 @@
           "organization": "org.virtuslab.scala-cli",
           "name": "specification-level_2.12",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specification-level_2.12",
@@ -266,7 +288,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -278,7 +299,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -290,7 +310,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-classworlds",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-classworlds",
@@ -302,7 +321,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.12",
           "version": "2.12.20+1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.12",
@@ -314,7 +332,6 @@
           "organization": "commons-codec",
           "name": "commons-codec",
           "version": "1.17.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-codec",
@@ -326,7 +343,6 @@
           "organization": "org.fusesource.jansi",
           "name": "jansi",
           "version": "2.4.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jansi",
@@ -338,7 +354,6 @@
           "organization": "io.github.alexarchambault.<MASKED_OS>-ansi",
           "name": "<MASKED_OS>-ansi",
           "version": "0.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "<MASKED_OS>-ansi",
@@ -350,7 +365,6 @@
           "organization": "io.get-coursier",
           "name": "coursier_2.12",
           "version": "2.1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier_2.12",
@@ -362,7 +376,6 @@
           "organization": "org.tukaani",
           "name": "xz",
           "version": "1.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xz",
@@ -374,7 +387,6 @@
           "organization": "org.scalameta",
           "name": "munit-diff_sjs1_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-diff_sjs1_2.12",
@@ -386,7 +398,6 @@
           "organization": "com.lihaoyi",
           "name": "fastparse_sjs1_2.12",
           "version": "3.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fastparse_sjs1_2.12",
@@ -398,7 +409,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-core_2.12",
           "version": "2.1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-core_2.12",
@@ -410,7 +420,6 @@
           "organization": "org.apache.commons",
           "name": "commons-compress",
           "version": "1.26.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-compress",
@@ -422,7 +431,6 @@
           "organization": "commons-io",
           "name": "commons-io",
           "version": "2.16.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-io",
@@ -434,7 +442,6 @@
           "organization": "io.get-coursier",
           "name": "dependency_2.12",
           "version": "0.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "dependency_2.12",
@@ -446,7 +453,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-cache_2.12",
           "version": "2.1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-cache_2.12",
@@ -458,7 +464,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-container-default",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-container-default",
@@ -470,7 +475,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_sjs1_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_sjs1_2.12",
@@ -482,7 +486,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.12",
           "version": "1.18.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.12",
@@ -494,7 +497,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -506,7 +508,6 @@
           "organization": "org.scalameta",
           "name": "munit_sjs1_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_sjs1_2.12",
@@ -518,7 +519,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-proxy-setup",
           "version": "2.1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-proxy-setup",
@@ -530,7 +530,6 @@
           "organization": "io.airlift",
           "name": "aircompressor",
           "version": "0.27",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "aircompressor",
@@ -542,7 +541,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.12",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.12",
@@ -554,7 +552,6 @@
           "organization": "io.github.alexarchambault",
           "name": "is-terminal",
           "version": "0.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "is-terminal",
@@ -566,7 +563,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-util_2.12",
           "version": "2.1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-util_2.12",
@@ -578,7 +574,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-junit-test-runtime_2.12",
           "version": "1.18.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-junit-test-runtime_2.12",
@@ -590,7 +585,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-archiver",
           "version": "4.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-archiver",
@@ -602,7 +596,6 @@
           "organization": "io.get-coursier",
           "name": "cache-util",
           "version": "2.1.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cache-util",
@@ -614,7 +607,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-io",
           "version": "3.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-io",
@@ -626,7 +618,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_sjs1_2.12",
           "version": "0.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_sjs1_2.12",
@@ -638,7 +629,6 @@
           "organization": "com.github.luben",
           "name": "zstd-jni",
           "version": "1.5.6-3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zstd-jni",
@@ -650,7 +640,6 @@
           "organization": "io.github.alexarchambault",
           "name": "concurrent-reference-hash-map",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "concurrent-reference-hash-map",
@@ -659,9 +648,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

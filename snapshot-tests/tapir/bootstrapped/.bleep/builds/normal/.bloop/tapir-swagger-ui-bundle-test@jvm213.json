@@ -117,7 +117,33 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client4/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/openapi-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/openapi-docs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui-bundle/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui-bundle/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/swagger-ui/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats-effect/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats-effect/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/http4s-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/http4s-server/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-swagger-ui-bundle-test/jvm213/classes",
@@ -211,44 +237,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -291,7 +279,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -303,7 +290,6 @@
           "organization": "org.log4s",
           "name": "log4s_2.13",
           "version": "1.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4s_2.13",
@@ -315,7 +301,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-common_2.13",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-common_2.13",
@@ -327,7 +312,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-circe_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-circe_2.13",
@@ -339,7 +323,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.13",
@@ -351,7 +334,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -363,7 +345,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.13",
@@ -375,7 +356,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.13",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.13",
@@ -387,7 +367,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.13",
@@ -399,7 +378,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -411,7 +389,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -423,7 +400,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.13",
@@ -435,7 +411,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.13",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.13",
@@ -447,7 +422,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -459,7 +433,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -471,7 +444,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.13",
@@ -483,7 +455,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -495,7 +466,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.13",
@@ -507,7 +477,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.13",
@@ -519,7 +488,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -531,7 +499,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -543,7 +510,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -555,7 +521,6 @@
           "organization": "org.http4s",
           "name": "http4s-blaze-server_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-blaze-server_2.13",
@@ -567,7 +532,6 @@
           "organization": "org.http4s",
           "name": "http4s-server_2.13",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-server_2.13",
@@ -579,7 +543,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "jsonschema-circe_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsonschema-circe_2.13",
@@ -591,7 +554,6 @@
           "organization": "org.http4s",
           "name": "blaze-core_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "blaze-core_2.13",
@@ -603,7 +565,6 @@
           "organization": "org.yaml",
           "name": "snakeyaml",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml",
@@ -615,7 +576,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.13",
@@ -627,7 +587,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_2.13",
           "version": "1.7.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_2.13",
@@ -639,7 +598,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -651,7 +609,6 @@
           "organization": "com.softwaremill.quicklens",
           "name": "quicklens_2.13",
           "version": "1.9.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "quicklens_2.13",
@@ -663,7 +620,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -675,7 +631,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.13",
@@ -687,7 +642,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -699,7 +653,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -711,7 +664,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -723,7 +675,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "apispec-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "apispec-model_2.13",
@@ -735,7 +686,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.13",
@@ -747,7 +697,6 @@
           "organization": "com.twitter",
           "name": "hpack",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack",
@@ -759,7 +708,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -771,7 +719,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.13",
@@ -783,7 +730,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.13",
@@ -795,7 +741,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -807,7 +752,6 @@
           "organization": "io.circe",
           "name": "circe-yaml_2.13",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml_2.13",
@@ -819,7 +763,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-circe-yaml_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-circe-yaml_2.13",
@@ -831,7 +774,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.13",
@@ -843,7 +785,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.13",
@@ -855,7 +796,6 @@
           "organization": "org.webjars",
           "name": "swagger-ui",
           "version": "5.24.1-1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "swagger-ui",
@@ -867,7 +807,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.13",
@@ -879,7 +818,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -891,7 +829,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.13",
@@ -903,7 +840,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -915,7 +851,6 @@
           "organization": "org.http4s",
           "name": "http4s-blaze-core_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-blaze-core_2.13",
@@ -927,7 +862,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -939,7 +873,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_2.13",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_2.13",
@@ -951,7 +884,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.13",
@@ -963,7 +895,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -975,7 +906,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -987,7 +917,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.13",
@@ -999,7 +928,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.13",
           "version": "1.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_2.13",
@@ -1011,7 +939,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.13",
@@ -1023,7 +950,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -1035,7 +961,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.13",
@@ -1047,7 +972,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-slf4j_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-slf4j_2.13",
@@ -1059,7 +983,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -1071,7 +994,6 @@
           "organization": "org.http4s",
           "name": "blaze-http_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "blaze-http_2.13",
@@ -1083,7 +1005,6 @@
           "organization": "org.http4s",
           "name": "http4s-core_2.13",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-core_2.13",
@@ -1095,7 +1016,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.13",
@@ -1107,7 +1027,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-model_2.13",
@@ -1119,7 +1038,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -1131,7 +1049,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "asyncapi-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asyncapi-model_2.13",
@@ -1140,9 +1057,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

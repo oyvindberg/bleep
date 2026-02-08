@@ -140,7 +140,32 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client4/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-stub4-server/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-netty-server@jvm212/scripts.GenerateForTapirNettyServer",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-stub4-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-stub4-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-netty-server-test/jvm212/classes",
@@ -234,44 +259,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -314,7 +301,6 @@
           "organization": "io.netty",
           "name": "netty-codec-stomp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-stomp",
@@ -326,7 +312,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.12",
@@ -338,7 +323,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -350,7 +334,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -362,7 +345,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.12",
@@ -374,7 +356,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.12",
@@ -386,7 +367,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.12",
@@ -398,7 +378,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.12",
@@ -410,7 +389,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.12",
@@ -422,7 +400,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -434,7 +411,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.12",
@@ -446,7 +422,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.12",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.12",
@@ -458,7 +433,6 @@
           "organization": "io.netty",
           "name": "netty-codec-xml",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-xml",
@@ -470,7 +444,6 @@
           "organization": "org.playframework.netty",
           "name": "netty-reactive-streams-http",
           "version": "3.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-reactive-streams-http",
@@ -482,7 +455,6 @@
           "organization": "io.netty",
           "name": "netty-codec-mqtt",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-mqtt",
@@ -494,7 +466,6 @@
           "organization": "io.netty",
           "name": "netty-codec-redis",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-redis",
@@ -506,7 +477,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "cats_2.12",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats_2.12",
@@ -518,7 +488,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -530,7 +499,6 @@
           "organization": "com.softwaremill.common",
           "name": "tagging_2.12",
           "version": "2.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "tagging_2.12",
@@ -542,7 +510,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -554,7 +521,6 @@
           "organization": "io.netty",
           "name": "netty-codec",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec",
@@ -566,7 +532,6 @@
           "organization": "io.netty",
           "name": "netty-codec-marshalling",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-marshalling",
@@ -578,7 +543,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -590,7 +554,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-io_uring",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-io_uring",
@@ -613,7 +576,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.12",
@@ -625,7 +587,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -637,7 +598,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.12",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.12",
@@ -649,7 +609,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -661,7 +620,6 @@
           "organization": "io.netty",
           "name": "netty-codec-protobuf",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-protobuf",
@@ -673,7 +631,6 @@
           "organization": "io.netty",
           "name": "netty-codec-compression",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-compression",
@@ -685,7 +642,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-epoll",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-epoll",
@@ -708,7 +664,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.12",
@@ -720,7 +675,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -732,7 +686,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.12",
@@ -744,7 +697,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.12",
@@ -756,7 +708,6 @@
           "organization": "co.fs2",
           "name": "fs2-reactive-streams_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-reactive-streams_2.12",
@@ -768,7 +719,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_2.12",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.12",
@@ -780,7 +730,6 @@
           "organization": "io.netty",
           "name": "netty-transport-udt",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-udt",
@@ -792,7 +741,6 @@
           "organization": "io.netty",
           "name": "netty-codec-socks",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-socks",
@@ -804,7 +752,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -816,7 +763,6 @@
           "organization": "io.netty",
           "name": "netty-codec-memcache",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-memcache",
@@ -828,7 +774,6 @@
           "organization": "io.netty",
           "name": "netty-all",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-all",
@@ -840,7 +785,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -852,7 +796,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.12",
@@ -864,7 +807,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.12",
@@ -876,7 +818,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.12",
@@ -888,7 +829,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -900,7 +840,6 @@
           "organization": "io.netty",
           "name": "netty-codec-base",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-base",
@@ -912,7 +851,6 @@
           "organization": "io.netty",
           "name": "netty-transport-sctp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-sctp",
@@ -924,7 +862,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -936,7 +873,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -948,7 +884,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns",
@@ -960,7 +895,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -972,7 +906,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-epoll",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-epoll",
@@ -984,7 +917,6 @@
           "organization": "io.netty",
           "name": "netty-handler-proxy",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
@@ -996,7 +928,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns-classes-macos",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns-classes-macos",
@@ -1008,7 +939,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.12",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.12",
@@ -1020,7 +950,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -1032,7 +961,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.12",
@@ -1044,7 +972,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.12",
@@ -1056,7 +983,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -1068,7 +994,6 @@
           "organization": "org.playframework.netty",
           "name": "netty-reactive-streams",
           "version": "3.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-reactive-streams",
@@ -1080,7 +1005,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.12",
@@ -1092,7 +1016,6 @@
           "organization": "io.netty",
           "name": "netty-codec-dns",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-dns",
@@ -1104,7 +1027,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.12",
           "version": "1.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_2.12",
@@ -1116,7 +1038,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -1128,7 +1049,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -1140,7 +1060,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.12",
@@ -1152,7 +1071,6 @@
           "organization": "io.netty",
           "name": "netty-codec-smtp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-smtp",
@@ -1164,7 +1082,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -1176,7 +1093,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-kqueue",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-kqueue",
@@ -1194,7 +1110,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -1206,7 +1121,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -1218,7 +1132,6 @@
           "organization": "io.netty",
           "name": "netty-transport-rxtx",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-rxtx",
@@ -1230,7 +1143,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-kqueue",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-kqueue",
@@ -1242,7 +1154,6 @@
           "organization": "io.netty",
           "name": "netty-codec-haproxy",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-haproxy",
@@ -1254,7 +1165,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.12",
@@ -1266,7 +1176,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.12",
@@ -1278,7 +1187,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.12",
@@ -1290,7 +1198,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_2.12",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -1302,7 +1209,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.12",
@@ -1314,7 +1220,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns-native-macos",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns-native-macos",
@@ -1332,7 +1237,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-io_uring",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-io_uring",
@@ -1344,7 +1248,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -1356,7 +1259,6 @@
           "organization": "io.netty",
           "name": "netty-handler-ssl-ocsp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-ssl-ocsp",
@@ -1368,7 +1270,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.12",
@@ -1380,7 +1281,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http2",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http2",
@@ -1392,7 +1292,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -1404,7 +1303,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.12",
@@ -1416,7 +1314,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.12",
@@ -1428,7 +1325,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -1440,7 +1336,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_2.12",
           "version": "1.7.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_2.12",
@@ -1449,9 +1344,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

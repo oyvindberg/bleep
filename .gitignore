@@ -10,3 +10,6 @@ sbt-build
 bleep-site/docs
 .vscode
 bleep-cli@jvm*.sh
+test-project
+reports
+.claude/settings.local.json

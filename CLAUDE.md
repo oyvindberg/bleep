@@ -201,6 +201,23 @@ bleep import  # Convert sbt build to bleep
    - Test with bleep commands
    - Changes automatically picked up by parent build
 
+5. **Testing Bleep-BSP Changes (Reactive Test Runner)**
+
+   When making changes to bleep-bsp or the reactive test runner, you need to publish locally first:
+   ```bash
+   # Generate fresh version ID
+   bleep sourcegen
+
+   # Publish bleep-bsp, bleep-test-runner, and dependencies locally
+   bleep my-publish-local
+
+   # Then test with the reactive test runner (uses bleep-bsp)
+   bleep test-bsp <test-project>
+   ```
+
+   This is required because bleep-cli@jvm3 depends on bleep-bsp, and the reactive test runner
+   connects to bleep-bsp via BSP protocol to execute tests with the fancy TUI display.
+
 ## Important Design Decisions
 
 1. **Declarative Configuration**: Build files are data, not code
@@ -383,7 +400,9 @@ This maintenance process ensures our liberated projects stay current while prese
 ## Developer Tips and Notes
 
 - You can just compile with "bleep". To use that script you're referring to we need to create it with bleep setup-dev-script or something like that, and compile and then run. It's useful for testing bleep itself
+- Always call bleep with `--no-color` flag when running from scripts or when parsing output
 
 ## Design Principles
 
 - **Never Use Default Parameters**: When defining methods or functions, always explicitly specify parameters
+- **NEVER Write Fallback Code**: Under NO circumstances write error-swallowing, fallback, or "graceful degradation" code. We fail hard. We fail often. But we NEVER have half-assed, half-baked code that pretends things are alright when they're not. If something can fail, it throws. If data can be missing, we throw. No `Option` wrapping to hide errors. No `.getOrElse` with silent defaults. No `Try(...).toOption`. No empty catch blocks. FAIL LOUDLY.

@@ -1,6 +1,5 @@
 package bleep
 
-import bleep.bsp.BspImpl
 import bleep.internal.{bleepLoggers, fatal, logException, BspClientDisplayProgress, FileUtils}
 import bleep.packaging.ManifestCreator
 import cats.data.NonEmptyList
@@ -12,11 +11,57 @@ import ryddig.Logger
 
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
+import scala.jdk.StreamConverters.*
 import scala.util.{Failure, Properties, Success, Try}
 
 object Main {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
+
+  // Install SIGINFO handler on macOS (Ctrl+T) for thread dumps
+  if (Properties.isMac) {
+    try
+      sun.misc.Signal.handle(new sun.misc.Signal("INFO"), (_: sun.misc.Signal) => dumpAllThreads())
+    catch {
+      case _: Exception => // Signal handling not available
+    }
+  }
+
+  /** Dump threads from this JVM and all child JVMs */
+  private def dumpAllThreads(): Unit = {
+    val out = System.err
+    val timestamp = java.time.LocalDateTime.now().toString
+
+    out.println()
+    out.println(s"=== Thread Dump ($timestamp) ===")
+
+    // Dump current JVM threads
+    out.println()
+    out.println(s"--- Bleep JVM (PID ${ProcessHandle.current().pid()}) ---")
+    Thread.getAllStackTraces.forEach { (thread, stack) =>
+      out.println(s"Thread: ${thread.getName} [${thread.getState}]")
+      stack.foreach(frame => out.println(s"  at $frame"))
+      out.println()
+    }
+
+    // Find and report child JVMs
+    val descendants = ProcessHandle.current().descendants().toScala(List)
+    if (descendants.nonEmpty) {
+      out.println(s"--- Child Processes (${descendants.size}) ---")
+      descendants.foreach { ph =>
+        val info = ph.info()
+        val cmd = info.command().orElse("unknown")
+        val args = info.arguments().map(_.mkString(" ")).orElse("")
+        out.println(s"  PID ${ph.pid()}: $cmd")
+        if (args.nonEmpty) out.println(s"    args: ${args.take(200)}...")
+      }
+      out.println()
+      out.println("Note: Use 'jstack <pid>' to get thread dump from child JVMs")
+    }
+
+    out.println("=== End Thread Dump ===")
+    out.println()
+  }
 
   if (Properties.isWin && isGraalvmNativeImage)
     // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
@@ -93,7 +138,7 @@ object Main {
         .orNone
         .map(started.chosenTestProjects)
 
-    val testSuitesOnly: Opts[Option[NonEmptyList[String]]] =
+    val only: Opts[Option[NonEmptyList[String]]] =
       Opts
         .options[String](
           "only",
@@ -101,7 +146,7 @@ object Main {
           "o"
         )
         .orNone
-    val testSuitesExclude: Opts[Option[NonEmptyList[String]]] =
+    val exclude: Opts[Option[NonEmptyList[String]]] =
       Opts
         .options[String](
           "exclude",
@@ -126,7 +171,73 @@ object Main {
 
     val watch = Opts.flag("watch", "start in watch mode", "w").orFalse
 
+    val cancel = Opts.flag("cancel", "cancel any running build before starting").orFalse
+
+    val commonBuildOpts: Opts[commands.CommonBuildOpts] = (
+      (
+        Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
+        Opts.flag("quiet", "alias for --no-tui", "q").orFalse
+      ).mapN(_ || _),
+      Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
+      cancel
+    ).mapN { case (noTui, flamegraph, cancel) =>
+      commands.CommonBuildOpts(
+        displayMode = commands.DisplayMode.fromFlags(noTui),
+        flamegraph = flamegraph,
+        cancel = cancel
+      )
+    }
+
     val isReleaseMode = Opts.flag("release", "force linking in release mode", "r").orFalse
+
+    // Link options
+    val sourceMapsOpt: Opts[Option[Boolean]] =
+      Opts
+        .flag("source-maps", "enable source maps (JS platforms)")
+        .map(_ => true)
+        .orElse(Opts.flag("no-source-maps", "disable source maps (JS platforms)").map(_ => false))
+        .orNone
+
+    val minifyOpt: Opts[Option[Boolean]] =
+      Opts
+        .flag("minify", "enable minification (Scala.js)")
+        .map(_ => true)
+        .orElse(Opts.flag("no-minify", "disable minification (Scala.js)").map(_ => false))
+        .orNone
+
+    val moduleKindOpt: Opts[Option[commands.LinkOptions.ModuleKind]] = Opts
+      .option[String]("module-kind", "JS module kind: commonjs, esmodule, nomodule")
+      .mapValidated { s =>
+        commands.LinkOptions.ModuleKind.fromString(s) match {
+          case Some(mk) => cats.data.Validated.valid(mk)
+          case None     => cats.data.Validated.invalidNel(s"Invalid module kind: $s. Valid values: commonjs, esmodule, nomodule")
+        }
+      }
+      .orNone
+
+    val ltoOpt: Opts[Option[commands.LinkOptions.LTO]] = Opts
+      .option[String]("lto", "Link-time optimization (Scala Native): none, thin, full")
+      .mapValidated { s =>
+        commands.LinkOptions.LTO.fromString(s) match {
+          case Some(l) => cats.data.Validated.valid(l)
+          case None    => cats.data.Validated.invalidNel(s"Invalid LTO: $s. Valid values: none, thin, full")
+        }
+      }
+      .orNone
+
+    val optimizeOpt: Opts[Option[Boolean]] =
+      Opts
+        .flag("optimize", "enable optimizations/DCE (all non-JVM platforms)")
+        .map(_ => true)
+        .orElse(Opts.flag("no-optimize", "disable optimizations/DCE (all non-JVM platforms)").map(_ => false))
+        .orNone
+
+    val debugInfoOpt: Opts[Option[Boolean]] =
+      Opts
+        .flag("debug-info", "include debug info (native platforms)")
+        .map(_ => true)
+        .orElse(Opts.flag("no-debug-info", "exclude debug info (native platforms)").map(_ => false))
+        .orNone
 
     val updateAsScalaSteward = Opts
       .flag(
@@ -188,18 +299,11 @@ object Main {
                 Opts(commands.BuildMoveFilesIntoBleepLayout)
               ),
               Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
-                List(
-                  Opts.subcommand("exploded", "show projects after applying templates")(
-                    (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
-                      commands.BuildDiff(opts, names)
-                    }
-                  ),
-                  Opts.subcommand("bloop", "show projects as seen by bloop")(
-                    (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
-                      commands.BuildDiffBloop(opts, names)
-                    }
-                  )
-                ).foldK
+                Opts.subcommand("exploded", "show projects after applying templates")(
+                  (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
+                    commands.BuildDiff(opts, names)
+                  }
+                )
               ),
               Opts.subcommand("show", "show projects in their different versions.")(
                 List(
@@ -208,9 +312,6 @@ object Main {
                   ),
                   Opts.subcommand("exploded", "the cross projects as you wrote it in YAML after templates have been applied")(
                     projectNames.map(commands.BuildShow.Exploded.apply)
-                  ),
-                  Opts.subcommand("bloop", "the cross projects as they appear to bloop, that is with all absolute paths and so on")(
-                    projectNames.map(commands.BuildShow.Bloop.apply)
                   )
                 ).foldK
               ),
@@ -221,32 +322,56 @@ object Main {
             ).foldK
           ),
           Opts.subcommand("compile", "compile projects")(
-            (watch, projectNames).mapN { case (watch, projectNames) => commands.Compile(watch, projectNames) }
+            (
+              watch,
+              projectNames,
+              (
+                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
+                Opts.flag("quiet", "alias for --no-tui", "q").orFalse
+              ).mapN(_ || _),
+              Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
+              cancel
+            ).mapN { case (watch, projectNames, noTui, flamegraph, cancel) =>
+              commands.ReactiveBsp.compile(watch, projectNames, commands.DisplayMode.fromFlags(noTui), flamegraph, cancel)
+            }
           ),
           Opts.subcommand("link", "link projects")(
-            (watch, projectNames, isReleaseMode).mapN { case (watch, projectNames, isReleaseMode) =>
-              commands.Link(watch, projectNames, isReleaseMode)
+            (
+              watch,
+              projectNames,
+              isReleaseMode,
+              sourceMapsOpt,
+              minifyOpt,
+              moduleKindOpt,
+              ltoOpt,
+              optimizeOpt,
+              debugInfoOpt,
+              (
+                Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
+                Opts.flag("quiet", "alias for --no-tui", "q").orFalse
+              ).mapN(_ || _),
+              Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
+              cancel
+            ).mapN { case (watch, projectNames, release, sourceMaps, minify, moduleKind, lto, optimize, debugInfo, noTui, flamegraph, cancel) =>
+              val linkOptions = commands.LinkOptions(
+                releaseMode = release,
+                sourceMaps = sourceMaps,
+                minify = minify,
+                moduleKind = moduleKind,
+                lto = lto,
+                optimize = optimize,
+                debugInfo = debugInfo
+              )
+              commands.ReactiveBsp.link(watch, projectNames, commands.DisplayMode.fromFlags(noTui), linkOptions, flamegraph, cancel)
             }
           ),
           Opts.subcommand("sourcegen", "run source generators for projects")(
             (watch, hasSourcegenProjectNames).mapN { case (watch, projectNames) => commands.SourceGen(watch, projectNames) }
           ),
           Opts.subcommand("test", "test projects")(
-            (watch, testProjectNames, testSuitesOnly, testSuitesExclude).mapN { case (watch, projectNames, testSuitesOnly, testSuitesExclude) =>
-              commands.Test(watch, projectNames, testSuitesOnly, testSuitesExclude)
-            }
-          ),
-          Opts.subcommand("test-reactive", "test projects in parallel with reactive test runner")(
             (
               watch,
               testProjectNames,
-              // Parallelism options - fixed takes precedence over ratio
-              Opts.option[Int]("parallel", "max parallel JVMs (fixed number)", "j").orNone,
-              Opts.option[Double]("parallel-ratio", "max parallel JVMs as ratio of cores (e.g., 0.5 = half cores)").orNone,
-              // Other config options
-              Opts.option[Int]("jvms-per-project", "max JVMs per project (default: 2)").orNone,
-              Opts.option[Int]("jvm-startup-timeout", "JVM startup timeout in seconds (default: 30)").orNone,
-              Opts.option[Int]("suite-timeout", "suite execution timeout in minutes (default: 2)").orNone,
               // Multiple aliases for disabling TUI - for different use cases
               (
                 Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
@@ -254,15 +379,25 @@ object Main {
                 Opts.flag("summary-only", "alias for --no-tui").orFalse
               ).mapN(_ || _ || _),
               Opts.options[String]("jvm-opt", "JVM options for forked test processes").orEmpty,
-              Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty
-            ).mapN { case (watch, projectNames, parallel, parallelRatio, jvmsPerProject, jvmStartupTimeout, suiteTimeout, noTui, jvmOpts, testArgs) =>
-              val config = commands.TestConfig(
-                parallelism = commands.Parallelism.fromOptions(parallel, parallelRatio),
-                jvmsPerProject = jvmsPerProject.getOrElse(commands.TestConfig.default.jvmsPerProject),
-                jvmStartupTimeoutSeconds = jvmStartupTimeout.getOrElse(commands.TestConfig.default.jvmStartupTimeoutSeconds),
-                suiteTimeoutMinutes = suiteTimeout.getOrElse(commands.TestConfig.default.suiteTimeoutMinutes)
+              Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty,
+              only,
+              exclude,
+              Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
+              cancel,
+              Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
+            ).mapN { case (watch, projectNames, noTui, jvmOpts, testArgs, only, exclude, flamegraph, cancel, junitReportDir) =>
+              commands.ReactiveBsp.test(
+                watch = watch,
+                projects = projectNames,
+                displayMode = commands.DisplayMode.fromFlags(noTui),
+                jvmOptions = jvmOpts.toList,
+                testArgs = testArgs.toList,
+                only = only.map(_.toList).getOrElse(Nil),
+                exclude = exclude.map(_.toList).getOrElse(Nil),
+                flamegraph = flamegraph,
+                cancel = cancel,
+                junitReportDir = junitReportDir.map(java.nio.file.Paths.get(_))
               )
-              commands.TestReactive(watch, projectNames, config, commands.DisplayMode.fromFlags(noTui), jvmOpts.toList, testArgs.toList)
             }
           ),
           Opts.subcommand("list-tests", "list tests in projects")(
@@ -281,8 +416,9 @@ object Main {
               ),
               mainClass,
               Opts.arguments[String]("arguments").map(_.toList).withDefault(List.empty),
-              watch
-            ).mapN { case (nameArg, mainClass, arguments, watch) =>
+              watch,
+              commonBuildOpts
+            ).mapN { case (nameArg, mainClass, arguments, watch, buildOpts) =>
               // Check if the argument is a script name first
               started.build.scripts.keys.find(_.value == nameArg) match {
                 case Some(scriptName) =>
@@ -292,7 +428,7 @@ object Main {
                   // Run as project
                   started.globs.exactProjectMap.get(nameArg) match {
                     case Some(projectName) =>
-                      commands.Run(projectName, mainClass, arguments, raw = true, watch = watch)
+                      commands.Run(projectName, mainClass, arguments, raw = true, watch = watch, buildOpts = buildOpts)
                     case None =>
                       // Return a command that will fail with a helpful error
                       new BleepBuildCommand {
@@ -349,8 +485,9 @@ object Main {
               Opts.option[String]("version", "version you will publish"),
               Opts.option[Path]("to", s"publish to a maven repository at given path").orNone,
               projectNames,
-              watch
-            ).mapN { case (groupId, version, to, projects, watch) =>
+              watch,
+              commonBuildOpts
+            ).mapN { case (groupId, version, to, projects, watch, buildOpts) =>
               val publishTarget = to match {
                 case Some(path) => commands.PublishLocal.CustomMaven(model.Repository.MavenFolder(name = None, path))
                 case None       => commands.PublishLocal.LocalIvy
@@ -362,7 +499,7 @@ object Main {
                 projects,
                 ManifestCreator.default
               )
-              commands.PublishLocal(watch, options)
+              commands.PublishLocal(watch, options, buildOpts)
             }
           },
           Opts.subcommand("dist", "creates a folder with a runnable distribution") {
@@ -370,14 +507,15 @@ object Main {
               projectName,
               mainClass,
               Opts.argument[Path]("path").orNone,
-              watch
-            ).mapN { case (projectName, mainClass, overridePath, watch) =>
+              watch,
+              commonBuildOpts
+            ).mapN { case (projectName, mainClass, overridePath, watch, buildOpts) =>
               val options = commands.Dist.Options(
                 projectName,
                 overrideMain = mainClass,
                 overridePath = overridePath
               )
-              commands.Dist(started, watch, options)
+              commands.Dist(watch, options, buildOpts)
             }
           },
           Opts.subcommand("fmt", "format Scala and Java source files") {
@@ -402,6 +540,9 @@ object Main {
     ret
   }
 
+  private def updateBspServerConfig(f: model.BspServerConfig => model.BspServerConfig)(config: model.BleepConfig): model.BleepConfig =
+    config.copy(bspServerConfig = Some(f(config.bspServerConfigOrDefault)))
+
   def configCommand(logger: Logger, userPaths: UserPaths): Opts[BleepCommand] =
     Opts.subcommand("config", "configure bleep here")(
       List(
@@ -416,7 +557,7 @@ object Main {
         ),
         Opts.subcommand(
           "compile-server",
-          "You can speed up normal usage by keeping the bloop compile server running between invocations. This is where you control it"
+          "You can speed up normal usage by keeping the compile server running between invocations. This is where you control it"
         )(
           List(
             Opts.subcommand(
@@ -428,10 +569,30 @@ object Main {
             Opts.subcommand("auto-shutdown-enable", "shuts down compile server after between bleep invocation. this is slower, but conserves memory")(Opts {
               commands.CompileServerSetMode(logger, userPaths, model.CompileServerMode.NewEachInvocation)
             }),
-            Opts.subcommand("stop-all", "will stop all shared bloop compile servers")(
+            Opts.subcommand("stop-all", "will stop all shared compile servers")(
               Opts {
                 commands.CompileServerStopAll(logger, userPaths)
               }
+            ),
+            Opts.subcommand[BleepCommand]("max-memory", "set max heap for compile server JVM (e.g. 4g, 2048m)")(
+              Opts.argument[String]("size").map { size => () =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = Some(size)))).map(_ => ())
+              }
+            ),
+            Opts.subcommand[BleepCommand]("max-memory-clear", "remove compile server max heap setting (use JVM default)")(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = None))).map(_ => ()))
+            )
+          ).foldK
+        ),
+        Opts.subcommand("test-runner", "configure test runner JVM settings")(
+          List(
+            Opts.subcommand[BleepCommand]("max-memory", "set max heap for test runner JVMs (e.g. 512m, 2g)")(
+              Opts.argument[String]("size").map { size => () =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(testRunnerMaxMemory = Some(size)))).map(_ => ())
+              }
+            ),
+            Opts.subcommand[BleepCommand]("max-memory-clear", "remove test runner max heap setting (use JVM default)")(
+              Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(testRunnerMaxMemory = None))).map(_ => ()))
             )
           ).foldK
         )
@@ -606,10 +767,7 @@ object Main {
             buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
               case Left(be) => fatal("", logger, be)
               case Right(pre) =>
-                try BspImpl.run(pre)
-                catch {
-                  case th: Throwable => fatal("uncaught error", logger, th)
-                }
+                bsp.BspProxy.run(pre)
             }
           }
         }
@@ -635,7 +793,7 @@ object Main {
                 run(noBuildOpts(logger, userPaths, buildPaths, noBuild), restArgs, logger)(_.run())
               case existing: BuildLoader.Existing =>
                 val pre = Prebootstrapped(logger, userPaths, buildPaths, existing, ec)
-                bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
+                bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
                   case Left(th)       => fatal("Error while loading build", logger, th)
                   case Right(started) => run(hasBuildOpts(started), restArgs, logger)(_.run(started))
                 }
@@ -672,7 +830,7 @@ object Main {
 
           val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
-          bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, CoursierResolver.Factory.default) match {
+          bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, CoursierResolver.Factory.default) match {
             case Left(th) =>
               logException("couldn't load build", stderr, th)
               Completer.Res.NoMatch

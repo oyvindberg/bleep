@@ -112,8 +112,12 @@ object RelPath {
     RelPath(out.toArray)
   }
 
-  def relativeTo(shorter: Path, longer: Path): RelPath =
-    force(shorter.relativize(longer).toString)
+  def relativeTo(shorter: Path, longer: Path): RelPath = {
+    // Path.toString uses OS-native separators (backslash on Windows).
+    // Normalize to forward slashes before parsing, since RelPath uses '/' internally.
+    val rel = shorter.relativize(longer).toString.replace('\\', '/')
+    force(rel)
+  }
 
   implicit val decodesRelPath: Decoder[RelPath] =
     Decoder[String].emap(apply)

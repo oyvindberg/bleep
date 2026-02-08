@@ -1,8 +1,8 @@
 package bleep.testing
 
+import bleep.bsp.BuildServer
 import bleep.model.CrossProjectName
 import ch.epfl.scala.bsp4j
-import bloop.rifle.BuildServer
 
 import scala.jdk.CollectionConverters._
 
@@ -16,13 +16,13 @@ case class DiscoveredSuite(
 
 /** Discovers test suites in compiled projects using BSP ScalaTestClasses.
   *
-  * This queries bloop for available test classes after compilation completes.
+  * This queries the BSP server for available test classes after compilation completes.
   */
 object TestDiscovery {
 
   /** Discover all test suites in the given projects.
     *
-    * @param bloop
+    * @param server
     *   The BSP build server
     * @param projects
     *   Projects to discover tests in (should be test projects)
@@ -32,7 +32,7 @@ object TestDiscovery {
     *   List of discovered test suites
     */
   def discoverAll(
-      bloop: BuildServer,
+      server: BuildServer,
       projects: Set[CrossProjectName],
       buildTargetFor: CrossProjectName => bsp4j.BuildTargetIdentifier
   ): List[DiscoveredSuite] = {
@@ -42,7 +42,7 @@ object TestDiscovery {
     val params = new bsp4j.ScalaTestClassesParams(targets)
 
     val result: bsp4j.ScalaTestClassesResult =
-      bloop.buildTargetScalaTestClasses(params).get()
+      server.buildTargetScalaTestClasses(params).get()
 
     result.getItems.asScala.toList.flatMap { item =>
       val targetId = item.getTarget
@@ -71,7 +71,7 @@ object TestDiscovery {
 
   /** Discover test suites for a single project.
     *
-    * @param bloop
+    * @param server
     *   The BSP build server
     * @param project
     *   Project to discover tests in
@@ -81,14 +81,14 @@ object TestDiscovery {
     *   List of discovered test suites
     */
   def discoverForProject(
-      bloop: BuildServer,
+      server: BuildServer,
       project: CrossProjectName,
       buildTarget: bsp4j.BuildTargetIdentifier
   ): List[DiscoveredSuite] = {
     val params = new bsp4j.ScalaTestClassesParams(List(buildTarget).asJava)
 
     val result: bsp4j.ScalaTestClassesResult =
-      bloop.buildTargetScalaTestClasses(params).get()
+      server.buildTargetScalaTestClasses(params).get()
 
     result.getItems.asScala.toList.flatMap { item =>
       val framework = Option(item.getFramework).getOrElse("unknown")

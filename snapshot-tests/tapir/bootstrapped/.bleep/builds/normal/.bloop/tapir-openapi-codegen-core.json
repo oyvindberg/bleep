@@ -129,7 +129,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -141,7 +140,6 @@
           "organization": "io.circe",
           "name": "circe-yaml_2.12",
           "version": "0.15.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml_2.12",
@@ -153,7 +151,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -165,7 +162,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -177,7 +173,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -189,7 +184,6 @@
           "organization": "org.yaml",
           "name": "snakeyaml",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml",
@@ -201,7 +195,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.12",
@@ -213,7 +206,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-macros_2.12",
           "version": "2.36.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "jsoniter-scala-macros_2.12",
@@ -225,7 +217,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -237,7 +228,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.12",
@@ -249,7 +239,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-common_2.12",
           "version": "0.15.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-common_2.12",
@@ -261,7 +250,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.12",
@@ -270,9 +258,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

@@ -1,7 +1,6 @@
 package bleep
 
 import bleep.rewrites.BuildRewrite
-import bloop.config.Config
 import ryddig.Logger
 
 import java.nio.file.Path
@@ -11,11 +10,12 @@ case class Started(
     pre: Prebootstrapped,
     rewrites: List[BuildRewrite],
     build: model.Build,
-    bloopFiles: GenBloopFiles.Files,
+    resolvedProjects: ResolveProjects.Projects,
     activeProjectsFromPath: Option[Array[model.CrossProjectName]],
     config: model.BleepConfig,
     resolver: CoursierResolver,
-    bleepExecutable: Lazy[BleepExecutable]
+    bleepExecutable: Lazy[BleepExecutable],
+    bspServerClasspathSource: bsp.BspServerClasspathSource
 )(reloadUsing: (Prebootstrapped, model.BleepConfig, List[BuildRewrite]) => Either[BleepException, Started]) {
   def buildPaths: BuildPaths = pre.buildPaths
   def userPaths: UserPaths = pre.userPaths
@@ -29,8 +29,12 @@ case class Started(
   lazy val globs: model.ProjectGlobs =
     new model.ProjectGlobs(activeProjectsFromPath, build.explodedProjects)
 
-  def bloopProject(crossName: model.CrossProjectName): Config.Project =
-    bloopFiles(crossName).forceGet.project
+  def resolvedProject(crossName: model.CrossProjectName): ResolvedProject =
+    resolvedProjects(crossName).forceGet
+
+  /** @deprecated Use resolvedProject instead */
+  def bloopProject(crossName: model.CrossProjectName): ResolvedProject =
+    resolvedProject(crossName)
 
   lazy val jvmCommand: Path = resolvedJvm.forceGet.javaBin
 

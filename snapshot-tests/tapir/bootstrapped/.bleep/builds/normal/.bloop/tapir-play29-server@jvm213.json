@@ -80,7 +80,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/jul-to-slf4j/2.0.17/jul-to-slf4j-2.0.17.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.17/slf4j-api-2.0.17.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play29-server/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play29-server/jvm213/classes",
@@ -177,7 +181,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "2.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -189,7 +192,6 @@
           "organization": "com.google.guava",
           "name": "guava",
           "version": "32.1.3-jre",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
@@ -201,7 +203,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -213,7 +214,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
@@ -225,7 +225,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-serialization-jackson_2.13",
           "version": "2.6.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-serialization-jackson_2.13",
@@ -237,7 +236,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.13",
           "version": "2.6.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-stream_2.13",
@@ -249,7 +247,6 @@
           "organization": "com.google.guava",
           "name": "failureaccess",
           "version": "1.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "failureaccess",
@@ -261,7 +258,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -273,7 +269,6 @@
           "organization": "com.fasterxml.jackson.module",
           "name": "jackson-module-scala_2.13",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-module-scala_2.13",
@@ -285,7 +280,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
@@ -297,7 +291,6 @@
           "organization": "com.typesafe.play",
           "name": "play-build-link",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-build-link",
@@ -309,7 +302,6 @@
           "organization": "com.typesafe.play",
           "name": "twirl-api_2.13",
           "version": "1.6.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "twirl-api_2.13",
@@ -321,7 +313,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -333,7 +324,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
@@ -345,7 +335,6 @@
           "organization": "com.fasterxml.jackson.module",
           "name": "jackson-module-parameter-names",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-module-parameter-names",
@@ -357,7 +346,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka_2.13",
@@ -369,7 +357,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-parsing_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-parsing_2.13",
@@ -381,7 +368,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -393,7 +379,6 @@
           "organization": "com.typesafe.play",
           "name": "play-akka-http-server_2.13",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-akka-http-server_2.13",
@@ -405,7 +390,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jdk8",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jdk8",
@@ -417,7 +401,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
@@ -429,7 +412,6 @@
           "organization": "javax.inject",
           "name": "javax.inject",
           "version": "1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.inject",
@@ -441,7 +423,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.37.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -453,7 +434,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -465,7 +445,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -477,7 +456,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -489,7 +467,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.13",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.13",
@@ -501,7 +478,6 @@
           "organization": "io.jsonwebtoken",
           "name": "jjwt-jackson",
           "version": "0.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jjwt-jackson",
@@ -513,7 +489,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-slf4j_2.13",
           "version": "2.6.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-slf4j_2.13",
@@ -525,7 +500,6 @@
           "organization": "com.typesafe.play",
           "name": "play-json_2.13",
           "version": "2.10.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-json_2.13",
@@ -537,7 +511,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -549,7 +522,6 @@
           "organization": "com.typesafe.play",
           "name": "play-exceptions",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-exceptions",
@@ -561,7 +533,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http-core_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http-core_2.13",
@@ -573,7 +544,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-protobuf-v3_2.13",
           "version": "2.6.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-protobuf-v3_2.13",
@@ -585,7 +555,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.13",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.13",
@@ -597,7 +566,6 @@
           "organization": "com.typesafe.play",
           "name": "play-configuration_2.13",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-configuration_2.13",
@@ -609,7 +577,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor-typed_2.13",
           "version": "2.6.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor-typed_2.13",
@@ -621,7 +588,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -633,7 +599,6 @@
           "organization": "org.slf4j",
           "name": "jul-to-slf4j",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jul-to-slf4j",
@@ -645,7 +610,6 @@
           "organization": "io.jsonwebtoken",
           "name": "jjwt-impl",
           "version": "0.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jjwt-impl",
@@ -657,7 +621,6 @@
           "organization": "com.typesafe.play",
           "name": "play-functional_2.13",
           "version": "2.10.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-functional_2.13",
@@ -669,7 +632,6 @@
           "organization": "com.google.guava",
           "name": "listenablefuture",
           "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "listenablefuture",
@@ -681,7 +643,6 @@
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
           "version": "2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
@@ -693,7 +654,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -705,7 +665,6 @@
           "organization": "org.lz4",
           "name": "lz4-java",
           "version": "1.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lz4-java",
@@ -717,7 +676,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.13",
@@ -729,7 +687,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -741,7 +698,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.13",
           "version": "2.6.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.13",
@@ -753,7 +709,6 @@
           "organization": "org.slf4j",
           "name": "jcl-over-slf4j",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jcl-over-slf4j",
@@ -765,7 +720,6 @@
           "organization": "io.jsonwebtoken",
           "name": "jjwt-api",
           "version": "0.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jjwt-api",
@@ -777,7 +731,6 @@
           "organization": "com.typesafe.play",
           "name": "play_2.13",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play_2.13",
@@ -789,7 +742,6 @@
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
           "version": "2.21.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
@@ -801,7 +753,6 @@
           "organization": "com.typesafe.play",
           "name": "play-streams_2.13",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-streams_2.13",
@@ -813,7 +764,6 @@
           "organization": "com.thoughtworks.paranamer",
           "name": "paranamer",
           "version": "2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "paranamer",
@@ -825,7 +775,6 @@
           "organization": "com.typesafe.play",
           "name": "play-server_2.13",
           "version": "2.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-server_2.13",
@@ -837,7 +786,6 @@
           "organization": "com.fasterxml.jackson.dataformat",
           "name": "jackson-dataformat-cbor",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-dataformat-cbor",
@@ -846,9 +794,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

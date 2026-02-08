@@ -43,7 +43,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-akka-http-server/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-akka-http-server/jvm213/classes",
@@ -140,7 +144,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -152,7 +155,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -164,7 +166,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http_2.13",
@@ -176,7 +177,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-slf4j_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-slf4j_2.13",
@@ -188,7 +188,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -200,7 +199,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-stream_2.13",
@@ -212,7 +210,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -224,7 +221,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -236,7 +232,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.13",
@@ -248,7 +243,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka_2.13",
@@ -260,7 +254,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-parsing_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-parsing_2.13",
@@ -272,7 +265,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -284,7 +276,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.13",
           "version": "0.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.13",
@@ -296,7 +287,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -308,7 +298,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http-core_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http-core_2.13",
@@ -320,7 +309,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-protobuf-v3_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-protobuf-v3_2.13",
@@ -332,7 +320,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.13",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.13",
@@ -344,7 +331,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.13",
@@ -356,7 +342,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -365,9 +350,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

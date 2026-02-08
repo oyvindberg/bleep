@@ -81,7 +81,20 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/native213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl/native213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/native213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/native213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/native213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@native213/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/.native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl-test/native213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl-test/native213/classes",
@@ -150,44 +163,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -219,8 +194,8 @@
         "version": "0.4.17",
         "mode": "debug",
         "gc": "",
-        "clang": "",
-        "clangpp": "",
+        "clang": "clang",
+        "clangpp": "clang++",
         "toolchain": [
           
         ],
@@ -246,7 +221,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_native0.4_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_native0.4_2.13",
@@ -258,7 +232,6 @@
           "organization": "org.scala-native",
           "name": "posixlib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "posixlib_native0.4_2.13",
@@ -270,7 +243,6 @@
           "organization": "org.typelevel",
           "name": "coop_native0.4_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coop_native0.4_2.13",
@@ -282,7 +254,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -294,7 +265,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_native0.4_2.13",
           "version": "2.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_native0.4_2.13",
@@ -306,7 +276,6 @@
           "organization": "org.scala-native",
           "name": "scalalib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalalib_native0.4_2.13",
@@ -318,7 +287,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_native0.4_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_native0.4_2.13",
@@ -330,7 +298,6 @@
           "organization": "io.github.cquiroz",
           "name": "locales-minimal-en_us-db_native0.4_2.13",
           "version": "1.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "locales-minimal-en_us-db_native0.4_2.13",
@@ -342,7 +309,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_native0.4_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_native0.4_2.13",
@@ -354,7 +320,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_native0.4_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_native0.4_2.13",
@@ -366,7 +331,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect_native0.4_2.13",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect_native0.4_2.13",
@@ -378,7 +342,6 @@
           "organization": "org.scala-native",
           "name": "auxlib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "auxlib_native0.4_2.13",
@@ -390,7 +353,6 @@
           "organization": "org.scalameta",
           "name": "munit_native0.4_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_native0.4_2.13",
@@ -402,7 +364,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_native0.4_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_native0.4_2.13",
@@ -414,7 +375,6 @@
           "organization": "org.scala-native",
           "name": "clib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "clib_native0.4_2.13",
@@ -426,7 +386,6 @@
           "organization": "org.scalameta",
           "name": "munit-scalacheck_native0.4_2.13",
           "version": "1.0.0-M6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-scalacheck_native0.4_2.13",
@@ -438,7 +397,6 @@
           "organization": "org.scalacheck",
           "name": "scalacheck_native0.4_2.13",
           "version": "1.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck_native0.4_2.13",
@@ -450,7 +408,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_native0.4_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_native0.4_2.13",
@@ -462,7 +419,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -474,7 +430,6 @@
           "organization": "org.typelevel",
           "name": "idna4s-core_native0.4_2.13",
           "version": "0.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "idna4s-core_native0.4_2.13",
@@ -486,7 +441,6 @@
           "organization": "org.typelevel",
           "name": "discipline-core_native0.4_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "discipline-core_native0.4_2.13",
@@ -498,7 +452,6 @@
           "organization": "org.scalameta",
           "name": "munit-diff_native0.4_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-diff_native0.4_2.13",
@@ -510,7 +463,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_native0.4_2.13",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_native0.4_2.13",
@@ -522,7 +474,6 @@
           "organization": "org.typelevel",
           "name": "vault_native0.4_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_native0.4_2.13",
@@ -534,7 +485,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_2.13",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_2.13",
@@ -546,7 +496,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-testkit_native0.4_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-testkit_native0.4_2.13",
@@ -558,7 +507,6 @@
           "organization": "org.typelevel",
           "name": "literally_native0.4_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_native0.4_2.13",
@@ -570,7 +518,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive-testing_native0.4_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive-testing_native0.4_2.13",
@@ -582,7 +529,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_native0.4_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_native0.4_2.13",
@@ -594,7 +540,6 @@
           "organization": "org.typelevel",
           "name": "cats-laws_native0.4_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-laws_native0.4_2.13",
@@ -606,7 +551,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel-laws_native0.4_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel-laws_native0.4_2.13",
@@ -618,7 +562,6 @@
           "organization": "org.scala-native",
           "name": "test-interface-sbt-defs_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface-sbt-defs_native0.4_2.13",
@@ -630,7 +573,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.32",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -642,7 +584,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel-testkit_native0.4_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel-testkit_native0.4_2.13",
@@ -654,7 +595,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_native0.4_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_native0.4_2.13",
@@ -666,7 +606,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -678,7 +617,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_native0.4_2.13",
           "version": "2.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_native0.4_2.13",
@@ -690,7 +628,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_native0.4_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_native0.4_2.13",
@@ -702,7 +639,6 @@
           "organization": "org.scala-native",
           "name": "javalib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javalib_native0.4_2.13",
@@ -714,7 +650,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -726,7 +661,6 @@
           "organization": "org.typelevel",
           "name": "munit-cats-effect_native0.4_2.13",
           "version": "2.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-cats-effect_native0.4_2.13",
@@ -738,7 +672,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_native0.4_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_native0.4_2.13",
@@ -750,7 +683,6 @@
           "organization": "org.typelevel",
           "name": "discipline-munit_native0.4_2.13",
           "version": "2.0.0-M3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "discipline-munit_native0.4_2.13",
@@ -762,7 +694,6 @@
           "organization": "com.comcast",
           "name": "ip4s-test-kit_native0.4_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-test-kit_native0.4_2.13",
@@ -774,7 +705,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_native0.4_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_native0.4_2.13",
@@ -786,7 +716,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_native0.4_2.13",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_native0.4_2.13",
@@ -798,7 +727,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect-munit_native0.4_2.13",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect-munit_native0.4_2.13",
@@ -810,7 +738,6 @@
           "organization": "org.scala-native",
           "name": "test-interface_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface_native0.4_2.13",
@@ -822,7 +749,6 @@
           "organization": "org.scala-native",
           "name": "nativelib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "nativelib_native0.4_2.13",
@@ -834,7 +760,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_native0.4_2.13",
           "version": "4.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_native0.4_2.13",
@@ -846,7 +771,6 @@
           "organization": "com.armanbilge",
           "name": "epollcat_native0.4_2.13",
           "version": "0.1.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "epollcat_native0.4_2.13",
@@ -858,7 +782,6 @@
           "organization": "org.scala-native",
           "name": "junit-runtime_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit-runtime_native0.4_2.13",
@@ -870,7 +793,6 @@
           "organization": "org.scala-native",
           "name": "windowslib_native0.4_2.13",
           "version": "0.4.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "windowslib_native0.4_2.13",
@@ -882,7 +804,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_native0.4_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_native0.4_2.13",
@@ -894,7 +815,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_native0.4_2.13",
           "version": "1.5.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_native0.4_2.13",
@@ -903,9 +823,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

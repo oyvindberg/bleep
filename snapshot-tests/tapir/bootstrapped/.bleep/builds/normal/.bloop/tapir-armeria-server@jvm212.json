@@ -78,7 +78,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-armeria-server/jvm212/classes",
@@ -175,7 +179,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
           "version": "2.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
@@ -187,7 +190,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
           "version": "2.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
@@ -199,7 +201,6 @@
           "organization": "io.micrometer",
           "name": "micrometer-commons",
           "version": "1.14.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "micrometer-commons",
@@ -211,7 +212,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -223,7 +223,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns",
@@ -235,7 +234,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -247,7 +245,6 @@
           "organization": "io.netty",
           "name": "netty-codec-dns",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-dns",
@@ -259,7 +256,6 @@
           "organization": "org.hdrhistogram",
           "name": "HdrHistogram",
           "version": "2.2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "HdrHistogram",
@@ -271,7 +267,6 @@
           "organization": "com.linecorp.armeria",
           "name": "armeria",
           "version": "1.32.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "armeria",
@@ -283,7 +278,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns-native-macos",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns-native-macos",
@@ -301,7 +295,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "armeria_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "armeria_2.12",
@@ -313,7 +306,6 @@
           "organization": "io.micrometer",
           "name": "micrometer-observation",
           "version": "1.14.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "micrometer-observation",
@@ -325,7 +317,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -337,7 +328,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -349,7 +339,6 @@
           "organization": "io.netty",
           "name": "netty-codec",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec",
@@ -361,7 +350,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jdk8",
           "version": "2.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jdk8",
@@ -373,7 +361,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -385,7 +372,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "service",
           "version": "1.18.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "service",
@@ -397,7 +383,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -409,7 +394,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-epoll",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-epoll",
@@ -427,7 +411,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "brotli4j",
           "version": "1.18.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "brotli4j",
@@ -439,7 +422,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -451,7 +433,6 @@
           "organization": "io.netty",
           "name": "netty-tcnative-classes",
           "version": "2.0.70.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-tcnative-classes",
@@ -463,7 +444,6 @@
           "organization": "io.netty",
           "name": "netty-codec-socks",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-socks",
@@ -475,7 +455,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -487,7 +466,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "native-osx-aarch64",
           "version": "1.18.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "native-osx-aarch64",
@@ -499,7 +477,6 @@
           "organization": "io.micrometer",
           "name": "micrometer-core",
           "version": "1.14.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "micrometer-core",
@@ -511,7 +488,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -543,7 +519,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
           "version": "2.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
@@ -555,7 +530,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -567,7 +541,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-epoll",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-epoll",
@@ -579,7 +552,6 @@
           "organization": "io.netty",
           "name": "netty-handler-proxy",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
@@ -591,7 +563,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns-classes-macos",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns-classes-macos",
@@ -603,7 +574,6 @@
           "organization": "io.netty",
           "name": "netty-tcnative-boringssl-static",
           "version": "2.0.70.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-tcnative-boringssl-static",
@@ -636,7 +606,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -648,7 +617,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -660,7 +628,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -672,7 +639,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-kqueue",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-kqueue",
@@ -690,7 +656,6 @@
           "organization": "org.latencyutils",
           "name": "LatencyUtils",
           "version": "2.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "LatencyUtils",
@@ -702,7 +667,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -714,7 +678,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-kqueue",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-kqueue",
@@ -726,7 +689,6 @@
           "organization": "io.netty",
           "name": "netty-codec-haproxy",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-haproxy",
@@ -738,7 +700,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http2",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http2",
@@ -750,7 +711,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -762,7 +722,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.1.118.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -774,7 +733,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.12",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.12",
@@ -783,9 +741,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

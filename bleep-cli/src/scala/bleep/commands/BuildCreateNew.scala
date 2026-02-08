@@ -37,8 +37,8 @@ case class BuildCreateNew(
     val pre = Prebootstrapped(logger, userPaths, buildPaths, BuildLoader.Existing(buildPaths.bleepYamlFile), ec)
     val config = BleepConfigOps.loadOrDefault(pre.userPaths).orThrow
 
-    bootstrap.from(pre, GenBloopFiles.SyncToDisk, rewrites = Nil, config, coursierResolver) map { started =>
-      val projects = started.bloopFiles.values.toList.map(_.forceGet.project)
+    bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, config, coursierResolver) map { started =>
+      val projects = started.resolvedProjects.values.toList.map(_.forceGet)
       logger.info(s"Created ${projects.length} projects for build")
       val sourceDirs = projects.flatMap(_.sources).distinct
       val resourceDirs = projects.flatMap(_.resources.getOrElse(Nil)).distinct
@@ -149,6 +149,7 @@ object BuildCreateNew {
           dependencies = model.JsonSet(exampleFiles.fansi),
           java = None,
           scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = model.JsonSet.empty, strict = Some(true))),
+          kotlin = None,
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm =>
@@ -184,6 +185,7 @@ object BuildCreateNew {
           dependencies = model.JsonSet(exampleFiles.scalatest),
           java = None,
           scala = Some(model.Scala(version = Some(scala), options = defaultOpts, setup = None, compilerPlugins = model.JsonSet.empty, strict = Some(true))),
+          kotlin = None,
           platform = Some(
             platformId match {
               case model.PlatformId.Jvm => model.Platform.Jvm(model.Options.empty, jvmMainClass = None, jvmRuntimeOptions = model.Options.empty)

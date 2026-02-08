@@ -39,7 +39,12 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_3/2.7.0/log4cats-core_3-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_3/0.1.4/scalac-compat-annotation_3-0.1.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_3/3.6.0/vault_3-3.6.0.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/jvm3/classes",
@@ -123,7 +128,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_3",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_3",
@@ -135,7 +139,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -147,7 +150,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_3",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_3",
@@ -159,7 +161,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_3",
@@ -171,7 +172,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -183,7 +183,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_3",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_3",
@@ -195,7 +194,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_3",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_3",
@@ -207,7 +205,6 @@
           "organization": "org.typelevel",
           "name": "literally_3",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_3",
@@ -219,7 +216,6 @@
           "organization": "com.twitter",
           "name": "hpack",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack",
@@ -231,7 +227,6 @@
           "organization": "org.typelevel",
           "name": "vault_3",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_3",
@@ -243,7 +238,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -255,7 +249,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_3",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_3",
@@ -267,7 +260,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_3",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_3",
@@ -279,7 +271,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_3",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_3",
@@ -291,7 +282,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -303,7 +293,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_3",
@@ -315,7 +304,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_3",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_3",
@@ -327,7 +315,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_3",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_3",
@@ -336,9 +323,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

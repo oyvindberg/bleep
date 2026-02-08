@@ -38,7 +38,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-apispec-docs/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-enumeratum/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-docs/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-docs/jvm213/classes",
@@ -135,7 +141,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_2.13",
           "version": "1.7.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_2.13",
@@ -147,7 +152,6 @@
           "organization": "com.softwaremill.quicklens",
           "name": "quicklens_2.13",
           "version": "1.9.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "quicklens_2.13",
@@ -159,7 +163,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -171,7 +174,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -183,7 +185,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -195,7 +196,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-model_2.13",
@@ -207,7 +207,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "asyncapi-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asyncapi-model_2.13",
@@ -219,7 +218,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -231,7 +229,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -243,7 +240,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "apispec-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "apispec-model_2.13",
@@ -255,7 +251,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -267,7 +262,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.13",
           "version": "1.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_2.13",
@@ -276,9 +270,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

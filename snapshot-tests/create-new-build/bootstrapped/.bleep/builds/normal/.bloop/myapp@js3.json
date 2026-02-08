@@ -89,7 +89,7 @@
         "version": "1.19.0",
         "mode": "debug",
         "kind": "none",
-        "emitSourceMaps": false,
+        "emitSourceMaps": true,
         "nodePath": "<COURSIER_ARC>/https/nodejs.org/dist/v18.4.0/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>.tar.gz/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>/bin/node",
         "toolchain": [
           
@@ -105,7 +105,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -117,7 +116,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.16+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -129,7 +127,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -141,7 +138,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_sjs1_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_sjs1_3",
@@ -153,7 +149,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_sjs1_3",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_sjs1_3",
@@ -165,7 +160,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -177,7 +171,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_sjs1_3",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_sjs1_3",
@@ -186,9 +179,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

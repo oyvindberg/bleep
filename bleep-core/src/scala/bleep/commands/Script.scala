@@ -1,27 +1,19 @@
 package bleep
 package commands
 
-import bleep.internal.{traverseish, TransitiveProjects}
-import bloop.rifle.BuildServer
+import bleep.internal.traverseish
 
-case class Script(name: model.ScriptName, args: List[String], watch: Boolean) extends BleepCommandRemote(watch) {
-  override def watchableProjects(started: Started): TransitiveProjects = {
-    val scriptProjects = started.build
-      .scripts(name)
-      .values
-      .map { case model.ScriptDef.Main(project, _, _) => project }
-      .distinct
-      .toArray
-    TransitiveProjects(started.build, scriptProjects)
-  }
-
-  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] =
-    Script.run(started, bloop, started.build.scripts(name).values, args, watch)
+case class Script(name: model.ScriptName, args: List[String], watch: Boolean) extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] =
+    Script.run(started, started.build.scripts(name).values, args, watch)
 }
 
 object Script {
-  def run(started: Started, bloop: BuildServer, scriptDefs: Seq[model.ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
+  private val scriptBuildOpts: CommonBuildOpts =
+    CommonBuildOpts(DisplayMode.NoTui, flamegraph = false, cancel = false)
+
+  def run(started: Started, scriptDefs: Seq[model.ScriptDef], args: List[String], watch: Boolean): Either[BleepException, Unit] =
     traverseish.runAll(scriptDefs) { case model.ScriptDef.Main(project, main, _) =>
-      Run(project, Some(main), args = args, raw = true, watch = watch).runWithServer(started, bloop)
+      Run(project, Some(main), args = args, raw = true, watch = watch, buildOpts = scriptBuildOpts).run(started)
     }
 }

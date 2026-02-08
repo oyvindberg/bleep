@@ -107,7 +107,49 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server-test/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm213/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-server-test@jvm213/scripts.GenerateForHttp4sServerTest",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-jvm/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm-native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js-jvm/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm-native/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/shared/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server-test/jvm213/classes",
@@ -176,44 +218,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -256,7 +260,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -268,7 +271,6 @@
           "organization": "org.typelevel",
           "name": "discipline-munit_2.13",
           "version": "2.0.0-M3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "discipline-munit_2.13",
@@ -280,7 +282,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-testing_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-testing_2.13",
@@ -292,7 +293,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-ffi",
           "version": "2.2.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-ffi",
@@ -304,7 +304,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-noop_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-noop_2.13",
@@ -316,7 +315,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.13",
@@ -328,7 +326,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -340,7 +337,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -352,7 +348,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel-testkit_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel-testkit_2.13",
@@ -364,7 +359,6 @@
           "organization": "org.scalameta",
           "name": "munit-diff_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-diff_2.13",
@@ -376,7 +370,6 @@
           "organization": "org.scalameta",
           "name": "junit-interface",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit-interface",
@@ -388,7 +381,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.13",
@@ -400,7 +392,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.13",
@@ -412,7 +403,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -424,7 +414,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -436,7 +425,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-commons",
           "version": "9.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-commons",
@@ -448,7 +436,6 @@
           "organization": "org.typelevel",
           "name": "coop_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coop_2.13",
@@ -460,7 +447,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive-testing_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive-testing_2.13",
@@ -472,7 +458,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -484,7 +469,6 @@
           "organization": "org.ow2.asm",
           "name": "asm",
           "version": "9.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm",
@@ -496,7 +480,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_2.13",
           "version": "2.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_2.13",
@@ -508,7 +491,6 @@
           "organization": "com.github.jnr",
           "name": "jffi",
           "version": "1.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jffi",
@@ -525,7 +507,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -537,7 +518,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-enxio",
           "version": "0.32.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-enxio",
@@ -549,7 +529,6 @@
           "organization": "org.scalameta",
           "name": "munit_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_2.13",
@@ -561,7 +540,6 @@
           "organization": "com.comcast",
           "name": "ip4s-test-kit_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-test-kit_2.13",
@@ -573,7 +551,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_2.13",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_2.13",
@@ -585,7 +562,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -597,7 +573,6 @@
           "organization": "org.typelevel",
           "name": "discipline-core_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "discipline-core_2.13",
@@ -609,7 +584,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -621,7 +595,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -633,7 +606,6 @@
           "organization": "com.twitter",
           "name": "hpack",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack",
@@ -645,7 +617,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-a64asm",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-a64asm",
@@ -657,7 +628,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -669,7 +639,6 @@
           "organization": "org.typelevel",
           "name": "munit-cats-effect_2.13",
           "version": "2.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-cats-effect_2.13",
@@ -681,7 +650,6 @@
           "organization": "org.java-websocket",
           "name": "Java-WebSocket",
           "version": "1.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "Java-WebSocket",
@@ -693,7 +661,6 @@
           "organization": "org.typelevel",
           "name": "keypool_2.13",
           "version": "0.4.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "keypool_2.13",
@@ -705,7 +672,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.13",
@@ -717,7 +683,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -729,7 +694,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -741,7 +705,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-constants",
           "version": "0.10.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-constants",
@@ -753,7 +716,6 @@
           "organization": "junit",
           "name": "junit",
           "version": "4.13.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit",
@@ -765,7 +727,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -777,7 +738,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-posix",
           "version": "3.1.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-posix",
@@ -789,7 +749,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-unixsocket",
           "version": "0.38.23",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-unixsocket",
@@ -801,7 +760,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_2.13",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_2.13",
@@ -813,7 +771,6 @@
           "organization": "org.scalameta",
           "name": "munit-scalacheck_2.13",
           "version": "1.0.0-M6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-scalacheck_2.13",
@@ -825,7 +782,6 @@
           "organization": "org.typelevel",
           "name": "cats-laws_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-laws_2.13",
@@ -837,7 +793,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.13",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.13",
@@ -849,7 +804,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect_2.13",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect_2.13",
@@ -861,7 +815,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -873,7 +826,6 @@
           "organization": "org.scalacheck",
           "name": "scalacheck_2.13",
           "version": "1.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck_2.13",
@@ -885,7 +837,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-tree",
           "version": "9.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-tree",
@@ -897,7 +848,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -909,7 +859,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-analysis",
           "version": "9.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-analysis",
@@ -921,7 +870,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-testkit_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-testkit_2.13",
@@ -933,7 +881,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel-laws_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel-laws_2.13",
@@ -945,7 +892,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-x86asm",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-x86asm",
@@ -957,7 +903,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect-munit_2.13",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect-munit_2.13",
@@ -969,7 +914,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -981,7 +925,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-util",
           "version": "9.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-util",
@@ -990,9 +933,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

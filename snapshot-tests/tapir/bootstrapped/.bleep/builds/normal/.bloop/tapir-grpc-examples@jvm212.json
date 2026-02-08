@@ -84,7 +84,19 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-grpc-protobuf/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-protobuf-pbdirect/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/pbdirect/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/pbdirect/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/protobuf/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/protobuf/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-grpc-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-grpc-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/akka-http-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-grpc-examples/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-grpc-examples/jvm212/classes",
@@ -184,7 +196,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.12",
           "version": "0.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.12",
@@ -196,7 +207,6 @@
           "organization": "com.google.api.grpc",
           "name": "proto-google-common-protos",
           "version": "2.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "proto-google-common-protos",
@@ -208,7 +218,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -220,7 +229,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -232,7 +240,6 @@
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
           "version": "2.14.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
@@ -244,7 +251,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -256,7 +262,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http-core_2.12",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http-core_2.12",
@@ -268,7 +273,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -280,7 +284,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -292,7 +295,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-slf4j_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-slf4j_2.12",
@@ -304,7 +306,6 @@
           "organization": "io.perfmark",
           "name": "perfmark-api",
           "version": "0.25.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "perfmark-api",
@@ -316,7 +317,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -328,7 +328,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-discovery_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-discovery_2.12",
@@ -340,7 +339,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -352,7 +350,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-protobuf-v3_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-protobuf-v3_2.12",
@@ -364,7 +361,6 @@
           "organization": "com.google.guava",
           "name": "guava",
           "version": "31.1-android",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
@@ -376,7 +372,6 @@
           "organization": "io.grpc",
           "name": "grpc-netty-shaded",
           "version": "1.48.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-netty-shaded",
@@ -388,7 +383,6 @@
           "organization": "com.google.code.gson",
           "name": "gson",
           "version": "2.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gson",
@@ -400,7 +394,6 @@
           "organization": "io.grpc",
           "name": "grpc-api",
           "version": "1.48.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-api",
@@ -412,7 +405,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.12",
@@ -424,7 +416,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -436,7 +427,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -448,7 +438,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka_2.12",
@@ -460,7 +449,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_2.12",
           "version": "0.11.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalapb-runtime_2.12",
@@ -472,7 +460,6 @@
           "organization": "com.47deg",
           "name": "pbdirect_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pbdirect_2.12",
@@ -484,7 +471,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.12",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.12",
@@ -496,7 +482,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -508,7 +493,6 @@
           "organization": "io.grpc",
           "name": "grpc-protobuf",
           "version": "1.48.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-protobuf",
@@ -520,7 +504,6 @@
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.21.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "protobuf-java",
@@ -532,7 +515,6 @@
           "organization": "io.grpc",
           "name": "grpc-stub",
           "version": "1.45.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-stub",
@@ -544,7 +526,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-parsing_2.12",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-parsing_2.12",
@@ -556,7 +537,6 @@
           "organization": "com.google.android",
           "name": "annotations",
           "version": "4.1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "annotations",
@@ -568,7 +548,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.12",
           "version": "1.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_2.12",
@@ -580,7 +559,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -592,7 +570,6 @@
           "organization": "org.typelevel",
           "name": "simulacrum-scalafix-annotations_2.12",
           "version": "0.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simulacrum-scalafix-annotations_2.12",
@@ -604,7 +581,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "lenses_2.12",
           "version": "0.11.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lenses_2.12",
@@ -616,7 +592,6 @@
           "organization": "com.google.guava",
           "name": "listenablefuture",
           "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "listenablefuture",
@@ -628,7 +603,6 @@
           "organization": "io.grpc",
           "name": "grpc-core",
           "version": "1.48.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-core",
@@ -640,7 +614,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-stream_2.12",
@@ -652,7 +625,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -664,7 +636,6 @@
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
@@ -676,7 +647,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -688,7 +658,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http_2.12",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http_2.12",
@@ -700,7 +669,6 @@
           "organization": "com.google.guava",
           "name": "failureaccess",
           "version": "1.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "failureaccess",
@@ -712,7 +680,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -724,7 +691,6 @@
           "organization": "org.codehaus.mojo",
           "name": "animal-sniffer-annotations",
           "version": "1.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "animal-sniffer-annotations",
@@ -736,7 +702,6 @@
           "organization": "io.grpc",
           "name": "grpc-protobuf-lite",
           "version": "1.48.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-protobuf-lite",
@@ -748,7 +713,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -760,7 +724,6 @@
           "organization": "io.grpc",
           "name": "grpc-context",
           "version": "1.48.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "grpc-context",
@@ -772,7 +735,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_2.12",
@@ -784,7 +746,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.12",
           "version": "0.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.12",
@@ -796,7 +757,6 @@
           "organization": "com.lightbend.akka.grpc",
           "name": "akka-grpc-runtime_2.12",
           "version": "2.1.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-grpc-runtime_2.12",
@@ -805,9 +765,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

@@ -41,7 +41,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.6/scala3-library_3-3.3.6.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.16/slf4j-api-2.0.16.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play-client/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-play-client/jvm3/classes",
@@ -120,7 +124,6 @@
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_3",
           "version": "1.3.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_3",
@@ -132,7 +135,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-stream_3",
           "version": "1.1.4",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "pekko-stream_3",
@@ -144,7 +146,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -156,7 +157,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -168,7 +168,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -180,7 +179,6 @@
           "organization": "org.playframework",
           "name": "play-ws-standalone_3",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-ws-standalone_3",
@@ -192,7 +190,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_3",
@@ -204,7 +201,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -216,7 +212,6 @@
           "organization": "org.playframework",
           "name": "play-ahc-ws-standalone_3",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-ahc-ws-standalone_3",
@@ -228,7 +223,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-protobuf-v3_3",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-protobuf-v3_3",
@@ -240,7 +234,6 @@
           "organization": "org.playframework",
           "name": "shaded-oauth",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-oauth",
@@ -252,7 +245,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -264,7 +256,6 @@
           "organization": "org.playframework",
           "name": "cachecontrol_3",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cachecontrol_3",
@@ -276,7 +267,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "pekko_3",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "pekko_3",
@@ -288,7 +278,6 @@
           "organization": "org.playframework",
           "name": "shaded-asynchttpclient",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-asynchttpclient",
@@ -300,7 +289,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-actor_3",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-actor_3",
@@ -312,7 +300,6 @@
           "organization": "javax.inject",
           "name": "javax.inject",
           "version": "1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.inject",
@@ -324,7 +311,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -336,7 +322,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_3",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_3",
@@ -348,7 +333,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_3",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -360,7 +344,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_3",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_3",
@@ -369,9 +352,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

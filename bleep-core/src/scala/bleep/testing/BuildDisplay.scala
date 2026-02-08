@@ -1,0 +1,807 @@
+package bleep.testing
+
+import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.BleepBspProtocol.BuildMode
+import cats.effect._
+import cats.syntax.all._
+
+import scala.{Console => SConsole}
+
+/** Displays build progress in real-time.
+  *
+  * Features:
+  *   - Shows compile and test progress
+  *   - Live-updates passed/failed/skipped counts
+  *   - Collects failures for summary at end
+  *   - Optional quiet mode (only show failures)
+  */
+trait BuildDisplay {
+
+  /** Handle a test event */
+  def handle(event: BuildEvent): IO[Unit]
+
+  /** Get the current summary */
+  def summary: IO[BuildSummary]
+
+  /** Print final summary */
+  def printSummary: IO[Unit]
+}
+
+case class BuildSummary(
+    compilesCompleted: Int,
+    compilesFailed: Int,
+    compilesSkipped: Int,
+    compilesCancelled: Int,
+    suitesTotal: Int,
+    suitesCompleted: Int,
+    suitesFailed: Int,
+    suitesCancelled: Int,
+    testsTotal: Int,
+    testsPassed: Int,
+    testsFailed: Int,
+    testsTimedOut: Int,
+    testsCancelled: Int,
+    testsSkipped: Int,
+    testsIgnored: Int,
+    currentlyRunning: List[String],
+    failures: List[TestFailure],
+    skipped: List[TestSkipped],
+    cancelledSuites: List[CancelledSuite],
+    compileFailures: List[ProjectCompileFailure],
+    linkFailures: List[LinkFailure],
+    skippedProjects: List[SkippedProject],
+    durationMs: Long,
+    totalTaskTimeMs: Long, // Sum of all individual task durations (compile + link + test, for parallelism stats)
+    wasCancelled: Boolean
+)
+
+object BuildSummary {
+
+  /** Format a complete summary for display after a build/test run. Returns lines to print. Used by both TUI and non-TUI paths.
+    */
+  def formatSummary(summary: BuildSummary, mode: BuildMode): List[String] = {
+    import scala.{Console => C}
+    val lines = List.newBuilder[String]
+
+    // Anything other than passed/skipped/ignored means failure
+    val totalProblems = summary.testsFailed + summary.testsTimedOut + summary.testsCancelled
+    val hasFailures = summary.compileFailures.nonEmpty || summary.linkFailures.nonEmpty || totalProblems > 0 || summary.suitesCancelled > 0
+    val wasCancelled = summary.wasCancelled || summary.compilesCancelled > 0
+    val statusColor = if (hasFailures) C.RED else if (wasCancelled) C.YELLOW else C.GREEN
+    val statusIcon = if (hasFailures) "x" else if (wasCancelled) "!" else "✓"
+    val wasCancelledStr = if (wasCancelled) " (cancelled by user)" else ""
+    lines += ""
+    lines += s"$statusColor${C.BOLD}$statusIcon Build Summary$wasCancelledStr${C.RESET}"
+    lines += ""
+
+    // --- Counts ---
+    mode match {
+      case BuildMode.Test =>
+        val passedStr = s"${C.GREEN}${summary.testsPassed} passed${C.RESET}"
+        val failedStr = if (summary.testsFailed > 0) s"${C.RED}${summary.testsFailed} failed${C.RESET}" else s"${summary.testsFailed} failed"
+        val parts = List.newBuilder[String]
+        parts += passedStr
+        parts += failedStr
+        if (summary.testsTimedOut > 0) parts += s"${C.RED}${summary.testsTimedOut} timed out${C.RESET}"
+        if (summary.testsCancelled > 0) parts += s"${C.RED}${summary.testsCancelled} cancelled${C.RESET}"
+        if (summary.testsSkipped > 0) parts += s"${C.YELLOW}${summary.testsSkipped} skipped${C.RESET}"
+        if (summary.testsIgnored > 0) parts += s"${C.YELLOW}${summary.testsIgnored} ignored${C.RESET}"
+        lines += s"  Tests: ${parts.result().mkString(", ")}"
+        if (summary.suitesTotal > 0) {
+          val unaccounted = summary.suitesTotal - summary.suitesCompleted - summary.suitesCancelled
+          if (unaccounted > 0) {
+            // Something didn't finish — show X/Y to make the gap obvious
+            val parts = List.newBuilder[String]
+            parts += s"${C.RED}${summary.suitesCompleted}/${summary.suitesTotal} completed${C.RESET}"
+            if (summary.suitesCancelled > 0) parts += s"${C.RED}${summary.suitesCancelled} cancelled${C.RESET}"
+            parts += s"${C.RED}$unaccounted did not finish${C.RESET}"
+            lines += s"  Suites: ${parts.result().mkString(", ")}"
+            if (summary.currentlyRunning.nonEmpty) {
+              lines += s"  Still running: ${summary.currentlyRunning.mkString(", ")}"
+            }
+          } else {
+            // All suites accounted for — clean summary
+            val cancelledSuffix = if (summary.suitesCancelled > 0) s", ${C.RED}${summary.suitesCancelled} cancelled${C.RESET}" else ""
+            lines += s"  Suites: ${summary.suitesTotal} total$cancelledSuffix"
+          }
+        }
+      case BuildMode.Compile =>
+        val succeeded = summary.compilesCompleted - summary.compilesFailed - summary.compilesSkipped - summary.compilesCancelled
+        val failedStr = if (summary.compilesFailed > 0) s"${C.RED}${summary.compilesFailed} failed${C.RESET}" else s"${summary.compilesFailed} failed"
+        val skippedStr = if (summary.compilesSkipped > 0) s", ${C.YELLOW}${summary.compilesSkipped} skipped${C.RESET}" else ""
+        val cancelledStr = if (summary.compilesCancelled > 0) s", ${C.YELLOW}${summary.compilesCancelled} cancelled${C.RESET}" else ""
+        lines += s"  Compiled: ${C.GREEN}$succeeded succeeded${C.RESET}, $failedStr$skippedStr$cancelledStr"
+      case BuildMode.Link(_) =>
+        lines += s"  Linking completed"
+      case BuildMode.Run(mainClass, _) =>
+        lines += s"  Ran: $mainClass"
+    }
+    val durationStr = s"${summary.durationMs / 1000.0}s"
+    val parallelismStr = if (summary.totalTaskTimeMs > summary.durationMs) {
+      val totalSec = summary.totalTaskTimeMs / 1000.0
+      val parallelism = summary.totalTaskTimeMs.toDouble / summary.durationMs
+      f" (total task time: ${totalSec}%.1fs, ${parallelism}%.1fx parallelism)"
+    } else ""
+    lines += s"  Duration: $durationStr$parallelismStr"
+    lines += ""
+
+    // === Story: compile errors and their consequences ===
+
+    if (summary.compileFailures.nonEmpty) {
+      lines += s"${C.RED}${C.BOLD}Compilation Failures (${summary.compileFailures.size})${C.RESET}"
+      lines += ""
+
+      summary.compileFailures.foreach { cf =>
+        val errors = cf.diagnostics.filter(_.severity == "error")
+        val warnings = cf.diagnostics.filter(_.severity == "warning")
+        val countParts = List(
+          if (errors.nonEmpty) Some(s"${errors.size} error${if (errors.size != 1) "s" else ""}") else None,
+          if (warnings.nonEmpty) Some(s"${warnings.size} warning${if (warnings.size != 1) "s" else ""}") else None
+        ).flatten
+        val countSuffix = if (countParts.nonEmpty) s" (${countParts.mkString(", ")})" else ""
+        lines += s"${C.RED}x ${cf.project}${C.RESET}$countSuffix"
+        errors.take(10).foreach { diag =>
+          lines += s"  ${C.RED}|${C.RESET} ${diag.message}"
+        }
+        if (errors.size > 10)
+          lines += s"  ${C.RED}|${C.RESET} ... and ${errors.size - 10} more errors"
+        warnings.take(5).foreach { diag =>
+          lines += s"  ${C.YELLOW}|${C.RESET} ${diag.message}"
+        }
+        if (warnings.size > 5)
+          lines += s"  ${C.YELLOW}|${C.RESET} ... and ${warnings.size - 5} more warnings"
+
+        // Show projects skipped due to this compile failure (deduplicated by project)
+        val skippedProjects = (
+          summary.skippedProjects.filter(_.reason.contains(cf.project)).map(_.project) ++
+            summary.cancelledSuites.filter(_.reason.exists(_.contains(cf.project))).map(_.project)
+        ).distinct
+        if (skippedProjects.nonEmpty) {
+          val shown = skippedProjects.take(5)
+          val remaining = skippedProjects.size - shown.size
+          lines += s"  ${C.YELLOW}-> Skipped ${skippedProjects.size} project(s):${C.RESET}"
+          shown.foreach(p => lines += s"     ${C.YELLOW}o${C.RESET} $p")
+          if (remaining > 0)
+            lines += s"     ${C.YELLOW}...${C.RESET} and $remaining more"
+        }
+        lines += ""
+      }
+    }
+
+    if (summary.linkFailures.nonEmpty) {
+      lines += s"${C.RED}${C.BOLD}Link Failures (${summary.linkFailures.size})${C.RESET}"
+      lines += ""
+      summary.linkFailures.foreach { lf =>
+        val platformStr = if (lf.platform.nonEmpty) s" [${lf.platform}]" else ""
+        lines += s"${C.RED}x ${lf.project}$platformStr${C.RESET}"
+        lines += s"  ${C.RED}|${C.RESET} ${lf.error}"
+        lines += ""
+      }
+    }
+
+    // Cancelled suites (consequence of compile failures, user cancellation, etc.)
+    mode match {
+      case BuildMode.Test =>
+        val cancelled = summary.cancelledSuites
+        if (cancelled.nonEmpty) {
+          lines += s"${C.RED}${C.BOLD}Cancelled Suites (${cancelled.size})${C.RESET}"
+          cancelled.groupBy(_.project).toList.sortBy(_._1).foreach { case (project, suites) =>
+            lines += s"${C.MAGENTA}$project${C.RESET}"
+            suites.sortBy(_.suite).foreach { cs =>
+              val reasonStr = cs.reason.map(r => s": $r").getOrElse("")
+              lines += s"  - ${cs.suite}$reasonStr"
+            }
+          }
+          lines += ""
+        }
+
+        // === Story: test results by category ===
+
+        // Partition failures by category
+        val allFailures = summary.failures.filter(f => !summary.skipped.exists(s => s.project == f.project && s.suite == f.suite && s.test == f.test))
+        val testFailures = allFailures.filter(_.category == FailureCategory.TestFailed)
+        val timeouts = allFailures.filter(_.category == FailureCategory.Timeout)
+        val cancelledTests = allFailures.filter(_.category == FailureCategory.Cancelled)
+        val processErrors = allFailures.filter(_.category == FailureCategory.ProcessError)
+        val buildErrors = allFailures.filter(_.category == FailureCategory.BuildError)
+
+        // Test failures (assertion failures, errors)
+        if (testFailures.nonEmpty) {
+          lines += s"${C.RED}${C.BOLD}Test Failures (${testFailures.size})${C.RESET}"
+          lines += ""
+          testFailures.sortBy(f => (f.project, f.suite, f.test)).foreach { failure =>
+            lines += s"${C.RED}x ${failure.project} / ${failure.suite} / ${failure.test}${C.RESET}"
+            failure.message.foreach { msg =>
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+            }
+            failure.throwable.foreach { stack =>
+              lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
+              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              val stackLines = stack.split("\n").length
+              if (stackLines > 20)
+                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+            }
+            if (failure.output.nonEmpty) {
+              lines += s"  ${C.CYAN}Output:${C.RESET}"
+              failure.output.take(30).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              if (failure.output.size > 30)
+                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${failure.output.size - 30} more lines"
+            }
+            lines += ""
+          }
+        }
+
+        // Timeouts (suite or test exceeded time limit)
+        if (timeouts.nonEmpty) {
+          lines += s"${C.RED}${C.BOLD}Timeouts (${timeouts.size})${C.RESET}"
+          lines += ""
+          timeouts.sortBy(f => (f.project, f.suite)).foreach { failure =>
+            lines += s"${C.RED}T ${failure.project} / ${failure.suite}${C.RESET}"
+            failure.message.foreach { msg =>
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+            }
+            failure.throwable.foreach { stack =>
+              lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
+              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              val stackLines = stack.split("\n").length
+              if (stackLines > 20)
+                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+            }
+            lines += ""
+          }
+        }
+
+        // Cancelled tests (tests that were killed, e.g. remaining tests after a suite timeout)
+        if (cancelledTests.nonEmpty) {
+          lines += s"${C.YELLOW}${C.BOLD}Cancelled Tests (${cancelledTests.size})${C.RESET}"
+          cancelledTests.groupBy(_.project).toList.sortBy(_._1).foreach { case (project, tests) =>
+            lines += s"${C.MAGENTA}$project${C.RESET}"
+            tests.sortBy(t => (t.suite, t.test)).foreach { t =>
+              val reason = t.message.map(m => s": $m").getOrElse("")
+              lines += s"  - ${t.suite} / ${t.test}$reason"
+            }
+          }
+          lines += ""
+        }
+
+        // Process errors (crashes, non-zero exits)
+        if (processErrors.nonEmpty) {
+          lines += s"${C.RED}${C.BOLD}Process Errors (${processErrors.size})${C.RESET}"
+          lines += ""
+          processErrors.sortBy(f => (f.project, f.suite)).foreach { failure =>
+            lines += s"${C.RED}! ${failure.project} / ${failure.suite}${C.RESET}"
+            failure.message.foreach { msg =>
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+            }
+            failure.throwable.foreach { stack =>
+              lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
+              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              val stackLines = stack.split("\n").length
+              if (stackLines > 20)
+                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+            }
+            if (failure.output.nonEmpty) {
+              lines += s"  ${C.CYAN}Output:${C.RESET}"
+              failure.output.take(30).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              if (failure.output.size > 30)
+                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${failure.output.size - 30} more lines"
+            }
+            lines += ""
+          }
+        }
+
+        // Build errors
+        if (buildErrors.nonEmpty) {
+          lines += s"${C.RED}${C.BOLD}Build Errors (${buildErrors.size})${C.RESET}"
+          lines += ""
+          buildErrors.sortBy(f => (f.project, f.suite)).foreach { failure =>
+            lines += s"${C.RED}! ${failure.project}${C.RESET}"
+            failure.message.foreach { msg =>
+              msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+            }
+            failure.throwable.foreach { stack =>
+              lines += s"  ${C.CYAN}Stack trace:${C.RESET}"
+              stack.split("\n").take(20).foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
+              val stackLines = stack.split("\n").length
+              if (stackLines > 20)
+                lines += s"  ${C.YELLOW}|${C.RESET} ... and ${stackLines - 20} more lines"
+            }
+            lines += ""
+          }
+        }
+
+        // Fallback: if counters show problems but no categorized failures captured
+        val categorizedCount = testFailures.size + timeouts.size + cancelledTests.size + processErrors.size + buildErrors.size
+        if (categorizedCount == 0 && totalProblems > 0) {
+          lines += s"${C.RED}${C.BOLD}Problems ($totalProblems)${C.RESET}"
+          lines += s"  $totalProblems test(s) had issues but detailed info was not captured."
+          lines += s"  Check BSP server logs for details."
+          lines += ""
+        }
+
+        // Skipped tests (runtime assume() guards - test decided it can't run in this environment)
+        val skippedTests = summary.skipped.filter(s => s.status == TestStatus.Skipped || s.status == TestStatus.AssumptionFailed)
+        if (skippedTests.nonEmpty) {
+          lines += s"${C.YELLOW}${C.BOLD}Skipped (${skippedTests.size})${C.RESET}"
+          skippedTests.groupBy(_.project).toList.sortBy(_._1).foreach { case (project, tests) =>
+            lines += s"${C.MAGENTA}$project${C.RESET}"
+            tests.sortBy(t => (t.suite, t.test)).foreach { t =>
+              val reasonStr = t.reason.map(r => s": $r").getOrElse("")
+              lines += s"  - ${t.suite} / ${t.test}$reasonStr"
+            }
+          }
+          lines += ""
+        }
+
+        // Ignored tests (marked @Ignore in source - deliberately excluded)
+        val ignoredTests = summary.skipped.filter(_.status == TestStatus.Ignored)
+        if (ignoredTests.nonEmpty) {
+          lines += s"${C.YELLOW}${C.BOLD}Ignored (${ignoredTests.size})${C.RESET}"
+          ignoredTests.groupBy(_.project).toList.sortBy(_._1).foreach { case (project, tests) =>
+            lines += s"${C.MAGENTA}$project${C.RESET}"
+            tests.sortBy(t => (t.suite, t.test)).foreach(t => lines += s"  - ${t.suite} / ${t.test}")
+          }
+          lines += ""
+        }
+      case _ =>
+        ()
+    }
+
+    lines.result()
+  }
+
+  val empty: BuildSummary = BuildSummary(
+    compilesCompleted = 0,
+    compilesFailed = 0,
+    compilesSkipped = 0,
+    compilesCancelled = 0,
+    suitesTotal = 0,
+    suitesCompleted = 0,
+    suitesFailed = 0,
+    suitesCancelled = 0,
+    testsTotal = 0,
+    testsPassed = 0,
+    testsFailed = 0,
+    testsTimedOut = 0,
+    testsCancelled = 0,
+    testsSkipped = 0,
+    testsIgnored = 0,
+    currentlyRunning = Nil,
+    failures = Nil,
+    skipped = Nil,
+    cancelledSuites = Nil,
+    compileFailures = Nil,
+    linkFailures = Nil,
+    skippedProjects = Nil,
+    durationMs = 0L,
+    totalTaskTimeMs = 0L,
+    wasCancelled = false
+  )
+}
+
+/** Category of failure — each gets its own section in the summary */
+sealed trait FailureCategory
+object FailureCategory {
+  case object TestFailed extends FailureCategory // assertion failure, error, pending
+  case object Timeout extends FailureCategory // idle timeout (no test completed within timeout period)
+  case object Cancelled extends FailureCategory // test cancelled (e.g. suite killed after timeout)
+  case object ProcessError extends FailureCategory // process crash, non-zero exit
+  case object BuildError extends FailureCategory // general build-level error
+}
+
+case class LinkFailure(
+    project: String,
+    platform: String,
+    error: String
+)
+
+case class TestFailure(
+    project: String,
+    suite: String,
+    test: String,
+    message: Option[String],
+    throwable: Option[String],
+    output: List[String],
+    category: FailureCategory
+)
+
+case class TestSkipped(
+    project: String,
+    suite: String,
+    test: String,
+    status: TestStatus, // Skipped, Ignored, AssumptionFailed, Cancelled, or Pending
+    reason: Option[String] = None
+)
+
+case class ProjectCompileFailure(
+    project: String,
+    diagnostics: List[BleepBspProtocol.Diagnostic]
+)
+
+case class SkippedProject(
+    project: String,
+    reason: String
+)
+
+case class CancelledSuite(
+    project: String,
+    suite: String,
+    reason: Option[String]
+)
+
+object BuildDisplay {
+
+  /** Create a new build display */
+  def create(
+      quietMode: Boolean,
+      logger: ryddig.Logger,
+      mode: BuildMode = BuildMode.Test
+  ): IO[BuildDisplay] =
+    for {
+      state <- Ref.of[IO, BuildState](BuildState.empty)
+      startTime <- IO.realTime.map(_.toMillis)
+      upToDateProjects <- Ref.of[IO, Set[String]](Set.empty)
+    } yield new BuildDisplayImpl(state, startTime, quietMode, logger, mode, upToDateProjects)
+
+  private class BuildDisplayImpl(
+      state: Ref[IO, BuildState],
+      startTime: Long,
+      quietMode: Boolean,
+      logger: ryddig.Logger,
+      mode: BuildMode,
+      upToDateProjects: Ref[IO, Set[String]]
+  ) extends BuildDisplay {
+
+    override def handle(event: BuildEvent): IO[Unit] =
+      state.update(s => BuildStateReducer.reduce(s, event)) >> printSideEffects(event)
+
+    private def log(msg: String): IO[Unit] = IO.delay(logger.info(msg))
+    private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
+    private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
+
+    private def printSideEffects(event: BuildEvent): IO[Unit] = event match {
+      case BuildEvent.CompileStarted(_, _) =>
+        // Don't print "Compiling:" - wait for CompilationReason to show actual status
+        IO.unit
+
+      case BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, _) =>
+        // Track up-to-date projects so CompileFinished can suppress output for them
+        val trackUpToDate = if (reason == "up-to-date") {
+          upToDateProjects.update(_ + project)
+        } else IO.unit
+        val printMsg = if (!quietMode) {
+          val msg = reason match {
+            case "clean-build"  => s"Compiling: $project (clean build, no previous analysis)"
+            case "empty-output" => s"Compiling: $project (clean build, output directory empty)"
+            case "up-to-date"   => s"$project: up to date"
+            case "incremental" =>
+              val invalidatedCount = invalidatedFiles.size
+              val depCount = changedDeps.size
+              val invalidatedStr =
+                if (invalidatedFiles.isEmpty) ""
+                else {
+                  val fileNames = invalidatedFiles.take(5)
+                  val suffix = if (invalidatedFiles.size > 5) s", ... (${invalidatedFiles.size - 5} more)" else ""
+                  s"$invalidatedCount/$totalFiles files invalidated: ${fileNames.mkString(", ")}$suffix"
+                }
+              val depStr =
+                if (changedDeps.isEmpty) ""
+                else {
+                  val depNames = changedDeps.take(3)
+                  val suffix = if (changedDeps.size > 3) s", ... (${changedDeps.size - 3} more)" else ""
+                  s"$depCount changed deps: ${depNames.mkString(", ")}$suffix"
+                }
+              val parts = List(invalidatedStr, depStr).filter(_.nonEmpty)
+              if (parts.isEmpty) s"Compiling: $project (changes detected)"
+              else s"Compiling: $project (${parts.mkString("; ")})"
+            case other => s"Compiling: $project ($other)"
+          }
+          log(msg)
+        } else IO.unit
+        trackUpToDate >> printMsg
+
+      case BuildEvent.CompileFinished(project, status, durationMs, _, _, _) =>
+        // Suppress output for up-to-date projects (only show single line from CompilationReason)
+        upToDateProjects.get.flatMap { upToDate =>
+          if (upToDate.contains(project) && status == "success") {
+            IO.unit // Already showed "project: up to date" - nothing more needed
+          } else if (!quietMode) {
+            val displayStatus = status match {
+              case "success"   => "done"
+              case "failed"    => "FAILED"
+              case "error"     => "ERROR"
+              case "skipped"   => "SKIPPED"
+              case "cancelled" => "cancelled"
+              case other       => other
+            }
+            log(s"Compile $displayStatus: $project (${durationMs}ms)")
+          } else IO.unit
+        }
+
+      case BuildEvent.SuiteStarted(_, _, _) =>
+        if (!quietMode) printStatus else IO.unit
+
+      case BuildEvent.TestStarted(_, _, _, _) =>
+        IO.unit
+
+      case BuildEvent.TestFinished(_, suite, test, status, durationMs, _, _, _) =>
+        if (!quietMode) printTestResult(suite, test, status, durationMs) else IO.unit
+
+      case BuildEvent.SuiteFinished(_, suite, passed, failed, skipped, ignored, durationMs, _) =>
+        if (!quietMode) printSuiteResult(suite, passed, failed, skipped, ignored, durationMs) else IO.unit
+
+      case BuildEvent.Output(_, _, line, _, _) =>
+        // Suppress test framework stdout — structural events (TestFinished, SuiteFinished)
+        // already provide the info. Forwarding stdout causes duplicate lines because
+        // ScalaTest/JUnit print their own started/finished lines to stdout.
+        IO.unit
+
+      case BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, _) =>
+        if (!quietMode) {
+          if (suites.isEmpty)
+            log(s"Discovered 0 test suites in $project")
+          else
+            log(s"Discovered ${suites.size} test suites in $project (total: $totalDiscovered)")
+        } else IO.unit
+
+      case BuildEvent.ProjectSkipped(project, reason, _) =>
+        if (!quietMode) logWarn(s"[SKIPPED] $project: $reason") else IO.unit
+
+      case BuildEvent.CompileProgress(_, _, _) =>
+        IO.unit
+
+      case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, threadDumpInfo, _) =>
+        val timeoutSec = timeoutMs / 1000
+        for {
+          _ <- logError(s"[TIMEOUT] $suite after ${timeoutSec}s")
+          _ <- threadDumpInfo.flatMap(_.singleThreadStack) match {
+            case Some(stack) => log(s"  Stack trace:\n$stack")
+            case None        => IO.unit
+          }
+          _ <- threadDumpInfo.flatMap(_.dumpFile) match {
+            case Some(path) => log(s"  Full thread dump: $path")
+            case None       => IO.unit
+          }
+        } yield ()
+
+      case BuildEvent.SuiteError(_, suite, error, exitCode, signal, _, _) =>
+        val desc = signal match {
+          case Some(sig) => s"Process crashed (signal $sig)"
+          case None =>
+            exitCode match {
+              case Some(code) => s"Process exited with code $code"
+              case None       => error
+            }
+        }
+        logError(s"[ERROR] $suite: $desc")
+
+      case BuildEvent.Error(project, message, details, _) =>
+        val projectInfo = if (project.nonEmpty) s" [$project]" else ""
+        for {
+          _ <- logError(s"[ERROR]$projectInfo $message")
+          _ <- details match {
+            case Some(d) => d.split("\n").toList.traverse_(line => log(s"  $line"))
+            case None    => IO.unit
+          }
+        } yield ()
+
+      case BuildEvent.SuiteCancelled(_, suite, reason, _) =>
+        val reasonStr = reason.getOrElse("unknown reason (likely exceeded timeout)")
+        logWarn(s"[CANCELLED] $suite: $reasonStr")
+
+      case BuildEvent.LinkStarted(project, platform, _) =>
+        if (!quietMode) log(s"Linking: $project [$platform]") else IO.unit
+
+      case BuildEvent.LinkSucceeded(project, platform, durationMs, _) =>
+        if (!quietMode) log(s"Link done: $project [$platform] (${durationMs}ms)") else IO.unit
+
+      case BuildEvent.LinkFailed(project, platform, durationMs, error, _) =>
+        logError(s"Link FAILED: $project [$platform] (${durationMs}ms): $error")
+
+      case BuildEvent.SourcegenStarted(scriptMain, forProjects, _) =>
+        if (!quietMode) log(s"Sourcegen: $scriptMain for ${forProjects.mkString(", ")}") else IO.unit
+
+      case BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, _) =>
+        if (success) {
+          if (!quietMode) log(s"Sourcegen done: $scriptMain (${durationMs}ms)") else IO.unit
+        } else {
+          logError(s"Sourcegen FAILED: $scriptMain (${durationMs}ms): ${error.getOrElse("unknown error")}")
+        }
+
+      case _: BuildEvent.ConnectionLost =>
+        logWarn(s"[BSP] Connection lost - server may have been killed")
+
+      case BuildEvent.WorkspaceBusy(_, operation, projects, startedAgoMs, _) =>
+        val elapsed = startedAgoMs / 1000
+        logWarn(s"Workspace busy: $operation ${projects.mkString(", ")} (started ${elapsed}s ago). Waiting...")
+
+      case _: BuildEvent.WorkspaceReady =>
+        log("Workspace available, proceeding...")
+
+      case _: BuildEvent.TestRunCompleted =>
+        IO.unit // State updated via BuildStateReducer; no side effects needed
+    }
+
+    private def printStatus: IO[Unit] =
+      for {
+        s <- state.get
+        running = s.currentlyRunning.take(3).mkString(", ")
+        more = if (s.currentlyRunning.size > 3) s" (+${s.currentlyRunning.size - 3} more)" else ""
+        _ <- log(s"Running: $running$more")
+      } yield ()
+
+    private def printTestResult(
+        @annotation.nowarn("msg=is never used") suite: String,
+        test: String,
+        status: TestStatus,
+        durationMs: Long
+    ): IO[Unit] = {
+      val icon = status match {
+        case TestStatus.Passed           => SConsole.GREEN + "+" + SConsole.RESET
+        case TestStatus.Failed           => SConsole.RED + "x" + SConsole.RESET
+        case TestStatus.Error            => SConsole.RED + "!" + SConsole.RESET
+        case TestStatus.Timeout          => SConsole.RED + "T" + SConsole.RESET
+        case TestStatus.Skipped          => SConsole.YELLOW + "-" + SConsole.RESET
+        case TestStatus.Ignored          => SConsole.YELLOW + "o" + SConsole.RESET
+        case TestStatus.Cancelled        => SConsole.YELLOW + "c" + SConsole.RESET
+        case TestStatus.AssumptionFailed => SConsole.YELLOW + "a" + SConsole.RESET
+        case TestStatus.Pending          => SConsole.YELLOW + "?" + SConsole.RESET
+      }
+      log(s"  $icon $test")
+    }
+
+    private def printSuiteResult(
+        suite: String,
+        passed: Int,
+        failed: Int,
+        skipped: Int,
+        ignored: Int,
+        durationMs: Long
+    ): IO[Unit] = {
+      val ignoredStr = if (ignored > 0) s", $ignored ignored" else ""
+      val status =
+        if (failed > 0) SConsole.RED + "FAILED" + SConsole.RESET
+        else SConsole.GREEN + "PASSED" + SConsole.RESET
+      log(s"$status $suite: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)")
+    }
+
+    override def summary: IO[BuildSummary] =
+      for {
+        s <- state.get
+        now <- IO.realTime.map(_.toMillis)
+      } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
+
+    override def printSummary: IO[Unit] = mode match {
+      case BuildMode.Compile | BuildMode.Link(_) =>
+        printCompileSummary
+      case BuildMode.Test =>
+        printBuildSummary
+      case BuildMode.Run(_, _) =>
+        IO.unit // Run mode doesn't need a summary
+    }
+
+    private def printCompileSummary: IO[Unit] =
+      for {
+        s <- summary
+        _ <- log("")
+        _ <- log("=" * 60)
+        _ <- log("Build Summary")
+        _ <- log("=" * 60)
+        compiledCount = s.compileFailures.size + (if (s.compileFailures.isEmpty && s.durationMs > 0) 1 else 0)
+        failedCount = s.compileFailures.size
+        skippedCount = s.skippedProjects.size
+        _ <- log(s"Projects: compiled, $failedCount failed, $skippedCount skipped")
+        wallTimeSeconds = s.durationMs / 1000.0
+        _ <- log(f"Time:     ${wallTimeSeconds}%.1fs")
+        _ <- if (s.compileFailures.nonEmpty) printCompileFailures(s.compileFailures) else IO.unit
+        _ <- log("=" * 60)
+      } yield ()
+
+    private def printCompileFailures(failures: List[ProjectCompileFailure]): IO[Unit] =
+      for {
+        _ <- log("")
+        _ <- log(SConsole.RED + "Compilation Failures:" + SConsole.RESET)
+        _ <- failures.traverse_ { f =>
+          val errors = f.diagnostics.filter(_.severity == "error")
+          val warnings = f.diagnostics.filter(_.severity == "warning")
+          val errorCount = errors.size
+          val warningCount = warnings.size
+          val countSuffix = {
+            val parts = List(
+              if (errorCount > 0) Some(s"$errorCount error${if (errorCount != 1) "s" else ""}") else None,
+              if (warningCount > 0) Some(s"$warningCount warning${if (warningCount != 1) "s" else ""}") else None
+            ).flatten
+            if (parts.nonEmpty) s" (${parts.mkString(", ")})" else ""
+          }
+          for {
+            _ <- log(s"  ${SConsole.RED}x${SConsole.RESET} ${f.project}$countSuffix")
+            // Show errors first
+            _ <- errors.take(10).traverse_(e => log(s"    ${SConsole.RED}|${SConsole.RESET} ${e.message}"))
+            _ <- if (errors.size > 10) log(s"    ${SConsole.RED}|${SConsole.RESET} ... and ${errors.size - 10} more errors") else IO.unit
+            // Then warnings
+            _ <- warnings.take(5).traverse_(w => log(s"    ${SConsole.YELLOW}|${SConsole.RESET} ${w.message}"))
+            _ <- if (warnings.size > 5) log(s"    ${SConsole.YELLOW}|${SConsole.RESET} ... and ${warnings.size - 5} more warnings") else IO.unit
+          } yield ()
+        }
+      } yield ()
+
+    private def printBuildSummary: IO[Unit] =
+      for {
+        s <- summary
+        _ <- BuildSummary.formatSummary(s, mode).traverse_(log)
+      } yield ()
+  }
+
+  /** Create a fancy TUI display. Returns:
+    *   - display: The BuildDisplay to send events to
+    *   - signalCompletionAndWait: IO that signals completion and waits for summary (use when build finishes)
+    *   - waitForUserQuit: IO that waits for user to quit (without signaling) - returns summary when user presses 'q'
+    *   - cancelBlockingSignal: IO that completes when user presses 'c' to cancel blocking work
+    */
+  def createFancy(
+      mode: BuildMode = BuildMode.Test,
+      diagnosticLog: Option[java.io.PrintWriter] = None,
+      readySignal: Option[Deferred[IO, Unit]] = None
+  ): IO[(BuildDisplay, IO[BuildSummary], IO[BuildSummary], Deferred[IO, Unit])] =
+    createFancyWithState(None, mode, diagnosticLog, readySignal)
+
+  /** Create a fancy TUI display with access to TestRunState for richer display. When testRunState is provided, the running section shows projects with compile
+    * progress, test progress, JVM assignments, and failure counts.
+    */
+  def createFancyWithState(
+      testRunState: Option[Ref[IO, TestRunState]],
+      mode: BuildMode = BuildMode.Test,
+      diagnosticLog: Option[java.io.PrintWriter] = None,
+      readySignal: Option[Deferred[IO, Unit]] = None
+  ): IO[(BuildDisplay, IO[BuildSummary], IO[BuildSummary], Deferred[IO, Unit])] =
+    for {
+      eventQueue <- cats.effect.std.Queue.unbounded[IO, Option[BuildEvent]]
+      state <- Ref.of[IO, BuildState](BuildState.empty)
+      startTime <- IO.realTime.map(_.toMillis)
+      userQuitSignal <- Deferred[IO, Unit]
+      cancelBlockingSignal <- Deferred[IO, Unit]
+      // Start the fancy display in a background fiber
+      fancyFiber <- FancyBuildDisplay
+        .run(
+          eventQueue,
+          testRunState,
+          mode,
+          diagnosticLog,
+          userQuitSignal = Some(userQuitSignal),
+          readySignal = readySignal,
+          cancelBlockingSignal = Some(cancelBlockingSignal)
+        )
+        .start
+    } yield {
+      val display = new FancyBridgeDisplay(eventQueue, state, startTime)
+      // Signal completion to the fancy display, then wait for summary
+      val signalCompletionAndWait = for {
+        _ <- eventQueue.offer(None)
+        summary <- fancyFiber.joinWithNever
+      } yield summary
+      // Only resolves when user explicitly presses q/Esc/Ctrl+C, NOT on auto-exit or poison pill
+      val waitForUserQuit = userQuitSignal.get >> fancyFiber.joinWithNever
+      (display, signalCompletionAndWait, waitForUserQuit, cancelBlockingSignal)
+    }
+
+  private class FancyBridgeDisplay(
+      eventQueue: cats.effect.std.Queue[IO, Option[BuildEvent]],
+      state: Ref[IO, BuildState],
+      startTime: Long
+  ) extends BuildDisplay {
+
+    override def handle(event: BuildEvent): IO[Unit] =
+      for {
+        _ <- state.update(s => BuildStateReducer.reduce(s, event))
+        _ <- eventQueue.offer(Some(event))
+      } yield ()
+
+    override def summary: IO[BuildSummary] =
+      for {
+        s <- state.get
+        now <- IO.realTime.map(_.toMillis)
+      } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
+
+    override def printSummary: IO[Unit] = IO.unit // Fancy display handles this
+  }
+}

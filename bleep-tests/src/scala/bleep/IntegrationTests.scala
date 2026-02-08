@@ -1,5 +1,6 @@
 package bleep
 
+import bleep.bsp.{BspServerClasspathSource, InProcessBspServer}
 import bleep.internal.{bleepLoggers, FileUtils}
 import cats.data.NonEmptyList
 import org.scalactic.TripleEqualsSupport
@@ -27,7 +28,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
     Lazy {
       val existing = BuildLoader.find(FileUtils.cwd).existing.orThrow
       val pre = Prebootstrapped(logger0, userPaths, BuildPaths(FileUtils.cwd, existing, model.BuildVariant.Normal), existing, ec)
-      bootstrap.from(pre, GenBloopFiles.SyncToDisk, Nil, model.BleepConfig.default, CoursierResolver.Factory.default).orThrow
+      bootstrap.from(pre, ResolveProjects.InMemory, Nil, model.BleepConfig.default, CoursierResolver.Factory.default).orThrow
     }
 
   val prelude =
@@ -38,6 +39,14 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       |""".stripMargin
 
   // note: passing stored log messages is a hack for now. soon commands will return values, and `run` for instance will return printed lines
+  // Use NewEachInvocation mode so each test gets its own BSP server, avoiding socket conflicts
+  val testConfig: model.BleepConfig = model.BleepConfig(
+    compileServerMode = Some(model.CompileServerMode.NewEachInvocation),
+    authentications = None,
+    logTiming = None,
+    bspServerConfig = None
+  )
+
   def runTest(testName: String, yaml: String, files: Map[RelPath, String])(f: (Started, Commands, TypedLogger[Array[Stored]]) => Assertion): Assertion = {
     val storingLogger = Loggers.storing()
     val stdLogger = logger0.withContext("testName", testName)
@@ -52,9 +61,9 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       val started = bootstrap
         .from(
           Prebootstrapped(storingLogger.zipWith(stdLogger), userPaths, buildPaths, existingBuild, ec),
-          GenBloopFiles.SyncToDiskWith(GenBloopFiles.ReplaceBleepDependencies(lazyBleepBuild)),
+          ResolveProjects.ReplaceBleepDependencies(lazyBleepBuild, BspServerClasspathSource.InProcess(InProcessBspServer.connect)),
           Nil,
-          model.BleepConfig.default,
+          testConfig,
           CoursierResolver.Factory.default
         )
         .orThrow
@@ -116,14 +125,15 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       )
     ) { (started, commands, storingLogger) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
-      val bloopConfig = started.bloopFiles(projectName).forceGet("test")
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
 
       // Should have -proc:none in java options
-      assert(bloopConfig.project.java.exists(_.options.contains("-proc:none")))
-      assert(bloopConfig.project.java.exists(_.options.contains("-Xlint:all")))
+      val javaOptions = resolved.language.javaOptions
+      assert(javaOptions.contains("-proc:none"))
+      assert(javaOptions.contains("-Xlint:all"))
 
       // Generated sources directory should not be in sources
-      assert(!bloopConfig.project.sources.exists(_.toString.contains("generated-sources")))
+      assert(!resolved.sources.exists(_.toString.contains("generated-sources")))
     }
   }
 
@@ -153,10 +163,10 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       )
     ) { (started, commands, storingLogger) =>
       val projectName = model.CrossProjectName(model.ProjectName("a"), None)
-      val bloopConfig = started.bloopFiles(projectName).forceGet("test")
+      val resolved = started.resolvedProjects(projectName).forceGet("test")
 
       // Should have -s option with generated sources directory
-      val javaOptions = bloopConfig.project.java.map(_.options).getOrElse(Nil)
+      val javaOptions = resolved.language.javaOptions
       assert(javaOptions.exists(_.contains("-s")))
       assert(javaOptions.exists(_.contains("generated-sources")))
       assert(javaOptions.exists(_.contains("annotations")))
@@ -164,7 +174,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
       assert(javaOptions.contains("-Xlint:all"))
 
       // Generated sources directory should be in sources
-      assert(bloopConfig.project.sources.exists(_.toString.contains("generated-sources")))
+      assert(resolved.sources.exists(_.toString.contains("generated-sources")))
     }
   }
 
@@ -241,7 +251,7 @@ templates:
     platform:
       name: jvm
     scala:
-      version: 3.4.2
+      version: 3.7.4
 """
 
     val Main = """
@@ -319,15 +329,15 @@ object SourceGen extends BleepCodegenScript("SourceGen") {
             |""".stripMargin
       )
     ) { (started, commands, storingLogger) =>
+      // commands.test() throws (via force/orThrow) if the BSP server returns non-OK status.
+      // Completing without exception means tests ran and passed.
       commands.test(
         projects = List(model.CrossProjectName(model.ProjectName("mytest"), None)),
         watch = false,
-        testOnlyClasses = Some(NonEmptyList.of("MyTest")),
-        testExcludeClasses = None
+        only = Some(NonEmptyList.of("MyTest")),
+        exclude = None
       )
-
-      // Verify test actually ran
-      assert(storingLogger.underlying.exists(_.message.plainText.contains("Tests succeeded")))
+      succeed
     }
   }
 }

@@ -82,7 +82,28 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-dsl/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-laws/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-tests/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm3/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/laws/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-client-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-client-test/jvm3/classes",
@@ -153,44 +174,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -233,7 +216,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -245,7 +227,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.32",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -257,7 +238,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -269,7 +249,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -281,7 +260,6 @@
           "organization": "org.typelevel",
           "name": "discipline-core_3",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "discipline-core_3",
@@ -293,7 +271,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -305,7 +282,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive-testing_3",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive-testing_3",
@@ -317,7 +293,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -329,7 +304,6 @@
           "organization": "org.scalameta",
           "name": "junit-interface",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit-interface",
@@ -341,7 +315,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_3",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_3",
@@ -353,7 +326,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_3",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_3",
@@ -365,7 +337,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-testkit_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-testkit_3",
@@ -377,7 +348,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_3",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_3",
@@ -389,7 +359,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_3",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_3",
@@ -401,7 +370,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -413,7 +381,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_3",
@@ -425,7 +392,6 @@
           "organization": "org.typelevel",
           "name": "coop_3",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coop_3",
@@ -437,7 +403,6 @@
           "organization": "io.netty",
           "name": "netty-codec",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec",
@@ -449,7 +414,6 @@
           "organization": "com.comcast",
           "name": "ip4s-test-kit_3",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-test-kit_3",
@@ -461,7 +425,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -473,7 +436,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -485,7 +447,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_3",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_3",
@@ -497,7 +458,6 @@
           "organization": "org.typelevel",
           "name": "munit-cats-effect_3",
           "version": "2.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-cats-effect_3",
@@ -509,7 +469,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -521,7 +480,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_3",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_3",
@@ -533,7 +491,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_3",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_3",
@@ -545,7 +502,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_3",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_3",
@@ -557,7 +513,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_3",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_3",
@@ -569,7 +524,6 @@
           "organization": "org.scalameta",
           "name": "munit-diff_3",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-diff_3",
@@ -581,7 +535,6 @@
           "organization": "org.typelevel",
           "name": "literally_3",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_3",
@@ -593,7 +546,6 @@
           "organization": "org.typelevel",
           "name": "vault_3",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_3",
@@ -605,7 +557,6 @@
           "organization": "org.typelevel",
           "name": "cats-laws_3",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-laws_3",
@@ -617,7 +568,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -629,7 +579,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_3",
           "version": "2.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_3",
@@ -641,7 +590,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect-munit_3",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect-munit_3",
@@ -653,7 +601,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect_3",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect_3",
@@ -665,7 +612,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -677,7 +623,6 @@
           "organization": "junit",
           "name": "junit",
           "version": "4.13.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit",
@@ -689,7 +634,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -701,7 +645,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -713,7 +656,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -725,7 +667,6 @@
           "organization": "org.typelevel",
           "name": "discipline-munit_3",
           "version": "2.0.0-M3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "discipline-munit_3",
@@ -737,7 +678,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_3",
@@ -749,7 +689,6 @@
           "organization": "org.scalacheck",
           "name": "scalacheck_3",
           "version": "1.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck_3",
@@ -761,7 +700,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel-testkit_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel-testkit_3",
@@ -773,7 +711,6 @@
           "organization": "org.scalameta",
           "name": "munit_3",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_3",
@@ -785,7 +722,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_3",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_3",
@@ -797,7 +733,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_3",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_3",
@@ -809,7 +744,6 @@
           "organization": "org.scalameta",
           "name": "munit-scalacheck_3",
           "version": "1.0.0-M6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-scalacheck_3",
@@ -821,7 +755,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.1.115.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -833,7 +766,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel-laws_3",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel-laws_3",
@@ -842,9 +774,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

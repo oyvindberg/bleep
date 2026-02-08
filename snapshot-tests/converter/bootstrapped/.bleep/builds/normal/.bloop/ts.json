@@ -36,7 +36,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-macros_2.12/2.1.0/cats-macros_2.12-2.1.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/macro-compat_2.12/1.1.1/macro-compat_2.12-1.1.1.jar",
       "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/core/classes",
-      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/logging/classes"
+      "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/logging/classes",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/logging/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/ts/classes",
@@ -135,7 +137,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -147,7 +148,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_2.12",
           "version": "0.6.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_2.12",
@@ -159,7 +159,6 @@
           "organization": "org.typelevel",
           "name": "macro-compat_2.12",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "macro-compat_2.12",
@@ -171,7 +170,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.4.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -183,7 +181,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
           "version": "2.9.10.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
@@ -195,7 +192,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.9.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -207,7 +203,6 @@
           "organization": "com.lihaoyi",
           "name": "os-lib_2.12",
           "version": "0.7.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "os-lib_2.12",
@@ -219,7 +214,6 @@
           "organization": "org.scalablytyped.circe013",
           "name": "circe-core_2.12",
           "version": "0.13.0-shaded-2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.12",
@@ -231,7 +225,6 @@
           "organization": "org.scalablytyped.circe013",
           "name": "circe-numbers_2.12",
           "version": "0.13.0-shaded-2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.12",
@@ -243,7 +236,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -255,7 +247,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -267,7 +258,6 @@
           "organization": "org.typelevel",
           "name": "cats-macros_2.12",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-macros_2.12",
@@ -279,7 +269,6 @@
           "organization": "org.scalablytyped.circe013",
           "name": "circe-jackson29_2.12",
           "version": "0.13.0-shaded-2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jackson29_2.12",
@@ -291,7 +280,6 @@
           "organization": "com.lihaoyi",
           "name": "ammonite-ops_2.12",
           "version": "2.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ammonite-ops_2.12",
@@ -303,7 +291,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
           "version": "2.9.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
@@ -315,7 +302,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.12",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.12",
@@ -327,7 +313,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -339,7 +324,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_2.12",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.12",
@@ -351,7 +335,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.12",
           "version": "0.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.12",
@@ -363,7 +346,6 @@
           "organization": "org.scalablytyped.circe013",
           "name": "circe-generic_2.12",
           "version": "0.13.0-shaded-2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.12",
@@ -372,9 +354,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

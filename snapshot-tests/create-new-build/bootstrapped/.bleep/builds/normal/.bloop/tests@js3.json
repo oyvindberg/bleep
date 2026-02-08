@@ -41,7 +41,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_sjs1_3/3.2.19/scalatest-shouldmatchers_sjs1_3-3.2.19.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_sjs1_3/3.2.19/scalatest-wordspec_sjs1_3-3.2.19.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_sjs1_3/3.2.19/scalatest_sjs1_3-3.2.19.jar",
-      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js3/classes"
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js3/classes",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/js/src/resources",
+      "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js3/classes",
@@ -168,7 +170,7 @@
         "version": "1.19.0",
         "mode": "debug",
         "kind": "none",
-        "emitSourceMaps": false,
+        "emitSourceMaps": true,
         "nodePath": "<COURSIER_ARC>/https/nodejs.org/dist/v18.4.0/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>.tar.gz/node-v18.4.0-<MASKED_OS>-<MASKED_ARCHITECTURE>/bin/node",
         "toolchain": [
           
@@ -184,7 +186,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_sjs1_3",
@@ -196,7 +197,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_sjs1_3",
@@ -208,7 +208,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_sjs1_3",
@@ -220,7 +219,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_sjs1_3",
@@ -232,7 +230,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.16+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -244,7 +241,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_sjs1_3",
@@ -256,7 +252,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_sjs1_3",
@@ -268,7 +263,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_sjs1_3",
@@ -280,7 +274,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_sjs1_3",
@@ -292,7 +285,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -304,7 +296,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -316,7 +307,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_sjs1_3",
@@ -328,7 +318,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_sjs1_3",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_sjs1_3",
@@ -340,7 +329,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_sjs1_3",
@@ -352,7 +340,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_sjs1_3",
@@ -364,7 +351,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.13",
@@ -376,7 +362,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-test-bridge_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-bridge_2.13",
@@ -388,7 +373,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_sjs1_3",
@@ -400,7 +384,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -412,7 +395,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_sjs1_3",
@@ -424,7 +406,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_sjs1_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_sjs1_3",
@@ -436,7 +417,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_sjs1_3",
@@ -448,7 +428,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_sjs1_3",
           "version": "3.2.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_sjs1_3",
@@ -460,7 +439,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_sjs1_3",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_sjs1_3",
@@ -472,7 +450,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_sjs1_3",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_sjs1_3",
@@ -481,9 +458,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

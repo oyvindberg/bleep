@@ -52,7 +52,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/js212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/js212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio/js212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-test/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-test/js212/classes",
@@ -146,44 +152,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -232,7 +200,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_sjs1_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_sjs1_2.12",
@@ -244,7 +211,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_sjs1_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_sjs1_2.12",
@@ -256,7 +222,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.12",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.12",
@@ -268,7 +233,6 @@
           "organization": "dev.zio",
           "name": "zio-internal-macros_sjs1_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-internal-macros_sjs1_2.12",
@@ -280,7 +244,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.12",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.12",
@@ -292,7 +255,6 @@
           "organization": "dev.zio",
           "name": "zio_sjs1_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_sjs1_2.12",
@@ -304,7 +266,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_sjs1_2.12",
@@ -316,7 +277,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_sjs1_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_sjs1_2.12",
@@ -328,7 +288,6 @@
           "organization": "dev.zio",
           "name": "zio-streams_sjs1_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-streams_sjs1_2.12",
@@ -340,7 +299,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-test-bridge_2.12",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-bridge_2.12",
@@ -352,7 +310,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -364,7 +321,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.12",
           "version": "2.12.20+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.12",
@@ -376,7 +332,6 @@
           "organization": "dev.zio",
           "name": "zio-stacktracer_sjs1_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-stacktracer_sjs1_2.12",
@@ -388,7 +343,6 @@
           "organization": "org.scala-js",
           "name": "scala-js-macrotask-executor_sjs1_2.12",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-js-macrotask-executor_sjs1_2.12",
@@ -400,7 +354,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-weakreferences_sjs1_2.12",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-weakreferences_sjs1_2.12",
@@ -412,7 +365,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_sjs1_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
@@ -424,7 +376,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.12",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.12",
@@ -436,7 +387,6 @@
           "organization": "dev.zio",
           "name": "zio-test-sbt_sjs1_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-test-sbt_sjs1_2.12",
@@ -448,7 +398,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -460,7 +409,6 @@
           "organization": "dev.zio",
           "name": "zio-test_sjs1_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-test_sjs1_2.12",
@@ -472,7 +420,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time-tzdb_sjs1_2.12",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time-tzdb_sjs1_2.12",
@@ -484,7 +431,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.12",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.12",
@@ -496,7 +442,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.12",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.12",
@@ -508,7 +453,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect_sjs1_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect_sjs1_2.12",
@@ -520,7 +464,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "zio_sjs1_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_sjs1_2.12",
@@ -532,7 +475,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.12",
           "version": "2.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.12",
@@ -544,7 +486,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
@@ -556,7 +497,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.12",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.12",
@@ -565,9 +505,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

@@ -13,14 +13,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
 
   lazy val buildsDir = dotBleepDir / "builds"
 
-  lazy val buildVariantDir: Path = {
-    val name = variant match {
-      case model.BuildVariant.Normal       => "normal"
-      case model.BuildVariant.BSP          => "bsp"
-      case x: model.BuildVariant.Rewritten => x.rewrites.map(_.value).toList.mkString("__")
-    }
-    buildsDir / name
-  }
+  lazy val buildVariantDir: Path = buildsDir / variant.name
   lazy val localConfig: Path = dotBleepDir / "conf"
   lazy val bspProjectSelectionYaml = localConfig / "bsp-project-selection.yaml"
 

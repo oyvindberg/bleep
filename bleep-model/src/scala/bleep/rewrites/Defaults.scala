@@ -46,8 +46,7 @@ object Defaults {
         scala = proj.scala.map(ret => ret.copy(setup = ret.setup.map(setup => setup.removeAll(Defaults.DefaultCompileSetup)))),
         platform = proj.platform.map(x => x.removeAll(Defaults.Jvm)),
         `source-layout` = proj.`source-layout`.filterNot { sourceLayout =>
-          val default = if (proj.scala.isDefined) model.SourceLayout.Normal else model.SourceLayout.Java
-          sourceLayout == default
+          sourceLayout == defaultSourceLayout(proj)
         }
       )
   }
@@ -63,9 +62,15 @@ object Defaults {
         scala = proj.scala.map(x => x.copy(setup = Some(x.setup.fold(DefaultCompileSetup)(_.union(DefaultCompileSetup))))),
         platform = proj.platform.map(x => if (x.name.contains(model.PlatformId.Jvm)) x.union(Defaults.Jvm) else x),
         `source-layout` = proj.`source-layout`.orElse {
-          val default = if (proj.scala.isDefined) model.SourceLayout.Normal else model.SourceLayout.Java
-          Some(default)
+          Some(defaultSourceLayout(proj))
         }
       )
   }
+
+  /** Determine the default source layout based on project language configuration. Priority: Kotlin > Scala > Java
+    */
+  private def defaultSourceLayout(proj: model.Project): model.SourceLayout =
+    if (proj.kotlin.flatMap(_.version).isDefined) model.SourceLayout.Kotlin
+    else if (proj.scala.isDefined) model.SourceLayout.Normal
+    else model.SourceLayout.Java
 }

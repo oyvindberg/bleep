@@ -183,12 +183,14 @@ object Replacements {
       scalaVersion = versionCombo.asScala.map(_.scalaVersion),
       platform = versionCombo match {
         case VersionCombo.Java         => None
+        case VersionCombo.Kotlin(_)    => Some(PlatformId.Jvm)
         case VersionCombo.Jvm(_)       => Some(PlatformId.Jvm)
         case VersionCombo.Js(_, _)     => Some(PlatformId.Js)
         case VersionCombo.Native(_, _) => Some(PlatformId.Native)
       },
       platformVersion = versionCombo match {
         case VersionCombo.Java                   => None
+        case VersionCombo.Kotlin(_)              => None
         case VersionCombo.Jvm(_)                 => None
         case VersionCombo.Js(_, scalaJsVersion)  => Some(scalaJsVersion.scalaJsVersion)
         case VersionCombo.Native(_, scalaNative) => Some(scalaNative.scalaNativeVersion)

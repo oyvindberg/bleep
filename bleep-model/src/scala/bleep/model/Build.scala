@@ -3,6 +3,8 @@ package model
 
 import bleep.internal.rewriteDependentData
 import bleep.rewrites.Defaults
+import io.circe.{Decoder, Encoder}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 
 import scala.collection.SortedSet
 import scala.collection.immutable.SortedMap
@@ -132,6 +134,28 @@ object Build {
       val newProjects = explodedProjects.map { case (crossName, p) => (crossName, stripExtends(p)) }
       copy(explodedProjects = newProjects)
     }
+  }
+
+  object Exploded {
+    // For Build.Exploded, we need simple decoders that don't validate against available templates/projects
+    // These are used when deserializing a build that has already been exploded
+    private implicit val templateIdDecoder: Decoder[TemplateId] = Decoder[String].map(TemplateId.apply)
+    private implicit val projectNameDecoder: Decoder[ProjectName] = Decoder[String].map(ProjectName.apply)
+
+    // Explicit encoder/decoder for Map[CrossProjectName, Project]
+    private implicit val mapCPNProjectEncoder: Encoder[Map[CrossProjectName, Project]] =
+      Encoder.encodeMap[CrossProjectName, Project](CrossProjectName.keyEncodes, Project.encodes)
+    private implicit val mapCPNProjectDecoder: Decoder[Map[CrossProjectName, Project]] =
+      Decoder.decodeMap[CrossProjectName, Project](CrossProjectName.keyDecodes, Project.decodes)
+
+    // Explicit encoder/decoder for Map[ScriptName, JsonList[ScriptDef]]
+    private implicit val mapScriptEncoder: Encoder[Map[ScriptName, JsonList[ScriptDef]]] =
+      Encoder.encodeMap[ScriptName, JsonList[ScriptDef]](ScriptName.keyEncodes, JsonList.encodes[ScriptDef])
+    private implicit val mapScriptDecoder: Decoder[Map[ScriptName, JsonList[ScriptDef]]] =
+      Decoder.decodeMap[ScriptName, JsonList[ScriptDef]](ScriptName.keyDecodes, JsonList.decodes[ScriptDef])
+
+    implicit val encodes: Encoder[Exploded] = deriveEncoder
+    implicit val decodes: Decoder[Exploded] = deriveDecoder
   }
 
   case class FileBacked(file: BuildFile) extends Build {

@@ -49,7 +49,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_3/3.2.18/scalatest-wordspec_3-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_3/3.2.18/scalatest_3-3.2.18.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/upickle/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/upickle/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-upickle-test/jvm3/classes",
@@ -125,44 +129,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -205,7 +171,6 @@
           "organization": "com.softwaremill.magnolia1_3",
           "name": "magnolia_3",
           "version": "1.3.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_3",
@@ -217,7 +182,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_3",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_3",
@@ -229,7 +193,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -241,7 +204,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_3",
@@ -253,7 +215,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_3",
@@ -265,7 +226,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_3",
@@ -277,7 +237,6 @@
           "organization": "com.lihaoyi",
           "name": "upack_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "upack_3",
@@ -289,7 +248,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -301,7 +259,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_3",
@@ -313,7 +270,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_3",
@@ -325,7 +281,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_3",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_3",
@@ -337,7 +292,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -349,7 +303,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_3",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_3",
@@ -361,7 +314,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_3",
@@ -373,7 +325,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_3",
@@ -385,7 +336,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_3",
@@ -397,7 +347,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -409,7 +358,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_3",
@@ -421,7 +369,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_3",
@@ -433,7 +380,6 @@
           "organization": "com.lihaoyi",
           "name": "upickle-core_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "upickle-core_3",
@@ -445,7 +391,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_3",
@@ -457,7 +402,6 @@
           "organization": "com.lihaoyi",
           "name": "ujson_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ujson_3",
@@ -469,7 +413,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_3",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_3",
@@ -481,7 +424,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_3",
@@ -493,7 +435,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_3",
@@ -505,7 +446,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_3",
@@ -517,7 +457,6 @@
           "organization": "com.lihaoyi",
           "name": "upickle_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "upickle_3",
@@ -529,7 +468,6 @@
           "organization": "com.lihaoyi",
           "name": "upickle-implicits_3",
           "version": "3.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "upickle-implicits_3",
@@ -541,7 +479,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_3",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_3",
@@ -550,9 +487,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

@@ -3,7 +3,6 @@ package commands
 
 import bleep.internal.TransitiveProjects
 import bleep.packaging.dist
-import bloop.rifle.BuildServer
 
 import java.nio.file.Path
 
@@ -15,19 +14,31 @@ object Dist {
   )
 }
 
-case class Dist(started: Started, watch: Boolean, options: Dist.Options) extends BleepCommandRemote(watch) {
-  override def watchableProjects(started: Started): TransitiveProjects =
-    TransitiveProjects(started.build, Array(options.project))
+case class Dist(watch: Boolean, options: Dist.Options, buildOpts: CommonBuildOpts) extends BleepBuildCommand {
+  override def run(started: Started): Either[BleepException, Unit] =
+    if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, Array(options.project)))(runOnce)
+    else runOnce(started)
 
-  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] =
+  private def runOnce(started: Started): Either[BleepException, Unit] =
     for {
-      _ <- Compile(watch = false, Array(options.project)).runWithServer(started, bloop)
+      _ <- ReactiveBsp
+        .compile(
+          watch = false,
+          projects = Array(options.project),
+          displayMode = buildOpts.displayMode,
+          flamegraph = buildOpts.flamegraph,
+          cancel = buildOpts.cancel
+        )
+        .run(started)
       mainClass <- options.overrideMain match {
         case Some(x) => Right(x)
         case None =>
           started.build.explodedProjects(options.project).platform.flatMap(_.mainClass) match {
             case Some(x) => Right(x)
-            case None    => discoverMain(started.logger, bloop, BleepCommandRemote.buildTarget(started.buildPaths, options.project))
+            case None =>
+              BspQuery.withServer(started) { server =>
+                discoverMain(started.logger, server, BspQuery.buildTarget(started.buildPaths, options.project))
+              }
           }
       }
     } yield {

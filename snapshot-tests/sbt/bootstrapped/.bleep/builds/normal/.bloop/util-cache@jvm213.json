@@ -102,7 +102,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-murmurhash_2.13",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-murmurhash_2.13",
@@ -114,7 +113,6 @@
           "organization": "com.swoval",
           "name": "file-tree-views",
           "version": "2.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
@@ -126,7 +124,6 @@
           "organization": "org.scala-sbt",
           "name": "io_2.13",
           "version": "1.10.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "io_2.13",
@@ -138,7 +135,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.13",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.13",
@@ -150,7 +146,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -162,7 +157,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.13",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.13",
@@ -174,7 +168,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.13",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.13",
@@ -186,7 +179,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -198,7 +190,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.13",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.13",
@@ -207,9 +198,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

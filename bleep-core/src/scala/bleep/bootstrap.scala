@@ -20,8 +20,8 @@ object bootstrap {
         val maybeStarted = for {
           existingBuild <- buildLoader.existing
           pre = Prebootstrapped(logger, userPaths, buildPaths, existingBuild, ec)
-          genBloopFiles = GenBloopFiles.SyncToDisk
-          started <- from(pre, genBloopFiles, rewrites, bleepConfig, CoursierResolver.Factory.default)
+          resolveProjects = ResolveProjects.InMemory
+          started <- from(pre, resolveProjects, rewrites, bleepConfig, CoursierResolver.Factory.default)
         } yield started
 
         maybeStarted match {
@@ -43,7 +43,7 @@ object bootstrap {
 
   def from(
       pre: Prebootstrapped,
-      genBloopFiles: GenBloopFiles,
+      resolveProjects: ResolveProjects,
       rewrites: List[BuildRewrite],
       config: model.BleepConfig,
       resolverFactory: CoursierResolver.Factory
@@ -56,11 +56,18 @@ object bootstrap {
           val build = rewrites.foldLeft[model.Build](model.Build.FileBacked(buildFile)) { case (b, rewrite) => rewrite(b, pre.buildPaths) }
           val bleepExecutable = Lazy(BleepExecutable.getCommand(resolver, pre, forceJvm = false))
 
+          // Resolve projects - this may also modify the build (e.g., ReplaceBleepDependencies removes build.bleep:* deps)
+          val resolveResult: ResolveProjects.Result =
+            resolveProjects(pre, resolver, build)
+
+          // Use the potentially-modified build from resolution
+          val finalBuild = resolveResult.build
+
           val activeProjects: Option[Array[model.CrossProjectName]] =
             if (pre.buildPaths.cwd == pre.buildPaths.buildDir) None
             else {
               val chosen =
-                build.explodedProjects.flatMap { case (crossProjectName, p) =>
+                finalBuild.explodedProjects.flatMap { case (crossProjectName, p) =>
                   val projectPaths = pre.buildPaths.project(crossProjectName, p)
                   val underFolder = projectPaths.dir.startsWith(pre.buildPaths.cwd)
                   def underSources = projectPaths.sourcesDirs.all.exists(_.startsWith(pre.buildPaths.cwd))
@@ -70,21 +77,20 @@ object bootstrap {
                   else None
                 }.toArray
 
-              if (chosen.length > 0 && chosen.length != build.explodedProjects.size) {
+              if (chosen.length > 0 && chosen.length != finalBuild.explodedProjects.size) {
                 pre.logger.info(
-                  s"${chosen.length} of ${build.explodedProjects.size} projects active from ${pre.buildPaths.cwd}. run `bleep projects` to see which"
+                  s"${chosen.length} of ${finalBuild.explodedProjects.size} projects active from ${pre.buildPaths.cwd}. run `bleep projects` to see which"
                 )
               }
               Some(chosen).filter(_.nonEmpty)
             }
 
-          val bloopFiles: GenBloopFiles.Files =
-            genBloopFiles(pre, resolver, build)
-
           val td = System.currentTimeMillis() - t0
           pre.logger.info(s"bootstrapped in $td ms")
 
-          Started(pre, rewrites, build, bloopFiles, activeProjects, config, resolver, bleepExecutable)(reloadUsing = go)
+          Started(pre, rewrites, finalBuild, resolveResult.projects, activeProjects, config, resolver, bleepExecutable, resolveResult.bspServerClasspathSource)(
+            reloadUsing = go
+          )
         }
       catch {
         case x: BleepException => Left(x)

@@ -1,7 +1,7 @@
 package bleep
 
 import bleep.internal.FileUtils
-import bleep.testing.SnapshotTest
+import bleep.testing.{BloopConversions, GenBloopFiles, SnapshotTest}
 import bloop.config.Config
 import io.circe.parser.decode
 import io.circe.syntax.EncoderOps
@@ -177,11 +177,11 @@ class IntegrationSnapshotTests extends SnapshotTest {
     TestResolver.withFactory(isCi, testFolder, absolutePaths) { testResolver =>
       val ec = ExecutionContext.global
       val pre = Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, existingImportedBuildLoader, ec)
-      val started = bootstrap.from(pre, GenBloopFiles.InMemory, rewrites = Nil, model.BleepConfig.default, testResolver).orThrow
+      val started = bootstrap.from(pre, ResolveProjects.InMemory, rewrites = Nil, model.BleepConfig.default, testResolver).orThrow
 
       // will produce templated bloop files we use to overwrite the bloop files already written by bootstrap
       val generatedBloopFiles: Map[Path, String] =
-        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.bloopFiles)
+        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.resolvedProjects)
 
       // further property checks to see that we haven't made any illegal rewrites
       assertSameIshBloopFiles(inputData, started).discard()
@@ -198,10 +198,10 @@ class IntegrationSnapshotTests extends SnapshotTest {
 
   // compare some key properties before and after import
   def assertSameIshBloopFiles(inputProjects: sbtimport.ImportInputData, started: Started): Assertion = {
-    started.bloopFiles.foreach {
+    started.resolvedProjects.foreach {
       case (crossProjectName, _) if crossProjectName.value == "scripts" => ()
       case (crossProjectName, lazyOutputFile) =>
-        val output = lazyOutputFile.forceGet.project
+        val output = BloopConversions.toBloopConfig(lazyOutputFile.forceGet).project
         val input = inputProjects.projects(crossProjectName).bloopFile.project
 
         // todo: this needs further work,
@@ -273,7 +273,7 @@ class IntegrationSnapshotTests extends SnapshotTest {
         case class AnalyzedClassPathDiff(classesDirs: Set[Path], scalaJars: Set[Path], restJars: Set[Path])
         object AnalyzedClassPathDiff {
           val transitiveResources: Set[Path] =
-            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.bloopProject(name).resources }.flatten.toSet
+            started.build.transitiveDependenciesFor(crossProjectName).flatMap { case (name, _) => started.resolvedProject(name).resources }.flatten.toSet
 
           def from(paths: Set[Path]): AnalyzedClassPathDiff = {
             val (classes, jars) = paths

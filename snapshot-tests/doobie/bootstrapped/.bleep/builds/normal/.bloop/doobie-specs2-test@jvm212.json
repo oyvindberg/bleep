@@ -59,7 +59,14 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/testutils-test/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/testutils/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/testutils/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm212/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/specs2/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/testutils/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/testutils/src/test/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-specs2-test/jvm212/classes",
@@ -143,44 +150,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -223,7 +192,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -235,7 +203,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -247,7 +214,6 @@
           "organization": "org.typelevel",
           "name": "munit-cats-effect_2.12",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-cats-effect_2.12",
@@ -259,7 +225,6 @@
           "organization": "org.tpolecat",
           "name": "typename_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "typename_2.12",
@@ -271,7 +236,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_2.12",
@@ -283,7 +247,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -295,7 +258,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -307,7 +269,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.12",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.12",
@@ -319,7 +280,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_2.12",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_2.12",
@@ -331,7 +291,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -343,7 +302,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -355,7 +313,6 @@
           "organization": "org.scalameta",
           "name": "junit-interface",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit-interface",
@@ -367,7 +324,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect-munit_2.12",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect-munit_2.12",
@@ -379,7 +335,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect_2.12",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect_2.12",
@@ -391,7 +346,6 @@
           "organization": "org.specs2",
           "name": "specs2-fp_2.12",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-fp_2.12",
@@ -403,7 +357,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -415,7 +368,6 @@
           "organization": "org.specs2",
           "name": "specs2-matcher_2.12",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-matcher_2.12",
@@ -427,7 +379,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel-testkit_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel-testkit_2.12",
@@ -439,7 +390,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -451,7 +401,6 @@
           "organization": "org.scalameta",
           "name": "munit-scalacheck_2.12",
           "version": "1.0.0-M6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-scalacheck_2.12",
@@ -463,7 +412,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.12",
@@ -475,7 +423,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.12",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.12",
@@ -487,7 +434,6 @@
           "organization": "junit",
           "name": "junit",
           "version": "4.13.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit",
@@ -499,7 +445,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -511,7 +456,6 @@
           "organization": "org.specs2",
           "name": "specs2-common_2.12",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-common_2.12",
@@ -523,7 +467,6 @@
           "organization": "org.scalacheck",
           "name": "scalacheck_2.12",
           "version": "1.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck_2.12",
@@ -535,7 +478,6 @@
           "organization": "org.scalameta",
           "name": "munit_2.12",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_2.12",
@@ -547,7 +489,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -559,7 +500,6 @@
           "organization": "org.typelevel",
           "name": "coop_2.12",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coop_2.12",
@@ -571,7 +511,6 @@
           "organization": "org.scalameta",
           "name": "munit-diff_2.12",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-diff_2.12",
@@ -583,7 +522,6 @@
           "organization": "org.specs2",
           "name": "specs2-core_2.12",
           "version": "4.21.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specs2-core_2.12",
@@ -595,7 +533,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -607,7 +544,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-testkit_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-testkit_2.12",
@@ -619,7 +555,6 @@
           "organization": "com.h2database",
           "name": "h2",
           "version": "1.4.200",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "h2",
@@ -631,7 +566,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.12",
@@ -640,9 +574,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

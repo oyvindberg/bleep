@@ -33,14 +33,17 @@ public class ForkedTestRunner {
   // Currently running test task thread for cancellation
   private static final AtomicReference<Thread> currentTask = new AtomicReference<>(null);
 
+  // Currently running suite name (for output tagging)
+  private static volatile String currentSuite = null;
+
   // Common framework class name mappings
   private static final Map<String, String> FRAMEWORK_CLASSES = new HashMap<>();
 
   // JUnit can be either JUnit 4 (junit-interface) or JUnit 5 (jupiter-interface)
   // We try jupiter first, then fall back to junit-interface
   private static final String[] JUNIT_FRAMEWORKS = {
+    "com.github.sbt.junit.jupiter.api.JupiterFramework", // JUnit 5 (sbt-jupiter-interface)
     "net.aichler.jupiter.api.JupiterFramework", // JUnit 5 (jupiter-interface)
-    "com.github.sbt.junit.JupiterFramework", // JUnit 5 (sbt-jupiter-interface)
     "com.novocode.junit.JUnitFramework" // JUnit 4 (junit-interface)
   };
 
@@ -190,13 +193,23 @@ public class ForkedTestRunner {
       OutputStream capturedErr) {
     long startTime = System.currentTimeMillis();
 
+    // Set current suite for output tagging
+    currentSuite = className;
+
+    send(
+        TestProtocol.encodeLog(
+            "info",
+            "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
+
     try {
       // Flush any pending output before starting
       capturedOut.flush();
       capturedErr.flush();
 
       // Load the framework
+      send(TestProtocol.encodeLog("debug", "Loading framework: " + frameworkName));
       Framework framework = loadFramework(frameworkName);
+      send(TestProtocol.encodeLog("debug", "Framework loaded: " + framework.getClass().getName()));
 
       // Get the runner
       Runner runner =
@@ -256,7 +269,7 @@ public class ForkedTestRunner {
                   ignored[0]++;
                   break;
                 case Canceled:
-                  status = "cancelled";
+                  status = "assumption-failed";
                   skipped[0]++;
                   break;
                 case Pending:
@@ -324,6 +337,10 @@ public class ForkedTestRunner {
       }
     } catch (Exception e) {
       send(
+          TestProtocol.encodeLog(
+              "error", "Exception in runSuite: " + e.getClass().getName() + ": " + e.getMessage()));
+      send(TestProtocol.encodeLog("error", stackTraceToString(e)));
+      send(
           TestProtocol.encodeError(
               "Error running suite " + className + ": " + e.getMessage(), stackTraceToString(e)));
     }
@@ -345,26 +362,39 @@ public class ForkedTestRunner {
         throw e;
       } catch (Exception e) {
         // Log error but continue with other tasks
-        send(TestProtocol.encodeLog("error", "Task execution failed: " + e.getMessage()));
+        send(
+            TestProtocol.encodeLog(
+                "error",
+                "Task execution failed: " + e.getMessage() + "\n" + stackTraceToString(e)));
       }
     }
   }
 
   private static Framework loadFramework(String name) throws Exception {
     // Special handling for JUnit - try multiple implementations
-    if (name.equalsIgnoreCase("JUnit")) {
+    // Check for various JUnit framework names
+    // Also handle Kotest which uses JUnit Platform under the hood
+    if (name.equalsIgnoreCase("JUnit")
+        || name.equalsIgnoreCase("JUnit Jupiter")
+        || name.equalsIgnoreCase("Kotest")
+        || name.toLowerCase().contains("junit")) {
       for (String frameworkClass : JUNIT_FRAMEWORKS) {
         try {
           Class<?> clazz = Class.forName(frameworkClass);
           Framework fw = (Framework) clazz.getDeclaredConstructor().newInstance();
-          send(TestProtocol.encodeLog("info", "Loaded JUnit framework: " + frameworkClass));
+          send(
+              TestProtocol.encodeLog(
+                  "info", "Loaded JUnit framework: " + frameworkClass + " (for " + name + ")"));
           return fw;
         } catch (ClassNotFoundException e) {
           // Try next one
         }
       }
       throw new ClassNotFoundException(
-          "No JUnit framework found. Tried: " + String.join(", ", JUNIT_FRAMEWORKS));
+          "No JUnit framework found for "
+              + name
+              + ". Tried: "
+              + String.join(", ", JUNIT_FRAMEWORKS));
     }
 
     String className = FRAMEWORK_CLASSES.getOrDefault(name, name);
@@ -497,7 +527,8 @@ public class ForkedTestRunner {
       synchronized (lock) {
         if (buffer.length() > 0) {
           String level = "stderr".equals(name) ? "error" : "info";
-          send(TestProtocol.encodeLog(level, buffer.toString()));
+          // Include current suite in log message if available
+          send(TestProtocol.encodeLog(currentSuite, level, buffer.toString()));
           buffer.setLength(0);
         }
       }

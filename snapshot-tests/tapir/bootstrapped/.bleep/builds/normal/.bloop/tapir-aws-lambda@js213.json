@@ -84,7 +84,19 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats-effect/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats-effect/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/serverless/aws/lambda-core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/serverless/aws/lambda-core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-lambda/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-lambda/js213/classes",
@@ -187,7 +199,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_sjs1_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_sjs1_2.13",
@@ -199,7 +210,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -211,7 +221,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -223,7 +232,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -235,7 +243,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.13",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.13",
@@ -247,7 +254,6 @@
           "organization": "org.scala-js",
           "name": "scala-js-macrotask-executor_sjs1_2.13",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-js-macrotask-executor_sjs1_2.13",
@@ -259,7 +265,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -271,7 +276,6 @@
           "organization": "io.circe",
           "name": "circe-generic_sjs1_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_sjs1_2.13",
@@ -283,7 +287,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.16+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -295,7 +298,6 @@
           "organization": "com.amazonaws",
           "name": "aws-lambda-java-serialization",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "aws-lambda-java-serialization",
@@ -307,7 +309,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.13",
@@ -319,7 +320,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -331,7 +331,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.13",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.13",
@@ -343,7 +342,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.13",
@@ -355,7 +353,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -367,7 +364,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -379,7 +375,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -391,7 +386,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -403,7 +397,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "cats_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats_2.13",
@@ -415,7 +408,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_sjs1_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.13",
@@ -427,7 +419,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -439,7 +430,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_sjs1_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_sjs1_2.13",
@@ -451,7 +441,6 @@
           "organization": "com.amazonaws",
           "name": "aws-lambda-java-core",
           "version": "1.2.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "aws-lambda-java-core",
@@ -463,7 +452,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -475,7 +463,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_sjs1_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_sjs1_2.13",
@@ -487,7 +474,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.13",
@@ -499,7 +485,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -511,7 +496,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -523,7 +507,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_sjs1_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_sjs1_2.13",
@@ -535,7 +518,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -547,7 +529,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -559,7 +540,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_sjs1_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_sjs1_2.13",
@@ -571,7 +551,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -583,7 +562,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -595,7 +573,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.13",
           "version": "2.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.13",
@@ -607,7 +584,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -619,7 +595,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_sjs1_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_sjs1_2.13",
@@ -631,7 +606,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -643,7 +617,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -655,7 +628,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -667,7 +639,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.13",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.13",
@@ -679,7 +650,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.13",
@@ -691,7 +661,6 @@
           "organization": "co.fs2",
           "name": "fs2-reactive-streams_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-reactive-streams_2.13",
@@ -703,7 +672,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -715,7 +683,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_sjs1_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_sjs1_2.13",
@@ -727,7 +694,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_sjs1_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_sjs1_2.13",
@@ -739,7 +705,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -751,7 +716,6 @@
           "organization": "io.circe",
           "name": "circe-core_sjs1_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_sjs1_2.13",
@@ -763,7 +727,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_sjs1_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_sjs1_2.13",
@@ -775,7 +738,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -787,7 +749,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_sjs1_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_sjs1_2.13",
@@ -799,7 +760,6 @@
           "organization": "com.amazonaws",
           "name": "aws-lambda-java-runtime-interface-client",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "aws-lambda-java-runtime-interface-client",
@@ -811,7 +771,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -820,9 +779,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

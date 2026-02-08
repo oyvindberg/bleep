@@ -17,6 +17,7 @@ case class Project(
     dependencies: JsonSet[Dep],
     java: Option[Java],
     scala: Option[Scala],
+    kotlin: Option[Kotlin],
     platform: Option[Platform],
     isTestProject: Option[Boolean],
     testFrameworks: JsonSet[TestFrameworkName],
@@ -37,6 +38,7 @@ case class Project(
       dependencies = dependencies.intersect(other.dependencies),
       java = java.zipCompat(other.java).map { case (_1, _2) => _1.intersect(_2) },
       scala = scala.zipCompat(other.scala).map { case (_1, _2) => _1.intersect(_2) },
+      kotlin = kotlin.zipCompat(other.kotlin).map { case (_1, _2) => _1.intersect(_2) },
       platform = platform.zipCompat(other.platform).flatMap { case (_1, _2) => _1.intersectDropEmpty(_2) },
       isTestProject = if (isTestProject == other.isTestProject) isTestProject else None,
       testFrameworks = testFrameworks.intersect(other.testFrameworks),
@@ -58,6 +60,7 @@ case class Project(
       dependencies = dependencies.removeAll(other.dependencies),
       java = removeAllFrom(java, other.java),
       scala = removeAllFrom(scala, other.scala),
+      kotlin = removeAllFrom(kotlin, other.kotlin),
       platform = (platform, other.platform) match {
         case (Some(one), Some(two)) => one.removeAllDropEmpty(two)
         case _                      => platform
@@ -82,6 +85,7 @@ case class Project(
       dependencies = dependencies.union(other.dependencies),
       java = List(java, other.java).flatten.reduceOption(_ union _),
       scala = List(scala, other.scala).flatten.reduceOption(_ union _),
+      kotlin = List(kotlin, other.kotlin).flatten.reduceOption(_ union _),
       // may throw
       platform = List(platform, other.platform).flatten.reduceOption(_ union _),
       isTestProject = isTestProject.orElse(other.isTestProject),
@@ -104,6 +108,7 @@ case class Project(
           dependencies,
           java,
           scala,
+          kotlin,
           platform,
           isTestProject,
           testFrameworks,
@@ -122,6 +127,7 @@ case class Project(
       dependencies.isEmpty &&
       java.fold(true)(_.isEmpty) &&
       scala.fold(true)(_.isEmpty) &&
+      kotlin.fold(true)(_.isEmpty) &&
       platform.fold(true)(_.isEmpty) &&
       isTestProject.isEmpty &&
       testFrameworks.isEmpty &&
@@ -144,6 +150,7 @@ object Project {
     dependencies = JsonSet.empty,
     java = None,
     scala = None,
+    kotlin = None,
     platform = None,
     isTestProject = None,
     testFrameworks = JsonSet.empty,

@@ -80,7 +80,17 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-files/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client-tests/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client-tests/js213/classes",
@@ -183,7 +193,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_sjs1_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_sjs1_2.13",
@@ -195,7 +204,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_sjs1_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.13",
@@ -207,7 +215,6 @@
           "organization": "org.scala-js",
           "name": "scala-js-macrotask-executor_sjs1_2.13",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-js-macrotask-executor_sjs1_2.13",
@@ -219,7 +226,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_sjs1_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_sjs1_2.13",
@@ -231,7 +237,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -243,7 +248,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_sjs1_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_sjs1_2.13",
@@ -255,7 +259,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_sjs1_2.13",
@@ -267,7 +270,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.16+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -279,7 +281,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_sjs1_2.13",
@@ -291,7 +292,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_sjs1_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_sjs1_2.13",
@@ -303,7 +303,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.13",
@@ -315,7 +314,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -327,7 +325,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -339,7 +336,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -351,7 +347,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_sjs1_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_sjs1_2.13",
@@ -363,7 +358,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_sjs1_2.13",
@@ -375,7 +369,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_sjs1_2.13",
@@ -387,7 +380,6 @@
           "organization": "com.softwaremill.common",
           "name": "tagging_sjs1_2.13",
           "version": "2.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "tagging_sjs1_2.13",
@@ -399,7 +391,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.13",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.13",
@@ -411,7 +402,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.13",
@@ -423,7 +413,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -435,7 +424,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_sjs1_2.13",
@@ -447,7 +435,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_sjs1_2.13",
@@ -459,7 +446,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -471,7 +457,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_sjs1_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_sjs1_2.13",
@@ -483,7 +468,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-test-interface_2.13",
           "version": "1.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-test-interface_2.13",
@@ -495,7 +479,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -507,7 +490,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -519,7 +501,6 @@
           "organization": "io.circe",
           "name": "circe-generic_sjs1_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_sjs1_2.13",
@@ -531,7 +512,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_sjs1_2.13",
@@ -543,7 +523,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.13",
           "version": "2.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.13",
@@ -555,7 +534,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_sjs1_2.13",
@@ -567,7 +545,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -579,7 +556,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_sjs1_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_sjs1_2.13",
@@ -591,7 +567,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -603,7 +578,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -615,7 +589,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.13",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.13",
@@ -627,7 +600,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.13",
@@ -639,7 +611,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_sjs1_2.13",
@@ -651,7 +622,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -663,7 +633,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_sjs1_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_sjs1_2.13",
@@ -675,7 +644,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_sjs1_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_sjs1_2.13",
@@ -687,7 +655,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_sjs1_2.13",
@@ -699,7 +666,6 @@
           "organization": "io.circe",
           "name": "circe-core_sjs1_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_sjs1_2.13",
@@ -711,7 +677,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_sjs1_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_sjs1_2.13",
@@ -723,7 +688,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -735,7 +699,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_sjs1_2.13",
@@ -747,7 +710,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_sjs1_2.13",
@@ -759,7 +721,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.13",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.13",
@@ -771,7 +732,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_sjs1_2.13",
@@ -783,7 +743,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_sjs1_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_sjs1_2.13",
@@ -792,9 +751,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }
