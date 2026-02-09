@@ -7,9 +7,11 @@ import bleep.analysis.{
   CompilerError,
   DiagnosticListener,
   ParallelProjectCompiler,
+  ProgressListener,
   ProjectCompileFailure,
   ProjectCompileResult,
   ProjectCompileSuccess,
+  ProjectCompiler,
   ScalaJsLinkConfig,
   ScalaNativeLinkConfig,
   ScalaNativeToolchain
@@ -161,7 +163,7 @@ class MultiWorkspaceBspServer(
     * messages (e.g. $/cancelRequest, build/shutdown) while the request runs. The fiber self-cleans from activeFibers via guarantee.
     */
   private def spawnRequest(request: JsonRpcRequest): IO[Unit] = {
-    val requestId = request.id.map(_.toString).getOrElse("unknown")
+    val requestId = request.id.map(_.key).getOrElse("unknown")
 
     val handler: IO[Unit] = IO
       .blocking(handleRequestSync(request))
@@ -177,7 +179,7 @@ class MultiWorkspaceBspServer(
     val cancellationToken = request.id match {
       case Some(id) =>
         val token = CancellationToken.create()
-        activeRequests.put(id.toString, token)
+        activeRequests.put(id.key, token)
         token
       case None =>
         CancellationToken.never
@@ -188,7 +190,7 @@ class MultiWorkspaceBspServer(
 
       request.id match {
         case Some(id) =>
-          activeRequests.remove(id.toString)
+          activeRequests.remove(id.key)
           val response = JsonRpcResponse(
             jsonrpc = "2.0",
             id = id,
@@ -204,14 +206,14 @@ class MultiWorkspaceBspServer(
         handleOutOfMemory(request, oom)
       case e: BspException =>
         request.id.foreach { id =>
-          activeRequests.remove(id.toString)
+          activeRequests.remove(id.key)
           trySendResponse(id, None, Some(JsonRpcError(e.code, e.getMessage, None)))
         }
       case e: Exception =>
         System.err.println(s"[BSP] Error handling ${request.method}: ${e.getMessage}")
         e.printStackTrace(System.err)
         request.id.foreach { id =>
-          activeRequests.remove(id.toString)
+          activeRequests.remove(id.key)
           trySendResponse(
             id,
             None,
@@ -249,7 +251,7 @@ class MultiWorkspaceBspServer(
     // Try to send error response
     try {
       request.id.foreach { id =>
-        activeRequests.remove(id.toString)
+        activeRequests.remove(id.key)
         val response = JsonRpcResponse(
           jsonrpc = "2.0",
           id = id,
@@ -411,8 +413,13 @@ class MultiWorkspaceBspServer(
         Some(toRaw(handleTest(p, cancellation)))
 
       case "$/cancelRequest" =>
-        val p = parseParams[CancelRequestParams](params)
-        handleCancelRequest(p)
+        // Client may send $/cancelRequest with empty params {} when the
+        // CompletableFuture is cancelled after the connection is closing.
+        // Tolerate missing id — connection cleanup handles cancellation.
+        try {
+          val p = parseParams[CancelRequestParams](params)
+          handleCancelRequest(p)
+        } catch { case _: Exception => () }
         None
 
       case "bleep/cancelBlockingWork" =>
@@ -1231,27 +1238,23 @@ class MultiWorkspaceBspServer(
 
           val startTime = System.currentTimeMillis()
 
-          // Create compile handler
+          // Create compile handler.
+          // Uses IO.race to race compilation against the kill signal. When the kill
+          // signal wins, IO.race cancels the compile fiber. Since ZincBridge uses
+          // IO.interruptible, CE interrupts the compilation thread immediately.
           val compileHandler: (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
             (compileTask, taskKillSignal) => {
               val token = CancellationToken.create()
               taskKillSignal.tryGet.flatMap {
                 case Some(_) => IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
                 case None =>
-                  taskKillSignal.get.flatMap(_ => IO(token.cancel())).start >>
-                    compileProject(started, compileTask.project, params.originId, token).flatMap { result =>
-                      // After compilation returns, check if kill was requested.
-                      // Zinc may have produced errors (e.g. "duplicate class") because
-                      // other compilations were cancelled mid-flight. Treat non-success as killed.
-                      taskKillSignal.tryGet.map {
-                        case Some(reason) =>
-                          result match {
-                            case TaskDag.TaskResult.Success => TaskDag.TaskResult.Success
-                            case _                         => TaskDag.TaskResult.Killed(reason)
-                          }
-                        case None => result
-                      }
-                    }
+                  // Cooperative cancellation: set CancellationToken so advance() returns false
+                  val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+
+                  val compile = compileProject(started, compileTask.project, params.originId, token)
+                  val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+
+                  cooperativeCancel >> IO.race(compile, waitForKill).map(_.merge)
               }
             }
 
@@ -1620,8 +1623,10 @@ class MultiWorkspaceBspServer(
                   taskKillSignal.tryGet.flatMap {
                     case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
                     case None =>
-                      taskKillSignal.get.flatMap(_ => IO(token.cancel())).start >>
-                        compileProject(started, compileTask.project, params.originId, token)
+                      val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+                      val compile = compileProject(started, compileTask.project, params.originId, token)
+                      val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+                      cooperativeCancel >> IO.race(compile, waitForKill).map(_.merge)
                   }
                 }
 
@@ -1870,10 +1875,14 @@ class MultiWorkspaceBspServer(
     }
   }
 
-  /** Compile a single project (dependencies handled by TaskDag ordering) */
+  /** Compile a single project (dependencies handled by TaskDag ordering).
+    *
+    * Calls the compiler directly (no ParallelProjectCompiler) so that CE fiber cancellation propagates through IO.interruptible in ZincBridge. This enables
+    * IO.race in the compile handler to immediately interrupt compilation when the kill signal fires.
+    */
   private def compileProject(started: Started, project: CrossProjectName, originId: Option[String], cancellation: CancellationToken): IO[TaskDag.TaskResult] = {
-    // Only compile THIS project - TaskDag handles dependency ordering
-    val singleProjectDag = BleepBuildConverter.toSingleProjectDag(started, project)
+    val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started)
+    val compiler = ProjectCompiler.forLanguage(config.language)
 
     val diagnosticListener = new DiagnosticListener {
       def onDiagnostic(error: CompilerError): Unit = {
@@ -1916,13 +1925,9 @@ class MultiWorkspaceBspServer(
       }
 
       override def onCompilationReason(projectName: String, reason: CompilationReason): Unit = {
-        // Extract a meaningful name from a classpath path
-        // For directories like /path/to/project/classes, use "project"
-        // For JARs like /path/to/lib.jar, use "lib.jar"
         def depName(path: java.nio.file.Path): String = {
           val fileName = path.getFileName.toString
           if (fileName == "classes" || fileName == "test-classes") {
-            // Use parent directory name (usually the project name)
             val parent = path.getParent
             if (parent != null) parent.getFileName.toString else fileName
           } else {
@@ -1956,27 +1961,19 @@ class MultiWorkspaceBspServer(
       }
     }
 
-    // Acquire lock for this project before compiling
     val outputDir = started.projectPaths(project).targetDir / "classes"
     ProjectLock
       .acquire(project, outputDir, lockTimeout)
       .use { _ =>
-        ParallelProjectCompiler
-          .build(
-            dag = singleProjectDag,
-            parallelism = 1, // Single project, no internal parallelism needed
-            diagnosticListener = diagnosticListener,
-            cancellationToken = cancellation,
-            progressListener = ParallelProjectCompiler.BuildProgressListener.noop
-          )
+        compiler.compile(config, diagnosticListener, cancellation, Map.empty, ProgressListener.noop)
       }
       .map {
         case _ if cancellation.isCancelled =>
           TaskDag.TaskResult.Killed(KillReason.UserRequest)
-        case ParallelProjectCompiler.BuildSuccess(_) =>
+        case _: ProjectCompileSuccess =>
           TaskDag.TaskResult.Success
-        case ParallelProjectCompiler.BuildFailure(_, failed, _) =>
-          val errors = failed.values.flatMap(_.errors.map(toDiagnostic)).toList
+        case f: ProjectCompileFailure =>
+          val errors = f.errors.map(toDiagnostic)
           TaskDag.TaskResult.Failure("Compilation failed", errors)
       }
   }

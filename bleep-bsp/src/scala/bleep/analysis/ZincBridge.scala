@@ -46,6 +46,14 @@ object ProgressListener {
   */
 object ZincBridge {
 
+  /** Drop source directories that are nested under another source directory.
+    * E.g. given {src, src/java}, drop src/java since walking src already covers it.
+    */
+  private[analysis] def removeNestedDirs(dirs: Set[Path]): Set[Path] = {
+    val abs = dirs.map(_.toAbsolutePath.normalize())
+    abs.filter(d => !abs.exists(other => other != d && d.startsWith(other)))
+  }
+
   // ─── Cached compiler infrastructure ───────────────────────────────────────
   // Safe to share: immutable values and stateless objects.
   // NOT cached: Compilers/AnalyzingCompiler — their ClassLoaderCache uses HashMap
@@ -112,7 +120,7 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       progressListener: ProgressListener,
       ecjVersion: Option[String] = None
-  ): IO[ProjectCompileResult] = IO.blocking {
+  ): IO[ProjectCompileResult] = IO.interruptible {
     debug(s"[ZincBridge] compile() called for ${config.name}")
     Files.createDirectories(config.outputDir)
 
@@ -135,6 +143,17 @@ object ZincBridge {
       val previousResult = loadPreviousResult(analysisFile)
       val hasPrevAnalysis = previousResult.analysis().isPresent
       debug(s"[ZincBridge] ${config.name}: ${sources.length} sources, hasPreviousAnalysis=$hasPrevAnalysis, outputDir=${config.outputDir}")
+
+      // When there's no analysis but old class files exist (e.g. analysis deleted by
+      // cancellation cleanup or manual clean), we must clear the output directory.
+      // Without this, zinc does a clean compile (all sources) but the output dir is
+      // on the classpath (for incremental Java compilation), so javac sees both the
+      // stale .class files AND the source files → "duplicate class" errors.
+      if (!hasPrevAnalysis && Files.exists(config.outputDir)) {
+        debug(s"[ZincBridge] No analysis for ${config.name} — clearing stale class files from ${config.outputDir}")
+        bleep.internal.FileUtils.deleteDirectory(config.outputDir)
+        Files.createDirectories(config.outputDir)
+      }
 
       // For first compile (no previous analysis), report all source files upfront
       if (!hasPrevAnalysis) {
@@ -178,6 +197,9 @@ object ZincBridge {
           case e: xsbti.CompileFailed =>
             ProjectCompileFailure(e.problems.toList.map(problemToError))
           case e: Exception =>
+            // Clear interrupt flag if set (cancellation via IO.interruptible
+            // may leave it set, which would break subsequent I/O operations)
+            Thread.interrupted()
             ProjectCompileFailure(
               List(
                 CompilerError(
@@ -190,26 +212,25 @@ object ZincBridge {
             )
         }
 
-      // If compilation was cancelled, the output directory may be in an
-      // inconsistent state (partially written class files, deleted files
-      // that the analysis still references). Delete BOTH the analysis file
-      // AND the output directory to force a completely clean rebuild.
-      // Just deleting the analysis is not enough — stale .class files in
-      // the output dir would pollute downstream projects' classpaths.
+      // If compilation was cancelled, delete the analysis file so that the
+      // next compile triggers a clean rebuild via the stale-class-files guard
+      // (lines 144-148). We intentionally do NOT delete the output directory
+      // here — that would cascade timestamp changes to all downstream projects,
+      // causing unnecessary recompilation of Kotlin/Java dependents. The stale
+      // files guard will clean up the output at the start of the NEXT compile.
       if (cancellationToken.isCancelled) {
-        debug(s"[ZincBridge] Compilation cancelled for ${config.name}, cleaning output and analysis for clean rebuild")
+        debug(s"[ZincBridge] Cancel cleanup for ${config.name}: deleting analysis=${analysisFile}")
         Files.deleteIfExists(analysisFile)
-        bleep.internal.FileUtils.deleteDirectory(config.outputDir)
       }
 
       compileResult
     }
   }
 
-  private def collectSources(sourceDirs: Set[Path]): Array[VirtualFile] =
-    sourceDirs.toArray.flatMap { srcDir =>
+  private def collectSources(sourceDirs: Set[Path]): Array[VirtualFile] = {
+    val dirs = removeNestedDirs(sourceDirs)
+    dirs.toArray.flatMap { srcDir =>
       if (Files.isDirectory(srcDir)) {
-        // Use Using to ensure Files.walk stream is properly closed
         scala.util
           .Using(Files.walk(srcDir)) { stream =>
             stream
@@ -227,6 +248,7 @@ object ZincBridge {
         Array.empty[VirtualFile]
       }
     }
+  }
 
   private def collectClassFiles(outputDir: Path): Set[Path] =
     if (Files.exists(outputDir)) {

@@ -197,9 +197,8 @@ object KotlinProjectCompiler extends ProjectCompiler {
 
     val kotlinConfig = KotlinConfig(kt.kotlinVersion, kt.jvmTarget, kt.kotlinOptions)
 
-    val sourceFiles = config.sources.toSeq.flatMap { srcDir =>
+    val sourceFiles = ZincBridge.removeNestedDirs(config.sources).toSeq.flatMap { srcDir =>
       if (Files.isDirectory(srcDir)) {
-        // Use Using to ensure Files.walk stream is properly closed
         scala.util
           .Using(Files.walk(srcDir)) { stream =>
             stream
@@ -256,14 +255,20 @@ object KotlinProjectCompiler extends ProjectCompiler {
 
         if (newerSources.isEmpty && newerDeps.isEmpty) {
           // Up to date!
+          System.err.println(s"[KotlinFastPath] ${config.name}: UpToDate (${classFiles.size} class files, outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)})")
           diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
           ProjectCompileSuccess(config.outputDir, classFiles.toSet, None)
         } else {
+          System.err.println(s"[KotlinFastPath] ${config.name}: Incremental — ${newerSources.size} newer sources, ${newerDeps.size} newer deps")
+          newerSources.take(5).foreach(s => System.err.println(s"  source: $s (mtime=${Files.getLastModifiedTime(s)})"))
+          newerDeps.take(5).foreach(d => System.err.println(s"  dep: $d (mtime=${Files.getLastModifiedTime(d)})"))
+          System.err.println(s"  outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)}")
           val reason = CompilationReason.Incremental(sourceFiles.length, newerSources, newerDeps)
           diagnosticListener.onCompilationReason(config.name, reason)
           doKotlinCompile(sourceFiles, config, kotlinConfig, diagnosticListener, cancellationToken)
         }
       } else {
+        System.err.println(s"[KotlinFastPath] ${config.name}: CleanBuild (no class files in ${config.outputDir})")
         val reason = CompilationReason.CleanBuild
         diagnosticListener.onCompilationReason(config.name, reason)
         doKotlinCompile(sourceFiles, config, kotlinConfig, diagnosticListener, cancellationToken)

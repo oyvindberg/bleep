@@ -213,7 +213,16 @@ object KotlinSourceCompiler extends Compiler {
       // Try incremental compilation first, fall back to full compilation
       val result = if setup.incrementalRunnerClass != null then {
         debug(s"Compiling ${sourcePaths.size} Kotlin files (incremental)")
-        compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
+        val incrementalResult = compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
+        incrementalResult match {
+          case CompilationFailure(errs) if errs.exists(e => e.message.contains("cache\" is null") || e.message.contains("cache is null")) =>
+            // Kotlin IC cache is corrupted — invalidate and retry
+            debug("Kotlin IC cache corrupted (cache is null), invalidating and retrying")
+            val cacheDir = input.outputDir.resolve(".kotlin-ic")
+            invalidateCache(cacheDir)
+            compileIncremental(setup, config, sourcePaths, input, listener, cancellation)
+          case other => other
+        }
       } else {
         debug(s"Compiling ${sourcePaths.size} Kotlin files (full)")
         compileWithReflection(setup, config, sourcePaths, input, listener, cancellation)
