@@ -143,23 +143,41 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("heap", "Heap Memory (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
     }
 
-    // ---- 2. GC Activity ----
-    if (events.jvm.nonEmpty) {
+    // ---- 2. GC Overhead ----
+    // ZGC reports "Cycles" (concurrent background work) and "Pauses" (actual STW pauses).
+    // Only pause time is real application overhead. Cycle time runs in parallel with app threads.
+    if (events.jvm.size >= 2) {
       val t = ArrayBuffer.empty[String]
-      val xArr = fmtDoubles(events.jvm.map(e => relS(e.get("ts").getAsLong)))
-      val gcCounts = events.jvm.map { e =>
-        var total = 0L
-        e.getAsJsonArray("gc").forEach(g => total += g.getAsJsonObject.get("count").getAsLong)
-        total
+      val timestamps = events.jvm.map(_.get("ts").getAsLong)
+
+      def cumulativeMs(nameFilter: String => Boolean): ArrayBuffer[Long] =
+        events.jvm.map { e =>
+          var total = 0L
+          e.getAsJsonArray("gc").forEach { g =>
+            val obj = g.getAsJsonObject
+            if (nameFilter(obj.get("name").getAsString)) total += obj.get("time_ms").getAsLong
+          }
+          total
+        }
+
+      val pauseMs = cumulativeMs(n => n.toLowerCase(Locale.ROOT).contains("pause"))
+      val cycleMs = cumulativeMs(n => n.toLowerCase(Locale.ROOT).contains("cycle"))
+
+      val xs = ArrayBuffer.empty[Double]
+      val pausePcts = ArrayBuffer.empty[Double]
+      val cyclePcts = ArrayBuffer.empty[Double]
+      var i = 1
+      while (i < timestamps.length) {
+        val wallDelta = (timestamps(i) - timestamps(i - 1)).toDouble
+        xs += relS(timestamps(i))
+        pausePcts += (if (wallDelta > 0) (pauseMs(i) - pauseMs(i - 1)).toDouble / wallDelta * 100.0 else 0.0)
+        cyclePcts += (if (wallDelta > 0) (cycleMs(i) - cycleMs(i - 1)).toDouble / wallDelta * 100.0 else 0.0)
+        i += 1
       }
-      val gcTimes = events.jvm.map { e =>
-        var total = 0L
-        e.getAsJsonArray("gc").forEach(g => total += g.getAsJsonObject.get("time_ms").getAsLong)
-        total
-      }
-      t += scatterTrace(xArr, fmtLongs(gcCounts), "Count", "#8b5cf6", "solid", "none", "lines")
-      t += scatterTrace(xArr, fmtLongs(gcTimes), "Time (ms)", "#22c55e", "solid", "none", "lines")
-      addChart("gc", "GC Activity (Cumulative)", t, baseLayout("Time (s)", "Count / ms"), false, 280)
+      val xArr = fmtDoubles(xs)
+      t += scatterTrace(xArr, fmtDoubles(pausePcts), "Pause %", "#ef4444", "solid", "tozeroy", "lines")
+      t += scatterTrace(xArr, fmtDoubles(cyclePcts), "Cycle % (concurrent)", "#8b5cf6", "solid", "none", "lines")
+      addChart("gc", "GC Overhead (%)", t, baseLayout("Time (s)", "% of wall time"), false, 280)
     }
 
     // ---- 3. Thread Count ----
