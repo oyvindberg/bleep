@@ -39,8 +39,10 @@ object SetupBleepBsp {
       workingDir: Path
   ): Either[BleepException, BspRifleConfig] = {
     val extraJavaOpts = config.bspServerConfigOrDefault.compileServerMaxMemory.map(m => s"-Xmx$m").toList
-    val javaOpts = BspRifleConfig.defaultJavaOpts ++ extraJavaOpts
-    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, extraJavaOpts)
+    val majorVersion = BspRifleConfig.jvmMajorVersion(resolvedJvm.jvm.name)
+    val versionOpts = BspRifleConfig.jdkVersionOpts(majorVersion)
+    val javaOpts = BspRifleConfig.defaultJavaOpts ++ versionOpts ++ extraJavaOpts
+    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, versionOpts.toList ++ extraJavaOpts)
 
     for {
       serverClasspath <- resolveServerClasspath(resolver, userPaths, logger)

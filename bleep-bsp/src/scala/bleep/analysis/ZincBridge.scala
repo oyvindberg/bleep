@@ -2,6 +2,7 @@ package bleep.analysis
 
 import cats.effect.IO
 import java.io.File
+import java.lang.ref.SoftReference
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
 import java.util.Optional
 import scala.jdk.CollectionConverters.*
@@ -70,6 +71,14 @@ object ZincBridge {
 
   /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
   private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
+
+  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure.
+    * Key: analysis file path. Value: SoftReference to parsed CompileAnalysis.
+    * This avoids re-reading 10-50MB analysis files from disk when the same dependency
+    * is loaded by multiple projects within the same build, while allowing GC to reclaim
+    * them when heap is tight.
+    */
+  private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
 
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
   private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
@@ -442,14 +451,28 @@ object ZincBridge {
     val releaseOptions = language.javaRelease.map(r => Array(s"--release", r.toString)).getOrElse(Array.empty[String])
     val javacOptions = releaseOptions ++ language.javaOptions.toArray
 
-    // Load analyses from dependency projects for proper incremental compilation
+    // Load analyses from dependency projects for proper incremental compilation.
+    // Uses a global SoftReference cache to avoid re-reading from disk when the same
+    // dependency is referenced by multiple projects in the same build.
     val loadedAnalyses: Map[Path, CompileAnalysis] = dependencyAnalyses.flatMap { case (classDir, analysisFile) =>
       if (Files.exists(analysisFile)) {
-        try {
-          val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
-          store.get().toScala.map(contents => classDir -> contents.getAnalysis)
-        } catch {
-          case _: Exception => None
+        val cached = {
+          val ref = analysisCache.get(analysisFile)
+          if (ref != null) ref.get() else null
+        }
+        if (cached != null) {
+          Some(classDir -> cached)
+        } else {
+          try {
+            val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
+            store.get().toScala.map { contents =>
+              val analysis = contents.getAnalysis
+              analysisCache.put(analysisFile, new SoftReference(analysis))
+              classDir -> analysis
+            }
+          } catch {
+            case _: Exception => None
+          }
         }
       } else None
     }
@@ -618,6 +641,8 @@ object ZincBridge {
       val store = sbt.internal.inc.FileAnalysisStore.binary(tempFile.toFile)
       store.set(AnalysisContents.create(analysis, setup))
       Files.move(tempFile, analysisFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+      // Update soft reference cache so dependents see the fresh analysis
+      analysisCache.put(analysisFile, new SoftReference(analysis))
     } catch {
       case e: Exception =>
         Files.deleteIfExists(tempFile)

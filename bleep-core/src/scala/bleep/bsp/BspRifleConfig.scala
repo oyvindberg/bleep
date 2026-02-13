@@ -69,11 +69,36 @@ object BspRifleConfig {
   val defaultJavaOpts: Seq[String] = Seq(
     "-Xss4m",
     "-Xmx4g",
+    "-XX:ReservedCodeCacheSize=512m",
     "-XX:+UseZGC",
+    "-XX:+ZGenerational",
     "-XX:ZUncommitDelay=30",
     "-XX:ZCollectionInterval=5",
+    "-XX:+UseStringDeduplication",
+    "-XX:+HeapDumpOnOutOfMemoryError",
     "-XX:+IgnoreUnrecognizedVMOptions"
   )
+
+  /** JVM options that require a minimum JDK version */
+  def jdkVersionOpts(jvmMajorVersion: Int): Seq[String] = {
+    val opts = Seq.newBuilder[String]
+    if (jvmMajorVersion >= 25) {
+      opts += "-XX:+UseCompactObjectHeaders"
+    }
+    opts.result()
+  }
+
+  /** Extract major JDK version from a JVM name like "graalvm-community:25.0.1" or "temurin:21.0.3".
+    * Returns 0 if the version cannot be parsed.
+    */
+  def jvmMajorVersion(jvmName: String): Int = {
+    val versionPart = jvmName.lastIndexOf(':') match {
+      case -1  => jvmName
+      case idx => jvmName.substring(idx + 1)
+    }
+    val majorStr = versionPart.takeWhile(_.isDigit)
+    if (majorStr.nonEmpty) majorStr.toInt else 0
+  }
 
   /** Create a config with sensible defaults */
   def default(
