@@ -69,6 +69,8 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val sourcegenStart: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val sourcegenEnd: ArrayBuffer[JsonObject] = ArrayBuffer.empty
     val summary: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val oomPressure: ArrayBuffer[JsonObject] = ArrayBuffer.empty
+    val oomCrash: ArrayBuffer[JsonObject] = ArrayBuffer.empty
   }
 
   private def parseMetrics(path: Path): Events = {
@@ -91,6 +93,8 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
           case "sourcegen_start"  => events.sourcegenStart += obj
           case "sourcegen_end"    => events.sourcegenEnd += obj
           case "summary"          => events.summary += obj
+          case "oom_pressure"     => events.oomPressure += obj
+          case "oom_crash"        => events.oomCrash += obj
           case _                  => ()
         }
       }
@@ -140,44 +144,53 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       t += scatterTrace(xArr, fmtLongs(events.jvm.map(_.get("heap_used_mb").getAsLong)), "Used", "#3b82f6", "solid", "none", "lines")
       t += scatterTrace(xArr, fmtLongs(events.jvm.map(_.get("heap_committed_mb").getAsLong)), "Committed", "#f59e0b", "dash", "none", "lines")
       t += scatterTrace(xArr, fmtLongs(events.jvm.map(_.get("heap_max_mb").getAsLong)), "Max", "#ef4444", "dot", "none", "lines")
+      // Add 95% threshold line
+      val heapMaxVal = events.jvm.head.get("heap_max_mb").getAsLong
+      val threshold95 = (heapMaxVal * 0.95).toLong
+      t += s"""{"type":"scatter","mode":"lines","x":$xArr,"y":${fmtLongs(Seq.fill(events.jvm.size)(threshold95))},"name":"95% threshold","line":{"color":"#ef4444","dash":"dash","width":1},"showlegend":false}"""
       addChart("heap", "Heap Memory (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
     }
 
-    // ---- 2. GC Overhead ----
-    // ZGC reports "Cycles" (concurrent background work) and "Pauses" (actual STW pauses).
-    // Only pause time is real application overhead. Cycle time runs in parallel with app threads.
+    // ---- 2. GC Activity ----
+    // Show per-interval GC pause count (actual STW events) and cumulative pause time.
+    // For ZGC pauses are sub-ms; for G1/Parallel they're the main overhead signal.
     if (events.jvm.size >= 2) {
       val t = ArrayBuffer.empty[String]
       val timestamps = events.jvm.map(_.get("ts").getAsLong)
-
-      def cumulativeMs(nameFilter: String => Boolean): ArrayBuffer[Long] =
-        events.jvm.map { e =>
-          var total = 0L
-          e.getAsJsonArray("gc").forEach { g =>
-            val obj = g.getAsJsonObject
-            if (nameFilter(obj.get("name").getAsString)) total += obj.get("time_ms").getAsLong
-          }
-          total
+      val cumulativePauseCount = events.jvm.map { e =>
+        var total = 0L
+        e.getAsJsonArray("gc").forEach { g =>
+          val obj = g.getAsJsonObject
+          if (obj.get("name").getAsString.toLowerCase(Locale.ROOT).contains("pause"))
+            total += obj.get("count").getAsLong
         }
-
-      val pauseMs = cumulativeMs(n => n.toLowerCase(Locale.ROOT).contains("pause"))
-      val cycleMs = cumulativeMs(n => n.toLowerCase(Locale.ROOT).contains("cycle"))
-
+        total
+      }
+      val cumulativePauseMs = events.jvm.map { e =>
+        var total = 0L
+        e.getAsJsonArray("gc").forEach { g =>
+          val obj = g.getAsJsonObject
+          if (obj.get("name").getAsString.toLowerCase(Locale.ROOT).contains("pause"))
+            total += obj.get("time_ms").getAsLong
+        }
+        total
+      }
+      // Deltas per interval
       val xs = ArrayBuffer.empty[Double]
-      val pausePcts = ArrayBuffer.empty[Double]
-      val cyclePcts = ArrayBuffer.empty[Double]
+      val pauseCounts = ArrayBuffer.empty[Long]
+      val pauseMs = ArrayBuffer.empty[Long]
       var i = 1
       while (i < timestamps.length) {
-        val wallDelta = (timestamps(i) - timestamps(i - 1)).toDouble
         xs += relS(timestamps(i))
-        pausePcts += (if (wallDelta > 0) (pauseMs(i) - pauseMs(i - 1)).toDouble / wallDelta * 100.0 else 0.0)
-        cyclePcts += (if (wallDelta > 0) (cycleMs(i) - cycleMs(i - 1)).toDouble / wallDelta * 100.0 else 0.0)
+        pauseCounts += (cumulativePauseCount(i) - cumulativePauseCount(i - 1))
+        pauseMs += (cumulativePauseMs(i) - cumulativePauseMs(i - 1))
         i += 1
       }
       val xArr = fmtDoubles(xs)
-      t += scatterTrace(xArr, fmtDoubles(pausePcts), "Pause %", "#ef4444", "solid", "tozeroy", "lines")
-      t += scatterTrace(xArr, fmtDoubles(cyclePcts), "Cycle % (concurrent)", "#8b5cf6", "solid", "none", "lines")
-      addChart("gc", "GC Overhead (%)", t, baseLayout("Time (s)", "% of wall time"), false, 280)
+      t += s"""{"type":"bar","x":$xArr,"y":${fmtLongs(pauseCounts)},"name":"Pauses/interval","marker":{"color":"#8b5cf6","opacity":0.7},"yaxis":"y"}"""
+      t += s"""{"type":"scatter","mode":"lines","x":$xArr,"y":${fmtLongs(pauseMs)},"name":"Pause ms/interval","line":{"color":"#ef4444","width":2},"yaxis":"y2"}"""
+      val gcLayout = s"""{"margin":{"t":8,"r":60,"b":44,"l":60},"showlegend":true,"legend":{"orientation":"h","y":1.15,"x":0.5,"xanchor":"center","font":{"size":11}},"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"title":{"text":"Pause count","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis2":{"title":{"text":"Pause ms","font":{"size":12}},"overlaying":"y","side":"right","gridcolor":"#f0f0f0","zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"bargap":0.1}"""
+      addChart("gc", "GC Pauses", t, gcLayout, false, 280)
     }
 
     // ---- 3. Thread Count ----
@@ -207,17 +220,35 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("concurrent", "Concurrent Compilations", t, baseLayout("Time (s)", "Count"), false, 280)
     }
 
-    // ---- 6. Per-Project Compile Duration ----
+    // ---- 6. Per-Project Compile Duration (grouped bar, sorted by max) ----
     if (events.compileEnd.nonEmpty) {
-      val t = ArrayBuffer.empty[String]
-      val workspaces = events.compileEnd.map(e => getStr(e, "workspace")).distinct.sorted
-      workspaces.zipWithIndex.foreach { case (ws, i) =>
-        val wsCompiles = events.compileEnd.filter(e => getStr(e, "workspace") == ws)
-        val wsLabel = pathName(ws)
-        val color = palette(i % palette.length)
-        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(wsCompiles.map(e => relS(e.get("ts").getAsLong)))},"y":${fmtDoubles(wsCompiles.map(_.get("duration_ms").getAsLong / 1000.0))},"text":${fmtStrings(wsCompiles.map(e => getStr(e, "project")))},"name":"${escJson(wsLabel)}","marker":{"color":"$color","size":5,"opacity":0.7},"hovertemplate":"%{text}<br>%{y:.1f}s<extra></extra>"}"""
+      // Group durations by project, take median, sort descending
+      val byProject = scala.collection.mutable.LinkedHashMap.empty[String, ArrayBuffer[Long]]
+      events.compileEnd.foreach { e =>
+        val proj = getStr(e, "project")
+        byProject.getOrElseUpdate(proj, ArrayBuffer.empty) += e.get("duration_ms").getAsLong
       }
-      addChart("compile-scatter", "Per-Project Compile Duration", t, baseLayout("Time (s)", "Duration (s)"), false, 280)
+      val sorted = byProject.toSeq.sortBy { case (_, times) => -times.max }
+      // Show top 40 projects max
+      val top = sorted.take(40)
+      val barHeight = math.max(300, top.size * 22)
+      val projects = top.map(_._1)
+      val medians = top.map { case (_, times) =>
+        val s = times.sorted
+        if (s.size % 2 == 0) (s(s.size / 2 - 1) + s(s.size / 2)) / 2.0 / 1000.0
+        else s(s.size / 2).toDouble / 1000.0
+      }
+      val maxTimes = top.map(_._2.max.toDouble / 1000.0)
+      val minTimes = top.map(_._2.min.toDouble / 1000.0)
+      val t = ArrayBuffer.empty[String]
+      // Range as error bars from min to max
+      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(medians)},"y":${fmtStrings(projects)},"name":"Median","marker":{"color":"#3b82f6","opacity":0.85},"hovertemplate":"%{y}<br>median: %{x:.1f}s<extra></extra>"}"""
+      // Show min/max as scatter points
+      t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(minTimes)},"y":${fmtStrings(projects)},"name":"Min","marker":{"color":"#22c55e","size":6,"symbol":"triangle-left"},"hovertemplate":"%{y}<br>min: %{x:.1f}s<extra></extra>"}"""
+      t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(maxTimes)},"y":${fmtStrings(projects)},"name":"Max","marker":{"color":"#ef4444","size":6,"symbol":"triangle-right"},"hovertemplate":"%{y}<br>max: %{x:.1f}s<extra></extra>"}"""
+      val projLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":true,"legend":{"orientation":"h","y":1.12,"x":0.5,"xanchor":"center","font":{"size":11}},"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false,"side":"top"},"yaxis":{"automargin":true,"tickfont":{"size":10},"autorange":"reversed"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"bargap":0.2}"""
+      chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Per-Project Compile Duration (Top ${top.size})</h3><div id="compile-bar" style="height:${barHeight}px"></div></div>"""
+      plotCalls += s"""Plotly.newPlot('compile-bar',[${t.mkString(",")}],$projLayout,{responsive:true,displayModeBar:false});"""
     }
 
     // ---- 7. Build Duration Over Time ----
@@ -237,68 +268,76 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("build-dur", "Build Duration Over Time", t, baseLayout("Time (s)", "Duration (s)"), false, 280)
     }
 
-    // ---- 8. Cache & Connection Events ----
-    locally {
-      val xs = ArrayBuffer.empty[Double]
-      val labels = ArrayBuffer.empty[String]
-      val colors = ArrayBuffer.empty[String]
-
-      events.cacheEvict.foreach { e =>
-        xs += relS(e.get("ts").getAsLong)
-        labels += s"evict: ${getStr(e, "cache")}"
-        colors += "#ef4444"
-      }
-      events.cleanCache.foreach { e =>
-        xs += relS(e.get("ts").getAsLong)
-        labels += s"clean: ${getStr(e, "project")}"
-        colors += "#f59e0b"
-      }
-      events.connectionOpen.foreach { e =>
-        xs += relS(e.get("ts").getAsLong)
-        labels += s"open #${e.get("conn_id").getAsInt}"
-        colors += "#22c55e"
-      }
-      events.connectionClose.foreach { e =>
-        xs += relS(e.get("ts").getAsLong)
-        labels += s"close #${e.get("conn_id").getAsInt}"
-        colors += "#6b7280"
-      }
-
-      if (xs.nonEmpty) {
-        val t = ArrayBuffer.empty[String]
-        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(xs)},"y":${fmtLongs(Seq.fill(xs.size)(1L))},"text":${fmtStrings(labels)},"marker":{"color":${fmtStrings(colors)},"size":12,"symbol":"diamond"},"name":"Events","hovertemplate":"%{text}<br>t=%{x:.1f}s<extra></extra>","showlegend":false}"""
-        addChart("events", "Cache & Connection Events", t, baseLayout("Time (s)", ""), false, 200)
-      }
-    }
-
-    // ---- 9. Compilation Timeline (full width) ----
+    // ---- 8. Compilation Flamegraph (full width) ----
+    // Shows each compile as a horizontal bar positioned at its start time, with width = duration.
+    // Grouped by build (workspace iteration), stacked vertically to show parallelism.
     if (events.compileStart.nonEmpty && events.compileEnd.nonEmpty) {
-      val startMap = scala.collection.mutable.Map.empty[(String, String), ArrayBuffer[JsonObject]]
+      // Match starts to ends
+      val startMap = scala.collection.mutable.Map.empty[(String, String), ArrayBuffer[Long]]
       events.compileStart.foreach { e =>
         val key = (getStr(e, "project"), getStr(e, "workspace"))
-        startMap.getOrElseUpdate(key, ArrayBuffer.empty) += e
+        startMap.getOrElseUpdate(key, ArrayBuffer.empty) += e.get("ts").getAsLong
       }
 
-      val barData = ArrayBuffer.empty[(String, String, Long, Boolean)]
+      case class Span(project: String, workspace: String, startS: Double, durationS: Double, success: Boolean)
+      val spans = ArrayBuffer.empty[Span]
       events.compileEnd.foreach { e =>
         val key = (getStr(e, "project"), getStr(e, "workspace"))
         startMap.get(key).foreach { starts =>
           if (starts.nonEmpty) {
-            starts.remove(0): Unit
-            barData += ((getStr(e, "project"), pathName(getStr(e, "workspace")), e.get("duration_ms").getAsLong, e.get("success").getAsBoolean))
+            val startTs = starts.remove(0)
+            val durMs = e.get("duration_ms").getAsLong
+            spans += Span(getStr(e, "project"), getStr(e, "workspace"), relS(startTs), durMs / 1000.0, e.get("success").getAsBoolean)
           }
         }
       }
 
-      if (barData.nonEmpty) {
-        val recent = barData.takeRight(200)
-        val barHeight = math.min(2000, math.max(350, recent.size * 16))
-        val t = ArrayBuffer.empty[String]
-        t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(recent.map(_._3 / 1000.0))},"y":${fmtStrings(recent.map(b => s"${b._1} (${b._2})"))},"name":"Compile Tasks","marker":{"color":${fmtStrings(recent.map(b => if (b._4) "#22c55e" else "#ef4444"))},"opacity":0.85,"line":{"width":0}},"hovertemplate":"%{y}<br>%{x:.1f}s<extra></extra>"}"""
-        val tlLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false,"side":"top"},"yaxis":{"automargin":true,"tickfont":{"size":10},"autorange":"reversed"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"bargap":0.15}"""
+      if (spans.nonEmpty) {
+        // Group by build (workspace + approximate start time to separate iterations)
+        val buildStarts = events.buildStart.map(e => (getStr(e, "workspace"), e.get("ts").getAsLong)).toSeq
+        // Assign each span to a build by finding the latest build_start before the span's start
+        def buildLabel(ws: String, startS: Double): String = {
+          val startMs = (startS * 1000.0).toLong + t0
+          val matching = buildStarts.filter { case (bws, bts) => bws == ws && bts <= startMs }
+          val buildIdx = if (matching.isEmpty) 0 else buildStarts.indexOf(matching.maxBy(_._2))
+          s"Build ${buildIdx + 1}: ${pathName(ws)}"
+        }
 
-        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Compilation Timeline</h3><div id="timeline" style="height:${barHeight}px"></div></div>"""
-        plotCalls += s"""Plotly.newPlot('timeline',[${t.mkString(",")}],$tlLayout,{responsive:true,displayModeBar:false});"""
+        // Sort spans by start time
+        val sorted = spans.sortBy(_.startS)
+
+        // Assign each span to a "lane" (row) for the flamegraph.
+        // Within each build group, pack spans into lanes greedily.
+        val laneEnds = ArrayBuffer.empty[Double] // tracks when each lane becomes free
+        val laneAssignments = ArrayBuffer.empty[Int]
+        sorted.foreach { span =>
+          val availableLane = laneEnds.indexWhere(_ <= span.startS)
+          if (availableLane >= 0) {
+            laneEnds(availableLane) = span.startS + span.durationS
+            laneAssignments += availableLane
+          } else {
+            laneAssignments += laneEnds.size
+            laneEnds += (span.startS + span.durationS)
+          }
+        }
+
+        val maxLanes = if (laneEnds.isEmpty) 1 else laneEnds.size
+        val flamegraphHeight = math.max(300, maxLanes * 18 + 80)
+
+        // Build one shape per span (Plotly shapes for flamegraph)
+        val shapes = sorted.zip(laneAssignments).map { case (span, lane) =>
+          val color = if (span.success) "#22c55e" else "#ef4444"
+          s"""{"type":"rect","x0":${span.startS},"x1":${span.startS + span.durationS},"y0":${lane - 0.4},"y1":${lane + 0.4},"fillcolor":"$color","opacity":0.8,"line":{"width":0}}"""
+        }
+
+        // Invisible scatter for hover info
+        val t = ArrayBuffer.empty[String]
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(sorted.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(sorted.zip(laneAssignments).map(_._2.toDouble))},"text":${fmtStrings(sorted.map(s => s"${s.project} (${pathName(s.workspace)})"))},"customdata":${fmtDoubles(sorted.map(_.durationS))},"marker":{"color":"rgba(0,0,0,0)","size":8},"hovertemplate":"%{text}<br>%{customdata:.1f}s<extra></extra>","showlegend":false}"""
+
+        val fgLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":60},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"title":{"text":"Lane","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false,"dtick":1,"range":[-0.5,${maxLanes - 0.5}]},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes.mkString(",")}]}"""
+
+        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Compilation Flamegraph</h3><div id="flamegraph" style="height:${flamegraphHeight}px"></div></div>"""
+        plotCalls += s"""Plotly.newPlot('flamegraph',[${t.mkString(",")}],$fgLayout,{responsive:true,displayModeBar:false});"""
       }
     }
 
@@ -309,14 +348,26 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     val avgCompileMs = if (totalCompiles > 0) events.compileEnd.map(_.get("duration_ms").getAsLong).sum.toDouble / totalCompiles else 0.0
     val maxConcurrent = if (events.jvm.nonEmpty) events.jvm.map(_.get("concurrent_compiles").getAsInt).max else 0
     val maxHeap = if (events.jvm.nonEmpty) events.jvm.map(_.get("heap_used_mb").getAsLong).max else 0L
-    val totalGcMs = if (events.jvm.nonEmpty) events.jvm.map { e =>
-      var total = 0L
-      e.getAsJsonArray("gc").forEach(g => total += g.getAsJsonObject.get("time_ms").getAsLong)
-      total
-    }.max
-    else 0L
-    val totalBuilds = events.buildEnd.size
-    val avgBuildMs = if (totalBuilds > 0) events.buildEnd.map(_.get("duration_ms").getAsLong).sum.toDouble / totalBuilds else 0.0
+    val heapMax = if (events.jvm.nonEmpty) events.jvm.head.get("heap_max_mb").getAsLong else 0L
+    val totalBuilds = events.buildEnd.size + events.buildStart.size - events.buildEnd.size // count started builds
+    val completedBuilds = events.buildEnd.size
+    val avgBuildMs = if (completedBuilds > 0) events.buildEnd.map(_.get("duration_ms").getAsLong).sum.toDouble / completedBuilds else 0.0
+
+    // OOM detection from server-side events
+    val oomPressureCount = events.oomPressure.size
+    val oomCrashCount = events.oomCrash.size
+    val oomDetected = oomPressureCount > 0 || oomCrashCount > 0
+    // Also detect from JVM samples as fallback (heap_used >= 95% of max)
+    val oomSamplesFromJvm = if (events.jvm.nonEmpty && heapMax > 0) {
+      events.jvm.count { e =>
+        val used = e.get("heap_used_mb").getAsLong
+        val max = e.get("heap_max_mb").getAsLong
+        max > 0 && used.toDouble / max >= 0.95
+      }
+    } else 0
+    val oomFromJvm = oomSamplesFromJvm > 0
+    val anyOom = oomDetected || oomFromJvm
+    val crashedBuilds = events.buildStart.size - events.buildEnd.size
 
     val summaryMaxConcurrent = if (events.summary.nonEmpty) events.summary.head.get("max_concurrent_compiles").getAsInt else maxConcurrent
     val summaryMaxHeap = if (events.summary.nonEmpty) events.summary.head.get("max_heap_used_mb").getAsLong else maxHeap
@@ -332,15 +383,34 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
 <div class="text-xl font-bold text-gray-900 mt-1">$value</div>
 </div></div>"""
 
-    val statsHtml = s"""<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-${stat("Total Builds", totalBuilds.toString, "#3b82f6")}
-${stat("Total Compiles", totalCompiles.toString, "#6366f1")}
+    val oomWarning = if (anyOom) {
+      val crashNote = if (oomCrashCount > 0) s" <strong>OutOfMemoryError recorded $oomCrashCount time(s).</strong>" else if (crashedBuilds > 0) s" Server crashed with $crashedBuilds build(s) in progress." else ""
+      val pressureNote = if (oomPressureCount > 0) s" Server detected heap &ge;95% $oomPressureCount time(s)." else if (oomFromJvm) s" Heap was at &ge;95% of max for $oomSamplesFromJvm/${events.jvm.size} samples." else ""
+      // Show timestamps of OOM events
+      val oomTimes = (events.oomPressure.map(e => relS(e.get("ts").getAsLong)) ++ events.oomCrash.map(e => relS(e.get("ts").getAsLong))).sorted
+      val timesNote = if (oomTimes.nonEmpty) s" OOM events at: ${oomTimes.map(t => f"${t}%.0fs").mkString(", ")}." else ""
+      s"""<div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+<div class="flex items-start gap-3">
+<div class="text-red-600 text-xl font-bold">!</div>
+<div>
+<div class="font-semibold text-red-800">Memory Pressure Detected</div>
+<div class="text-sm text-red-700 mt-1">Heap max: $heapMax MB.$pressureNote$crashNote$timesNote Increase <code class="bg-red-100 px-1 rounded">-Xmx</code> or reduce concurrent workspaces.</div>
+</div>
+</div>
+</div>"""
+    } else ""
+
+    val oomLabel = if (oomCrashCount > 0) s"$oomCrashCount CRASH" else if (oomPressureCount > 0) s"$oomPressureCount events" else "None"
+
+    val statsHtml = s"""$oomWarning<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+${stat("Builds", s"$completedBuilds / ${events.buildStart.size}", if (crashedBuilds > 0) "#ef4444" else "#3b82f6")}
+${stat("Compiles", totalCompiles.toString, "#6366f1")}
 ${stat("Success Rate", s"$successPct%", if (failedCompiles > 0) "#ef4444" else "#22c55e")}
 ${stat("Avg Compile", f"${avgCompileMs / 1000.0}%.1f s", "#f59e0b")}
 ${stat("Avg Build", f"${avgBuildMs / 1000.0}%.1f s", "#f59e0b")}
 ${stat("Max Concurrent", summaryMaxConcurrent.toString, "#8b5cf6")}
-${stat("Max Heap", s"$summaryMaxHeap MB", "#ec4899")}
-${stat("Total GC", f"${totalGcMs / 1000.0}%.1f s", "#14b8a6")}
+${stat("Heap", s"$summaryMaxHeap / $heapMax MB", if (anyOom) "#ef4444" else "#ec4899")}
+${stat("OOM", oomLabel, if (anyOom) "#ef4444" else "#22c55e")}
 </div>"""
 
     s"""<!DOCTYPE html>

@@ -27,11 +27,26 @@ object BspMetrics {
   private val concurrentCompiles = AtomicInteger(0)
   private val activeConnections = AtomicInteger(0)
 
+  // OOM tracking
+  private val OomThreshold = 0.95
+  @volatile private var oomPressureStarted = false
+
   private val SampleIntervalMs = 5000L
 
   def initialize(metricsDir: Path): Unit = {
     metricsPath = metricsDir.resolve("metrics.jsonl")
     writer = new BufferedWriter(new FileWriter(metricsPath.toFile, true)) // append mode
+
+    // Install OOM crash handler — records event before JVM dies
+    val previousHandler = Thread.getDefaultUncaughtExceptionHandler
+    Thread.setDefaultUncaughtExceptionHandler((thread: Thread, throwable: Throwable) => {
+      throwable match {
+        case oom: OutOfMemoryError =>
+          recordOomCrash(thread.getName, oom.getMessage)
+        case _ => ()
+      }
+      if (previousHandler != null) previousHandler.uncaughtException(thread, throwable)
+    })
 
     val t = new Thread("bsp-metrics-sampler") {
       override def run(): Unit =
@@ -111,6 +126,17 @@ object BspMetrics {
   def recordSourcegenEnd(scriptName: String, durationMs: Long, success: Boolean): Unit =
     writeEvent(s"""{"type":"sourcegen_end","ts":${now()},"script":"${esc(scriptName)}","duration_ms":$durationMs,"success":$success}""")
 
+  def recordOomCrash(threadName: String, message: String): Unit = {
+    val heap = ManagementFactory.getMemoryMXBean.getHeapMemoryUsage
+    val usedMb = heap.getUsed / (1024 * 1024)
+    val maxMb = heap.getMax / (1024 * 1024)
+    // Use pre-allocated strings to minimize allocation during OOM
+    writeEvent(
+      s"""{"type":"oom_crash","ts":${now()},"thread":"${esc(threadName)}","message":"${esc(if (message != null) message else "null")}","heap_used_mb":$usedMb,"heap_max_mb":$maxMb,"concurrent_compiles":${concurrentCompiles.get()},"active_connections":${activeConnections.get()}}"""
+    )
+    System.err.println(s"[BspMetrics] FATAL: OutOfMemoryError on thread $threadName: $message (heap: $usedMb/$maxMb MB)")
+  }
+
   // --------------- JVM sampling ---------------
 
   private def sampleJvm(): Unit = {
@@ -154,6 +180,23 @@ object BspMetrics {
     writeEvent(
       s"""{"type":"jvm","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_committed_mb":$heapCommittedMb,"heap_max_mb":$heapMaxMb,"non_heap_used_mb":$nonHeapUsedMb,"gc":$gcJson,"threads":$threads,"peak_threads":$peakThreads,"daemon_threads":$daemonThreads,"cpu_process":$cpuProcessStr,"cpu_system":$cpuSystemStr,"concurrent_compiles":$currentCompiles,"loaded_classes":$loadedClasses}"""
     )
+
+    // OOM pressure detection: heap used >= 95% of max
+    val heapMaxBytes = heap.getMax
+    if (heapMaxBytes > 0) {
+      val usedPct = heapUsed.toDouble / heapMaxBytes
+      if (usedPct >= OomThreshold) {
+        if (!oomPressureStarted) {
+          oomPressureStarted = true
+          writeEvent(
+            s"""{"type":"oom_pressure","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"pct":${String.format(Locale.US, "%.1f", (usedPct * 100): java.lang.Double)},"concurrent_compiles":$currentCompiles,"active_connections":${activeConnections.get()}}"""
+          )
+          System.err.println(s"[BspMetrics] WARNING: Heap at ${(usedPct * 100).toInt}% ($heapUsedMb/$heapMaxMb MB) with $currentCompiles concurrent compiles")
+        }
+      } else {
+        oomPressureStarted = false
+      }
+    }
   }
 
   private def writeSummary(): Unit = {
