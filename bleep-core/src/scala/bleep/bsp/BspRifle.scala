@@ -80,8 +80,10 @@ object BspRifle {
             case Some(pid) =>
               BspServerOperations.isProcessAlive(pid).flatMap {
                 case true =>
-                  // Server is already running — reuse it
-                  IO(logger.info(s"BSP server already running (pid=$pid), reusing"))
+                  // Server is already running — but it might still be starting up
+                  // (PID file is written before socket is created). Wait for readiness.
+                  IO(logger.info(s"BSP server already running (pid=$pid), reusing")) >>
+                    BspServerOperations.waitForServer(config)
                 case false =>
                   // Zombie: PID file exists but process is dead
                   IO(logger.info(s"BSP server pid=$pid is dead, cleaning up and starting fresh")) >>
@@ -239,24 +241,4 @@ object BspRifle {
     } >> BspServerOperations.cleanup(config.address.socketDir)
   }
 
-  /** SYNCHRONOUS fast-path check: is the BSP server already running?
-    *
-    * This avoids cats-effect IO runtime overhead for the common case where the server is already running. Returns Some(pid) if running, None otherwise.
-    *
-    * IMPORTANT: Only use this for shared mode. Ephemeral mode always needs a fresh server.
-    */
-  def isServerRunningSync(config: BspRifleConfig): Option[Long] =
-    if (config.dieWithParent) {
-      // Ephemeral mode always needs fresh server
-      None
-    } else {
-      val pidFile = config.address.socketDir.resolve("pid")
-      if (Files.exists(pidFile)) {
-        scala.util.Try(Files.readString(pidFile).trim.toLong).toOption.flatMap { pid =>
-          if (ProcessHandle.of(pid).isPresent) Some(pid) else None
-        }
-      } else {
-        None
-      }
-    }
 }

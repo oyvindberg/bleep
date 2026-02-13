@@ -47,7 +47,8 @@ class MultiWorkspaceBspServer(
     in: InputStream,
     out: OutputStream,
     logger: Logger,
-    socketDir: Option[Path] = None
+    socketDir: Option[Path],
+    compileSemaphore: java.util.concurrent.Semaphore
 ) {
   import MultiWorkspaceBspServer.DebugLogging
 
@@ -73,6 +74,9 @@ class MultiWorkspaceBspServer(
 
   /** Per-workspace loaded builds (using bleep-core's Started) */
   private val loadedBuilds = ConcurrentHashMap[Path, Started]()
+
+  /** Build load error (set during initialize if build fails to load) */
+  private val buildLoadError = AtomicReference[Option[String]](None)
 
   /** Active requests and their cancellation tokens */
   private val activeRequests = ConcurrentHashMap[String, CancellationToken]()
@@ -318,6 +322,18 @@ class MultiWorkspaceBspServer(
         "Server not initialized"
       )
 
+    // Gate all workspace/buildTarget requests behind a valid, loaded build.
+    // Lifecycle methods (initialize, initialized, shutdown, exit, cancel) are exempt.
+    val requiresBuild = method.startsWith("workspace/") || method.startsWith("buildTarget/")
+    if requiresBuild then {
+      getActiveBuild match {
+        case Left(msg) =>
+          bspError(msg)
+          throw BspException(JsonRpcErrorCodes.InternalError, msg)
+        case Right(_) => ()
+      }
+    }
+
     method match {
       case "build/initialize" =>
         val p = parseParams[InitializeBuildParams](params)
@@ -505,9 +521,13 @@ class MultiWorkspaceBspServer(
 
     buildResult match {
       case Right(started) =>
-        debugLog(s"Loaded build with ${started.build.explodedProjects.size} projects for workspace: $buildRoot (variant: $variant)")
+        buildLoadError.set(None)
+        logger.info(s"Build loaded: ${started.build.explodedProjects.size} projects for workspace $buildRoot (variant: $variant)")
       case Left(err) =>
-        bspError(s"Failed to load build for workspace $buildRoot: ${err.getMessage}")
+        val msg = s"Failed to load build for workspace $buildRoot: ${err.getMessage}"
+        buildLoadError.set(Some(msg))
+        logger.error(msg)
+        bspError(msg)
     }
 
     initialized.set(true)
@@ -806,8 +826,20 @@ class MultiWorkspaceBspServer(
         }
     }
 
-  private def getActiveBuild: Option[Started] =
-    activeWorkspace.get().flatMap(w => Option(loadedBuilds.get(w)))
+  private def getActiveBuild: Either[String, Started] =
+    activeWorkspace.get() match {
+      case None =>
+        Left("No workspace set. Call build/initialize first.")
+      case Some(ws) =>
+        buildLoadError.get() match {
+          case Some(err) => Left(err)
+          case None =>
+            Option(loadedBuilds.get(ws)) match {
+              case Some(started) => Right(started)
+              case None => Left(s"Build not yet loaded for workspace $ws")
+            }
+        }
+    }
 
   private def crossNameFromTargetId(started: Started, targetId: BuildTargetIdentifier): Option[CrossProjectName] = {
     val uri = targetId.uri.value
@@ -826,16 +858,14 @@ class MultiWorkspaceBspServer(
   // Workspace handlers
   // ==========================================================================
 
-  private def handleBuildTargets(): WorkspaceBuildTargetsResult =
-    getActiveBuild match {
-      case Some(started) =>
-        val targets = started.build.explodedProjects.map { case (crossName, project) =>
-          projectToBuildTarget(started, crossName, project)
-        }.toList
-        WorkspaceBuildTargetsResult(targets)
-      case None =>
-        WorkspaceBuildTargetsResult(List.empty)
-    }
+  private def handleBuildTargets(): WorkspaceBuildTargetsResult = {
+    // Gate already checked in dispatch, so this is always Right
+    val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
+    val targets = started.build.explodedProjects.map { case (crossName, project) =>
+      projectToBuildTarget(started, crossName, project)
+    }.toList
+    WorkspaceBuildTargetsResult(targets)
+  }
 
   private def projectToBuildTarget(started: Started, crossName: CrossProjectName, project: model.Project): BuildTarget = {
     val targetId = buildTargetId(started.buildPaths, crossName)
@@ -879,6 +909,7 @@ class MultiWorkspaceBspServer(
     activeWorkspace.get().foreach { ws =>
       debugLog(s"Reloading workspace: $ws")
       loadedBuilds.remove(ws)
+      BspMetrics.recordCacheEvict("loadedBuilds", ws.toString)
       val variant = activeVariant.get()
       loadBuild(ws, variant): Unit
     }
@@ -886,7 +917,7 @@ class MultiWorkspaceBspServer(
   private def handleSources(params: SourcesParams): SourcesResult = {
     val items = params.targets.map { targetId =>
       val sources = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield resolved.forceGet.sources.map { src =>
@@ -987,19 +1018,23 @@ class MultiWorkspaceBspServer(
     val sourcegenKillSignal = Deferred.unsafe[IO, KillReason]
 
     val sourcegenListener = new SourceGenRunner.SourceGenListener {
-      def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit =
+      def onScriptStarted(scriptMain: String, forProjects: List[String]): Unit = {
+        BspMetrics.recordSourcegenStart(scriptMain)
         sendTestEvent(
           originId,
           s"sourcegen-$scriptMain",
           BleepBspProtocol.Event.SourcegenStarted(scriptMain, forProjects, System.currentTimeMillis())
         )
+      }
 
-      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit =
+      def onScriptFinished(scriptMain: String, success: Boolean, durationMs: Long, error: Option[String]): Unit = {
+        BspMetrics.recordSourcegenEnd(scriptMain, durationMs, success)
         sendTestEvent(
           originId,
           s"sourcegen-$scriptMain",
           BleepBspProtocol.Event.SourcegenFinished(scriptMain, success, durationMs, error, System.currentTimeMillis())
         )
+      }
 
       def onLog(message: String, isError: Boolean): Unit =
         if (isError) bspError(message)
@@ -1026,6 +1061,8 @@ class MultiWorkspaceBspServer(
   }
 
   private def handleCompile(params: CompileParams, cancellation: CancellationToken): CompileResult = {
+    val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
+
     // Parse link options from arguments
     val args = params.arguments.getOrElse(List.empty)
     val linkOpts = parseLinkOptions(args)
@@ -1033,26 +1070,12 @@ class MultiWorkspaceBspServer(
     val isRelease = linkOpts.isRelease
 
     val projectsToCompile = params.targets.flatMap { targetId =>
-      for {
-        started <- getActiveBuild
-        crossName <- crossNameFromTargetId(started, targetId)
-      } yield crossName
+      crossNameFromTargetId(started, targetId)
     }.toSet
 
     debugLog(s"Compile request for: ${projectsToCompile.map(_.value).mkString(", ")}, isLink=$isLink, isRelease=$isRelease, opts=$linkOpts")
 
-    getActiveBuild match {
-      case None =>
-        bspError("No active build for compilation")
-        CompileResult(
-          originId = params.originId,
-          statusCode = StatusCode.Error,
-          dataKind = None,
-          data = None
-        )
-
-      case Some(started) =>
-        val opLabel = if (args.exists(_.contains("link"))) "link" else "compile"
+    val opLabel = if (args.exists(_.contains("link"))) "link" else "compile"
         val taskId = java.util.UUID.randomUUID().toString
         val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
         val activeWork = acquireWorkspace(workspace, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, taskId) match {
@@ -1237,6 +1260,7 @@ class MultiWorkspaceBspServer(
           debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode)")
 
           val startTime = System.currentTimeMillis()
+          BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
           // Create compile handler.
           // Uses IO.race to race compilation against the kill signal. When the kill
@@ -1244,6 +1268,8 @@ class MultiWorkspaceBspServer(
           // IO.interruptible, CE interrupts the compilation thread immediately.
           val compileHandler: (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
             (compileTask, taskKillSignal) => {
+              val projectName = compileTask.project.value
+              val wsStr = workspace.toString
               val token = CancellationToken.create()
               taskKillSignal.tryGet.flatMap {
                 case Some(_) => IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
@@ -1251,10 +1277,19 @@ class MultiWorkspaceBspServer(
                   // Cooperative cancellation: set CancellationToken so advance() returns false
                   val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
 
-                  val compile = compileProject(started, compileTask.project, params.originId, token)
+                  // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+                  val gatedCompile = IO.interruptible(compileSemaphore.acquire()).bracket { _ =>
+                    val compileStartTime = System.currentTimeMillis()
+                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                      compileProject(started, compileTask.project, params.originId, token).flatMap { result =>
+                        val dur = System.currentTimeMillis() - compileStartTime
+                        val ok = result == TaskDag.TaskResult.Success
+                        IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)).as(result)
+                      }
+                  }(_ => IO(compileSemaphore.release()))
                   val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
-                  cooperativeCancel >> IO.race(compile, waitForKill).map(_.merge)
+                  cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
               }
             }
 
@@ -1321,6 +1356,8 @@ class MultiWorkspaceBspServer(
           ioResult match {
             case Success(dag) =>
               val durationMs = System.currentTimeMillis() - startTime
+              val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
+              BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
               val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
               val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
               val compileCompleted = compileTasks.count(dag.completed.contains)
@@ -1381,6 +1418,7 @@ class MultiWorkspaceBspServer(
 
             case Failure(ex) =>
               val durationMs = System.currentTimeMillis() - startTime
+              BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
               bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
               CompileResult(
                 originId = params.originId,
@@ -1390,7 +1428,6 @@ class MultiWorkspaceBspServer(
               )
           }
         } finally releaseWorkspace(workspace, activeWork)
-    }
   }
 
   /** Send a compile event via BSP notification with structured data */
@@ -1437,38 +1474,16 @@ class MultiWorkspaceBspServer(
     * parallelism.
     */
   private def handleTest(params: TestParams, cancellation: CancellationToken): TestResult = {
+    val started = getActiveBuild.fold(msg => throw BspException(JsonRpcErrorCodes.InternalError, msg), identity)
+
     val testProjects = params.targets.flatMap { targetId =>
-      for {
-        started <- getActiveBuild
-        crossName <- crossNameFromTargetId(started, targetId)
-      } yield crossName
+      crossNameFromTargetId(started, targetId)
     }.toSet
 
     debugLog(s"Test request for: ${testProjects.map(_.value).mkString(", ")}")
 
-    getActiveBuild match {
-      case None =>
-        bspError("No active build for testing")
-        // Emit error event so client knows what went wrong
-        sendTestEvent(
-          params.originId,
-          "error",
-          BleepBspProtocol.Event.Error(
-            message = "No active build",
-            details = Some("BSP server not initialized with a workspace. Call initialize first."),
-            timestamp = System.currentTimeMillis()
-          )
-        )
-        TestResult(
-          originId = params.originId,
-          statusCode = StatusCode.Error,
-          dataKind = None,
-          data = None
-        )
-
-      case Some(started) =>
-        val taskId = java.util.UUID.randomUUID().toString
-        val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
+    val taskId = java.util.UUID.randomUUID().toString
+    val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
         val activeWork = acquireWorkspace(workspace, "test", testProjects.map(_.value), cancellation, params.originId, taskId) match {
           case Some(work) => work
           case None =>
@@ -1624,9 +1639,12 @@ class MultiWorkspaceBspServer(
                     case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
                     case None =>
                       val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
-                      val compile = compileProject(started, compileTask.project, params.originId, token)
+                      // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+                      val gatedCompile = IO.interruptible(compileSemaphore.acquire()).bracket { _ =>
+                        compileProject(started, compileTask.project, params.originId, token)
+                      }(_ => IO(compileSemaphore.release()))
                       val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-                      cooperativeCancel >> IO.race(compile, waitForKill).map(_.merge)
+                      cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
                   }
                 }
 
@@ -1872,7 +1890,6 @@ class MultiWorkspaceBspServer(
               )
           }
         } finally releaseWorkspace(workspace, activeWork)
-    }
   }
 
   /** Compile a single project (dependencies handled by TaskDag ordering).
@@ -3054,7 +3071,7 @@ class MultiWorkspaceBspServer(
   private def handleScalacOptions(params: ScalacOptionsParams): ScalacOptionsResult = {
     val items = params.targets.map { targetId =>
       (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield {
@@ -3076,7 +3093,7 @@ class MultiWorkspaceBspServer(
   private def handleJavacOptions(params: JavacOptionsParams): JavacOptionsResult = {
     val items = params.targets.map { targetId =>
       (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield {
@@ -3096,7 +3113,7 @@ class MultiWorkspaceBspServer(
     val workspace = activeWorkspace.get().getOrElse(Path.of("."))
     val items = params.targets.map { targetId =>
       val classpath = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield resolved.forceGet.classpath.map(_.toUri.toString).toList).getOrElse(List.empty)
@@ -3117,7 +3134,7 @@ class MultiWorkspaceBspServer(
     val workspace = activeWorkspace.get().getOrElse(Path.of("."))
     val items = params.targets.map { targetId =>
       val classpath = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield resolved.forceGet.classpath.map(_.toUri.toString).toList).getOrElse(List.empty)
@@ -3137,7 +3154,7 @@ class MultiWorkspaceBspServer(
   private def handleResources(params: ResourcesParams): ResourcesResult = {
     val items = params.targets.map { targetId =>
       val resources = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield resolved.forceGet.resources
@@ -3155,7 +3172,7 @@ class MultiWorkspaceBspServer(
   private def handleOutputPaths(params: OutputPathsParams): OutputPathsResult = {
     val items = params.targets.map { targetId =>
       val outputPaths = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield {
@@ -3190,7 +3207,7 @@ class MultiWorkspaceBspServer(
           }
         }.toList
       }
-      .getOrElse(List.empty)
+      .fold(_ => List.empty, identity)
 
     InverseSourcesResult(targets)
   }
@@ -3198,7 +3215,7 @@ class MultiWorkspaceBspServer(
   private def handleDependencyModules(params: DependencyModulesParams): DependencyModulesResult = {
     val items = params.targets.map { targetId =>
       val modules = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield
@@ -3228,7 +3245,7 @@ class MultiWorkspaceBspServer(
   private def handleJvmCompileClasspath(params: JvmCompileClasspathParams): JvmCompileClasspathResult = {
     val items = params.targets.map { targetId =>
       val classpath = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } yield resolved.forceGet.classpath.map(_.toUri.toString).toList).getOrElse(List.empty)
@@ -3242,10 +3259,11 @@ class MultiWorkspaceBspServer(
     var cleaned = false
     params.targets.foreach { targetId =>
       for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         resolved <- started.resolvedProjects.get(crossName)
       } {
+        BspMetrics.recordCleanCache(crossName.value)
         val classesDir = Paths.get(resolved.forceGet.classesDir.toString)
         if (Files.exists(classesDir)) {
           bleep.internal.FileUtils.deleteDirectory(classesDir)
@@ -3266,7 +3284,7 @@ class MultiWorkspaceBspServer(
   private def handleScalaMainClasses(params: ScalaMainClassesParams): ScalaMainClassesResult = {
     val items = params.targets.map { targetId =>
       val mainClasses = (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
         project <- started.build.explodedProjects.get(crossName)
       } yield project.platform
@@ -3289,7 +3307,7 @@ class MultiWorkspaceBspServer(
   private def handleScalaTestClasses(params: ScalaTestClassesParams): ScalaTestClassesResult = {
     val items = params.targets.map { targetId =>
       (for {
-        started <- getActiveBuild
+        started <- getActiveBuild.toOption
         crossName <- crossNameFromTargetId(started, targetId)
       } yield {
         val projectPaths = started.projectPaths(crossName)

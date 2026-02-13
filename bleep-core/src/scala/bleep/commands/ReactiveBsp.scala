@@ -193,26 +193,8 @@ case class ReactiveBsp(
       diagLogWriter.println(s"[DEBUG] $ts $msg")
     }
 
-    // FAST PATH: Synchronous check if server is already running (avoids IO runtime overhead)
-    val serverRunningPid = BspRifle.isServerRunningSync(config)
-    val socketDir = config.address.socketDir
-
-    // Log synchronously if server is already running (avoids IO runtime init)
-    serverRunningPid match {
-      case Some(pid) =>
-        val mode = if (config.dieWithParent) "ephemeral" else "shared"
-        bspLogger.info(s"Ensuring BSP server (mode=$mode, socket=$socketDir)")
-        bspLogger.info(s"BSP server already running (pid=$pid), reusing")
-      case None =>
-        () // Will use IO-based ensureRunning below
-    }
-
     val program: IO[BuildSummary] = for {
-      // Only run ensureRunning if server wasn't already detected as running
-      _ <- serverRunningPid match {
-        case Some(_) => IO.unit // Already logged above, skip IO-based check
-        case None    => BspRifle.ensureRunning(config, bspLogger)
-      }
+      _ <- BspRifle.ensureRunning(config, bspLogger)
 
       // Signal that gates the TUI — completed once BSP is connected.
       // The TUI fiber starts but waits on this before entering raw mode.
@@ -348,7 +330,13 @@ case class ReactiveBsp(
       }
 
       // Race BSP operation with user quit - pressing 'q' cancels BSP immediately
-      _ <- IO.race(waitForUserQuit.void, bspOperation).attempt
+      raceResult <- IO.race(waitForUserQuit.void, bspOperation).attempt
+      _ <- raceResult match {
+        case Left(err) =>
+          IO(diagLog(s"[ERROR] BSP operation failed: ${err.getClass.getName}: ${err.getMessage}")) >>
+            IO(started.logger.error(s"BSP operation failed: ${err.getMessage}"))
+        case Right(_) => IO.unit
+      }
 
       // Signal the event consumer to stop, then wait for it to finish processing
       // all queued events. The consumer processes events in FIFO order, so by the

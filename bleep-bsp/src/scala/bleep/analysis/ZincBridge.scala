@@ -446,9 +446,7 @@ object ZincBridge {
     val loadedAnalyses: Map[Path, CompileAnalysis] = dependencyAnalyses.flatMap { case (classDir, analysisFile) =>
       if (Files.exists(analysisFile)) {
         try {
-          val store = AnalysisStore.getCachedStore(
-            sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
-          )
+          val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
           store.get().toScala.map(contents => classDir -> contents.getAnalysis)
         } catch {
           case _: Exception => None

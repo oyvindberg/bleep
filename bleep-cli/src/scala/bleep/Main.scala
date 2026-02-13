@@ -101,7 +101,10 @@ object Main {
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
       importCmd(buildLoader, userPaths, buildPaths, logger),
       configCommand(logger, userPaths),
-      installTabCompletions(userPaths, logger)
+      installTabCompletions(userPaths, logger),
+      Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
+        Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(logger, userPaths, pid))
+      )
     ).foldK
 
   def argumentFrom[A](defmeta: String, nameToValue: Option[Map[String, A]]): Argument[A] =
@@ -479,6 +482,9 @@ object Main {
           },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
+          Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
+            Opts.argument[Long]("pid").orNone.map(pid => commands.ServerMetrics(started.pre.logger, started.pre.userPaths, pid))
+          ),
           Opts.subcommand("publish-local", "publishes your project locally") {
             (
               Opts.option[String]("groupId", "organization you will publish under"),

@@ -68,6 +68,7 @@ object BspRifleConfig {
   /** Default JVM options for BSP server */
   val defaultJavaOpts: Seq[String] = Seq(
     "-Xss4m",
+    "-Xmx4g",
     "-XX:+UseZGC",
     "-XX:ZUncommitDelay=30",
     "-XX:ZCollectionInterval=5",

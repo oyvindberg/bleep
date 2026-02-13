@@ -172,6 +172,11 @@ object BspServerDaemon {
     val connectionCounter = AtomicInteger(0)
     val activeClientThreads = ConcurrentHashMap.newKeySet[Thread]()
 
+    // Server-wide compile semaphore: limits total concurrent compilations across all connections
+    val numCores = Runtime.getRuntime.availableProcessors()
+    val compileSemaphore = new java.util.concurrent.Semaphore(numCores)
+    logger.info(s"Compile semaphore: $numCores permits (based on available processors)")
+
     // Install shutdown hook
     Runtime.getRuntime.addShutdownHook(new Thread(() => shutdownRequested.set(true)))
 
@@ -196,9 +201,16 @@ object BspServerDaemon {
     // The logger (created via Loggers.stderr) also writes to the original
     // System.err which goes to the same output file.
 
+    // Initialize metrics collection
+    BspMetrics.initialize(config.socketDir)
+    Runtime.getRuntime.addShutdownHook(new Thread("metrics-shutdown") {
+      override def run(): Unit = BspMetrics.shutdown()
+    })
+
     logger.info(s"BSP server starting...")
     logger.info(s"Socket: ${socketPaths.path}")
     logger.info(s"Initial workspaces: ${config.initialWorkspaces.mkString(", ")}")
+    logger.info(s"Metrics: ${config.socketDir.resolve("metrics.jsonl")}")
 
     // Create server socket using libdaemonjvm
     val serverChannel = SocketHandler.server(socketPaths)
@@ -217,10 +229,12 @@ object BspServerDaemon {
           if (clientSocket != null) {
             val connId = connectionCounter.incrementAndGet()
             logger.info(s"Client #$connId connected")
+            BspMetrics.recordConnectionOpen(connId)
 
             if (config.singleConnection) {
               // Single connection mode: handle inline and shutdown after
-              handleClient(clientSocket.getInputStream, clientSocket.getOutputStream, logger, config.socketDir)
+              try handleClient(clientSocket.getInputStream, clientSocket.getOutputStream, logger, config.socketDir, compileSemaphore)
+              finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
               catch { case _: Exception => () }
               logger.info("Single connection mode - shutting down")
@@ -228,8 +242,9 @@ object BspServerDaemon {
             } else {
               val thread = new Thread(
                 () =>
-                  try handleClient(clientSocket.getInputStream, clientSocket.getOutputStream, logger, config.socketDir)
+                  try handleClient(clientSocket.getInputStream, clientSocket.getOutputStream, logger, config.socketDir, compileSemaphore)
                   finally {
+                    BspMetrics.recordConnectionClose(connId)
                     try clientSocket.close()
                     catch { case _: Exception => () }
                     activeClientThreads.remove(Thread.currentThread())
@@ -274,7 +289,8 @@ object BspServerDaemon {
       input: java.io.InputStream,
       output: java.io.OutputStream,
       logger: Logger,
-      socketDir: Path
+      socketDir: Path,
+      compileSemaphore: java.util.concurrent.Semaphore
   ): Unit =
     try {
       // Create multi-workspace server using the daemon-level logger
@@ -282,7 +298,8 @@ object BspServerDaemon {
         input,
         output,
         logger,
-        socketDir = Some(socketDir)
+        socketDir = Some(socketDir),
+        compileSemaphore = compileSemaphore
       )
 
       // Run server message loop

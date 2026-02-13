@@ -215,14 +215,21 @@ object BspServerOperations {
     * Retries ConnectException until connection succeeds or timeout.
     */
   def connectWithRetry(config: BspRifleConfig): IO[Connection] = {
+    def isRetryable(ex: Throwable): Boolean = ex match {
+      case _: ConnectException                       => true
+      case _: java.nio.file.NoSuchFileException      => true // Socket file not created yet
+      case _: java.nio.channels.ClosedChannelException => true // Server restarting
+      case _                                         => false
+    }
+
     def attempt(deadline: Long): IO[Connection] =
       openConnection(config.address).handleErrorWith {
-        case _: ConnectException =>
+        case ex if isRetryable(ex) =>
           IO.realTime.flatMap { now =>
             if (now.toMillis >= deadline) {
               IO.raiseError(
                 new RuntimeException(
-                  s"Failed to connect to BSP server within ${config.connectionTimeout}"
+                  s"Failed to connect to BSP server within ${config.connectionTimeout}: ${ex.getClass.getSimpleName}: ${ex.getMessage}"
                 )
               )
             } else {
