@@ -76,6 +76,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run prefer jvmRuntimeOptions") {
+    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "run prefer jvmRuntimeOptions",
       """projects:
@@ -179,6 +180,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("run fallback to jvmOptions") {
+    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "run fallback to jvmOptions",
       """projects:
@@ -208,6 +210,7 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   // instead of Scala 2.13. This test verifies that bleep can handle Scala 3.8 projects correctly.
   // See: https://github.com/scala/scala3/releases/tag/3.8.0-RC3
   test("scala 3.8 with new stdlib") {
+    assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
       "scala 3.8 with new stdlib",
       """projects:
