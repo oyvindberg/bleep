@@ -220,38 +220,7 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("concurrent", "Concurrent Compilations", t, baseLayout("Time (s)", "Count"), false, 280)
     }
 
-    // ---- 6. Per-Project Compile Duration (grouped bar, sorted by max) ----
-    if (events.compileEnd.nonEmpty) {
-      // Group durations by project, take median, sort descending
-      val byProject = scala.collection.mutable.LinkedHashMap.empty[String, ArrayBuffer[Long]]
-      events.compileEnd.foreach { e =>
-        val proj = getStr(e, "project")
-        byProject.getOrElseUpdate(proj, ArrayBuffer.empty) += e.get("duration_ms").getAsLong
-      }
-      val sorted = byProject.toSeq.sortBy { case (_, times) => -times.max }
-      // Show top 40 projects max
-      val top = sorted.take(40)
-      val barHeight = math.max(300, top.size * 22)
-      val projects = top.map(_._1)
-      val medians = top.map { case (_, times) =>
-        val s = times.sorted
-        if (s.size % 2 == 0) (s(s.size / 2 - 1) + s(s.size / 2)) / 2.0 / 1000.0
-        else s(s.size / 2).toDouble / 1000.0
-      }
-      val maxTimes = top.map(_._2.max.toDouble / 1000.0)
-      val minTimes = top.map(_._2.min.toDouble / 1000.0)
-      val t = ArrayBuffer.empty[String]
-      // Range as error bars from min to max
-      t += s"""{"type":"bar","orientation":"h","x":${fmtDoubles(medians)},"y":${fmtStrings(projects)},"name":"Median","marker":{"color":"#3b82f6","opacity":0.85},"hovertemplate":"%{y}<br>median: %{x:.1f}s<extra></extra>"}"""
-      // Show min/max as scatter points
-      t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(minTimes)},"y":${fmtStrings(projects)},"name":"Min","marker":{"color":"#22c55e","size":6,"symbol":"triangle-left"},"hovertemplate":"%{y}<br>min: %{x:.1f}s<extra></extra>"}"""
-      t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(maxTimes)},"y":${fmtStrings(projects)},"name":"Max","marker":{"color":"#ef4444","size":6,"symbol":"triangle-right"},"hovertemplate":"%{y}<br>max: %{x:.1f}s<extra></extra>"}"""
-      val projLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":true,"legend":{"orientation":"h","y":1.12,"x":0.5,"xanchor":"center","font":{"size":11}},"xaxis":{"title":{"text":"Duration (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false,"side":"top"},"yaxis":{"automargin":true,"tickfont":{"size":10},"autorange":"reversed"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"bargap":0.2}"""
-      chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Per-Project Compile Duration (Top ${top.size})</h3><div id="compile-bar" style="height:${barHeight}px"></div></div>"""
-      plotCalls += s"""Plotly.newPlot('compile-bar',[${t.mkString(",")}],$projLayout,{responsive:true,displayModeBar:false});"""
-    }
-
-    // ---- 7. Build Duration Over Time ----
+    // ---- 6. Build Duration Over Time ----
     if (events.buildEnd.nonEmpty) {
       val t = ArrayBuffer.empty[String]
       val workspaces = events.buildEnd.map(e => getStr(e, "workspace")).distinct.sorted
@@ -268,9 +237,10 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       addChart("build-dur", "Build Duration Over Time", t, baseLayout("Time (s)", "Duration (s)"), false, 280)
     }
 
-    // ---- 8. Compilation Flamegraph (full width) ----
-    // Shows each compile as a horizontal bar positioned at its start time, with width = duration.
-    // Grouped by build (workspace iteration), stacked vertically to show parallelism.
+    // ---- 7. Compilation Timeline (full width) ----
+    // Y-axis: (workspace, project) sorted by workspace then project name
+    // X-axis: time. Each compile is a horizontal bar at its start time with width = duration.
+    // Multiple bars per row when the same project was compiled multiple times.
     if (events.compileStart.nonEmpty && events.compileEnd.nonEmpty) {
       // Match starts to ends
       val startMap = scala.collection.mutable.Map.empty[(String, String), ArrayBuffer[Long]]
@@ -293,51 +263,28 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       }
 
       if (spans.nonEmpty) {
-        // Group by build (workspace + approximate start time to separate iterations)
-        val buildStarts = events.buildStart.map(e => (getStr(e, "workspace"), e.get("ts").getAsLong)).toSeq
-        // Assign each span to a build by finding the latest build_start before the span's start
-        def buildLabel(ws: String, startS: Double): String = {
-          val startMs = (startS * 1000.0).toLong + t0
-          val matching = buildStarts.filter { case (bws, bts) => bws == ws && bts <= startMs }
-          val buildIdx = if (matching.isEmpty) 0 else buildStarts.indexOf(matching.maxBy(_._2))
-          s"Build ${buildIdx + 1}: ${pathName(ws)}"
-        }
+        // Build sorted list of (workspace, project) rows
+        val rowKeys = spans.map(s => (pathName(s.workspace), s.project)).distinct.sortBy(r => (r._1, r._2))
+        val rowLabels = rowKeys.map { case (ws, proj) => s"$ws / $proj" }
+        val rowIndex = rowKeys.zipWithIndex.toMap
 
-        // Sort spans by start time
-        val sorted = spans.sortBy(_.startS)
+        val timelineHeight = math.max(400, rowKeys.size * 14 + 80)
 
-        // Assign each span to a "lane" (row) for the flamegraph.
-        // Within each build group, pack spans into lanes greedily.
-        val laneEnds = ArrayBuffer.empty[Double] // tracks when each lane becomes free
-        val laneAssignments = ArrayBuffer.empty[Int]
-        sorted.foreach { span =>
-          val availableLane = laneEnds.indexWhere(_ <= span.startS)
-          if (availableLane >= 0) {
-            laneEnds(availableLane) = span.startS + span.durationS
-            laneAssignments += availableLane
-          } else {
-            laneAssignments += laneEnds.size
-            laneEnds += (span.startS + span.durationS)
-          }
-        }
-
-        val maxLanes = if (laneEnds.isEmpty) 1 else laneEnds.size
-        val flamegraphHeight = math.max(300, maxLanes * 18 + 80)
-
-        // Build one shape per span (Plotly shapes for flamegraph)
-        val shapes = sorted.zip(laneAssignments).map { case (span, lane) =>
+        // Build one shape per span
+        val shapes = spans.map { span =>
+          val row = rowIndex((pathName(span.workspace), span.project))
           val color = if (span.success) "#22c55e" else "#ef4444"
-          s"""{"type":"rect","x0":${span.startS},"x1":${span.startS + span.durationS},"y0":${lane - 0.4},"y1":${lane + 0.4},"fillcolor":"$color","opacity":0.8,"line":{"width":0}}"""
+          s"""{"type":"rect","x0":${span.startS},"x1":${span.startS + span.durationS},"y0":${row - 0.4},"y1":${row + 0.4},"fillcolor":"$color","opacity":0.8,"line":{"width":0}}"""
         }
 
         // Invisible scatter for hover info
         val t = ArrayBuffer.empty[String]
-        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(sorted.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(sorted.zip(laneAssignments).map(_._2.toDouble))},"text":${fmtStrings(sorted.map(s => s"${s.project} (${pathName(s.workspace)})"))},"customdata":${fmtDoubles(sorted.map(_.durationS))},"marker":{"color":"rgba(0,0,0,0)","size":8},"hovertemplate":"%{text}<br>%{customdata:.1f}s<extra></extra>","showlegend":false}"""
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(spans.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(spans.map(s => rowIndex((pathName(s.workspace), s.project)).toDouble))},"text":${fmtStrings(spans.map(s => s"${s.project} (${pathName(s.workspace)})"))},"customdata":${fmtDoubles(spans.map(_.durationS))},"marker":{"color":"rgba(0,0,0,0)","size":6},"hovertemplate":"%{text}<br>%{customdata:.1f}s<extra></extra>","showlegend":false}"""
 
-        val fgLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":60},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"title":{"text":"Lane","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false,"dtick":1,"range":[-0.5,${maxLanes - 0.5}]},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes.mkString(",")}]}"""
+        val tlLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(rowKeys.indices.map(_.toDouble))},"ticktext":${fmtStrings(rowLabels)},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes.mkString(",")}]}"""
 
-        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Compilation Flamegraph</h3><div id="flamegraph" style="height:${flamegraphHeight}px"></div></div>"""
-        plotCalls += s"""Plotly.newPlot('flamegraph',[${t.mkString(",")}],$fgLayout,{responsive:true,displayModeBar:false});"""
+        chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Compilation Timeline (${rowKeys.size} projects)</h3><div id="timeline" style="height:${timelineHeight}px"></div></div>"""
+        plotCalls += s"""Plotly.newPlot('timeline',[${t.mkString(",")}],$tlLayout,{responsive:true,displayModeBar:false});"""
       }
     }
 
