@@ -34,7 +34,6 @@ jobs:
       - name: Run tests
         env:
           CI: true
-          JAVA_TOOL_OPTIONS: "-Xmx4g"
         run: |
           bleep compile
           bleep sourcegen
