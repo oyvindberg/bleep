@@ -208,7 +208,7 @@ jobs:
           retention-days: 1
 
   release:
-    timeout-minutes: 15
+    timeout-minutes: 20
     runs-on: ubuntu-22.04
     needs: [ build, build-native-image, yaml-ls-check, build-intellij-plugin ]
     if: "startsWith(github.ref, 'refs/tags/v')"
@@ -216,8 +216,18 @@ jobs:
       - uses: actions/checkout@v6
         with:
           submodules: true
+      - uses: bleep-build/bleep-setup-action@0.0.2
+      - uses: coursier/cache-action@v7
+        with:
+          extraFiles: bleep.yaml
       - id: get_version
         uses: battila7/get-version-action@v2
+      - name: Publish bleep-bsp and test-runner locally
+        run: |
+          bleep compile bleep-cli@jvm3
+          bleep sourcegen
+          bleep my-publish-local
+          bleep config compile-server stop-all
       - name: Download artifacts
         uses: actions/download-artifact@v7
         with:
