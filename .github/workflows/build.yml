@@ -139,6 +139,14 @@ jobs:
         run: bleep my-publish-local
         shell: cmd
         if: runner.os == 'Windows'
+      - name: Setup GraalVM (windows)
+        uses: graalvm/setup-graalvm@v1
+        if: runner.os == 'Windows'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          distribution: 'graalvm-community'
+          java-version: '25.0.1'
+          native-image-job-reports: 'true'
       - name: Fix backslash jar entries (windows)
         shell: pwsh
         if: runner.os == 'Windows'
