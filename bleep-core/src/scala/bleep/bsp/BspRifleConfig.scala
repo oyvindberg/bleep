@@ -88,8 +88,7 @@ object BspRifleConfig {
     opts.result()
   }
 
-  /** Extract major JDK version from a JVM name like "graalvm-community:25.0.1" or "temurin:21.0.3".
-    * Returns 0 if the version cannot be parsed.
+  /** Extract major JDK version from a JVM name like "graalvm-community:25.0.1" or "temurin:21.0.3". Returns 0 if the version cannot be parsed.
     */
   def jvmMajorVersion(jvmName: String): Int = {
     val versionPart = jvmName.lastIndexOf(':') match {

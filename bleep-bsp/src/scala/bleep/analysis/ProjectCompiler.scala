@@ -255,7 +255,9 @@ object KotlinProjectCompiler extends ProjectCompiler {
 
         if (newerSources.isEmpty && newerDeps.isEmpty) {
           // Up to date!
-          System.err.println(s"[KotlinFastPath] ${config.name}: UpToDate (${classFiles.size} class files, outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)})")
+          System.err.println(
+            s"[KotlinFastPath] ${config.name}: UpToDate (${classFiles.size} class files, outputModTime=${java.time.Instant.ofEpochMilli(outputModTime)})"
+          )
           diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
           ProjectCompileSuccess(config.outputDir, classFiles.toSet, None)
         } else {

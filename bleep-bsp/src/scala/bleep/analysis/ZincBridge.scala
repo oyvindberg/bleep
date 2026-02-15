@@ -47,8 +47,7 @@ object ProgressListener {
   */
 object ZincBridge {
 
-  /** Drop source directories that are nested under another source directory.
-    * E.g. given {src, src/java}, drop src/java since walking src already covers it.
+  /** Drop source directories that are nested under another source directory. E.g. given {src, src/java}, drop src/java since walking src already covers it.
     */
   private[analysis] def removeNestedDirs(dirs: Set[Path]): Set[Path] = {
     val abs = dirs.map(_.toAbsolutePath.normalize())
@@ -72,11 +71,9 @@ object ZincBridge {
   /** Cached bridge jar per Scala version. Avoids coursier I/O on every compile. */
   private val bridgeCache = new java.util.concurrent.ConcurrentHashMap[String, Path]()
 
-  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure.
-    * Key: analysis file path. Value: SoftReference to parsed CompileAnalysis.
-    * This avoids re-reading 10-50MB analysis files from disk when the same dependency
-    * is loaded by multiple projects within the same build, while allowing GC to reclaim
-    * them when heap is tight.
+  /** Soft-reference cache for dependency analyses. Entries are evicted under memory pressure. Key: analysis file path. Value: SoftReference to parsed
+    * CompileAnalysis. This avoids re-reading 10-50MB analysis files from disk when the same dependency is loaded by multiple projects within the same build,
+    * while allowing GC to reclaim them when heap is tight.
     */
   private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
 

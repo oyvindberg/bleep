@@ -76,7 +76,8 @@ object JvmPool {
   /** Create a new JVM pool with the given maximum concurrency.
     *
     * IMPORTANT: The returned pool has an explicit shutdown method that MUST be called when done. Use guarantee to ensure cleanup: {{{
-    * JvmPool.create(maxConcurrency, jvmCommand, workingDirectory).use { pool => // pool.shutdown is called automatically when this scope ends runTests(pool) } }}}
+    * JvmPool.create(maxConcurrency, jvmCommand, workingDirectory).use { pool => // pool.shutdown is called automatically when this scope ends runTests(pool) }
+    * }}}
     *
     * No shutdown hooks are used - caller is responsible for ensuring shutdown is called.
     *

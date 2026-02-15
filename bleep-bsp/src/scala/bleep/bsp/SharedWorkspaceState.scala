@@ -28,8 +28,8 @@ object SharedWorkspaceState {
 
   /** Clear active work for a workspace and complete its future.
     *
-    * Only removes the entry if it matches the expected ActiveWork instance. This prevents a disconnecting connection from clearing a DIFFERENT
-    * connection's workspace registration.
+    * Only removes the entry if it matches the expected ActiveWork instance. This prevents a disconnecting connection from clearing a DIFFERENT connection's
+    * workspace registration.
     */
   def clearActive(workspace: Path, expected: ActiveWork): Unit =
     if (activeWork.remove(workspace, expected)) {

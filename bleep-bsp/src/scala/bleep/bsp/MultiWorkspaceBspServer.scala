@@ -584,7 +584,7 @@ class MultiWorkspaceBspServer(
       originId: Option[String],
       taskId: String,
       sentBusyEvent: Boolean = false
-  ): Option[SharedWorkspaceState.ActiveWork] = {
+  ): Option[SharedWorkspaceState.ActiveWork] =
     SharedWorkspaceState.getActive(workspace) match {
       case Some(active) =>
         // Workspace busy — notify client and wait
@@ -628,7 +628,6 @@ class MultiWorkspaceBspServer(
           acquireWorkspace(workspace, operation, projects, cancellation, originId, taskId, sentBusyEvent)
         }
     }
-  }
 
   /** Release workspace after operation completes. Only removes if this connection's ActiveWork still holds the lock. */
   private def releaseWorkspace(workspace: Path, work: SharedWorkspaceState.ActiveWork): Unit =
@@ -836,7 +835,7 @@ class MultiWorkspaceBspServer(
           case None =>
             Option(loadedBuilds.get(ws)) match {
               case Some(started) => Right(started)
-              case None => Left(s"Build not yet loaded for workspace $ws")
+              case None          => Left(s"Build not yet loaded for workspace $ws")
             }
         }
     }
@@ -1076,358 +1075,360 @@ class MultiWorkspaceBspServer(
     debugLog(s"Compile request for: ${projectsToCompile.map(_.value).mkString(", ")}, isLink=$isLink, isRelease=$isRelease, opts=$linkOpts")
 
     val opLabel = if (args.exists(_.contains("link"))) "link" else "compile"
-        val taskId = java.util.UUID.randomUUID().toString
-        val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
-        val activeWork = acquireWorkspace(workspace, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, taskId) match {
-          case Some(work) => work
-          case None =>
-            return CompileResult(originId = params.originId, statusCode = StatusCode.Cancelled, dataKind = None, data = None)
+    val taskId = java.util.UUID.randomUUID().toString
+    val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
+    val activeWork = acquireWorkspace(workspace, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, taskId) match {
+      case Some(work) => work
+      case None =>
+        return CompileResult(originId = params.originId, statusCode = StatusCode.Cancelled, dataKind = None, data = None)
+    }
+    try {
+      // Re-read user config fresh before starting (allows runtime config changes)
+      val userPaths = UserPaths.fromAppDirs
+      val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
+      val serverConfig = freshConfig.bspServerConfigOrDefault
+      val maxParallelism = serverConfig.effectiveParallelism
+      debugLog(s"BSP config: parallelism=$maxParallelism")
+
+      // Include transitive dependencies
+      val allProjects = BleepBuildConverter.transitiveDependencies(projectsToCompile, started)
+      debugLog(s"Compiling ${allProjects.size} projects (including dependencies)")
+
+      // Run sourcegen scripts if any projects have them
+      runSourcegenIfNeeded(started, allProjects, params.originId, maxParallelism, cancellation) match {
+        case Left(err) =>
+          bspError(err)
+          return CompileResult(
+            originId = params.originId,
+            statusCode = StatusCode.Error,
+            dataKind = None,
+            data = None
+          )
+        case Right(_) => ()
+      }
+
+      // Get all project dependencies (for TaskDag)
+      val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
+        started.build.explodedProjects.map { case (crossName, project) =>
+          val deps = project.dependsOn.values.flatMap { depName =>
+            val depCrossName = CrossProjectName(depName, crossName.crossId)
+            if (started.build.explodedProjects.contains(depCrossName)) {
+              Some(depCrossName)
+            } else {
+              started.build.explodedProjects.keys.find(_.name == depName)
+            }
+          }.toSet
+          crossName -> deps
         }
-        try {
-          // Re-read user config fresh before starting (allows runtime config changes)
-          val userPaths = UserPaths.fromAppDirs
-          val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
-          val serverConfig = freshConfig.bspServerConfigOrDefault
-          val maxParallelism = serverConfig.effectiveParallelism
-          debugLog(s"BSP config: parallelism=$maxParallelism")
 
-          // Include transitive dependencies
-          val allProjects = BleepBuildConverter.transitiveDependencies(projectsToCompile, started)
-          debugLog(s"Compiling ${allProjects.size} projects (including dependencies)")
+      // Determine platforms for target projects (needed for link tasks)
+      val platforms: Map[CrossProjectName, TaskDag.LinkPlatform] = if (isLink) {
+        projectsToCompile.flatMap { crossName =>
+          val project = started.build.explodedProjects(crossName)
+          val platformOpt = project.platform.flatMap(_.name)
+          val isKotlin = project.kotlin.flatMap(_.version).isDefined
+          val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse("2.1.0")
 
-          // Run sourcegen scripts if any projects have them
-          runSourcegenIfNeeded(started, allProjects, params.originId, maxParallelism, cancellation) match {
-            case Left(err) =>
-              bspError(err)
-              return CompileResult(
-                originId = params.originId,
-                statusCode = StatusCode.Error,
-                dataKind = None,
-                data = None
-              )
-            case Right(_) => ()
-          }
-
-          // Get all project dependencies (for TaskDag)
-          val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-            started.build.explodedProjects.map { case (crossName, project) =>
-              val deps = project.dependsOn.values.flatMap { depName =>
-                val depCrossName = CrossProjectName(depName, crossName.crossId)
-                if (started.build.explodedProjects.contains(depCrossName)) {
-                  Some(depCrossName)
-                } else {
-                  started.build.explodedProjects.keys.find(_.name == depName)
+          (platformOpt, isKotlin) match {
+            case (Some(model.PlatformId.Js), true) =>
+              // Kotlin/JS
+              val projectPaths = started.projectPaths(crossName)
+              val outputDir = projectPaths.targetDir.resolve("link-output").resolve("js")
+              val moduleKind = linkOpts.moduleKind
+                .map {
+                  case "esmodule" => "es"
+                  case "nomodule" => "plain"
+                  case _          => "commonjs"
                 }
-              }.toSet
-              crossName -> deps
-            }
+                .getOrElse("commonjs")
+              val config = TaskDag.KotlinJsConfig(
+                moduleKind = moduleKind,
+                sourceMap = linkOpts.sourceMaps.getOrElse(!isRelease),
+                dce = linkOpts.optimize.getOrElse(isRelease),
+                outputDir = outputDir
+              )
+              Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
 
-          // Determine platforms for target projects (needed for link tasks)
-          val platforms: Map[CrossProjectName, TaskDag.LinkPlatform] = if (isLink) {
-            projectsToCompile.flatMap { crossName =>
-              val project = started.build.explodedProjects(crossName)
-              val platformOpt = project.platform.flatMap(_.name)
-              val isKotlin = project.kotlin.flatMap(_.version).isDefined
-              val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse("2.1.0")
-
-              (platformOpt, isKotlin) match {
-                case (Some(model.PlatformId.Js), true) =>
-                  // Kotlin/JS
-                  val projectPaths = started.projectPaths(crossName)
-                  val outputDir = projectPaths.targetDir.resolve("link-output").resolve("js")
-                  val moduleKind = linkOpts.moduleKind
-                    .map {
-                      case "esmodule" => "es"
-                      case "nomodule" => "plain"
-                      case _          => "commonjs"
-                    }
-                    .getOrElse("commonjs")
-                  val config = TaskDag.KotlinJsConfig(
-                    moduleKind = moduleKind,
-                    sourceMap = linkOpts.sourceMaps.getOrElse(!isRelease),
-                    dce = linkOpts.optimize.getOrElse(isRelease),
-                    outputDir = outputDir
-                  )
-                  Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
-
-                case (Some(model.PlatformId.Js), false) =>
-                  // Scala.js
-                  val sjsVersion = project.platform.flatMap(_.jsVersion).map(_.scalaJsVersion).getOrElse("1.19.0")
-                  val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
-                  val baseConfig = if (isRelease) bleep.analysis.ScalaJsLinkConfig.Release else bleep.analysis.ScalaJsLinkConfig.Debug
-                  val config = baseConfig.copy(
-                    emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
-                    minify = linkOpts.minify.getOrElse(baseConfig.minify),
-                    optimizer = linkOpts.optimize.getOrElse(baseConfig.optimizer),
-                    moduleKind = linkOpts.moduleKind
-                      .map {
-                        case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
-                        case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
-                        case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
-                      }
-                      .getOrElse(baseConfig.moduleKind)
-                  )
-                  Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
-
-                case (Some(model.PlatformId.Native), true) =>
-                  // Kotlin/Native
-                  val config = TaskDag.KotlinNativeConfig(
-                    target = "host",
-                    debugInfo = linkOpts.debugInfo.getOrElse(false),
-                    optimizations = linkOpts.optimize.getOrElse(isRelease),
-                    isTest = false
-                  )
-                  Some(crossName -> TaskDag.LinkPlatform.KotlinNative(kotlinVersion, config))
-
-                case (Some(model.PlatformId.Native), false) =>
-                  // Scala Native
-                  val snVersion = project.platform.flatMap(_.nativeVersion).map(_.scalaNativeVersion).getOrElse("0.5.6")
-                  val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
-                  val baseConfig = if (isRelease) bleep.analysis.ScalaNativeLinkConfig.ReleaseFast else bleep.analysis.ScalaNativeLinkConfig.Debug
-                  val configWithLto = linkOpts.lto match {
-                    case Some("thin") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.Thin)
-                    case Some("full") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.Full)
-                    case Some("none") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.None)
-                    case _            => baseConfig
+            case (Some(model.PlatformId.Js), false) =>
+              // Scala.js
+              val sjsVersion = project.platform.flatMap(_.jsVersion).map(_.scalaJsVersion).getOrElse("1.19.0")
+              val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
+              val baseConfig = if (isRelease) bleep.analysis.ScalaJsLinkConfig.Release else bleep.analysis.ScalaJsLinkConfig.Debug
+              val config = baseConfig.copy(
+                emitSourceMaps = linkOpts.sourceMaps.getOrElse(baseConfig.emitSourceMaps),
+                minify = linkOpts.minify.getOrElse(baseConfig.minify),
+                optimizer = linkOpts.optimize.getOrElse(baseConfig.optimizer),
+                moduleKind = linkOpts.moduleKind
+                  .map {
+                    case "nomodule" => ScalaJsLinkConfig.ModuleKind.NoModule
+                    case "esmodule" => ScalaJsLinkConfig.ModuleKind.ESModule
+                    case _          => ScalaJsLinkConfig.ModuleKind.CommonJSModule
                   }
-                  val config = configWithLto.copy(
-                    optimize = linkOpts.optimize.getOrElse(configWithLto.optimize)
-                  )
-                  Some(crossName -> TaskDag.LinkPlatform.ScalaNative(snVersion, scalaVersion, config))
-
-                case _ =>
-                  // JVM - no linking needed
-                  None
-              }
-            }.toMap
-          } else {
-            Map.empty
-          }
-
-          // Validate link options if --link was specified
-          if (isLink) {
-            val platformsPresent = platforms.values.collect {
-              case _: TaskDag.LinkPlatform.KotlinJs     => "Kotlin/JS"
-              case _: TaskDag.LinkPlatform.ScalaJs      => "Scala.js"
-              case _: TaskDag.LinkPlatform.KotlinNative => "Kotlin/Native"
-              case _: TaskDag.LinkPlatform.ScalaNative  => "Scala Native"
-            }.toSet
-
-            val validationErrors = List.newBuilder[String]
-
-            if (platformsPresent.isEmpty) {
-              validationErrors += "No linkable projects found (only JVM projects can be compiled without linking)"
-            }
-
-            if (linkOpts.sourceMaps.isDefined && !platformsPresent.exists(p => p == "Scala.js" || p == "Kotlin/JS")) {
-              validationErrors += s"--source-maps/--no-source-maps only applies to JS platforms (Scala.js, Kotlin/JS), but linking: ${platformsPresent.mkString(", ")}"
-            }
-            if (linkOpts.minify.isDefined && !platformsPresent.contains("Scala.js")) {
-              validationErrors += s"--minify/--no-minify only applies to Scala.js, but linking: ${platformsPresent.mkString(", ")}"
-            }
-            if (linkOpts.moduleKind.isDefined && !platformsPresent.exists(p => p == "Scala.js" || p == "Kotlin/JS")) {
-              validationErrors += s"--module-kind only applies to JS platforms (Scala.js, Kotlin/JS), but linking: ${platformsPresent.mkString(", ")}"
-            }
-            if (linkOpts.lto.isDefined && !platformsPresent.contains("Scala Native")) {
-              validationErrors += s"--lto only applies to Scala Native, but linking: ${platformsPresent.mkString(", ")}"
-            }
-            if (linkOpts.optimize.isDefined && platformsPresent.isEmpty) {
-              validationErrors += s"--optimize/--no-optimize only applies to non-JVM platforms, but no linkable projects found"
-            }
-            if (linkOpts.debugInfo.isDefined && !platformsPresent.exists(p => p == "Scala Native" || p == "Kotlin/Native")) {
-              validationErrors += s"--debug-info/--no-debug-info only applies to native platforms (Scala Native, Kotlin/Native), but linking: ${platformsPresent.mkString(", ")}"
-            }
-
-            val errors = validationErrors.result()
-            if (errors.nonEmpty) {
-              errors.foreach(bspError)
-              return CompileResult(
-                originId = params.originId,
-                statusCode = StatusCode.Error,
-                dataKind = None,
-                data = None
+                  .getOrElse(baseConfig.moduleKind)
               )
-            }
-          }
+              Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
 
-          // Build the appropriate DAG based on mode
-          val buildMode = if (isLink) {
-            BleepBspProtocol.BuildMode.Link(isRelease)
-          } else {
-            BleepBspProtocol.BuildMode.Compile
-          }
-          val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode)
-          debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode)")
-
-          val startTime = System.currentTimeMillis()
-          BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
-
-          // Create compile handler.
-          // Uses IO.race to race compilation against the kill signal. When the kill
-          // signal wins, IO.race cancels the compile fiber. Since ZincBridge uses
-          // IO.interruptible, CE interrupts the compilation thread immediately.
-          val compileHandler: (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-            (compileTask, taskKillSignal) => {
-              val projectName = compileTask.project.value
-              val wsStr = workspace.toString
-              val token = CancellationToken.create()
-              taskKillSignal.tryGet.flatMap {
-                case Some(_) => IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
-                case None =>
-                  // Cooperative cancellation: set CancellationToken so advance() returns false
-                  val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
-
-                  // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-                  val gatedCompile = IO.interruptible(compileSemaphore.acquire()).bracket { _ =>
-                    val compileStartTime = System.currentTimeMillis()
-                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                      compileProject(started, compileTask.project, params.originId, token).flatMap { result =>
-                        val dur = System.currentTimeMillis() - compileStartTime
-                        val ok = result == TaskDag.TaskResult.Success
-                        IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)).as(result)
-                      }
-                  }(_ => IO(compileSemaphore.release()))
-                  val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-
-                  cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
-              }
-            }
-
-          // Create link handler
-          val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-            (linkTask, taskKillSignal) => {
-              val projectPaths = started.projectPaths(linkTask.project)
-              val project = started.build.explodedProjects(linkTask.project)
-              val resolved = started.resolvedProject(linkTask.project)
-              val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
-              val linkLogger = createLinkLogger()
-              val outputDir = projectPaths.targetDir.resolve("link-output")
-              LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
-            }
-
-          // No-op handlers for discover/test (won't be called for compile/link DAGs)
-          val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
-            (_, _) => IO.pure((TaskDag.TaskResult.Success, List.empty))
-
-          val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-            (_, _) => IO.pure(TaskDag.TaskResult.Success)
-
-          // Create executor
-          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
-
-          // Create trace recorder (noop if not enabled)
-          val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
-
-          val ioProgram = for {
-            eventQueue <- Queue.unbounded[IO, TaskDag.DagEvent]
-            killSignal <- Outcome.fromCancellationToken(cancellation)
-
-            // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
-            consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
-            eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder).compile.drain.handleErrorWith { e =>
-              // Capture consumer error for later inspection
-              IO(logger.error(s"Event consumer error: ${e.getMessage}")) >>
-                consumerErrorRef.set(Some(e))
-            }.start
-
-            // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
-            dag <- executor
-              .execute(initialDag, maxParallelism, eventQueue, killSignal)
-              .flatTap(_ => IO.sleep(100.millis)) // Give consumer time to process remaining events
-              .guarantee(eventConsumerFiber.cancel) // Always cancel consumer fiber
-
-            // Check if consumer errored (e.g., connection died during execution)
-            consumerError <- consumerErrorRef.get
-            _ <- consumerError match {
-              case Some(e) =>
-                IO(logger.error(s"Event consumer failed: ${e.getMessage}")) >> IO.raiseError(e)
-              case None => IO.unit
-            }
-          } yield dag
-
-          val ioResult = Try(ioProgram.unsafeRunSync())
-
-          // Write trace file if flamegraph is enabled
-          if (linkOpts.flamegraph) {
-            val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
-            traceRecorder.writeTrace(tracePath).unsafeRunSync()
-          }
-
-          ioResult match {
-            case Success(dag) =>
-              val durationMs = System.currentTimeMillis() - startTime
-              val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
-              BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
-              val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
-              val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
-              val compileCompleted = compileTasks.count(dag.completed.contains)
-              val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
-              val linkCompleted = linkTasks.count(dag.completed.contains)
-              val linkFailed = linkTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
-              // Count how many links were actually executed vs up-to-date
-              val linksUpToDate = dag.linkResults.values.count {
-                case TaskDag.LinkResult.JsSuccess(_, _, _, wasUpToDate) => wasUpToDate
-                case TaskDag.LinkResult.NativeSuccess(_, wasUpToDate)   => wasUpToDate
-                case _                                                  => false
-              }
-              val linksActuallyLinked = linkCompleted - linksUpToDate
-
-              if (cancellation.isCancelled) {
-                bspWarn(s"Compilation cancelled (${durationMs}ms)")
-                CompileResult(
-                  originId = params.originId,
-                  statusCode = StatusCode.Cancelled,
-                  dataKind = None,
-                  data = None
-                )
-              } else if (dag.failed.nonEmpty || dag.errored.nonEmpty) {
-                val failedIds = (dag.failed ++ dag.errored).mkString(", ")
-                bspError(s"Compilation failed: $compileFailed compile tasks failed, $linkFailed link tasks failed (${durationMs}ms)")
-                debugLog(s"Failed tasks: $failedIds")
-                CompileResult(
-                  originId = params.originId,
-                  statusCode = StatusCode.Error,
-                  dataKind = None,
-                  data = None
-                )
-              } else {
-                val linkSummary = if (linksUpToDate > 0 && linksActuallyLinked > 0) {
-                  s"$linksActuallyLinked linked, $linksUpToDate up-to-date"
-                } else if (linksUpToDate > 0) {
-                  s"$linksUpToDate up-to-date"
-                } else if (linksActuallyLinked > 0) {
-                  s"$linksActuallyLinked linked"
-                } else if (linkCompleted > 0) {
-                  s"$linkCompleted linked"
-                } else {
-                  ""
-                }
-                val fullSummary = if (linkSummary.nonEmpty) {
-                  s"$compileCompleted compiled, $linkSummary"
-                } else {
-                  s"$compileCompleted compiled"
-                }
-                bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
-                CompileResult(
-                  originId = params.originId,
-                  statusCode = StatusCode.Ok,
-                  dataKind = None,
-                  data = None
-                )
-              }
-
-            case Failure(ex) =>
-              val durationMs = System.currentTimeMillis() - startTime
-              BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
-              bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
-              CompileResult(
-                originId = params.originId,
-                statusCode = StatusCode.Error,
-                dataKind = None,
-                data = None
+            case (Some(model.PlatformId.Native), true) =>
+              // Kotlin/Native
+              val config = TaskDag.KotlinNativeConfig(
+                target = "host",
+                debugInfo = linkOpts.debugInfo.getOrElse(false),
+                optimizations = linkOpts.optimize.getOrElse(isRelease),
+                isTest = false
               )
+              Some(crossName -> TaskDag.LinkPlatform.KotlinNative(kotlinVersion, config))
+
+            case (Some(model.PlatformId.Native), false) =>
+              // Scala Native
+              val snVersion = project.platform.flatMap(_.nativeVersion).map(_.scalaNativeVersion).getOrElse("0.5.6")
+              val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
+              val baseConfig = if (isRelease) bleep.analysis.ScalaNativeLinkConfig.ReleaseFast else bleep.analysis.ScalaNativeLinkConfig.Debug
+              val configWithLto = linkOpts.lto match {
+                case Some("thin") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.Thin)
+                case Some("full") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.Full)
+                case Some("none") => baseConfig.copy(lto = bleep.analysis.ScalaNativeLinkConfig.NativeLTO.None)
+                case _            => baseConfig
+              }
+              val config = configWithLto.copy(
+                optimize = linkOpts.optimize.getOrElse(configWithLto.optimize)
+              )
+              Some(crossName -> TaskDag.LinkPlatform.ScalaNative(snVersion, scalaVersion, config))
+
+            case _ =>
+              // JVM - no linking needed
+              None
           }
-        } finally releaseWorkspace(workspace, activeWork)
+        }.toMap
+      } else {
+        Map.empty
+      }
+
+      // Validate link options if --link was specified
+      if (isLink) {
+        val platformsPresent = platforms.values.collect {
+          case _: TaskDag.LinkPlatform.KotlinJs     => "Kotlin/JS"
+          case _: TaskDag.LinkPlatform.ScalaJs      => "Scala.js"
+          case _: TaskDag.LinkPlatform.KotlinNative => "Kotlin/Native"
+          case _: TaskDag.LinkPlatform.ScalaNative  => "Scala Native"
+        }.toSet
+
+        val validationErrors = List.newBuilder[String]
+
+        if (platformsPresent.isEmpty) {
+          validationErrors += "No linkable projects found (only JVM projects can be compiled without linking)"
+        }
+
+        if (linkOpts.sourceMaps.isDefined && !platformsPresent.exists(p => p == "Scala.js" || p == "Kotlin/JS")) {
+          validationErrors += s"--source-maps/--no-source-maps only applies to JS platforms (Scala.js, Kotlin/JS), but linking: ${platformsPresent.mkString(", ")}"
+        }
+        if (linkOpts.minify.isDefined && !platformsPresent.contains("Scala.js")) {
+          validationErrors += s"--minify/--no-minify only applies to Scala.js, but linking: ${platformsPresent.mkString(", ")}"
+        }
+        if (linkOpts.moduleKind.isDefined && !platformsPresent.exists(p => p == "Scala.js" || p == "Kotlin/JS")) {
+          validationErrors += s"--module-kind only applies to JS platforms (Scala.js, Kotlin/JS), but linking: ${platformsPresent.mkString(", ")}"
+        }
+        if (linkOpts.lto.isDefined && !platformsPresent.contains("Scala Native")) {
+          validationErrors += s"--lto only applies to Scala Native, but linking: ${platformsPresent.mkString(", ")}"
+        }
+        if (linkOpts.optimize.isDefined && platformsPresent.isEmpty) {
+          validationErrors += s"--optimize/--no-optimize only applies to non-JVM platforms, but no linkable projects found"
+        }
+        if (linkOpts.debugInfo.isDefined && !platformsPresent.exists(p => p == "Scala Native" || p == "Kotlin/Native")) {
+          validationErrors += s"--debug-info/--no-debug-info only applies to native platforms (Scala Native, Kotlin/Native), but linking: ${platformsPresent.mkString(", ")}"
+        }
+
+        val errors = validationErrors.result()
+        if (errors.nonEmpty) {
+          errors.foreach(bspError)
+          return CompileResult(
+            originId = params.originId,
+            statusCode = StatusCode.Error,
+            dataKind = None,
+            data = None
+          )
+        }
+      }
+
+      // Build the appropriate DAG based on mode
+      val buildMode = if (isLink) {
+        BleepBspProtocol.BuildMode.Link(isRelease)
+      } else {
+        BleepBspProtocol.BuildMode.Compile
+      }
+      val initialDag = TaskDag.buildDag(projectsToCompile, allProjectDeps, platforms, buildMode)
+      debugLog(s"Built compile DAG with ${initialDag.tasks.size} tasks (mode=$buildMode)")
+
+      val startTime = System.currentTimeMillis()
+      BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
+
+      // Create compile handler.
+      // Uses IO.race to race compilation against the kill signal. When the kill
+      // signal wins, IO.race cancels the compile fiber. Since ZincBridge uses
+      // IO.interruptible, CE interrupts the compilation thread immediately.
+      val compileHandler: (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+        (compileTask, taskKillSignal) => {
+          val projectName = compileTask.project.value
+          val wsStr = workspace.toString
+          val token = CancellationToken.create()
+          taskKillSignal.tryGet.flatMap {
+            case Some(_) => IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
+            case None    =>
+              // Cooperative cancellation: set CancellationToken so advance() returns false
+              val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+
+              // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+              val gatedCompile = IO
+                .interruptible(compileSemaphore.acquire())
+                .bracket { _ =>
+                  val compileStartTime = System.currentTimeMillis()
+                  IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                    compileProject(started, compileTask.project, params.originId, token).flatMap { result =>
+                      val dur = System.currentTimeMillis() - compileStartTime
+                      val ok = result == TaskDag.TaskResult.Success
+                      IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)).as(result)
+                    }
+                }(_ => IO(compileSemaphore.release()))
+              val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+
+              cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
+          }
+        }
+
+      // Create link handler
+      val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
+        (linkTask, taskKillSignal) => {
+          val projectPaths = started.projectPaths(linkTask.project)
+          val project = started.build.explodedProjects(linkTask.project)
+          val resolved = started.resolvedProject(linkTask.project)
+          val classpath = projectPaths.classes :: resolved.classpath.map(p => Path.of(p.toString)).toList
+          val linkLogger = createLinkLogger()
+          val outputDir = projectPaths.targetDir.resolve("link-output")
+          LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), project.platform.flatMap(_.mainClass), outputDir, linkLogger, taskKillSignal)
+        }
+
+      // No-op handlers for discover/test (won't be called for compile/link DAGs)
+      val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
+        (_, _) => IO.pure((TaskDag.TaskResult.Success, List.empty))
+
+      val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
+        (_, _) => IO.pure(TaskDag.TaskResult.Success)
+
+      // Create executor
+      val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
+
+      // Create trace recorder (noop if not enabled)
+      val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
+
+      val ioProgram = for {
+        eventQueue <- Queue.unbounded[IO, TaskDag.DagEvent]
+        killSignal <- Outcome.fromCancellationToken(cancellation)
+
+        // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
+        consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
+        eventConsumerFiber <- consumeCompileEvents(eventQueue, params.originId, killSignal, traceRecorder).compile.drain.handleErrorWith { e =>
+          // Capture consumer error for later inspection
+          IO(logger.error(s"Event consumer error: ${e.getMessage}")) >>
+            consumerErrorRef.set(Some(e))
+        }.start
+
+        // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
+        dag <- executor
+          .execute(initialDag, maxParallelism, eventQueue, killSignal)
+          .flatTap(_ => IO.sleep(100.millis)) // Give consumer time to process remaining events
+          .guarantee(eventConsumerFiber.cancel) // Always cancel consumer fiber
+
+        // Check if consumer errored (e.g., connection died during execution)
+        consumerError <- consumerErrorRef.get
+        _ <- consumerError match {
+          case Some(e) =>
+            IO(logger.error(s"Event consumer failed: ${e.getMessage}")) >> IO.raiseError(e)
+          case None => IO.unit
+        }
+      } yield dag
+
+      val ioResult = Try(ioProgram.unsafeRunSync())
+
+      // Write trace file if flamegraph is enabled
+      if (linkOpts.flamegraph) {
+        val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
+        traceRecorder.writeTrace(tracePath).unsafeRunSync()
+      }
+
+      ioResult match {
+        case Success(dag) =>
+          val durationMs = System.currentTimeMillis() - startTime
+          val isSuccess = dag.failed.isEmpty && dag.errored.isEmpty && !cancellation.isCancelled
+          BspMetrics.recordBuildEnd(workspace.toString, durationMs, isSuccess)
+          val compileTasks = dag.tasks.values.collect { case ct: TaskDag.CompileTask => ct.id }.toSet
+          val linkTasks = dag.tasks.values.collect { case lt: TaskDag.LinkTask => lt.id }.toSet
+          val compileCompleted = compileTasks.count(dag.completed.contains)
+          val compileFailed = compileTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
+          val linkCompleted = linkTasks.count(dag.completed.contains)
+          val linkFailed = linkTasks.count(id => dag.failed.contains(id) || dag.errored.contains(id))
+          // Count how many links were actually executed vs up-to-date
+          val linksUpToDate = dag.linkResults.values.count {
+            case TaskDag.LinkResult.JsSuccess(_, _, _, wasUpToDate) => wasUpToDate
+            case TaskDag.LinkResult.NativeSuccess(_, wasUpToDate)   => wasUpToDate
+            case _                                                  => false
+          }
+          val linksActuallyLinked = linkCompleted - linksUpToDate
+
+          if (cancellation.isCancelled) {
+            bspWarn(s"Compilation cancelled (${durationMs}ms)")
+            CompileResult(
+              originId = params.originId,
+              statusCode = StatusCode.Cancelled,
+              dataKind = None,
+              data = None
+            )
+          } else if (dag.failed.nonEmpty || dag.errored.nonEmpty) {
+            val failedIds = (dag.failed ++ dag.errored).mkString(", ")
+            bspError(s"Compilation failed: $compileFailed compile tasks failed, $linkFailed link tasks failed (${durationMs}ms)")
+            debugLog(s"Failed tasks: $failedIds")
+            CompileResult(
+              originId = params.originId,
+              statusCode = StatusCode.Error,
+              dataKind = None,
+              data = None
+            )
+          } else {
+            val linkSummary = if (linksUpToDate > 0 && linksActuallyLinked > 0) {
+              s"$linksActuallyLinked linked, $linksUpToDate up-to-date"
+            } else if (linksUpToDate > 0) {
+              s"$linksUpToDate up-to-date"
+            } else if (linksActuallyLinked > 0) {
+              s"$linksActuallyLinked linked"
+            } else if (linkCompleted > 0) {
+              s"$linkCompleted linked"
+            } else {
+              ""
+            }
+            val fullSummary = if (linkSummary.nonEmpty) {
+              s"$compileCompleted compiled, $linkSummary"
+            } else {
+              s"$compileCompleted compiled"
+            }
+            bspInfo(s"Compilation succeeded: $fullSummary (${durationMs}ms)")
+            CompileResult(
+              originId = params.originId,
+              statusCode = StatusCode.Ok,
+              dataKind = None,
+              data = None
+            )
+          }
+
+        case Failure(ex) =>
+          val durationMs = System.currentTimeMillis() - startTime
+          BspMetrics.recordBuildEnd(workspace.toString, durationMs, false)
+          bspError(s"Compilation failed: ${ex.getMessage} (${durationMs}ms)")
+          CompileResult(
+            originId = params.originId,
+            statusCode = StatusCode.Error,
+            dataKind = None,
+            data = None
+          )
+      }
+    } finally releaseWorkspace(workspace, activeWork)
   }
 
   /** Send a compile event via BSP notification with structured data */
@@ -1484,412 +1485,414 @@ class MultiWorkspaceBspServer(
 
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
-        val activeWork = acquireWorkspace(workspace, "test", testProjects.map(_.value), cancellation, params.originId, taskId) match {
-          case Some(work) => work
-          case None =>
-            return TestResult(originId = params.originId, statusCode = StatusCode.Cancelled, dataKind = None, data = None)
+    val activeWork = acquireWorkspace(workspace, "test", testProjects.map(_.value), cancellation, params.originId, taskId) match {
+      case Some(work) => work
+      case None =>
+        return TestResult(originId = params.originId, statusCode = StatusCode.Cancelled, dataKind = None, data = None)
+    }
+    try {
+      // Re-read user config fresh before starting (allows runtime config changes)
+      val userPaths = UserPaths.fromAppDirs
+      val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
+      val serverConfig = freshConfig.bspServerConfigOrDefault
+      val maxParallelism = serverConfig.effectiveParallelism
+
+      // Run sourcegen scripts if any test projects (or their dependencies) have them
+      val allTestAndDeps = BleepBuildConverter.transitiveDependencies(testProjects, started)
+      runSourcegenIfNeeded(started, allTestAndDeps, params.originId, maxParallelism, cancellation) match {
+        case Left(err) =>
+          bspError(err)
+          return TestResult(
+            originId = params.originId,
+            statusCode = StatusCode.Error,
+            dataKind = None,
+            data = None
+          )
+        case Right(_) => ()
+      }
+
+      // Get all project dependencies (for compile tasks)
+      // Convert ProjectName to CrossProjectName, preferring same crossId
+      val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
+        started.build.explodedProjects.map { case (crossName, project) =>
+          val deps = project.dependsOn.values.flatMap { depName =>
+            val depCrossName = CrossProjectName(depName, crossName.crossId)
+            if (started.build.explodedProjects.contains(depCrossName)) {
+              Some(depCrossName)
+            } else {
+              started.build.explodedProjects.keys.find(_.name == depName)
+            }
+          }.toSet
+          crossName -> deps
         }
-        try {
-          // Re-read user config fresh before starting (allows runtime config changes)
-          val userPaths = UserPaths.fromAppDirs
-          val freshConfig = BleepConfigOps.loadOrDefault(userPaths).getOrElse(model.BleepConfig.default)
-          val serverConfig = freshConfig.bspServerConfigOrDefault
-          val maxParallelism = serverConfig.effectiveParallelism
 
-          // Run sourcegen scripts if any test projects (or their dependencies) have them
-          val allTestAndDeps = BleepBuildConverter.transitiveDependencies(testProjects, started)
-          runSourcegenIfNeeded(started, allTestAndDeps, params.originId, maxParallelism, cancellation) match {
+      // Determine platforms for test projects (needed for link tasks)
+      val platforms: Map[model.CrossProjectName, TaskDag.LinkPlatform] = testProjects.flatMap { crossName =>
+        val project = started.build.explodedProjects(crossName)
+        val platformOpt = project.platform.flatMap(_.name)
+        val isKotlin = project.kotlin.flatMap(_.version).isDefined
+        val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse("2.1.0")
+
+        (platformOpt, isKotlin) match {
+          case (Some(model.PlatformId.Js), true) =>
+            // Kotlin/JS - don't add "js" here; executeKotlinJs adds it
+            val projectPaths = started.projectPaths(crossName)
+            val outputDir = projectPaths.targetDir
+            val config = TaskDag.KotlinJsConfig(
+              moduleKind = "umd",
+              sourceMap = false,
+              dce = false, // Tests run without DCE
+              outputDir = outputDir
+            )
+            Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
+
+          case (Some(model.PlatformId.Js), false) =>
+            // Scala.js
+            val sjsVersion = project.platform.flatMap(_.jsVersion).map(_.scalaJsVersion).getOrElse("1.19.0")
+            val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
+            val config = bleep.analysis.ScalaJsLinkConfig.Debug
+            Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
+
+          case (Some(model.PlatformId.Native), true) =>
+            // Kotlin/Native - test project
+            val config = TaskDag.KotlinNativeConfig(
+              target = "host",
+              debugInfo = false,
+              optimizations = false,
+              isTest = true
+            )
+            Some(crossName -> TaskDag.LinkPlatform.KotlinNative(kotlinVersion, config))
+
+          case (Some(model.PlatformId.Native), false) =>
+            // Scala Native - test project
+            val snVersion = project.platform.flatMap(_.nativeVersion).map(_.scalaNativeVersion).getOrElse("0.5.6")
+            val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
+            val config = bleep.analysis.ScalaNativeLinkConfig.Debug
+            Some(crossName -> TaskDag.LinkPlatform.ScalaNative(snVersion, scalaVersion, config))
+
+          case _ =>
+            // JVM - no linking needed
+            None
+        }
+      }.toMap
+
+      // Build the unified DAG with platforms
+      val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms)
+      debugLog(s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}")
+
+      // Parse test options from params
+      val testOptions = (params.dataKind, params.data) match {
+        case (Some(BleepBspProtocol.TestOptionsDataKind), Some(data)) =>
+          // data.toString gives raw JSON bytes as string.
+          // If data was sent as a JSON string (double-encoded), unwrap it first.
+          val raw = data.toString.trim
+          val json =
+            if (raw.startsWith("\""))
+              io.circe.parser.parse(raw).flatMap(_.as[String]).getOrElse(raw)
+            else
+              raw
+          BleepBspProtocol.TestOptions.decode(json) match {
+            case Right(opts) => opts
             case Left(err) =>
-              bspError(err)
-              return TestResult(
-                originId = params.originId,
-                statusCode = StatusCode.Error,
-                dataKind = None,
-                data = None
-              )
-            case Right(_) => ()
-          }
-
-          // Get all project dependencies (for compile tasks)
-          // Convert ProjectName to CrossProjectName, preferring same crossId
-          val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-            started.build.explodedProjects.map { case (crossName, project) =>
-              val deps = project.dependsOn.values.flatMap { depName =>
-                val depCrossName = CrossProjectName(depName, crossName.crossId)
-                if (started.build.explodedProjects.contains(depCrossName)) {
-                  Some(depCrossName)
-                } else {
-                  started.build.explodedProjects.keys.find(_.name == depName)
-                }
-              }.toSet
-              crossName -> deps
-            }
-
-          // Determine platforms for test projects (needed for link tasks)
-          val platforms: Map[model.CrossProjectName, TaskDag.LinkPlatform] = testProjects.flatMap { crossName =>
-            val project = started.build.explodedProjects(crossName)
-            val platformOpt = project.platform.flatMap(_.name)
-            val isKotlin = project.kotlin.flatMap(_.version).isDefined
-            val kotlinVersion = project.kotlin.flatMap(_.version).map(_.kotlinVersion).getOrElse("2.1.0")
-
-            (platformOpt, isKotlin) match {
-              case (Some(model.PlatformId.Js), true) =>
-                // Kotlin/JS - don't add "js" here; executeKotlinJs adds it
-                val projectPaths = started.projectPaths(crossName)
-                val outputDir = projectPaths.targetDir
-                val config = TaskDag.KotlinJsConfig(
-                  moduleKind = "umd",
-                  sourceMap = false,
-                  dce = false, // Tests run without DCE
-                  outputDir = outputDir
-                )
-                Some(crossName -> TaskDag.LinkPlatform.KotlinJs(kotlinVersion, config))
-
-              case (Some(model.PlatformId.Js), false) =>
-                // Scala.js
-                val sjsVersion = project.platform.flatMap(_.jsVersion).map(_.scalaJsVersion).getOrElse("1.19.0")
-                val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
-                val config = bleep.analysis.ScalaJsLinkConfig.Debug
-                Some(crossName -> TaskDag.LinkPlatform.ScalaJs(sjsVersion, scalaVersion, config))
-
-              case (Some(model.PlatformId.Native), true) =>
-                // Kotlin/Native - test project
-                val config = TaskDag.KotlinNativeConfig(
-                  target = "host",
-                  debugInfo = false,
-                  optimizations = false,
-                  isTest = true
-                )
-                Some(crossName -> TaskDag.LinkPlatform.KotlinNative(kotlinVersion, config))
-
-              case (Some(model.PlatformId.Native), false) =>
-                // Scala Native - test project
-                val snVersion = project.platform.flatMap(_.nativeVersion).map(_.scalaNativeVersion).getOrElse("0.5.6")
-                val scalaVersion = project.scala.flatMap(_.version).map(_.scalaVersion).getOrElse("3.3.3")
-                val config = bleep.analysis.ScalaNativeLinkConfig.Debug
-                Some(crossName -> TaskDag.LinkPlatform.ScalaNative(snVersion, scalaVersion, config))
-
-              case _ =>
-                // JVM - no linking needed
-                None
-            }
-          }.toMap
-
-          // Build the unified DAG with platforms
-          val initialDag = TaskDag.buildTestDag(testProjects, allProjectDeps, platforms)
-          debugLog(s"Built test DAG with ${initialDag.tasks.size} tasks, platforms: ${platforms.keys.map(_.value).mkString(", ")}")
-
-          // Parse test options from params
-          val testOptions = (params.dataKind, params.data) match {
-            case (Some(BleepBspProtocol.TestOptionsDataKind), Some(data)) =>
-              // data.toString gives raw JSON bytes as string.
-              // If data was sent as a JSON string (double-encoded), unwrap it first.
-              val raw = data.toString.trim
-              val json =
-                if (raw.startsWith("\""))
-                  io.circe.parser.parse(raw).flatMap(_.as[String]).getOrElse(raw)
-                else
-                  raw
-              BleepBspProtocol.TestOptions.decode(json) match {
-                case Right(opts) => opts
-                case Left(err) =>
-                  logger.warn(s"Failed to decode TestOptions: $err (raw: ${raw.take(200)})")
-                  BleepBspProtocol.TestOptions.empty
-              }
-            case _ =>
+              logger.warn(s"Failed to decode TestOptions: $err (raw: ${raw.take(200)})")
               BleepBspProtocol.TestOptions.empty
           }
+        case _ =>
+          BleepBspProtocol.TestOptions.empty
+      }
 
-          // Create event queue for streaming test events
-          val idleTimeout = serverConfig.effectiveTestIdleTimeoutMinutes.minutes
-          debugLog(s"BSP config: parallelism=$maxParallelism, idleTimeout=${idleTimeout.toMinutes}m")
-          if (testOptions.jvmOptions.nonEmpty || testOptions.testArgs.nonEmpty) {
-            debugLog(s"Test options: jvmOptions=${testOptions.jvmOptions}, testArgs=${testOptions.testArgs}")
-          }
-          if (testOptions.only.nonEmpty) {
-            debugLog(s"Test filter --only: ${testOptions.only.mkString(", ")}")
-          }
-          if (testOptions.exclude.nonEmpty) {
-            debugLog(s"Test filter --exclude: ${testOptions.exclude.mkString(", ")}")
-          }
+      // Create event queue for streaming test events
+      val idleTimeout = serverConfig.effectiveTestIdleTimeoutMinutes.minutes
+      debugLog(s"BSP config: parallelism=$maxParallelism, idleTimeout=${idleTimeout.toMinutes}m")
+      if (testOptions.jvmOptions.nonEmpty || testOptions.testArgs.nonEmpty) {
+        debugLog(s"Test options: jvmOptions=${testOptions.jvmOptions}, testArgs=${testOptions.testArgs}")
+      }
+      if (testOptions.only.nonEmpty) {
+        debugLog(s"Test filter --only: ${testOptions.only.mkString(", ")}")
+      }
+      if (testOptions.exclude.nonEmpty) {
+        debugLog(s"Test filter --exclude: ${testOptions.exclude.mkString(", ")}")
+      }
 
-          // Create trace recorder (noop if not enabled)
-          val traceRecorder = if (testOptions.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
+      // Create trace recorder (noop if not enabled)
+      val traceRecorder = if (testOptions.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
 
-          val startTime = System.currentTimeMillis()
+      val startTime = System.currentTimeMillis()
 
-          val ioProgram = for {
-            eventQueue <- Queue.unbounded[IO, TaskDag.DagEvent]
-            totalSuitesRef <- Ref.of[IO, Int](0)
-            totalPassedRef <- Ref.of[IO, Int](0)
-            totalFailedRef <- Ref.of[IO, Int](0)
-            totalSkippedRef <- Ref.of[IO, Int](0)
-            totalIgnoredRef <- Ref.of[IO, Int](0)
+      val ioProgram = for {
+        eventQueue <- Queue.unbounded[IO, TaskDag.DagEvent]
+        totalSuitesRef <- Ref.of[IO, Int](0)
+        totalPassedRef <- Ref.of[IO, Int](0)
+        totalFailedRef <- Ref.of[IO, Int](0)
+        totalSkippedRef <- Ref.of[IO, Int](0)
+        totalIgnoredRef <- Ref.of[IO, Int](0)
 
-            // Create kill signal from cancellation token
-            killSignal <- Outcome.fromCancellationToken(cancellation)
+        // Create kill signal from cancellation token
+        killSignal <- Outcome.fromCancellationToken(cancellation)
 
-            // Create JVM pool for test execution
-            testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-              // Create task handlers that accept kill signal
-              val compileHandler: (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
-                (compileTask, taskKillSignal) => {
-                  val token = CancellationToken.create()
-                  taskKillSignal.tryGet.flatMap {
-                    case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
-                    case None =>
-                      val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
-                      // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-                      val gatedCompile = IO.interruptible(compileSemaphore.acquire()).bracket { _ =>
-                        compileProject(started, compileTask.project, params.originId, token)
-                      }(_ => IO(compileSemaphore.release()))
-                      val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-                      cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
-                  }
-                }
-
-              val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
-                (discoverTask, _) =>
-                  discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
-                    val filtered = filterSuites(suites, testOptions.only, testOptions.exclude)
-                    (result, filtered)
-                  }
-
-              val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] = (testTask, taskKillSignal) => {
-                val classpath = getTestClasspath(started, testTask.project)
-                val project = started.build.explodedProjects(testTask.project)
-                val projectPlatform = project.platform.flatMap(_.name)
-                val isKotlin = project.kotlin.flatMap(_.version).isDefined
-
-                (projectPlatform, isKotlin) match {
-                  case (Some(model.PlatformId.Js), true) =>
-                    runKotlinJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-                  case (Some(model.PlatformId.Js), false) =>
-                    runScalaJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-                  case (Some(model.PlatformId.Native), true) =>
-                    runKotlinNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-                  case (Some(model.PlatformId.Native), false) =>
-                    runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
-                  case _ =>
-                    // JVM (default) - use JvmPool
-                    TestRunner.runSuite(
-                      project = testTask.project,
-                      suiteName = testTask.suiteName,
-                      framework = testTask.framework,
-                      classpath = classpath,
-                      pool = jvmPool,
-                      eventQueue = eventQueue,
-                      options = TestRunner.Options(
-                        jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ testOptions.jvmOptions,
-                        testArgs = testOptions.testArgs,
-                        idleTimeout = idleTimeout
-                      ),
-                      killSignal = taskKillSignal
-                    )
-                }
+        // Create JVM pool for test execution
+        testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
+          // Create task handlers that accept kill signal
+          val compileHandler: (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
+            (compileTask, taskKillSignal) => {
+              val token = CancellationToken.create()
+              taskKillSignal.tryGet.flatMap {
+                case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
+                case None =>
+                  val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+                  // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+                  val gatedCompile = IO
+                    .interruptible(compileSemaphore.acquire())
+                    .bracket { _ =>
+                      compileProject(started, compileTask.project, params.originId, token)
+                    }(_ => IO(compileSemaphore.release()))
+                  val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+                  cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
               }
-
-              // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
-              val linkHandler: (TaskDag.LinkTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
-                (linkTask, killSignal) => {
-                  val projectPaths = started.projectPaths(linkTask.project)
-                  val classpath = getTestClasspath(started, linkTask.project)
-                  val logger = createLinkLogger()
-                  val outputDir = projectPaths.targetDir
-                  LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
-                }
-
-              // Create executor with link support
-              val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
-
-              // Run event consumer in background (auto-cancels when scope exits)
-              // This ensures the fiber is cleaned up even if the request is cancelled
-              for {
-                _ <- IO {
-                  logger.warn(s"[BSP-SERVER] Starting event consumer and task executor, sendEventCounter=${sendEventCounter.get()}")
-                }
-                // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
-                consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
-                eventConsumerFiber <- consumeEvents(
-                  eventQueue,
-                  params.originId,
-                  totalSuitesRef,
-                  totalPassedRef,
-                  totalFailedRef,
-                  totalSkippedRef,
-                  totalIgnoredRef,
-                  killSignal,
-                  traceRecorder
-                ).compile.drain.handleErrorWith { e =>
-                  // Capture consumer error for later inspection
-                  IO(logger.error(s"Event consumer error: ${e.getMessage}")) >>
-                    consumerErrorRef.set(Some(e))
-                }.start
-
-                // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
-                dag <- executor
-                  .execute(initialDag, maxParallelism, eventQueue, killSignal)
-                  .flatMap { result =>
-                    IO {
-                      val total = result.tasks.size
-                      val completed = result.completed.size
-                      val failed = result.failed.size
-                      val errored = result.errored.size
-                      val skipped = result.skipped.size
-                      val killed = result.killed.size
-                      val timedOut = result.timedOut.size
-                      logger.info(
-                        s"Task executor completed: $total tasks total, $completed completed, $failed failed, $errored errored, $skipped skipped, $killed killed, $timedOut timedOut"
-                      )
-                      if (result.killed.nonEmpty) {
-                        logger.warn(s"Killed tasks: ${result.killed.mkString(", ")}")
-                      }
-                      if (result.failed.nonEmpty) {
-                        logger.warn(s"Failed tasks: ${result.failed.mkString(", ")}")
-                      }
-                      if (result.errored.nonEmpty) {
-                        logger.warn(s"Errored tasks: ${result.errored.mkString(", ")}")
-                      }
-                      if (result.skipped.nonEmpty) {
-                        logger.warn(s"Skipped tasks: ${result.skipped.mkString(", ")}")
-                      }
-                      if (cancellation.isCancelled) {
-                        logger.warn("Cancellation token was triggered during test execution!")
-                      }
-                    } >> IO {
-                      logger.warn(
-                        s"[BSP-SERVER] Executor done, draining remaining events. sendEventCounter=${sendEventCounter.get()}, cancellation.isCancelled=${cancellation.isCancelled}"
-                      )
-                    } >>
-                      IO.sleep(100.millis) >>
-                      drainRemainingEvents(eventQueue, params.originId, totalSuitesRef, totalPassedRef, totalFailedRef, totalSkippedRef, totalIgnoredRef) >>
-                      IO.pure(result)
-                  }
-                  .guarantee(eventConsumerFiber.cancel) // Always cancel consumer fiber
-
-                // Check if consumer errored (e.g., connection died during execution)
-                consumerError <- consumerErrorRef.get
-                _ <- consumerError match {
-                  case Some(e) =>
-                    IO(logger.error(s"Event consumer failed: ${e.getMessage}")) >> IO.raiseError(e)
-                  case None => IO.unit
-                }
-              } yield dag
             }
-            passed <- totalPassedRef.get
-            failed <- totalFailedRef.get
-            skipped <- totalSkippedRef.get
-            ignored <- totalIgnoredRef.get
-            suites <- totalSuitesRef.get
-          } yield (testResult, passed, failed, skipped, ignored, suites)
 
-          logger.warn(s"[BSP-SERVER] handleTest: starting ioProgram.unsafeRunSync() for ${testProjects.map(_.value).mkString(", ")}")
-          val ioResult = Try(ioProgram.unsafeRunSync())
-          logger.warn(s"[BSP-SERVER] handleTest: ioProgram.unsafeRunSync() returned, sendEventCounter=${sendEventCounter.get()}")
-
-          // Write trace file if flamegraph is enabled
-          if (testOptions.flamegraph) {
-            val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
-            traceRecorder.writeTrace(tracePath).unsafeRunSync()
-          }
-
-          ioResult match {
-            case Success((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites)) =>
-              // Send TestRunFinished event
-              val durationMs = System.currentTimeMillis() - startTime
-              val timestamp = System.currentTimeMillis()
-              sendTestEvent(
-                params.originId,
-                "test-run",
-                BleepBspProtocol.Event.TestRunFinished(totalPassed, totalFailed, totalSkipped, totalIgnored, durationMs, timestamp)
-              )
-
-              // Determine final status
-              val statusCode =
-                if (cancellation.isCancelled) StatusCode.Cancelled
-                else if (result.failed.nonEmpty) StatusCode.Error
-                else StatusCode.Ok
-
-              // Compute suite-level counts from DAG result
-              val suiteTaskIds = result.tasks.collect { case (id, _: TaskDag.TestSuiteTask) => id }.toSet
-              val suitesCompleted = suiteTaskIds.count(id => result.completed.contains(id) || result.failed.contains(id) || result.timedOut.contains(id))
-              val suitesFailed = suiteTaskIds.count(id => result.failed.contains(id) || result.errored.contains(id))
-              val suitesCancelled = suiteTaskIds.count(id => result.killed.contains(id) || result.skipped.contains(id))
-
-              bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
-
-              // Include authoritative test results in TestResult.data for reliable delivery
-              val runResult = BleepBspProtocol.TestRunResult(
-                totalPassed = totalPassed,
-                totalFailed = totalFailed,
-                totalSkipped = totalSkipped,
-                totalIgnored = totalIgnored,
-                suitesTotal = totalSuites,
-                suitesCompleted = suitesCompleted,
-                suitesFailed = suitesFailed,
-                suitesCancelled = suitesCancelled,
-                durationMs = durationMs
-              )
-
-              TestResult(
-                originId = params.originId,
-                statusCode = statusCode,
-                dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
-                data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(runResult).getBytes("UTF-8")))
-              )
-
-            case Failure(ex) =>
-              val durationMs = System.currentTimeMillis() - startTime
-              val timestamp = System.currentTimeMillis()
-              System.err.println(s"[BSP] Test execution failed: ${ex.getMessage}")
-              ex.printStackTrace(System.err)
-
-              // Try to notify the client about the failure.
-              // If the connection is dead (which may have caused the failure), these sends will
-              // fail - that's fine, we just return the error TestResult.
-              try {
-                sendTestEvent(
-                  params.originId,
-                  "error",
-                  BleepBspProtocol.Event.Error(
-                    message = s"Test execution failed: ${ex.getMessage}",
-                    details = Some(ex.getStackTrace.take(10).mkString("\n")),
-                    timestamp = timestamp
-                  )
-                )
-                sendTestEvent(
-                  params.originId,
-                  "test-run",
-                  BleepBspProtocol.Event.TestRunFinished(0, 0, 0, 0, durationMs, timestamp)
-                )
-              } catch {
-                case _: java.io.IOException =>
-                  System.err.println("[BSP] Client disconnected, cannot send test failure notification")
-                case e: Exception =>
-                  System.err.println(s"[BSP] Failed to send test failure notification: ${e.getMessage}")
+          val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
+            (discoverTask, _) =>
+              discoverTestSuites(started, discoverTask.project).map { case (result, suites) =>
+                val filtered = filterSuites(suites, testOptions.only, testOptions.exclude)
+                (result, filtered)
               }
 
-              // Include zero-valued authoritative result even on failure
-              val failRunResult = BleepBspProtocol.TestRunResult(
-                totalPassed = 0,
-                totalFailed = 0,
-                totalSkipped = 0,
-                totalIgnored = 0,
-                suitesTotal = 0,
-                suitesCompleted = 0,
-                suitesFailed = 0,
-                suitesCancelled = 0,
-                durationMs = durationMs
-              )
+          val testHandler: (TaskDag.TestSuiteTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] = (testTask, taskKillSignal) => {
+            val classpath = getTestClasspath(started, testTask.project)
+            val project = started.build.explodedProjects(testTask.project)
+            val projectPlatform = project.platform.flatMap(_.name)
+            val isKotlin = project.kotlin.flatMap(_.version).isDefined
 
-              TestResult(
-                originId = params.originId,
-                statusCode = StatusCode.Error,
-                dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
-                data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(failRunResult).getBytes("UTF-8")))
-              )
+            (projectPlatform, isKotlin) match {
+              case (Some(model.PlatformId.Js), true) =>
+                runKotlinJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+              case (Some(model.PlatformId.Js), false) =>
+                runScalaJsTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+              case (Some(model.PlatformId.Native), true) =>
+                runKotlinNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+              case (Some(model.PlatformId.Native), false) =>
+                runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
+              case _ =>
+                // JVM (default) - use JvmPool
+                TestRunner.runSuite(
+                  project = testTask.project,
+                  suiteName = testTask.suiteName,
+                  framework = testTask.framework,
+                  classpath = classpath,
+                  pool = jvmPool,
+                  eventQueue = eventQueue,
+                  options = TestRunner.Options(
+                    jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ testOptions.jvmOptions,
+                    testArgs = testOptions.testArgs,
+                    idleTimeout = idleTimeout
+                  ),
+                  killSignal = taskKillSignal
+                )
+            }
           }
-        } finally releaseWorkspace(workspace, activeWork)
+
+          // Link handler for non-JVM platforms (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native)
+          val linkHandler: (TaskDag.LinkTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
+            (linkTask, killSignal) => {
+              val projectPaths = started.projectPaths(linkTask.project)
+              val classpath = getTestClasspath(started, linkTask.project)
+              val logger = createLinkLogger()
+              val outputDir = projectPaths.targetDir
+              LinkExecutor.execute(linkTask, classpath.map(_.toAbsolutePath), None, outputDir, logger, killSignal)
+            }
+
+          // Create executor with link support
+          val executor = TaskDag.executor(compileHandler, linkHandler, discoverHandler, testHandler)
+
+          // Run event consumer in background (auto-cancels when scope exits)
+          // This ensures the fiber is cleaned up even if the request is cancelled
+          for {
+            _ <- IO {
+              logger.warn(s"[BSP-SERVER] Starting event consumer and task executor, sendEventCounter=${sendEventCounter.get()}")
+            }
+            // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
+            consumerErrorRef <- Ref.of[IO, Option[Throwable]](None)
+            eventConsumerFiber <- consumeEvents(
+              eventQueue,
+              params.originId,
+              totalSuitesRef,
+              totalPassedRef,
+              totalFailedRef,
+              totalSkippedRef,
+              totalIgnoredRef,
+              killSignal,
+              traceRecorder
+            ).compile.drain.handleErrorWith { e =>
+              // Capture consumer error for later inspection
+              IO(logger.error(s"Event consumer error: ${e.getMessage}")) >>
+                consumerErrorRef.set(Some(e))
+            }.start
+
+            // Run executor with guarantee to cancel consumer fiber on completion/error/cancellation
+            dag <- executor
+              .execute(initialDag, maxParallelism, eventQueue, killSignal)
+              .flatMap { result =>
+                IO {
+                  val total = result.tasks.size
+                  val completed = result.completed.size
+                  val failed = result.failed.size
+                  val errored = result.errored.size
+                  val skipped = result.skipped.size
+                  val killed = result.killed.size
+                  val timedOut = result.timedOut.size
+                  logger.info(
+                    s"Task executor completed: $total tasks total, $completed completed, $failed failed, $errored errored, $skipped skipped, $killed killed, $timedOut timedOut"
+                  )
+                  if (result.killed.nonEmpty) {
+                    logger.warn(s"Killed tasks: ${result.killed.mkString(", ")}")
+                  }
+                  if (result.failed.nonEmpty) {
+                    logger.warn(s"Failed tasks: ${result.failed.mkString(", ")}")
+                  }
+                  if (result.errored.nonEmpty) {
+                    logger.warn(s"Errored tasks: ${result.errored.mkString(", ")}")
+                  }
+                  if (result.skipped.nonEmpty) {
+                    logger.warn(s"Skipped tasks: ${result.skipped.mkString(", ")}")
+                  }
+                  if (cancellation.isCancelled) {
+                    logger.warn("Cancellation token was triggered during test execution!")
+                  }
+                } >> IO {
+                  logger.warn(
+                    s"[BSP-SERVER] Executor done, draining remaining events. sendEventCounter=${sendEventCounter.get()}, cancellation.isCancelled=${cancellation.isCancelled}"
+                  )
+                } >>
+                  IO.sleep(100.millis) >>
+                  drainRemainingEvents(eventQueue, params.originId, totalSuitesRef, totalPassedRef, totalFailedRef, totalSkippedRef, totalIgnoredRef) >>
+                  IO.pure(result)
+              }
+              .guarantee(eventConsumerFiber.cancel) // Always cancel consumer fiber
+
+            // Check if consumer errored (e.g., connection died during execution)
+            consumerError <- consumerErrorRef.get
+            _ <- consumerError match {
+              case Some(e) =>
+                IO(logger.error(s"Event consumer failed: ${e.getMessage}")) >> IO.raiseError(e)
+              case None => IO.unit
+            }
+          } yield dag
+        }
+        passed <- totalPassedRef.get
+        failed <- totalFailedRef.get
+        skipped <- totalSkippedRef.get
+        ignored <- totalIgnoredRef.get
+        suites <- totalSuitesRef.get
+      } yield (testResult, passed, failed, skipped, ignored, suites)
+
+      logger.warn(s"[BSP-SERVER] handleTest: starting ioProgram.unsafeRunSync() for ${testProjects.map(_.value).mkString(", ")}")
+      val ioResult = Try(ioProgram.unsafeRunSync())
+      logger.warn(s"[BSP-SERVER] handleTest: ioProgram.unsafeRunSync() returned, sendEventCounter=${sendEventCounter.get()}")
+
+      // Write trace file if flamegraph is enabled
+      if (testOptions.flamegraph) {
+        val tracePath = started.buildPaths.dotBleepDir.resolve("trace.json")
+        traceRecorder.writeTrace(tracePath).unsafeRunSync()
+      }
+
+      ioResult match {
+        case Success((result, totalPassed, totalFailed, totalSkipped, totalIgnored, totalSuites)) =>
+          // Send TestRunFinished event
+          val durationMs = System.currentTimeMillis() - startTime
+          val timestamp = System.currentTimeMillis()
+          sendTestEvent(
+            params.originId,
+            "test-run",
+            BleepBspProtocol.Event.TestRunFinished(totalPassed, totalFailed, totalSkipped, totalIgnored, durationMs, timestamp)
+          )
+
+          // Determine final status
+          val statusCode =
+            if (cancellation.isCancelled) StatusCode.Cancelled
+            else if (result.failed.nonEmpty) StatusCode.Error
+            else StatusCode.Ok
+
+          // Compute suite-level counts from DAG result
+          val suiteTaskIds = result.tasks.collect { case (id, _: TaskDag.TestSuiteTask) => id }.toSet
+          val suitesCompleted = suiteTaskIds.count(id => result.completed.contains(id) || result.failed.contains(id) || result.timedOut.contains(id))
+          val suitesFailed = suiteTaskIds.count(id => result.failed.contains(id) || result.errored.contains(id))
+          val suitesCancelled = suiteTaskIds.count(id => result.killed.contains(id) || result.skipped.contains(id))
+
+          bspInfo(s"Test completed: $totalPassed passed, $totalFailed failed, $totalSkipped skipped (${durationMs}ms)")
+
+          // Include authoritative test results in TestResult.data for reliable delivery
+          val runResult = BleepBspProtocol.TestRunResult(
+            totalPassed = totalPassed,
+            totalFailed = totalFailed,
+            totalSkipped = totalSkipped,
+            totalIgnored = totalIgnored,
+            suitesTotal = totalSuites,
+            suitesCompleted = suitesCompleted,
+            suitesFailed = suitesFailed,
+            suitesCancelled = suitesCancelled,
+            durationMs = durationMs
+          )
+
+          TestResult(
+            originId = params.originId,
+            statusCode = statusCode,
+            dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
+            data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(runResult).getBytes("UTF-8")))
+          )
+
+        case Failure(ex) =>
+          val durationMs = System.currentTimeMillis() - startTime
+          val timestamp = System.currentTimeMillis()
+          System.err.println(s"[BSP] Test execution failed: ${ex.getMessage}")
+          ex.printStackTrace(System.err)
+
+          // Try to notify the client about the failure.
+          // If the connection is dead (which may have caused the failure), these sends will
+          // fail - that's fine, we just return the error TestResult.
+          try {
+            sendTestEvent(
+              params.originId,
+              "error",
+              BleepBspProtocol.Event.Error(
+                message = s"Test execution failed: ${ex.getMessage}",
+                details = Some(ex.getStackTrace.take(10).mkString("\n")),
+                timestamp = timestamp
+              )
+            )
+            sendTestEvent(
+              params.originId,
+              "test-run",
+              BleepBspProtocol.Event.TestRunFinished(0, 0, 0, 0, durationMs, timestamp)
+            )
+          } catch {
+            case _: java.io.IOException =>
+              System.err.println("[BSP] Client disconnected, cannot send test failure notification")
+            case e: Exception =>
+              System.err.println(s"[BSP] Failed to send test failure notification: ${e.getMessage}")
+          }
+
+          // Include zero-valued authoritative result even on failure
+          val failRunResult = BleepBspProtocol.TestRunResult(
+            totalPassed = 0,
+            totalFailed = 0,
+            totalSkipped = 0,
+            totalIgnored = 0,
+            suitesTotal = 0,
+            suitesCompleted = 0,
+            suitesFailed = 0,
+            suitesCancelled = 0,
+            durationMs = durationMs
+          )
+
+          TestResult(
+            originId = params.originId,
+            statusCode = StatusCode.Error,
+            dataKind = Some(BleepBspProtocol.TestRunResultDataKind),
+            data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(failRunResult).getBytes("UTF-8")))
+          )
+      }
+    } finally releaseWorkspace(workspace, activeWork)
   }
 
   /** Compile a single project (dependencies handled by TaskDag ordering).

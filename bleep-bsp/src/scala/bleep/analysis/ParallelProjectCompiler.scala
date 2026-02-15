@@ -170,11 +170,14 @@ object ParallelProjectCompiler {
                       progressListener.onProjectFinished(name, result) >>
                         completedRef.update(_ + (name -> result)) >>
                         deferreds(name).complete(result).attempt.void
-                    }).guarantee(
-                    runningRef.update(_ - name) >>
-                      signalRef.get.flatMap(_.complete(()).attempt.void)
-                  ).start.void
-              } >> {
+                    })
+                    .guarantee(
+                      runningRef.update(_ - name) >>
+                        signalRef.get.flatMap(_.complete(()).attempt.void)
+                    )
+                    .start
+                    .void
+              } >>
                 // If nothing is running and nothing was started, we're stuck or done
                 runningRef.get.flatMap { nowRunning =>
                   if (nowRunning.isEmpty && toStart.isEmpty) {
@@ -197,7 +200,6 @@ object ParallelProjectCompiler {
                       Deferred[IO, Unit].flatMap(s => signalRef.set(s) >> loop(runningRef, signalRef))
                   }
                 }
-              }
             }
           }
       } yield ()

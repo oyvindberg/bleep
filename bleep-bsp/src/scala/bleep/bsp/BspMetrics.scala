@@ -9,8 +9,8 @@ import scala.jdk.CollectionConverters._
 
 /** Lightweight metrics collector for the BSP server.
   *
-  * Writes append-only JSONL to `<metricsDir>/metrics.jsonl`. Crash-safe: flushes after every write. Intended to always be on — the overhead is negligible
-  * (one sync write per event + one background sample every few seconds).
+  * Writes append-only JSONL to `<metricsDir>/metrics.jsonl`. Crash-safe: flushes after every write. Intended to always be on — the overhead is negligible (one
+  * sync write per event + one background sample every few seconds).
   */
 object BspMetrics {
 
@@ -39,14 +39,14 @@ object BspMetrics {
 
     // Install OOM crash handler — records event before JVM dies
     val previousHandler = Thread.getDefaultUncaughtExceptionHandler
-    Thread.setDefaultUncaughtExceptionHandler((thread: Thread, throwable: Throwable) => {
+    Thread.setDefaultUncaughtExceptionHandler { (thread: Thread, throwable: Throwable) =>
       throwable match {
         case oom: OutOfMemoryError =>
           recordOomCrash(thread.getName, oom.getMessage)
         case _ => ()
       }
       if (previousHandler != null) previousHandler.uncaughtException(thread, throwable)
-    })
+    }
 
     val t = new Thread("bsp-metrics-sampler") {
       override def run(): Unit =
@@ -93,7 +93,9 @@ object BspMetrics {
   def recordCompileEnd(project: String, workspace: String, durationMs: Long, success: Boolean): Unit = {
     val current = concurrentCompiles.decrementAndGet()
     writeEvent(
-      s"""{"type":"compile_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(workspace)}","duration_ms":$durationMs,"success":$success,"concurrent":$current}"""
+      s"""{"type":"compile_end","ts":${now()},"project":"${esc(project)}","workspace":"${esc(
+          workspace
+        )}","duration_ms":$durationMs,"success":$success,"concurrent":$current}"""
     )
   }
 
@@ -132,7 +134,9 @@ object BspMetrics {
     val maxMb = heap.getMax / (1024 * 1024)
     // Use pre-allocated strings to minimize allocation during OOM
     writeEvent(
-      s"""{"type":"oom_crash","ts":${now()},"thread":"${esc(threadName)}","message":"${esc(if (message != null) message else "null")}","heap_used_mb":$usedMb,"heap_max_mb":$maxMb,"concurrent_compiles":${concurrentCompiles.get()},"active_connections":${activeConnections.get()}}"""
+      s"""{"type":"oom_crash","ts":${now()},"thread":"${esc(threadName)}","message":"${esc(
+          if (message != null) message else "null"
+        )}","heap_used_mb":$usedMb,"heap_max_mb":$maxMb,"concurrent_compiles":${concurrentCompiles.get()},"active_connections":${activeConnections.get()}}"""
     )
     System.err.println(s"[BspMetrics] FATAL: OutOfMemoryError on thread $threadName: $message (heap: $usedMb/$maxMb MB)")
   }
@@ -164,12 +168,13 @@ object BspMetrics {
     val peakThreads = threadBean.getPeakThreadCount
     val daemonThreads = threadBean.getDaemonThreadCount
 
-    val (cpuProcess, cpuSystem) = try {
-      val osBean = ManagementFactory.getOperatingSystemMXBean.asInstanceOf[com.sun.management.OperatingSystemMXBean]
-      (osBean.getProcessCpuLoad, osBean.getSystemCpuLoad)
-    } catch {
-      case _: ClassCastException => (-1.0, -1.0)
-    }
+    val (cpuProcess, cpuSystem) =
+      try {
+        val osBean = ManagementFactory.getOperatingSystemMXBean.asInstanceOf[com.sun.management.OperatingSystemMXBean]
+        (osBean.getProcessCpuLoad, osBean.getSystemCpuLoad)
+      } catch {
+        case _: ClassCastException => (-1.0, -1.0)
+      }
 
     val currentCompiles = concurrentCompiles.get()
     val loadedClasses = ManagementFactory.getClassLoadingMXBean.getLoadedClassCount
@@ -189,7 +194,11 @@ object BspMetrics {
         if (!oomPressureStarted) {
           oomPressureStarted = true
           writeEvent(
-            s"""{"type":"oom_pressure","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"pct":${String.format(Locale.US, "%.1f", (usedPct * 100): java.lang.Double)},"concurrent_compiles":$currentCompiles,"active_connections":${activeConnections.get()}}"""
+            s"""{"type":"oom_pressure","ts":${now()},"heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"pct":${String.format(
+                Locale.US,
+                "%.1f",
+                (usedPct * 100): java.lang.Double
+              )},"concurrent_compiles":$currentCompiles,"active_connections":${activeConnections.get()}}"""
           )
           System.err.println(s"[BspMetrics] WARNING: Heap at ${(usedPct * 100).toInt}% ($heapUsedMb/$heapMaxMb MB) with $currentCompiles concurrent compiles")
         }
@@ -202,7 +211,8 @@ object BspMetrics {
   private def writeSummary(): Unit = {
     val threadBean = ManagementFactory.getThreadMXBean
     writeEvent(
-      s"""{"type":"summary","ts":${now()},"max_concurrent_compiles":${maxConcurrentCompiles.get()},"max_active_connections":${maxActiveConnections.get()},"peak_threads":${threadBean.getPeakThreadCount},"max_heap_used_mb":${maxHeapUsedBytes.get() / (1024 * 1024)}}"""
+      s"""{"type":"summary","ts":${now()},"max_concurrent_compiles":${maxConcurrentCompiles.get()},"max_active_connections":${maxActiveConnections
+          .get()},"peak_threads":${threadBean.getPeakThreadCount},"max_heap_used_mb":${maxHeapUsedBytes.get() / (1024 * 1024)}}"""
     )
   }
 

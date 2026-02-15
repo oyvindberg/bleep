@@ -216,10 +216,10 @@ object BspServerOperations {
     */
   def connectWithRetry(config: BspRifleConfig): IO[Connection] = {
     def isRetryable(ex: Throwable): Boolean = ex match {
-      case _: ConnectException                       => true
-      case _: java.nio.file.NoSuchFileException      => true // Socket file not created yet
+      case _: ConnectException                         => true
+      case _: java.nio.file.NoSuchFileException        => true // Socket file not created yet
       case _: java.nio.channels.ClosedChannelException => true // Server restarting
-      case _                                         => false
+      case _                                           => false
     }
 
     def attempt(deadline: Long): IO[Connection] =

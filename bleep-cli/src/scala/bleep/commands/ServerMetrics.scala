@@ -37,14 +37,18 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
     pid match {
       case Some(targetPid) =>
         // Find socket dir whose pid file matches the given PID
-        Files.list(socketDir).toScala(List).flatMap { dir =>
-          val pidFile = dir.resolve("pid")
-          val mf = dir.resolve("metrics.jsonl")
-          if (FileUtils.exists(pidFile) && FileUtils.exists(mf)) {
-            val filePid = Files.readString(pidFile).trim.toLong
-            if (filePid == targetPid) Some(mf) else None
-          } else None
-        }.headOption
+        Files
+          .list(socketDir)
+          .toScala(List)
+          .flatMap { dir =>
+            val pidFile = dir.resolve("pid")
+            val mf = dir.resolve("metrics.jsonl")
+            if (FileUtils.exists(pidFile) && FileUtils.exists(mf)) {
+              val filePid = Files.readString(pidFile).trim.toLong
+              if (filePid == targetPid) Some(mf) else None
+            } else None
+          }
+          .headOption
       case None =>
         // Find most recently modified metrics.jsonl
         val candidates = Files.list(socketDir).toScala(List).flatMap { dir =>
@@ -147,7 +151,9 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       // Add 95% threshold line
       val heapMaxVal = events.jvm.head.get("heap_max_mb").getAsLong
       val threshold95 = (heapMaxVal * 0.95).toLong
-      t += s"""{"type":"scatter","mode":"lines","x":$xArr,"y":${fmtLongs(Seq.fill(events.jvm.size)(threshold95))},"name":"95% threshold","line":{"color":"#ef4444","dash":"dash","width":1},"showlegend":false}"""
+      t += s"""{"type":"scatter","mode":"lines","x":$xArr,"y":${fmtLongs(
+          Seq.fill(events.jvm.size)(threshold95)
+        )},"name":"95% threshold","line":{"color":"#ef4444","dash":"dash","width":1},"showlegend":false}"""
       addChart("heap", "Heap Memory (MB)", t, baseLayout("Time (s)", "MB"), false, 280)
     }
 
@@ -188,8 +194,11 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
       }
       val xArr = fmtDoubles(xs)
       t += s"""{"type":"bar","x":$xArr,"y":${fmtLongs(pauseCounts)},"name":"Pauses/interval","marker":{"color":"#8b5cf6","opacity":0.7},"yaxis":"y"}"""
-      t += s"""{"type":"scatter","mode":"lines","x":$xArr,"y":${fmtLongs(pauseMs)},"name":"Pause ms/interval","line":{"color":"#ef4444","width":2},"yaxis":"y2"}"""
-      val gcLayout = s"""{"margin":{"t":8,"r":60,"b":44,"l":60},"showlegend":true,"legend":{"orientation":"h","y":1.15,"x":0.5,"xanchor":"center","font":{"size":11}},"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"title":{"text":"Pause count","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis2":{"title":{"text":"Pause ms","font":{"size":12}},"overlaying":"y","side":"right","gridcolor":"#f0f0f0","zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"bargap":0.1}"""
+      t += s"""{"type":"scatter","mode":"lines","x":$xArr,"y":${fmtLongs(
+          pauseMs
+        )},"name":"Pause ms/interval","line":{"color":"#ef4444","width":2},"yaxis":"y2"}"""
+      val gcLayout =
+        s"""{"margin":{"t":8,"r":60,"b":44,"l":60},"showlegend":true,"legend":{"orientation":"h","y":1.15,"x":0.5,"xanchor":"center","font":{"size":11}},"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"title":{"text":"Pause count","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis2":{"title":{"text":"Pause ms","font":{"size":12}},"overlaying":"y","side":"right","gridcolor":"#f0f0f0","zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"bargap":0.1}"""
       addChart("gc", "GC Pauses", t, gcLayout, false, 280)
     }
 
@@ -231,7 +240,11 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
         t += scatterTrace(
           fmtDoubles(wsBuilds.map(e => relS(e.get("ts").getAsLong))),
           fmtDoubles(wsBuilds.map(_.get("duration_ms").getAsLong / 1000.0)),
-          wsLabel, color, "solid", "none", "lines+markers"
+          wsLabel,
+          color,
+          "solid",
+          "none",
+          "lines+markers"
         )
       }
       addChart("build-dur", "Build Duration Over Time", t, baseLayout("Time (s)", "Duration (s)"), false, 280)
@@ -279,9 +292,19 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
 
         // Invisible scatter for hover info
         val t = ArrayBuffer.empty[String]
-        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(spans.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(spans.map(s => rowIndex((pathName(s.workspace), s.project)).toDouble))},"text":${fmtStrings(spans.map(s => s"${s.project} (${pathName(s.workspace)})"))},"customdata":${fmtDoubles(spans.map(_.durationS))},"marker":{"color":"rgba(0,0,0,0)","size":6},"hovertemplate":"%{text}<br>%{customdata:.1f}s<extra></extra>","showlegend":false}"""
+        t += s"""{"type":"scatter","mode":"markers","x":${fmtDoubles(spans.map(s => s.startS + s.durationS / 2))},"y":${fmtDoubles(
+            spans.map(s => rowIndex((pathName(s.workspace), s.project)).toDouble)
+          )},"text":${fmtStrings(spans.map(s => s"${s.project} (${pathName(s.workspace)})"))},"customdata":${fmtDoubles(
+            spans.map(_.durationS)
+          )},"marker":{"color":"rgba(0,0,0,0)","size":6},"hovertemplate":"%{text}<br>%{customdata:.1f}s<extra></extra>","showlegend":false}"""
 
-        val tlLayout = s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(rowKeys.indices.map(_.toDouble))},"ticktext":${fmtStrings(rowLabels)},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes.mkString(",")}]}"""
+        val tlLayout =
+          s"""{"margin":{"t":8,"r":16,"b":44,"l":16},"showlegend":false,"xaxis":{"title":{"text":"Time (s)","font":{"size":12}},"gridcolor":"#f0f0f0","zeroline":false},"yaxis":{"automargin":true,"tickvals":${fmtDoubles(
+              rowKeys.indices.map(_.toDouble)
+            )},"ticktext":${fmtStrings(
+              rowLabels
+            )},"tickfont":{"size":9},"autorange":"reversed","gridcolor":"#f8f8f8"},"plot_bgcolor":"white","paper_bgcolor":"white","font":{"family":"Inter,system-ui,sans-serif","size":11,"color":"#374151"},"shapes":[${shapes
+              .mkString(",")}]}"""
 
         chartCards += s"""<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 lg:col-span-2"><h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wider">Compilation Timeline (${rowKeys.size} projects)</h3><div id="timeline" style="height:${timelineHeight}px"></div></div>"""
         plotCalls += s"""Plotly.newPlot('timeline',[${t.mkString(",")}],$tlLayout,{responsive:true,displayModeBar:false});"""
@@ -331,8 +354,14 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
 </div></div>"""
 
     val oomWarning = if (anyOom) {
-      val crashNote = if (oomCrashCount > 0) s" <strong>OutOfMemoryError recorded $oomCrashCount time(s).</strong>" else if (crashedBuilds > 0) s" Server crashed with $crashedBuilds build(s) in progress." else ""
-      val pressureNote = if (oomPressureCount > 0) s" Server detected heap &ge;95% $oomPressureCount time(s)." else if (oomFromJvm) s" Heap was at &ge;95% of max for $oomSamplesFromJvm/${events.jvm.size} samples." else ""
+      val crashNote =
+        if (oomCrashCount > 0) s" <strong>OutOfMemoryError recorded $oomCrashCount time(s).</strong>"
+        else if (crashedBuilds > 0) s" Server crashed with $crashedBuilds build(s) in progress."
+        else ""
+      val pressureNote =
+        if (oomPressureCount > 0) s" Server detected heap &ge;95% $oomPressureCount time(s)."
+        else if (oomFromJvm) s" Heap was at &ge;95% of max for $oomSamplesFromJvm/${events.jvm.size} samples."
+        else ""
       // Show timestamps of OOM events
       val oomTimes = (events.oomPressure.map(e => relS(e.get("ts").getAsLong)) ++ events.oomCrash.map(e => relS(e.get("ts").getAsLong))).sorted
       val timesNote = if (oomTimes.nonEmpty) s" OOM events at: ${oomTimes.map(t => f"${t}%.0fs").mkString(", ")}." else ""

@@ -126,7 +126,7 @@ class SharedWorkspaceStateTest extends AnyFunSuite with Matchers with BeforeAndA
       cancellationToken = token,
       completion = completion,
       startTimeMs = System.currentTimeMillis(),
-      forceKill = () => { forceKillCalled = true }
+      forceKill = () => forceKillCalled = true
     )
 
     SharedWorkspaceState.trySetActive(testWorkspace, work)

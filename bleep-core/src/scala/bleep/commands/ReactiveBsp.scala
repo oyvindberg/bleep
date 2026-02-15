@@ -171,7 +171,7 @@ case class ReactiveBsp(
     }
     val isTui = effectiveMode == DisplayMode.Tui && FancyBuildDisplay.isSupported
     val bspLogger = effectiveMode match {
-      case DisplayMode.Tui   =>
+      case DisplayMode.Tui =>
         // Reinstall JUL bridge to file-only logger so lsp4j warnings don't clobber the TUI
         val fileLoggerResource = bleepLoggers.fileOnly(started.buildPaths.logFile).acquire()
         bleepLoggers.installJulBridge(fileLoggerResource.value)
@@ -289,30 +289,32 @@ case class ReactiveBsp(
             // Deferred is already completed, so .attempt swallows the error).
             bspReady.complete(()).attempt.void >>
               cancelBlockingFiber.flatMap { cbFiber =>
-              // Race the main BSP request against connection death.
-              // If the server crashes mid-request, connectionDied completes and
-              // mainRequest is cancelled. If mainRequest completes normally,
-              // connectionDied is cancelled (interrupted).
-              //
-              // When connectionDied wins, the server has crashed — skip shutdown
-              // (server is already dead) and return ServerCrashed so the caller
-              // can retry with a fresh server.
-              IO.race(connectionDied, mainRequest).flatMap {
-                case Left(_) =>
-                  val rc = bspClient.asInstanceOf[ReactiveBspClient]
-                  IO(
-                    diagLog(
-                      s"[RACE] connectionDied won - server crashed. started=${rc.suiteStartedCount.get()} finished=${rc.suiteFinishedCount.get()} emitted=${rc.emitCount.get()} emitFails=${rc.emitFailCount.get()}"
-                    )
-                  ).as(ReactiveBsp.BspAttemptResult.ServerCrashed)
-                case Right(_) =>
-                  val rc = bspClient.asInstanceOf[ReactiveBspClient]
-                  IO(
-                    diagLog(
-                      s"[RACE] bspOp won - success. started=${rc.suiteStartedCount.get()} finished=${rc.suiteFinishedCount.get()} emitted=${rc.emitCount.get()} emitFails=${rc.emitFailCount.get()}"
-                    )
-                  ) >> shutdown.as(ReactiveBsp.BspAttemptResult.Success)
-              }.guarantee(cbFiber.cancel)
+                // Race the main BSP request against connection death.
+                // If the server crashes mid-request, connectionDied completes and
+                // mainRequest is cancelled. If mainRequest completes normally,
+                // connectionDied is cancelled (interrupted).
+                //
+                // When connectionDied wins, the server has crashed — skip shutdown
+                // (server is already dead) and return ServerCrashed so the caller
+                // can retry with a fresh server.
+                IO.race(connectionDied, mainRequest)
+                  .flatMap {
+                    case Left(_) =>
+                      val rc = bspClient.asInstanceOf[ReactiveBspClient]
+                      IO(
+                        diagLog(
+                          s"[RACE] connectionDied won - server crashed. started=${rc.suiteStartedCount.get()} finished=${rc.suiteFinishedCount.get()} emitted=${rc.emitCount.get()} emitFails=${rc.emitFailCount.get()}"
+                        )
+                      ).as(ReactiveBsp.BspAttemptResult.ServerCrashed)
+                    case Right(_) =>
+                      val rc = bspClient.asInstanceOf[ReactiveBspClient]
+                      IO(
+                        diagLog(
+                          s"[RACE] bspOp won - success. started=${rc.suiteStartedCount.get()} finished=${rc.suiteFinishedCount.get()} emitted=${rc.emitCount.get()} emitFails=${rc.emitFailCount.get()}"
+                        )
+                      ) >> shutdown.as(ReactiveBsp.BspAttemptResult.Success)
+                  }
+                  .guarantee(cbFiber.cancel)
               }
           }
         }
@@ -363,7 +365,10 @@ case class ReactiveBsp(
       summary <- signalCompletion
       _ <- display.printSummary
       _ <- IO.delay(started.logger.info(s"  BSP server log: ${BspRifle.getOutputFile(config)}"))
-      _ <- if (flamegraph) IO.delay(started.logger.info(s"  Flamegraph: ${started.buildPaths.dotBleepDir.resolve("trace.json")} (open in chrome://tracing or ui.perfetto.dev)")) else IO.unit
+      _ <-
+        if (flamegraph)
+          IO.delay(started.logger.info(s"  Flamegraph: ${started.buildPaths.dotBleepDir.resolve("trace.json")} (open in chrome://tracing or ui.perfetto.dev)"))
+        else IO.unit
       _ <- IO(diagLogWriter.close())
     } yield summary
 
