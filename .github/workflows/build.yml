@@ -21,7 +21,7 @@ jobs:
         with:
           submodules: recursive
       - uses: bleep-build/bleep-setup-action@0.0.2
-      - uses: coursier/cache-action@v7
+      - uses: coursier/cache-action@v8
         with:
           extraFiles: bleep.yaml
 
@@ -100,7 +100,7 @@ jobs:
 
       - uses: bleep-build/bleep-setup-action@0.0.2
 
-      - uses: coursier/cache-action@v7
+      - uses: coursier/cache-action@v8
         with:
           extraFiles: bleep.yaml
 
@@ -217,7 +217,7 @@ jobs:
         with:
           submodules: true
       - uses: bleep-build/bleep-setup-action@0.0.2
-      - uses: coursier/cache-action@v7
+      - uses: coursier/cache-action@v8
         with:
           extraFiles: bleep.yaml
       - id: get_version
