@@ -23,6 +23,12 @@ object FileUtils {
   }
 
   def writeBytes(path: Path, newContent: Array[Byte]): Unit = {
+    // Skip write if file already has identical content — preserves timestamps
+    // and avoids triggering unnecessary downstream recompilation
+    if (path.toFile.exists()) {
+      val existing = Files.readAllBytes(path)
+      if (java.util.Arrays.equals(existing, newContent)) return
+    }
     Files.createDirectories(path.getParent)
     Files.write(path, newContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
     ()

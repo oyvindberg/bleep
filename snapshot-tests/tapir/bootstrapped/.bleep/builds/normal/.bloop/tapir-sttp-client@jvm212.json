@@ -58,7 +58,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.10.0/cats-kernel_2.12-2.10.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/literally_2.12/1.1.0/literally_2.12-1.1.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client/jvm212/classes",
@@ -155,7 +159,6 @@
           "organization": "dev.zio",
           "name": "zio-stacktracer_2.12",
           "version": "2.1.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-stacktracer_2.12",
@@ -167,7 +170,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
@@ -179,7 +181,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.12",
           "version": "3.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.12",
@@ -191,7 +192,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-stream_2.12",
           "version": "1.1.4",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "pekko-stream_2.12",
@@ -203,7 +203,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -215,7 +214,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.12",
@@ -227,7 +225,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -239,7 +236,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "zio_2.12",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "zio_2.12",
@@ -251,7 +247,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -263,7 +258,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.12",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.12",
@@ -275,7 +269,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "pekko_2.12",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "pekko_2.12",
@@ -287,7 +280,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -299,7 +291,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-actor_2.12",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-actor_2.12",
@@ -311,7 +302,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.12",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.12",
@@ -323,7 +313,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -335,7 +324,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -347,7 +335,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-protobuf-v3_2.12",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-protobuf-v3_2.12",
@@ -359,7 +346,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.12",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka_2.12",
@@ -371,7 +357,6 @@
           "organization": "dev.zio",
           "name": "zio_2.12",
           "version": "2.1.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_2.12",
@@ -383,7 +368,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.12",
@@ -395,7 +379,6 @@
           "organization": "dev.zio",
           "name": "zio-internal-macros_2.12",
           "version": "2.1.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-internal-macros_2.12",
@@ -407,7 +390,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -419,7 +401,6 @@
           "organization": "dev.zio",
           "name": "zio-streams_2.12",
           "version": "2.1.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-streams_2.12",
@@ -431,7 +412,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect_2.12",
@@ -443,7 +423,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -455,7 +434,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.12",
           "version": "3.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.12",
@@ -467,7 +445,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.12",
           "version": "2.6.20",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka-stream_2.12",
@@ -479,7 +456,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -491,7 +467,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.12",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "fs2_2.12",
@@ -503,7 +478,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -515,7 +489,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.12",
@@ -527,7 +500,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -539,7 +511,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-protobuf-v3_2.12",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-protobuf-v3_2.12",
@@ -551,7 +522,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.12",
@@ -563,7 +533,6 @@
           "organization": "com.softwaremill.sttp.client3",
           "name": "core_2.12",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -575,7 +544,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -584,9 +552,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

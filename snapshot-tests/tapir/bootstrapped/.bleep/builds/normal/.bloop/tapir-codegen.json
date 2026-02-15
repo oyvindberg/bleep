@@ -38,7 +38,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-effect_2.12/3.4.0/cats-effect_2.12-3.4.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.13.0/cats-kernel_2.12-2.13.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-codegen-core/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-codegen-core/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/openapi-codegen/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-codegen",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-codegen/classes",
@@ -136,7 +138,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -148,7 +149,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -160,7 +160,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -172,7 +171,6 @@
           "organization": "io.circe",
           "name": "circe-yaml_2.12",
           "version": "0.15.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml_2.12",
@@ -184,7 +182,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -196,7 +193,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -208,7 +204,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -220,7 +215,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -232,7 +226,6 @@
           "organization": "org.yaml",
           "name": "snakeyaml",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml",
@@ -244,7 +237,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.12",
@@ -256,7 +248,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -268,7 +259,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.12",
@@ -280,7 +270,6 @@
           "organization": "com.monovore",
           "name": "decline-effect_2.12",
           "version": "2.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "decline-effect_2.12",
@@ -292,7 +281,6 @@
           "organization": "com.monovore",
           "name": "decline_2.12",
           "version": "2.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "decline_2.12",
@@ -304,7 +292,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -316,7 +303,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-common_2.12",
           "version": "0.15.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-common_2.12",
@@ -328,7 +314,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.12",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.12",
@@ -337,9 +322,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

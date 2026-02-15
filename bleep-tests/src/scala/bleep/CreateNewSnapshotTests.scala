@@ -2,7 +2,7 @@ package bleep
 
 import bleep.commands.BuildCreateNew
 import bleep.internal.FileUtils
-import bleep.testing.SnapshotTest
+import bleep.testing.{GenBloopFiles, SnapshotTest}
 import cats.data.NonEmptyList
 
 import java.nio.file.Path
@@ -36,10 +36,10 @@ class CreateNewSnapshotTests extends SnapshotTest {
 
       val ec = ExecutionContext.global
       val pre = Prebootstrapped(logger, userPaths, bootstrappedDestinationPaths, BuildLoader.Existing(buildLoader.bleepYaml), ec)
-      val Right(started) = bootstrap.from(pre, GenBloopFiles.InMemory, Nil, model.BleepConfig.default, testResolver): @unchecked
+      val Right(started) = bootstrap.from(pre, ResolveProjects.InMemory, Nil, model.BleepConfig.default, testResolver): @unchecked
 
       val generatedBloopFiles: Map[Path, String] =
-        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.bloopFiles).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
+        GenBloopFiles.encodedFiles(bootstrappedDestinationPaths, started.resolvedProjects).map { case (path, s) => (path, absolutePaths.templatize.string(s)) }
 
       val allGeneratedFiles = generatedBloopFiles
 

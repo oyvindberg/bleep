@@ -41,7 +41,19 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/core-macros/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-logging/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-logging/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-logging/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-scripted/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-scripted/jvm212/classes",
@@ -122,7 +134,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.12",
@@ -134,7 +145,6 @@
           "organization": "org.jline",
           "name": "jline-native",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-native",
@@ -146,7 +156,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.12",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.12",
@@ -158,7 +167,6 @@
           "organization": "com.lmax",
           "name": "disruptor",
           "version": "3.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "disruptor",
@@ -170,7 +178,6 @@
           "organization": "com.swoval",
           "name": "file-tree-views",
           "version": "2.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
@@ -182,7 +189,6 @@
           "organization": "org.apache.logging.log4j",
           "name": "log4j-api",
           "version": "2.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4j-api",
@@ -194,7 +200,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -206,7 +211,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.12",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.12",
@@ -218,7 +222,6 @@
           "organization": "org.jline",
           "name": "jline-terminal-jni",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-terminal-jni",
@@ -230,7 +233,6 @@
           "organization": "org.scala-sbt",
           "name": "io_2.12",
           "version": "1.10.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "io_2.12",
@@ -242,7 +244,6 @@
           "organization": "org.apache.logging.log4j",
           "name": "log4j-core",
           "version": "2.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4j-core",
@@ -254,7 +255,6 @@
           "organization": "org.jline",
           "name": "jline-terminal",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-terminal",
@@ -266,7 +266,6 @@
           "organization": "org.scala-sbt.jline",
           "name": "jline",
           "version": "2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
@@ -278,7 +277,6 @@
           "organization": "org.fusesource.jansi",
           "name": "jansi",
           "version": "2.4.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jansi",
@@ -290,7 +288,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -302,7 +299,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -314,7 +310,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.12",
@@ -326,7 +321,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.12",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.12",
@@ -338,7 +332,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -347,9 +340,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

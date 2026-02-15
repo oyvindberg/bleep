@@ -31,7 +31,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-mtl_2.12/1.3.1/cats-mtl_2.12-1.3.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-core_2.12/2.7.0/log4cats-core_2.12-2.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm212/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-log4cats/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-log4cats/jvm212/classes",
@@ -128,7 +131,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -140,7 +142,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -152,7 +153,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -164,7 +164,6 @@
           "organization": "org.tpolecat",
           "name": "typename_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "typename_2.12",
@@ -176,7 +175,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_2.12",
@@ -188,7 +186,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -200,7 +197,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -212,7 +208,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.12",
@@ -224,7 +219,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -236,7 +230,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.12",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.12",
@@ -248,7 +241,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.12",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.12",
@@ -260,7 +252,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -272,7 +263,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -284,7 +274,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -296,7 +285,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.12",
@@ -305,9 +293,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

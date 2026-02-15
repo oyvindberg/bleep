@@ -17,7 +17,7 @@ import scala.util.control.NonFatal
   *   - Pure: Return value directly
   */
 class SchedulerInterpreter(
-    display: TestDisplay,
+    display: BuildDisplay,
     testRunState: Ref[IO, TestRunState],
     testArgs: List[String],
     jvmOptions: List[String],
@@ -152,95 +152,137 @@ class SchedulerInterpreter(
       _ <- updateTestRunStateForSuiteStart(job, jvmId.pid, timestamp)
     } yield ()
 
-    // Collected test events to emit after blocking section
-    case class TestEventInfo(test: String, status: TestStatus, durationMs: Long, message: Option[String], throwable: Option[String])
+    // Send command, then read responses one at a time so we can emit
+    // TestActivity events to the scheduler between reads (resets idle timeout).
+    val runSuite: IO[SuiteResult] = {
+      case class RunState(
+          passed: Int,
+          failed: Int,
+          skipped: Int,
+          ignored: Int,
+          failures: List[TestFailureInfo],
+          done: Boolean
+      )
 
-    // Send command and read responses
-    val runSuite: IO[SuiteResult] = IO
-      .blocking {
-        var passed = 0
-        var failed = 0
-        var skipped = 0
-        var ignored = 0
-        var failures = List.empty[TestFailureInfo]
-        var testEvents = List.empty[TestEventInfo]
-
-        // Send run command
+      val sendCommand: IO[Unit] = IO.blocking {
         val cmd = TestProtocol.TestCommand.RunSuite(job.suite.className, job.suite.framework, testArgs)
         handle.stdin.println(TestProtocol.encodeCommand(cmd))
         handle.stdin.flush()
+      }
 
-        // Read responses
-        var done = false
-        while (!done && handle.isAlive) {
-          val line = handle.stdout.readLine()
-          if (line == null) {
-            done = true
-          } else {
-            TestProtocol.decodeResponse(line) match {
-              case Right(TestProtocol.TestResponse.TestStarted(_, _)) => ()
-              case Right(TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable)) =>
-                val testStatus = TestStatus.fromString(status)
-                testEvents = testEvents :+ TestEventInfo(test, testStatus, durationMs, message, throwable)
-                status match {
-                  case "passed" => passed += 1
-                  case "failed" =>
-                    failed += 1
-                    failures = failures :+ TestFailureInfo(TestTypes.TestName(test), message, throwable)
-                  case "skipped" => skipped += 1
-                  case "ignored" => ignored += 1
-                  case _         => ()
-                }
-              case Right(TestProtocol.TestResponse.SuiteDone(_, p, f, s, i, _)) =>
-                passed = p; failed = f; skipped = s; ignored = i
-                done = true
-              case Right(TestProtocol.TestResponse.Error(msg, details)) =>
-                failed += 1
-                failures = failures :+ TestFailureInfo(TestTypes.TestName("(error)"), Some(msg), details)
-                done = true
-              case _ => ()
-            }
+      val readLine: IO[Option[String]] = IO.blocking {
+        if (!handle.isAlive) None
+        else Option(handle.stdout.readLine())
+      }
+
+      def processLoop(state: RunState): IO[RunState] =
+        if (state.done) IO.pure(state)
+        else
+          readLine.flatMap {
+            case None => IO.pure(state.copy(done = true))
+            case Some(line) =>
+              TestProtocol.decodeResponse(line) match {
+                case Right(TestProtocol.TestResponse.TestStarted(_, _)) =>
+                  processLoop(state)
+
+                case Right(TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable)) =>
+                  val testStatus = TestStatus.fromString(status)
+                  val newState = status match {
+                    case "passed" => state.copy(passed = state.passed + 1)
+                    case "failed" =>
+                      state.copy(
+                        failed = state.failed + 1,
+                        failures = state.failures :+ TestFailureInfo(TestTypes.TestName(test), message, throwable)
+                      )
+                    case "skipped" => state.copy(skipped = state.skipped + 1)
+                    case "ignored" => state.copy(ignored = state.ignored + 1)
+                    case _         => state
+                  }
+                  // Emit TestActivity to scheduler (resets idle timeout) and display event
+                  for {
+                    ts <- IO.realTime.map(_.toMillis)
+                    _ <- eventQueue.offer(SchedulerEvent.TestActivity(jvmId, ts))
+                    _ <- display.handle(
+                      BuildEvent.TestFinished(
+                        job.project.value,
+                        job.suite.className,
+                        test,
+                        testStatus,
+                        durationMs,
+                        message,
+                        throwable,
+                        ts
+                      )
+                    )
+                    result <- processLoop(newState)
+                  } yield result
+
+                case Right(TestProtocol.TestResponse.SuiteDone(_, p, f, s, i, _)) =>
+                  IO.pure(state.copy(passed = p, failed = f, skipped = s, ignored = i, done = true))
+
+                case Right(TestProtocol.TestResponse.Error(msg, details)) =>
+                  IO.pure(
+                    state.copy(
+                      failed = state.failed + 1,
+                      failures = state.failures :+ TestFailureInfo(TestTypes.TestName("(error)"), Some(msg), details),
+                      done = true
+                    )
+                  )
+
+                case Right(TestProtocol.TestResponse.Log(level, message, suite)) =>
+                  val isError = level == "error" || level == "stderr"
+                  val effectiveSuite = suite.getOrElse(job.suite.className)
+                  for {
+                    ts <- IO.realTime.map(_.toMillis)
+                    _ <- display.handle(BuildEvent.Output(job.project.value, effectiveSuite, message, isError, ts))
+                    result <- processLoop(state)
+                  } yield result
+
+                case _ => processLoop(state)
+              }
           }
-        }
 
+      sendCommand >> processLoop(RunState(0, 0, 0, 0, Nil, false)).map { state =>
         val endTime = System.currentTimeMillis()
-        (
-          SuiteResult(
-            suite = TestTypes.SuiteClassName(job.suite.className),
-            passed = passed,
-            failed = failed,
-            skipped = skipped,
-            ignored = ignored,
-            durationMs = endTime - startTime,
-            failures = failures
-          ),
-          testEvents
+        SuiteResult(
+          suite = TestTypes.SuiteClassName(job.suite.className),
+          passed = state.passed,
+          failed = state.failed,
+          skipped = state.skipped,
+          ignored = state.ignored,
+          durationMs = endTime - startTime,
+          failures = state.failures
         )
       }
-      .flatMap { case (result, testEvents) =>
-        // Emit test events to display for speedup calculation
-        val emitEvents = testEvents.traverse_ { info =>
-          display.handle(
-            TestEvent.TestFinished(
-              job.project.value,
-              job.suite.className,
-              info.test,
-              info.status,
-              info.durationMs,
-              info.message,
-              info.throwable,
-              System.currentTimeMillis()
-            )
-          )
-        }
-        emitEvents.as(result)
-      }
+    }
 
     // Complete suite and update state
     def completeSuite(result: SuiteResult): IO[SuiteResult] = for {
       _ <- eventQueue.offer(SchedulerEvent.SuiteFinished(jvmId, result))
       _ <- updateTestRunStateForSuiteFinish(job, result)
     } yield result
+
+    // Drain stderr from JVM and emit as Output events
+    def drainStderr: IO[Unit] = IO
+      .blocking {
+        val sb = new StringBuilder
+        try
+          while (handle.stderr.ready()) {
+            val line = handle.stderr.readLine()
+            if (line != null) sb.append(line).append("\n")
+          }
+        catch { case NonFatal(_) => }
+        sb.toString()
+      }
+      .flatMap { stderrOutput =>
+        if (stderrOutput.nonEmpty) {
+          IO.realTime.map(_.toMillis).flatMap { ts =>
+            stderrOutput.split('\n').toList.traverse_ { line =>
+              display.handle(BuildEvent.Output(job.project.value, job.suite.className, line, true, ts))
+            }
+          }
+        } else IO.unit
+      }
 
     // Handle errors
     def handleError(error: Throwable): IO[SuiteResult] = {
@@ -253,13 +295,14 @@ class SchedulerInterpreter(
         durationMs = System.currentTimeMillis() - startTime,
         failures = List(TestFailureInfo(TestTypes.TestName("(error)"), Some(error.getMessage), None))
       )
-      eventQueue.offer(SchedulerEvent.JvmDied(jvmId, Some(error.getMessage))) >>
+      drainStderr >>
+        eventQueue.offer(SchedulerEvent.JvmDied(jvmId, Some(error.getMessage))) >>
         jvmsRef.update(_ - jvmId) >>
         IO(handle.kill()) >>
         IO.pure(failureResult)
     }
 
-    notifyStart >> runSuite.flatMap(completeSuite).handleErrorWith(handleError)
+    notifyStart >> runSuite.flatTap(_ => drainStderr).flatMap(completeSuite).handleErrorWith(handleError)
   }
 
   /** Get thread dump from a JVM and send event to scheduler */
@@ -319,7 +362,7 @@ class SchedulerInterpreter(
   private def notifyTimeout(jvmId: JvmId, job: SuiteJob, reason: String, threadDump: Option[ThreadDumpInfo]): IO[Unit] = {
     val timestamp = System.currentTimeMillis()
     display.handle(
-      TestEvent.SuiteTimedOut(job.project.value, job.suite.className, timeoutConfig.suiteExecutionMs, threadDump, timestamp)
+      BuildEvent.SuiteTimedOut(job.project.value, job.suite.className, timeoutConfig.idleTimeoutMs, threadDump, timestamp)
     ) >> updateTestRunStateForTimeout(job)
   }
 
@@ -331,7 +374,7 @@ class SchedulerInterpreter(
       timestamp
     )
     testRunState.update(_.reduceSimple(action)) >>
-      display.handle(TestEvent.SuiteStarted(job.project.value, job.suite.className, timestamp))
+      display.handle(BuildEvent.SuiteStarted(job.project.value, job.suite.className, timestamp))
   }
 
   private def updateTestRunStateForSuiteFinish(job: SuiteJob, result: SuiteResult): IO[Unit] = {
@@ -342,7 +385,7 @@ class SchedulerInterpreter(
     )
     testRunState.update(_.reduceSimple(action)) >>
       display.handle(
-        TestEvent.SuiteFinished(
+        BuildEvent.SuiteFinished(
           job.project.value,
           job.suite.className,
           result.passed,
@@ -363,7 +406,7 @@ class SchedulerInterpreter(
       skipped = 0,
       ignored = 0,
       durationMs = 0,
-      failures = List(TestFailureInfo(TestTypes.TestName("(timeout)"), Some("Suite timed out"), None))
+      failures = List(TestFailureInfo(TestTypes.TestName("(timeout)"), Some("Suite idle timeout"), None))
     )
     val action = ProjectAction.FinishSuite(
       job.project,
@@ -383,12 +426,17 @@ class SchedulerInterpreter(
     for {
       jvmsRef <- Ref.of[IO, Map[JvmId, JvmHandle]](Map.empty)
       fibersRef <- Ref.of[IO, Set[Fiber[IO, Throwable, Unit]]](Set.empty)
+      // Use guaranteeCase to ensure cleanup happens even on exceptions or cancellation
       result <- tickLoop(eventQueue, stateRef, jvmsRef, fibersRef, cancelSignal, tickIntervalMs)
-      // Cleanup: cancel all running fibers and kill JVMs
-      fibers <- fibersRef.get
-      _ <- fibers.toList.traverse_(_.cancel)
-      jvms <- jvmsRef.get
-      _ <- IO(jvms.values.foreach(jvm => if (jvm.isAlive) jvm.kill()))
+        .guaranteeCase { _ =>
+          // Cleanup: cancel all running fibers and kill JVMs
+          for {
+            fibers <- fibersRef.get
+            _ <- fibers.toList.traverse_(_.cancel)
+            jvms <- jvmsRef.get
+            _ <- IO(jvms.values.foreach(jvm => if (jvm.isAlive) jvm.kill()))
+          } yield ()
+        }
     } yield result
 
   private def tickLoop(
@@ -423,7 +471,8 @@ class SchedulerInterpreter(
       // Fork all actions and track fibers for cleanup
       newFibers <- actions.traverse { action =>
         interpret(action, eventQueue, jvmsRef).void.handleErrorWith { error =>
-          IO(System.err.println(s"Action ${action.name} failed: ${error.getMessage}"))
+          // Report error through display (safe for TUI)
+          display.handle(BuildEvent.Error("", s"Action ${action.name} failed", Some(error.getMessage), System.currentTimeMillis()))
         }.start
       }
       _ <- fibersRef.update(_ ++ newFibers.toSet)
@@ -454,7 +503,7 @@ class SchedulerInterpreter(
 
 object SchedulerInterpreter {
   def create(
-      display: TestDisplay,
+      display: BuildDisplay,
       testRunState: Ref[IO, TestRunState],
       testArgs: List[String],
       jvmOptions: List[String],

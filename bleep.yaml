@@ -1,10 +1,21 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 0.0.14
+$version: 0.0.13
 jvm:
   name: graalvm-community:25.0.1
+resolvers:
+  - https://packages.jetbrains.team/maven/p/ij/intellij-dependencies
 projects:
   bleep-cli:
+    cross:
+      jvm3:
+        dependsOn:
+        - bleep-core
+        sources: ./bleep-cli/src/scala-3
+      jvm213:
+        dependsOn: bleep-core
+        sources: ./bleep-cli/src/scala-2.13
     dependencies:
+    - ch.epfl.scala::bloop-config:2.3.3
     - com.lihaoyi::pprint:0.9.6
     - com.monovore::decline:2.5.0
     - com.typesafe:config:1.4.5
@@ -13,7 +24,6 @@ projects:
       # note: weird binary incompatibility when bumping this for scala3
     - org.typelevel::cats-core:2.9.0
     - org.typelevel::cats-parse:1.0.0
-    dependsOn: bleep-core
     extends:
     - template-common
     - template-cross-all
@@ -21,12 +31,12 @@ projects:
       mainClass: bleep.Main
   bleep-core:
     dependencies:
-    - ch.epfl.scala::bloop-config:2.3.3
-    - for3Use213: true
-      module: ch.epfl.scala::bloop-rifle:2.0.17
+    - ch.epfl.scala:bsp4j:2.2.0-M2
     - co.fs2::fs2-core:3.10.2
+    - com.google.code.gson:gson:2.10.1
     - com.olvind.ryddig::ryddig:0.0.6
-    - com.olvind.tui::tui:0.0.7
+    - com.olvind.ryddig::ryddig-jul:0.0.6
+    - com.olvind.tui::tui:0.0.9
     - com.swoval:file-tree-views:2.1.12
     - io.github.alexarchambault.native-terminal:native-terminal:0.0.9.1
     - org.typelevel::cats-effect:3.5.4
@@ -34,6 +44,7 @@ projects:
     dependsOn:
     - bleep-model
     - bleep-nosbt
+    - bleep-bsp-protocol
     - bleep-test-runner
     extends: template-cross-all
     sources: ../liberated/sbt-tpolecat/plugin/src/main/scala
@@ -141,19 +152,64 @@ projects:
       options: -source 8 -target 8
     platform:
       name: jvm
-  bleep-tests:
-    dependencies: org.scalatest::scalatest:3.2.19
-    dependsOn: bleep-cli
+    sources: ./src/main/java
+    resources: ./src/main/resources
+  bleep-bsp:
+    dependencies:
+    - org.scala-lang::scala3-compiler:3.7.4
+    - org.jetbrains.kotlin:kotlin-compiler:2.3.0
+    - org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
+    - ch.epfl.scala::tasty-query:1.6.1
+    - org.ow2.asm:asm:9.7.1
+    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
+    - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
+    - org.typelevel::cats-effect:3.5.4
+    - for3Use213: true
+      module: org.scala-sbt::zinc:1.12.0
+    - for3Use213: true
+      module: ch.epfl.scala::libdaemon:0.0.12
+    dependsOn:
+    - bleep-model
+    - bleep-core
+    - bleep-bsp-protocol
+    - bleep-test-runner
+    extends:
+    - template-common
+    - template-scala-3
+  bleep-bsp-protocol:
+    dependencies:
+    - io.circe::circe-generic:0.14.15
+    - io.circe::circe-parser:0.14.15
+    extends: template-cross-all
+  bleep-bsp-tests:
+    dependencies:
+    - org.scalatest::scalatest:3.2.19
+    - for3Use213: true
+      module: io.get-coursier::coursier:2.1.24
+    dependsOn: bleep-bsp
     extends:
     - template-common
     - template-scala-3
     isTestProject: true
-  scripts:
+    scala:
+      strict: false
+  bleep-tests:
+    dependencies: org.scalatest::scalatest:3.2.19
     dependsOn:
-    - bleep-plugin-ci-release
-    - bleep-plugin-mdoc
-    - bleep-plugin-native-image
-    - bleep-plugin-scalafix
+    - bleep-cli
+    - bleep-bsp
+    extends:
+    - template-common
+    - template-scala-3
+    isTestProject: true
+    scala:
+      strict: false
+  scripts:
+    dependencies:
+    - build.bleep::bleep-plugin-ci-release:${BLEEP_VERSION}
+    - build.bleep::bleep-plugin-mdoc:${BLEEP_VERSION}
+    - build.bleep::bleep-plugin-native-image:${BLEEP_VERSION}
+    - build.bleep::bleep-plugin-scalafix:${BLEEP_VERSION}
     extends:
     - template-common
     - template-scala-3
@@ -207,5 +263,5 @@ templates:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
   template-scala-3:
     scala:
-      options: -source 3.3
-      version: 3.3.3
+      options: -source 3.4 -no-indent -Wconf:name=PatternMatchExhaustivity:error
+      version: 3.7.4

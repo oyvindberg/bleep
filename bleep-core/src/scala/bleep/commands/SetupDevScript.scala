@@ -7,7 +7,7 @@ class SetupDevScript(started: Started, project: model.CrossProjectName, override
   override def run(): Either[BleepException, Unit] =
     OsArch.current.os match {
       case model.Os.Windows =>
-        val cmd = jvmRunCommand(started.bloopProject(project), started.resolvedJvm, project, overrideMainClass, List("%*")).orThrow.mkString(" ")
+        val cmd = jvmRunCommand(started.resolvedProject(project), started.resolvedJvm, project, overrideMainClass, List("%*")).orThrow.mkString(" ")
         val file =
           s"""@echo off
              |$cmd
@@ -17,7 +17,7 @@ class SetupDevScript(started: Started, project: model.CrossProjectName, override
         scriptFile.toFile.setExecutable(true)
         Right(())
       case _ =>
-        val cmd = jvmRunCommand(started.bloopProject(project), started.resolvedJvm, project, overrideMainClass, List("$@")).orThrow.mkString(" ")
+        val cmd = jvmRunCommand(started.resolvedProject(project), started.resolvedJvm, project, overrideMainClass, List("$@")).orThrow.mkString(" ")
 
         val file =
           s"""#!/bin/sh

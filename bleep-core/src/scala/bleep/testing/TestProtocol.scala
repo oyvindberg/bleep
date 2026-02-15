@@ -88,7 +88,8 @@ object TestProtocol {
     /** Log output from test */
     case class Log(
         level: String,
-        message: String
+        message: String,
+        suite: Option[String]
     ) extends TestResponse
 
     /** An error occurred in the test runner itself */

@@ -14,7 +14,7 @@ sealed abstract class SourceLayout(val id: String) {
 }
 
 object SourceLayout {
-  val All = List(SbtMatrix, CrossPure, CrossFull, Normal, Java, None_).map(x => x.id -> x).toMap
+  val All = List(SbtMatrix, CrossPure, CrossFull, Normal, Java, Kotlin, None_).map(x => x.id -> x).toMap
 
   implicit val decoder: Decoder[SourceLayout] =
     Decoder[Option[String]].emap {
@@ -37,6 +37,19 @@ object SourceLayout {
   case object Java extends SourceLayout("java") {
     override def sources(maybeScalaVersion: Option[VersionScala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
       JsonSet(
+        RelPath.force(s"src/$scope/java")
+      )
+
+    override def resources(maybeScalaVersion: Option[VersionScala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
+      JsonSet(
+        RelPath.force(s"src/$scope/resources")
+      )
+  }
+
+  case object Kotlin extends SourceLayout("kotlin") {
+    override def sources(maybeScalaVersion: Option[VersionScala], maybePlatformId: Option[model.PlatformId], scope: String): JsonSet[RelPath] =
+      JsonSet(
+        RelPath.force(s"src/$scope/kotlin"),
         RelPath.force(s"src/$scope/java")
       )
 

@@ -186,6 +186,8 @@ object Dep {
           )
         case VersionCombo.Java =>
           Left(s"You need to configure a scala version to resolve $repr")
+        case VersionCombo.Kotlin(_) =>
+          Left(s"You need to configure a scala version to resolve $repr")
       }
   }
 

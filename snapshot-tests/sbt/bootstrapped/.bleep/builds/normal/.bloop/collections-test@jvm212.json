@@ -48,7 +48,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-runner_2.12/0.7.0/hedgehog-runner_2.12-0.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/qa/hedgehog/hedgehog-sbt_2.12/0.7.0/hedgehog-sbt_2.12-0.7.0.jar",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections-test/jvm212/classes",
@@ -114,44 +120,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "verify.runner.Framework",
             "weaver.framework.CatsEffect",
@@ -195,7 +163,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.12",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.12",
@@ -207,7 +174,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.12",
@@ -219,7 +185,6 @@
           "organization": "qa.hedgehog",
           "name": "hedgehog-sbt_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hedgehog-sbt_2.12",
@@ -231,7 +196,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -243,7 +207,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -255,7 +218,6 @@
           "organization": "com.eed3si9n.verify",
           "name": "verify_2.12",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "verify_2.12",
@@ -267,7 +229,6 @@
           "organization": "qa.hedgehog",
           "name": "hedgehog-core_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hedgehog-core_2.12",
@@ -279,7 +240,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.12",
@@ -291,7 +251,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.12",
@@ -303,7 +262,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.12",
@@ -315,7 +273,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.12",
@@ -327,7 +284,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.12",
@@ -339,7 +295,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.12",
@@ -351,7 +306,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -363,7 +317,6 @@
           "organization": "qa.hedgehog",
           "name": "hedgehog-runner_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hedgehog-runner_2.12",
@@ -375,7 +328,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.12",
@@ -387,7 +339,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.12",
@@ -399,7 +350,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.12",
@@ -411,7 +361,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.12",
@@ -423,7 +372,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.12",
@@ -435,7 +383,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_2.12",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_2.12",
@@ -447,7 +394,6 @@
           "organization": "junit",
           "name": "junit",
           "version": "4.13.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit",
@@ -459,7 +405,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -471,7 +416,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.12",
@@ -483,7 +427,6 @@
           "organization": "org.scalacheck",
           "name": "scalacheck_2.12",
           "version": "1.15.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck_2.12",
@@ -495,7 +438,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.12",
@@ -507,7 +449,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -519,7 +460,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.12",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.12",
@@ -531,7 +471,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -543,7 +482,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.12",
@@ -555,7 +493,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.12",
@@ -567,7 +504,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.12",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.12",
@@ -576,9 +512,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

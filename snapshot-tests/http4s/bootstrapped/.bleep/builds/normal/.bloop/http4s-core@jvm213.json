@@ -125,7 +125,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -137,7 +136,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -149,7 +147,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_2.13",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_2.13",
@@ -161,7 +158,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.13",
@@ -173,7 +169,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -185,7 +180,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -197,7 +191,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.13",
@@ -209,7 +202,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -221,7 +213,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -233,7 +224,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -245,7 +235,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.13",
@@ -257,7 +246,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -269,7 +257,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.13",
@@ -281,7 +268,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -293,7 +279,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -305,7 +290,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -317,7 +301,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.15",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -326,9 +309,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

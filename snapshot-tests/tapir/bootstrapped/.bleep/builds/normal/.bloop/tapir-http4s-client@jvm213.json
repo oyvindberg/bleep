@@ -50,7 +50,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/log4cats-slf4j_2.13/2.7.0/log4cats-slf4j_2.13-2.7.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_2.13/3.6.0/vault_2.13-3.6.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-client/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-client/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-http4s-client/jvm213/classes",
@@ -147,7 +151,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -159,7 +162,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -171,7 +173,6 @@
           "organization": "org.log4s",
           "name": "log4s_2.13",
           "version": "1.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4s_2.13",
@@ -183,7 +184,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.13",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -195,7 +195,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -207,7 +206,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.13",
@@ -219,7 +217,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -231,7 +228,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.13",
@@ -243,7 +239,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -255,7 +250,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -267,7 +261,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_2.13",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_2.13",
@@ -279,7 +272,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -291,7 +283,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -303,7 +294,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -315,7 +305,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.13",
@@ -327,7 +316,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -339,7 +327,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -351,7 +338,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -363,7 +349,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -375,7 +360,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -387,7 +371,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -399,7 +382,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -411,7 +393,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-slf4j_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-slf4j_2.13",
@@ -423,7 +404,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -435,7 +415,6 @@
           "organization": "org.http4s",
           "name": "http4s-core_2.13",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-core_2.13",
@@ -447,7 +426,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.13",
@@ -456,9 +434,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

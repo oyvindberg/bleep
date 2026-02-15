@@ -64,7 +64,39 @@
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-examples/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-jawn/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@jvm213/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/client/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/dsl/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-client/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-server/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/examples/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/jawn/.jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/jawn/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-examples-ember/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-examples-ember/jvm213/classes",
@@ -144,7 +176,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -156,7 +187,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -168,7 +198,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -180,7 +209,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_2.13",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_2.13",
@@ -192,7 +220,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -204,7 +231,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.13",
@@ -216,7 +242,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -228,7 +253,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -240,7 +264,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.13",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.13",
@@ -252,7 +275,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_2.13",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_2.13",
@@ -264,7 +286,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -276,7 +297,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -288,7 +308,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.13",
@@ -300,7 +319,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -312,7 +330,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.13",
@@ -324,7 +341,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -336,7 +352,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -348,7 +363,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -360,7 +374,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -372,7 +385,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -384,7 +396,6 @@
           "organization": "org.typelevel",
           "name": "jawn-fs2_2.13",
           "version": "2.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-fs2_2.13",
@@ -396,7 +407,6 @@
           "organization": "com.twitter",
           "name": "hpack",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack",
@@ -408,7 +418,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.2.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -420,7 +429,6 @@
           "organization": "org.typelevel",
           "name": "keypool_2.13",
           "version": "0.4.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "keypool_2.13",
@@ -432,7 +440,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.13",
@@ -444,7 +451,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -456,7 +462,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -468,7 +473,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -480,7 +484,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.13",
           "version": "2.3.11",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.13",
@@ -492,7 +495,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-slf4j_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-slf4j_2.13",
@@ -504,7 +506,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -513,9 +514,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

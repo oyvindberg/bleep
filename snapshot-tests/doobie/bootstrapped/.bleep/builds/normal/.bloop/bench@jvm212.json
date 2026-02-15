@@ -48,7 +48,12 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-hikari/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm212/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/hikari/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/postgres/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/bench/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/bench/jvm212/classes",
@@ -145,7 +150,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -157,7 +161,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -169,7 +172,6 @@
           "organization": "org.ow2.asm",
           "name": "asm",
           "version": "9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm",
@@ -181,7 +183,6 @@
           "organization": "org.tpolecat",
           "name": "typename_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "typename_2.12",
@@ -193,7 +194,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_2.12",
@@ -205,7 +205,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -217,7 +216,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -229,7 +227,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.12",
@@ -241,7 +238,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -253,7 +249,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.12",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.12",
@@ -265,7 +260,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -277,7 +271,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.12",
@@ -289,7 +282,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.12",
@@ -301,7 +293,6 @@
           "organization": "org.postgresql",
           "name": "postgresql",
           "version": "42.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "postgresql",
@@ -313,7 +304,6 @@
           "organization": "org.openjdk.jmh",
           "name": "jmh-core",
           "version": "1.37",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmh-core",
@@ -325,7 +315,6 @@
           "organization": "com.zaxxer",
           "name": "HikariCP",
           "version": "6.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "HikariCP",
@@ -337,7 +326,6 @@
           "organization": "org.apache.commons",
           "name": "commons-math3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-math3",
@@ -349,7 +337,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -361,7 +348,6 @@
           "organization": "net.sf.jopt-simple",
           "name": "jopt-simple",
           "version": "5.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jopt-simple",
@@ -373,7 +359,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.12",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.12",
@@ -385,7 +370,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.48.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -397,7 +381,6 @@
           "organization": "org.openjdk.jmh",
           "name": "jmh-generator-asm",
           "version": "1.37",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmh-generator-asm",
@@ -409,7 +392,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -421,7 +403,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -433,7 +414,6 @@
           "organization": "org.openjdk.jmh",
           "name": "jmh-generator-reflection",
           "version": "1.37",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmh-generator-reflection",
@@ -445,7 +425,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.12",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.12",
@@ -457,7 +436,6 @@
           "organization": "org.openjdk.jmh",
           "name": "jmh-generator-bytecode",
           "version": "1.37",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmh-generator-bytecode",
@@ -469,7 +447,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -478,9 +455,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

@@ -1,13 +1,11 @@
 package bleep
 package commands
 
-import bleep.bsp.BleepRifleLogger
+import bleep.bsp.{BspRifleConfig, BspServerOperations}
 import bleep.internal.FileUtils
-import bloop.rifle.BloopRifleConfig
-import bloop.rifle.internal.Operations
+import cats.effect.unsafe.implicits.global
 import ryddig.Logger
 
-import java.io.OutputStream
 import java.nio.file.{Files, Path}
 import scala.jdk.StreamConverters.StreamHasToScala
 
@@ -17,24 +15,18 @@ case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends Bl
       if (FileUtils.exists(userPaths.bspSocketDir)) Files.list(userPaths.bspSocketDir).toScala(List)
       else Nil
 
-    val rifleLogger = new BleepRifleLogger(logger)
-
     socketDirs.foreach { socketDir =>
-      val address = BloopRifleConfig.Address.DomainSocket(socketDir)
-      if (Operations.check(address, rifleLogger)) {
-        logger.info(s"stopping bloop server running at socket $socketDir")
-        Operations
-          .exit(
-            address = address,
-            workingDir = FileUtils.TempDir,
-            out = rifleLogger.bloopBspStdout.getOrElse(OutputStream.nullOutputStream()),
-            err = rifleLogger.bloopBspStderr.getOrElse(OutputStream.nullOutputStream()),
-            logger = rifleLogger
-          )
-          .discard()
-        FileUtils.deleteDirectory(socketDir)
-      } else
-        logger.info(s"bloop server was not running at socket $socketDir")
+      val socketPath = socketDir.resolve("socket")
+      val address = BspRifleConfig.Address.DomainSocket(socketPath)
+
+      val isRunning = BspServerOperations.check(address).unsafeRunSync()
+      if (isRunning) {
+        logger.info(s"stopping bleep-bsp server running at socket $socketDir")
+        BspServerOperations.forceKillAndCleanup(socketDir).unsafeRunSync()
+      } else {
+        logger.info(s"bleep-bsp server was not running at socket $socketDir")
+      }
+      FileUtils.deleteDirectory(socketDir)
     }
     Right(())
   }

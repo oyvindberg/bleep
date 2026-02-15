@@ -34,7 +34,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/apache/httpcomponents/httpmime/4.5.14/httpmime-4.5.14.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-jdkhttp-server/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-jdkhttp-server/jvm213/classes",
@@ -131,7 +135,6 @@
           "organization": "commons-logging",
           "name": "commons-logging",
           "version": "1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-logging",
@@ -143,7 +146,6 @@
           "organization": "commons-codec",
           "name": "commons-codec",
           "version": "1.11",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-codec",
@@ -155,7 +157,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -167,7 +168,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -179,7 +179,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -191,7 +190,6 @@
           "organization": "org.apache.httpcomponents",
           "name": "httpmime",
           "version": "4.5.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "httpmime",
@@ -203,7 +201,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -215,7 +212,6 @@
           "organization": "org.apache.httpcomponents",
           "name": "httpcore",
           "version": "4.4.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "httpcore",
@@ -227,7 +223,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -239,7 +234,6 @@
           "organization": "org.apache.httpcomponents",
           "name": "httpclient",
           "version": "4.5.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "httpclient",
@@ -248,9 +242,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

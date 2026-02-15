@@ -24,7 +24,15 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/collections/jvm212/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-control/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm212/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-control/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-control/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/tasks/jvm212/classes",
@@ -106,7 +114,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.12",
@@ -118,7 +125,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.12",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.12",
@@ -130,7 +136,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -142,7 +147,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.12",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.12",
@@ -154,7 +158,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -166,7 +169,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.12",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.12",
@@ -175,9 +177,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

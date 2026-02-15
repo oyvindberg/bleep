@@ -38,7 +38,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.20/scala-compiler-2.12.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.20/scala-reflect-2.12.20.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-refined/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-refined/js212/classes",
@@ -141,7 +143,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_sjs1_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_sjs1_2.12",
@@ -153,7 +154,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.12",
           "version": "2.12.20+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.12",
@@ -165,7 +165,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.12",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.12",
@@ -177,7 +176,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -189,7 +187,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_sjs1_2.12",
           "version": "2.3.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_sjs1_2.12",
@@ -201,7 +198,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -213,7 +209,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -225,7 +220,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -237,7 +231,6 @@
           "organization": "eu.timepit",
           "name": "refined_sjs1_2.12",
           "version": "0.11.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "refined_sjs1_2.12",
@@ -249,7 +242,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_sjs1_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_sjs1_2.12",
@@ -261,7 +253,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -273,7 +264,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_sjs1_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
@@ -285,7 +275,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.12",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.12",
@@ -297,7 +286,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.12",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.12",
@@ -309,7 +297,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.12",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.12",
@@ -321,7 +308,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.12",
           "version": "2.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.12",
@@ -333,7 +319,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.12",
@@ -345,7 +330,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.12",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.12",
@@ -354,9 +338,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

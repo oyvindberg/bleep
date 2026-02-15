@@ -152,7 +152,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -164,7 +163,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -176,7 +174,6 @@
           "organization": "ch.epfl.scala",
           "name": "libdaemon_2.13",
           "version": "0.0.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "libdaemon_2.13",
@@ -188,7 +185,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-v12_3",
           "version": "1.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-v12_3",
@@ -200,7 +196,6 @@
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
@@ -212,7 +207,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-utils",
           "version": "4.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-utils",
@@ -224,7 +218,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_3",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_3",
@@ -236,7 +229,6 @@
           "organization": "org.iq80.snappy",
           "name": "snappy",
           "version": "0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snappy",
@@ -248,7 +240,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-cache_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-cache_2.13",
@@ -260,7 +251,6 @@
           "organization": "io.circe",
           "name": "circe-generic_3",
           "version": "0.14.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_3",
@@ -272,7 +262,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-classworlds",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-classworlds",
@@ -284,7 +273,6 @@
           "organization": "ch.epfl.scala",
           "name": "bsp4j",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bsp4j",
@@ -296,7 +284,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -308,7 +295,6 @@
           "organization": "org.snakeyaml",
           "name": "snakeyaml-engine",
           "version": "2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml-engine",
@@ -320,7 +306,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_3",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_3",
@@ -332,7 +317,6 @@
           "organization": "build.bleep",
           "name": "bleep-nosbt_3",
           "version": "0.0.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bleep-nosbt_3",
@@ -344,7 +328,6 @@
           "organization": "org.eclipse.lsp4j",
           "name": "org.eclipse.lsp4j.jsonrpc",
           "version": "0.20.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.lsp4j.jsonrpc",
@@ -356,7 +339,6 @@
           "organization": "build.bleep",
           "name": "bleep-model_3",
           "version": "0.0.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bleep-model_3",
@@ -368,7 +350,6 @@
           "organization": "org.typelevel",
           "name": "scalac-options_3",
           "version": "0.1.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalac-options_3",
@@ -380,7 +361,6 @@
           "organization": "build.bleep",
           "name": "bleep-core_3",
           "version": "0.0.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bleep-core_3",
@@ -392,7 +372,6 @@
           "organization": "org.eclipse.xtend",
           "name": "org.eclipse.xtend.lib",
           "version": "2.28.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtend.lib",
@@ -404,7 +383,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_3",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_3",
@@ -416,7 +394,6 @@
           "organization": "commons-codec",
           "name": "commons-codec",
           "version": "1.16.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-codec",
@@ -428,7 +405,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-common_3",
           "version": "1.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-common_3",
@@ -440,7 +416,6 @@
           "organization": "io.get-coursier",
           "name": "coursier_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier_2.13",
@@ -452,7 +427,6 @@
           "organization": "com.google.guava",
           "name": "guava",
           "version": "30.1-jre",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
@@ -464,7 +438,6 @@
           "organization": "org.apache.xbean",
           "name": "xbean-reflect",
           "version": "3.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xbean-reflect",
@@ -476,7 +449,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-core_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-core_2.13",
@@ -488,7 +460,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -500,7 +471,6 @@
           "organization": "org.fusesource.jansi",
           "name": "jansi",
           "version": "1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jansi",
@@ -512,7 +482,6 @@
           "organization": "io.github.alexarchambault.<MASKED_OS>-ansi",
           "name": "<MASKED_OS>-ansi",
           "version": "0.0.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "<MASKED_OS>-ansi",
@@ -524,7 +493,6 @@
           "organization": "com.google.code.gson",
           "name": "gson",
           "version": "[2.9.1,2.11)",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gson",
@@ -536,7 +504,6 @@
           "organization": "org.tukaani",
           "name": "xz",
           "version": "1.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xz",
@@ -548,7 +515,6 @@
           "organization": "com.swoval",
           "name": "file-tree-views",
           "version": "2.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
@@ -560,7 +526,6 @@
           "organization": "org.eclipse.xtend",
           "name": "org.eclipse.xtend.lib.macro",
           "version": "2.28.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtend.lib.macro",
@@ -572,7 +537,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
@@ -584,7 +548,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-env_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-env_2.13",
@@ -596,7 +559,6 @@
           "organization": "javax.inject",
           "name": "javax.inject",
           "version": "1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.inject",
@@ -608,7 +570,6 @@
           "organization": "org.eclipse.lsp4j",
           "name": "org.eclipse.lsp4j.generator",
           "version": "0.20.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.lsp4j.generator",
@@ -620,7 +581,6 @@
           "organization": "io.circe",
           "name": "circe-parser_3",
           "version": "0.14.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_3",
@@ -632,7 +592,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-jvm_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-jvm_2.13",
@@ -644,7 +603,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -656,7 +614,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "1.7.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -668,7 +625,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_3",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_3",
@@ -680,7 +636,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.13",
           "version": "0.13.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.13",
@@ -692,7 +647,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-util_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-util_2.13",
@@ -704,7 +658,6 @@
           "organization": "org.virtuslab.scala-cli",
           "name": "specification-level_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "specification-level_2.13",
@@ -716,7 +669,6 @@
           "organization": "io.github.alexarchambault.scala-cli.snailgun",
           "name": "snailgun-core_2.13",
           "version": "0.4.1-sc2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snailgun-core_2.13",
@@ -728,7 +680,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.13",
           "version": "2.13.5.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_2.13",
@@ -740,7 +691,6 @@
           "organization": "org.virtuslab.scala-cli",
           "name": "config_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config_2.13",
@@ -752,7 +702,6 @@
           "organization": "org.apache.commons",
           "name": "commons-compress",
           "version": "1.26.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-compress",
@@ -764,7 +713,6 @@
           "organization": "commons-io",
           "name": "commons-io",
           "version": "2.15.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-io",
@@ -776,7 +724,6 @@
           "organization": "io.circe",
           "name": "circe-core_3",
           "version": "0.14.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_3",
@@ -788,7 +735,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-container-default",
           "version": "2.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-container-default",
@@ -800,7 +746,6 @@
           "organization": "ch.epfl.scala",
           "name": "bloop-config_3",
           "version": "2.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bloop-config_3",
@@ -812,7 +757,6 @@
           "organization": "com.olvind.ryddig",
           "name": "ryddig_3",
           "version": "0.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ryddig_3",
@@ -824,7 +768,6 @@
           "organization": "com.lihaoyi",
           "name": "unroll-annotation_3",
           "version": "0.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "unroll-annotation_3",
@@ -836,7 +779,6 @@
           "organization": "org.apache.commons",
           "name": "commons-lang3",
           "version": "3.14.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-lang3",
@@ -848,7 +790,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.13",
           "version": "0.13.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.13",
@@ -860,7 +801,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -872,7 +812,6 @@
           "organization": "ch.epfl.scala",
           "name": "bloop-rifle_2.13",
           "version": "2.0.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "bloop-rifle_2.13",
@@ -884,7 +823,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.13",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.13",
@@ -896,7 +834,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-proxy-setup",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-proxy-setup",
@@ -908,7 +845,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -920,7 +856,6 @@
           "organization": "com.google.guava",
           "name": "listenablefuture",
           "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "listenablefuture",
@@ -932,7 +867,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.13",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.13",
@@ -944,7 +878,6 @@
           "organization": "com.google.guava",
           "name": "failureaccess",
           "version": "1.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "failureaccess",
@@ -956,7 +889,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-sbt-maven-repository_2.13",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-sbt-maven-repository_2.13",
@@ -968,7 +900,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-archiver",
           "version": "4.9.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-archiver",
@@ -980,7 +911,6 @@
           "organization": "io.get-coursier",
           "name": "cache-util",
           "version": "2.1.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cache-util",
@@ -992,7 +922,6 @@
           "organization": "org.eclipse.xtext",
           "name": "org.eclipse.xtext.xbase.lib",
           "version": "2.28.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "org.eclipse.xtext.xbase.lib",
@@ -1004,7 +933,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_3",
           "version": "0.14.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_3",
@@ -1016,7 +944,6 @@
           "organization": "io.get-coursier.jniutils",
           "name": "<MASKED_OS>-jni-utils",
           "version": "0.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "<MASKED_OS>-jni-utils",
@@ -1028,7 +955,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_3",
           "version": "2.13.5.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_3",
@@ -1040,7 +966,6 @@
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
           "version": "2.3.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
@@ -1052,7 +977,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_3",
           "version": "0.14.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_3",
@@ -1064,7 +988,6 @@
           "organization": "org.codehaus.plexus",
           "name": "plexus-io",
           "version": "3.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "plexus-io",
@@ -1076,7 +999,6 @@
           "organization": "io.github.alexarchambault",
           "name": "concurrent-reference-hash-map",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "concurrent-reference-hash-map",
@@ -1088,7 +1010,6 @@
           "organization": "com.github.luben",
           "name": "zstd-jni",
           "version": "1.5.5-11",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zstd-jni",
@@ -1100,7 +1021,6 @@
           "organization": "io.get-coursier",
           "name": "dependency_2.13",
           "version": "0.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "dependency_2.13",
@@ -1109,9 +1029,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

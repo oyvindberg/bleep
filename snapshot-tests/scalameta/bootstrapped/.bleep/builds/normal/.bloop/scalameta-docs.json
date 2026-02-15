@@ -174,7 +174,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-jekyll-tag",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-jekyll-tag",
@@ -186,7 +185,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark",
@@ -198,7 +196,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-footnotes",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-footnotes",
@@ -210,7 +207,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_2.13",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.13",
@@ -222,7 +218,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-tables",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-tables",
@@ -234,7 +229,6 @@
           "organization": "commons-logging",
           "name": "commons-logging",
           "version": "1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-logging",
@@ -246,7 +240,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-gfm-issues",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-gfm-issues",
@@ -258,7 +251,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-html2md-converter",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-html2md-converter",
@@ -270,7 +262,6 @@
           "organization": "org.scalameta",
           "name": "io_2.13",
           "version": "4.13.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "io_2.13",
@@ -282,7 +273,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-builder",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-builder",
@@ -294,7 +284,6 @@
           "organization": "org.scalameta",
           "name": "trees_2.13",
           "version": "4.13.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "trees_2.13",
@@ -306,7 +295,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-misc",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-misc",
@@ -318,7 +306,6 @@
           "organization": "org.jline",
           "name": "jline",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
@@ -331,7 +318,6 @@
           "organization": "org.scalameta",
           "name": "metaconfig-typesafe-config_2.13",
           "version": "0.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metaconfig-typesafe-config_2.13",
@@ -343,7 +329,6 @@
           "organization": "org.jetbrains",
           "name": "annotations",
           "version": "24.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "annotations",
@@ -355,7 +340,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-profile-pegdown",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-profile-pegdown",
@@ -367,7 +351,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-gfm-users",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-gfm-users",
@@ -379,7 +362,6 @@
           "organization": "org.jboss.xnio",
           "name": "xnio-api",
           "version": "3.8.16.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xnio-api",
@@ -391,7 +373,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -403,7 +384,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-gitlab",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-gitlab",
@@ -415,7 +395,6 @@
           "organization": "org.scalameta",
           "name": "mdoc-cli_2.13",
           "version": "2.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mdoc-cli_2.13",
@@ -427,7 +406,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-autolink",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-autolink",
@@ -439,7 +417,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-jira-converter",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-jira-converter",
@@ -451,7 +428,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-yaml-front-matter",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-yaml-front-matter",
@@ -463,7 +439,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-all",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-all",
@@ -475,7 +450,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-youtube-embedded",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-youtube-embedded",
@@ -487,7 +461,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-superscript",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-superscript",
@@ -499,7 +472,6 @@
           "organization": "com.ibm.icu",
           "name": "icu4j",
           "version": "72.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "icu4j",
@@ -511,7 +483,6 @@
           "organization": "org.scalameta",
           "name": "mdoc-runtime_2.13",
           "version": "2.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mdoc-runtime_2.13",
@@ -523,7 +494,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
@@ -535,7 +505,6 @@
           "organization": "com.openhtmltopdf",
           "name": "openhtmltopdf-pdfbox",
           "version": "1.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openhtmltopdf-pdfbox",
@@ -547,7 +516,6 @@
           "organization": "org.apache.pdfbox",
           "name": "fontbox",
           "version": "2.0.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fontbox",
@@ -559,7 +527,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-toc",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-toc",
@@ -571,7 +538,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -583,7 +549,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-admonition",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-admonition",
@@ -595,7 +560,6 @@
           "organization": "io.methvin",
           "name": "directory-watcher",
           "version": "0.18.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "directory-watcher",
@@ -607,7 +571,6 @@
           "organization": "org.jboss.threads",
           "name": "jboss-threads",
           "version": "3.1.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jboss-threads",
@@ -619,7 +582,6 @@
           "organization": "org.scalameta",
           "name": "scalameta_2.13",
           "version": "4.13.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalameta_2.13",
@@ -631,7 +593,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-escaped-character",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-escaped-character",
@@ -643,7 +604,6 @@
           "organization": "org.apache.pdfbox",
           "name": "xmpbox",
           "version": "2.0.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xmpbox",
@@ -655,7 +615,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -667,7 +626,6 @@
           "organization": "org.scalameta",
           "name": "metaconfig-pprint_2.13",
           "version": "0.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metaconfig-pprint_2.13",
@@ -679,7 +637,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-abbreviation",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-abbreviation",
@@ -691,7 +648,6 @@
           "organization": "org.wildfly.common",
           "name": "wildfly-common",
           "version": "1.5.4.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "wildfly-common",
@@ -703,7 +659,6 @@
           "organization": "org.scalameta",
           "name": "mdoc_2.13",
           "version": "2.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mdoc_2.13",
@@ -715,7 +670,6 @@
           "organization": "com.lihaoyi",
           "name": "pprint_2.13",
           "version": "0.9.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pprint_2.13",
@@ -727,7 +681,6 @@
           "organization": "org.nibor.autolink",
           "name": "autolink",
           "version": "0.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "autolink",
@@ -739,7 +692,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-core_2.13",
           "version": "2.33.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-core_2.13",
@@ -751,7 +703,6 @@
           "organization": "org.jsoup",
           "name": "jsoup",
           "version": "1.15.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoup",
@@ -763,7 +714,6 @@
           "organization": "org.scalameta",
           "name": "common_2.13",
           "version": "4.13.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "common_2.13",
@@ -775,7 +725,6 @@
           "organization": "com.googlecode.java-diff-utils",
           "name": "diffutils",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "diffutils",
@@ -787,7 +736,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-format",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-format",
@@ -799,7 +747,6 @@
           "organization": "com.openhtmltopdf",
           "name": "openhtmltopdf-core",
           "version": "1.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openhtmltopdf-core",
@@ -811,7 +758,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-ins",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-ins",
@@ -823,7 +769,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-typographic",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-typographic",
@@ -835,7 +780,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-dependency",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-dependency",
@@ -847,7 +791,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-wikilink",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-wikilink",
@@ -859,7 +802,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-emoji",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-emoji",
@@ -871,7 +813,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util",
@@ -883,7 +824,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-jekyll-front-matter",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-jekyll-front-matter",
@@ -895,7 +835,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.13",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.13",
@@ -907,7 +846,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-ast",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-ast",
@@ -919,7 +857,6 @@
           "organization": "org.scalameta",
           "name": "parsers_2.13",
           "version": "4.13.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "parsers_2.13",
@@ -931,7 +868,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-macros",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-macros",
@@ -943,7 +879,6 @@
           "organization": "org.jboss.xnio",
           "name": "xnio-nio",
           "version": "3.8.16.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "xnio-nio",
@@ -955,7 +890,6 @@
           "organization": "com.github.plokhotnyuk.jsoniter-scala",
           "name": "jsoniter-scala-macros_2.13",
           "version": "2.33.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsoniter-scala-macros_2.13",
@@ -967,7 +901,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -979,7 +912,6 @@
           "organization": "org.typelevel",
           "name": "paiges-core_2.13",
           "version": "0.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "paiges-core_2.13",
@@ -991,7 +923,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-media-tags",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-media-tags",
@@ -1003,7 +934,6 @@
           "organization": "org.apache.pdfbox",
           "name": "pdfbox",
           "version": "2.0.24",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pdfbox",
@@ -1015,7 +945,6 @@
           "organization": "net.java.dev.jna",
           "name": "jna",
           "version": "5.12.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jna",
@@ -1027,7 +956,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-gfm-tasklist",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-gfm-tasklist",
@@ -1039,7 +967,6 @@
           "organization": "com.openhtmltopdf",
           "name": "openhtmltopdf-rtl-support",
           "version": "1.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openhtmltopdf-rtl-support",
@@ -1051,7 +978,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-visitor",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-visitor",
@@ -1063,7 +989,6 @@
           "organization": "org.scalameta",
           "name": "mdoc-interfaces",
           "version": "2.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mdoc-interfaces",
@@ -1075,7 +1000,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-options",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-options",
@@ -1087,7 +1011,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-data",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-data",
@@ -1099,7 +1022,6 @@
           "organization": "de.rototor.pdfbox",
           "name": "graphics2d",
           "version": "0.32",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "graphics2d",
@@ -1111,7 +1033,6 @@
           "organization": "org.wildfly.client",
           "name": "wildfly-client-config",
           "version": "1.0.1.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "wildfly-client-config",
@@ -1123,7 +1044,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-anchorlink",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-anchorlink",
@@ -1135,7 +1055,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -1147,7 +1066,6 @@
           "organization": "org.scalameta",
           "name": "metaconfig-core_2.13",
           "version": "0.15.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metaconfig-core_2.13",
@@ -1159,7 +1077,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-definition",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-definition",
@@ -1171,7 +1088,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-enumerated-reference",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-enumerated-reference",
@@ -1183,7 +1099,6 @@
           "organization": "org.scalameta",
           "name": "mdoc-parser_2.13",
           "version": "2.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "mdoc-parser_2.13",
@@ -1195,7 +1110,6 @@
           "organization": "org.virtuslab",
           "name": "using_directives",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "using_directives",
@@ -1207,7 +1121,6 @@
           "organization": "io.undertow",
           "name": "undertow-core",
           "version": "2.2.30.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "undertow-core",
@@ -1219,7 +1132,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-resizable-image",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-resizable-image",
@@ -1231,7 +1143,6 @@
           "organization": "org.jboss.logging",
           "name": "jboss-logging",
           "version": "3.4.3.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jboss-logging",
@@ -1243,7 +1154,6 @@
           "organization": "io.github.java-diff-utils",
           "name": "java-diff-utils",
           "version": "4.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "java-diff-utils",
@@ -1255,7 +1165,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-collection",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-collection",
@@ -1267,7 +1176,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-youtrack-converter",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-youtrack-converter",
@@ -1279,7 +1187,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-sequence",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-sequence",
@@ -1291,7 +1198,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-attributes",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-attributes",
@@ -1303,7 +1209,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-gfm-strikethrough",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-gfm-strikethrough",
@@ -1315,7 +1220,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-aside",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-aside",
@@ -1327,7 +1231,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-util-html",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-util-html",
@@ -1339,7 +1242,6 @@
           "organization": "io.get-coursier",
           "name": "interface",
           "version": "1.0.28",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "interface",
@@ -1351,7 +1253,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-ext-xwiki-macros",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-ext-xwiki-macros",
@@ -1363,7 +1264,6 @@
           "organization": "com.vladsch.flexmark",
           "name": "flexmark-pdf-converter",
           "version": "0.64.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "flexmark-pdf-converter",
@@ -1372,9 +1272,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

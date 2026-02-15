@@ -42,7 +42,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/ow2/asm/asm/7.1/asm-7.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.20/scala-library-2.12.20.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-datadog-metrics/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-datadog-metrics/jvm212/classes",
@@ -139,7 +143,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-commons",
           "version": "7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-commons",
@@ -151,7 +154,6 @@
           "organization": "org.ow2.asm",
           "name": "asm",
           "version": "7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm",
@@ -163,7 +165,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -175,7 +176,6 @@
           "organization": "com.datadoghq",
           "name": "java-dogstatsd-client",
           "version": "4.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "java-dogstatsd-client",
@@ -187,7 +187,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-ffi",
           "version": "2.1.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-ffi",
@@ -199,7 +198,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-a64asm",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-a64asm",
@@ -211,7 +209,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -223,7 +220,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-constants",
           "version": "0.9.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-constants",
@@ -235,7 +231,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -247,7 +242,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-tree",
           "version": "7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-tree",
@@ -259,7 +253,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-util",
           "version": "7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-util",
@@ -271,7 +264,6 @@
           "organization": "com.github.jnr",
           "name": "jffi",
           "version": "1.2.23",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jffi",
@@ -288,7 +280,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-enxio",
           "version": "0.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-enxio",
@@ -300,7 +291,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -312,7 +302,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-posix",
           "version": "3.0.61",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-posix",
@@ -324,7 +313,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-unixsocket",
           "version": "0.36",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-unixsocket",
@@ -336,7 +324,6 @@
           "organization": "org.ow2.asm",
           "name": "asm-analysis",
           "version": "7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asm-analysis",
@@ -348,7 +335,6 @@
           "organization": "com.github.jnr",
           "name": "jnr-x86asm",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jnr-x86asm",
@@ -360,7 +346,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -369,9 +354,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

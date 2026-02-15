@@ -47,7 +47,21 @@
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-control/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-interface/classes",
       "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-logging/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/generated-resources/collections@jvm213/scripts.GenerateForCollections",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/LICENSE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/core-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-collection/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-control/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-control/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-interface/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-logging/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-logging/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/completion/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/completion/jvm213/classes",
@@ -127,7 +141,6 @@
           "organization": "org.jline",
           "name": "jline-native",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-native",
@@ -139,7 +152,6 @@
           "organization": "org.jline",
           "name": "jline",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
@@ -152,7 +164,6 @@
           "organization": "com.lmax",
           "name": "disruptor",
           "version": "3.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "disruptor",
@@ -164,7 +175,6 @@
           "organization": "com.swoval",
           "name": "file-tree-views",
           "version": "2.1.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "file-tree-views",
@@ -176,7 +186,6 @@
           "organization": "org.scala-sbt",
           "name": "io_2.13",
           "version": "1.10.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "io_2.13",
@@ -188,7 +197,6 @@
           "organization": "org.apache.logging.log4j",
           "name": "log4j-api",
           "version": "2.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4j-api",
@@ -200,7 +208,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-scalajson_2.13",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-scalajson_2.13",
@@ -212,7 +219,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parallel-collections_2.13",
           "version": "0.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parallel-collections_2.13",
@@ -224,7 +230,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -236,7 +241,6 @@
           "organization": "org.jline",
           "name": "jline-style",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-style",
@@ -248,7 +252,6 @@
           "organization": "org.jline",
           "name": "jline-terminal-jni",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-terminal-jni",
@@ -260,7 +263,6 @@
           "organization": "com.eed3si9n",
           "name": "sjson-new-core_2.13",
           "version": "0.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sjson-new-core_2.13",
@@ -272,7 +274,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-scalajson_2.13",
           "version": "1.0.0-M4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-scalajson_2.13",
@@ -284,7 +285,6 @@
           "organization": "org.apache.logging.log4j",
           "name": "log4j-core",
           "version": "2.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4j-core",
@@ -296,7 +296,6 @@
           "organization": "org.jline",
           "name": "jline-builtins",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-builtins",
@@ -308,7 +307,6 @@
           "organization": "io.github.java-diff-utils",
           "name": "java-diff-utils",
           "version": "4.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "java-diff-utils",
@@ -320,7 +318,6 @@
           "organization": "org.jline",
           "name": "jline-reader",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-reader",
@@ -332,7 +329,6 @@
           "organization": "org.jline",
           "name": "jline-terminal",
           "version": "3.27.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline-terminal",
@@ -344,7 +340,6 @@
           "organization": "org.scala-sbt.jline",
           "name": "jline",
           "version": "2.14.7-sbt-9a88bc413e2b34a4580c001c654d1a7f4f65bf18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
@@ -356,7 +351,6 @@
           "organization": "org.fusesource.jansi",
           "name": "jansi",
           "version": "2.4.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jansi",
@@ -368,7 +362,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -380,7 +373,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -392,7 +384,6 @@
           "organization": "com.eed3si9n",
           "name": "shaded-jawn-parser_2.13",
           "version": "1.3.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shaded-jawn-parser_2.13",
@@ -401,9 +392,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

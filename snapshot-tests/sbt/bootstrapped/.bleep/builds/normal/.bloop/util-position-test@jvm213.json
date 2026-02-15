@@ -33,7 +33,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-shouldmatchers_2.13/3.2.10/scalatest-shouldmatchers_2.13-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.13/3.2.10/scalatest-wordspec_2.13-3.2.10.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.13/3.2.10/scalatest_2.13-3.2.10.jar",
-      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/NOTICE",
+      "<BLEEP_GIT>/snapshot-tests/sbt/sbt-build/internal/util-position/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/sbt/bootstrapped/.bleep/builds/normal/.bloop/util-position-test/jvm213/classes",
@@ -98,44 +100,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "verify.runner.Framework",
             "weaver.framework.CatsEffect",
@@ -179,7 +143,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -191,7 +154,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.13",
@@ -203,7 +165,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.13",
@@ -215,7 +176,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -227,7 +187,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.13",
@@ -239,7 +198,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.13",
@@ -251,7 +209,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.13",
@@ -263,7 +220,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -275,7 +231,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.13",
@@ -287,7 +242,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.13",
@@ -299,7 +253,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.13",
@@ -311,7 +264,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -323,7 +275,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.13",
@@ -335,7 +286,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.13",
@@ -347,7 +297,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.13",
@@ -359,7 +308,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.13",
@@ -371,7 +319,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.13",
@@ -383,7 +330,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.13",
@@ -395,7 +341,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.13",
           "version": "3.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.13",
@@ -404,9 +349,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

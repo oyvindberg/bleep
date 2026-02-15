@@ -357,11 +357,8 @@ case class TestRunState(
   def reduce(action: ProjectAction): (TestRunState, Set[model.CrossProjectName]) = {
     val currentState = projects.getOrElse(action.project, ProjectState.Initial(action.project, testProjects.contains(action.project)))
 
-    // If project is already in a final state, log and ignore the action
+    // If project is already in a final state, ignore the action silently
     if (currentState.isCompleted) {
-      System.err.println(
-        s"[WARN] Action ${action.getClass.getSimpleName} received for project ${action.project.value} already in final state ${currentState.getClass.getSimpleName}"
-      )
       (this, Set.empty)
     } else {
       val newState = ProjectStateReducer.reduce(currentState, action)
@@ -645,7 +642,47 @@ object ProjectDisplayItem {
   /** Project is compiling */
   case class Compiling(
       project: model.CrossProjectName,
-      percent: Option[Int]
+      percent: Option[Int],
+      blockedCount: Int
+  ) extends ProjectDisplayItem
+
+  /** Project is linking (Scala.js, Scala Native, etc.) */
+  case class Linking(
+      project: model.CrossProjectName,
+      blockedCount: Int
+  ) extends ProjectDisplayItem
+
+  /** Project is discovering test suites */
+  case class Discovering(
+      project: model.CrossProjectName
+  ) extends ProjectDisplayItem
+
+  /** Project compiled successfully */
+  case class CompileSucceeded(
+      project: model.CrossProjectName,
+      durationMs: Long,
+      isTestProject: Boolean
+  ) extends ProjectDisplayItem
+
+  /** Project failed to compile */
+  case class CompileFailed(
+      project: model.CrossProjectName,
+      errors: List[String]
+  ) extends ProjectDisplayItem
+
+  /** Project was skipped because a dependency failed */
+  case class Skipped(
+      project: model.CrossProjectName,
+      reason: String
+  ) extends ProjectDisplayItem
+
+  /** Project completed tests */
+  case class TestsCompleted(
+      project: model.CrossProjectName,
+      passed: Int,
+      failed: Int,
+      skipped: Int,
+      durationMs: Long
   ) extends ProjectDisplayItem
 
   /** Project is running tests - sum type for different execution modes */
@@ -674,18 +711,68 @@ object ProjectDisplayItem {
     ) extends Testing
   }
 
-  /** Summary row showing waiting projects */
-  case class Waiting(count: Int) extends ProjectDisplayItem
+  /** Waiting project showing what phase it's in and what it's waiting for */
+  case class WaitingProject(
+      project: model.CrossProjectName,
+      phase: WaitingPhase,
+      waitingFor: List[model.CrossProjectName] // Empty if ready, populated if waiting for deps
+  ) extends ProjectDisplayItem
+
+  /** Phase a waiting project is in */
+  sealed trait WaitingPhase {
+    def description: String
+  }
+  object WaitingPhase {
+    case object WaitingToCompile extends WaitingPhase { def description = "waiting to compile" }
+    case object Compiling extends WaitingPhase { def description = "compiling" }
+    case object WaitingToDiscover extends WaitingPhase { def description = "discovering tests" }
+    case object WaitingToTest extends WaitingPhase { def description = "ready to test" }
+  }
+
+  /** Summary of compile/test statistics */
+  case class Summary(
+      compiledSuccess: Int,
+      compiledFailed: Int,
+      testsCompleted: Int,
+      testsFailed: Int,
+      allDone: Boolean
+  ) extends ProjectDisplayItem
 
   /** Derive display items from state */
   def fromState(state: TestRunState, now: Long): List[ProjectDisplayItem] = {
+    // Compute how many waiting projects are blocked by each currently-compiling project
+    val waitingProjects = state.testProjects.filter { p =>
+      state.projects.get(p) match {
+        case Some(_: ProjectState.Initial) => true
+        case _                             => false
+      }
+    }
+    val compilingProjects = state.projects.collect { case (p, _: ProjectState.Compiling) => p }.toSet
+    val reverseDepCounts: Map[model.CrossProjectName, Int] = compilingProjects.map { cp =>
+      val blockedCount = waitingProjects.count { wp =>
+        val deps = state.graph.dependencies.getOrElse(wp, Set.empty)
+        deps.contains(cp)
+      }
+      cp -> blockedCount
+    }.toMap
+
+    // Currently compiling
     val compiling = state.projects.values
       .collect { case s: ProjectState.Compiling =>
-        Compiling(s.project, s.progressPercent)
+        Compiling(s.project, s.progressPercent, reverseDepCounts.getOrElse(s.project, 0))
       }
       .toList
       .sortBy(_.project.value)
 
+    // Currently discovering test suites
+    val discovering = state.projects.values
+      .collect { case s: ProjectState.DiscoveringSuites =>
+        Discovering(s.project)
+      }
+      .toList
+      .sortBy(_.project.value)
+
+    // Currently running tests
     val testing: List[Testing] = state.projects.values
       .collect { case s: ProjectState.TestsInProgress =>
         s.execution match {
@@ -721,19 +808,107 @@ object ProjectDisplayItem {
       .toList
       .sortBy(_.project.value)
 
-    // Count waiting projects (Initial, CompileSucceeded, DiscoveringSuites, SuitesDiscovered)
-    val waitingCount = state.testProjects.count { p =>
-      state.projects.get(p) match {
-        case Some(_: ProjectState.Initial)           => true
-        case Some(_: ProjectState.CompileSucceeded)  => true
-        case Some(_: ProjectState.DiscoveringSuites) => true
-        case Some(_: ProjectState.SuitesDiscovered)  => true
-        case _                                       => false
+    // Compile failures (show these prominently)
+    val compileFailed = state.projects.values
+      .collect { case s: ProjectState.CompileFailed =>
+        CompileFailed(s.project, s.errors)
       }
+      .toList
+      .sortBy(_.project.value)
+
+    // Skipped projects (due to upstream failures)
+    val skipped = state.projects.values
+      .collect { case s: ProjectState.Skipped =>
+        Skipped(s.project, s.reason.description)
+      }
+      .toList
+      .sortBy(_.project.value)
+
+    // Completed tests
+    val testsCompleted = state.projects.values
+      .collect { case s: ProjectState.TestsCompleted =>
+        TestsCompleted(s.project, s.totalPassed, s.totalFailed, s.totalSkipped, s.durationMs)
+      }
+      .toList
+      .sortBy(_.project.value)
+
+    // Get set of projects that have successfully compiled
+    val compiledProjects = state.projects.collect {
+      case (p, _: ProjectState.CompileSucceeded)  => p
+      case (p, _: ProjectState.DiscoveringSuites) => p
+      case (p, _: ProjectState.SuitesDiscovered)  => p
+      case (p, _: ProjectState.TestsInProgress)   => p
+      case (p, _: ProjectState.TestsCompleted)    => p
+    }.toSet
+
+    // Compute waiting projects with their dependencies
+    val waiting: List[WaitingProject] = state.testProjects.toList
+      .flatMap { p =>
+        state.projects.get(p) match {
+          case Some(_: ProjectState.Initial) =>
+            // Waiting to compile - find which dependencies haven't compiled yet
+            val deps = state.graph.dependencies.getOrElse(p, Set.empty)
+            val uncompiled = deps.filterNot(d => compiledProjects.contains(d) || state.hasFailed(d))
+            Some(WaitingProject(p, WaitingPhase.WaitingToCompile, uncompiled.toList.sortBy(_.value)))
+          case Some(_: ProjectState.CompileSucceeded) =>
+            // Compiled but waiting to discover tests
+            Some(WaitingProject(p, WaitingPhase.WaitingToDiscover, Nil))
+          case Some(_: ProjectState.DiscoveringSuites) =>
+            // Currently discovering - not waiting, actively working
+            None
+          case Some(_: ProjectState.SuitesDiscovered) =>
+            // Ready to run tests
+            Some(WaitingProject(p, WaitingPhase.WaitingToTest, Nil))
+          case _ => None
+        }
+      }
+      .sortBy(_.project.value)
+
+    // Compute summary stats
+    val compiledSuccessCount = state.projects.values.count {
+      case _: ProjectState.CompileSucceeded  => true
+      case _: ProjectState.SuitesDiscovered  => true
+      case _: ProjectState.DiscoveringSuites => true
+      case _: ProjectState.TestsInProgress   => true
+      case _: ProjectState.TestsCompleted    => true
+      case _                                 => false
+    }
+    val compiledFailedCount = state.projects.values.count(_.isInstanceOf[ProjectState.CompileFailed])
+    val testsCompletedCount = state.projects.values.count(_.isInstanceOf[ProjectState.TestsCompleted])
+    val testsFailedCount = state.projects.values.count {
+      case s: ProjectState.TestsCompleted => s.hasFailed
+      case _                              => false
     }
 
-    val items = compiling ++ testing
-    if (waitingCount > 0) items :+ Waiting(waitingCount)
-    else items
+    // Build the display list - active items first, then failures/skipped, then completed
+    val activeItems: List[ProjectDisplayItem] = compiling ++ discovering ++ testing
+    val issueItems: List[ProjectDisplayItem] = compileFailed ++ skipped
+    val doneItems: List[ProjectDisplayItem] = testsCompleted
+
+    // Build final list
+    val items = scala.collection.mutable.ListBuffer.empty[ProjectDisplayItem]
+
+    // Active work first
+    items ++= activeItems
+
+    // Waiting projects (show what's pending and what they're waiting for)
+    items ++= waiting
+
+    // Failures and skipped (important to see)
+    items ++= issueItems
+
+    // Completed tests (for reference)
+    items ++= doneItems
+
+    // Add summary at the end
+    items += Summary(
+      compiledSuccess = compiledSuccessCount,
+      compiledFailed = compiledFailedCount,
+      testsCompleted = testsCompletedCount,
+      testsFailed = testsFailedCount,
+      allDone = state.allTestsCompleted
+    )
+
+    items.toList
   }
 }

@@ -27,7 +27,8 @@ case class SchedulerStats(
   *
   * Rather than issuing multiple compile commands, we issue ONE compile command for all targets and use BSP's TaskFinish events to detect when individual
   * projects complete. This is more efficient because:
-  *   1. Bloop handles dependency ordering internally 2. Single compile command avoids startup overhead 3. Bloop deduplicates compilation of shared dependencies
+  *   1. The server handles dependency ordering internally 2. Single compile command avoids startup overhead 3. The server deduplicates compilation of shared
+  *      dependencies
   *
   * When a test project's compilation finishes successfully, it gets added to the testsReady queue.
   */

@@ -37,7 +37,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/cats-kernel_2.12/2.6.1/cats-kernel_2.12-2.6.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/simulacrum-scalafix-annotations_2.12/0.5.4/simulacrum-scalafix-annotations_2.12-0.5.4.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-protobuf-pbdirect/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-protobuf-pbdirect/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/pbdirect/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/grpc/pbdirect/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-grpc-protobuf/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-grpc-protobuf/jvm212/classes",
@@ -134,7 +138,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.12",
           "version": "2.3.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.12",
@@ -146,7 +149,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -158,7 +160,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -170,7 +171,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -182,7 +182,6 @@
           "organization": "com.47deg",
           "name": "pbdirect_2.12",
           "version": "0.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pbdirect_2.12",
@@ -194,7 +193,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -206,7 +204,6 @@
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.18.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "protobuf-java",
@@ -218,7 +215,6 @@
           "organization": "org.typelevel",
           "name": "simulacrum-scalafix-annotations_2.12",
           "version": "0.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "simulacrum-scalafix-annotations_2.12",
@@ -230,7 +226,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -242,7 +237,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -254,7 +248,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -266,7 +259,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -278,7 +270,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_2.12",
           "version": "1.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_2.12",
@@ -290,7 +281,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.12",
           "version": "1.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_2.12",
@@ -302,7 +292,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -311,9 +300,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

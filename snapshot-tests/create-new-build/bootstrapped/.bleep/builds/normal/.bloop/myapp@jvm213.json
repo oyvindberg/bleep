@@ -114,7 +114,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -126,7 +125,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_2.13",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.13",
@@ -138,7 +136,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.13",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.13",
@@ -147,9 +144,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

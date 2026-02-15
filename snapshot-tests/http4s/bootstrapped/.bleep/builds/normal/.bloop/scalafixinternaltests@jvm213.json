@@ -41,7 +41,8 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalameta/trees_2.13/4.10.1/trees_2.13-4.10.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/paiges-core_2.13/0.4.4/paiges-core_2.13-0.4.4.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalac-compat-annotation_2.13/0.1.4/scalac-compat-annotation_2.13-0.1.4.jar",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-scalafix-internal/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/scalafix-internal/rules/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/scalafixinternaltests/jvm213/classes",
@@ -120,7 +121,6 @@
           "organization": "com.lihaoyi",
           "name": "fansi_2.13",
           "version": "0.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fansi_2.13",
@@ -132,7 +132,6 @@
           "organization": "org.scalameta",
           "name": "trees_2.13",
           "version": "4.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "trees_2.13",
@@ -144,7 +143,6 @@
           "organization": "org.jline",
           "name": "jline",
           "version": "3.26.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jline",
@@ -156,7 +154,6 @@
           "organization": "org.scalameta",
           "name": "metaconfig-typesafe-config_2.13",
           "version": "0.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metaconfig-typesafe-config_2.13",
@@ -168,7 +165,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_2.13",
           "version": "0.11.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalapb-runtime_2.13",
@@ -180,7 +176,6 @@
           "organization": "ch.epfl.scala",
           "name": "scalafix-core_2.13",
           "version": "0.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalafix-core_2.13",
@@ -192,7 +187,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
@@ -204,7 +198,6 @@
           "organization": "org.scala-lang",
           "name": "scalap",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalap",
@@ -216,7 +209,6 @@
           "organization": "org.scalameta",
           "name": "scalameta_2.13",
           "version": "4.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalameta_2.13",
@@ -228,7 +220,6 @@
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.19.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "protobuf-java",
@@ -240,7 +231,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.13",
           "version": "0.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.13",
@@ -252,7 +242,6 @@
           "organization": "org.scalameta",
           "name": "parsers_2.13",
           "version": "4.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "parsers_2.13",
@@ -264,7 +253,6 @@
           "organization": "net.java.dev.jna",
           "name": "jna",
           "version": "5.14.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jna",
@@ -276,7 +264,6 @@
           "organization": "org.scalameta",
           "name": "semanticdb-shared_2.13",
           "version": "4.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "semanticdb-shared_2.13",
@@ -288,7 +275,6 @@
           "organization": "io.github.java-diff-utils",
           "name": "java-diff-utils",
           "version": "4.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "java-diff-utils",
@@ -300,7 +286,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "lenses_2.13",
           "version": "0.11.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lenses_2.13",
@@ -312,7 +297,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -324,7 +308,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_2.13",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_2.13",
@@ -336,7 +319,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -348,7 +330,6 @@
           "organization": "org.scalameta",
           "name": "metaconfig-pprint_2.13",
           "version": "0.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metaconfig-pprint_2.13",
@@ -360,7 +341,6 @@
           "organization": "org.scalameta",
           "name": "common_2.13",
           "version": "4.10.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "common_2.13",
@@ -372,7 +352,6 @@
           "organization": "com.googlecode.java-diff-utils",
           "name": "diffutils",
           "version": "1.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "diffutils",
@@ -384,7 +363,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -396,7 +374,6 @@
           "organization": "org.typelevel",
           "name": "paiges-core_2.13",
           "version": "0.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "paiges-core_2.13",
@@ -408,7 +385,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -420,7 +396,6 @@
           "organization": "org.scalameta",
           "name": "metaconfig-core_2.13",
           "version": "0.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metaconfig-core_2.13",
@@ -429,9 +404,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

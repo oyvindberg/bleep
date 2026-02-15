@@ -90,7 +90,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -102,7 +101,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -111,9 +109,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

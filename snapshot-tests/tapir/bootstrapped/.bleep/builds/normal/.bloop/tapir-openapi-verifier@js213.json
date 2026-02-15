@@ -56,7 +56,13 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/yaml/snakeyaml/2.2/snakeyaml-2.2.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-apispec-docs/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-docs/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-docs/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/apispec-docs/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/openapi-docs/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/docs/openapi-docs/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-verifier/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-openapi-verifier/js213/classes",
@@ -159,7 +165,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -171,7 +176,6 @@
           "organization": "io.circe",
           "name": "circe-yaml-common_2.13",
           "version": "0.15.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml-common_2.13",
@@ -183,7 +187,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_sjs1_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.13",
@@ -195,7 +198,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-circe_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-circe_2.13",
@@ -207,7 +209,6 @@
           "organization": "org.yaml",
           "name": "snakeyaml",
           "version": "2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "snakeyaml",
@@ -219,7 +220,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_sjs1_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_sjs1_2.13",
@@ -231,7 +231,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_sjs1_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_sjs1_2.13",
@@ -243,7 +242,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -255,7 +253,6 @@
           "organization": "io.circe",
           "name": "circe-yaml_2.13",
           "version": "0.15.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-yaml_2.13",
@@ -267,7 +264,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.16+1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -279,7 +275,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-dom_sjs1_2.13",
           "version": "2.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-dom_sjs1_2.13",
@@ -291,7 +286,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.13",
           "version": "0.14.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.13",
@@ -303,7 +297,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.13",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.13",
@@ -315,7 +308,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -327,7 +319,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.13",
@@ -339,7 +330,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.19.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -351,7 +341,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "jsonschema-circe_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsonschema-circe_2.13",
@@ -363,7 +352,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.13",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.13",
@@ -375,7 +363,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -387,7 +374,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "apispec-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "apispec-model_2.13",
@@ -399,7 +385,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -411,7 +396,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -423,7 +407,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -435,7 +418,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.13",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.13",
@@ -447,7 +429,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -459,7 +440,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.13",
@@ -471,7 +451,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.13",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.13",
@@ -483,7 +462,6 @@
           "organization": "com.softwaremill.quicklens",
           "name": "quicklens_sjs1_2.13",
           "version": "1.9.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "quicklens_sjs1_2.13",
@@ -495,7 +473,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "openapi-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "openapi-model_2.13",
@@ -507,7 +484,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_sjs1_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_sjs1_2.13",
@@ -519,7 +495,6 @@
           "organization": "com.softwaremill.sttp.apispec",
           "name": "asyncapi-model_2.13",
           "version": "0.11.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "asyncapi-model_2.13",
@@ -528,9 +503,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

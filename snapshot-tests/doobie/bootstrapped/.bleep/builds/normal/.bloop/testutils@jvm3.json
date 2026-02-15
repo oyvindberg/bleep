@@ -95,7 +95,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -107,7 +106,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -116,9 +114,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

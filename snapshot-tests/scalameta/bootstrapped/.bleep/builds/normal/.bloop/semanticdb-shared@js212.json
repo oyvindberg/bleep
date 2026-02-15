@@ -49,7 +49,34 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/js212/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scalameta/js212/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/js212/classes"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/js212/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@js212/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/parsers@js212/scripts.GenerateForParsers",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-shared/js212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdb-shared/js212/classes",
@@ -118,7 +145,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -130,7 +156,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "lenses_sjs1_2.12",
           "version": "0.11.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lenses_sjs1_2.12",
@@ -142,7 +167,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.12",
           "version": "2.12.20+1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.12",
@@ -154,7 +178,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -166,7 +189,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "protobuf-runtime-scala_sjs1_2.12",
           "version": "0.8.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "protobuf-runtime-scala_sjs1_2.12",
@@ -178,7 +200,6 @@
           "organization": "org.scala-lang",
           "name": "scalap",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalap",
@@ -190,7 +211,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -202,7 +222,6 @@
           "organization": "com.lihaoyi",
           "name": "fastparse_sjs1_2.12",
           "version": "3.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fastparse_sjs1_2.12",
@@ -214,7 +233,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_sjs1_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_sjs1_2.12",
@@ -226,7 +244,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -238,7 +255,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.12",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.12",
@@ -250,7 +266,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.3.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -262,7 +277,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_sjs1_2.12",
           "version": "0.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_sjs1_2.12",
@@ -274,7 +288,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_sjs1_2.12",
           "version": "2.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_sjs1_2.12",
@@ -286,7 +299,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_sjs1_2.12",
           "version": "0.11.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalapb-runtime_sjs1_2.12",
@@ -295,9 +307,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

@@ -20,7 +20,7 @@ import scala.util.control.NonFatal
   * Key features:
   *   - JVMs keyed by classpath + options hash for reuse
   *   - Bounded concurrency via semaphore
-  *   - Automatic cleanup on pool shutdown
+  *   - Explicit shutdown (no shutdown hooks)
   *   - Health checks before reuse
   */
 trait JvmPool {
@@ -35,7 +35,10 @@ trait JvmPool {
       runnerClass: String
   ): Resource[IO, TestJvm]
 
-  /** Shutdown all JVMs in the pool */
+  /** Shutdown all JVMs in the pool.
+    *
+    * This MUST be called when done with the pool. Use guarantee to ensure it runs.
+    */
   def shutdown: IO[Unit]
 
   /** Number of JVMs currently in the pool */
@@ -58,6 +61,9 @@ trait TestJvm {
   /** Get a thread dump from the JVM */
   def getThreadDump: IO[Option[TestProtocol.TestResponse.ThreadDump]]
 
+  /** Read any available stderr lines (non-blocking) */
+  def drainStderr: IO[List[String]]
+
   /** Check if the JVM process is still alive */
   def isAlive: IO[Boolean]
 
@@ -67,7 +73,13 @@ trait TestJvm {
 
 object JvmPool {
 
-  /** Create a new JVM pool with the given maximum concurrency
+  /** Create a new JVM pool with the given maximum concurrency.
+    *
+    * IMPORTANT: The returned pool has an explicit shutdown method that MUST be called when done. Use guarantee to ensure cleanup: {{{
+    * JvmPool.create(maxConcurrency, jvmCommand, workingDirectory).use { pool => // pool.shutdown is called automatically when this scope ends runTests(pool) }
+    * }}}
+    *
+    * No shutdown hooks are used - caller is responsible for ensuring shutdown is called.
     *
     * @param maxConcurrency
     *   Maximum number of JVMs to run concurrently
@@ -76,14 +88,15 @@ object JvmPool {
     */
   def create(
       maxConcurrency: Int,
-      jvmCommand: Path
+      jvmCommand: Path,
+      workingDirectory: Path
   ): Resource[IO, JvmPool] =
     Resource.make(
       for {
         semaphore <- Semaphore[IO](maxConcurrency.toLong)
         pool <- IO(new TrieMap[JvmKey, Queue[IO, ManagedJvm]]())
         allJvms <- Ref.of[IO, Set[ManagedJvm]](Set.empty)
-      } yield new JvmPoolImpl(semaphore, pool, allJvms, jvmCommand)
+      } yield new JvmPoolImpl(semaphore, pool, allJvms, jvmCommand, workingDirectory)
     )(_.shutdown)
 
   /** Key for pooling JVMs */
@@ -124,7 +137,21 @@ object JvmPool {
       try
         stdin.close()
       catch { case NonFatal(_) => }
+      // Kill the entire process tree, not just the direct child.
+      // If the test runner spawned sub-processes (e.g., for some test frameworks),
+      // those would otherwise be orphaned and consume system resources.
+      try
+        process
+          .descendants()
+          .forEach(ph =>
+            try ph.destroyForcibly()
+            catch { case _: Exception => () }
+          )
+      catch { case NonFatal(_) => }
       process.destroyForcibly()
+      try
+        process.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)
+      catch { case NonFatal(_) => }
     }
 
     /** Read any available stderr output */
@@ -146,7 +173,8 @@ object JvmPool {
       semaphore: Semaphore[IO],
       pool: TrieMap[JvmKey, Queue[IO, ManagedJvm]],
       allJvms: Ref[IO, Set[ManagedJvm]],
-      jvmCommand: Path
+      jvmCommand: Path,
+      workingDirectory: Path
   ) extends JvmPool {
 
     override def acquire(
@@ -214,6 +242,7 @@ object JvmPool {
         )
 
         val pb = new ProcessBuilder(cmd: _*)
+        pb.directory(workingDirectory.toFile)
         pb.redirectErrorStream(false)
 
         val process = pb.start()
@@ -251,24 +280,27 @@ object JvmPool {
         .onError { case _ => IO(jvm.kill()) }
 
     override def shutdown: IO[Unit] =
-      for {
-        jvms <- allJvms.get
-        _ <- IO.blocking {
-          jvms.foreach { jvm =>
-            try {
-              // Send shutdown command
-              jvm.stdin.println(TestProtocol.encodeCommand(TestProtocol.TestCommand.Shutdown))
-              jvm.stdin.flush()
-            } catch { case NonFatal(_) => }
+      // CRITICAL: Use uncancelable to ensure cleanup completes even during cancellation
+      IO.uncancelable { _ =>
+        for {
+          jvms <- allJvms.get
+          _ <- IO.blocking {
+            jvms.foreach { jvm =>
+              try {
+                // Send shutdown command
+                jvm.stdin.println(TestProtocol.encodeCommand(TestProtocol.TestCommand.Shutdown))
+                jvm.stdin.flush()
+              } catch { case NonFatal(_) => }
+            }
           }
-        }
-        // Give them a moment to shutdown gracefully
-        _ <- IO.sleep(500.millis)
-        _ <- IO.blocking {
-          jvms.foreach(_.kill())
-        }
-        _ <- allJvms.set(Set.empty)
-      } yield ()
+          // Give them a moment to shutdown gracefully
+          _ <- IO.sleep(500.millis)
+          _ <- IO.blocking {
+            jvms.foreach(_.kill())
+          }
+          _ <- allJvms.set(Set.empty)
+        } yield ()
+      }
 
     override def size: IO[Int] =
       allJvms.get.map(_.size)
@@ -358,6 +390,13 @@ object JvmPool {
             .timeout(5.seconds)
             .handleError(_ => None)
         } yield response
+
+      override def drainStderr: IO[List[String]] =
+        IO.blocking {
+          val output = jvm.readStderr()
+          if (output.isEmpty) Nil
+          else output.split('\n').toList
+        }
 
       override def isAlive: IO[Boolean] =
         IO(jvm.isAlive)

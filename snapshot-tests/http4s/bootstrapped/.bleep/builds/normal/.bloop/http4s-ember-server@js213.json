@@ -57,7 +57,20 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/vault_sjs1_2.13/3.6.0/vault_sjs1_2.13-3.6.0.jar",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-core/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-core/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-server/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/generated-resources/http4s-core@js213/scripts.GenerateForHttp4sCore",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/ember-core/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/http4s/sbt-build/server/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/http4s/bootstrapped/.bleep/builds/normal/.bloop/http4s-ember-server/js213/classes",
@@ -147,7 +160,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -159,7 +171,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_sjs1_2.13",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_sjs1_2.13",
@@ -171,7 +182,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -183,7 +193,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_sjs1_2.13",
           "version": "1.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_sjs1_2.13",
@@ -195,7 +204,6 @@
           "organization": "org.http4s",
           "name": "hpack_sjs1_2.13",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack_sjs1_2.13",
@@ -207,7 +215,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.15+1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -219,7 +226,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_sjs1_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_sjs1_2.13",
@@ -231,7 +237,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -243,7 +248,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_sjs1_2.13",
           "version": "2.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_sjs1_2.13",
@@ -255,7 +259,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_sjs1_2.13",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_sjs1_2.13",
@@ -267,7 +270,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_sjs1_2.13",
           "version": "4.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_sjs1_2.13",
@@ -279,7 +281,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_sjs1_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_sjs1_2.13",
@@ -291,7 +292,6 @@
           "organization": "org.typelevel",
           "name": "scalac-compat-annotation_2.13",
           "version": "0.1.4",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scalac-compat-annotation_2.13",
@@ -303,7 +303,6 @@
           "organization": "org.scala-js",
           "name": "scala-js-macrotask-executor_sjs1_2.13",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-js-macrotask-executor_sjs1_2.13",
@@ -315,7 +314,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_sjs1_2.13",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_sjs1_2.13",
@@ -327,7 +325,6 @@
           "organization": "org.typelevel",
           "name": "vault_sjs1_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_sjs1_2.13",
@@ -339,7 +336,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_sjs1_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_sjs1_2.13",
@@ -351,7 +347,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_sjs1_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_sjs1_2.13",
@@ -363,7 +358,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -375,7 +369,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_sjs1_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_sjs1_2.13",
@@ -387,7 +380,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_sjs1_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_sjs1_2.13",
@@ -399,7 +391,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_sjs1_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_sjs1_2.13",
@@ -411,7 +402,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_sjs1_2.13",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_sjs1_2.13",
@@ -423,7 +413,6 @@
           "organization": "org.typelevel",
           "name": "literally_sjs1_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_sjs1_2.13",
@@ -435,7 +424,6 @@
           "organization": "io.github.cquiroz",
           "name": "locales-minimal-en_us-db_sjs1_2.13",
           "version": "1.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "locales-minimal-en_us-db_sjs1_2.13",
@@ -447,7 +435,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_sjs1_2.13",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_sjs1_2.13",
@@ -459,7 +446,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_sjs1_2.13",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_sjs1_2.13",
@@ -471,7 +457,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_sjs1_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_sjs1_2.13",
@@ -480,9 +465,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

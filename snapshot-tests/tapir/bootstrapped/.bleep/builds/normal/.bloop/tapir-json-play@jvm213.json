@@ -35,7 +35,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/playframework/play-json_2.13/3.0.1/play-json_2.13-3.0.1.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-play/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-play/jvm213/classes",
@@ -132,7 +134,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
@@ -144,7 +145,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
@@ -156,7 +156,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jdk8",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jdk8",
@@ -168,7 +167,6 @@
           "organization": "org.playframework",
           "name": "play-functional_2.13",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-functional_2.13",
@@ -180,7 +178,6 @@
           "organization": "org.playframework",
           "name": "play-json_2.13",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-json_2.13",
@@ -192,7 +189,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -204,7 +200,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
@@ -216,7 +211,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -228,7 +222,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -240,7 +233,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -252,7 +244,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -264,7 +255,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -276,7 +266,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -285,9 +274,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

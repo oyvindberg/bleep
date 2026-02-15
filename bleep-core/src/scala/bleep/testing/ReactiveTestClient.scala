@@ -131,6 +131,12 @@ class ReactiveTestClient(
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit =
     delegate.onBuildTargetDidChange(params)
 
+  override def onRunPrintStdout(params: bsp4j.PrintParams): Unit =
+    delegate.onRunPrintStdout(params)
+
+  override def onRunPrintStderr(params: bsp4j.PrintParams): Unit =
+    delegate.onRunPrintStderr(params)
+
   private def extractTarget(data: AnyRef): Option[bsp4j.BuildTargetIdentifier] =
     data match {
       case obj: com.google.gson.JsonObject =>

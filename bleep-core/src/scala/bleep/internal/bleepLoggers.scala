@@ -2,11 +2,22 @@ package bleep
 package internal
 
 import ryddig.*
+import ryddig.jul.RyddigJulBridge
 
 import java.io.{BufferedWriter, PrintStream}
 import java.time.Instant
 
 object bleepLoggers {
+
+  /** Install JUL bridge to redirect java.util.logging through the given ryddig logger.
+    *
+    * Call with a file-only logger for TUI mode (prevents lsp4j warnings from clobbering the terminal). Call with a file+screen logger for non-TUI mode.
+    */
+  def installJulBridge(logger: Logger): Unit = {
+    val rootLogger = java.util.logging.Logger.getLogger("")
+    rootLogger.getHandlers.foreach(rootLogger.removeHandler)
+    RyddigJulBridge.install(logger)
+  }
   /* Use this environment variable to communicate to subprocesses that parent accepts json events */
   val CallerProcessAcceptsJsonEvents = "CALLER_PROCESS_ACCEPTS_JSON_EVENTS"
 
@@ -35,10 +46,15 @@ object bleepLoggers {
   ): LoggerResource[(PrintStream, Option[BufferedWriter])] =
     if (commonOpts.logAsJson) LoggerResource.pure(Loggers.printJsonStream(BLEEP_JSON_EVENT, System.out)).maybeZipWith(None)
     else {
+      val fileLoggerResource = Loggers.path(buildPaths.logFile, LogPatterns.logFile)
       baseStdout(bleepConfig, commonOpts)
-        .maybeZipWith(Some(Loggers.path(buildPaths.logFile, LogPatterns.logFile)))
-        // it's an optimization to perform this before both loggers, so we don't need to do it twice
-        .map(Loggers.decodeJsonStream(BLEEP_JSON_EVENT, _))
+        .maybeZipWith(Some(fileLoggerResource))
+        .map { logger =>
+          // Install JUL bridge to file+screen logger (non-TUI default).
+          // ReactiveBsp reinstalls to file-only when entering TUI mode.
+          installJulBridge(logger)
+          Loggers.decodeJsonStream(BLEEP_JSON_EVENT, logger)
+        }
     }
 
   private def baseStdout(bleepConfig: model.BleepConfig, commonOpts: CommonOpts): LoggerResource[PrintStream] =
@@ -83,7 +99,10 @@ object bleepLoggers {
         )
         .map(l => if (commonOpts.debug) l else l.withMinLogLevel(LogLevel.info))
         .maybeZipWith(Some(Loggers.path(buildPaths.logFile, LogPatterns.logFile)))
-        // it's an optimization to perform this before both loggers so we don't need to do it twice
-        .map(Loggers.decodeJsonStream(BLEEP_JSON_EVENT, _))
+        .map { logger =>
+          // Install JUL bridge to capture java.util.logging to file
+          installJulBridge(logger)
+          Loggers.decodeJsonStream(BLEEP_JSON_EVENT, logger)
+        }
     }
 }

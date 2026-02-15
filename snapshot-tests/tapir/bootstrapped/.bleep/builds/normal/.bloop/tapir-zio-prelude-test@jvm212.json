@@ -54,7 +54,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest-wordspec_2.12/3.2.18/scalatest-wordspec_2.12-3.2.18.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scalatest/scalatest_2.12/3.2.18/scalatest_2.12-3.2.18.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm212/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-prelude/jvm212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-prelude/jvm212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio-prelude/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/zio-prelude/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-prelude-test/jvm212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-zio-prelude-test/jvm212/classes",
@@ -149,44 +153,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -229,7 +195,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.12",
@@ -241,7 +206,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_2.12",
@@ -253,7 +217,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -265,7 +228,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.12",
@@ -277,7 +239,6 @@
           "organization": "dev.zio",
           "name": "zio-prelude-macros_2.12",
           "version": "1.0.0-RC41",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-prelude-macros_2.12",
@@ -289,7 +250,6 @@
           "organization": "dev.zio",
           "name": "zio_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_2.12",
@@ -301,7 +261,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -313,7 +272,6 @@
           "organization": "dev.zio",
           "name": "zio-internal-macros_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-internal-macros_2.12",
@@ -325,7 +283,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.12",
@@ -337,7 +294,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -349,7 +305,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.12",
@@ -361,7 +316,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.12",
@@ -373,7 +327,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.12",
@@ -385,7 +338,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.12",
@@ -397,7 +349,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.12",
@@ -409,7 +360,6 @@
           "organization": "dev.zio",
           "name": "zio-stacktracer_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-stacktracer_2.12",
@@ -421,7 +371,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.12",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.12",
@@ -433,7 +382,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -445,7 +393,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.12",
@@ -457,7 +404,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.12",
@@ -469,7 +415,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.12",
@@ -481,7 +426,6 @@
           "organization": "dev.zio",
           "name": "zio-streams_2.12",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-streams_2.12",
@@ -493,7 +437,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect_2.12",
@@ -505,7 +448,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.12",
@@ -517,7 +459,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.12",
@@ -529,7 +470,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.12",
@@ -541,7 +481,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.12",
@@ -553,7 +492,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.12",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.12",
@@ -565,7 +503,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.12",
@@ -577,7 +514,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.12",
@@ -589,7 +525,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.12",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.12",
@@ -601,7 +536,6 @@
           "organization": "dev.zio",
           "name": "zio-prelude_2.12",
           "version": "1.0.0-RC41",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-prelude_2.12",
@@ -610,9 +544,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

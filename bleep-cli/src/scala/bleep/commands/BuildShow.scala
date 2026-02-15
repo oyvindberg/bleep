@@ -1,7 +1,6 @@
 package bleep
 package commands
 
-import bloop.config.ConfigCodecs
 import cats.data.NonEmptyList
 
 object BuildShow {
@@ -25,18 +24,6 @@ object BuildShow {
         val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
         println(fansi.Color.Red(crossProjectName.value))
         println(yaml.encodeShortened(p))
-      }
-
-      Right(())
-    }
-  }
-
-  case class Bloop(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
-    override def run(started: Started): Either[BleepException, Unit] = {
-      projects.foreach { crossProjectName =>
-        val f = started.bloopFiles(crossProjectName).forceGet
-        println(fansi.Color.Red(crossProjectName.value))
-        println(ConfigCodecs.toStr(f))
       }
 
       Right(())

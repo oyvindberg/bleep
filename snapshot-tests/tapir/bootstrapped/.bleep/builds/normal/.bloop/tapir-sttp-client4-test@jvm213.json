@@ -117,7 +117,23 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-files/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-circe/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client4/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client4-test/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-client4-test/jvm213/classes",
@@ -211,44 +227,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -291,7 +269,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -303,7 +280,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "zio_2.13",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "zio_2.13",
@@ -315,7 +291,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -327,7 +302,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.13",
@@ -339,7 +313,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.13",
@@ -351,7 +324,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -363,7 +335,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -375,7 +346,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.13",
@@ -387,7 +357,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -399,7 +368,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -411,7 +379,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http-core_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http-core_2.13",
@@ -423,7 +390,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.13",
@@ -435,7 +401,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -447,7 +412,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.13",
@@ -459,7 +423,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.13",
@@ -471,7 +434,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -483,7 +445,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "cats_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats_2.13",
@@ -495,7 +456,6 @@
           "organization": "dev.zio",
           "name": "zio-stacktracer_2.13",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-stacktracer_2.13",
@@ -507,7 +467,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_2.13",
@@ -519,7 +478,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -531,7 +489,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -543,7 +500,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "akka_2.13",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka_2.13",
@@ -555,7 +511,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-parsing_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-parsing_2.13",
@@ -567,7 +522,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -579,7 +533,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.13",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -591,7 +544,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect_2.13",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect_2.13",
@@ -603,7 +555,6 @@
           "organization": "org.parboiled",
           "name": "parboiled_2.13",
           "version": "2.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "parboiled_2.13",
@@ -615,7 +566,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "pekko_2.13",
           "version": "1.5.0",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "pekko_2.13",
@@ -627,7 +577,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "zio_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_2.13",
@@ -639,7 +588,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
@@ -651,7 +599,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.13",
@@ -663,7 +610,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -675,7 +621,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.13",
@@ -687,7 +632,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -699,7 +643,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -711,7 +654,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -723,7 +665,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.13",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.13",
@@ -735,7 +676,6 @@
           "organization": "dev.zio",
           "name": "zio-streams_2.13",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-streams_2.13",
@@ -747,7 +687,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http_2.13",
@@ -759,7 +698,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -771,7 +709,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "akka-http-backend_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http-backend_2.13",
@@ -783,7 +720,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.13",
@@ -795,7 +731,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -807,7 +742,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -819,7 +753,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.13",
@@ -831,7 +764,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.13",
@@ -843,7 +775,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-http-core_2.13",
           "version": "10.2.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-http-core_2.13",
@@ -855,7 +786,6 @@
           "organization": "dev.zio",
           "name": "zio-interop-reactivestreams_2.13",
           "version": "2.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-interop-reactivestreams_2.13",
@@ -867,7 +797,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -879,7 +808,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.13",
@@ -891,7 +819,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-protobuf-v3_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-protobuf-v3_2.13",
@@ -903,7 +830,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.13",
@@ -915,7 +841,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -927,7 +852,6 @@
           "organization": "com.softwaremill.common",
           "name": "tagging_2.13",
           "version": "2.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "tagging_2.13",
@@ -939,7 +863,6 @@
           "organization": "dev.zio",
           "name": "zio-internal-macros_2.13",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-internal-macros_2.13",
@@ -951,7 +874,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -963,7 +885,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.13",
@@ -975,7 +896,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -987,7 +907,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -999,7 +918,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http_2.13",
@@ -1011,7 +929,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-stream_2.13",
           "version": "1.1.4",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "pekko-stream_2.13",
@@ -1023,7 +940,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-protobuf-v3_2.13",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-protobuf-v3_2.13",
@@ -1035,7 +951,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.13",
@@ -1047,7 +962,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-actor_2.13",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-actor_2.13",
@@ -1059,7 +973,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.13",
@@ -1071,7 +984,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-stream_2.13",
           "version": "2.6.20",
-          "configurations": "optional",
           "artifacts": [
             {
               "name": "akka-stream_2.13",
@@ -1083,7 +995,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -1095,7 +1006,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -1107,7 +1017,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "pekko-http-backend_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http-backend_2.13",
@@ -1119,7 +1028,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.13",
@@ -1131,7 +1039,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.13",
@@ -1143,7 +1050,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -1155,7 +1061,6 @@
           "organization": "dev.zio",
           "name": "zio_2.13",
           "version": "2.1.19",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_2.13",
@@ -1167,7 +1072,6 @@
           "organization": "co.fs2",
           "name": "fs2-reactive-streams_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-reactive-streams_2.13",
@@ -1179,7 +1083,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -1191,7 +1094,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.13",
@@ -1203,7 +1105,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.13",
@@ -1215,7 +1116,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -1227,7 +1127,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.13",
@@ -1239,7 +1138,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-parsing_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-parsing_2.13",
@@ -1251,7 +1149,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -1260,9 +1157,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

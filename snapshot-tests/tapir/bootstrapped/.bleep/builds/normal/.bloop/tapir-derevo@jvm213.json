@@ -32,7 +32,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/tf/tofu/derevo-core_2.13/0.14.0/derevo-core_2.13-0.14.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-newtype/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-newtype/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/newtype/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-derevo/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-derevo/jvm213/classes",
@@ -130,7 +134,6 @@
           "organization": "tf.tofu",
           "name": "derevo-core_2.13",
           "version": "0.14.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "derevo-core_2.13",
@@ -142,7 +145,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -154,7 +156,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -166,7 +167,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -178,7 +178,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -190,7 +189,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -202,7 +200,6 @@
           "organization": "io.estatico",
           "name": "newtype_2.13",
           "version": "0.4.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "newtype_2.13",
@@ -214,7 +211,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -223,9 +219,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

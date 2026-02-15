@@ -489,7 +489,6 @@ projects:
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}
@@ -503,7 +502,6 @@ projects:
           module: org.scala-lang:scala-reflect:${SCALA_VERSION}
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}
@@ -517,7 +515,6 @@ projects:
           module: org.scala-lang::scala3-library:${SCALA_VERSION}
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}

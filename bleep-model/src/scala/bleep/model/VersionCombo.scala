@@ -17,8 +17,9 @@ sealed trait VersionCombo {
 
   def libraries(isTest: Boolean): List[Dep] =
     this match {
-      case VersionCombo.Java              => Nil
-      case VersionCombo.Jvm(scalaVersion) => scalaVersion.libraries
+      case VersionCombo.Java                  => Nil
+      case VersionCombo.Kotlin(kotlinVersion) => kotlinVersion.libraries
+      case VersionCombo.Jvm(scalaVersion)     => scalaVersion.libraries
       case VersionCombo.Js(scalaVersion, scalaJs) =>
         val testLibs = if (isTest) List(scalaJs.testInterface, scalaJs.testBridge) else Nil
 
@@ -40,7 +41,15 @@ sealed trait VersionCombo {
             fullCrossVersion = false
           )
         }
-        List(libs, scalaVersion.library) ++ testLibs.toList
+        // javalib is explicitly excluded from scala3lib/scalalib POMs,
+        // so it must be added separately for the linker classpath
+        val javalib = Dep.ScalaDependency(
+          VersionScalaNative.org,
+          ModuleName("javalib"),
+          scalaNative.scalaNativeVersion,
+          fullCrossVersion = false
+        )
+        List(libs, scalaVersion.library, javalib) ++ testLibs.toList
     }
 
   val compilerPlugin: Option[Dep]
@@ -53,6 +62,8 @@ object VersionCombo {
     Encoder.instance {
       case Java =>
         Json.obj("Java" -> Json.Null)
+      case Kotlin(kotlinVersion) =>
+        Json.obj("Kotlin" := Json.obj("kotlinVersion" := kotlinVersion))
       case Jvm(scalaVersion) =>
         Json.obj("Jvm" := Json.obj("scalaVersion" := scalaVersion))
       case Js(scalaVersion, scalaJsVersion) =>
@@ -66,6 +77,8 @@ object VersionCombo {
       c.keys.flatMap(_.headOption) match {
         case Some("Java") =>
           Right(Java)
+        case Some("Kotlin") =>
+          c.downField("Kotlin").downField("kotlinVersion").as[VersionKotlin].map(Kotlin.apply)
         case Some("Jvm") =>
           c.downField("Jvm").downField("scalaVersion").as[VersionScala].map(Jvm.apply)
         case Some("Js") =>
@@ -79,10 +92,15 @@ object VersionCombo {
             scalaNative <- c.downField("Native").downField("scalaNative").as[VersionScalaNative]
           } yield Native(scalaVersion, scalaNative)
         case _ =>
-          Left(DecodingFailure("expected object with one of `Java`, `Jvm`, `Js` or `Native` keys", c.history))
+          Left(DecodingFailure("expected object with one of `Java`, `Kotlin`, `Jvm`, `Js` or `Native` keys", c.history))
       }
 
   case object Java extends VersionCombo {
+    override val compilerPlugin: Option[Dep] = None
+    override val compilerOptions: Options = Options.empty
+  }
+
+  case class Kotlin(kotlinVersion: VersionKotlin) extends VersionCombo {
     override val compilerPlugin: Option[Dep] = None
     override val compilerOptions: Options = Options.empty
   }
@@ -143,5 +161,9 @@ object VersionCombo {
     }
 
   def fromExplodedProject(p: Project): Either[String, VersionCombo] =
-    fromExplodedScalaAndPlatform(p.scala.flatMap(_.version), p.platform)
+    // Kotlin takes precedence if specified
+    p.kotlin.flatMap(_.version) match {
+      case Some(kotlinVersion) => Right(Kotlin(kotlinVersion))
+      case None                => fromExplodedScalaAndPlatform(p.scala.flatMap(_.version), p.platform)
+    }
 }

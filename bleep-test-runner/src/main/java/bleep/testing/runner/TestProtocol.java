@@ -80,11 +80,21 @@ public final class TestProtocol {
   }
 
   public static String encodeLog(String level, String message) {
-    return "{\"type\":\"Log\",\"data\":{\"level\":"
-        + jsonString(level)
-        + ",\"message\":"
-        + jsonString(message)
-        + "}}";
+    return encodeLog(null, level, message);
+  }
+
+  public static String encodeLog(String suite, String level, String message) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{\"type\":\"Log\",\"data\":{\"level\":");
+    sb.append(jsonString(level));
+    sb.append(",\"message\":");
+    sb.append(jsonString(message));
+    if (suite != null) {
+      sb.append(",\"suite\":");
+      sb.append(jsonString(suite));
+    }
+    sb.append("}}");
+    return sb.toString();
   }
 
   public static String encodeError(String message, String throwable) {

@@ -91,6 +91,8 @@ object CheckEvictions {
         versionCombo match {
           case model.VersionCombo.Java =>
             None
+          case model.VersionCombo.Kotlin(_) =>
+            None
           case scala: model.VersionCombo.Scala =>
             Some(
               librarymanagement.ScalaModuleInfo(

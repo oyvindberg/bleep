@@ -85,8 +85,8 @@
         "version": "0.5.6",
         "mode": "debug",
         "gc": "",
-        "clang": "",
-        "clangpp": "",
+        "clang": "clang",
+        "clangpp": "clang++",
         "toolchain": [
           
         ],
@@ -112,7 +112,6 @@
           "organization": "org.scala-native",
           "name": "scalalib_native0.5_2.12",
           "version": "2.12.20+0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalalib_native0.5_2.12",
@@ -124,7 +123,6 @@
           "organization": "org.scala-native",
           "name": "auxlib_native0.5_2.12",
           "version": "0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "auxlib_native0.5_2.12",
@@ -136,7 +134,6 @@
           "organization": "org.scala-native",
           "name": "posixlib_native0.5_2.12",
           "version": "0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "posixlib_native0.5_2.12",
@@ -148,7 +145,6 @@
           "organization": "org.scala-native",
           "name": "nativelib_native0.5_2.12",
           "version": "0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "nativelib_native0.5_2.12",
@@ -160,7 +156,6 @@
           "organization": "org.scala-native",
           "name": "windowslib_native0.5_2.12",
           "version": "0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "windowslib_native0.5_2.12",
@@ -172,7 +167,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -184,7 +178,6 @@
           "organization": "org.scala-native",
           "name": "javalib_native0.5_2.12",
           "version": "0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javalib_native0.5_2.12",
@@ -196,7 +189,6 @@
           "organization": "org.scala-native",
           "name": "clib_native0.5_2.12",
           "version": "0.5.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "clib_native0.5_2.12",
@@ -208,7 +200,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_native0.5_2.12",
           "version": "0.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_native0.5_2.12",
@@ -220,7 +211,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -229,9 +219,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

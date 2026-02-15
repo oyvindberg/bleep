@@ -59,7 +59,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.9/slf4j-api-2.0.9.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/slf4j/slf4j-jdk-platform-logging/2.0.9/slf4j-jdk-platform-logging-2.0.9.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-nima-server/jvm213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-nima-server/jvm213/classes",
@@ -156,7 +160,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-mapper",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-mapper",
@@ -168,7 +171,6 @@
           "organization": "io.helidon.http",
           "name": "helidon-http",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-http",
@@ -180,7 +182,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-security",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-security",
@@ -192,7 +193,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-uri",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-uri",
@@ -204,7 +204,6 @@
           "organization": "io.helidon.inject",
           "name": "helidon-inject-api",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-inject-api",
@@ -216,7 +215,6 @@
           "organization": "io.helidon",
           "name": "helidon",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon",
@@ -228,7 +226,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-task",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-task",
@@ -240,7 +237,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -252,7 +248,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-key-util",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-key-util",
@@ -264,7 +259,6 @@
           "organization": "io.helidon.common.features",
           "name": "helidon-common-features-api",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-features-api",
@@ -276,7 +270,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -288,7 +281,6 @@
           "organization": "io.helidon.config",
           "name": "helidon-config",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-config",
@@ -300,7 +292,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-context",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-context",
@@ -312,7 +303,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-socket",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-socket",
@@ -324,7 +314,6 @@
           "organization": "io.helidon.http.media",
           "name": "helidon-http-media",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-http-media",
@@ -336,7 +325,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-configurable",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-configurable",
@@ -348,7 +336,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-buffers",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-buffers",
@@ -360,7 +347,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -372,7 +358,6 @@
           "organization": "io.helidon.http.encoding",
           "name": "helidon-http-encoding",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-http-encoding",
@@ -384,7 +369,6 @@
           "organization": "io.helidon.logging",
           "name": "helidon-logging-slf4j",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-logging-slf4j",
@@ -396,7 +380,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common",
@@ -408,7 +391,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -420,7 +402,6 @@
           "organization": "io.helidon.webserver",
           "name": "helidon-webserver",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-webserver",
@@ -432,7 +413,6 @@
           "organization": "jakarta.inject",
           "name": "jakarta.inject-api",
           "version": "2.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jakarta.inject-api",
@@ -444,7 +424,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -456,7 +435,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-parameters",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-parameters",
@@ -468,7 +446,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-jdk-platform-logging",
           "version": "2.0.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-jdk-platform-logging",
@@ -480,7 +457,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-media-type",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-media-type",
@@ -492,7 +468,6 @@
           "organization": "io.helidon.builder",
           "name": "helidon-builder-api",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-builder-api",
@@ -504,7 +479,6 @@
           "organization": "io.helidon.logging",
           "name": "helidon-logging-common",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-logging-common",
@@ -516,7 +490,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -528,7 +501,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-config",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-config",
@@ -540,7 +512,6 @@
           "organization": "io.helidon.common.features",
           "name": "helidon-common-features",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-features",
@@ -552,7 +523,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-tls",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-tls",
@@ -564,7 +534,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-types",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-types",
@@ -573,9 +542,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

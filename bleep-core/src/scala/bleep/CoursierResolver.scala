@@ -2,7 +2,7 @@ package bleep
 
 import bleep.depcheck.CheckEvictions
 import bleep.internal.codecs.*
-import bleep.internal.{FileUtils, ShortenAndSortJson}
+import bleep.internal.FileUtils
 import coursier.cache.{CacheDefaults, FileCache}
 import coursier.core.*
 import coursier.error.CoursierError
@@ -254,18 +254,15 @@ object CoursierResolver {
     ): Either[CoursierError, CoursierResolver.Result] =
       if (deps.exists(_.version.endsWith("-SNAPSHOT"))) underlying.resolve(deps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
       else {
-        val request = Cached.Request(deps, underlying.params, versionCombo, libraryVersionSchemes)
-        val digest = request.asJson.foldWith(ShortenAndSortJson(Nil)).noSpaces.hashCode // should hopefully be stable
+        // Fast hash computation - avoids JSON encoding entirely
+        val digest = Cached.computeHash(deps, underlying.params, versionCombo, libraryVersionSchemes)
         val cachePath = in / s"$digest.json"
 
         val cachedResult: Option[Result] =
           if (Files.exists(cachePath)) {
-            parser.decode[Cached.Both](Files.readString(cachePath)) match {
-              // collision detection is done here: handle it by just overwriting the file
-              case Right(Cached.Both(`request`, result)) if result.files.forall(_.exists()) =>
-                Some(result)
-              case _ =>
-                logger.warn(s"coursier cache collision. deleting")
+            Cached.readLeanCache(logger, cachePath, deps, underlying.params, versionCombo, libraryVersionSchemes) match {
+              case Some(result) => Some(result)
+              case None =>
                 Files.delete(cachePath)
                 None
             }
@@ -282,7 +279,7 @@ object CoursierResolver {
                 ctxLogger.info("Not caching because result is changing")
                 changingResult
               case result =>
-                FileUtils.writeString(logger, None, cachePath, Cached.Both(request, result).asJson.noSpaces)
+                Cached.writeLeanCache(logger, cachePath, deps, underlying.params, versionCombo, libraryVersionSchemes, result)
                 result
             }
         }
@@ -298,6 +295,168 @@ object CoursierResolver {
   }
 
   object Cached {
+    import scala.util.hashing.MurmurHash3
+
+    // Fast hash computation using MurmurHash3 - no string/JSON allocation
+    def computeHash(
+        deps: SortedSet[model.Dep],
+        params: Params,
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Int = {
+      var h = MurmurHash3.arraySeed
+      // Deps are sorted, iterate deterministically
+      deps.foreach { dep =>
+        h = MurmurHash3.mix(h, dep.organization.value.hashCode)
+        h = MurmurHash3.mix(h, dep.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, dep.version.hashCode)
+        h = MurmurHash3.mix(h, dep.configuration.value.hashCode)
+        dep.exclusions.value.foreach { case (org, mods) =>
+          h = MurmurHash3.mix(h, org.value.hashCode)
+          mods.values.foreach(mod => h = MurmurHash3.mix(h, mod.value.hashCode))
+        }
+      }
+      h = MurmurHash3.mix(h, versionCombo.toString.hashCode)
+      h = MurmurHash3.mix(h, if (params.downloadSources) 1 else 0)
+      params.repos.foreach(repo => h = MurmurHash3.mix(h, repo.toString.hashCode))
+      libraryVersionSchemes.foreach { lvs =>
+        h = MurmurHash3.mix(h, lvs.dep.organization.value.hashCode)
+        h = MurmurHash3.mix(h, lvs.dep.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, lvs.scheme.value.hashCode)
+      }
+      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size)
+    }
+
+    // Lean cache format - stores only what's needed for reconstruction
+    case class LeanArtifact(
+        org: String,
+        name: String,
+        version: String,
+        classifier: String, // empty string for no classifier
+        ext: String,
+        path: String
+    )
+    object LeanArtifact {
+      implicit val codec: Codec[LeanArtifact] =
+        Codec.forProduct6[LeanArtifact, String, String, String, String, String, String](
+          "o",
+          "n",
+          "v",
+          "c",
+          "e",
+          "p"
+        )(LeanArtifact.apply)(x => (x.org, x.name, x.version, x.classifier, x.ext, x.path))
+    }
+
+    case class LeanCache(
+        // Store hash of request for collision detection
+        requestHash: Int,
+        artifacts: List[LeanArtifact]
+    )
+    object LeanCache {
+      implicit val codec: Codec[LeanCache] =
+        Codec.forProduct2[LeanCache, Int, List[LeanArtifact]]("h", "a")(LeanCache.apply)(x => (x.requestHash, x.artifacts))
+    }
+
+    // Secondary hash for collision detection — uses different seed but MUST hash
+    // the same fields as computeHash to avoid false positives
+    private def collisionHash(
+        deps: SortedSet[model.Dep],
+        params: Params,
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Int = {
+      var h = 0x9e3779b9 // golden ratio bits — different seed than computeHash
+      deps.foreach { dep =>
+        h = MurmurHash3.mix(h, dep.organization.value.hashCode)
+        h = MurmurHash3.mix(h, dep.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, dep.version.hashCode)
+        h = MurmurHash3.mix(h, dep.configuration.value.hashCode)
+        dep.exclusions.value.foreach { case (org, mods) =>
+          h = MurmurHash3.mix(h, org.value.hashCode)
+          mods.values.foreach(mod => h = MurmurHash3.mix(h, mod.value.hashCode))
+        }
+      }
+      h = MurmurHash3.mix(h, versionCombo.toString.hashCode)
+      h = MurmurHash3.mix(h, if (params.downloadSources) 1 else 0)
+      params.repos.foreach(repo => h = MurmurHash3.mix(h, repo.toString.hashCode))
+      libraryVersionSchemes.foreach { lvs =>
+        h = MurmurHash3.mix(h, lvs.dep.organization.value.hashCode)
+        h = MurmurHash3.mix(h, lvs.dep.baseModuleName.value.hashCode)
+        h = MurmurHash3.mix(h, lvs.scheme.value.hashCode)
+      }
+      MurmurHash3.finalizeHash(h, deps.size + libraryVersionSchemes.size)
+    }
+
+    def readLeanCache(
+        logger: Logger,
+        cachePath: Path,
+        deps: SortedSet[model.Dep],
+        params: Params,
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme]
+    ): Option[Result] = {
+      val content = Files.readString(cachePath)
+      parser.decode[LeanCache](content) match {
+        case Right(lean) if lean.requestHash == collisionHash(deps, params, versionCombo, libraryVersionSchemes) =>
+          // Reconstruct Result from lean format
+          val detailedArtifacts = lean.artifacts.map { la =>
+            val module = Module(Organization(la.org), ModuleName(la.name), Map.empty)
+            val dep = Dependency(module, la.version)
+            val pub = Publication(
+              la.name,
+              if (la.ext == "jar") Type.jar else Type(la.ext),
+              Extension(la.ext),
+              if (la.classifier.isEmpty) Classifier.empty else Classifier(la.classifier)
+            )
+            val artifact = Artifact(s"file://${la.path}", Map.empty, Map.empty, changing = false, optional = false, authentication = None)
+            val file = if (la.path.nonEmpty) Some(new File(la.path)) else None
+            (dep, pub, artifact, file)
+          }
+          val result = Result(detailedArtifacts, Seq.empty)
+          if (result.files.forall(_.exists())) Some(result)
+          else {
+            logger.info("coursier cache references missing files, re-resolving")
+            None
+          }
+        case Right(_) =>
+          logger.debug("coursier cache collision detected")
+          None
+        case Left(err) =>
+          logger.warn(s"coursier cache corrupted: ${err.getMessage}")
+          None
+      }
+    }
+
+    def writeLeanCache(
+        logger: Logger,
+        cachePath: Path,
+        deps: SortedSet[model.Dep],
+        params: Params,
+        versionCombo: model.VersionCombo,
+        libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
+        result: Result
+    ): Unit = {
+      val leanArtifacts = result.fullDetailedArtifacts.map { case (dep, pub, _, fileOpt) =>
+        LeanArtifact(
+          org = dep.module.organization.value,
+          name = dep.module.name.value,
+          version = dep.version,
+          classifier = if (pub.classifier == Classifier.empty) "" else pub.classifier.value,
+          ext = pub.ext.value,
+          path = fileOpt.map(_.getAbsolutePath).getOrElse("")
+        )
+      }.toList
+
+      val lean = LeanCache(
+        requestHash = collisionHash(deps, params, versionCombo, libraryVersionSchemes),
+        artifacts = leanArtifacts
+      )
+
+      FileUtils.writeString(logger, None, cachePath, lean.asJson.noSpaces)
+    }
+
+    // Request type kept for TestResolver compatibility (in-memory cache + JSON serialization)
     case class Request(
         wanted: SortedSet[model.Dep],
         params: Params,
@@ -306,7 +465,6 @@ object CoursierResolver {
     )
 
     object Request {
-
       implicit val codec: Codec[Request] =
         Codec.forProduct4[Request, SortedSet[model.Dep], Params, model.VersionCombo, SortedSet[model.LibraryVersionScheme]](
           "wanted",
@@ -314,11 +472,6 @@ object CoursierResolver {
           "forceScalaVersion",
           "libraryVersionSchemes"
         )(Request.apply)(x => (x.wanted, x.params, x.versionCombo, x.libraryVersionSchemes))
-    }
-
-    case class Both(request: Request, result: Result)
-    object Both {
-      implicit val codec: Codec[Both] = Codec.forProduct2[Both, Request, Result]("request", "result")(Both.apply)(x => (x.request, x.result))
     }
   }
 

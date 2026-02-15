@@ -44,7 +44,9 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/posixlib_native0.5_2.12/0.5.8/posixlib_native0.5_2.12-0.5.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/scalalib_native0.5_2.12/2.12.20%2B0.5.8/scalalib_native0.5_2.12-2.12.20%2B0.5.8.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-native/windowslib_native0.5_2.12/0.5.8/windowslib_native0.5_2.12-0.5.8.jar",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native212/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/native212/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio/native212",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-json-zio/native212/classes",
@@ -131,8 +133,8 @@
         "version": "0.5.8",
         "mode": "debug",
         "gc": "",
-        "clang": "",
-        "clangpp": "",
+        "clang": "clang",
+        "clangpp": "clang++",
         "toolchain": [
           
         ],
@@ -158,7 +160,6 @@
           "organization": "org.scala-native",
           "name": "scalalib_native0.5_2.12",
           "version": "2.12.20+0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalalib_native0.5_2.12",
@@ -170,7 +171,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-locales_native0.5_2.12",
           "version": "1.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-locales_native0.5_2.12",
@@ -182,7 +182,6 @@
           "organization": "org.scala-native",
           "name": "posixlib_native0.5_2.12",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "posixlib_native0.5_2.12",
@@ -194,7 +193,6 @@
           "organization": "dev.zio",
           "name": "zio-stacktracer_native0.5_2.12",
           "version": "2.1.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-stacktracer_native0.5_2.12",
@@ -206,7 +204,6 @@
           "organization": "org.scala-native",
           "name": "nativelib_native0.5_2.12",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "nativelib_native0.5_2.12",
@@ -218,7 +215,6 @@
           "organization": "org.scala-native",
           "name": "windowslib_native0.5_2.12",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "windowslib_native0.5_2.12",
@@ -230,7 +226,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -242,7 +237,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_native0.5_2.12",
           "version": "1.1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_native0.5_2.12",
@@ -254,7 +248,6 @@
           "organization": "io.github.cquiroz",
           "name": "cldr-api_native0.5_2.12",
           "version": "4.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cldr-api_native0.5_2.12",
@@ -266,7 +259,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect_native0.5_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect_native0.5_2.12",
@@ -278,7 +270,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -290,7 +281,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_native0.5_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_native0.5_2.12",
@@ -302,7 +292,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_native0.5_2.12",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_native0.5_2.12",
@@ -314,7 +303,6 @@
           "organization": "dev.zio",
           "name": "zio-internal-macros_native0.5_2.12",
           "version": "2.1.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-internal-macros_native0.5_2.12",
@@ -326,7 +314,6 @@
           "organization": "org.scala-native",
           "name": "auxlib_native0.5_2.12",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "auxlib_native0.5_2.12",
@@ -338,7 +325,6 @@
           "organization": "io.github.cquiroz",
           "name": "scala-java-time_native0.5_2.12",
           "version": "2.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java-time_native0.5_2.12",
@@ -350,7 +336,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_native0.5_2.12",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_native0.5_2.12",
@@ -362,7 +347,6 @@
           "organization": "dev.zio",
           "name": "zio-json_native0.5_2.12",
           "version": "0.7.43",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-json_native0.5_2.12",
@@ -374,7 +358,6 @@
           "organization": "org.scala-native",
           "name": "javalib_native0.5_2.12",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javalib_native0.5_2.12",
@@ -386,7 +369,6 @@
           "organization": "dev.zio",
           "name": "zio-streams_native0.5_2.12",
           "version": "2.1.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio-streams_native0.5_2.12",
@@ -398,7 +380,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_native0.5_2.12",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_native0.5_2.12",
@@ -410,7 +391,6 @@
           "organization": "org.scala-native",
           "name": "clib_native0.5_2.12",
           "version": "0.5.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "clib_native0.5_2.12",
@@ -422,7 +402,6 @@
           "organization": "dev.zio",
           "name": "zio_native0.5_2.12",
           "version": "2.1.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "zio_native0.5_2.12",
@@ -434,7 +413,6 @@
           "organization": "dev.zio",
           "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.12",
           "version": "3.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "izumi-reflect-thirdparty-boopickle-shaded_native0.5_2.12",
@@ -443,9 +421,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

@@ -49,7 +49,23 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/common/js213/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/io/js213/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/js213/classes"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/js213/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@js213/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/parsers/js213/classes",
@@ -119,7 +135,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-javalib",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-javalib",
@@ -131,7 +146,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-library_2.13",
           "version": "1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-library_2.13",
@@ -143,7 +157,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.13.16",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -155,7 +168,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_sjs1_2.13",
           "version": "0.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_sjs1_2.13",
@@ -167,7 +179,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "provided",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -179,7 +190,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_sjs1_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_sjs1_2.13",
@@ -191,7 +201,6 @@
           "organization": "org.scala-js",
           "name": "scalajs-scalalib_2.13",
           "version": "2.13.16+1.18.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalajs-scalalib_2.13",
@@ -203,7 +212,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -215,7 +223,6 @@
           "organization": "com.lihaoyi",
           "name": "fastparse_sjs1_2.13",
           "version": "3.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fastparse_sjs1_2.13",
@@ -224,9 +231,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

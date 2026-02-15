@@ -10,6 +10,11 @@ import scala.collection.mutable
 
 // a bsp client which will display compilation diagnostics and progress to a logger
 object BspClientDisplayProgress {
+
+  /** Convert lsp4j Either[String, Integer] to Option[String] for logging */
+  private[internal] def eitherToString(eid: org.eclipse.lsp4j.jsonrpc.messages.Either[String, Integer]): Option[String] =
+    Option(eid).map(e => if (e.isLeft) e.getLeft else e.getRight.toString)
+
   def apply(logger: Logger): BspClientDisplayProgress = {
     // TerminalSizeCache constructor registers a SIGWINCH handler which doesn't exist on Windows.
     // Check for Windows first to avoid even loading the class which triggers static initialization.
@@ -207,10 +212,12 @@ class BspClientDisplayProgress(
       )
 
       logger
-        .withOptContext("code", Option(d.getCode))
+        .withOptContext("code", BspClientDisplayProgress.eitherToString(d.getCode))
         .withContext("location", location)
         .log(logLevel, Str(renderBuildTarget(params.getBuildTarget), Str(" "), Str("\n" + d.getMessage + "\n")))
     }
 
-  override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = println(params)
+  override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit = logger.info(s"Build target changed: $params")
+  override def onRunPrintStdout(params: bsp4j.PrintParams): Unit = logger.info(params.getMessage)
+  override def onRunPrintStderr(params: bsp4j.PrintParams): Unit = logger.warn(params.getMessage)
 }

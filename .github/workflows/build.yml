@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ 'master' ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     timeout-minutes: 15
@@ -32,7 +36,12 @@ jobs:
           CI: true
         run: |
           bleep compile
+          bleep sourcegen
+          # publish locally so test runner and bsp server are available
+          bleep my-publish-local
+          # stop compile server since the compile server itself may have changed
           bleep config compile-server stop-all
+          bleep setup-dev-script bleep-cli@jvm3
           ./bleep-cli@jvm3.sh --dev test
 
   yaml-ls-check:
@@ -71,18 +80,19 @@ jobs:
           - os: ubuntu-22.04
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
+            run_tests: true
           - os: macos-15-intel
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
+            run_tests: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
-          # TODO: Windows build currently fails because published bleep 0.0.14 crashes on Windows
-          # due to SIGWINCH handler registration. Fix is in this PR but not yet published.
-          # Re-enable after merging and publishing a new bleep version.
-          # - os: windows-latest
-          #   file_name: bleep.exe
-          #   artifact_name: bleep-x86_64-pc-win32
+            run_tests: true
+          - os: windows-latest
+            file_name: bleep.exe
+            artifact_name: bleep-x86_64-pc-win32
+            run_tests: true
     steps:
       - uses: actions/checkout@v6
         with:
@@ -95,11 +105,14 @@ jobs:
           extraFiles: bleep.yaml
 
       - name: Build native image (non-windows)
-        # stop compile server after build since the new version may use a newer version of bloop
         run: |
           bleep compile bleep-cli@jvm3
-          bleep setup-dev-script bleep-cli@jvm3
+          bleep sourcegen
+          # publish locally so test runner and bsp server are available
+          bleep my-publish-local
+          # stop compile server since the compile server itself may have changed
           bleep config compile-server stop-all
+          bleep setup-dev-script bleep-cli@jvm3
           ./bleep-cli@jvm3.sh --dev native-image ${{ matrix.file_name }}
 
         if: runner.os != 'Windows'
@@ -110,19 +123,82 @@ jobs:
         run: |
           ./${{ matrix.file_name }} --dev test --no-color jvm3
           ./${{ matrix.file_name }} selftest
-        if: runner.os != 'Windows'
+        if: runner.os != 'Windows' && matrix.run_tests
 
-        # as is normal, everything involving windows is terrible.
-        # - powershell doesn't work, for one: https://github.com/dirs-dev/directories-jvm/issues/49
-        # - with `shell: cmd` only one command can be run at a time, so this is split into three
-        # - some windows development stuff needs to be available, that's what setup-graalvm accomplishes below. todo: figure out how bleep can download it itself
-#      - name: Build native image 1 (windows)
-#        run: bleep config compile-server auto-shutdown-enable
-#        shell: cmd
-#        if: runner.os == 'Windows'
-
-      # Windows build steps are commented out because Windows is not in the matrix
-      # TODO: Re-enable after publishing bleep with Windows SIGWINCH fix
+        # Windows: cmd shell, one command per step
+        # The released bleep creates jars with backslash path entries on Windows
+        # (e.g. bleep\bsp\BspServerDaemon.class instead of bleep/bsp/...).
+        # After publish-local, we fix these jars by re-creating them from the
+        # extracted contents, which normalizes entries to forward slashes.
+      - name: Build native image 1 (windows)
+        run: bleep compile bleep-cli@jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Build native image 2 (windows)
+        run: bleep sourcegen
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Build native image 3 (windows)
+        run: bleep my-publish-local
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Setup GraalVM (windows)
+        uses: graalvm/setup-graalvm@v1
+        if: runner.os == 'Windows'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          distribution: 'graalvm-community'
+          java-version: '25.0.1'
+          native-image-job-reports: 'true'
+      - name: Fix backslash jar entries (windows)
+        shell: pwsh
+        if: runner.os == 'Windows'
+        run: |
+          # Find all jars published by bleep to local ivy and fix backslash entries
+          $ivyLocal = "$env:USERPROFILE\.ivy2\local\build.bleep"
+          if (Test-Path $ivyLocal) {
+            Get-ChildItem -Path $ivyLocal -Filter "*.jar" -Recurse | ForEach-Object {
+              $jar = $_.FullName
+              $tmp = "$jar.fix"
+              $extractDir = "$jar.extracted"
+              # Extract jar contents (filesystem normalizes backslash entries to directories)
+              New-Item -ItemType Directory -Path $extractDir -Force | Out-Null
+              Push-Location $extractDir
+              & jar xf $jar 2>$null
+              Pop-Location
+              if (Test-Path "$extractDir\META-INF") {
+                # Re-create jar with normalized forward-slash entries
+                & jar cf $tmp -C $extractDir .
+                if ($LASTEXITCODE -eq 0) {
+                  Move-Item -Path $tmp -Destination $jar -Force
+                }
+              }
+              Remove-Item -Path $extractDir -Recurse -Force -ErrorAction SilentlyContinue
+              Remove-Item -Path $tmp -Force -ErrorAction SilentlyContinue
+            }
+            Write-Host "Fixed jar entries in $ivyLocal"
+          }
+      - name: Build native image 4 (windows)
+        # stop compile server since the compile server itself may have changed
+        run: bleep config compile-server stop-all
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Build native image 5 (windows)
+        run: bleep setup-dev-script bleep-cli@jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Build native image 6 (windows)
+        run: bleep-cli@jvm3.bat --dev native-image ${{ matrix.file_name }}
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Test binary after build (windows)
+        run: ${{ matrix.file_name }} --dev test --no-color jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Selftest (windows)
+        run: ${{ matrix.file_name }} selftest
+        shell: cmd
+        if: runner.os == 'Windows'
 
       - name: Temporarily save package
         uses: actions/upload-artifact@v6

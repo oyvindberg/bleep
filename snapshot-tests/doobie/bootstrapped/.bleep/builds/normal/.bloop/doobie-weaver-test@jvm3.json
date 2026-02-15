@@ -51,7 +51,11 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/scalacheck-effect_3/2.0.0-M2/scalacheck-effect_3-2.0.0-M2.jar",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-free/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-weaver/jvm3/classes"
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-weaver/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/generated-resources/doobie-core@jvm3/scripts.GenerateForDoobieCore",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/free/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/weaver/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-weaver-test/jvm3",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-weaver-test/jvm3/classes",
@@ -119,44 +123,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -199,7 +165,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-testkit_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-testkit_3",
@@ -211,7 +176,6 @@
           "organization": "org.scala-lang",
           "name": "scala3-library_3",
           "version": "3.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala3-library_3",
@@ -223,7 +187,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_3",
@@ -235,7 +198,6 @@
           "organization": "org.typelevel",
           "name": "munit-cats-effect_3",
           "version": "2.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-cats-effect_3",
@@ -247,7 +209,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_3",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_3",
@@ -259,7 +220,6 @@
           "organization": "org.portable-scala",
           "name": "portable-scala-reflect_2.13",
           "version": "1.1.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "portable-scala-reflect_2.13",
@@ -271,7 +231,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -283,7 +242,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -295,7 +253,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_3",
@@ -307,7 +264,6 @@
           "organization": "org.typelevel",
           "name": "coop_3",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coop_3",
@@ -319,7 +275,6 @@
           "organization": "org.tpolecat",
           "name": "typename_3",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "typename_3",
@@ -331,7 +286,6 @@
           "organization": "com.eed3si9n.expecty",
           "name": "expecty_3",
           "version": "0.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "expecty_3",
@@ -343,7 +297,6 @@
           "organization": "com.disneystreaming",
           "name": "weaver-core_3",
           "version": "0.8.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "weaver-core_3",
@@ -355,7 +308,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_3",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_3",
@@ -367,7 +319,6 @@
           "organization": "com.disneystreaming",
           "name": "weaver-framework_3",
           "version": "0.8.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "weaver-framework_3",
@@ -379,7 +330,6 @@
           "organization": "org.scalameta",
           "name": "munit-diff_3",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-diff_3",
@@ -391,7 +341,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -403,7 +352,6 @@
           "organization": "org.typelevel",
           "name": "cats-free_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-free_3",
@@ -415,7 +363,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect-munit_3",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect-munit_3",
@@ -427,7 +374,6 @@
           "organization": "org.typelevel",
           "name": "scalacheck-effect_3",
           "version": "2.0.0-M2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck-effect_3",
@@ -439,7 +385,6 @@
           "organization": "junit",
           "name": "junit",
           "version": "4.13.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit",
@@ -451,7 +396,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -463,7 +407,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_3",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_3",
@@ -475,7 +418,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_3",
@@ -487,7 +429,6 @@
           "organization": "org.scalacheck",
           "name": "scalacheck_3",
           "version": "1.17.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalacheck_3",
@@ -499,7 +440,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel-testkit_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel-testkit_3",
@@ -511,7 +451,6 @@
           "organization": "org.scalameta",
           "name": "munit_3",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_3",
@@ -523,7 +462,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_3",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_3",
@@ -535,7 +473,6 @@
           "organization": "com.h2database",
           "name": "h2",
           "version": "1.4.200",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "h2",
@@ -547,7 +484,6 @@
           "organization": "org.scalameta",
           "name": "munit-scalacheck_3",
           "version": "1.0.0-M6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit-scalacheck_3",
@@ -559,7 +495,6 @@
           "organization": "org.scalameta",
           "name": "junit-interface",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit-interface",
@@ -571,7 +506,6 @@
           "organization": "com.disneystreaming",
           "name": "weaver-cats_3",
           "version": "0.8.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "weaver-cats_3",
@@ -583,7 +517,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_3",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_3",
@@ -595,7 +528,6 @@
           "organization": "com.disneystreaming",
           "name": "weaver-cats-core_3",
           "version": "0.8.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "weaver-cats-core_3",
@@ -604,9 +536,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

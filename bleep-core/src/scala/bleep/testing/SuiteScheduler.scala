@@ -127,6 +127,9 @@ object SchedulerEvent {
   /** A JVM has started, is ready, and running a suite */
   case class JvmStartedSuite(jvmId: JvmId, job: SuiteJob, timestamp: Long) extends SchedulerEvent
 
+  /** A test completed within a running suite — resets idle timeout */
+  case class TestActivity(jvmId: JvmId, timestamp: Long) extends SchedulerEvent
+
   /** A suite finished (JVM is now idle) */
   case class SuiteFinished(jvmId: JvmId, result: SuiteResult) extends SchedulerEvent
 
@@ -146,22 +149,19 @@ object SchedulerEvent {
 /** Timeout configuration */
 case class TimeoutConfig(
     jvmStartupMs: Long,
-    suiteExecutionMs: Long,
-    idleJvmMaxMs: Long
+    idleTimeoutMs: Long
 )
 
 object TimeoutConfig {
   val default: TimeoutConfig = TimeoutConfig(
     jvmStartupMs = 30 * 1000L,
-    suiteExecutionMs = 2 * 60 * 1000L,
-    idleJvmMaxMs = 60 * 1000L
+    idleTimeoutMs = 2 * 60 * 1000L
   )
 
-  def fromSeconds(jvmStartupSeconds: Int, suiteTimeoutMinutes: Int): TimeoutConfig =
+  def fromSeconds(jvmStartupSeconds: Int, idleTimeoutMinutes: Int): TimeoutConfig =
     TimeoutConfig(
       jvmStartupMs = jvmStartupSeconds * 1000L,
-      suiteExecutionMs = suiteTimeoutMinutes * 60 * 1000L,
-      idleJvmMaxMs = 60 * 1000L
+      idleTimeoutMs = idleTimeoutMinutes * 60 * 1000L
     )
 }
 
@@ -174,9 +174,9 @@ sealed trait JvmState {
 object JvmState {
 
   /** JVM is currently running a suite */
-  case class Running(jvmId: JvmId, key: JvmKey, job: SuiteJob, suiteStartedAt: Long) extends JvmState
+  case class Running(jvmId: JvmId, key: JvmKey, job: SuiteJob, lastActivityAt: Long) extends JvmState
 
-  /** Suite timed out, requesting thread dump */
+  /** Idle timeout fired, requesting thread dump */
   case class GettingThreadDump(jvmId: JvmId, key: JvmKey, job: SuiteJob, timeoutAt: Long) extends JvmState
 
   /** Got thread dump, killing JVM */
@@ -273,6 +273,13 @@ object SuiteScheduler {
           )
       }
 
+    case SchedulerEvent.TestActivity(jvmId, timestamp) =>
+      state.jvms.get(jvmId) match {
+        case Some(JvmState.Running(_, key, job, _)) =>
+          state.copy(jvms = state.jvms + (jvmId -> JvmState.Running(jvmId, key, job, timestamp)))
+        case _ => state
+      }
+
     case SchedulerEvent.SuiteFinished(jvmId, result) =>
       state.jvms.get(jvmId) match {
         case Some(JvmState.Running(_, key, job, _)) =>
@@ -332,7 +339,7 @@ object SuiteScheduler {
             skipped = 0,
             ignored = 0,
             durationMs = 0,
-            failures = List(TestFailureInfo(TestTypes.TestName("(timeout)"), Some("Suite timed out"), None))
+            failures = List(TestFailureInfo(TestTypes.TestName("(timeout)"), Some("Suite idle timeout"), None))
           )
           state.copy(
             jvms = state.jvms - jvmId,
@@ -358,9 +365,9 @@ object SuiteScheduler {
 
     state.jvms.foreach { case (jvmId, jvmState) =>
       jvmState match {
-        case JvmState.Running(_, key, job, suiteStartedAt) =>
-          if (nowMs - suiteStartedAt > state.timeoutConfig.suiteExecutionMs) {
-            // Timeout detected -> transition to GettingThreadDump
+        case JvmState.Running(_, key, job, lastActivityAt) =>
+          if (nowMs - lastActivityAt > state.timeoutConfig.idleTimeoutMs) {
+            // Idle timeout detected -> transition to GettingThreadDump
             updatedJvms = updatedJvms + (jvmId -> JvmState.GettingThreadDump(jvmId, key, job, nowMs))
             actions = actions :+ SchedulerAction.GetThreadDump(jvmId, job)
           }
@@ -370,20 +377,24 @@ object SuiteScheduler {
             // Thread dump timed out -> transition to Killing without dump
             updatedJvms = updatedJvms + (jvmId -> JvmState.Killing(jvmId, key, job, None))
             actions = actions :+ SchedulerAction.KillJvm(jvmId, "Thread dump timeout")
-            actions = actions :+ SchedulerAction.NotifyTimeout(jvmId, job, "Suite timed out", None)
+            actions = actions :+ SchedulerAction.NotifyTimeout(jvmId, job, "Suite idle timeout", None)
           }
 
         case JvmState.Killing(_, _, job, threadDump) =>
           // Already in killing state - emit kill and notify actions
           // (This handles the case where we got the thread dump via event)
-          actions = actions :+ SchedulerAction.KillJvm(jvmId, "Suite timed out")
-          actions = actions :+ SchedulerAction.NotifyTimeout(jvmId, job, "Suite timed out", threadDump)
+          actions = actions :+ SchedulerAction.KillJvm(jvmId, "Suite idle timeout")
+          actions = actions :+ SchedulerAction.NotifyTimeout(jvmId, job, "Suite idle timeout", threadDump)
         // Will be cleaned up when JvmKilled event arrives
 
-        case JvmState.Idle(_, _, idleSince) =>
-          if (nowMs - idleSince > state.timeoutConfig.idleJvmMaxMs) {
+        case JvmState.Idle(_, key, _) =>
+          // Kill idle JVMs immediately when no pending suites need this JvmKey.
+          // If there ARE pending suites for this key, scheduleWork will immediately
+          // reuse this JVM, so it won't stay idle.
+          val hasPendingWithSameKey = state.pendingSuites.exists(_.jvmKey == key)
+          if (!hasPendingWithSameKey) {
             updatedJvms = updatedJvms - jvmId
-            actions = actions :+ SchedulerAction.KillJvm(jvmId, "Idle timeout")
+            actions = actions :+ SchedulerAction.KillJvm(jvmId, "No pending suites for this classpath")
           }
       }
     }

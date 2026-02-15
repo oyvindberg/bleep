@@ -7,7 +7,8 @@ import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import ryddig.{LogLevel, LogPatterns, Logger, Loggers}
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.channels.{FileChannel, FileLock}
+import java.nio.file.{Files, Path, Paths, StandardOpenOption}
 import java.time.Instant
 import scala.util.Properties
 
@@ -44,14 +45,14 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
     while (!Files.isDirectory(from))
       from = from.getParent
 
-    GitLock.synchronized {
+    GitLock.withLock {
       cli("git add", from, List("/usr/bin/env", "git", "add", in.toString), logger, out = cli.Out.ViaLogger(logger), env = List(("PATH", sys.env("PATH"))))
         .discard()
     }
 
     if (Properties.isWin) succeed // let's deal with this later
     else if (isCi) {
-      GitLock.synchronized {
+      GitLock.withLock {
         cli(
           "git diff",
           from,
@@ -66,4 +67,23 @@ trait SnapshotTest extends AnyFunSuite with TripleEqualsSupport {
   }
 }
 
-private object GitLock
+/** Cross-process file lock for git operations.
+  *
+  * Tests may run in separate forked JVMs, so JVM-level synchronization is not sufficient. Uses java.nio.channels.FileLock on a dedicated lock file to serialize
+  * git index access across all test processes.
+  */
+private object GitLock {
+  private val lockFile: Path = Paths.get(System.getProperty("user.dir"), ".git", "bleep-test.lock")
+
+  def withLock[A](body: => A): A = synchronized {
+    val channel = FileChannel.open(lockFile, StandardOpenOption.CREATE, StandardOpenOption.WRITE)
+    var lock: FileLock = null
+    try {
+      lock = channel.lock()
+      body
+    } finally {
+      if (lock != null) lock.release()
+      channel.close()
+    }
+  }
+}

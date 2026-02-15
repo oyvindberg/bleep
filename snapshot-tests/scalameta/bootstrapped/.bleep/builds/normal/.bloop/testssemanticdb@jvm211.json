@@ -67,7 +67,59 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdbintegration/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/semanticdbintegrationmacros/jvm211/classes",
       "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testkit/jvm211/classes",
-      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm211/classes"
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/trees/jvm211/classes",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/common@jvm211/scripts.GenerateForCommon",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/parsers@jvm211/scripts.GenerateForParsers",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/generated-resources/semanticdb-shared@jvm211/scripts.GenerateForSemanticdbShared",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/common/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/io/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/parsers/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/scalameta/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/testkit/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/jvm/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/scalameta/trees/shared/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration-macros/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/integration/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metac/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metacp/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metacp/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metap/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/metap/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/scalac/library/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/scalac/library/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/js-jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/jvm-native/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/jvm/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/shared/src/main/proto",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/shared/src/main/proto/semanticdb.proto",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/shared/src/main/proto/semanticidx.proto",
+      "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/semanticdb/semanticdb/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testssemanticdb/jvm211",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/testssemanticdb/jvm211/classes",
@@ -124,7 +176,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "lenses_2.11",
           "version": "0.9.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lenses_2.11",
@@ -136,7 +187,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-core_2.11",
           "version": "2.0.0-RC5-6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-core_2.11",
@@ -148,7 +198,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_2.11",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_2.11",
@@ -160,7 +209,6 @@
           "organization": "org.scala-lang",
           "name": "scala-compiler",
           "version": "2.11.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-compiler",
@@ -172,7 +220,6 @@
           "organization": "org.scala-lang",
           "name": "scalap",
           "version": "2.11.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalap",
@@ -184,7 +231,6 @@
           "organization": "org.apache.commons",
           "name": "commons-compress",
           "version": "1.21",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-compress",
@@ -196,7 +242,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.11",
           "version": "2.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.11",
@@ -208,7 +253,6 @@
           "organization": "com.google.protobuf",
           "name": "protobuf-java",
           "version": "3.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "protobuf-java",
@@ -220,7 +264,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-util_2.11",
           "version": "2.0.0-RC5-6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-util_2.11",
@@ -232,7 +275,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -244,7 +286,6 @@
           "organization": "org.scalameta",
           "name": "junit-interface",
           "version": "1.0.0-M10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit-interface",
@@ -256,7 +297,6 @@
           "organization": "com.lihaoyi",
           "name": "fastparse_2.11",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fastparse_2.11",
@@ -268,7 +308,6 @@
           "organization": "com.github.alexarchambault",
           "name": "argonaut-shapeless_6.2_2.11",
           "version": "1.2.0-M11",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "argonaut-shapeless_6.2_2.11",
@@ -280,7 +319,6 @@
           "organization": "com.thesamet.scalapb",
           "name": "scalapb-runtime_2.11",
           "version": "0.9.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalapb-runtime_2.11",
@@ -292,7 +330,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.11",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.11",
@@ -304,7 +341,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.11.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -316,7 +352,6 @@
           "organization": "io.get-coursier",
           "name": "coursier-cache_2.11",
           "version": "2.0.0-RC5-6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier-cache_2.11",
@@ -328,7 +363,6 @@
           "organization": "io.get-coursier",
           "name": "coursier_2.11",
           "version": "2.0.0-RC5-6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "coursier_2.11",
@@ -340,7 +374,6 @@
           "organization": "org.hamcrest",
           "name": "hamcrest-core",
           "version": "1.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hamcrest-core",
@@ -352,7 +385,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.11",
           "version": "0.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.11",
@@ -364,7 +396,6 @@
           "organization": "org.typelevel",
           "name": "macro-compat_2.11",
           "version": "1.1.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "macro-compat_2.11",
@@ -376,7 +407,6 @@
           "organization": "org.rauschig",
           "name": "jarchivelib",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jarchivelib",
@@ -388,7 +418,6 @@
           "organization": "junit",
           "name": "junit",
           "version": "4.13.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "junit",
@@ -400,7 +429,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.11.12",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -412,7 +440,6 @@
           "organization": "org.scalameta",
           "name": "munit_2.11",
           "version": "1.0.0-M10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "munit_2.11",
@@ -424,7 +451,6 @@
           "organization": "io.argonaut",
           "name": "argonaut_2.11",
           "version": "6.2.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "argonaut_2.11",
@@ -436,7 +462,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.11",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.11",
@@ -445,9 +470,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

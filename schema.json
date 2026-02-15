@@ -176,6 +176,26 @@
         },
         "annotationProcessing": {
           "$ref": "#/$defs/AnnotationProcessing"
+        },
+        "ecjVersion": {
+          "type": "string",
+          "description": "ECJ (Eclipse Compiler for Java) version. If set, uses ECJ instead of javac."
+        }
+      }
+    },
+    "Kotlin": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Kotlin version (e.g., \"2.0.0\", \"2.1.0\")"
+        },
+        "options": {
+          "$ref": "#/$defs/Options"
+        },
+        "jvmTarget": {
+          "type": "string",
+          "description": "JVM bytecode target version (e.g., \"11\", \"17\", \"21\")"
         }
       }
     },
@@ -488,6 +508,9 @@
         },
         "scala": {
           "$ref": "#/$defs/Scala"
+        },
+        "kotlin": {
+          "$ref": "#/$defs/Kotlin"
         },
         "platform": {
           "$ref": "#/$defs/Platform"

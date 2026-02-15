@@ -153,7 +153,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -165,7 +164,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.12",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.12",
@@ -177,7 +175,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.12",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.12",
@@ -189,7 +186,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.12",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.12",
@@ -201,7 +197,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.12",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.12",
@@ -213,7 +208,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -225,7 +219,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -237,7 +230,6 @@
           "organization": "org.http4s",
           "name": "blaze-http_2.12",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "blaze-http_2.12",
@@ -249,7 +241,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.12",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.12",
@@ -261,7 +252,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.12",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.12",
@@ -273,7 +263,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_2.12",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_2.12",
@@ -285,7 +274,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.12",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.12",
@@ -297,7 +285,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.12",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.12",
@@ -309,7 +296,6 @@
           "organization": "org.http4s",
           "name": "http4s-dsl_2.12",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-dsl_2.12",
@@ -321,7 +307,6 @@
           "organization": "org.typelevel",
           "name": "jawn-fs2_2.12",
           "version": "2.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-fs2_2.12",
@@ -333,7 +318,6 @@
           "organization": "org.http4s",
           "name": "http4s-blaze-server_2.12",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-blaze-server_2.12",
@@ -345,7 +329,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.12",
           "version": "3.5.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.12",
@@ -357,7 +340,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.12",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.12",
@@ -369,7 +351,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.12",
           "version": "0.14.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.12",
@@ -381,7 +362,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.12",
           "version": "1.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.12",
@@ -393,7 +373,6 @@
           "organization": "org.log4s",
           "name": "log4s_2.12",
           "version": "1.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4s_2.12",
@@ -405,7 +384,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.12",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.12",
@@ -417,7 +395,6 @@
           "organization": "org.http4s",
           "name": "http4s-core_2.12",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-core_2.12",
@@ -429,7 +406,6 @@
           "organization": "com.twitter",
           "name": "hpack",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack",
@@ -441,7 +417,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.12",
           "version": "3.5.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.12",
@@ -453,7 +428,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -465,7 +439,6 @@
           "organization": "org.http4s",
           "name": "http4s-jawn_2.12",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-jawn_2.12",
@@ -477,7 +450,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.12.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -489,7 +461,6 @@
           "organization": "org.http4s",
           "name": "http4s-server_2.12",
           "version": "0.23.29",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-server_2.12",
@@ -501,7 +472,6 @@
           "organization": "org.http4s",
           "name": "http4s-blaze-core_2.12",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-blaze-core_2.12",
@@ -513,7 +483,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.12",
           "version": "3.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.12",
@@ -525,7 +494,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.12",
           "version": "2.11.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.12",
@@ -537,7 +505,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-slf4j_2.12",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-slf4j_2.12",
@@ -549,7 +516,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.12",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.12",
@@ -561,7 +527,6 @@
           "organization": "org.http4s",
           "name": "blaze-core_2.12",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "blaze-core_2.12",
@@ -573,7 +538,6 @@
           "organization": "org.http4s",
           "name": "http4s-circe_2.12",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-circe_2.12",
@@ -585,7 +549,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.12",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.12",
@@ -594,9 +557,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "library"
-    ]
+    }
   }
 }

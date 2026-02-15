@@ -1,15 +1,10 @@
 package bleep
 package commands
 
-import bleep.bsp.BspCommandFailed
-import bleep.internal.{bleepLoggers, jvmRunCommand, DoSourceGen, TransitiveProjects}
-import bloop.rifle.BuildServer
-import ch.epfl.scala.bsp4j
-import org.eclipse.lsp4j.jsonrpc.ResponseErrorException
-import ryddig.Throwables
+import bleep.bsp.protocol.BleepBspProtocol
+import bleep.internal.{jvmRunCommand, TransitiveProjects}
 
-import scala.jdk.CollectionConverters.*
-import scala.util.{Failure, Success, Try}
+import java.nio.file.Files
 
 /** @param raw
   *   use raw stdin and stdout and avoid the logger
@@ -19,68 +14,150 @@ case class Run(
     maybeOverriddenMain: Option[String],
     args: List[String],
     raw: Boolean,
-    watch: Boolean
-) extends BleepCommandRemote(watch) {
-  override def watchableProjects(started: Started): TransitiveProjects =
-    TransitiveProjects(started.build, Array(project))
+    watch: Boolean,
+    buildOpts: CommonBuildOpts
+) extends BleepBuildCommand {
 
-  override def runWithServer(started: Started, bloop: BuildServer): Either[BleepException, Unit] = {
+  override def run(started: Started): Either[BleepException, Unit] =
+    if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, Array(project)))(runOnce)
+    else runOnce(started)
+
+  private def runOnce(started: Started): Either[BleepException, Unit] = {
     val maybeSpecifiedMain: Option[String] =
       maybeOverriddenMain.orElse(started.build.explodedProjects(project).platform.flatMap(_.mainClass))
 
-    val maybeMain: Either[BleepException, String] =
-      maybeSpecifiedMain match {
-        case Some(mainClass) => Right(mainClass)
-        case None =>
-          started.logger.info("No main class specified in build or command line. discovering...")
-          discoverMain(started.logger, bloop, BleepCommandRemote.buildTarget(started.buildPaths, project))
-      }
+    val explodedProject = started.build.explodedProjects(project)
+    val platformId = explodedProject.platform.flatMap(_.name)
+    val isKotlin = explodedProject.kotlin.flatMap(_.version).isDefined
 
-    maybeMain.flatMap { main =>
-      started.build.explodedProjects(project).platform.flatMap(_.name) match {
-        // we could definitely run js/native projects in "raw" mode as well, it just needs to be implemented
-        case Some(model.PlatformId.Jvm) if raw => rawRun(started, bloop, main)
-        case _                                 => bspRun(started, bloop, main)
-      }
+    (platformId, isKotlin) match {
+      case (Some(model.PlatformId.Jvm), _) | (None, _) =>
+        for {
+          _ <- compileProject(started)
+          main <- resolveMain(started, maybeSpecifiedMain)
+          _ <- jvmRun(started, main)
+        } yield ()
+      case (Some(model.PlatformId.Js), _) =>
+        for {
+          _ <- linkProject(started)
+          _ <- runJs(started, isKotlin)
+        } yield ()
+      case (Some(model.PlatformId.Native), _) =>
+        for {
+          _ <- linkProject(started)
+          _ <- runNative(started)
+        } yield ()
     }
   }
 
-  def rawRun(started: Started, bloop: BuildServer, main: String): Either[BleepException, Unit] =
-    Compile(watch = false, Array(project)).runWithServer(started, bloop).map { case () =>
+  private def compileProject(started: Started): Either[BleepException, Unit] =
+    ReactiveBsp
+      .compile(
+        watch = false,
+        projects = Array(project),
+        displayMode = buildOpts.displayMode,
+        flamegraph = buildOpts.flamegraph,
+        cancel = buildOpts.cancel
+      )
+      .run(started)
+
+  private def linkProject(started: Started): Either[BleepException, Unit] =
+    ReactiveBsp
+      .link(
+        watch = false,
+        projects = Array(project),
+        displayMode = buildOpts.displayMode,
+        options = LinkOptions.Debug,
+        flamegraph = buildOpts.flamegraph,
+        cancel = buildOpts.cancel
+      )
+      .run(started)
+
+  private def resolveMain(started: Started, maybeSpecifiedMain: Option[String]): Either[BleepException, String] =
+    maybeSpecifiedMain match {
+      case Some(mainClass) => Right(mainClass)
+      case None =>
+        started.logger.info("No main class specified in build or command line. discovering...")
+        BspQuery.withServer(started) { server =>
+          discoverMain(started.logger, server, BspQuery.buildTarget(started.buildPaths, project))
+        }
+    }
+
+  private def jvmRun(started: Started, main: String): Either[BleepException, Unit] = {
+    val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(started.logger)
+    val inMode = if (raw) cli.In.Attach else cli.In.No
+    cli(
+      "run",
+      started.pre.buildPaths.cwd,
+      jvmRunCommand(started.resolvedProject(project), started.resolvedJvm, project, Some(main), args).orThrow,
+      logger = started.logger,
+      out = outMode,
+      in = inMode,
+      env = sys.env.toList
+    ).discard()
+    Right(())
+  }
+
+  private def runJs(started: Started, isKotlin: Boolean): Either[BleepException, Unit] = {
+    val targetDir = started.projectPaths(project).targetDir
+    // Link uses debug config (isReleaseMode = false)
+    val linkDirSuffix = BleepBspProtocol.linkDirSuffix(isRelease = false, hasDebugInfo = false, hasLto = false)
+    val jsOutput = if (isKotlin) {
+      // Kotlin/JS uses underscores in module names (converts hyphens)
+      val moduleName = project.value.replace("-", "_")
+      targetDir.resolve("link-output").resolve(linkDirSuffix).resolve("js").resolve(s"$moduleName.js")
+    } else {
+      targetDir.resolve("link-output").resolve(linkDirSuffix).resolve("js").resolve("main.js")
+    }
+
+    if (!Files.exists(jsOutput)) {
+      Left(new BleepException.Text(s"JS output not found at $jsOutput. Compile may not have produced linked output."))
+    } else {
+      val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(started.logger)
+      val inMode = if (raw) cli.In.Attach else cli.In.No
+      val command = List("node", jsOutput.toAbsolutePath.toString) ++ args
       cli(
         "run",
         started.pre.buildPaths.cwd,
-        jvmRunCommand(started.bloopProject(project), started.resolvedJvm, project, Some(main), args).orThrow,
+        command,
         logger = started.logger,
-        out = cli.Out.Raw,
-        in = cli.In.Attach,
+        out = outMode,
+        in = inMode,
         env = sys.env.toList
       ).discard()
+      Right(())
     }
+  }
 
-  def bspRun(started: Started, bloop: BuildServer, main: String): Either[BleepException, Unit] =
-    DoSourceGen(started, bloop, watchableProjects(started)).flatMap { case () =>
-      val params = new bsp4j.RunParams(BleepCommandRemote.buildTarget(started.buildPaths, project))
-      params.setArguments(List("--show-rendered-message").asJava)
-      val mainClass = new bsp4j.ScalaMainClass(main, args.asJava, List(s"-Duser.dir=${started.pre.buildPaths.cwd}").asJava)
+  private def runNative(started: Started): Either[BleepException, Unit] = {
+    val targetDir = started.projectPaths(project).targetDir
+    // Link uses debug config (isReleaseMode = false)
+    val linkDirSuffix = BleepBspProtocol.linkDirSuffix(isRelease = false, hasDebugInfo = false, hasLto = false)
+    val linkOutput = targetDir.resolve("link-output").resolve(linkDirSuffix)
+    // Native binaries may have different extensions
+    val possiblePaths = Seq(
+      linkOutput.resolve(project.value),
+      linkOutput.resolve(project.value + ".kexe") // Kotlin/Native on macOS
+    )
+    val binary = possiblePaths.find(Files.exists(_))
 
-      val env = sys.env.updated(bleepLoggers.CallerProcessAcceptsJsonEvents, "true")
-      mainClass.setEnvironmentVariables(env.map { case (k, v) => s"$k=$v" }.toList.sorted.asJava)
-      params.setData(mainClass)
-      params.setDataKind("scala-main-class")
-      started.logger.debug(params.toString)
-
-      def failed(reason: BspCommandFailed.Reason) =
-        Left(new BspCommandFailed("Run", Array(project), reason))
-
-      Try(bloop.buildTargetRun(params).get().getStatusCode) match {
-        case Success(bsp4j.StatusCode.OK) => Right(started.logger.info(s"Run $main succeeded"))
-        case Success(errorCode)           => failed(BspCommandFailed.StatusCode(errorCode))
-        case Failure(th) =>
-          Throwables.tryExtract(classOf[ResponseErrorException])(th) match {
-            case Some(roe) => failed(BspCommandFailed.FoundResponseError(roe.getResponseError))
-            case None      => failed(BspCommandFailed.FailedWithException(th))
-          }
-      }
+    binary match {
+      case None =>
+        Left(new BleepException.Text(s"Native binary not found. Checked: ${possiblePaths.mkString(", ")}"))
+      case Some(binaryPath) =>
+        val outMode = if (raw) cli.Out.Raw else cli.Out.ViaLogger(started.logger)
+        val inMode = if (raw) cli.In.Attach else cli.In.No
+        val command = List(binaryPath.toAbsolutePath.toString) ++ args
+        cli(
+          "run",
+          started.pre.buildPaths.cwd,
+          command,
+          logger = started.logger,
+          out = outMode,
+          in = inMode,
+          env = sys.env.toList
+        ).discard()
+        Right(())
     }
+  }
 }

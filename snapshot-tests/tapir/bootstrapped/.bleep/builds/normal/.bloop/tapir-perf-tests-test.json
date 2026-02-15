@@ -333,7 +333,52 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-tests/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-cats/jvm213/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server-test/jvm213/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server/jvm213/classes"
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-vertx-server/jvm213/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/generated-resources/tapir-netty-server@jvm213/scripts.GenerateForTapirNettyServer",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/client/sttp-client4/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/files/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats-effect/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats-effect/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/integrations/enumeratum/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/json/circe/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/perf-tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/perf-tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/core/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/http4s-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/http4s-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/netty-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/nima-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-http-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/pekko-http-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/play-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-stub4-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/sttp-stub4-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/tests/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/cats/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/cats/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/src/main/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/src/test/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/server/vertx-server/src/test/resources",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/protobuf",
+      "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-perf-tests-test",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-perf-tests-test/classes",
@@ -427,44 +472,6 @@
       "frameworks": [
         {
           "names": [
-            "com.novocode.junit.JUnitFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalatest.tools.Framework",
-            "org.scalatest.tools.ScalaTestFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.scalacheck.ScalaCheckFramework"
-          ]
-        },
-        {
-          "names": [
-            "org.specs.runner.SpecsFramework",
-            "org.specs2.runner.Specs2Framework",
-            "org.specs2.runner.SpecsFramework"
-          ]
-        },
-        {
-          "names": [
-            "utest.runner.Framework"
-          ]
-        },
-        {
-          "names": [
-            "munit.Framework"
-          ]
-        },
-        {
-          "names": [
-            "mill.testng.TestNGFramework"
-          ]
-        },
-        {
-          "names": [
             "hedgehog.sbt.Framework",
             "weaver.framework.CatsEffect",
             "zio.test.sbt.ZTestFramework"
@@ -508,7 +515,6 @@
           "organization": "org.typelevel",
           "name": "cats-parse_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-parse_2.13",
@@ -520,7 +526,6 @@
           "organization": "io.circe",
           "name": "circe-parser_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-parser_2.13",
@@ -532,7 +537,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect_2.13",
@@ -544,7 +548,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-xml_2.13",
           "version": "2.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-xml_2.13",
@@ -556,7 +559,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http-core_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http-core_2.13",
@@ -568,7 +570,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-mapper",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-mapper",
@@ -580,7 +581,6 @@
           "organization": "org.simpleflatmapper",
           "name": "sfm-util",
           "version": "8.2.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sfm-util",
@@ -592,7 +592,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funspec_2.13",
@@ -604,7 +603,6 @@
           "organization": "org.scodec",
           "name": "scodec-bits_2.13",
           "version": "1.1.38",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scodec-bits_2.13",
@@ -616,7 +614,6 @@
           "organization": "org.scalatest",
           "name": "scalatest_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest_2.13",
@@ -628,7 +625,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-diagrams_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-diagrams_2.13",
@@ -640,7 +636,6 @@
           "organization": "org.playframework",
           "name": "play-pekko-http-server_2.13",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-pekko-http-server_2.13",
@@ -652,7 +647,6 @@
           "organization": "org.apache.commons",
           "name": "commons-pool2",
           "version": "2.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "commons-pool2",
@@ -664,7 +658,6 @@
           "organization": "org.http4s",
           "name": "http4s-dsl_2.13",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-dsl_2.13",
@@ -676,7 +669,6 @@
           "organization": "io.vertx",
           "name": "vertx-web-common",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-web-common",
@@ -688,7 +680,6 @@
           "organization": "org.jodd",
           "name": "jodd-util",
           "version": "6.2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jodd-util",
@@ -700,7 +691,6 @@
           "organization": "org.typelevel",
           "name": "literally_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "literally_2.13",
@@ -712,7 +702,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jsr310",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jsr310",
@@ -724,7 +713,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-socket",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-socket",
@@ -736,7 +724,6 @@
           "organization": "io.gatling",
           "name": "gatling-shared-util_2.13",
           "version": "0.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-shared-util_2.13",
@@ -748,7 +735,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "cats_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats_2.13",
@@ -760,7 +746,6 @@
           "organization": "io.helidon.http.media",
           "name": "helidon-http-media",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-http-media",
@@ -772,7 +757,6 @@
           "organization": "io.helidon.http",
           "name": "helidon-http",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-http",
@@ -784,7 +768,6 @@
           "organization": "net.debasishg",
           "name": "redisclient_2.13",
           "version": "3.42",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "redisclient_2.13",
@@ -796,7 +779,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-compatible",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-compatible",
@@ -808,7 +790,6 @@
           "organization": "io.gatling",
           "name": "gatling-jdbc-java",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-jdbc-java",
@@ -820,7 +801,6 @@
           "organization": "co.fs2",
           "name": "fs2-io_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-io_2.13",
@@ -832,7 +812,6 @@
           "organization": "io.gatling",
           "name": "gatling-http",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-http",
@@ -844,7 +823,6 @@
           "organization": "com.google.code.findbugs",
           "name": "jsr305",
           "version": "3.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jsr305",
@@ -856,7 +834,6 @@
           "organization": "io.netty",
           "name": "netty-codec-xml",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-xml",
@@ -868,7 +845,6 @@
           "organization": "com.fasterxml.jackson.module",
           "name": "jackson-module-parameter-names",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-module-parameter-names",
@@ -880,7 +856,6 @@
           "organization": "io.gatling",
           "name": "gatling-http-client",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-http-client",
@@ -892,7 +867,6 @@
           "organization": "io.netty",
           "name": "netty-codec-mqtt",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-mqtt",
@@ -904,7 +878,6 @@
           "organization": "io.gatling",
           "name": "gatling-recorder-bc-shaded",
           "version": "1.78.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-recorder-bc-shaded",
@@ -916,7 +889,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-security",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-security",
@@ -928,7 +900,6 @@
           "organization": "org.playframework.netty",
           "name": "netty-reactive-streams-http",
           "version": "3.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-reactive-streams-http",
@@ -940,7 +911,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-databind",
           "version": "2.19.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-databind",
@@ -952,7 +922,6 @@
           "organization": "org.log4s",
           "name": "log4s_2.13",
           "version": "1.10.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4s_2.13",
@@ -964,7 +933,6 @@
           "organization": "io.gatling",
           "name": "gatling-redis",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-redis",
@@ -976,7 +944,6 @@
           "organization": "io.netty",
           "name": "netty-codec-redis",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-redis",
@@ -988,7 +955,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-uri",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-uri",
@@ -1000,7 +966,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-core",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-core",
@@ -1012,7 +977,6 @@
           "organization": "org.reactivestreams",
           "name": "reactive-streams",
           "version": "1.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "reactive-streams",
@@ -1024,7 +988,6 @@
           "organization": "io.netty",
           "name": "netty-codec",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec",
@@ -1036,7 +999,6 @@
           "organization": "io.netty",
           "name": "netty-codec-marshalling",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-marshalling",
@@ -1048,7 +1010,6 @@
           "organization": "io.gatling",
           "name": "gatling-shared-model_2.13",
           "version": "0.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-shared-model_2.13",
@@ -1060,7 +1021,6 @@
           "organization": "io.burt",
           "name": "jmespath-jackson",
           "version": "0.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmespath-jackson",
@@ -1072,7 +1032,6 @@
           "organization": "io.gatling",
           "name": "gatling-app",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-app",
@@ -1084,7 +1043,6 @@
           "organization": "com.fasterxml.jackson.datatype",
           "name": "jackson-datatype-jdk8",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-datatype-jdk8",
@@ -1096,7 +1054,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-io_uring",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-io_uring",
@@ -1119,7 +1076,6 @@
           "organization": "io.vertx",
           "name": "vertx-core",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-core",
@@ -1131,7 +1087,6 @@
           "organization": "org.http4s",
           "name": "http4s-blaze-server_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-blaze-server_2.13",
@@ -1143,7 +1098,6 @@
           "organization": "io.vertx",
           "name": "vertx-auth-common",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-auth-common",
@@ -1155,7 +1109,6 @@
           "organization": "io.helidon.inject",
           "name": "helidon-inject-api",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-inject-api",
@@ -1167,7 +1120,6 @@
           "organization": "io.netty",
           "name": "netty-transport",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport",
@@ -1179,7 +1131,6 @@
           "organization": "com.github.spotbugs",
           "name": "spotbugs-annotations",
           "version": "4.8.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "spotbugs-annotations",
@@ -1191,7 +1142,6 @@
           "organization": "org.parboiled",
           "name": "parboiled_2.13",
           "version": "2.5.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "parboiled_2.13",
@@ -1203,7 +1153,6 @@
           "organization": "io.pebbletemplates",
           "name": "pebble",
           "version": "3.2.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pebble",
@@ -1215,7 +1164,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "fs2_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -1227,7 +1175,6 @@
           "organization": "com.google.guava",
           "name": "guava",
           "version": "32.1.3-jre",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "guava",
@@ -1239,7 +1186,6 @@
           "organization": "io.netty.incubator",
           "name": "netty-incubator-transport-classes-io_uring",
           "version": "0.0.25.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-incubator-transport-classes-io_uring",
@@ -1251,7 +1197,6 @@
           "organization": "io.helidon",
           "name": "helidon",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon",
@@ -1263,7 +1208,6 @@
           "organization": "io.netty",
           "name": "netty-resolver",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver",
@@ -1275,7 +1219,6 @@
           "organization": "io.gatling",
           "name": "gatling-charts",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-charts",
@@ -1287,7 +1230,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "service",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "service",
@@ -1299,7 +1241,6 @@
           "organization": "org.playframework",
           "name": "play-functional_2.13",
           "version": "3.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-functional_2.13",
@@ -1311,7 +1252,6 @@
           "organization": "io.gatling",
           "name": "gatling-graphite",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-graphite",
@@ -1323,7 +1263,6 @@
           "organization": "io.netty",
           "name": "netty-codec-protobuf",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-protobuf",
@@ -1335,7 +1274,6 @@
           "organization": "org.playframework",
           "name": "play-json_2.13",
           "version": "3.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-json_2.13",
@@ -1347,7 +1285,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-task",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-task",
@@ -1359,7 +1296,6 @@
           "organization": "io.vertx",
           "name": "vertx-bridge-common",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-bridge-common",
@@ -1371,7 +1307,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "pekko_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko_2.13",
@@ -1383,7 +1318,6 @@
           "organization": "org.http4s",
           "name": "http4s-server_2.13",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-server_2.13",
@@ -1395,7 +1329,6 @@
           "organization": "org.http4s",
           "name": "blaze-core_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "blaze-core_2.13",
@@ -1407,7 +1340,6 @@
           "organization": "io.netty",
           "name": "netty-codec-compression",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-compression",
@@ -1419,7 +1351,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-flatspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-flatspec_2.13",
@@ -1431,7 +1362,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "native-<MASKED_OS>-x86_64",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "native-<MASKED_OS>-x86_64",
@@ -1443,7 +1373,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-epoll",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-epoll",
@@ -1466,7 +1395,6 @@
           "organization": "javax.inject",
           "name": "javax.inject",
           "version": "1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.inject",
@@ -1478,7 +1406,6 @@
           "organization": "io.github.classgraph",
           "name": "classgraph",
           "version": "4.8.179",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "classgraph",
@@ -1490,7 +1417,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "native-osx-x86_64",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "native-osx-x86_64",
@@ -1502,7 +1428,6 @@
           "organization": "io.suzaku",
           "name": "boopickle_2.13",
           "version": "1.3.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "boopickle_2.13",
@@ -1514,7 +1439,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-collection-compat_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-collection-compat_2.13",
@@ -1526,7 +1450,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "brotli4j",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "brotli4j",
@@ -1538,7 +1461,6 @@
           "organization": "io.gatling",
           "name": "gatling-core",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-core",
@@ -1550,7 +1472,6 @@
           "organization": "io.burt",
           "name": "jmespath-core",
           "version": "0.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jmespath-core",
@@ -1562,7 +1483,6 @@
           "organization": "nl.grons",
           "name": "metrics4-scala_2.13",
           "version": "4.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metrics4-scala_2.13",
@@ -1574,7 +1494,6 @@
           "organization": "com.beachape",
           "name": "enumeratum_2.13",
           "version": "1.7.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum_2.13",
@@ -1586,7 +1505,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-core",
           "version": "2.19.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-core",
@@ -1598,7 +1516,6 @@
           "organization": "io.gatling",
           "name": "gatling-shared-cli",
           "version": "0.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-shared-cli",
@@ -1610,7 +1527,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "core_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -1622,7 +1538,6 @@
           "organization": "io.netty",
           "name": "netty-tcnative-classes",
           "version": "2.0.65.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-tcnative-classes",
@@ -1634,7 +1549,6 @@
           "organization": "com.softwaremill.quicklens",
           "name": "quicklens_2.13",
           "version": "1.9.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "quicklens_2.13",
@@ -1646,7 +1560,6 @@
           "organization": "io.netty",
           "name": "netty-transport-udt",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-udt",
@@ -1658,7 +1571,6 @@
           "organization": "io.netty",
           "name": "netty-codec-socks",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-socks",
@@ -1670,7 +1582,6 @@
           "organization": "org.checkerframework",
           "name": "checker-qual",
           "version": "3.37.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "checker-qual",
@@ -1682,7 +1593,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-api",
           "version": "2.0.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-api",
@@ -1694,7 +1604,6 @@
           "organization": "io.gatling",
           "name": "gatling-core-java",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-core-java",
@@ -1706,7 +1615,6 @@
           "organization": "org.scalactic",
           "name": "scalactic_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalactic_2.13",
@@ -1718,7 +1626,6 @@
           "organization": "com.typesafe.scala-logging",
           "name": "scala-logging_2.13",
           "version": "3.9.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-logging_2.13",
@@ -1730,7 +1637,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "native-osx-aarch64",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "native-osx-aarch64",
@@ -1742,7 +1648,6 @@
           "organization": "io.github.metarank",
           "name": "cfor_2.13",
           "version": "0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cfor_2.13",
@@ -1754,7 +1659,6 @@
           "organization": "io.dropwizard.metrics",
           "name": "metrics-core",
           "version": "4.2.32",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metrics-core",
@@ -1766,7 +1670,6 @@
           "organization": "io.netty",
           "name": "netty-codec-stomp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-stomp",
@@ -1778,7 +1681,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-core_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-core_2.13",
@@ -1790,7 +1692,6 @@
           "organization": "org.playframework",
           "name": "play_2.13",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play_2.13",
@@ -1802,7 +1703,6 @@
           "organization": "org.playframework",
           "name": "play-exceptions",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-exceptions",
@@ -1814,7 +1714,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-swing_2.13",
           "version": "3.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-swing_2.13",
@@ -1826,7 +1725,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-configurable",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-configurable",
@@ -1838,7 +1736,6 @@
           "organization": "org.typelevel",
           "name": "cats-kernel_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-kernel_2.13",
@@ -1850,7 +1747,6 @@
           "organization": "io.netty",
           "name": "netty-codec-memcache",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-memcache",
@@ -1862,7 +1758,6 @@
           "organization": "io.netty",
           "name": "netty-all",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-all",
@@ -1874,7 +1769,6 @@
           "organization": "org.scala-lang",
           "name": "scala-reflect",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-reflect",
@@ -1886,7 +1780,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-buffers",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-buffers",
@@ -1898,7 +1791,6 @@
           "organization": "com.softwaremill.magnolia1_2",
           "name": "magnolia_2.13",
           "version": "1.1.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "magnolia_2.13",
@@ -1910,7 +1802,6 @@
           "organization": "com.typesafe",
           "name": "ssl-config-core_2.13",
           "version": "0.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ssl-config-core_2.13",
@@ -1922,7 +1813,6 @@
           "organization": "org.typelevel",
           "name": "cats-core_2.13",
           "version": "2.13.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-core_2.13",
@@ -1934,7 +1824,6 @@
           "organization": "io.helidon.http.encoding",
           "name": "helidon-http-encoding",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-http-encoding",
@@ -1946,7 +1835,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-unix-common",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-unix-common",
@@ -1958,7 +1846,6 @@
           "organization": "io.netty",
           "name": "netty-codec-base",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-base",
@@ -1970,7 +1857,6 @@
           "organization": "com.fasterxml.jackson.core",
           "name": "jackson-annotations",
           "version": "2.19.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-annotations",
@@ -1982,7 +1868,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-actor-typed_2.13",
           "version": "1.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-actor-typed_2.13",
@@ -1994,7 +1879,6 @@
           "organization": "io.netty",
           "name": "netty-transport-sctp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-sctp",
@@ -2006,7 +1890,6 @@
           "organization": "io.helidon.logging",
           "name": "helidon-logging-slf4j",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-logging-slf4j",
@@ -2018,7 +1901,6 @@
           "organization": "io.jsonwebtoken",
           "name": "jjwt-jackson",
           "version": "0.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jjwt-jackson",
@@ -2030,7 +1912,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-refspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-refspec_2.13",
@@ -2042,7 +1923,6 @@
           "organization": "com.twitter",
           "name": "hpack",
           "version": "1.0.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "hpack",
@@ -2054,7 +1934,6 @@
           "organization": "org.unbescape",
           "name": "unbescape",
           "version": "1.1.6.RELEASE",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "unbescape",
@@ -2066,7 +1945,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-slf4j_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-slf4j_2.13",
@@ -2078,7 +1956,6 @@
           "organization": "ch.qos.logback",
           "name": "logback-classic",
           "version": "1.5.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "logback-classic",
@@ -2090,7 +1967,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns",
@@ -2102,7 +1978,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common",
@@ -2114,7 +1989,6 @@
           "organization": "org.playframework",
           "name": "play-server_2.13",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-server_2.13",
@@ -2126,7 +2000,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "core_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -2138,7 +2011,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-featurespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-featurespec_2.13",
@@ -2150,7 +2022,6 @@
           "organization": "io.gatling",
           "name": "gatling-http-java",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-http-java",
@@ -2162,7 +2033,6 @@
           "organization": "com.github.ben-manes.caffeine",
           "name": "caffeine",
           "version": "3.1.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "caffeine",
@@ -2174,7 +2044,6 @@
           "organization": "org.jodd",
           "name": "jodd-lagarto",
           "version": "6.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jodd-lagarto",
@@ -2186,7 +2055,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-propspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-propspec_2.13",
@@ -2198,7 +2066,6 @@
           "organization": "io.netty",
           "name": "netty-handler-proxy",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-proxy",
@@ -2210,7 +2077,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns-classes-macos",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns-classes-macos",
@@ -2222,7 +2088,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-epoll",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-epoll",
@@ -2234,7 +2099,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-std_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-std_2.13",
@@ -2246,7 +2110,6 @@
           "organization": "io.gatling",
           "name": "gatling-jms-java",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-jms-java",
@@ -2258,7 +2121,6 @@
           "organization": "io.netty",
           "name": "netty-tcnative-boringssl-static",
           "version": "2.0.65.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-tcnative-boringssl-static",
@@ -2295,7 +2157,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-wordspec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-wordspec_2.13",
@@ -2307,7 +2168,6 @@
           "organization": "io.netty",
           "name": "netty-handler",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler",
@@ -2319,7 +2179,6 @@
           "organization": "com.lihaoyi",
           "name": "scalatags_2.13",
           "version": "0.13.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatags_2.13",
@@ -2331,7 +2190,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-key-util",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-key-util",
@@ -2343,7 +2201,6 @@
           "organization": "io.helidon.webserver",
           "name": "helidon-webserver",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-webserver",
@@ -2355,7 +2212,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-parser-combinators_2.13",
           "version": "2.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-parser-combinators_2.13",
@@ -2367,7 +2223,6 @@
           "organization": "io.netty",
           "name": "netty-buffer",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-buffer",
@@ -2379,7 +2234,6 @@
           "organization": "org.typelevel",
           "name": "vault_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vault_2.13",
@@ -2391,7 +2245,6 @@
           "organization": "jakarta.inject",
           "name": "jakarta.inject-api",
           "version": "2.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jakarta.inject-api",
@@ -2403,7 +2256,6 @@
           "organization": "com.lihaoyi",
           "name": "sourcecode_2.13",
           "version": "0.4.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "sourcecode_2.13",
@@ -2415,7 +2267,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "native-<MASKED_OS>-aarch64",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "native-<MASKED_OS>-aarch64",
@@ -2427,7 +2278,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-freespec_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-freespec_2.13",
@@ -2439,7 +2289,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-matchers-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-matchers-core_2.13",
@@ -2451,7 +2300,6 @@
           "organization": "io.gatling",
           "name": "gatling-jms",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-jms",
@@ -2463,7 +2311,6 @@
           "organization": "com.softwaremill.common",
           "name": "tagging_2.13",
           "version": "2.3.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "tagging_2.13",
@@ -2475,7 +2322,6 @@
           "organization": "io.helidon.common.features",
           "name": "helidon-common-features-api",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-features-api",
@@ -2487,7 +2333,6 @@
           "organization": "io.gatling",
           "name": "gatling-test-framework",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-test-framework",
@@ -2499,7 +2344,6 @@
           "organization": "io.netty.incubator",
           "name": "netty-incubator-transport-native-io_uring",
           "version": "0.0.25.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-incubator-transport-native-io_uring",
@@ -2517,7 +2361,6 @@
           "organization": "io.netty",
           "name": "netty-codec-dns",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-dns",
@@ -2529,7 +2372,6 @@
           "organization": "org.typelevel",
           "name": "cats-effect-kernel_2.13",
           "version": "3.6.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-effect-kernel_2.13",
@@ -2541,7 +2383,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-funsuite_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-funsuite_2.13",
@@ -2553,7 +2394,6 @@
           "organization": "com.softwaremill.sttp.client4",
           "name": "fs2_2.13",
           "version": "4.0.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2_2.13",
@@ -2565,7 +2405,6 @@
           "organization": "org.playframework.netty",
           "name": "netty-reactive-streams",
           "version": "3.0.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-reactive-streams",
@@ -2577,7 +2416,6 @@
           "organization": "org.scala-lang",
           "name": "scala-library",
           "version": "2.13.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-library",
@@ -2589,7 +2427,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-parameters",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-parameters",
@@ -2601,7 +2438,6 @@
           "organization": "org.slf4j",
           "name": "slf4j-jdk-platform-logging",
           "version": "2.0.9",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "slf4j-jdk-platform-logging",
@@ -2613,7 +2449,6 @@
           "organization": "org.http4s",
           "name": "http4s-blaze-core_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-blaze-core_2.13",
@@ -2625,7 +2460,6 @@
           "organization": "io.netty",
           "name": "netty-common",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-common",
@@ -2637,7 +2471,6 @@
           "organization": "io.gatling",
           "name": "gatling-commons",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-commons",
@@ -2649,7 +2482,6 @@
           "organization": "org.typelevel",
           "name": "jawn-parser_2.13",
           "version": "1.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jawn-parser_2.13",
@@ -2661,7 +2493,6 @@
           "organization": "io.vertx",
           "name": "vertx-web",
           "version": "4.5.15",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "vertx-web",
@@ -2673,7 +2504,6 @@
           "organization": "org.slf4j",
           "name": "jul-to-slf4j",
           "version": "2.0.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jul-to-slf4j",
@@ -2685,7 +2515,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-http_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-http_2.13",
@@ -2697,7 +2526,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-stream_2.13",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-stream_2.13",
@@ -2709,7 +2537,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-protobuf-v3_2.13",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-protobuf-v3_2.13",
@@ -2721,7 +2548,6 @@
           "organization": "io.circe",
           "name": "circe-generic_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-generic_2.13",
@@ -2733,7 +2559,6 @@
           "organization": "io.jsonwebtoken",
           "name": "jjwt-impl",
           "version": "0.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jjwt-impl",
@@ -2745,7 +2570,6 @@
           "organization": "net.jodah",
           "name": "typetools",
           "version": "0.6.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "typetools",
@@ -2757,7 +2581,6 @@
           "organization": "com.aayushatharva.brotli4j",
           "name": "native-<MASKED_OS>-x86_64",
           "version": "1.16.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "native-<MASKED_OS>-x86_64",
@@ -2769,7 +2592,6 @@
           "organization": "com.lihaoyi",
           "name": "geny_2.13",
           "version": "1.1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "geny_2.13",
@@ -2781,7 +2603,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-actor_2.13",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-actor_2.13",
@@ -2793,7 +2614,6 @@
           "organization": "com.google.guava",
           "name": "listenablefuture",
           "version": "9999.0-empty-to-avoid-conflict-with-guava",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "listenablefuture",
@@ -2805,7 +2625,6 @@
           "organization": "javax.jms",
           "name": "javax.jms-api",
           "version": "2.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "javax.jms-api",
@@ -2817,7 +2636,6 @@
           "organization": "org.hdrhistogram",
           "name": "HdrHistogram",
           "version": "2.2.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "HdrHistogram",
@@ -2829,7 +2647,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-serialization-jackson_2.13",
           "version": "1.0.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-serialization-jackson_2.13",
@@ -2841,7 +2658,6 @@
           "organization": "org.http4s",
           "name": "http4s-crypto_2.13",
           "version": "0.2.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-crypto_2.13",
@@ -2853,7 +2669,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-core_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-core_2.13",
@@ -2865,7 +2680,6 @@
           "organization": "io.netty",
           "name": "netty-codec-smtp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-smtp",
@@ -2877,7 +2691,6 @@
           "organization": "org.lz4",
           "name": "lz4-java",
           "version": "1.8.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lz4-java",
@@ -2889,7 +2702,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-shouldmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-shouldmatchers_2.13",
@@ -2901,7 +2713,6 @@
           "organization": "org.typelevel",
           "name": "cats-mtl_2.13",
           "version": "1.3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "cats-mtl_2.13",
@@ -2913,7 +2724,6 @@
           "organization": "io.circe",
           "name": "circe-core_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-core_2.13",
@@ -2925,7 +2735,6 @@
           "organization": "com.google.j2objc",
           "name": "j2objc-annotations",
           "version": "2.8",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "j2objc-annotations",
@@ -2937,7 +2746,6 @@
           "organization": "io.netty",
           "name": "netty-transport-native-kqueue",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-native-kqueue",
@@ -2955,7 +2763,6 @@
           "organization": "com.softwaremill.sttp.model",
           "name": "core_2.13",
           "version": "1.7.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "core_2.13",
@@ -2967,7 +2774,6 @@
           "organization": "io.gatling",
           "name": "gatling-redis-java",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-redis-java",
@@ -2979,7 +2785,6 @@
           "organization": "com.beachape",
           "name": "enumeratum-macros_2.13",
           "version": "1.7.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "enumeratum-macros_2.13",
@@ -2991,7 +2796,6 @@
           "organization": "io.gatling",
           "name": "gatling-jsonpath",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-jsonpath",
@@ -3003,7 +2807,6 @@
           "organization": "io.netty",
           "name": "netty-transport-rxtx",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-rxtx",
@@ -3015,7 +2818,6 @@
           "organization": "com.github.scopt",
           "name": "scopt_2.13",
           "version": "3.7.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scopt_2.13",
@@ -3027,7 +2829,6 @@
           "organization": "org.simpleflatmapper",
           "name": "lightning-csv",
           "version": "8.2.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "lightning-csv",
@@ -3039,7 +2840,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-kqueue",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-kqueue",
@@ -3051,7 +2851,6 @@
           "organization": "io.netty",
           "name": "netty-codec-haproxy",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-haproxy",
@@ -3063,7 +2862,6 @@
           "organization": "com.google.guava",
           "name": "failureaccess",
           "version": "1.0.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "failureaccess",
@@ -3075,7 +2873,6 @@
           "organization": "org.scala-sbt",
           "name": "test-interface",
           "version": "1.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "test-interface",
@@ -3087,7 +2884,6 @@
           "organization": "io.helidon.config",
           "name": "helidon-config",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-config",
@@ -3099,7 +2895,6 @@
           "organization": "org.scalatest",
           "name": "scalatest-mustmatchers_2.13",
           "version": "3.2.18",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scalatest-mustmatchers_2.13",
@@ -3111,7 +2906,6 @@
           "organization": "io.gatling",
           "name": "gatling-jdbc",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-jdbc",
@@ -3123,7 +2917,6 @@
           "organization": "com.typesafe",
           "name": "config",
           "version": "1.4.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "config",
@@ -3135,7 +2928,6 @@
           "organization": "io.dropwizard.metrics",
           "name": "metrics-healthchecks",
           "version": "4.2.32",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "metrics-healthchecks",
@@ -3147,7 +2939,6 @@
           "organization": "co.fs2",
           "name": "fs2-reactive-streams_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-reactive-streams_2.13",
@@ -3159,7 +2950,6 @@
           "organization": "io.circe",
           "name": "circe-jawn_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-jawn_2.13",
@@ -3171,7 +2961,6 @@
           "organization": "com.chuusai",
           "name": "shapeless_2.13",
           "version": "2.3.13",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "shapeless_2.13",
@@ -3183,7 +2972,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-media-type",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-media-type",
@@ -3195,7 +2983,6 @@
           "organization": "io.helidon.builder",
           "name": "helidon-builder-api",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-builder-api",
@@ -3207,7 +2994,6 @@
           "organization": "com.softwaremill.sttp.shared",
           "name": "ws_2.13",
           "version": "1.5.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ws_2.13",
@@ -3219,7 +3005,6 @@
           "organization": "org.playframework",
           "name": "play-streams_2.13",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-streams_2.13",
@@ -3231,7 +3016,6 @@
           "organization": "com.eatthepath",
           "name": "fast-uuid",
           "version": "0.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fast-uuid",
@@ -3243,7 +3027,6 @@
           "organization": "com.tdunning",
           "name": "t-digest",
           "version": "3.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "t-digest",
@@ -3255,7 +3038,6 @@
           "organization": "io.helidon.logging",
           "name": "helidon-logging-common",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-logging-common",
@@ -3267,7 +3049,6 @@
           "organization": "org.scala-lang.modules",
           "name": "scala-java8-compat_2.13",
           "version": "1.0.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "scala-java8-compat_2.13",
@@ -3279,7 +3060,6 @@
           "organization": "com.typesafe.akka",
           "name": "akka-actor_2.13",
           "version": "2.6.20",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "akka-actor_2.13",
@@ -3291,7 +3071,6 @@
           "organization": "org.slf4j",
           "name": "jcl-over-slf4j",
           "version": "2.0.16",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jcl-over-slf4j",
@@ -3303,7 +3082,6 @@
           "organization": "org.typelevel",
           "name": "log4cats-slf4j_2.13",
           "version": "2.7.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "log4cats-slf4j_2.13",
@@ -3315,7 +3093,6 @@
           "organization": "io.jsonwebtoken",
           "name": "jjwt-api",
           "version": "0.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jjwt-api",
@@ -3327,7 +3104,6 @@
           "organization": "io.netty",
           "name": "netty-resolver-dns-native-macos",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-resolver-dns-native-macos",
@@ -3345,7 +3121,6 @@
           "organization": "org.playframework",
           "name": "play-build-link",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-build-link",
@@ -3357,7 +3132,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-parsing_2.13",
           "version": "1.2.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-parsing_2.13",
@@ -3369,7 +3143,6 @@
           "organization": "io.netty",
           "name": "netty-transport-classes-io_uring",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-transport-classes-io_uring",
@@ -3381,7 +3154,6 @@
           "organization": "net.sf.saxon",
           "name": "Saxon-HE",
           "version": "10.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "Saxon-HE",
@@ -3393,7 +3165,6 @@
           "organization": "io.netty",
           "name": "netty-handler-ssl-ocsp",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-handler-ssl-ocsp",
@@ -3405,7 +3176,6 @@
           "organization": "co.fs2",
           "name": "fs2-core_2.13",
           "version": "3.12.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "fs2-core_2.13",
@@ -3417,7 +3187,6 @@
           "organization": "com.google.errorprone",
           "name": "error_prone_annotations",
           "version": "2.21.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "error_prone_annotations",
@@ -3429,7 +3198,6 @@
           "organization": "io.circe",
           "name": "circe-numbers_2.13",
           "version": "0.14.14",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "circe-numbers_2.13",
@@ -3441,7 +3209,6 @@
           "organization": "com.fasterxml.jackson.module",
           "name": "jackson-module-scala_2.13",
           "version": "2.19.1",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-module-scala_2.13",
@@ -3453,7 +3220,6 @@
           "organization": "org.playframework.twirl",
           "name": "twirl-api_2.13",
           "version": "2.0.7",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "twirl-api_2.13",
@@ -3465,7 +3231,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http2",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http2",
@@ -3477,7 +3242,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-context",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-context",
@@ -3489,7 +3253,6 @@
           "organization": "org.http4s",
           "name": "blaze-http_2.13",
           "version": "0.23.17",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "blaze-http_2.13",
@@ -3501,7 +3264,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-config",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-config",
@@ -3513,7 +3275,6 @@
           "organization": "org.http4s",
           "name": "http4s-core_2.13",
           "version": "0.23.30",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "http4s-core_2.13",
@@ -3525,7 +3286,6 @@
           "organization": "io.helidon.common.features",
           "name": "helidon-common-features",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-features",
@@ -3537,7 +3297,6 @@
           "organization": "org.typelevel",
           "name": "case-insensitive_2.13",
           "version": "1.4.2",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "case-insensitive_2.13",
@@ -3549,7 +3308,6 @@
           "organization": "org.playframework",
           "name": "play-configuration_2.13",
           "version": "3.0.6",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "play-configuration_2.13",
@@ -3561,7 +3319,6 @@
           "organization": "com.thoughtworks.paranamer",
           "name": "paranamer",
           "version": "2.8.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "paranamer",
@@ -3573,7 +3330,6 @@
           "organization": "io.gatling",
           "name": "gatling-netty-util",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-netty-util",
@@ -3585,7 +3341,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-tls",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-tls",
@@ -3597,7 +3352,6 @@
           "organization": "io.gatling.highcharts",
           "name": "gatling-charts-highcharts",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-charts-highcharts",
@@ -3609,7 +3363,6 @@
           "organization": "com.comcast",
           "name": "ip4s-core_2.13",
           "version": "3.6.0",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "ip4s-core_2.13",
@@ -3621,7 +3374,6 @@
           "organization": "io.netty",
           "name": "netty-codec-http",
           "version": "4.2.0.Final",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "netty-codec-http",
@@ -3633,7 +3385,6 @@
           "organization": "com.fasterxml.jackson.dataformat",
           "name": "jackson-dataformat-cbor",
           "version": "2.14.3",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "jackson-dataformat-cbor",
@@ -3645,7 +3396,6 @@
           "organization": "org.apache.pekko",
           "name": "pekko-slf4j_2.13",
           "version": "1.1.4",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "pekko-slf4j_2.13",
@@ -3657,7 +3407,6 @@
           "organization": "io.helidon.common",
           "name": "helidon-common-types",
           "version": "4.0.10",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "helidon-common-types",
@@ -3669,7 +3418,6 @@
           "organization": "io.gatling",
           "name": "gatling-recorder",
           "version": "3.11.5",
-          "configurations": "default",
           "artifacts": [
             {
               "name": "gatling-recorder",
@@ -3678,9 +3426,6 @@
           ]
         }
       ]
-    },
-    "tags": [
-      "test"
-    ]
+    }
   }
 }

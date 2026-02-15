@@ -48,7 +48,6 @@ projects:
         - com.lihaoyi::sourcecode:0.4.2
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}
@@ -59,7 +58,6 @@ projects:
         - com.lihaoyi::sourcecode:0.4.2
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}
@@ -128,7 +126,6 @@ projects:
         dependencies:
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}
@@ -138,7 +135,6 @@ projects:
         dependencies:
         - org.scala-native::auxlib:${PLATFORM_VERSION}
         - org.scala-native::clib:${PLATFORM_VERSION}
-        - org.scala-native::javalib:${PLATFORM_VERSION}
         - org.scala-native::nativelib:${PLATFORM_VERSION}
         - org.scala-native::posixlib:${PLATFORM_VERSION}
         - org.scala-native::windowslib:${PLATFORM_VERSION}
