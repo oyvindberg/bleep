@@ -100,6 +100,7 @@ object Main {
     commonOpts *> List(
       Opts.subcommand("build", "create new build")(newCommand(logger, userPaths, buildPaths.cwd)),
       importCmd(buildLoader, userPaths, buildPaths, logger),
+      importMavenCmd(buildPaths, logger),
       configCommand(logger, userPaths),
       installTabCompletions(userPaths, logger),
       Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
@@ -480,6 +481,10 @@ object Main {
             val buildPaths = BuildPaths(started.buildPaths.cwd, buildLoader, model.BuildVariant.Normal)
             importCmd(buildLoader, started.userPaths, buildPaths, started.logger)
           },
+          {
+            val buildPaths0 = BuildPaths(started.buildPaths.cwd, BuildLoader.nonExisting(started.buildPaths.cwd), model.BuildVariant.Normal)
+            importMavenCmd(buildPaths0, started.logger)
+          },
           configCommand(started.pre.logger, started.pre.userPaths),
           installTabCompletions(started.userPaths, started.pre.logger),
           Opts.subcommand("server-metrics", "open BSP server metrics dashboard in browser")(
@@ -614,6 +619,13 @@ object Main {
         val existingBuild = buildLoader.existing.flatMap(_.buildFile.forceGet).toOption
 
         commands.Import(existingBuild, sbtBuildDir = buildPaths.cwd, fetchJvm, buildPaths, logger, opts, model.BleepVersion.current)
+      }
+    )
+
+  def importMavenCmd(buildPaths: BuildPaths, logger: Logger): Opts[BleepCommand] =
+    Opts.subcommand("import-maven", "import existing Maven build from pom.xml")(
+      mavenimport.MavenImportOptions.opts.map { opts =>
+        commands.ImportMaven(mavenBuildDir = buildPaths.cwd, buildPaths, logger, opts, model.BleepVersion.current)
       }
     )
 
