@@ -309,6 +309,40 @@ object CompilerResolver {
     }
   }
 
+  /** Resolve a Kotlin compiler plugin JAR for a specific version.
+    *
+    * Maps well-known plugin IDs (spring, jpa, allopen, noarg, serialization, etc.) to their Maven artifact names and resolves via coursier. Returns only
+    * the plugin JAR itself (filtered from transitive dependencies).
+    *
+    * @param pluginId
+    *   plugin ID as used in kotlin-maven-plugin (e.g., "spring", "jpa", "allopen")
+    * @param version
+    *   Kotlin version
+    * @return
+    *   path to the plugin JAR
+    */
+  def resolveKotlinPlugin(pluginId: String, version: VersionKotlin): Path = {
+    val artifactName = pluginIdToArtifact(pluginId)
+    val key = InstanceKey(artifactName, version.kotlinVersion)
+    Option(jarCache.get(key)).getOrElse {
+      val dep = Dep.Java(version.kotlinOrganization, artifactName, version.kotlinVersion)
+      val paths = resolveDep(dep)
+      jarCache.put(key, paths)
+      paths
+    }.find(_.getFileName.toString.startsWith(artifactName))
+      .getOrElse(throw new IllegalArgumentException(s"Could not find plugin JAR for $pluginId ($artifactName) in resolved artifacts"))
+  }
+
+  private def pluginIdToArtifact(pluginId: String): String = pluginId match {
+    case "spring" | "allopen"  => "kotlin-allopen-compiler-plugin"
+    case "jpa" | "noarg"       => "kotlin-noarg-compiler-plugin"
+    case "serialization"       => "kotlin-serialization-compiler-plugin"
+    case "sam-with-receiver"   => "kotlin-sam-with-receiver-compiler-plugin"
+    case "lombok"              => "kotlin-lombok-compiler-plugin"
+    case "assignment"          => "kotlin-assignment-compiler-plugin"
+    case other                 => s"kotlin-$other-compiler-plugin"
+  }
+
   // ============================================================================
   // Internal Resolution
   // ============================================================================
