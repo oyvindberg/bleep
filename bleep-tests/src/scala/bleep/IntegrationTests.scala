@@ -236,6 +236,9 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   test("resource generator") {
+    // This test spawns child JVMs (bleep run) which, combined with the in-process BSP server,
+    // exceeds the 7GB memory limit on CI runners and gets OOM-killed (exit code 137).
+    assume(!sys.env.contains("CI"), "Skipped on CI: requires more memory than CI runners provide")
     val bleepYaml = """
 projects:
   a:
