@@ -12,7 +12,7 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
     targets.foreach { target =>
       if (Set("testssemanticdb@jvm213").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -53,7 +53,7 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
     targets.foreach { target =>
       if (Set("testssemanticdb@jvm211").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -94,7 +94,7 @@ object GenerateForTestssemanticdb extends BleepCodegenScript("GenerateForTestsse
     targets.foreach { target =>
       if (Set("testssemanticdb@jvm212").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |

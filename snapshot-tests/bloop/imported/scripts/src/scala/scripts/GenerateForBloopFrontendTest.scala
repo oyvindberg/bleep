@@ -12,7 +12,7 @@ object GenerateForBloopFrontendTest extends BleepCodegenScript("GenerateForBloop
     targets.foreach { target =>
       if (Set("bloop-frontend-test").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildTestInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package bloop.internal.build
       |

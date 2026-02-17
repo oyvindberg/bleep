@@ -28,6 +28,7 @@ case class ImportMaven(
         logger = logger,
         options = options,
         bleepVersion = bleepVersion,
+        bleepTasksVersion = model.BleepVersion(model.Replacements.known.BleepVersion),
         mavenProjects = mavenProjects
       )
       .map { case (path, content) => (RelPath.relativeTo(destinationPaths.buildDir, path), content) }

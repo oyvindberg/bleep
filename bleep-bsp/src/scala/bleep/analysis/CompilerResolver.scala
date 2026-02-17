@@ -334,9 +334,9 @@ object CompilerResolver {
   }
 
   private def pluginIdToArtifact(pluginId: String): String = pluginId match {
-    case "spring" | "allopen"  => "kotlin-allopen-compiler-plugin"
-    case "jpa" | "noarg"       => "kotlin-noarg-compiler-plugin"
-    case "serialization"       => "kotlin-serialization-compiler-plugin"
+    case "spring" | "allopen" | "all-open"        => "kotlin-allopen-compiler-plugin"
+    case "jpa" | "noarg"                          => "kotlin-noarg-compiler-plugin"
+    case "serialization" | "kotlinx-serialization" => "kotlin-serialization-compiler-plugin"
     case "sam-with-receiver"   => "kotlin-sam-with-receiver-compiler-plugin"
     case "lombok"              => "kotlin-lombok-compiler-plugin"
     case "assignment"          => "kotlin-assignment-compiler-plugin"

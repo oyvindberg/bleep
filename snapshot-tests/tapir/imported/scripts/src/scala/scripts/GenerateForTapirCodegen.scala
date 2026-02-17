@@ -12,7 +12,7 @@ object GenerateForTapirCodegen extends BleepCodegenScript("GenerateForTapirCodeg
     targets.foreach { target =>
       if (Set("tapir-codegen").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package sttp.tapir.codegen
       |

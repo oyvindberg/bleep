@@ -12,7 +12,7 @@ object GenerateForSbtConverter extends BleepCodegenScript("GenerateForSbtConvert
     targets.foreach { target =>
       if (Set("sbt-converter").contains(target.project.value)) {
         val to = target.resources.resolve("sbt/sbt.autoplugins")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|org.scalablytyped.converter.plugin.ScalablyTypedConverterExternalNpmPlugin
       |org.scalablytyped.converter.plugin.ScalablyTypedConverterGenSourcePlugin
       |org.scalablytyped.converter.plugin.ScalablyTypedConverterPlugin

@@ -12,7 +12,7 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
     targets.foreach { target =>
       if (Set("doobie-core@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("scala/doobie/buildinfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package doobie
       |
       |/** Auto-generated build information. */
@@ -32,7 +32,7 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
     targets.foreach { target =>
       if (Set("doobie-core@jvm213").contains(target.project.value)) {
         val to = target.sources.resolve("scala/doobie/buildinfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package doobie
       |
       |/** Auto-generated build information. */
@@ -52,7 +52,7 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
     targets.foreach { target =>
       if (Set("doobie-core@jvm212").contains(target.project.value)) {
         val to = target.sources.resolve("scala/doobie/buildinfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package doobie
       |
       |/** Auto-generated build information. */

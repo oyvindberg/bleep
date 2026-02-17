@@ -100,8 +100,8 @@ object buildFromMavenPom {
 
     val scalaVersion = detectScalaVersion(mavenProject)
 
-    val mainSourceLayout = inferSourceLayout(mavenProject.directory, "main", scalaVersion)
-    val testSourceLayout = inferSourceLayout(mavenProject.directory, "test", scalaVersion)
+    val mainSourceLayout = inferSourceLayout(mavenProject, scalaVersion)
+    val testSourceLayout = mainSourceLayout
 
     // Resolve symlinks to avoid path type mismatches (e.g. macOS /tmp -> /private/tmp)
     val buildDir =
@@ -170,6 +170,33 @@ object buildFromMavenPom {
 
     val testHasSources = hasSourceFiles(mavenProject.testSourceDirectory)
 
+    // Additional source dirs (from build-helper-maven-plugin) that are NOT under target/
+    // Dirs under target/ are generated sources handled separately via sourcegen.
+    val targetDir = mavenProject.directory.resolve("target")
+    val extraMainSources = mavenProject.additionalSources
+      .filter(p => Files.isDirectory(p) && !p.startsWith(targetDir))
+      .map(p => RelPath.relativeTo(mavenProject.directory, p))
+    val extraTestSources = mavenProject.additionalTestSources
+      .filter(p => Files.isDirectory(p) && !p.startsWith(targetDir))
+      .map(p => RelPath.relativeTo(mavenProject.directory, p))
+
+    // If Maven's sourceDirectory is non-standard (doesn't match inferred source layout), add it explicitly.
+    // E.g. connector-openapi uses <sourceDirectory>src/main/generated-kotlin</sourceDirectory>
+    val layoutMainDirs = mainSourceLayout.sources(scalaVersion, None, "main").values.map(mavenProject.directory / _).toSet
+    val customMainSource =
+      if (Files.isDirectory(mavenProject.sourceDirectory) && !layoutMainDirs.contains(mavenProject.sourceDirectory) && !mavenProject.sourceDirectory.startsWith(targetDir))
+        List(RelPath.relativeTo(mavenProject.directory, mavenProject.sourceDirectory))
+      else Nil
+
+    val layoutTestDirs = testSourceLayout.sources(scalaVersion, None, "test").values.map(mavenProject.directory / _).toSet
+    val customTestSource =
+      if (Files.isDirectory(mavenProject.testSourceDirectory) && !layoutTestDirs.contains(mavenProject.testSourceDirectory) && !mavenProject.testSourceDirectory.startsWith(targetDir))
+        List(RelPath.relativeTo(mavenProject.directory, mavenProject.testSourceDirectory))
+      else Nil
+
+    val allExtraMainSources = extraMainSources ++ customMainSource
+    val allExtraTestSources = extraTestSources ++ customTestSource
+
     val result = List.newBuilder[(model.CrossProjectName, model.Project)]
 
     // Main project - always create it (test project depends on it)
@@ -181,7 +208,7 @@ object buildFromMavenPom {
       dependsOn = mainDependsOn,
       `source-layout` = Some(mainSourceLayout),
       `sbt-scope` = Some("main"),
-      sources = model.JsonSet.empty,
+      sources = model.JsonSet.fromIterable(allExtraMainSources),
       resources = model.JsonSet.empty,
       dependencies = model.JsonSet.fromIterable(mainDeps),
       java = configuredJava,
@@ -206,7 +233,7 @@ object buildFromMavenPom {
         dependsOn = testDependsOn,
         `source-layout` = Some(testSourceLayout),
         `sbt-scope` = Some("test"),
-        sources = model.JsonSet.empty,
+        sources = model.JsonSet.fromIterable(allExtraTestSources),
         resources = model.JsonSet.empty,
         dependencies = model.JsonSet.fromIterable(allTestDeps),
         java = configuredJava,
@@ -292,16 +319,21 @@ object buildFromMavenPom {
       case _ => Nil
     }
 
+  /** Infer source layout from project configuration (plugins, dependencies), not directory existence.
+    *
+    * A project with kotlin-maven-plugin is Kotlin regardless of whether src/main/kotlin exists on disk.
+    */
   private def inferSourceLayout(
-      projectDir: Path,
-      scope: String,
+      mavenProject: MavenProject,
       scalaVersion: Option[model.VersionScala]
   ): model.SourceLayout = {
-    val hasScala = Files.isDirectory(projectDir.resolve(s"src/$scope/scala"))
-    val hasKotlin = Files.isDirectory(projectDir.resolve(s"src/$scope/kotlin"))
+    val hasKotlinPlugin = mavenProject.plugins.exists(_.artifactId == "kotlin-maven-plugin")
+    val hasKotlinDep = mavenProject.dependencies.exists(d => d.groupId == "org.jetbrains.kotlin" && d.artifactId.startsWith("kotlin-stdlib"))
 
-    if (hasKotlin) model.SourceLayout.Kotlin
-    else if (hasScala || scalaVersion.isDefined) model.SourceLayout.Normal
+    val hasScalaPlugin = mavenProject.plugins.exists(p => p.artifactId == "scala-maven-plugin" || p.artifactId == "scala3-maven-plugin")
+
+    if (hasKotlinPlugin || hasKotlinDep) model.SourceLayout.Kotlin
+    else if (hasScalaPlugin || scalaVersion.isDefined) model.SourceLayout.Normal
     else model.SourceLayout.Java
   }
 
@@ -537,7 +569,11 @@ object buildFromMavenPom {
       .distinctBy(_.url)
       .filterNot(repo => defaultRepoUrls.contains(repo.url) || defaultRepoUrls.contains(repo.url + "/"))
       .filterNot(_.id == "central")
-      .map(repo => model.Repository.Maven(Some(repo.id).filter(_.nonEmpty), URI.create(repo.url)): model.Repository)
+      .map { repo =>
+        // Convert GCP Artifact Registry custom protocol to HTTPS (coursier doesn't understand artifactregistry://)
+        val url = if (repo.url.startsWith("artifactregistry://")) repo.url.replaceFirst("artifactregistry://", "https://") else repo.url
+        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty), URI.create(url)): model.Repository
+      }
     model.JsonList(repos)
   }
 
@@ -550,6 +586,84 @@ object buildFromMavenPom {
           name.endsWith(".scala") || name.endsWith(".java") || name.endsWith(".kt")
         }
       finally stream.close()
+    }
+
+  /** Discover generated source files under target/generated-sources/ for each Maven module.
+    *
+    * Maven code generators (openapi, wsdl2java, avro, jaxb, etc.) all output to
+    * `target/generated-sources/<generator-name>/`. We walk these directories after `mvn compile`
+    * has populated them, read the file contents, and return them keyed by bleep project name.
+    *
+    * Generated test sources under `target/generated-test-sources/` are associated with the
+    * corresponding `-test` project.
+    */
+  def discoverGeneratedFiles(
+      logger: Logger,
+      mavenProjects: List[MavenProject]
+  ): Map[model.CrossProjectName, Vector[internal.GeneratedFile]] = {
+    val result = Map.newBuilder[model.CrossProjectName, Vector[internal.GeneratedFile]]
+
+    mavenProjects.foreach { mavenProject =>
+      if (mavenProject.packaging == "pom") ()
+      else {
+        val projectName = model.ProjectName(sanitizeProjectName(mavenProject.artifactId))
+        val testProjectName = model.ProjectName(sanitizeProjectName(mavenProject.artifactId) + "-test")
+
+        val mainGenDir = mavenProject.directory.resolve("target/generated-sources")
+        val testGenDir = mavenProject.directory.resolve("target/generated-test-sources")
+
+        val mainFiles = collectGeneratedFiles(logger, mainGenDir, isResource = false)
+        val testFiles = collectGeneratedFiles(logger, testGenDir, isResource = false)
+
+        if (mainFiles.nonEmpty) {
+          val crossName = model.CrossProjectName(projectName, None)
+          result += (crossName -> mainFiles)
+        }
+        if (testFiles.nonEmpty) {
+          val crossName = model.CrossProjectName(testProjectName, None)
+          result += (crossName -> testFiles)
+        }
+      }
+    }
+
+    result.result()
+  }
+
+  private def collectGeneratedFiles(logger: Logger, parentDir: Path, isResource: Boolean): Vector[internal.GeneratedFile] =
+    if (!Files.isDirectory(parentDir)) Vector.empty
+    else {
+      import scala.jdk.CollectionConverters.*
+
+      val subDirs = Files.list(parentDir)
+      try {
+        subDirs.iterator().asScala
+          .filter(Files.isDirectory(_))
+          // Skip "annotations" dirs — these are annotation processor outputs (empty marker dirs)
+          .filter(dir => dir.getFileName.toString != "annotations")
+          .flatMap { genDir =>
+            val fileStream = Files.walk(genDir)
+            try {
+              fileStream.iterator().asScala
+                .filter(Files.isRegularFile(_))
+                .filter { p =>
+                  val name = p.getFileName.toString
+                  name.endsWith(".scala") || name.endsWith(".java") || name.endsWith(".kt")
+                }
+                .flatMap { file =>
+                  val content =
+                    try Some(Files.readString(file))
+                    catch {
+                      case e: Exception =>
+                        logger.warn(s"Failed to read generated file $file: $e")
+                        None
+                    }
+                  content.map(c => internal.GeneratedFile(isResource, c, RelPath.relativeTo(genDir, file)))
+                }
+                .toVector
+            } finally fileStream.close()
+          }
+          .toVector
+      } finally subDirs.close()
     }
 
   private def sanitizeProjectName(artifactId: String): String =

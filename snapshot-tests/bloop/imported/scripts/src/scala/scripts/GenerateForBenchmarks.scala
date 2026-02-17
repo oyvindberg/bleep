@@ -12,7 +12,7 @@ object GenerateForBenchmarks extends BleepCodegenScript("GenerateForBenchmarks")
     targets.foreach { target =>
       if (Set("benchmarks").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = new String(s"""|// $$COVERAGE-OFF$$
       |package bloop.benchmarks
       |

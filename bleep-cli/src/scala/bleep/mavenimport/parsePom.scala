@@ -38,11 +38,15 @@ object parsePom {
     val sourceDirectory = pathOrDefault(build, "sourceDirectory", directory.resolve("src/main/java"))
     val testSourceDirectory = pathOrDefault(build, "testSourceDirectory", directory.resolve("src/test/java"))
 
+    // Extract additional source dirs from build-helper-maven-plugin
+    val allPlugins = build \ "plugins" \ "plugin"
+    val (additionalSources, additionalTestSources) = parseBuildHelperSources(allPlugins, directory)
+
     val resources = parseResourceDirs(build \ "resources" \ "resource")
     val testResources = parseResourceDirs(build \ "testResources" \ "testResource")
 
     val dependencies = parseDependencies(node \ "dependencies" \ "dependency")
-    val plugins = parsePlugins(build \ "plugins" \ "plugin")
+    val plugins = parsePlugins(allPlugins)
     val repositories = parseRepositories(node \ "repositories" \ "repository")
     val modules = (node \ "modules" \ "module").iterator.map(_.text.trim).toList
 
@@ -54,6 +58,8 @@ object parsePom {
       directory = directory,
       sourceDirectory = sourceDirectory,
       testSourceDirectory = testSourceDirectory,
+      additionalSources = additionalSources,
+      additionalTestSources = additionalTestSources,
       resources = resources,
       testResources = testResources,
       dependencies = dependencies,
@@ -99,6 +105,36 @@ object parsePom {
         url = textOrEmpty(repo, "url")
       )
     }.toList
+
+  /** Extract additional source directories from build-helper-maven-plugin executions.
+    *
+    * Handles both `add-source` (main) and `add-test-source` (test) goals.
+    * Source paths may be relative (resolved against module directory) or absolute.
+    */
+  private def parseBuildHelperSources(pluginNodes: scala.xml.NodeSeq, moduleDir: Path): (List[Path], List[Path]) = {
+    val mainSources = List.newBuilder[Path]
+    val testSources = List.newBuilder[Path]
+
+    pluginNodes.foreach { plugin =>
+      val artifactId = textOrEmpty(plugin, "artifactId")
+      if (artifactId == "build-helper-maven-plugin") {
+        (plugin \ "executions" \ "execution").foreach { execution =>
+          val goals = (execution \ "goals" \ "goal").map(_.text.trim)
+          val sources = (execution \ "configuration" \ "sources" \ "source").map(_.text.trim)
+          val resolvedPaths = sources.map { src =>
+            val path = Path.of(src)
+            val resolved = if (path.isAbsolute) path else moduleDir.resolve(path)
+            realPath(resolved)
+          }.toList
+
+          if (goals.contains("add-source")) mainSources ++= resolvedPaths
+          else if (goals.contains("add-test-source")) testSources ++= resolvedPaths
+        }
+      }
+    }
+
+    (mainSources.result(), testSources.result())
+  }
 
   private def parseResourceDirs(nodes: scala.xml.NodeSeq): List[Path] =
     nodes.iterator.map(r => realPath(Path.of(textOrEmpty(r, "directory")))).toList
