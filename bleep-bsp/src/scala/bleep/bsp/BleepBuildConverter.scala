@@ -274,9 +274,9 @@ object BleepBuildConverter {
     val xpluginOpt = List(s"-Xplugin=${pluginJarPaths.map(_.toString).mkString(",")}")
 
     val presetOpts = pluginIds.flatMap {
-      case "spring" => List("-P", "plugin:org.jetbrains.kotlin.allopen:preset=spring")
-      case "jpa"    => List("-P", "plugin:org.jetbrains.kotlin.noarg:preset=jpa")
-      case _        => Nil
+      case "spring"     => List("-P", "plugin:org.jetbrains.kotlin.allopen:preset=spring")
+      case "jpa"        => List("-P", "plugin:org.jetbrains.kotlin.noarg:preset=jpa")
+      case _            => Nil
     }
 
     xpluginOpt ++ presetOpts

@@ -8,6 +8,7 @@ import com.monovore.decline.{Argument, Opts}
 case class MavenImportOptions(
     ignoreWhenInferringTemplates: Set[model.ProjectName],
     skipMvn: Boolean,
+    skipGeneratedResourcesScript: Boolean,
     mvnPath: Option[String],
     filtering: sbtimport.ImportFiltering
 )
@@ -25,6 +26,9 @@ object MavenImportOptions {
 
   val skipMvn: Opts[Boolean] =
     Opts.flag("skip-mvn", "skip running mvn, use existing effective-pom.xml in .bleep/import/maven/").orFalse
+
+  val skipGeneratedResourcesScript: Opts[Boolean] =
+    Opts.flag("skip-generated-resources-script", "disable creating a script to regenerate discovered generated sources/resources").orFalse
 
   val mvnPath: Opts[Option[String]] =
     Opts
@@ -57,11 +61,12 @@ object MavenImportOptions {
     .orNone
 
   val opts: Opts[MavenImportOptions] =
-    (ignoreWhenInferringTemplates, skipMvn, mvnPath, excludeProjects, filterPlatforms, filterScalaVersions).mapN {
-      (ignore, skipMvn, mvnPath, excludeProjects, filterPlatforms, filterScalaVersions) =>
+    (ignoreWhenInferringTemplates, skipMvn, skipGeneratedResourcesScript, mvnPath, excludeProjects, filterPlatforms, filterScalaVersions).mapN {
+      (ignore, skipMvn, skipScript, mvnPath, excludeProjects, filterPlatforms, filterScalaVersions) =>
         MavenImportOptions(
           ignore,
           skipMvn,
+          skipScript,
           mvnPath,
           sbtimport.ImportFiltering(excludeProjects, filterPlatforms, filterScalaVersions)
         )

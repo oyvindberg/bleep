@@ -12,7 +12,7 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
     targets.foreach { target =>
       if (Set("tapir-netty-server@jvm213").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package buildinfo
       |
@@ -43,7 +43,7 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
     targets.foreach { target =>
       if (Set("tapir-netty-server@jvm212").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package buildinfo
       |
@@ -74,7 +74,7 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
     targets.foreach { target =>
       if (Set("tapir-netty-server@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package buildinfo
       |

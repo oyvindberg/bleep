@@ -12,7 +12,7 @@ object GenerateForHttp4sCore extends BleepCodegenScript("GenerateForHttp4sCore")
     targets.foreach { target =>
       if (Set("http4s-core@js213", "http4s-core@jvm213", "http4s-core@native213").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package org.http4s
       |
@@ -41,7 +41,7 @@ object GenerateForHttp4sCore extends BleepCodegenScript("GenerateForHttp4sCore")
     targets.foreach { target =>
       if (Set("http4s-core@js3", "http4s-core@jvm3", "http4s-core@native3").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package org.http4s
       |

@@ -12,7 +12,7 @@ object GenerateForSbtBloop extends BleepCodegenScript("GenerateForSbtBloop") {
     targets.foreach { target =>
       if (Set("sbt-bloop").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package bloop.integrations.sbt
       |
@@ -37,7 +37,7 @@ object GenerateForSbtBloop extends BleepCodegenScript("GenerateForSbtBloop") {
     targets.foreach { target =>
       if (Set("sbt-bloop").contains(target.project.value)) {
         val to = target.resources.resolve("sbt/sbt.autoplugins")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|bloop.integrations.sbt.BloopPlugin""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)

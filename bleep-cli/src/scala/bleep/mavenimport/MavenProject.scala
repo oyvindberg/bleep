@@ -11,6 +11,8 @@ case class MavenProject(
     directory: Path,
     sourceDirectory: Path,
     testSourceDirectory: Path,
+    additionalSources: List[Path],
+    additionalTestSources: List[Path],
     resources: List[Path],
     testResources: List[Path],
     dependencies: List[MavenDependency],

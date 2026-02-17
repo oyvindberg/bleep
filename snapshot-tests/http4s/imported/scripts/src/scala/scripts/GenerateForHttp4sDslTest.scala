@@ -12,7 +12,7 @@ object GenerateForHttp4sDslTest extends BleepCodegenScript("GenerateForHttp4sDsl
     targets.foreach { target =>
       if (Set("http4s-dsl-test@jvm213", "http4s-dsl-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/dsl/andDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s.dsl
       |
       |import _root_.munit._
