@@ -606,7 +606,7 @@ object TaskDag {
               IO.pure(
                 TaskResult.Failure(
                   error = s"$taskName failed: ${error.getMessage}",
-                  diagnostics = List(BleepBspProtocol.Diagnostic.error(Option(error.getCause).map(_.getMessage).getOrElse("")))
+                  diagnostics = List(BleepBspProtocol.Diagnostic.error(Option(error.getMessage).getOrElse(error.getClass.getName)))
                 )
               )
             }

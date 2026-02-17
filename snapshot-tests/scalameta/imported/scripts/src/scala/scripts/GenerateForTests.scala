@@ -12,7 +12,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@native213").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -53,7 +53,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@jvm211").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -94,7 +94,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@native212").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -135,7 +135,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@jvm212").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -176,7 +176,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -217,7 +217,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@js212").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -258,7 +258,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@js213").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |
@@ -299,7 +299,7 @@ object GenerateForTests extends BleepCodegenScript("GenerateForTests") {
     targets.foreach { target =>
       if (Set("tests@jvm213").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package scala.meta.tests
       |

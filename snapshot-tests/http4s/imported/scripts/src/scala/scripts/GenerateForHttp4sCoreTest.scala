@@ -12,7 +12,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/FormDataDecoderDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -86,7 +86,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/HeadersDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -140,7 +140,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/HttpVersionDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -194,7 +194,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/MessageDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -252,7 +252,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/QueryOpsDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s
       |
       |import _root_.munit._
@@ -286,7 +286,7 @@ object GenerateForHttp4sCoreTest extends BleepCodegenScript("GenerateForHttp4sCo
     targets.foreach { target =>
       if (Set("http4s-core-test@jvm213", "http4s-core-test@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("org/http4s/headers/Transfer-EncodingDoctest.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s.headers
       |
       |import _root_.munit._

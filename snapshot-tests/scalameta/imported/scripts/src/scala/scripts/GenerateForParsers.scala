@@ -12,7 +12,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
     targets.foreach { target =>
       if (Set("parsers@jvm3").contains(target.project.value)) {
         val to = target.sources.resolve("generated/TreeLifts.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = new String(s"""|
       |package scala.meta
       |package internal

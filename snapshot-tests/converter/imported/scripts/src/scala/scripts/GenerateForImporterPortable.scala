@@ -12,7 +12,7 @@ object GenerateForImporterPortable extends BleepCodegenScript("GenerateForImport
     targets.foreach { target =>
       if (Set("importer-portable").contains(target.project.value)) {
         val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
-        started.logger.withContext(target.project).warn(s"Writing $to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package org.scalablytyped.converter.internal
       |

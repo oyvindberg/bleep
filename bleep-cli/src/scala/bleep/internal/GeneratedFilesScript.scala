@@ -128,7 +128,7 @@ object GeneratedFilesScript {
     targets.foreach { target =>
       if (${Repr.str(projectsWithFile.map(_.value).toSet, 6)}.contains(target.project.value)) {
         val to = target.$dir.resolve(${Repr.str(file.toRelPath.toString, 8)})
-        started.logger.withContext(target.project).warn(s"Writing $$to")
+        started.logger.withContext("project", target.project.value).warn(s"Writing $$to")
         val content = ${Repr.str(file.contents, 6)}
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
