@@ -109,11 +109,11 @@
       "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js213/inc_compile.zip",
       "setup": {
         "order": "mixed",
-        "addLibraryToBootClasspath": true,
+        "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,
         "manageBootClasspath": true,
-        "filterLibraryFromClasspath": true
+        "filterLibraryFromClasspath": false
       }
     },
     "java": {
