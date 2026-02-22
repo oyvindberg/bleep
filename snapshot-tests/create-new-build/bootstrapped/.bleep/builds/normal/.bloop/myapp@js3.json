@@ -63,7 +63,7 @@
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-reader/3.19.0/jline-reader-3.19.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal/3.19.0/jline-terminal-3.19.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline-terminal-jna/3.19.0/jline-terminal-jna-3.19.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/com/google/protobuf/protobuf-java/3.7.0/protobuf-java-3.7.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/org/scala-sbt/util-interface/1.3.0/util-interface-1.3.0.jar",
         "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.3.1/jna-5.3.1.jar"
@@ -71,11 +71,11 @@
       "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js3/inc_compile.zip",
       "setup": {
         "order": "mixed",
-        "addLibraryToBootClasspath": true,
+        "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,
         "manageBootClasspath": true,
-        "filterLibraryFromClasspath": true
+        "filterLibraryFromClasspath": false
       }
     },
     "java": {

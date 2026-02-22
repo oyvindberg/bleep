@@ -9,6 +9,8 @@ import coursier.error.CoursierError
 import coursier.ivy.IvyRepository
 import coursier.maven.SbtMavenRepository
 import coursier.params.ResolutionParams
+import coursier.params.rule.SameVersion
+import coursier.util.ModuleMatcher
 import coursier.util.{Artifact, Task}
 import coursier.{Artifacts, Fetch, Resolution}
 import io.circe.*
@@ -192,15 +194,55 @@ object CoursierResolver {
       def go(deps: List[Dependency], remainingAttempts: Int): Either[CoursierError, Fetch.Result] = {
         val newClassifiers = if (params.downloadSources) List(Classifier.sources) else Nil
 
+        // SIP-51: For Scala 2.13 and 3, don't force scala-library version to match scala.version.
+        // This allows dependency resolution to upgrade scala-library when dependencies need it,
+        // implementing backwards-only binary compatibility. For older Scala versions (2.12, etc),
+        // we still force the version to maintain forward binary compatibility.
+        //
+        // Matches sbt's behavior (https://github.com/sbt/sbt/pull/7480):
+        // autoScalaLibrary.value && !ScalaArtifacts.isScala3(sv) && !Classpaths.isScala213(sv)
+
+        // SIP-51: For Scala 2.13 and 3 (pre-3.8), add a SameVersion rule to ensure all Scala artifacts
+        // (scala-library, scala-reflect, scala-compiler) stay at the same version. This is
+        // necessary because of Scala's inlining - having different versions of these artifacts
+        // can cause runtime errors.
+        //
+        // For Scala 3.8+, scala-reflect and scala-compiler are NOT part of the Scala 2 stdlib
+        // anymore (the stdlib is compiled with Scala 3), so the SameVersion rule must NOT include
+        // them — it would try to force scala-library:3.8.x == scala-reflect:2.13.x which is impossible.
+        val scalaArtifactsSameVersionRule = SameVersion(Set(
+          ModuleMatcher(Organization("org.scala-lang"), ModuleName("scala-library")),
+          ModuleMatcher(Organization("org.scala-lang"), ModuleName("scala-reflect")),
+          ModuleMatcher(Organization("org.scala-lang"), ModuleName("scala-compiler"))
+        ))
+
+        val resolutionParams = versionCombo.asScala match {
+          case Some(sv) if sv.scalaVersion.is38OrLater =>
+            // Scala 3.8+: stdlib is now a Scala 3 artifact. Don't force version, don't add
+            // SameVersion rule (scala-reflect/scala-compiler don't exist as 3.x artifacts).
+            ResolutionParams()
+              .withForceScalaVersion(false)
+              .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+          case Some(sv) if sv.scalaVersion.is3Or213 =>
+            // Scala 2.13/3 (pre-3.8): disable forceScalaVersion to allow scala-library upgrades.
+            // scala-library IS added as an explicit dependency with scalaVersion, which acts as
+            // a floor constraint. The SameVersion rule ensures all Scala artifacts stay aligned.
+            ResolutionParams()
+              .withForceScalaVersion(false)
+              .withScalaVersionOpt(Some(sv.scalaVersion.scalaVersion))
+              .addRule(scalaArtifactsSameVersionRule)
+          case _ =>
+            // Scala 2.12 and older: force the scala version for forward binary compatibility
+            ResolutionParams()
+              .withForceScalaVersion(versionCombo.asScala.nonEmpty)
+              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
+        }
+
         Fetch[Task](fileCache)
           .withArtifacts(Artifacts.apply(fileCache).withResolution(Resolution.apply()))
           .withRepositories(repos)
           .withDependencies(deps)
-          .withResolutionParams(
-            ResolutionParams()
-              .withForceScalaVersion(versionCombo.asScala.nonEmpty)
-              .withScalaVersionOpt(versionCombo.asScala.map(_.scalaVersion.scalaVersion))
-          )
+          .withResolutionParams(resolutionParams)
           .withMainArtifacts(true)
           .addClassifiers(newClassifiers: _*)
           .eitherResult() match {
