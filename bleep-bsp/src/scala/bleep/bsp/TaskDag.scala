@@ -603,10 +603,16 @@ object TaskDag {
               )
             }
             .handleErrorWith { error =>
+              val errorMsg = s"$taskName failed: ${error.getMessage}"
+              val causeMsg = Option(error.getCause).flatMap(c => Option(c.getMessage)).filter(_.nonEmpty)
+              val diagMessage = causeMsg match {
+                case Some(cause) => s"$errorMsg\nCaused by: $cause"
+                case None        => errorMsg
+              }
               IO.pure(
                 TaskResult.Failure(
-                  error = s"$taskName failed: ${error.getMessage}",
-                  diagnostics = List(BleepBspProtocol.Diagnostic.error(Option(error.getCause).map(_.getMessage).getOrElse("")))
+                  error = errorMsg,
+                  diagnostics = List(BleepBspProtocol.Diagnostic.error(diagMessage))
                 )
               )
             }

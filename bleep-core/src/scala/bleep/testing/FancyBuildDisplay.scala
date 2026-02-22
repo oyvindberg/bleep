@@ -65,6 +65,7 @@ object FancyBuildDisplay {
       runningTests: mutable.LinkedHashMap[String, RunningTest] = mutable.LinkedHashMap.empty,
       runningSuites: mutable.LinkedHashMap[String, RunningSuite] = mutable.LinkedHashMap.empty,
       recentPasses: mutable.ArrayDeque[String] = mutable.ArrayDeque.empty,
+      stalledProjects: Map[String, BuildEvent.CompileStalled] = Map.empty,
       startTime: Instant = Instant.now(),
       frame: Int = 0,
       issueScrollOffset: Int = 0,
@@ -112,8 +113,9 @@ object FancyBuildDisplay {
   case class CompilingProject(
       name: String,
       startTime: Instant,
-      progress: Option[Int] = None,
-      reason: Option[String] = None
+      progress: Option[Int],
+      reason: Option[String],
+      phase: Option[String]
   ) {
     def elapsedMs: Long = java.time.Duration.between(startTime, Instant.now()).toMillis
   }
@@ -381,7 +383,7 @@ object FancyBuildDisplay {
     // TUI-specific mutations (mutable maps for animation/display)
     event match {
       case BuildEvent.CompileStarted(project, timestamp) =>
-        state.compilingProjects.put(project, CompilingProject(project, Instant.ofEpochMilli(timestamp))): Unit
+        state.compilingProjects.put(project, CompilingProject(project, Instant.ofEpochMilli(timestamp), None, None, None)): Unit
 
       case BuildEvent.CompilationReason(project, reason, _, _, _, _) =>
         // Update the compiling project with the reason for display
@@ -442,6 +444,19 @@ object FancyBuildDisplay {
           state.compilingProjects.put(project, cp.copy(progress = Some(percent))): Unit
         }
 
+      case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, _) =>
+        state.compilingProjects.get(project).foreach { cp =>
+          val displayPhase = phase match {
+            case "reading-analysis" if trackedApis > 0 => Some(s"reading analysis ($trackedApis APIs)")
+            case "reading-analysis"                    => Some("reading analysis")
+            case "analyzing"                           => Some("analyzing")
+            case "compiling"                           => None // CompileProgress takes over
+            case "saving-analysis"                     => Some("saving analysis")
+            case _                                     => None
+          }
+          state.compilingProjects.put(project, cp.copy(phase = displayPhase)): Unit
+        }
+
       case BuildEvent.LinkStarted(_, _, _) | BuildEvent.LinkSucceeded(_, _, _, _) | BuildEvent.LinkFailed(_, _, _, _, _) =>
         () // Link state tracked in core via BuildStateReducer
 
@@ -453,6 +468,9 @@ object FancyBuildDisplay {
       case BuildEvent.SuitesDiscovered(_, _, _, _) | BuildEvent.Output(_, _, _, _, _) | BuildEvent.ProjectSkipped(_, _, _) | BuildEvent.Error(_, _, _, _) |
           _: BuildEvent.TestRunCompleted | _: BuildEvent.SourcegenStarted | _: BuildEvent.SourcegenFinished =>
         () // No TUI-specific state for these (core state updated via BuildStateReducer)
+
+      case _: BuildEvent.CompileStalled | _: BuildEvent.CompileResumed =>
+        () // Handled below via stalledProjects state
 
       case _: BuildEvent.WorkspaceBusy | _: BuildEvent.WorkspaceReady =>
         () // Handled below via workspaceBusy state
@@ -471,9 +489,22 @@ object FancyBuildDisplay {
       case _ =>
         state.workspaceBusy
     }
+    val updatedStalledProjects = event match {
+      case e: BuildEvent.CompileStalled =>
+        state.stalledProjects.updated(e.project, e)
+      case e: BuildEvent.CompileResumed =>
+        state.stalledProjects - e.project
+      case BuildEvent.CompileStarted(project, _) =>
+        state.stalledProjects - project
+      case BuildEvent.CompileFinished(project, _, _, _, _, _) =>
+        state.stalledProjects - project
+      case _ =>
+        state.stalledProjects
+    }
     state.copy(
       core = newCore,
       suitesDiscovered = updatedSuitesDiscovered,
+      stalledProjects = updatedStalledProjects,
       workspaceBusy = updatedWorkspaceBusy
     )
   }
@@ -640,7 +671,10 @@ object FancyBuildDisplay {
 
     // Line 3: compile summary + parallelism + exit hint
     val wallTimeMs = state.elapsedMs
-    val totalTaskTimeMs = state.core.totalTaskTimeMs
+    val runningTaskTimeMs = state.compilingProjects.values.map(_.elapsedMs).sum +
+      state.runningTests.values.map(_.elapsedMs).sum +
+      state.runningSuites.values.map(_.elapsedMs).sum
+    val totalTaskTimeMs = state.core.totalTaskTimeMs + runningTaskTimeMs
     val parallelism =
       if (wallTimeMs > 0 && totalTaskTimeMs > wallTimeMs) f"${totalTaskTimeMs.toDouble / wallTimeMs}%.1fx"
       else "-"
@@ -913,10 +947,28 @@ object FancyBuildDisplay {
       )
     }
 
+    // Show heap pressure stalls
+    state.stalledProjects.values.foreach { stalled =>
+      val waitSec = math.max(0, (stalled.retryAtMs - System.currentTimeMillis() + 999) / 1000)
+      val spinner = spinnerFrames(state.frame % spinnerFrames.length)
+      items += ListWidget.Item(
+        Text.fromSpans(
+          Spans.from(
+            Span.styled(s" $spinner ", s(Palette.warning)),
+            Span.styled("HEAP ", s(Palette.warning)),
+            Span.styled(stalled.project, s(Palette.text)),
+            Span.styled(s" ${stalled.heapUsedMb}MB/${stalled.heapMaxMb}MB", s(Palette.warning)),
+            Span.styled(s" retry ${waitSec}s", s(Palette.textDim))
+          )
+        )
+      )
+    }
+
     // Fallback: show compiling projects from State when no displayItems
     if (!hasActiveDisplayItems) {
       state.compilingProjects.values.foreach { cp =>
-        val progressStr = cp.progress.map(p => s" $p%").getOrElse("")
+        val phaseStr = cp.phase.map(p => s" ($p)").getOrElse("")
+        val progressStr = cp.progress.map(p => s" $p%").getOrElse(phaseStr)
         val elapsed = formatDuration(cp.elapsedMs)
         items += ListWidget.Item(
           Text.fromSpans(

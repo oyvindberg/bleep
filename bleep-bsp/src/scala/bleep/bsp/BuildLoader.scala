@@ -70,7 +70,7 @@ class BuildLoader(workspaceRoot: Path) {
           jars = classpath.filter(_.toString.contains("scala")).map(p => Uri(p.toUri)),
           jvmBuildTarget = Some(
             JvmBuildTarget(
-              javaHome = Some(Uri(new URI("file://" + System.getProperty("java.home")))),
+              javaHome = Some(Uri(Path.of(System.getProperty("java.home")).toUri)),
               javaVersion = Some(System.getProperty("java.version"))
             )
           )
@@ -88,7 +88,7 @@ class BuildLoader(workspaceRoot: Path) {
 
       case _: JavaConfig =>
         val jvmBuildTarget = JvmBuildTarget(
-          javaHome = Some(Uri(new URI("file://" + System.getProperty("java.home")))),
+          javaHome = Some(Uri(Path.of(System.getProperty("java.home")).toUri)),
           javaVersion = Some(System.getProperty("java.version"))
         )
         (List("java"), Some(BuildTargetDataKind.Jvm), Some(jvmBuildTarget))
@@ -165,7 +165,7 @@ class BuildLoader(workspaceRoot: Path) {
             jars = classpath.filter(_.toString.contains("scala")).map(p => Uri(p.toUri)),
             jvmBuildTarget = Some(
               JvmBuildTarget(
-                javaHome = Some(Uri(new URI("file://" + System.getProperty("java.home")))),
+                javaHome = Some(Uri(Path.of(System.getProperty("java.home")).toUri)),
                 javaVersion = Some(System.getProperty("java.version"))
               )
             )
@@ -183,7 +183,7 @@ class BuildLoader(workspaceRoot: Path) {
 
         case _: JavaConfig =>
           val jvmBuildTarget = JvmBuildTarget(
-            javaHome = Some(Uri(new URI("file://" + System.getProperty("java.home")))),
+            javaHome = Some(Uri(Path.of(System.getProperty("java.home")).toUri)),
             javaVersion = Some(System.getProperty("java.version"))
           )
           (List("java"), Some(BuildTargetDataKind.Jvm), Some(jvmBuildTarget))

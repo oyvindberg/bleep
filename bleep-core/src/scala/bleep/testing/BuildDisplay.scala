@@ -4,7 +4,9 @@ import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.syntax.all._
+import ryddig.{LoggerFn, TypedLogger}
 
+import scala.collection.mutable
 import scala.{Console => SConsole}
 
 /** Displays build progress in real-time.
@@ -452,6 +454,31 @@ object BuildDisplay {
       upToDateProjects: Ref[IO, Set[String]]
   ) extends BuildDisplay {
 
+    // Track active compilations and their progress for progressMonitor display
+    private val activeCompileProgress: mutable.Map[String, Int] = mutable.Map.empty
+    private var lastProgressLine: String = ""
+
+    private val progressMonitor: Option[LoggerFn] = logger match {
+      case tl: TypedLogger[?] => tl.progressMonitor
+      case _                  => None
+    }
+
+    private def renderCompileProgress(): Unit = progressMonitor.foreach { pm =>
+      val items = activeCompileProgress.toList.sortBy(-_._2)
+      if (items.nonEmpty) {
+        val rendered = items.take(4).map { case (project, pct) =>
+          if (pct > 0) s"$project: $pct%" else s"$project: started"
+        }
+        val rest = items.size - rendered.size
+        val suffix = if (rest > 0) s" +$rest" else ""
+        val line = s"Compiling ${rendered.mkString(", ")}$suffix"
+        if (line != lastProgressLine) {
+          lastProgressLine = line
+          pm.info(line)
+        }
+      }
+    }
+
     override def handle(event: BuildEvent): IO[Unit] =
       state.update(s => BuildStateReducer.reduce(s, event)) >> printSideEffects(event)
 
@@ -460,9 +487,12 @@ object BuildDisplay {
     private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
 
     private def printSideEffects(event: BuildEvent): IO[Unit] = event match {
-      case BuildEvent.CompileStarted(_, _) =>
-        // Don't print "Compiling:" - wait for CompilationReason to show actual status
-        IO.unit
+      case BuildEvent.CompileStarted(project, _) =>
+        // Track for progressMonitor, but don't print — wait for CompilationReason
+        IO.delay {
+          activeCompileProgress(project) = 0
+          renderCompileProgress()
+        }
 
       case BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, _) =>
         // Track up-to-date projects so CompileFinished can suppress output for them
@@ -501,22 +531,27 @@ object BuildDisplay {
         trackUpToDate >> printMsg
 
       case BuildEvent.CompileFinished(project, status, durationMs, _, _, _) =>
-        // Suppress output for up-to-date projects (only show single line from CompilationReason)
-        upToDateProjects.get.flatMap { upToDate =>
-          if (upToDate.contains(project) && status == "success") {
-            IO.unit // Already showed "project: up to date" - nothing more needed
-          } else if (!quietMode) {
-            val displayStatus = status match {
-              case "success"   => "done"
-              case "failed"    => "FAILED"
-              case "error"     => "ERROR"
-              case "skipped"   => "SKIPPED"
-              case "cancelled" => "cancelled"
-              case other       => other
-            }
-            log(s"Compile $displayStatus: $project (${durationMs}ms)")
-          } else IO.unit
-        }
+        // Remove from active progress tracking
+        IO.delay {
+          val _ = activeCompileProgress.remove(project)
+          renderCompileProgress()
+        } >>
+          // Suppress output for up-to-date projects (only show single line from CompilationReason)
+          upToDateProjects.get.flatMap { upToDate =>
+            if (upToDate.contains(project) && status == "success") {
+              IO.unit // Already showed "project: up to date" - nothing more needed
+            } else if (!quietMode) {
+              val displayStatus = status match {
+                case "success"   => "done"
+                case "failed"    => "FAILED"
+                case "error"     => "ERROR"
+                case "skipped"   => "SKIPPED"
+                case "cancelled" => "cancelled"
+                case other       => other
+              }
+              log(s"Compile $displayStatus: $project (${durationMs}ms)")
+            } else IO.unit
+          }
 
       case BuildEvent.SuiteStarted(_, _, _) =>
         if (!quietMode) printStatus else IO.unit
@@ -547,8 +582,24 @@ object BuildDisplay {
       case BuildEvent.ProjectSkipped(project, reason, _) =>
         if (!quietMode) logWarn(s"[SKIPPED] $project: $reason") else IO.unit
 
-      case BuildEvent.CompileProgress(_, _, _) =>
-        IO.unit
+      case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
+        val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
+        logWarn(s"$project: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+
+      case _: BuildEvent.CompileResumed =>
+        IO.unit // silence — compile will proceed and emit its own events
+
+      case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, _) =>
+        if (!quietMode) {
+          val detail = if (trackedApis > 0) s" ($trackedApis APIs)" else ""
+          log(s"$project: $phase$detail")
+        } else IO.unit
+
+      case BuildEvent.CompileProgress(project, percent, _) =>
+        IO.delay {
+          activeCompileProgress(project) = percent
+          renderCompileProgress()
+        }
 
       case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, threadDumpInfo, _) =>
         val timeoutSec = timeoutMs / 1000

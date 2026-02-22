@@ -86,6 +86,32 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
+  /** Compilation sub-phase transition (reading analysis, analyzing, compiling, saving) */
+  case class CompilePhaseChanged(
+      project: String,
+      phase: String, // "reading-analysis", "analyzing", "compiling", "saving-analysis"
+      trackedApis: Int,
+      timestamp: Long
+  ) extends BuildEvent
+
+  /** Compilation is stalled due to heap pressure — waiting for GC to recover */
+  case class CompileStalled(
+      project: String,
+      heapUsedMb: Long,
+      heapMaxMb: Long,
+      retryAtMs: Long,
+      timestamp: Long
+  ) extends BuildEvent
+
+  /** Compilation resumed after heap pressure subsided */
+  case class CompileResumed(
+      project: String,
+      heapUsedMb: Long,
+      heapMaxMb: Long,
+      stalledMs: Long,
+      timestamp: Long
+  ) extends BuildEvent
+
   /** A test suite has started execution */
   case class SuiteStarted(
       project: String,

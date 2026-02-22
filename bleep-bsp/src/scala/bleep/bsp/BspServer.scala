@@ -352,7 +352,7 @@ class BspServer(
     if isJavaOnly && hasNoDataKind then {
       // Create JvmBuildTarget data if none exists
       val jvmTarget = JvmBuildTarget(
-        javaHome = Some(Uri(java.net.URI.create("file://" + System.getProperty("java.home")))),
+        javaHome = Some(Uri(java.nio.file.Path.of(System.getProperty("java.home")).toUri)),
         javaVersion = Some(System.getProperty("java.version"))
       )
       target.copy(

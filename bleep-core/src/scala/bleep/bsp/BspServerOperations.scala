@@ -197,7 +197,26 @@ object BspServerOperations {
         case false =>
           IO.realTime.flatMap { now =>
             if (now.toMillis >= deadline) {
-              IO.raiseError(new FailedToStartServerException(config.startCheckTimeout))
+              IO.blocking {
+                val socketExists = Files.exists(socketFile)
+                val outputExists = Files.exists(outputFile)
+                val outputContent = if (outputExists) {
+                  val content = Files.readString(outputFile)
+                  if (content.length > 2000) content.takeRight(2000) else content
+                } else "<no output file>"
+                val pidFile = config.address.socketDir.resolve("pid")
+                val pidInfo = if (Files.exists(pidFile)) s"pid file: ${Files.readString(pidFile).trim}" else "no pid file"
+                val details = List(
+                  s"socket file exists: $socketExists",
+                  s"output file exists: $outputExists",
+                  pidInfo,
+                  s"socket dir: ${config.address.socketDir}",
+                  s"server output:\n$outputContent"
+                ).mkString("\n  ")
+                new RuntimeException(
+                  s"BSP server failed to start within ${config.startCheckTimeout}\n  $details"
+                )
+              }.flatMap(IO.raiseError)
             } else {
               IO.sleep(config.startCheckPeriod) >> poll(deadline)
             }

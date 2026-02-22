@@ -15,7 +15,9 @@ import java.util.concurrent.ConcurrentHashMap
   *   - Automatic release on JVM crash
   *   - Non-blocking tryLock with timeout support
   *
-  * Lock files are created in the project's output directory as `.bleep-lock`.
+  * Lock files are created in the PARENT of the output directory (e.g. `target/.bleep-lock`, not `target/classes/.bleep-lock`). This is critical on Windows
+  * where file locks are mandatory — placing the lock inside the classes directory causes Zinc to fail when scanning class files, since the locked file cannot
+  * be accessed by other code in the same process.
   */
 object ProjectLock {
 
@@ -50,7 +52,10 @@ object ProjectLock {
       outputDir: Path,
       timeout: scala.concurrent.duration.FiniteDuration
   ): IO[Unit] = {
-    val lockFile = outputDir.resolve(".bleep-lock")
+    // Place lock file in parent directory (e.g. target/.bleep-lock, not target/classes/.bleep-lock).
+    // On Windows, mandatory file locks prevent ALL access to the locked file — including Zinc scanning
+    // the classes directory for incremental compilation.
+    val lockFile = outputDir.getParent.resolve(".bleep-lock")
     val retryDelay = scala.concurrent.duration.Duration(50, scala.concurrent.duration.MILLISECONDS)
     val maxAttempts = (timeout.toMillis / retryDelay.toMillis).toInt.max(1)
 
@@ -92,6 +97,13 @@ object ProjectLock {
           IO.sleep(retryDelay) >> attempt(remaining - 1)
         case _: LockNotAcquiredException =>
           IO.raiseError(new LockTimeoutException(project, timeout))
+        case e: java.io.IOException if remaining > 1 && isWindowsSharingViolation(e) =>
+          // On Windows, antivirus scanners and indexing services can briefly hold
+          // exclusive handles on newly-created files. Retry in the same way as for
+          // lock contention.
+          IO.sleep(retryDelay) >> attempt(remaining - 1)
+        case e: java.io.IOException if isWindowsSharingViolation(e) =>
+          IO.raiseError(new LockTimeoutException(project, timeout))
         case e =>
           IO.raiseError(e)
       }
@@ -116,6 +128,14 @@ object ProjectLock {
   /** Track active locks for cleanup */
   private case class LockInfo(raf: RandomAccessFile, channel: FileChannel, fileLock: FileLock)
   private val activeLocks = ConcurrentHashMap[CrossProjectName, LockInfo]()
+
+  /** Check if an IOException is a Windows sharing violation (ERROR_SHARING_VIOLATION).
+    *
+    * This occurs when antivirus scanners, Windows Search, or backup tools briefly hold exclusive handles on files. The error message is "The process cannot
+    * access the file because it is being used by another process".
+    */
+  private def isWindowsSharingViolation(e: java.io.IOException): Boolean =
+    e.getMessage != null && e.getMessage.contains("being used by another process")
 
   /** Exception when lock couldn't be acquired (internal, triggers retry) */
   private class LockNotAcquiredException(project: CrossProjectName) extends Exception(s"Could not acquire lock for ${project.value}")

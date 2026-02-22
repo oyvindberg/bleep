@@ -121,7 +121,7 @@ case class ReactiveBsp(
               server = server,
               clientName = "bleep",
               clientVersion = model.BleepVersion.current.value,
-              rootUri = started.buildPaths.buildVariantDir.toUri.toString,
+              rootUri = started.buildPaths.buildDir.toUri.toString,
               buildData = buildData
             )
             targets = targetProjects.map(p => buildTarget(started.buildPaths, p)).toList
@@ -260,7 +260,7 @@ case class ReactiveBsp(
                 server = server,
                 clientName = "bleep",
                 clientVersion = model.BleepVersion.current.value,
-                rootUri = started.buildPaths.buildVariantDir.toUri.toString
+                rootUri = started.buildPaths.buildDir.toUri.toString
               )
 
               _ <- IO(diagLog(s"[BSP_OP] Initialize complete, starting main operation. mode=$mode targets=${targetProjects.map(_.value).mkString(",")}"))
@@ -333,11 +333,11 @@ case class ReactiveBsp(
 
       // Race BSP operation with user quit - pressing 'q' cancels BSP immediately
       raceResult <- IO.race(waitForUserQuit.void, bspOperation).attempt
-      _ <- raceResult match {
+      bspError <- raceResult match {
         case Left(err) =>
           IO(diagLog(s"[ERROR] BSP operation failed: ${err.getClass.getName}: ${err.getMessage}")) >>
-            IO(started.logger.error(s"BSP operation failed: ${err.getMessage}"))
-        case Right(_) => IO.unit
+            IO(started.logger.error(s"BSP operation failed: ${err.getMessage}")).as(Some(err))
+        case Right(_) => IO.pure(None)
       }
 
       // Signal the event consumer to stop, then wait for it to finish processing
@@ -370,6 +370,11 @@ case class ReactiveBsp(
           IO.delay(started.logger.info(s"  Flamegraph: ${started.buildPaths.dotBleepDir.resolve("trace.json")} (open in chrome://tracing or ui.perfetto.dev)"))
         else IO.unit
       _ <- IO(diagLogWriter.close())
+      // Re-raise BSP error after cleanup so the command fails with non-zero exit
+      _ <- bspError match {
+        case Some(err) => IO.raiseError(err)
+        case None      => IO.unit
+      }
     } yield summary
 
     val startTime = System.currentTimeMillis()
@@ -759,8 +764,17 @@ class ReactiveBspClient(
       case PE.CompileProgress(project, percentage, timestamp) =>
         Some(BuildEvent.CompileProgress(project, percentage, timestamp))
 
+      case PE.CompilePhaseChanged(project, phase, trackedApis, timestamp) =>
+        Some(BuildEvent.CompilePhaseChanged(project, phase, trackedApis, timestamp))
+
       case PE.CompileFinished(project, status, durationMs, diagnostics, skippedBecause, timestamp) =>
         Some(BuildEvent.CompileFinished(project, status, durationMs, timestamp, diagnostics, skippedBecause))
+
+      case PE.CompileStalled(project, heapUsedMb, heapMaxMb, retryAtMs, timestamp) =>
+        Some(BuildEvent.CompileStalled(project, heapUsedMb, heapMaxMb, retryAtMs, timestamp))
+
+      case PE.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp) =>
+        Some(BuildEvent.CompileResumed(project, heapUsedMb, heapMaxMb, stalledMs, timestamp))
 
       case PE.SuitesDiscovered(project, suites, totalDiscovered, timestamp) =>
         Some(BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, timestamp))
