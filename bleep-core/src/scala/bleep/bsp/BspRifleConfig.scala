@@ -142,8 +142,5 @@ object BspRifleConfig {
   }
 }
 
-/** Exception thrown when server fails to start within timeout */
-class FailedToStartServerException(timeout: FiniteDuration) extends RuntimeException(s"BSP server failed to start within $timeout")
-
 /** Exception thrown when server is already running (exit code 222) */
 class ServerAlreadyRunningException(socketDir: Path) extends RuntimeException(s"BSP server already running in $socketDir")

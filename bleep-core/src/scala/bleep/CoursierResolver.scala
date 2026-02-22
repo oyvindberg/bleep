@@ -409,7 +409,8 @@ object CoursierResolver {
               Extension(la.ext),
               if (la.classifier.isEmpty) Classifier.empty else Classifier(la.classifier)
             )
-            val artifact = Artifact(s"file://${la.path}", Map.empty, Map.empty, changing = false, optional = false, authentication = None)
+            val artifact =
+              Artifact(java.nio.file.Path.of(la.path).toUri.toASCIIString, Map.empty, Map.empty, changing = false, optional = false, authentication = None)
             val file = if (la.path.nonEmpty) Some(new File(la.path)) else None
             (dep, pub, artifact, file)
           }

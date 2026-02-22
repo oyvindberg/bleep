@@ -191,12 +191,38 @@ object BleepBspProtocol {
         timestamp: Long
     ) extends Event
 
+    /** Compilation sub-phase transition (reading analysis, analyzing, compiling, saving) */
+    case class CompilePhaseChanged(
+        project: String,
+        phase: String, // "reading-analysis", "analyzing", "compiling", "saving-analysis"
+        trackedApis: Int, // number of tracked API structures from analysis (non-zero only for "reading-analysis")
+        timestamp: Long
+    ) extends Event
+
     case class CompileFinished(
         project: String,
         status: String, // "success", "failed", "error", "skipped", "cancelled"
         durationMs: Long,
         diagnostics: List[BleepBspProtocol.Diagnostic],
         skippedBecause: Option[String], // CrossProjectName.value of the dependency whose failure caused this to be skipped
+        timestamp: Long
+    ) extends Event
+
+    /** Compilation is stalled due to heap pressure — waiting for GC to recover */
+    case class CompileStalled(
+        project: String,
+        heapUsedMb: Long,
+        heapMaxMb: Long,
+        retryAtMs: Long,
+        timestamp: Long
+    ) extends Event
+
+    /** Compilation resumed after heap pressure subsided */
+    case class CompileResumed(
+        project: String,
+        heapUsedMb: Long,
+        heapMaxMb: Long,
+        stalledMs: Long,
         timestamp: Long
     ) extends Event
 
@@ -436,7 +462,10 @@ object BleepBspProtocol {
     implicit val compileStartedCodec: Codec[CompileStarted] = deriveCodec
     implicit val compilationReasonCodec: Codec[CompilationReason] = deriveCodec
     implicit val compileProgressCodec: Codec[CompileProgress] = deriveCodec
+    implicit val compilePhaseChangedCodec: Codec[CompilePhaseChanged] = deriveCodec
     implicit val compileFinishedCodec: Codec[CompileFinished] = deriveCodec
+    implicit val compileStalledCodec: Codec[CompileStalled] = deriveCodec
+    implicit val compileResumedCodec: Codec[CompileResumed] = deriveCodec
     implicit val linkStartedCodec: Codec[LinkStarted] = deriveCodec
     implicit val linkProgressCodec: Codec[LinkProgress] = deriveCodec
     implicit val linkFinishedCodec: Codec[LinkFinished] = deriveCodec
@@ -470,7 +499,10 @@ object BleepBspProtocol {
       case e: CompileStarted      => Json.obj("type" -> "CompileStarted".asJson, "data" -> e.asJson)
       case e: CompilationReason   => Json.obj("type" -> "CompilationReason".asJson, "data" -> e.asJson)
       case e: CompileProgress     => Json.obj("type" -> "CompileProgress".asJson, "data" -> e.asJson)
+      case e: CompilePhaseChanged => Json.obj("type" -> "CompilePhaseChanged".asJson, "data" -> e.asJson)
       case e: CompileFinished     => Json.obj("type" -> "CompileFinished".asJson, "data" -> e.asJson)
+      case e: CompileStalled      => Json.obj("type" -> "CompileStalled".asJson, "data" -> e.asJson)
+      case e: CompileResumed      => Json.obj("type" -> "CompileResumed".asJson, "data" -> e.asJson)
       case e: LinkStarted         => Json.obj("type" -> "LinkStarted".asJson, "data" -> e.asJson)
       case e: LinkProgress        => Json.obj("type" -> "LinkProgress".asJson, "data" -> e.asJson)
       case e: LinkFinished        => Json.obj("type" -> "LinkFinished".asJson, "data" -> e.asJson)
@@ -505,7 +537,10 @@ object BleepBspProtocol {
         case "CompileStarted"      => cursor.downField("data").as[CompileStarted]
         case "CompilationReason"   => cursor.downField("data").as[CompilationReason]
         case "CompileProgress"     => cursor.downField("data").as[CompileProgress]
+        case "CompilePhaseChanged" => cursor.downField("data").as[CompilePhaseChanged]
         case "CompileFinished"     => cursor.downField("data").as[CompileFinished]
+        case "CompileStalled"      => cursor.downField("data").as[CompileStalled]
+        case "CompileResumed"      => cursor.downField("data").as[CompileResumed]
         case "LinkStarted"         => cursor.downField("data").as[LinkStarted]
         case "LinkProgress"        => cursor.downField("data").as[LinkProgress]
         case "LinkFinished"        => cursor.downField("data").as[LinkFinished]

@@ -128,6 +128,18 @@ object BspMetrics {
   def recordSourcegenEnd(scriptName: String, durationMs: Long, success: Boolean): Unit =
     writeEvent(s"""{"type":"sourcegen_end","ts":${now()},"script":"${esc(scriptName)}","duration_ms":$durationMs,"success":$success}""")
 
+  def recordCompilePhase(project: String, phase: String, trackedApis: Int): Unit =
+    writeEvent(
+      s"""{"type":"compile_phase","ts":${now()},"project":"${esc(project)}","phase":"${esc(phase)}","tracked_apis":$trackedApis}"""
+    )
+
+  def recordHeapPressureStall(project: String, heapUsedMb: Long, heapMaxMb: Long): Unit =
+    writeEvent(
+      s"""{"type":"heap_pressure_stall","ts":${now()},"project":"${esc(
+          project
+        )}","heap_used_mb":$heapUsedMb,"heap_max_mb":$heapMaxMb,"concurrent_compiles":${concurrentCompiles.get()}}"""
+    )
+
   def recordOomCrash(threadName: String, message: String): Unit = {
     val heap = ManagementFactory.getMemoryMXBean.getHeapMemoryUsage
     val usedMb = heap.getUsed / (1024 * 1024)

@@ -138,98 +138,145 @@ object ZincBridge {
     if (sources.isEmpty) {
       ProjectCompileSuccess(config.outputDir, Set.empty, Some(analysisFile))
     } else {
-      // Always delegate to Zinc for up-to-date detection.
-      // Zinc uses content hashing (farmHash) which is robust across git operations
-      // like rebase that preserve file timestamps.
-      val scalaInstance = getScalaInstance(language.scalaVersion)
-      val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken)
-      val logger = new BleepLogger(diagnosticListener)
-      val reporter = new BleepReporter(diagnosticListener)
+      compileOnce(config, sources, language, diagnosticListener, cancellationToken, dependencyAnalyses, progressListener, ecjVersion, analysisFile)
+    }
+  }
 
-      val previousResult = loadPreviousResult(analysisFile)
-      val hasPrevAnalysis = previousResult.analysis().isPresent
-      debug(s"[ZincBridge] ${config.name}: ${sources.length} sources, hasPreviousAnalysis=$hasPrevAnalysis, outputDir=${config.outputDir}")
+  /** Run a single compilation attempt. Unexpected Zinc exceptions propagate — the sentinel file ensures the next compile starts clean if this one is
+    * interrupted by process death.
+    */
+  private def compileOnce(
+      config: ProjectConfig,
+      sources: Array[VirtualFile],
+      language: ProjectLanguage.ScalaJava,
+      diagnosticListener: DiagnosticListener,
+      cancellationToken: CancellationToken,
+      dependencyAnalyses: Map[Path, Path],
+      progressListener: ProgressListener,
+      ecjVersion: Option[String],
+      analysisFile: Path
+  ): ProjectCompileResult = {
+    // Always delegate to Zinc for up-to-date detection.
+    // Zinc uses content hashing (farmHash) which is robust across git operations
+    // like rebase that preserve file timestamps.
+    val scalaInstance = getScalaInstance(language.scalaVersion)
+    val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken, progressListener)
+    val logger = new BleepLogger(diagnosticListener)
+    val reporter = new BleepReporter(diagnosticListener)
 
-      // When there's no analysis but old class files exist (e.g. analysis deleted by
-      // cancellation cleanup or manual clean), we must clear the output directory.
-      // Without this, zinc does a clean compile (all sources) but the output dir is
-      // on the classpath (for incremental Java compilation), so javac sees both the
-      // stale .class files AND the source files → "duplicate class" errors.
-      if (!hasPrevAnalysis && Files.exists(config.outputDir)) {
-        debug(s"[ZincBridge] No analysis for ${config.name} — clearing stale class files from ${config.outputDir}")
+    // Sentinel file to detect interrupted compilations (OOM, SIGKILL, etc.)
+    // Written before compilation starts, deleted after. If it exists when we
+    // start, the previous compile was interrupted and state may be corrupt.
+    val compilingSentinel = analysisFile.resolveSibling("compiling")
+
+    if (Files.exists(compilingSentinel)) {
+      debug(s"[ZincBridge] ${config.name}: detected interrupted compilation (sentinel exists), cleaning state")
+      System.err.println(s"[ZincBridge] ${config.name}: previous compilation was interrupted, rebuilding from clean state")
+      Files.deleteIfExists(analysisFile)
+      analysisCache.remove(analysisFile)
+      if (Files.exists(config.outputDir)) {
         bleep.internal.FileUtils.deleteDirectory(config.outputDir)
         Files.createDirectories(config.outputDir)
       }
+      Files.deleteIfExists(compilingSentinel)
+    }
 
-      // For first compile (no previous analysis), report all source files upfront
-      if (!hasPrevAnalysis) {
-        sources.foreach { vf =>
-          val path = vf match {
-            case pvf: PlainVirtualFile => pvf.path
-            case other                 => Path.of(other.id())
-          }
-          diagnosticListener.onCompileFile(path, Some("zinc-initial"))
+    val previousResult = loadPreviousResult(analysisFile)
+    val hasPrevAnalysis = previousResult.analysis().isPresent
+    debug(s"[ZincBridge] ${config.name}: ${sources.length} sources, hasPreviousAnalysis=$hasPrevAnalysis, outputDir=${config.outputDir}")
+
+    // Signal reading-analysis phase with tracked API count
+    val trackedApis = if (hasPrevAnalysis) {
+      previousResult.analysis().get().asInstanceOf[sbt.internal.inc.Analysis].apis.internal.size
+    } else 0
+    diagnosticListener.onCompilePhase(config.name, CompilePhase.ReadingAnalysis(trackedApis))
+
+    // When there's no analysis but old class files exist (e.g. analysis deleted by
+    // cancellation cleanup or manual clean), we must clear the output directory.
+    // Without this, zinc does a clean compile (all sources) but the output dir is
+    // on the classpath (for incremental Java compilation), so javac sees both the
+    // stale .class files AND the source files → "duplicate class" errors.
+    if (!hasPrevAnalysis && Files.exists(config.outputDir)) {
+      debug(s"[ZincBridge] No analysis for ${config.name} — clearing stale class files from ${config.outputDir}")
+      bleep.internal.FileUtils.deleteDirectory(config.outputDir)
+      Files.createDirectories(config.outputDir)
+    }
+
+    // Emit CompilationReason so the client display shows "Compiling: project-name ..."
+    if (!hasPrevAnalysis) {
+      diagnosticListener.onCompilationReason(config.name, CompilationReason.CleanBuild)
+    } else {
+      diagnosticListener.onCompilationReason(config.name, CompilationReason.Incremental(sources.length, Nil, Nil))
+    }
+
+    // For first compile (no previous analysis), report all source files upfront
+    if (!hasPrevAnalysis) {
+      sources.foreach { vf =>
+        val path = vf match {
+          case pvf: PlainVirtualFile => pvf.path
+          case other                 => Path.of(other.id())
         }
+        diagnosticListener.onCompileFile(path, Some("zinc-initial"))
+      }
+    }
+
+    val inputs = createInputs(
+      config,
+      sources,
+      language,
+      compilers,
+      previousResult,
+      reporter,
+      dependencyAnalyses,
+      progressListener,
+      cancellationToken,
+      diagnosticListener
+    )
+
+    val compiler = incrementalCompiler
+
+    // Ensure analysis directory exists (may have been deleted by stale-class-files guard above)
+    Files.createDirectories(compilingSentinel.getParent)
+
+    // Write sentinel before compilation so we can detect interrupted compiles
+    Files.writeString(compilingSentinel, config.name, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+
+    // Signal analyzing phase — zinc will compute invalidation before the first advance() callback
+    diagnosticListener.onCompilePhase(config.name, CompilePhase.Analyzing)
+
+    try {
+      debug(s"[ZincBridge] Starting compilation for ${config.name}")
+      val result = compiler.compile(inputs, logger)
+      debug(s"[ZincBridge] Compilation done for ${config.name}, hasModified=${result.hasModified}")
+
+      // Retroactively mark up-to-date if incremental analysis found nothing to recompile
+      if (hasPrevAnalysis && !result.hasModified) {
+        diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
       }
 
-      val inputs = createInputs(
-        config,
-        sources,
-        language,
-        compilers,
-        previousResult,
-        reporter,
-        dependencyAnalyses,
-        progressListener,
-        cancellationToken,
-        diagnosticListener
-      )
+      if (result.hasModified) {
+        diagnosticListener.onCompilePhase(config.name, CompilePhase.SavingAnalysis)
+        debug(s"[ZincBridge] Saving analysis for ${config.name}")
+        saveAnalysis(analysisFile, result.analysis, result.setup)
+      }
 
-      val compiler = incrementalCompiler
-      val compileResult =
-        try {
-          debug(s"[ZincBridge] Starting compilation for ${config.name}")
-          val result = compiler.compile(inputs, logger)
-          debug(s"[ZincBridge] Compilation done for ${config.name}, hasModified=${result.hasModified}")
-
-          if (result.hasModified) {
-            debug(s"[ZincBridge] Saving analysis for ${config.name}")
-            saveAnalysis(analysisFile, result.analysis, result.setup)
-          }
-
-          val classFiles = collectClassFiles(config.outputDir)
-          ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
-        } catch {
-          case e: xsbti.CompileFailed =>
-            ProjectCompileFailure(e.problems.toList.map(problemToError))
-          case e: Exception =>
-            // Clear interrupt flag if set (cancellation via IO.interruptible
-            // may leave it set, which would break subsequent I/O operations)
-            Thread.interrupted()
-            ProjectCompileFailure(
-              List(
-                CompilerError(
-                  path = None,
-                  line = 0,
-                  column = 0,
-                  message = s"Compilation failed: ${e.getMessage}"
-                )
-              )
-            )
-        }
+      val classFiles = collectClassFiles(config.outputDir)
+      ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
+    } catch {
+      case e: xsbti.CompileFailed =>
+        ProjectCompileFailure(e.problems.toList.map(problemToError))
+    } finally {
+      // Remove sentinel — compilation finished (success or failure).
+      // Only a process death (OOM, SIGKILL) leaves the sentinel behind,
+      // which triggers a clean rebuild on the next compile attempt.
+      Files.deleteIfExists(compilingSentinel)
 
       // If compilation was cancelled, delete the analysis file so that the
-      // next compile triggers a clean rebuild via the stale-class-files guard
-      // (lines 144-148). We intentionally do NOT delete the output directory
-      // here — that would cascade timestamp changes to all downstream projects,
-      // causing unnecessary recompilation of Kotlin/Java dependents. The stale
-      // files guard will clean up the output at the start of the NEXT compile.
+      // next compile triggers a clean rebuild via the stale-class-files guard.
       if (cancellationToken.isCancelled) {
         debug(s"[ZincBridge] Cancel cleanup for ${config.name}: deleting analysis=${analysisFile}")
         Files.deleteIfExists(analysisFile)
       }
-
-      compileResult
     }
   }
 
@@ -310,7 +357,8 @@ object ZincBridge {
       scalaInstance: ZincScalaInstance,
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String],
-      cancellationToken: CancellationToken
+      cancellationToken: CancellationToken,
+      progressListener: ProgressListener
   ): Compilers = {
     val bridgeJar = getBridge(language.scalaVersion)
     val classpathOptions = ClasspathOptionsUtil.noboot(scalaInstance.version)
@@ -327,7 +375,7 @@ object ZincBridge {
     val javaTools = ecjVersion match {
       case Some(version) =>
         debug(s"[ZincBridge] Using ECJ version $version for Java compilation")
-        createEcjTools(scalaInstance, classpathOptions, version, cancellationToken)
+        createEcjTools(scalaInstance, classpathOptions, version, cancellationToken, progressListener)
       case None =>
         sbt.internal.inc.javac.JavaTools.directOrFork(
           scalaInstance,
@@ -344,7 +392,8 @@ object ZincBridge {
       scalaInstance: ZincScalaInstance,
       classpathOptions: ClasspathOptions,
       ecjVersion: String,
-      cancellationToken: CancellationToken
+      cancellationToken: CancellationToken,
+      progressListener: ProgressListener
   ): xsbti.compile.JavaTools = {
     // Resolve ECJ jar
     val ecjJars = resolveEcj(ecjVersion)
@@ -354,7 +403,7 @@ object ZincBridge {
     )
 
     // Create a forked Java compiler that uses ECJ
-    val ecjCompiler = new EcjCompiler(ecjJars, ecjClassLoader, cancellationToken)
+    val ecjCompiler = new EcjCompiler(ecjJars, ecjClassLoader, cancellationToken, progressListener)
 
     // Use standard javadoc (ECJ doesn't include javadoc)
     val standardJavaTools = sbt.internal.inc.javac.JavaTools.directOrFork(
@@ -506,11 +555,18 @@ object ZincBridge {
     val cachePath = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc")).resolve("cache")
 
     // Create progress callback that wraps our listener
+    // Detect the transition from zinc's invalidation analysis to actual compilation
+    // via the first advance() callback from the Scala compiler
+    @volatile var firstAdvance = true
     val progress: CompileProgress = new CompileProgress {
       override def startUnit(phase: String, unitPath: String): Unit =
         debug(s"[ZincBridge] startUnit called: phase=$phase, unitPath=$unitPath")
 
       override def advance(current: Int, total: Int, prevPhase: String, nextPhase: String): Boolean = {
+        if (firstAdvance) {
+          firstAdvance = false
+          diagnosticListener.onCompilePhase(config.name, CompilePhase.Compiling)
+        }
         val shouldContinue = progressListener.onProgress(current, total, nextPhase)
         shouldContinue && !cancellationToken.isCancelled
       }
@@ -696,23 +752,16 @@ object ZincBridge {
 
 /** ECJ (Eclipse Compiler for Java) wrapper for Zinc.
   *
-  * Uses ECJ's Compiler API directly with ICompilerRequestor to capture structured error information (file, line, column, message, severity).
+  * Uses ECJ's batch Main with a CompilationProgress bridge (generated via ASM at runtime) to get per-file progress and native cancellation support.
   */
-private class EcjCompiler(ecjJars: Seq[Path], ecjClassLoader: ClassLoader, cancellationToken: CancellationToken) extends xsbti.compile.JavaCompiler {
+private class EcjCompiler(
+    ecjJars: Seq[Path],
+    ecjClassLoader: ClassLoader,
+    cancellationToken: CancellationToken,
+    progressListener: ProgressListener
+) extends xsbti.compile.JavaCompiler {
   import scala.jdk.OptionConverters.*
   import scala.collection.mutable
-
-  // Collected problems from compilation
-  private val collectedProblems = mutable.ListBuffer.empty[CapturedProblem]
-
-  case class CapturedProblem(
-      file: String,
-      line: Int,
-      startOffset: Int,
-      endOffset: Int,
-      message: String,
-      isError: Boolean
-  )
 
   def run(
       sources: Array[VirtualFile],
@@ -723,8 +772,6 @@ private class EcjCompiler(ecjJars: Seq[Path], ecjClassLoader: ClassLoader, cance
       log: Logger
   ): Boolean = {
     if (sources.isEmpty) return true
-
-    collectedProblems.clear()
 
     val outputDir = output.getSingleOutputAsPath.toScala.getOrElse(
       throw new RuntimeException("ECJ requires a single output directory")
@@ -762,44 +809,103 @@ private class EcjCompiler(ecjJars: Seq[Path], ecjClassLoader: ClassLoader, cance
     val errPrint = new java.io.PrintWriter(errStream, true)
     val outPrint = new java.io.PrintWriter(outStream, true)
 
-    val constructor = mainClass.getConstructor(
-      classOf[java.io.PrintWriter],
-      classOf[java.io.PrintWriter],
-      classOf[Boolean]
-    )
-    val ecjMain = constructor.newInstance(outPrint, errPrint, java.lang.Boolean.FALSE)
-
-    // Run ECJ on a dedicated thread so we can interrupt it on cancellation.
-    // ECJ's batch.Main.compile() is a blocking call with no cancellation API —
-    // even Zinc's advance() callback only fires between phases, not during ECJ's
-    // internal loops (e.g. Scope.findMemberType). Thread.interrupt() is the only
-    // way to break out.
     val compileMethod = mainClass.getMethod("compile", classOf[Array[String]])
-    @volatile var success: java.lang.Boolean = java.lang.Boolean.FALSE
-    @volatile var compileException: Throwable = null
 
-    val compileThread = new Thread("ecj-compiler") {
-      override def run(): Unit =
-        try
-          success = compileMethod.invoke(ecjMain, args.toArray).asInstanceOf[java.lang.Boolean]
-        catch {
-          case _: InterruptedException                                                                         => ()
-          case e: java.lang.reflect.InvocationTargetException if e.getCause.isInstanceOf[InterruptedException] => ()
-          case e: Throwable                                                                                    => compileException = e
+    // Create CompilationProgress bridge via ASM for per-file progress and native cancellation.
+    // The bridge class is generated in ECJ's classloader and communicates back via AtomicInteger/AtomicBoolean.
+    val workedSoFar = new java.util.concurrent.atomic.AtomicInteger(0)
+    val totalWorkUnits = new java.util.concurrent.atomic.AtomicInteger(0)
+    val cancelFlag = new java.util.concurrent.atomic.AtomicBoolean(false)
+    cancellationToken.onCancel(() => cancelFlag.set(true))
+
+    def runEcj(ecjMain: AnyRef, hasProgress: Boolean): java.lang.Boolean = {
+      @volatile var success: java.lang.Boolean = java.lang.Boolean.FALSE
+      @volatile var compileException: Throwable = null
+
+      val compileThread = new Thread("ecj-compiler") {
+        override def run(): Unit =
+          try
+            success = compileMethod.invoke(ecjMain, args.toArray).asInstanceOf[java.lang.Boolean]
+          catch {
+            case _: InterruptedException                                                                         => ()
+            case e: java.lang.reflect.InvocationTargetException if e.getCause.isInstanceOf[InterruptedException] => ()
+            case e: Throwable                                                                                    => compileException = e
+          }
+      }
+
+      // IMPORTANT: Do NOT call compileThread.interrupt(). Java NIO spec says
+      // interrupting a thread blocked on a channel closes that channel. ECJ reads
+      // jrt-fs.jar via ZipFileSystem which the JDK caches globally. Interrupting
+      // closes the channel and poisons the cache for all subsequent ECJ compiles.
+      // Instead, rely on CompilationProgress.isCancelled() via the cancelFlag.
+      compileThread.start()
+
+      // Poll with timeout so we can report progress and detect cancellation.
+      while (compileThread.isAlive && !cancellationToken.isCancelled) {
+        compileThread.join(500)
+        if (hasProgress && !cancellationToken.isCancelled) {
+          val worked = workedSoFar.get()
+          val total = totalWorkUnits.get()
+          if (total > 0) {
+            progressListener.onProgress(worked, total, "ecj")
+          }
         }
+      }
+
+      // Wait for ECJ to notice cancellation via CompilationProgress.isCancelled().
+      // If the bridge failed (hasProgress=false), ECJ won't check cancellation
+      // and we have to wait for it to finish naturally.
+      if (cancellationToken.isCancelled && compileThread.isAlive) {
+        compileThread.join()
+      }
+
+      if (cancellationToken.isCancelled) {
+        throw new RuntimeException("ECJ compilation cancelled")
+      }
+
+      if (compileException != null) {
+        throw compileException
+      }
+
+      success
     }
 
-    cancellationToken.onCancel(() => compileThread.interrupt())
-    compileThread.start()
-    compileThread.join()
+    val (ecjMain, hasProgress) = EcjCompiler.createMainWithProgress(
+      mainClass,
+      ecjClassLoader,
+      outPrint,
+      errPrint,
+      workedSoFar,
+      totalWorkUnits,
+      cancelFlag
+    )
 
-    if (cancellationToken.isCancelled) {
-      throw new RuntimeException("ECJ compilation cancelled")
+    /** Check if an exception is caused by the ASM-generated bridge class */
+    def isBridgeError(e: Throwable): Boolean = {
+      val msg = Option(e.getMessage).getOrElse("") + Option(e.getCause).flatMap(c => Option(c.getMessage)).getOrElse("")
+      msg.contains("EcjCompilationProgressBridge") || msg.contains("CompilationProgress")
     }
 
-    if (compileException != null) {
-      throw compileException
-    }
+    val success: java.lang.Boolean =
+      if (!hasProgress) runEcj(ecjMain, false)
+      else {
+        try runEcj(ecjMain, true)
+        catch {
+          case e: Throwable if !cancellationToken.isCancelled && isBridgeError(e) =>
+            // CompilationProgress bridge failed at runtime — retry without it
+            ZincBridge.debug(s"[ECJ] CompilationProgress bridge failed (${e.getClass.getSimpleName}), retrying without progress")
+            val constructor3 = mainClass.getConstructor(
+              classOf[java.io.PrintWriter],
+              classOf[java.io.PrintWriter],
+              classOf[Boolean]
+            )
+            // Reset output streams for retry
+            errStream.reset()
+            outStream.reset()
+            val fallbackMain = constructor3.newInstance(outPrint, errPrint, java.lang.Boolean.FALSE)
+            runEcj(fallbackMain, false)
+        }
+      }
 
     errPrint.flush()
     outPrint.flush()
@@ -919,10 +1025,199 @@ private class EcjCompiler(ecjJars: Seq[Path], ecjClassLoader: ClassLoader, cance
   }
 }
 
+private[analysis] object EcjCompiler {
+  private val BridgeClassName = "bleep/analysis/EcjCompilationProgressBridge"
+  private val ProgressSuperClass = "org/eclipse/jdt/core/compiler/CompilationProgress"
+  private val AtomicIntDesc = "Ljava/util/concurrent/atomic/AtomicInteger;"
+  private val AtomicBoolDesc = "Ljava/util/concurrent/atomic/AtomicBoolean;"
+
+  /** Try to create a Main with CompilationProgress for per-file progress. Falls back to the 3-param constructor if CompilationProgress is not available.
+    * Returns (mainInstance, hasProgress).
+    */
+  def createMainWithProgress(
+      mainClass: Class[?],
+      ecjClassLoader: ClassLoader,
+      outPrint: java.io.PrintWriter,
+      errPrint: java.io.PrintWriter,
+      workedSoFar: java.util.concurrent.atomic.AtomicInteger,
+      totalWorkUnits: java.util.concurrent.atomic.AtomicInteger,
+      cancelFlag: java.util.concurrent.atomic.AtomicBoolean
+  ): (AnyRef, Boolean) =
+    try {
+      val progressClass = ecjClassLoader.loadClass("org.eclipse.jdt.core.compiler.CompilationProgress")
+
+      // Generate bridge class via ASM in a child classloader of ECJ's classloader
+      val bridgeBytes = generateBridgeClass()
+      val bridgeClassLoader = new ClassLoader(ecjClassLoader) {
+        override def findClass(name: String): Class[?] =
+          if (name == BridgeClassName.replace('/', '.'))
+            defineClass(name, bridgeBytes, 0, bridgeBytes.length)
+          else
+            throw new ClassNotFoundException(name)
+      }
+      val bridgeClass = bridgeClassLoader.loadClass(BridgeClassName.replace('/', '.'))
+
+      val bridgeInstance = bridgeClass
+        .getConstructor(
+          classOf[java.util.concurrent.atomic.AtomicInteger],
+          classOf[java.util.concurrent.atomic.AtomicInteger],
+          classOf[java.util.concurrent.atomic.AtomicBoolean]
+        )
+        .newInstance(workedSoFar, totalWorkUnits, cancelFlag)
+
+      // Use 5-param Main constructor: (PrintWriter, PrintWriter, boolean, Map, CompilationProgress)
+      val constructor5 = mainClass.getConstructor(
+        classOf[java.io.PrintWriter],
+        classOf[java.io.PrintWriter],
+        classOf[Boolean],
+        classOf[java.util.Map[?, ?]],
+        progressClass
+      )
+      val ecjMain = constructor5.newInstance(
+        outPrint,
+        errPrint,
+        java.lang.Boolean.FALSE,
+        null, // customDefaultOptions — null uses defaults
+        bridgeInstance
+      )
+      ZincBridge.debug("[ECJ] Using CompilationProgress for per-file progress")
+      (ecjMain, true)
+    } catch {
+      case e: Exception =>
+        ZincBridge.debug(s"[ECJ] CompilationProgress not available (${e.getClass.getSimpleName}: ${e.getMessage}), using basic Main constructor")
+        val constructor3 = mainClass.getConstructor(
+          classOf[java.io.PrintWriter],
+          classOf[java.io.PrintWriter],
+          classOf[Boolean]
+        )
+        (constructor3.newInstance(outPrint, errPrint, java.lang.Boolean.FALSE), false)
+    }
+
+  /** Generate bytecode for a CompilationProgress subclass that bridges to AtomicInteger/AtomicBoolean.
+    *
+    * The generated class has three fields (workedSoFar, totalWork, cancelFlag) passed via constructor, and implements the five abstract methods of
+    * CompilationProgress:
+    *   - begin(int) — sets totalWork
+    *   - done() — no-op
+    *   - isCancelled() — reads cancelFlag
+    *   - setTaskName(String) — no-op
+    *   - worked(int, int) — updates workedSoFar and totalWork
+    */
+  private[analysis] def generateBridgeClass(): Array[Byte] = {
+    import org.objectweb.asm.{ClassWriter, MethodVisitor, Opcodes}
+
+    val cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS)
+    cw.visit(Opcodes.V17, Opcodes.ACC_PUBLIC, BridgeClassName, null, ProgressSuperClass, null)
+
+    // Fields
+    cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "workedSoFar", AtomicIntDesc, null, null).visitEnd()
+    cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "totalWork", AtomicIntDesc, null, null).visitEnd()
+    cw.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "cancelFlag", AtomicBoolDesc, null, null).visitEnd()
+
+    // Constructor(AtomicInteger, AtomicInteger, AtomicBoolean)
+    locally {
+      val ctorDesc = s"($AtomicIntDesc$AtomicIntDesc$AtomicBoolDesc)V"
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", ctorDesc, null, null)
+      mv.visitCode()
+      mv.visitVarInsn(Opcodes.ALOAD, 0)
+      mv.visitMethodInsn(Opcodes.INVOKESPECIAL, ProgressSuperClass, "<init>", "()V", false)
+      putField(mv, "workedSoFar", AtomicIntDesc, 1)
+      putField(mv, "totalWork", AtomicIntDesc, 2)
+      putField(mv, "cancelFlag", AtomicBoolDesc, 3)
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // begin(int remainingWork) — totalWork.set(remainingWork)
+    locally {
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "begin", "(I)V", null, null)
+      mv.visitCode()
+      getField(mv, "totalWork", AtomicIntDesc)
+      mv.visitVarInsn(Opcodes.ILOAD, 1)
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/concurrent/atomic/AtomicInteger", "set", "(I)V", false)
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // done() — no-op
+    locally {
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "done", "()V", null, null)
+      mv.visitCode()
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // isCancelled() — return cancelFlag.get()
+    locally {
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "isCancelled", "()Z", null, null)
+      mv.visitCode()
+      getField(mv, "cancelFlag", AtomicBoolDesc)
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/concurrent/atomic/AtomicBoolean", "get", "()Z", false)
+      mv.visitInsn(Opcodes.IRETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // setTaskName(String) — no-op
+    locally {
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "setTaskName", "(Ljava/lang/String;)V", null, null)
+      mv.visitCode()
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    // worked(int workIncrement, int remainingWork) — update atomics
+    locally {
+      val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, "worked", "(II)V", null, null)
+      mv.visitCode()
+      // workedSoFar.addAndGet(workIncrement)
+      getField(mv, "workedSoFar", AtomicIntDesc)
+      mv.visitVarInsn(Opcodes.ILOAD, 1)
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/concurrent/atomic/AtomicInteger", "addAndGet", "(I)I", false)
+      mv.visitInsn(Opcodes.POP)
+      // totalWork.set(workedSoFar.get() + remainingWork)
+      getField(mv, "totalWork", AtomicIntDesc)
+      getField(mv, "workedSoFar", AtomicIntDesc)
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/concurrent/atomic/AtomicInteger", "get", "()I", false)
+      mv.visitVarInsn(Opcodes.ILOAD, 2)
+      mv.visitInsn(Opcodes.IADD)
+      mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/util/concurrent/atomic/AtomicInteger", "set", "(I)V", false)
+      mv.visitInsn(Opcodes.RETURN)
+      mv.visitMaxs(0, 0)
+      mv.visitEnd()
+    }
+
+    cw.visitEnd()
+    cw.toByteArray
+  }
+
+  /** Helper: emit ALOAD 0; GETFIELD */
+  private def getField(mv: org.objectweb.asm.MethodVisitor, name: String, desc: String): Unit = {
+    mv.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+    mv.visitFieldInsn(org.objectweb.asm.Opcodes.GETFIELD, BridgeClassName, name, desc)
+  }
+
+  /** Helper: emit ALOAD 0; ALOAD slot; PUTFIELD */
+  private def putField(mv: org.objectweb.asm.MethodVisitor, name: String, desc: String, slot: Int): Unit = {
+    mv.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, 0)
+    mv.visitVarInsn(org.objectweb.asm.Opcodes.ALOAD, slot)
+    mv.visitFieldInsn(org.objectweb.asm.Opcodes.PUTFIELD, BridgeClassName, name, desc)
+  }
+}
+
 /** Simple VirtualFile implementation wrapping a Path. Implements PathBasedFile so Scala 3 compiler can get the path back.
   */
 private class PlainVirtualFile(val path: Path) extends VirtualFile with xsbti.PathBasedFile {
-  def id(): String = path.toString
+  // On Windows, Path.toString uses backslashes which break javac filename matching in Zinc's
+  // Java compilation pipeline. Normalize to forward slashes so id() is platform-independent.
+  def id(): String = java.io.File.separatorChar match {
+    case '\\' => path.toString.replace('\\', '/')
+    case _    => path.toString
+  }
   def name(): String = path.getFileName.toString
   def names(): Array[String] = {
     val count = path.getNameCount

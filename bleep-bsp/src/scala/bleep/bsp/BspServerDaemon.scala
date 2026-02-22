@@ -233,7 +233,14 @@ object BspServerDaemon {
 
             if (config.singleConnection) {
               // Single connection mode: handle inline and shutdown after
-              try handleClient(clientSocket.getInputStream, clientSocket.getOutputStream, logger, config.socketDir, compileSemaphore)
+              try
+                handleClient(
+                  clientSocket.getInputStream,
+                  clientSocket.getOutputStream,
+                  logger.withContext("client", connId),
+                  config.socketDir,
+                  compileSemaphore
+                )
               finally BspMetrics.recordConnectionClose(connId)
               try clientSocket.close()
               catch { case _: Exception => () }
@@ -242,7 +249,14 @@ object BspServerDaemon {
             } else {
               val thread = new Thread(
                 () =>
-                  try handleClient(clientSocket.getInputStream, clientSocket.getOutputStream, logger, config.socketDir, compileSemaphore)
+                  try
+                    handleClient(
+                      clientSocket.getInputStream,
+                      clientSocket.getOutputStream,
+                      logger.withContext("client", connId),
+                      config.socketDir,
+                      compileSemaphore
+                    )
                   finally {
                     BspMetrics.recordConnectionClose(connId)
                     try clientSocket.close()
@@ -299,7 +313,8 @@ object BspServerDaemon {
         output,
         logger,
         socketDir = Some(socketDir),
-        compileSemaphore = compileSemaphore
+        compileSemaphore = compileSemaphore,
+        heapMonitor = HeapMonitor.system
       )
 
       // Run server message loop

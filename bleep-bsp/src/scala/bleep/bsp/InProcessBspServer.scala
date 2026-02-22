@@ -26,7 +26,8 @@ object InProcessBspServer {
           override def run(): Unit =
             try {
               val semaphore = new java.util.concurrent.Semaphore(Runtime.getRuntime.availableProcessors())
-              val server = new MultiWorkspaceBspServer(serverIn, serverOut, logger, socketDir = None, compileSemaphore = semaphore)
+              val server =
+                new MultiWorkspaceBspServer(serverIn, serverOut, logger, socketDir = None, compileSemaphore = semaphore, heapMonitor = HeapMonitor.system)
               server.run()
             } catch {
               case _: Exception => ()

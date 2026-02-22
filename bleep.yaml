@@ -149,7 +149,7 @@ projects:
       - org.scala-sbt:test-interface:1.0
       - net.aichler:jupiter-interface:0.11.1
     java:
-      options: -source 8 -target 8
+      options: -proc:none
     platform:
       name: jvm
     sources: ./src/main/java
@@ -184,6 +184,7 @@ projects:
   bleep-bsp-tests:
     dependencies:
     - org.scalatest::scalatest:3.2.19
+    - org.typelevel::cats-effect-testkit:3.5.4
     - for3Use213: true
       module: io.get-coursier::coursier:2.1.24
     dependsOn: bleep-bsp

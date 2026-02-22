@@ -197,6 +197,22 @@ object CompilationReason {
   }
 }
 
+/** Sub-phases within a single project compilation.
+  *
+  * These phases are signalled by ZincBridge.compileOnce() to provide visibility into what zinc is doing between "started" and "done". The trackedApis count in
+  * ReadingAnalysis correlates with heap usage — zinc loads all API structures into memory, which can explode to 24GB for large codegen projects.
+  */
+sealed trait CompilePhase {
+  def name: String
+}
+
+object CompilePhase {
+  case class ReadingAnalysis(trackedApis: Int) extends CompilePhase { def name: String = "reading-analysis" }
+  case object Analyzing extends CompilePhase { def name: String = "analyzing" }
+  case object Compiling extends CompilePhase { def name: String = "compiling" }
+  case object SavingAnalysis extends CompilePhase { def name: String = "saving-analysis" }
+}
+
 /** Listener for streaming diagnostics during compilation */
 trait DiagnosticListener {
 
@@ -223,6 +239,15 @@ trait DiagnosticListener {
     *   the reason for compilation
     */
   def onCompilationReason(projectName: String, reason: CompilationReason): Unit = ()
+
+  /** Called when compilation transitions between sub-phases (reading analysis, analyzing, compiling, saving).
+    *
+    * @param projectName
+    *   the name of the project being compiled
+    * @param phase
+    *   the sub-phase being entered
+    */
+  def onCompilePhase(projectName: String, phase: CompilePhase): Unit = ()
 }
 
 object DiagnosticListener {
