@@ -207,19 +207,20 @@ class IntegrationTests extends AnyFunSuite with TripleEqualsSupport {
   }
 
   // Scala 3.8 introduces a major change: the standard library is now compiled with Scala 3
-  // instead of Scala 2.13. This test verifies that bleep can handle Scala 3.8 projects correctly.
-  // See: https://github.com/scala/scala3/releases/tag/3.8.0-RC3
-  test("scala 3.8 with new stdlib") {
+  // instead of Scala 2.13. This test verifies that bleep can handle Scala 3.8 projects correctly,
+  // including the new scala-library versioning (3.x instead of 2.13.x).
+  // See: https://docs.scala-lang.org/sips/drop-stdlib-forwards-bin-compat.html
+  test("scala 3.8.1 with new stdlib") {
     assume(!sys.env.contains("CI"), "Skipped on CI: spawns child JVMs that exceed runner memory")
     runTest(
-      "scala 3.8 with new stdlib",
+      "scala 3.8.1 with new stdlib",
       """projects:
       a:
         platform:
           name: jvm
           mainClass: test.Main
         scala:
-          version: 3.8.0-RC3
+          version: 3.8.1
 """,
       Map(
         RelPath.force("./a/src/scala/Main.scala") ->
