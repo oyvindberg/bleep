@@ -206,7 +206,7 @@ jobs:
         env:
           CI: true
         run: |
-          ${{ matrix.file_name }} --dev test --no-color jvm3
+          ${{ matrix.file_name }} --dev test --no-color bleep-tests
           ${{ matrix.file_name }} selftest
         shell: cmd
         if: runner.os == 'Windows' && matrix.run_tests
