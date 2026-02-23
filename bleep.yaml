@@ -8,6 +8,8 @@ projects:
   bleep-cli:
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.3
+    - ch.linkyard.mcp::mcp-server:0.3.3
+    - ch.linkyard.mcp::jsonrpc2-stdio:0.3.3
     - com.lihaoyi::pprint:0.9.6
     - com.monovore::decline:2.5.0
     - com.typesafe:config:1.4.5

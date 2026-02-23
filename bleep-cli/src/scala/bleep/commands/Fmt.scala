@@ -163,10 +163,14 @@ object Fmt {
   }
 }
 
-case class Fmt(check: Boolean) extends BleepBuildCommand {
+case class Fmt(check: Boolean, projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
   override def run(started: Started): Either[BleepException, Unit] = {
+    val selectedProjects =
+      if (projects.isEmpty) started.build.explodedProjects.keys
+      else projects.toIterable
+
     val sourcesDirs: Set[Path] =
-      started.build.explodedProjects.keys
+      selectedProjects
         .flatMap { crossName =>
           val sourcesDirs = started.projectPaths(crossName).sourcesDirs
           sourcesDirs.fromSourceLayout ++ sourcesDirs.fromJson.values
