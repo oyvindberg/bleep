@@ -4,7 +4,7 @@ package commands
 import bleep.bsp.{BspConnection, BspRequestHelper, BspRifle, BspRifleConfig, BspServerBuilder, BspServerClasspathSource, SetupBleepBsp}
 import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.internal.{bleepLoggers, BspClientDisplayProgress}
+import bleep.internal.{bleepLoggers, BspClientDisplayProgress, TransitiveProjects}
 import bleep.testing.{BuildDisplay, BuildEvent, BuildSummary, FancyBuildDisplay, JUnitXmlCollector}
 import cats.effect._
 import cats.effect.std.Queue
@@ -41,7 +41,11 @@ case class ReactiveBsp(
     junitReportDir: Option[Path]
 ) extends BleepBuildCommand {
 
-  override def run(started: Started): Either[BleepException, Unit] = {
+  override def run(started: Started): Either[BleepException, Unit] =
+    if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(runOnce)
+    else runOnce(started)
+
+  private def runOnce(started: Started): Either[BleepException, Unit] = {
     val targetProjects = projects.toSet
 
     if (targetProjects.isEmpty) {

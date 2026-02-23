@@ -27,9 +27,9 @@ jobs:
 
       - name: Scalafmt Check
         run: |
-          bleep compile bleep-cli@jvm3
-          bleep setup-dev-script bleep-cli@jvm3
-          ./bleep-cli@jvm3.sh --dev fmt --check
+          bleep compile bleep-cli
+          bleep setup-dev-script bleep-cli
+          ./bleep-cli.sh --dev fmt --check
 
       - name: Run tests
         env:
@@ -41,8 +41,8 @@ jobs:
           bleep my-publish-local
           # stop compile server since the compile server itself may have changed
           bleep config compile-server stop-all
-          bleep setup-dev-script bleep-cli@jvm3
-          ./bleep-cli@jvm3.sh --dev test
+          bleep setup-dev-script bleep-cli
+          ./bleep-cli.sh --dev test
 
   yaml-ls-check:
     runs-on: ubuntu-latest
@@ -106,14 +106,14 @@ jobs:
 
       - name: Build native image (non-windows)
         run: |
-          bleep compile bleep-cli@jvm3
+          bleep compile bleep-cli
           bleep sourcegen
           # publish locally so test runner and bsp server are available
           bleep my-publish-local
           # stop compile server since the compile server itself may have changed
           bleep config compile-server stop-all
-          bleep setup-dev-script bleep-cli@jvm3
-          ./bleep-cli@jvm3.sh --dev native-image ${{ matrix.file_name }}
+          bleep setup-dev-script bleep-cli
+          ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
 
         if: runner.os != 'Windows'
 
@@ -127,7 +127,7 @@ jobs:
 
         # Windows: cmd shell, one command per step
       - name: Compile (windows)
-        run: bleep compile bleep-cli@jvm3
+        run: bleep compile bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
       - name: Sourcegen (windows)
@@ -179,7 +179,7 @@ jobs:
         shell: cmd
         if: runner.os == 'Windows'
       - name: Setup dev script (windows)
-        run: bleep setup-dev-script bleep-cli@jvm3
+        run: bleep setup-dev-script bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
       - name: Clean stale state before dev script (windows)
@@ -199,7 +199,7 @@ jobs:
           }
           exit 0
       - name: Build native image (windows)
-        run: bleep-cli@jvm3.bat --dev native-image ${{ matrix.file_name }}
+        run: bleep-cli.bat --dev native-image ${{ matrix.file_name }}
         shell: cmd
         if: runner.os == 'Windows'
       - name: Test binary after build (windows)
@@ -235,7 +235,7 @@ jobs:
         uses: battila7/get-version-action@v2
       - name: Publish bleep-bsp and test-runner locally
         run: |
-          bleep compile bleep-cli@jvm3
+          bleep compile bleep-cli
           bleep sourcegen
           bleep my-publish-local
           bleep config compile-server stop-all

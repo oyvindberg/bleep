@@ -26,7 +26,16 @@ case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends Bl
       } else {
         logger.info(s"bleep-bsp server was not running at socket $socketDir")
       }
-      FileUtils.deleteDirectory(socketDir)
+
+      // Give the OS time to release file handles after process kill
+      Thread.sleep(200)
+      try FileUtils.deleteDirectory(socketDir)
+      catch {
+        case _: java.nio.file.DirectoryNotEmptyException =>
+          // Retry once after a longer pause — killed process may still be releasing files
+          Thread.sleep(500)
+          FileUtils.deleteDirectory(socketDir)
+      }
     }
     Right(())
   }

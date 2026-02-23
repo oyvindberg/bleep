@@ -6,14 +6,6 @@ resolvers:
   - https://packages.jetbrains.team/maven/p/ij/intellij-dependencies
 projects:
   bleep-cli:
-    cross:
-      jvm3:
-        dependsOn:
-        - bleep-core
-        sources: ./bleep-cli/src/scala-3
-      jvm213:
-        dependsOn: bleep-core
-        sources: ./bleep-cli/src/scala-2.13
     dependencies:
     - ch.epfl.scala::bloop-config:2.3.3
     - com.lihaoyi::pprint:0.9.6
@@ -24,11 +16,13 @@ projects:
       # note: weird binary incompatibility when bumping this for scala3
     - org.typelevel::cats-core:2.9.0
     - org.typelevel::cats-parse:1.0.0
+    dependsOn: bleep-core
     extends:
     - template-common
-    - template-cross-all
+    - template-scala-3
     platform:
       mainClass: bleep.Main
+    sources: ./bleep-cli/src/scala-3
   bleep-core:
     dependencies:
     - ch.epfl.scala:bsp4j:2.2.0-M2
