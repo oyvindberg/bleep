@@ -1,6 +1,6 @@
 # Managing compile-servers
 
-Bleep uses [Bloop](https://scalacenter.github.io/bloop/) to compile and run your projects.
+Bleep has its own BSP server (`bleep-bsp`) that compiles your projects using the Zinc incremental compiler directly.
 
 Roughly there are two modes of operation:
 
@@ -11,9 +11,9 @@ This is the default behaviour, but if you need to change back this is the comman
 $ bleep config compile-server auto-shutdown-disable
 ```
 
-Note that since projects can specify the exact JVM they will be compiled with, and Bloop run the Scala compiler on the JVM it is started with, more than one compile servers may be started if necessary.
+Note that since projects can specify the exact JVM they will be compiled with, and the compile server runs the Scala compiler on the JVM it is started with, more than one compile server may be started if necessary.
 
-If you want to stop all running Bloop servers started by Bleep, this is the command:
+If you want to stop all running compile servers started by Bleep, this is the command:
 ```
 $ bleep config compile-server stop-all
 ```
