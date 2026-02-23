@@ -9,7 +9,7 @@ target
 sbt-build
 bleep-site/docs
 .vscode
-bleep-cli@jvm*.sh
+bleep-cli.sh
 test-project
 reports
 .claude/settings.local.json

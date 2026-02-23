@@ -7,8 +7,7 @@ import java.nio.file.{Files, Path}
 
 object GenNativeImage extends BleepScript("GenNativeImage") {
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
-    val jvm3 = model.CrossId("jvm3")
-    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = Some(jvm3))
+    val projectName = model.CrossProjectName(model.ProjectName("bleep-cli"), crossId = None)
     val project = started.bloopProject(projectName)
     // commands.compile(List(projectName))
 

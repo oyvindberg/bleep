@@ -265,6 +265,22 @@ object ZincBridge {
     } catch {
       case e: xsbti.CompileFailed =>
         ProjectCompileFailure(e.problems.toList.map(problemToError))
+      case e: IllegalArgumentException if e.getMessage == "requirement failed" =>
+        // Corrupt analysis — wipe and signal clean rebuild needed
+        System.err.println(s"[ZincBridge] ${config.name}: corrupt analysis detected (${e.getMessage}), deleting for clean rebuild")
+        Files.deleteIfExists(analysisFile)
+        analysisCache.remove(analysisFile)
+        if (Files.exists(config.outputDir)) {
+          bleep.internal.FileUtils.deleteDirectory(config.outputDir)
+          Files.createDirectories(config.outputDir)
+        }
+        ProjectCompileFailure(List(CompilerError(
+          path = None,
+          line = 0,
+          column = 0,
+          message = "Corrupt incremental state detected, cleaned. Please recompile.",
+          severity = CompilerError.Severity.Error
+        )))
     } finally {
       // Remove sentinel — compilation finished (success or failure).
       // Only a process death (OOM, SIGKILL) leaves the sentinel behind,
@@ -631,9 +647,7 @@ object ZincBridge {
     debug(s"[ZincBridge] Looking for analysis at: $analysisFile, exists=${Files.exists(analysisFile)}")
     if (Files.exists(analysisFile)) {
       try {
-        val store = AnalysisStore.getCachedStore(
-          sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
-        )
+        val store = sbt.internal.inc.FileAnalysisStore.binary(analysisFile.toFile)
         val contents = store.get()
         if (contents.isPresent) {
           val analysis = contents.get().getAnalysis.asInstanceOf[sbt.internal.inc.Analysis]

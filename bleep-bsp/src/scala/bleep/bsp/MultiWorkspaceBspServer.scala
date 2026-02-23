@@ -3065,7 +3065,8 @@ class MultiWorkspaceBspServer(
 
   /** Send a notification to the client.
     *
-    * Logs errors before re-throwing so the consumeEvents error handler can trigger killSignal.
+    * Notifications are best-effort — a disconnected client should not crash the server or
+    * abort compilation.  Log the error and continue.
     */
   private def sendNotification[T](method: String, params: T)(using codec: JsonValueCodec[T]): Unit = {
     val notification = JsonRpcNotification(
@@ -3077,10 +3078,8 @@ class MultiWorkspaceBspServer(
     catch {
       case e: java.io.IOException =>
         logger.error(s"Failed to send notification $method (client disconnected): ${e.getMessage}")
-        throw e
       case e: Exception =>
         logger.error(s"Failed to send notification $method: ${e.getMessage}", e)
-        throw e
     }
   }
 

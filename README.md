@@ -33,20 +33,20 @@ See [setting-up-build-in-ide](https://bleep.build/docs/usage/selecting-projects/
 #### Run bleep
 
 You have several options:
-- run with bleep `bleep run bleep-cli@jvm213`
+- run with bleep `bleep run bleep-cli`
 - run `bleep.Main` from your IDE
 - generate a native image (`bleep native-image`) and run that (the path will be printed).
 This is slow, but a few things can only be tested this way.
 - generate a shell wrapper script:
 ```sh
 # generate script in build directory
-$ bleep setup-dev-script bleep-cli@jvm213
+$ bleep setup-dev-script bleep-cli
 
 # with this approach you need to compile manually
-$ bleep compile bleep-cli@jvm213
+$ bleep compile bleep-cli
 
-$ ./bleep-cli@jvm213.sh
-# .\bleep-cli@jvm213.bat on Windows
+$ ./bleep-cli.sh
+# .\bleep-cli.bat on Windows
 ```
 
 #### Submitting code

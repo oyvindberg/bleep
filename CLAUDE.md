@@ -215,7 +215,7 @@ bleep import  # Convert sbt build to bleep
    bleep test-bsp <test-project>
    ```
 
-   This is required because bleep-cli@jvm3 depends on bleep-bsp, and the reactive test runner
+   This is required because bleep-cli depends on bleep-bsp, and the reactive test runner
    connects to bleep-bsp via BSP protocol to execute tests with the fancy TUI display.
 
 ## Important Design Decisions
