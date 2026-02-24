@@ -10,7 +10,7 @@ import cats.syntax.all._
 import ch.epfl.scala.bsp4j
 import ch.linkyard.mcp.server.{CallContext, McpServer, ResourceTemplate, ToolFunction}
 import ch.linkyard.mcp.protocol
-import io.circe.{Json, JsonObject}
+import io.circe.Json
 
 import java.nio.file.Files
 import java.util.UUID
@@ -152,22 +152,19 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     // Tools
     // ========================================================================
 
-    private def compileTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def compileTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
       ToolFunction.Info(
         "bleep.compile",
         Some("Compile"),
-        Some("Compile bleep projects. Returns diagnostics (errors/warnings). Streams progress via notifications during execution."),
+        Some("Compile bleep projects. Returns diagnostics (errors/warnings). Streams compile errors via notifications as they are discovered."),
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      compileTestArgsSchema,
-      withErrorReporting { (args, context) =>
-        val projectNames = extractProjectNames(args)
-        executeBspOperation(bspConfig, projectNames, context)
-      }
+      (args, context) => executeBspOperation(bspConfig, args.projects, context),
+      None
     )
 
-    private def testTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def testTool: ToolFunction[IO] = ToolFunction.text[IO, TestArgs](
       ToolFunction.Info(
         "bleep.test",
         Some("Test"),
@@ -175,16 +172,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      testArgsSchema,
-      withErrorReporting { (args, context) =>
-        val projectNames = extractProjectNames(args)
-        val only = extractStringList(args, "only")
-        val exclude = extractStringList(args, "exclude")
-        executeBspTestOperation(bspConfig, projectNames, only, exclude, context)
-      }
+      (args, context) => executeBspTestOperation(bspConfig, args.projects, args.only, args.exclude, context),
+      None
     )
 
-    private def testSuitesTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def testSuitesTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
       ToolFunction.Info(
         "bleep.test.suites",
         Some("Test Suites"),
@@ -194,14 +186,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      compileTestArgsSchema,
-      withErrorReporting { (args, _) =>
-        val projectNames = extractProjectNames(args)
-        discoverTestSuites(bspConfig, projectNames)
-      }
+      (args, _) => discoverTestSuites(bspConfig, args.projects),
+      None
     )
 
-    private def sourcegenTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def sourcegenTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
       ToolFunction.Info(
         "bleep.sourcegen",
         Some("Source Generate"),
@@ -209,32 +198,29 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.Additive(false),
         false
       ),
-      compileTestArgsSchema,
-      withErrorReporting { (args, _) =>
-        val projectNames = extractProjectNames(args)
-        val allProjects = resolveProjects(projectNames)
+      (args, _) => {
+        val allProjects = resolveProjects(args.projects)
         val sourcegenProjects = allProjects.filter { crossName =>
           started.build.explodedProjects(crossName).sourcegen.values.nonEmpty
         }
         if (sourcegenProjects.isEmpty) {
-          IO.pure(textResponse("""{"success":true,"message":"No projects with sourcegen scripts found."}"""))
+          IO.pure("""{"success":true,"message":"No projects with sourcegen scripts found."}""")
         } else {
           IO.fromEither(commands.SourceGen(false, sourcegenProjects).run(started))
             .as(
-              textResponse(
-                Json
-                  .obj(
-                    "success" -> Json.fromBoolean(true),
-                    "projects" -> Json.arr(sourcegenProjects.map(p => Json.fromString(p.value)).toList*)
-                  )
-                  .noSpaces
-              )
+              Json
+                .obj(
+                  "success" -> Json.fromBoolean(true),
+                  "projects" -> Json.arr(sourcegenProjects.map(p => Json.fromString(p.value)).toList*)
+                )
+                .noSpaces
             )
         }
-      }
+      },
+      None
     )
 
-    private def fmtTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def fmtTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
       ToolFunction.Info(
         "bleep.fmt",
         Some("Format"),
@@ -242,25 +228,22 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.Additive(false),
         false
       ),
-      compileTestArgsSchema,
-      withErrorReporting { (args, _) =>
-        val projectNames = extractProjectNames(args)
-        val projects = resolveProjects(projectNames)
+      (args, _) => {
+        val projects = resolveProjects(args.projects)
         IO.fromEither(commands.Fmt(check = false, projects = projects).run(started))
           .as(
-            textResponse(
-              Json
-                .obj(
-                  "success" -> Json.fromBoolean(true),
-                  "projects" -> Json.fromInt(projects.length)
-                )
-                .noSpaces
-            )
+            Json
+              .obj(
+                "success" -> Json.fromBoolean(true),
+                "projects" -> Json.fromInt(projects.length)
+              )
+              .noSpaces
           )
-      }
+      },
+      None
     )
 
-    private def cleanTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def cleanTool: ToolFunction[IO] = ToolFunction.text[IO, ProjectsArgs](
       ToolFunction.Info(
         "bleep.clean",
         Some("Clean"),
@@ -268,29 +251,26 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.Destructive(true),
         false
       ),
-      compileTestArgsSchema,
-      withErrorReporting { (args, _) =>
-        val projectNames = extractProjectNames(args)
-        val projects = resolveProjects(projectNames)
+      (args, _) => {
+        val projects = resolveProjects(args.projects)
         if (projects.isEmpty) {
-          IO.pure(textResponse("""{"success":true,"message":"No projects to clean."}"""))
+          IO.pure("""{"success":true,"message":"No projects to clean."}""")
         } else {
           IO.fromEither(commands.Clean(projects).run(started))
             .as(
-              textResponse(
-                Json
-                  .obj(
-                    "success" -> Json.fromBoolean(true),
-                    "projects" -> Json.arr(projects.map(p => Json.fromString(p.value)).toList*)
-                  )
-                  .noSpaces
-              )
+              Json
+                .obj(
+                  "success" -> Json.fromBoolean(true),
+                  "projects" -> Json.arr(projects.map(p => Json.fromString(p.value)).toList*)
+                )
+                .noSpaces
             )
         }
-      }
+      },
+      None
     )
 
-    private def watchTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def watchTool: ToolFunction[IO] = ToolFunction.text[IO, WatchArgs](
       ToolFunction.Info(
         "bleep.watch",
         Some("Watch"),
@@ -300,21 +280,17 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.Additive(false),
         false
       ),
-      watchArgsSchema,
-      withErrorReporting { (args, context) =>
-        val projectNames = extractProjectNames(args)
-        val modeStr = args("mode").flatMap(_.asString).getOrElse("compile")
-        val mode = modeStr match {
+      (args, context) => {
+        val mode = args.mode match {
           case "test" => BleepBspProtocol.BuildMode.Test
           case _      => BleepBspProtocol.BuildMode.Compile
         }
-        val only = extractStringList(args, "only")
-        val exclude = extractStringList(args, "exclude")
-        startWatch(projectNames, mode, only, exclude, context)
-      }
+        startWatch(args.projects, mode, args.only, args.exclude, context)
+      },
+      None
     )
 
-    private def syncTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def syncTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
       ToolFunction.Info(
         "bleep.sync",
         Some("Sync"),
@@ -324,8 +300,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      syncArgsSchema,
-      withErrorReporting { (_, context) =>
+      (_, context) =>
         for {
           results <- watchResults.get
           response <-
@@ -338,15 +313,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   "timestampMs" -> Json.fromLong(r.timestampMs)
                 )
               }
-              IO.pure(textResponse(Json.obj("watchResults" -> Json.arr(items*)).noSpaces))
+              IO.pure(Json.obj("watchResults" -> Json.arr(items*)).noSpaces)
             } else {
               executeBspOperation(bspConfig, Nil, context)
             }
-        } yield response
-      }
+        } yield response,
+      None
     )
 
-    private def watchStopTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def watchStopTool: ToolFunction[IO] = ToolFunction.text[IO, JobIdArgs](
       ToolFunction.Info(
         "bleep.watch.stop",
         Some("Stop Watch"),
@@ -354,14 +329,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.Destructive(true),
         false
       ),
-      syncArgsSchema,
-      withErrorReporting { (args, _) =>
-        val jobId = args("jobId").flatMap(_.asString).map(new JobId(_))
-        stopWatch(jobId)
-      }
+      (args, _) => stopWatch(args.jobId.map(new JobId(_))),
+      None
     )
 
-    private def projectsTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def projectsTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
       ToolFunction.Info(
         "bleep.projects",
         Some("List Projects"),
@@ -369,13 +341,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      io.circe.JsonSchema.empty,
-      withErrorReporting { (_, _) =>
-        listProjects()
-      }
+      (_, _) => listProjects(),
+      None
     )
 
-    private def programsTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def programsTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
       ToolFunction.Info(
         "bleep.programs",
         Some("List Programs"),
@@ -383,13 +353,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      io.circe.JsonSchema.empty,
-      withErrorReporting { (_, _) =>
-        listPrograms()
-      }
+      (_, _) => listPrograms(),
+      None
     )
 
-    private def scriptsTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def scriptsTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
       ToolFunction.Info(
         "bleep.scripts",
         Some("List Scripts"),
@@ -397,13 +365,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      io.circe.JsonSchema.empty,
-      withErrorReporting { (_, _) =>
-        listScripts()
-      }
+      (_, _) => listScripts(),
+      None
     )
 
-    private def runTool: ToolFunction[IO] = ToolFunction.native[IO](
+    private def runTool: ToolFunction[IO] = ToolFunction.text[IO, RunArgs](
       ToolFunction.Info(
         "bleep.run",
         Some("Run"),
@@ -413,70 +379,20 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         ToolFunction.Effect.Additive(false),
         false
       ),
-      runArgsSchema,
-      withErrorReporting { (args, context) =>
-        val name = args("name")
-          .flatMap(_.asString)
-          .getOrElse(
-            throw new BleepException.Text("'name' parameter is required")
-          )
-        val runArgs = extractStringList(args, "args")
-        val mainClass = args("mainClass").flatMap(_.asString)
-        val timeoutSeconds = args("timeoutSeconds").flatMap(_.asNumber).flatMap(_.toInt).getOrElse(60)
-        runProjectOrScript(name, runArgs, mainClass, timeoutSeconds, context)
-      }
+      (args, context) => {
+        val timeoutSeconds = args.timeoutSeconds.getOrElse(60)
+        runProjectOrScript(args.name, args.args, args.mainClass, timeoutSeconds, context)
+      },
+      None
     )
 
     // ========================================================================
-    // JSON Schemas for tool inputs
+    // Argument helpers
     // ========================================================================
-
-    private val compileTestArgsSchema = io.circe.JsonSchema.obj(
-      "projects" -> io.circe.JsonSchema.arrayOfStrings("Project names to compile. Omit or empty for all projects.")
-    )
-
-    private val testArgsSchema = io.circe.JsonSchema.obj(
-      "projects" -> io.circe.JsonSchema.arrayOfStrings("Project names to test. Omit or empty for all test projects."),
-      "only" -> io.circe.JsonSchema.arrayOfStrings("Only run these test class names."),
-      "exclude" -> io.circe.JsonSchema.arrayOfStrings("Exclude these test class names.")
-    )
-
-    private val watchArgsSchema = io.circe.JsonSchema.obj(
-      "projects" -> io.circe.JsonSchema.arrayOfStrings("Project names to watch."),
-      "mode" -> io.circe.JsonSchema.stringEnum("compile", "test"),
-      "only" -> io.circe.JsonSchema.arrayOfStrings("Only run these test class names (test mode only)."),
-      "exclude" -> io.circe.JsonSchema.arrayOfStrings("Exclude these test class names (test mode only).")
-    )
-
-    private val syncArgsSchema = io.circe.JsonSchema.obj(
-      "jobId" -> io.circe.JsonSchema.string("Watch job ID. Omit to sync all.")
-    )
-
-    private val runArgsSchema = {
-      val schema = io.circe.JsonSchema.obj(
-        "name" -> io.circe.JsonSchema.string("Project or script name to run. Scripts are checked first, then projects."),
-        "args" -> io.circe.JsonSchema.arrayOfStrings("Arguments to pass to the program."),
-        "mainClass" -> io.circe.JsonSchema.string("Override main class (projects only). Not needed for scripts."),
-        "timeoutSeconds" -> io.circe.JsonSchema.integer("Timeout in seconds. Default 60.")
-      )
-      schema.add("required", Json.arr(Json.fromString("name")))
-    }
 
     // ========================================================================
     // Tool implementations
     // ========================================================================
-
-    private def extractProjectNames(args: JsonObject): List[String] =
-      args("projects")
-        .flatMap(_.asArray)
-        .map(_.flatMap(_.asString).toList)
-        .getOrElse(Nil)
-
-    private def extractStringList(args: JsonObject, key: String): List[String] =
-      args(key)
-        .flatMap(_.asArray)
-        .map(_.flatMap(_.asString).toList)
-        .getOrElse(Nil)
 
     private def resolveProjects(names: List[String]): Array[model.CrossProjectName] =
       if (names.isEmpty) {
@@ -496,16 +412,16 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         }.toArray
       }
 
-    /** Execute a one-shot compile via BSP. Streams diagnostics via MCP notifications. */
+    /** Execute a one-shot compile via BSP. Streams compile errors via MCP notifications. */
     private def executeBspOperation(
         config: BspRifleConfig,
         projectNames: List[String],
         context: CallContext[IO]
-    ): IO[protocol.Tool.CallTool.Response] = {
+    ): IO[String] = {
       val targetProjects = resolveProjects(projectNames)
 
       if (targetProjects.isEmpty) {
-        return IO.pure(textResponse("No projects to compile."))
+        return IO.pure("No projects to compile.")
       }
 
       for {
@@ -513,7 +429,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[Json]](Nil)
 
-        bspClient = new McpBspClient(eventQueue, started.logger)
+        bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
 
         // Consumer fiber: filter events, log to MCP, collect for final response
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, context).start
@@ -544,7 +460,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 
         _ <- consumerFiber.joinWithNever
         events <- collectedEvents.get
-      } yield textResponse(formatCompileResult(events))
+      } yield formatCompileResult(events)
     }
 
     /** Execute a one-shot test via BSP. */
@@ -554,11 +470,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         only: List[String],
         exclude: List[String],
         context: CallContext[IO]
-    ): IO[protocol.Tool.CallTool.Response] = {
+    ): IO[String] = {
       val targetProjects = resolveTestProjects(projectNames)
 
       if (targetProjects.isEmpty) {
-        return IO.pure(textResponse("No test projects found."))
+        return IO.pure("No test projects found.")
       }
 
       for {
@@ -566,7 +482,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[Json]](Nil)
 
-        bspClient = new McpBspClient(eventQueue, started.logger)
+        bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, context).start
 
         testRunResult <- Ref.of[IO, Option[BleepBspProtocol.TestRunResult]](None)
@@ -611,7 +527,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         _ <- consumerFiber.joinWithNever
         events <- collectedEvents.get
         trr <- testRunResult.get
-      } yield textResponse(formatTestResult(events, trr))
+      } yield formatTestResult(events, trr)
     }
 
     /** Start a background watch job. */
@@ -621,7 +537,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         only: List[String],
         exclude: List[String],
         context: CallContext[IO]
-    ): IO[protocol.Tool.CallTool.Response] = {
+    ): IO[String] = {
       val targetProjects = mode match {
         case BleepBspProtocol.BuildMode.Test => resolveTestProjects(projectNames)
         case _                               => resolveProjects(projectNames)
@@ -633,14 +549,12 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         fiber <- watchLoop(jobId, targetProjects, mode, only, exclude, context).start
         job = WatchJob(jobId, targetProjects.map(_.value).toList, mode, fiber)
         _ <- watchJobs.update(_ + (jobId -> job))
-      } yield textResponse(
-        Json
-          .obj(
-            "jobId" -> Json.fromString(jobId.value),
-            "watching" -> Json.arr(targetProjects.map(p => Json.fromString(p.value)).toList*)
-          )
-          .noSpaces
-      )
+      } yield Json
+        .obj(
+          "jobId" -> Json.fromString(jobId.value),
+          "watching" -> Json.arr(targetProjects.map(p => Json.fromString(p.value)).toList*)
+        )
+        .noSpaces
     }
 
     /** Background watch loop: file changes -> recompile -> emit events.
@@ -663,7 +577,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           _ <- context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Compiling...")
           eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
           collectedEvents <- Ref.of[IO, List[Json]](Nil)
-          bspClient = new McpBspClient(eventQueue, started.logger)
+          bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
           consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, context).start
 
           _ <- BspRifle
@@ -736,7 +650,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     }
 
     /** Stop watch job(s). Cancel with timeout so we never hang. */
-    private def stopWatch(jobId: Option[JobId]): IO[protocol.Tool.CallTool.Response] = {
+    private def stopWatch(jobId: Option[JobId]): IO[String] = {
       val cancelTimeout = scala.concurrent.duration.FiniteDuration(5, scala.concurrent.duration.SECONDS)
 
       def cancelJob(job: WatchJob): IO[Unit] =
@@ -747,15 +661,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           watchJobs.modify { jobs =>
             jobs.get(id) match {
               case Some(job) =>
-                (jobs - id, cancelJob(job) >> watchResults.update(_ - id).as(textResponse(s"""{"stopped":"${id.value}"}""")))
-              case None => (jobs, IO.pure(textResponse(s"""{"error":"no such job: ${id.value}"}""")))
+                (jobs - id, cancelJob(job) >> watchResults.update(_ - id).as(s"""{"stopped":"${id.value}"}"""))
+              case None => (jobs, IO.pure(s"""{"error":"no such job: ${id.value}"}"""))
             }
           }.flatten
         case None =>
           watchJobs.modify { jobs =>
             val cancelAll = jobs.values.toList.traverse_(cancelJob)
             val count = jobs.size
-            (Map.empty, (cancelAll >> watchResults.set(Map.empty)).as(textResponse(s"""{"stopped":$count}""")))
+            (Map.empty, (cancelAll >> watchResults.set(Map.empty)).as(s"""{"stopped":$count}"""))
           }.flatten
       }
     }
@@ -782,7 +696,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     }
 
     /** List all projects with dependencies. */
-    private def listProjects(): IO[protocol.Tool.CallTool.Response] = IO {
+    private def listProjects(): IO[String] = IO {
       val projects = started.build.explodedProjects.toList.map { case (crossName, p) =>
         Json.obj(
           "name" -> Json.fromString(crossName.value),
@@ -790,18 +704,18 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           "isTest" -> Json.fromBoolean(p.isTestProject.getOrElse(false))
         )
       }
-      textResponse(Json.arr(projects*).noSpaces)
+      Json.arr(projects*).noSpaces
     }
 
     /** Discover test suites via BSP buildTarget/scalaTestClasses. Projects must be compiled first. */
     private def discoverTestSuites(
         config: BspRifleConfig,
         projectNames: List[String]
-    ): IO[protocol.Tool.CallTool.Response] = {
+    ): IO[String] = {
       val targetProjects = resolveTestProjects(projectNames)
 
       if (targetProjects.isEmpty) {
-        return IO.pure(textResponse("""{"projects":[]}"""))
+        return IO.pure("""{"projects":[]}""")
       }
 
       for {
@@ -835,12 +749,12 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             )
           }
         }
-        textResponse(Json.obj("projects" -> Json.arr(items*)).noSpaces)
+        Json.obj("projects" -> Json.arr(items*)).noSpaces
       }
     }
 
     /** List projects that have a mainClass defined (runnable programs). */
-    private def listPrograms(): IO[protocol.Tool.CallTool.Response] = IO {
+    private def listPrograms(): IO[String] = IO {
       val programs = started.build.explodedProjects.toList
         .filter { case (_, p) => p.platform.flatMap(_.mainClass).isDefined }
         .sortBy(_._1.value)
@@ -851,11 +765,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             "platform" -> Json.fromString(p.platform.flatMap(_.name).map(_.value).getOrElse("jvm"))
           )
         }
-      textResponse(Json.arr(programs*).noSpaces)
+      Json.arr(programs*).noSpaces
     }
 
     /** List scripts defined in the build. */
-    private def listScripts(): IO[protocol.Tool.CallTool.Response] = IO {
+    private def listScripts(): IO[String] = IO {
       val scripts = started.build.scripts.toList.sortBy(_._1.value).flatMap { case (scriptName, scriptDefs) =>
         scriptDefs.values.collect { case model.ScriptDef.Main(project, main, _) =>
           Json.obj(
@@ -865,7 +779,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           )
         }
       }
-      textResponse(Json.arr(scripts*).noSpaces)
+      Json.arr(scripts*).noSpaces
     }
 
     /** Run a project or script. Checks scripts first, then projects. Compiles, then executes subprocess. */
@@ -875,7 +789,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         mainClassOverride: Option[String],
         timeoutSeconds: Int,
         context: CallContext[IO]
-    ): IO[protocol.Tool.CallTool.Response] = {
+    ): IO[String] = {
       val scriptMatch = started.build.scripts.keys.find(_.value == name)
       scriptMatch match {
         case Some(sn) =>
@@ -903,7 +817,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         args: List[String],
         timeoutSeconds: Int,
         context: CallContext[IO]
-    ): IO[protocol.Tool.CallTool.Response] =
+    ): IO[String] =
       for {
         // Compile first
         _ <- context.log(protocol.LoggingLevel.Info, s"Compiling ${project.value}...")
@@ -927,15 +841,13 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         result <- executeSubprocess(cmd, started.buildPaths.cwd, timeoutSeconds)
       } yield {
         val (stdout, stderr, exitCode) = result
-        textResponse(
-          Json
-            .obj(
-              "exitCode" -> Json.fromInt(exitCode),
-              "stdout" -> Json.fromString(stdout),
-              "stderr" -> Json.fromString(stderr)
-            )
-            .noSpaces
-        )
+        Json
+          .obj(
+            "exitCode" -> Json.fromInt(exitCode),
+            "stdout" -> Json.fromString(stdout),
+            "stderr" -> Json.fromString(stderr)
+          )
+          .noSpaces
       }
 
     /** Compile projects via BSP without collecting events (for run tool). */
@@ -1011,7 +923,10 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     // Event consumption
     // ========================================================================
 
-    /** Consume BSP events, filter, log via MCP, and collect for final response. */
+    /** Consume BSP events: collect all for the final response, but only stream failures over the wire.
+      *
+      * Streaming is expensive (each notification costs tokens). Only errors/failures are worth real-time delivery. The full picture is in the tool response.
+      */
     private def consumeAndLogEvents(
         eventQueue: Queue[IO, Option[BleepBspProtocol.Event]],
         collectedEvents: Ref[IO, List[Json]],
@@ -1021,8 +936,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         case Some(event) =>
           McpEventFilter.filter(event) match {
             case Some(json) =>
-              val logLevel = eventLogLevel(event)
-              context.log(logLevel, json) >>
+              val stream = shouldStream(event)
+              val logIO =
+                if (stream) context.log(streamLogLevel(event), json)
+                else IO.unit
+              logIO >>
                 collectedEvents.update(json :: _) >>
                 consumeAndLogEvents(eventQueue, collectedEvents, context)
             case None =>
@@ -1031,16 +949,63 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         case None => IO.unit
       }
 
-    /** Determine appropriate MCP log level for a BSP event. */
-    private def eventLogLevel(event: BleepBspProtocol.Event): protocol.LoggingLevel = {
+    /** Only stream events that represent failures or errors. Everything else is in the final response. */
+    private def shouldStream(event: BleepBspProtocol.Event): Boolean = {
       import BleepBspProtocol.{Event => E}
       event match {
-        case e: E.CompileFinished if e.status == "failed"                     => protocol.LoggingLevel.Error
-        case _: E.Error                                                       => protocol.LoggingLevel.Error
-        case _: E.SuiteError                                                  => protocol.LoggingLevel.Error
-        case _: E.SuiteTimedOut                                               => protocol.LoggingLevel.Warning
-        case e: E.TestFinished if e.status == "failed" || e.status == "error" => protocol.LoggingLevel.Warning
-        case _                                                                => protocol.LoggingLevel.Info
+        case e: E.CompileFinished => e.status == "failed"
+        case e: E.TestFinished    => e.status == "failed" || e.status == "error"
+        case _: E.SuiteError      => true
+        case _: E.SuiteTimedOut   => true
+        case _: E.Error           => true
+        case _: E.LinkFinished    => true // link failures are rare and critical
+        case _                    => false
+      }
+    }
+
+    private def streamLogLevel(event: BleepBspProtocol.Event): protocol.LoggingLevel = {
+      import BleepBspProtocol.{Event => E}
+      event match {
+        case _: E.SuiteTimedOut => protocol.LoggingLevel.Warning
+        case _                 => protocol.LoggingLevel.Error
+      }
+    }
+
+    // ========================================================================
+    // Diagnostic streaming
+    // ========================================================================
+
+    /** Create a callback that streams compile errors to the MCP client as soon as the compiler reports them.
+      *
+      * Only streams errors — warnings are included in the final tool response via CompileFinished. Called from BSP threads — uses unsafeRunSync to bridge into
+      * IO.
+      */
+    private def diagnosticCallback(context: CallContext[IO]): bsp4j.PublishDiagnosticsParams => Unit = { params =>
+      val errors = params.getDiagnostics.asScala.toList.filter(d => d.getSeverity == bsp4j.DiagnosticSeverity.ERROR)
+      if (errors.nonEmpty) {
+        val project = params.getBuildTarget.getUri.split("=").lastOption.getOrElse("unknown")
+        val file = {
+          val uri = params.getTextDocument.getUri
+          val prefix = started.buildPaths.buildDir.toUri.toString
+          if (uri.startsWith(prefix)) uri.stripPrefix(prefix)
+          else uri.stripPrefix("file://").stripPrefix("file:")
+        }
+        val items = errors.map { d =>
+          val fields = List.newBuilder[(String, Json)]
+          fields += "message" -> Json.fromString(d.getMessage)
+          fields += "file" -> Json.fromString(file)
+          Option(d.getRange).foreach { range =>
+            fields += "line" -> Json.fromInt(range.getStart.getLine + 1)
+            fields += "column" -> Json.fromInt(range.getStart.getCharacter + 1)
+          }
+          Json.obj(fields.result()*)
+        }
+        val json = Json.obj(
+          "event" -> Json.fromString("CompileError"),
+          "project" -> Json.fromString(project),
+          "errors" -> Json.arr(items*)
+        )
+        context.log(protocol.LoggingLevel.Error, json.noSpaces).unsafeRunSync()(cats.effect.unsafe.implicits.global)
       }
     }
 
@@ -1103,27 +1068,6 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             .noSpaces
       }
 
-    private def textResponse(text: String): protocol.Tool.CallTool.Response =
-      protocol.Tool.CallTool.Response.Success(
-        List(protocol.Content.Text(text)),
-        None
-      )
-
-    private def errorResponse(message: String): protocol.Tool.CallTool.Response =
-      protocol.Tool.CallTool.Response.Error(
-        List(protocol.Content.Text(message))
-      )
-
-    /** Wrap a tool handler so exceptions become MCP error responses instead of opaque "Internal error". */
-    private def withErrorReporting(
-        f: (JsonObject, CallContext[IO]) => IO[protocol.Tool.CallTool.Response]
-    ): (JsonObject, CallContext[IO]) => IO[protocol.Tool.CallTool.Response] =
-      (args: JsonObject, context: CallContext[IO]) =>
-        f(args, context).handleErrorWith { e =>
-          val msg = s"${e.getClass.getSimpleName}: ${e.getMessage}"
-          context.log(protocol.LoggingLevel.Error, msg) >>
-            IO.pure(errorResponse(msg))
-        }
   }
 }
 
@@ -1155,9 +1099,10 @@ private[mcp] case class WatchCycleResult(
     timestampMs: Long
 )
 
-/** BSP client that captures BleepBspProtocol events into a queue. */
+/** BSP client that captures BleepBspProtocol events into a queue and streams diagnostics immediately. */
 private[mcp] class McpBspClient(
     eventQueue: Queue[IO, Option[BleepBspProtocol.Event]],
+    onDiagnostics: bsp4j.PublishDiagnosticsParams => Unit,
     logger: ryddig.Logger
 ) extends bsp4j.BuildClient {
 
@@ -1193,8 +1138,10 @@ private[mcp] class McpBspClient(
   override def onBuildTaskFinish(params: bsp4j.TaskFinishParams): Unit =
     delegate.onBuildTaskFinish(params)
 
-  override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit =
+  override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
+    onDiagnostics(params)
     delegate.onBuildPublishDiagnostics(params)
+  }
 
   override def onBuildTargetDidChange(params: bsp4j.DidChangeBuildTarget): Unit =
     delegate.onBuildTargetDidChange(params)
