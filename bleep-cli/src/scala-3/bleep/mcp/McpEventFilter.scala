@@ -5,8 +5,8 @@ import io.circe.Json
 
 /** Filters BleepBspProtocol events to the subset that is actionable for an AI agent.
   *
-  * Of the ~38 event variants, only 11 carry information an agent can act on. The rest are TUI progress noise (percentages, phase changes, process states)
-  * that would waste context window.
+  * Of the ~38 event variants, only 11 carry information an agent can act on. The rest are TUI progress noise (percentages, phase changes, process states) that
+  * would waste context window.
   */
 object McpEventFilter {
 

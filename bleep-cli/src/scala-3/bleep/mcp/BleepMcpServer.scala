@@ -643,7 +643,10 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       )
     }
 
-    /** Background watch loop: file changes -> recompile -> emit events. */
+    /** Background watch loop: file changes -> recompile -> emit events.
+      *
+      * If the BSP server dies mid-cycle, logs the error, ensures the server is restarted, and retries the cycle.
+      */
     private def watchLoop(
         jobId: JobId,
         targetProjects: Array[model.CrossProjectName],
@@ -656,6 +659,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 
       def cycle: IO[Unit] =
         for {
+          _ <- BspRifle.ensureRunning(bspConfig, started.logger)
           _ <- context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Compiling...")
           eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
           collectedEvents <- Ref.of[IO, List[Json]](Nil)
@@ -721,7 +725,14 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           }
         } yield ()
 
-      cycle >> watchLoop(jobId, targetProjects, mode, only, exclude, context)
+      val resilientCycle: IO[Unit] = cycle.handleErrorWith { e =>
+        context.log(protocol.LoggingLevel.Error, s"[${jobId.value}] Watch cycle failed: ${e.getClass.getSimpleName}: ${e.getMessage}") >>
+          context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Restarting BSP server and retrying in 2s...") >>
+          IO.sleep(scala.concurrent.duration.FiniteDuration(2, scala.concurrent.duration.SECONDS)) >>
+          BspRifle.ensureRunning(bspConfig, started.logger)
+      }
+
+      resilientCycle >> watchLoop(jobId, targetProjects, mode, only, exclude, context)
     }
 
     /** Stop watch job(s). Cancel with timeout so we never hang. */

@@ -274,13 +274,17 @@ object ZincBridge {
           bleep.internal.FileUtils.deleteDirectory(config.outputDir)
           Files.createDirectories(config.outputDir)
         }
-        ProjectCompileFailure(List(CompilerError(
-          path = None,
-          line = 0,
-          column = 0,
-          message = "Corrupt incremental state detected, cleaned. Please recompile.",
-          severity = CompilerError.Severity.Error
-        )))
+        ProjectCompileFailure(
+          List(
+            CompilerError(
+              path = None,
+              line = 0,
+              column = 0,
+              message = "Corrupt incremental state detected, cleaned. Please recompile.",
+              severity = CompilerError.Severity.Error
+            )
+          )
+        )
     } finally {
       // Remove sentinel — compilation finished (success or failure).
       // Only a process death (OOM, SIGKILL) leaves the sentinel behind,
