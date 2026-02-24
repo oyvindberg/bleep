@@ -58,8 +58,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           resolvedJvm = started.resolvedJvm.forceGet,
           userPaths = started.pre.userPaths,
           resolver = resolver,
-          logger = started.logger,
-          workingDir = started.buildPaths.cwd
+          logger = started.logger
         )
       case _: bsp.BspServerClasspathSource.InProcess =>
         Left(new BleepException.Text("MCP server does not support in-process BSP mode"))

@@ -3065,8 +3065,7 @@ class MultiWorkspaceBspServer(
 
   /** Send a notification to the client.
     *
-    * Notifications are best-effort — a disconnected client should not crash the server or
-    * abort compilation.  Log the error and continue.
+    * Notifications are best-effort — a disconnected client should not crash the server or abort compilation. Log the error and continue.
     */
   private def sendNotification[T](method: String, params: T)(using codec: JsonValueCodec[T]): Unit = {
     val notification = JsonRpcNotification(
@@ -3216,7 +3215,7 @@ class MultiWorkspaceBspServer(
   }
 
   private def handleJvmRunEnvironment(params: JvmRunEnvironmentParams): JvmRunEnvironmentResult = {
-    val workspace = activeWorkspace.get().getOrElse(Path.of("."))
+    val workspace = activeWorkspace.get().getOrElse(throw BspException(JsonRpcErrorCodes.ServerNotInitialized, "No active workspace"))
     val items = params.targets.map { targetId =>
       val classpath = (for {
         started <- getActiveBuild.toOption
@@ -3237,7 +3236,7 @@ class MultiWorkspaceBspServer(
   }
 
   private def handleJvmTestEnvironment(params: JvmTestEnvironmentParams): JvmTestEnvironmentResult = {
-    val workspace = activeWorkspace.get().getOrElse(Path.of("."))
+    val workspace = activeWorkspace.get().getOrElse(throw BspException(JsonRpcErrorCodes.ServerNotInitialized, "No active workspace"))
     val items = params.targets.map { targetId =>
       val classpath = (for {
         started <- getActiveBuild.toOption

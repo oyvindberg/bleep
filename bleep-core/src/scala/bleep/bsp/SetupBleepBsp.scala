@@ -35,8 +35,7 @@ object SetupBleepBsp {
       resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,
-      logger: Logger,
-      workingDir: Path
+      logger: Logger
   ): Either[BleepException, BspRifleConfig] = {
     val extraJavaOpts = config.bspServerConfigOrDefault.compileServerMaxMemory.map(m => s"-Xmx$m").toList
     val majorVersion = BspRifleConfig.jvmMajorVersion(resolvedJvm.jvm.name)
@@ -63,7 +62,7 @@ object SetupBleepBsp {
         javaOpts = javaOpts,
         serverMainClass = "bleep.bsp.BspServerDaemon",
         serverClasspath = serverClasspath,
-        workingDir = workingDir,
+        workingDir = socketDir,
         startCheckPeriod = 10.millis,
         startCheckTimeout = 1.minute,
         connectionTimeout = 10.seconds,
