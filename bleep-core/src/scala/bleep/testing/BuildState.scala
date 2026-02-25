@@ -42,6 +42,7 @@ case class BuildState(
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
   def toSummary(durationMs: Long, wasCancelled: Boolean): BuildSummary =
     BuildSummary(
+      sourcegenFailed = sourcegenFailed,
       compilesCompleted = compilesCompleted,
       compilesFailed = compilesFailed,
       compilesSkipped = compilesSkipped,

@@ -2,10 +2,10 @@ package bleep.bsp
 
 import bleep.*
 import bleep.bsp.Outcome.KillReason
+import bleep.internal.jvmRunCommand
 import bleep.model.{CrossProjectName, ScriptDef}
 import cats.effect.{Deferred, IO}
 
-import java.net.{URL, URLClassLoader}
 import java.nio.file.{Files, Path}
 import java.time.Instant
 import scala.collection.mutable
@@ -269,19 +269,16 @@ object SourceGenRunner {
     Files.deleteIfExists(path): Unit
   }
 
-  /** Run a single sourcegen script by classloading it in-process.
+  /** Run a single sourcegen script by forking a separate JVM.
     *
-    * Instead of spawning a separate JVM, we:
-    *   1. Build a URLClassLoader from the script project's compiled classes + classpath
-    *   2. Load the script class and cast to BleepCodegenScript
-    *   3. Call run() directly with the BSP server's Started instance
-    *
-    * This avoids the script needing to bootstrap itself (which would fail for build.bleep:* deps in tests).
+    * Forks the script into its own JVM process to avoid classloader conflicts between the BSP server's classpath (which includes zinc/scala-compiler transitive
+    * deps like scala-parser-combinators_2.13) and the script's own classpath (which may include scala-parser-combinators_3). The forked JVM runs
+    * `BleepCodegenScript.main()` which calls `bootstrap.forScript()` to load the build and execute the script.
     */
   private def runSingleScript(
       started: Started,
       scriptToRun: ScriptToRun,
-      @annotation.nowarn("msg=unused") killSignal: Deferred[IO, KillReason],
+      killSignal: Deferred[IO, KillReason],
       listener: SourceGenListener
   ): IO[Option[String]] = {
     val script = scriptToRun.script
@@ -291,59 +288,80 @@ object SourceGenRunner {
     listener.onScriptStarted(script.main, forProjectNames)
     listener.onLog(s"Running sourcegen: ${script.main} for ${forProjectNames.mkString(", ")}", false)
 
-    IO.blocking {
-      buildClasspathUrls(started, script) match {
-        case Left(error) =>
+    buildClasspath(started, script) match {
+      case Left(error) =>
+        val durationMs = System.currentTimeMillis() - startTime
+        listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
+        IO.pure(Some(error))
+
+      case Right(cp) =>
+        // Build the forked JVM command: java -cp <classpath> <script.main> -d <buildDir> -p <project1> -p <project2> ...
+        val projectArgs = scriptToRun.forProjects.toList.flatMap(p => List("-p", p.value))
+        val dirArgs = List("-d", started.buildPaths.buildDir.toString)
+        val cmd = jvmRunCommand.cmd(started.resolvedJvm.forceGet, Nil, cp, script.main, dirArgs ++ projectArgs)
+
+        val pb = new ProcessBuilder(cmd*)
+        pb.directory(started.buildPaths.buildDir.toFile)
+
+        // Delete generated dirs before running so partial output doesn't remain on failure
+        deleteGeneratedDirs(started, script, scriptToRun.forProjects)
+
+        ProcessRunner.runWithOutput(pb, killSignal).map { outcome =>
           val durationMs = System.currentTimeMillis() - startTime
-          listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
-          Some(error)
+          outcome match {
+            case Outcome.RunOutcome.Completed(0, stdout, _) =>
+              // Log script stdout if non-empty
+              if (stdout.nonEmpty) {
+                stdout.split("\n").foreach(line => listener.onLog(line, false))
+              }
+              listener.onLog(s"Sourcegen ${script.main} completed successfully", false)
+              listener.onScriptFinished(script.main, success = true, durationMs, None)
+              None
 
-        case Right(urls) =>
-          val classLoader = new URLClassLoader(urls, getClass.getClassLoader)
-          try {
-            // Scala objects compile to a $-suffixed class with a MODULE$ static field holding the singleton
-            val clazz = classLoader.loadClass(script.main + "$")
-            val instance = clazz.getField("MODULE$").get(null).asInstanceOf[BleepCodegenScript]
-
-            val targets = scriptToRun.forProjects.toList.map { projectName =>
-              val sourcesDir = started.buildPaths.generatedSourcesDir(projectName, instance.ThisClassName)
-              val resourcesDir = started.buildPaths.generatedResourcesDir(projectName, instance.ThisClassName)
-              instance.Target(projectName, sourcesDir, resourcesDir)
-            }
-
-            instance.run(started, new Commands(started), targets, Nil)
-
-            val durationMs = System.currentTimeMillis() - startTime
-            listener.onLog(s"Sourcegen ${script.main} completed successfully", false)
-            listener.onScriptFinished(script.main, success = true, durationMs, None)
-            None
-          } catch {
-            case e: Exception =>
+            case Outcome.RunOutcome.Completed(exitCode, stdout, stderr) =>
               deleteGeneratedDirs(started, script, scriptToRun.forProjects)
-              val durationMs = System.currentTimeMillis() - startTime
-              val error = s"Sourcegen ${script.main} failed: ${e.getMessage}"
+              if (stdout.nonEmpty) {
+                stdout.split("\n").foreach(line => listener.onLog(line, false))
+              }
+              val errorDetail = if (stderr.nonEmpty) stderr else s"exit code $exitCode"
+              val error = s"Sourcegen ${script.main} failed: $errorDetail"
               listener.onLog(error, true)
               listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
               Some(error)
-          } finally classLoader.close()
-      }
+
+            case Outcome.RunOutcome.Crashed(signal, _, stdout, stderr) =>
+              deleteGeneratedDirs(started, script, scriptToRun.forProjects)
+              if (stdout.nonEmpty) {
+                stdout.split("\n").foreach(line => listener.onLog(line, false))
+              }
+              val errorDetail = if (stderr.nonEmpty) stderr else s"signal $signal"
+              val error = s"Sourcegen ${script.main} crashed: $errorDetail"
+              listener.onLog(error, true)
+              listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
+              Some(error)
+
+            case Outcome.RunOutcome.Killed(reason, _, _) =>
+              deleteGeneratedDirs(started, script, scriptToRun.forProjects)
+              val error = s"Sourcegen ${script.main} killed: $reason"
+              listener.onLog(error, true)
+              listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
+              Some(error)
+          }
+        }
     }
   }
 
-  /** Build classpath URLs for classloading a script project. */
-  private def buildClasspathUrls(
+  /** Build classpath for running a script project in a forked JVM. */
+  private def buildClasspath(
       started: Started,
       script: ScriptDef.Main
-  ): Either[String, Array[URL]] =
+  ): Either[String, List[Path]] =
     started.resolvedProjects.get(script.project) match {
       case None =>
         Left(s"Script project ${script.project.value} not found in build")
 
       case Some(lazyResolved) =>
         val resolved = lazyResolved.forceGet
-
-        // Build classpath: classes + resources + dependencies
-        val allPaths = List(resolved.classesDir) ++ resolved.resources.getOrElse(Nil) ++ resolved.classpath
-        Right(allPaths.map(_.toUri.toURL).toArray)
+        Right(fixedClasspath(resolved))
     }
 }
