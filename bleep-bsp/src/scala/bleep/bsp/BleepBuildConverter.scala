@@ -212,19 +212,9 @@ object BleepBuildConverter {
 
   /** Get project dependencies as project names. */
   private def getDependencies(crossName: CrossProjectName, started: Started): Set[String] =
-    started.build.explodedProjects.get(crossName) match {
-      case Some(project) =>
-        project.dependsOn.values.flatMap { depName =>
-          // Resolve ProjectName to CrossProjectName - prefer same crossId
-          val depCrossName = CrossProjectName(depName, crossName.crossId)
-          if (started.build.explodedProjects.contains(depCrossName)) {
-            Some(depCrossName.value)
-          } else {
-            started.build.explodedProjects.keys.find(_.name == depName).map(_.value)
-          }
-        }.toSet
-      case None =>
-        Set.empty
+    started.build.resolvedDependsOn.get(crossName) match {
+      case Some(deps) => deps.iterator.map(_.value).toSet
+      case None       => Set.empty
     }
 
   /** Get transitive dependencies for a set of projects. */
@@ -240,18 +230,9 @@ object BleepBuildConverter {
         if (visited.contains(next)) {
           go(rest, visited)
         } else {
-          val deps = started.build.explodedProjects.get(next) match {
-            case Some(project) =>
-              project.dependsOn.values.flatMap { depName =>
-                val depCrossName = CrossProjectName(depName, next.crossId)
-                if (started.build.explodedProjects.contains(depCrossName)) {
-                  Some(depCrossName)
-                } else {
-                  started.build.explodedProjects.keys.find(_.name == depName)
-                }
-              }.toSet
-            case None =>
-              Set.empty[CrossProjectName]
+          val deps = started.build.resolvedDependsOn.get(next) match {
+            case Some(resolvedDeps) => resolvedDeps.toSet
+            case None               => Set.empty[CrossProjectName]
           }
           go(rest ++ deps, visited + next)
         }

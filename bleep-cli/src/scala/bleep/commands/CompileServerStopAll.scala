@@ -31,9 +31,10 @@ case class CompileServerStopAll(logger: Logger, userPaths: UserPaths) extends Bl
       Thread.sleep(200)
       try FileUtils.deleteDirectory(socketDir)
       catch {
-        case _: java.nio.file.DirectoryNotEmptyException =>
+        case _: java.nio.file.DirectoryNotEmptyException | _: java.nio.file.FileSystemException =>
           // Retry once after a longer pause — killed process may still be releasing files
-          Thread.sleep(500)
+          // On Windows, locked files throw FileSystemException instead of DirectoryNotEmptyException
+          Thread.sleep(2000)
           FileUtils.deleteDirectory(socketDir)
       }
     }
