@@ -27,6 +27,10 @@ jobs:
 
       - name: Scalafmt Check
         run: |
+          # Workaround: released 1.0.0-M2 BSP server has a cross-variant resolution bug
+          # that picks @jvm213 deps for non-cross Scala 3 projects. Pre-compiling @jvm3
+          # deps ensures the correct class files exist on the classpath.
+          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep setup-dev-script bleep-cli
           ./bleep-cli.sh --dev fmt --check
@@ -35,6 +39,7 @@ jobs:
         env:
           CI: true
         run: |
+          bleep compile bleep-core@jvm3
           bleep compile
           bleep sourcegen
           # publish locally so test runner and bsp server are available
@@ -106,6 +111,7 @@ jobs:
 
       - name: Build native image (non-windows)
         run: |
+          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep sourcegen
           # publish locally so test runner and bsp server are available
@@ -126,6 +132,10 @@ jobs:
         if: runner.os != 'Windows' && matrix.run_tests
 
         # Windows: cmd shell, one command per step
+      - name: Compile cross deps (windows)
+        run: bleep compile bleep-core@jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
       - name: Compile (windows)
         run: bleep compile bleep-cli
         shell: cmd
@@ -235,6 +245,7 @@ jobs:
         uses: battila7/get-version-action@v2
       - name: Publish bleep-bsp and test-runner locally
         run: |
+          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep sourcegen
           bleep my-publish-local
