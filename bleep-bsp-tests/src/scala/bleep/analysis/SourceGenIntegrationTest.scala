@@ -270,19 +270,17 @@ class SourceGenEndToEndTest extends AnyFunSuite with Matchers with PlatformTestH
 
 /** Integration tests for the write-if-changed mechanism used by BleepCodegenScript.
   *
-  * Exercises FileSync.syncBytes with soft=true and DeleteUnknowns.Yes(None) — the exact
-  * combination used by BleepCodegenScript.syncDir — to verify that unchanged files preserve
-  * their timestamps while changed/new/deleted files are handled correctly.
+  * Exercises FileSync.syncBytes with soft=true and DeleteUnknowns.Yes(None) — the exact combination used by BleepCodegenScript.syncDir — to verify that
+  * unchanged files preserve their timestamps while changed/new/deleted files are handled correctly.
   */
 class FileSyncWriteIfChangedTest extends AnyFunSuite with Matchers with PlatformTestHelper {
 
-  /** Read all regular files under a directory into a RelPath -> bytes map.
-    * Same logic as BleepCodegenScript.readDirFiles.
+  /** Read all regular files under a directory into a RelPath -> bytes map. Same logic as BleepCodegenScript.readDirFiles.
     */
   private def readDirFiles(dir: Path): Map[RelPath, Array[Byte]] =
     if (Files.isDirectory(dir)) {
       val stream = Files.walk(dir)
-      try {
+      try
         stream
           .iterator()
           .asScala
@@ -291,9 +289,8 @@ class FileSyncWriteIfChangedTest extends AnyFunSuite with Matchers with Platform
             RelPath.relativeTo(dir, file) -> Files.readAllBytes(file)
           }
           .toMap
-      } finally {
+      finally
         stream.close()
-      }
     } else {
       Map.empty
     }
