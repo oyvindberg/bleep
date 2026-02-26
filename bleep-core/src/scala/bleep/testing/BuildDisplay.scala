@@ -30,6 +30,7 @@ trait BuildDisplay {
 }
 
 case class BuildSummary(
+    sourcegenFailed: Int,
     compilesCompleted: Int,
     compilesFailed: Int,
     compilesSkipped: Int,
@@ -67,7 +68,8 @@ object BuildSummary {
 
     // Anything other than passed/skipped/ignored means failure
     val totalProblems = summary.testsFailed + summary.testsTimedOut + summary.testsCancelled
-    val hasFailures = summary.compileFailures.nonEmpty || summary.linkFailures.nonEmpty || totalProblems > 0 || summary.suitesCancelled > 0
+    val hasFailures =
+      summary.sourcegenFailed > 0 || summary.compileFailures.nonEmpty || summary.linkFailures.nonEmpty || totalProblems > 0 || summary.suitesCancelled > 0
     val wasCancelled = summary.wasCancelled || summary.compilesCancelled > 0
     val statusColor = if (hasFailures) C.RED else if (wasCancelled) C.YELLOW else C.GREEN
     val statusIcon = if (hasFailures) "x" else if (wasCancelled) "!" else "✓"
@@ -127,7 +129,13 @@ object BuildSummary {
     lines += s"  Duration: $durationStr$parallelismStr"
     lines += ""
 
-    // === Story: compile errors and their consequences ===
+    // === Story: sourcegen and compile errors and their consequences ===
+
+    if (summary.sourcegenFailed > 0) {
+      lines += s"${C.RED}${C.BOLD}Sourcegen Failures (${summary.sourcegenFailed})${C.RESET}"
+      lines += s"  ${summary.sourcegenFailed} sourcegen script(s) failed. Check output above for details."
+      lines += ""
+    }
 
     if (summary.compileFailures.nonEmpty) {
       lines += s"${C.RED}${C.BOLD}Compilation Failures (${summary.compileFailures.size})${C.RESET}"
@@ -353,6 +361,7 @@ object BuildSummary {
   }
 
   val empty: BuildSummary = BuildSummary(
+    sourcegenFailed = 0,
     compilesCompleted = 0,
     compilesFailed = 0,
     compilesSkipped = 0,
