@@ -3065,8 +3065,7 @@ class MultiWorkspaceBspServer(
 
   /** Send a notification to the client.
     *
-    * Notifications are best-effort — a disconnected client should not crash the server or
-    * abort compilation.  Log the error and continue.
+    * Notifications are best-effort — a disconnected client should not crash the server or abort compilation. Log the error and continue.
     */
   private def sendNotification[T](method: String, params: T)(using codec: JsonValueCodec[T]): Unit = {
     val notification = JsonRpcNotification(
