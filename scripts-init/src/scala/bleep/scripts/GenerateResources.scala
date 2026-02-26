@@ -16,9 +16,22 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
     }
   }
 
+  // writeIfChanged: compare content before writing to avoid unnecessary timestamp changes.
+  // This is redundant once BleepCodegenScript's framework-level write-if-changed is released,
+  // but needed for local dev where scripts-init uses the released bleep-core ($version in bleep.yaml).
+  private def writeIfChanged(to: java.nio.file.Path, content: String, logger: Logger, project: String): Unit = {
+    Files.createDirectories(to.getParent)
+    val existing = if (Files.exists(to)) Files.readString(to) else ""
+    if (existing == content) {
+      logger.withContext("project", project).info(s"Up to date: $to")
+    } else {
+      logger.withContext("project", project).warn(s"Writing $to")
+      Files.writeString(to, content): Unit
+    }
+  }
+
   def writeVersion(target: Target, logger: Logger, version: String): Unit = {
     val to = target.sources / "bleep/model/BleepVersion.scala"
-    logger.withContext("project", target.project.value).warn(s"Writing $to")
     val content =
       s"""|//
           |// GENERATED FILE!
@@ -39,13 +52,10 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
           |  implicit val encodes: Encoder[BleepVersion] = Encoder[String].contramap(_.value)
           |  implicit val decodes: Decoder[BleepVersion] = Decoder[String].map(BleepVersion.apply)
           |}""".stripMargin
-    Files.createDirectories(to.getParent)
-    Files.writeString(to, content)
-    ()
+    writeIfChanged(to, content, logger, target.project.value)
   }
   def writeJvm(target: Target, logger: Logger, buildJvm: model.Jvm): Unit = {
     val to = target.sources / "bleep/model/Jvm.scala"
-    logger.withContext("project", target.project.value).warn(s"Writing $to")
     val content =
       s"""|//
           |// GENERATED FILE!
@@ -66,8 +76,6 @@ object GenerateResources extends BleepCodegenScript("GenerateResources") {
           |  def isSystem(jvm: Jvm): Boolean = jvm == system
           |}
           |""".stripMargin
-    Files.createDirectories(to.getParent)
-    Files.writeString(to, content)
-    ()
+    writeIfChanged(to, content, logger, target.project.value)
   }
 }
