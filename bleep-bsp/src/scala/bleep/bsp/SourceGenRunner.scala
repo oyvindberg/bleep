@@ -239,10 +239,8 @@ object SourceGenRunner {
       }
     }
 
-  /** Delete generated source/resource directories before running a script. This ensures that if the script fails or crashes partway through, no partial output
-    * remains — so timestamp-based up-to-date detection will correctly re-run it next time.
-    */
-  private def deleteGeneratedDirs(
+  /** Delete `.sourcegen-stamp` files from generated dirs so that timestamp-based staleness detection will re-run the script next time. */
+  private def deleteStampFiles(
       started: Started,
       script: ScriptDef.Main,
       forProjects: Set[CrossProjectName]
@@ -255,19 +253,10 @@ object SourceGenRunner {
       ).flatten
 
       dirs.foreach { dir =>
-        if (Files.exists(dir)) {
-          deleteRecursively(dir)
-        }
+        val stamp = dir.resolve(".sourcegen-stamp")
+        Files.deleteIfExists(stamp): Unit
       }
     }
-
-  private def deleteRecursively(path: Path): Unit = {
-    import scala.jdk.CollectionConverters.*
-    if (Files.isDirectory(path)) {
-      Files.list(path).iterator().asScala.foreach(deleteRecursively)
-    }
-    Files.deleteIfExists(path): Unit
-  }
 
   /** Run a single sourcegen script by forking a separate JVM.
     *
@@ -303,9 +292,6 @@ object SourceGenRunner {
         val pb = new ProcessBuilder(cmd*)
         pb.directory(started.buildPaths.buildDir.toFile)
 
-        // Delete generated dirs before running so partial output doesn't remain on failure
-        deleteGeneratedDirs(started, script, scriptToRun.forProjects)
-
         ProcessRunner.runWithOutput(pb, killSignal).map { outcome =>
           val durationMs = System.currentTimeMillis() - startTime
           outcome match {
@@ -319,7 +305,7 @@ object SourceGenRunner {
               None
 
             case Outcome.RunOutcome.Completed(exitCode, stdout, stderr) =>
-              deleteGeneratedDirs(started, script, scriptToRun.forProjects)
+              deleteStampFiles(started, script, scriptToRun.forProjects)
               if (stdout.nonEmpty) {
                 stdout.split("\n").foreach(line => listener.onLog(line, false))
               }
@@ -330,7 +316,7 @@ object SourceGenRunner {
               Some(error)
 
             case Outcome.RunOutcome.Crashed(signal, _, stdout, stderr) =>
-              deleteGeneratedDirs(started, script, scriptToRun.forProjects)
+              deleteStampFiles(started, script, scriptToRun.forProjects)
               if (stdout.nonEmpty) {
                 stdout.split("\n").foreach(line => listener.onLog(line, false))
               }
@@ -341,7 +327,7 @@ object SourceGenRunner {
               Some(error)
 
             case Outcome.RunOutcome.Killed(reason, _, _) =>
-              deleteGeneratedDirs(started, script, scriptToRun.forProjects)
+              deleteStampFiles(started, script, scriptToRun.forProjects)
               val error = s"Sourcegen ${script.main} killed: $reason"
               listener.onLog(error, true)
               listener.onScriptFinished(script.main, success = false, durationMs, Some(error))
