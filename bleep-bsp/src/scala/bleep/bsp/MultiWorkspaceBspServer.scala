@@ -861,7 +861,9 @@ class MultiWorkspaceBspServer(
     val hasMain = project.platform.flatMap(_.mainClass).isDefined
     val tags = if (isTest) List(BuildTargetTag.Test) else if (hasMain) List(BuildTargetTag.Application) else List(BuildTargetTag.Library)
 
-    val dependencies = started.build.resolvedDependsOn(crossName).toList
+    val dependencies = started.build
+      .resolvedDependsOn(crossName)
+      .toList
       .map(dep => buildTargetId(started.buildPaths, dep))
 
     BuildTarget(
