@@ -25,13 +25,14 @@ It's early days, but most major things are already working. This is a great time
 
 If you have an interest in build tools you'll probably know Bloop, the Scala build server.
 
-Bloop has already defined an almost perfect json format for describing how to build, run, test, debug, link and so on.
-This json format has two drawbacks:
+Bloop defined a useful json format for describing how to build, run, test, debug, link and so on.
+Bleep's build model was originally inspired by this format, but has since evolved significantly.
+The original json format had two drawbacks:
 
 - bound to one machine
 - verbose
 
-Bleep uses coursier to enable you to write essentially portable Bloop json files without the boilerplate.
+Bleep uses coursier to resolve dependencies and has its own BSP server with Zinc for fast incremental compilation.
 
 Bleep is compiled with native image to be fast, it starts ~instantly.
 

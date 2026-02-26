@@ -9,7 +9,7 @@ Bleep is a native-image compiled build tool for Scala that replaces sbt with:
 - **Declarative YAML configuration** instead of Scala DSL
 - **Excellent IDE integration** through BSP (1-second imports)
 - **Simple script system** replacing sbt's complex task/plugin model
-- **Fast compilation** via Bloop build server
+- **Fast compilation** via its own BSP server with Zinc incremental compiler
 
 ## Core Concepts
 
@@ -221,7 +221,7 @@ bleep import  # Convert sbt build to bleep
 ## Important Design Decisions
 
 1. **Declarative Configuration**: Build files are data, not code
-2. **Speed First**: Native compilation, Bloop server, efficient algorithms
+2. **Speed First**: Native compilation, own BSP server with Zinc, efficient algorithms
 3. **Simplicity**: No scopes, no complex DSL, scripts are just programs
 4. **Portability**: All paths relative, dependencies via Maven coordinates
 5. **Reproducibility**: Managed JVM/Node versions, deterministic builds
