@@ -732,7 +732,7 @@ object ZincBridge {
       path = pos.sourcePath().toScala.map(Path.of(_)),
       line = pos.line().toScala.map(_.intValue).getOrElse(0),
       column = pos.pointer().toScala.map(_.intValue).getOrElse(0),
-      message = problem.message(),
+      message = problem.rendered().toScala.getOrElse(problem.message()),
       severity = severity
     )
   }
