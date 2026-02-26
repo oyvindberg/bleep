@@ -10,7 +10,11 @@ import cats.effect.Deferred
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.{Files, Path}
+import java.nio.file.attribute.FileTime
+import java.time.Instant
+import scala.jdk.CollectionConverters.*
 
 /** Integration tests for source generation in bleep-bsp.
   *
@@ -260,6 +264,257 @@ class SourceGenEndToEndTest extends AnyFunSuite with Matchers with PlatformTestH
       Files.exists(genDir.resolve("Values.scala")) shouldBe true
 
       info("Verified sourcegen pattern: main depends on generated code")
+    }
+  }
+}
+
+/** Integration tests for the write-if-changed mechanism used by BleepCodegenScript.
+  *
+  * Exercises FileSync.syncBytes with soft=true and DeleteUnknowns.Yes(None) — the exact
+  * combination used by BleepCodegenScript.syncDir — to verify that unchanged files preserve
+  * their timestamps while changed/new/deleted files are handled correctly.
+  */
+class FileSyncWriteIfChangedTest extends AnyFunSuite with Matchers with PlatformTestHelper {
+
+  /** Read all regular files under a directory into a RelPath -> bytes map.
+    * Same logic as BleepCodegenScript.readDirFiles.
+    */
+  private def readDirFiles(dir: Path): Map[RelPath, Array[Byte]] =
+    if (Files.isDirectory(dir)) {
+      val stream = Files.walk(dir)
+      try {
+        stream
+          .iterator()
+          .asScala
+          .filter(Files.isRegularFile(_))
+          .map { file =>
+            RelPath.relativeTo(dir, file) -> Files.readAllBytes(file)
+          }
+          .toMap
+      } finally {
+        stream.close()
+      }
+    } else {
+      Map.empty
+    }
+
+  test("unchanged content preserves file timestamp") {
+    withTempDir("sync-unchanged") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val realFile = realDir.resolve("Foo.scala")
+      val content = "object Foo".getBytes(StandardCharsets.UTF_8)
+      Files.write(realFile, content)
+      val pastTime = FileTime.from(Instant.now().minusSeconds(10))
+      Files.setLastModifiedTime(realFile, pastTime)
+      val originalMtime = Files.getLastModifiedTime(realFile)
+
+      val fileMap = Map(RelPath.of("Foo.scala") -> content)
+      val result = FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      result(realFile) shouldBe FileSync.Synced.Unchanged
+      Files.getLastModifiedTime(realFile) shouldBe originalMtime
+    }
+  }
+
+  test("changed content updates file and timestamp") {
+    withTempDir("sync-changed") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val realFile = realDir.resolve("Foo.scala")
+      Files.write(realFile, "object Foo".getBytes(StandardCharsets.UTF_8))
+      val pastTime = FileTime.from(Instant.now().minusSeconds(10))
+      Files.setLastModifiedTime(realFile, pastTime)
+      val originalMtime = Files.getLastModifiedTime(realFile)
+
+      val newContent = "object Foo { val x = 42 }".getBytes(StandardCharsets.UTF_8)
+      val fileMap = Map(RelPath.of("Foo.scala") -> newContent)
+      val result = FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      result(realFile) shouldBe FileSync.Synced.Changed
+      Files.readAllBytes(realFile) shouldBe newContent
+      Files.getLastModifiedTime(realFile).compareTo(originalMtime) should be > 0
+    }
+  }
+
+  test("new file is created") {
+    withTempDir("sync-new") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val content = "object Bar".getBytes(StandardCharsets.UTF_8)
+      val fileMap = Map(RelPath.of("Bar.scala") -> content)
+      val result = FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      val createdFile = realDir.resolve("Bar.scala")
+      result(createdFile) shouldBe FileSync.Synced.New
+      Files.exists(createdFile) shouldBe true
+      Files.readAllBytes(createdFile) shouldBe content
+    }
+  }
+
+  test("orphan file in real dir is deleted") {
+    withTempDir("sync-delete") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val contentA = "object A".getBytes(StandardCharsets.UTF_8)
+      val contentB = "object B".getBytes(StandardCharsets.UTF_8)
+      Files.write(realDir.resolve("A.scala"), contentA)
+      Files.write(realDir.resolve("B.scala"), contentB)
+
+      // Only include A in the sync map
+      val fileMap = Map(RelPath.of("A.scala") -> contentA)
+      val result = FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      result(realDir.resolve("A.scala")) shouldBe FileSync.Synced.Unchanged
+      result(realDir.resolve("B.scala")) shouldBe FileSync.Synced.Deleted
+      Files.exists(realDir.resolve("B.scala")) shouldBe false
+    }
+  }
+
+  test("subdirectories handled correctly") {
+    withTempDir("sync-subdirs") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val fileMap = Map(
+        RelPath.of("com", "example", "Foo.scala") -> "object Foo".getBytes(StandardCharsets.UTF_8),
+        RelPath.of("com", "example", "sub", "Bar.scala") -> "object Bar".getBytes(StandardCharsets.UTF_8),
+        RelPath.of("Top.scala") -> "object Top".getBytes(StandardCharsets.UTF_8)
+      )
+      val result = FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      result(realDir.resolve("com/example/Foo.scala")) shouldBe FileSync.Synced.New
+      result(realDir.resolve("com/example/sub/Bar.scala")) shouldBe FileSync.Synced.New
+      result(realDir.resolve("Top.scala")) shouldBe FileSync.Synced.New
+
+      Files.readString(realDir.resolve("com/example/Foo.scala")) shouldBe "object Foo"
+      Files.readString(realDir.resolve("com/example/sub/Bar.scala")) shouldBe "object Bar"
+      Files.readString(realDir.resolve("Top.scala")) shouldBe "object Top"
+    }
+  }
+
+  test("mixed scenario: unchanged, changed, new, and deleted") {
+    withTempDir("sync-mixed") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val unchangedContent = "object Unchanged".getBytes(StandardCharsets.UTF_8)
+      val modifiedOriginal = "object Modified".getBytes(StandardCharsets.UTF_8)
+      val deletedContent = "object Deleted".getBytes(StandardCharsets.UTF_8)
+
+      Files.write(realDir.resolve("unchanged.scala"), unchangedContent)
+      Files.write(realDir.resolve("modified.scala"), modifiedOriginal)
+      Files.write(realDir.resolve("deleted.scala"), deletedContent)
+
+      val pastTime = FileTime.from(Instant.now().minusSeconds(10))
+      Files.setLastModifiedTime(realDir.resolve("unchanged.scala"), pastTime)
+      Files.setLastModifiedTime(realDir.resolve("modified.scala"), pastTime)
+      Files.setLastModifiedTime(realDir.resolve("deleted.scala"), pastTime)
+      val originalMtime = Files.getLastModifiedTime(realDir.resolve("unchanged.scala"))
+
+      val modifiedNew = "object Modified { val v = 2 }".getBytes(StandardCharsets.UTF_8)
+      val addedContent = "object Added".getBytes(StandardCharsets.UTF_8)
+
+      val fileMap = Map(
+        RelPath.of("unchanged.scala") -> unchangedContent,
+        RelPath.of("modified.scala") -> modifiedNew,
+        RelPath.of("added.scala") -> addedContent
+      )
+      val result = FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      result(realDir.resolve("unchanged.scala")) shouldBe FileSync.Synced.Unchanged
+      result(realDir.resolve("modified.scala")) shouldBe FileSync.Synced.Changed
+      result(realDir.resolve("added.scala")) shouldBe FileSync.Synced.New
+      result(realDir.resolve("deleted.scala")) shouldBe FileSync.Synced.Deleted
+
+      Files.getLastModifiedTime(realDir.resolve("unchanged.scala")) shouldBe originalMtime
+      Files.readAllBytes(realDir.resolve("modified.scala")) shouldBe modifiedNew
+      Files.readAllBytes(realDir.resolve("added.scala")) shouldBe addedContent
+      Files.exists(realDir.resolve("deleted.scala")) shouldBe false
+    }
+  }
+
+  test("sourcegen stamp file: freshens after sync") {
+    withTempDir("sync-stamp") { tempDir =>
+      val realDir = tempDir.resolve("real")
+      Files.createDirectories(realDir)
+
+      val content = "object Gen".getBytes(StandardCharsets.UTF_8)
+      val fileMap = Map(RelPath.of("Gen.scala") -> content)
+      FileSync.syncBytes(realDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      // Write stamp file (same as BleepCodegenScript does after sync)
+      val stampFile = realDir.resolve(".sourcegen-stamp")
+      Files.writeString(stampFile, "")
+
+      Files.exists(stampFile) shouldBe true
+      val stampMtime = Files.getLastModifiedTime(stampFile).toInstant
+      val now = java.time.Instant.now()
+
+      // Stamp should have been written just now (within last 5 seconds)
+      java.time.Duration.between(stampMtime, now).toMillis should be < 5000L
+    }
+  }
+
+  test("stamp file deletion preserves other files") {
+    withTempDir("sync-stamp-delete") { tempDir =>
+      val dir = tempDir.resolve("generated")
+      Files.createDirectories(dir)
+
+      val genContent = "object Gen".getBytes(StandardCharsets.UTF_8)
+      Files.write(dir.resolve("Gen.scala"), genContent)
+      Files.writeString(dir.resolve(".sourcegen-stamp"), "")
+
+      // Delete just the stamp file
+      Files.delete(dir.resolve(".sourcegen-stamp"))
+
+      Files.exists(dir.resolve(".sourcegen-stamp")) shouldBe false
+      Files.exists(dir.resolve("Gen.scala")) shouldBe true
+      Files.readAllBytes(dir.resolve("Gen.scala")) shouldBe genContent
+    }
+  }
+
+  test("readDirFiles + syncDir end-to-end pattern") {
+    withTempDir("sync-e2e") { tempDir =>
+      val tempGenDir = tempDir.resolve("temp")
+      val realGenDir = tempDir.resolve("real")
+      Files.createDirectories(tempGenDir)
+      Files.createDirectories(realGenDir)
+
+      // Pre-populate real dir with an existing file (unchanged) and one to delete
+      val existingContent = "object Existing".getBytes(StandardCharsets.UTF_8)
+      Files.write(realGenDir.resolve("Existing.scala"), existingContent)
+      Files.write(realGenDir.resolve("Stale.scala"), "object Stale".getBytes(StandardCharsets.UTF_8))
+      val pastTime = FileTime.from(Instant.now().minusSeconds(10))
+      Files.setLastModifiedTime(realGenDir.resolve("Existing.scala"), pastTime)
+      Files.setLastModifiedTime(realGenDir.resolve("Stale.scala"), pastTime)
+      val existingMtime = Files.getLastModifiedTime(realGenDir.resolve("Existing.scala"))
+
+      // Script writes to temp dir (simulating what a codegen script does)
+      Files.write(tempGenDir.resolve("Existing.scala"), existingContent)
+      val newDir = tempGenDir.resolve("sub")
+      Files.createDirectories(newDir)
+      Files.write(newDir.resolve("New.scala"), "object New".getBytes(StandardCharsets.UTF_8))
+
+      // readDirFiles + syncBytes (same pattern as BleepCodegenScript.syncDir)
+      val fileMap = readDirFiles(tempGenDir)
+      val result = FileSync.syncBytes(realGenDir, fileMap, FileSync.DeleteUnknowns.Yes(None), soft = true)
+
+      // Existing unchanged file preserved timestamp
+      result(realGenDir.resolve("Existing.scala")) shouldBe FileSync.Synced.Unchanged
+      Files.getLastModifiedTime(realGenDir.resolve("Existing.scala")) shouldBe existingMtime
+
+      // New file created
+      result(realGenDir.resolve("sub/New.scala")) shouldBe FileSync.Synced.New
+      Files.readString(realGenDir.resolve("sub/New.scala")) shouldBe "object New"
+
+      // Stale file deleted
+      result(realGenDir.resolve("Stale.scala")) shouldBe FileSync.Synced.Deleted
+      Files.exists(realGenDir.resolve("Stale.scala")) shouldBe false
     }
   }
 }
