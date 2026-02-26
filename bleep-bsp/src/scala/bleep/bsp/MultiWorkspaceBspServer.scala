@@ -861,13 +861,7 @@ class MultiWorkspaceBspServer(
     val hasMain = project.platform.flatMap(_.mainClass).isDefined
     val tags = if (isTest) List(BuildTargetTag.Test) else if (hasMain) List(BuildTargetTag.Application) else List(BuildTargetTag.Library)
 
-    // Resolve ProjectName to CrossProjectName - prefer same crossId as current project
-    val dependencies = project.dependsOn.values.toList
-      .flatMap { depName =>
-        val depCrossName = CrossProjectName(depName, crossName.crossId)
-        if (started.build.explodedProjects.contains(depCrossName)) Some(depCrossName)
-        else started.build.explodedProjects.keys.find(_.name == depName)
-      }
+    val dependencies = started.build.resolvedDependsOn(crossName).toList
       .map(dep => buildTargetId(started.buildPaths, dep))
 
     BuildTarget(
@@ -1093,16 +1087,8 @@ class MultiWorkspaceBspServer(
 
       // Get all project dependencies (for TaskDag)
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-        started.build.explodedProjects.map { case (crossName, project) =>
-          val deps = project.dependsOn.values.flatMap { depName =>
-            val depCrossName = CrossProjectName(depName, crossName.crossId)
-            if (started.build.explodedProjects.contains(depCrossName)) {
-              Some(depCrossName)
-            } else {
-              started.build.explodedProjects.keys.find(_.name == depName)
-            }
-          }.toSet
-          crossName -> deps
+        started.build.resolvedDependsOn.map { case (crossName, deps) =>
+          crossName -> deps.toSet
         }
 
       // Determine platforms for target projects (needed for link tasks)
@@ -1544,18 +1530,9 @@ class MultiWorkspaceBspServer(
       }
 
       // Get all project dependencies (for compile tasks)
-      // Convert ProjectName to CrossProjectName, preferring same crossId
       val allProjectDeps: Map[CrossProjectName, Set[CrossProjectName]] =
-        started.build.explodedProjects.map { case (crossName, project) =>
-          val deps = project.dependsOn.values.flatMap { depName =>
-            val depCrossName = CrossProjectName(depName, crossName.crossId)
-            if (started.build.explodedProjects.contains(depCrossName)) {
-              Some(depCrossName)
-            } else {
-              started.build.explodedProjects.keys.find(_.name == depName)
-            }
-          }.toSet
-          crossName -> deps
+        started.build.resolvedDependsOn.map { case (crossName, deps) =>
+          crossName -> deps.toSet
         }
 
       // Determine platforms for test projects (needed for link tasks)
