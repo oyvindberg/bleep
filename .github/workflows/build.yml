@@ -27,6 +27,10 @@ jobs:
 
       - name: Scalafmt Check
         run: |
+          # Workaround: released 1.0.0-M2 BSP server has a cross-variant resolution bug
+          # that picks @jvm213 deps for non-cross Scala 3 projects. Pre-compiling @jvm3
+          # deps ensures the correct class files exist on the classpath.
+          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep setup-dev-script bleep-cli
           ./bleep-cli.sh --dev fmt --check
@@ -35,6 +39,7 @@ jobs:
         env:
           CI: true
         run: |
+          bleep compile bleep-core@jvm3
           bleep compile
           bleep sourcegen
           # publish locally so test runner and bsp server are available
@@ -106,6 +111,7 @@ jobs:
 
       - name: Build native image (non-windows)
         run: |
+          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep sourcegen
           # publish locally so test runner and bsp server are available
@@ -126,6 +132,10 @@ jobs:
         if: runner.os != 'Windows' && matrix.run_tests
 
         # Windows: cmd shell, one command per step
+      - name: Compile cross deps (windows)
+        run: bleep compile bleep-core@jvm3
+        shell: cmd
+        if: runner.os == 'Windows'
       - name: Compile (windows)
         run: bleep compile bleep-cli
         shell: cmd
@@ -174,30 +184,35 @@ jobs:
             }
             Write-Host "Fixed jar entries in $ivyLocal"
           }
-      - name: Stop compile server (windows)
-        run: bleep config compile-server stop-all
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Setup dev script (windows)
-        run: bleep setup-dev-script bleep-cli
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Clean stale state before dev script (windows)
+      - name: Stop compile server and clean state (windows)
         shell: pwsh
         if: runner.os == 'Windows'
         run: |
           $ErrorActionPreference = 'Continue'
-          # Force kill any remaining java processes (BSP servers from setup-dev-script)
+          # Force kill any remaining java processes (BSP servers)
+          # Must do this before compile-server stop-all to avoid Windows file locking issues
           & taskkill /F /IM java.exe 2>$null
-          Start-Sleep -Seconds 5
+          Start-Sleep -Seconds 3
+          # Clean up socket directories manually since stop-all may fail with locked files
+          $socketDir = Join-Path $env:USERPROFILE ".bleep" "cache" "socket"
+          if (Test-Path $socketDir) {
+            Remove-Item -Path $socketDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
+          $cacheSocketDir = Join-Path $env:LOCALAPPDATA "bleep" "cache" "socket"
+          if (Test-Path $cacheSocketDir) {
+            Remove-Item -Path $cacheSocketDir -Recurse -Force -ErrorAction SilentlyContinue
+          }
           # Delete BSP classpath cache so the dev server re-resolves from ivy local
-          # (the cache may point to Maven Central jars, not our locally-published ones)
           $cacheDir = Join-Path $env:USERPROFILE ".bleep" "cache"
           Get-ChildItem -Path $cacheDir -Filter "bleep-bsp-classpath-*.txt" -ErrorAction SilentlyContinue | ForEach-Object {
             Write-Host "Deleting BSP classpath cache: $($_.FullName)"
             Remove-Item -Path $_.FullName -Force -ErrorAction SilentlyContinue
           }
           exit 0
+      - name: Setup dev script (windows)
+        run: bleep setup-dev-script bleep-cli
+        shell: cmd
+        if: runner.os == 'Windows'
       - name: Build native image (windows)
         run: bleep-cli.bat --dev native-image ${{ matrix.file_name }}
         shell: cmd
@@ -235,6 +250,7 @@ jobs:
         uses: battila7/get-version-action@v2
       - name: Publish bleep-bsp and test-runner locally
         run: |
+          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep sourcegen
           bleep my-publish-local
