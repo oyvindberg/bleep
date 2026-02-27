@@ -834,6 +834,12 @@ class ReactiveBspClient(
       case PE.WorkspaceReady(timestamp) =>
         Some(BuildEvent.WorkspaceReady("", timestamp))
 
+      case PE.LockContention(project, waitingMs, timestamp) =>
+        Some(BuildEvent.LockContention(project, waitingMs, timestamp))
+
+      case PE.LockAcquired(project, waitedMs, timestamp) =>
+        Some(BuildEvent.LockAcquired(project, waitedMs, timestamp))
+
       // Events not relevant for BuildDisplay
       case PE.TestRunFinished(_, _, _, _, _, _) => None
       case PE.DiscoveryStarted(_, _)            => None

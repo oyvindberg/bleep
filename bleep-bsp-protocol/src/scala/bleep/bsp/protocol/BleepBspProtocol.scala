@@ -226,6 +226,20 @@ object BleepBspProtocol {
         timestamp: Long
     ) extends Event
 
+    /** A project is waiting to acquire its compile lock (another compile is holding it) */
+    case class LockContention(
+        project: String,
+        waitingMs: Long,
+        timestamp: Long
+    ) extends Event
+
+    /** A project acquired its compile lock after waiting */
+    case class LockAcquired(
+        project: String,
+        waitedMs: Long,
+        timestamp: Long
+    ) extends Event
+
     // === Link events (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native) ===
 
     case class LinkStarted(
@@ -466,6 +480,8 @@ object BleepBspProtocol {
     implicit val compileFinishedCodec: Codec[CompileFinished] = deriveCodec
     implicit val compileStalledCodec: Codec[CompileStalled] = deriveCodec
     implicit val compileResumedCodec: Codec[CompileResumed] = deriveCodec
+    implicit val lockContentionCodec: Codec[LockContention] = deriveCodec
+    implicit val lockAcquiredCodec: Codec[LockAcquired] = deriveCodec
     implicit val linkStartedCodec: Codec[LinkStarted] = deriveCodec
     implicit val linkProgressCodec: Codec[LinkProgress] = deriveCodec
     implicit val linkFinishedCodec: Codec[LinkFinished] = deriveCodec
@@ -503,6 +519,8 @@ object BleepBspProtocol {
       case e: CompileFinished     => Json.obj("type" -> "CompileFinished".asJson, "data" -> e.asJson)
       case e: CompileStalled      => Json.obj("type" -> "CompileStalled".asJson, "data" -> e.asJson)
       case e: CompileResumed      => Json.obj("type" -> "CompileResumed".asJson, "data" -> e.asJson)
+      case e: LockContention      => Json.obj("type" -> "LockContention".asJson, "data" -> e.asJson)
+      case e: LockAcquired        => Json.obj("type" -> "LockAcquired".asJson, "data" -> e.asJson)
       case e: LinkStarted         => Json.obj("type" -> "LinkStarted".asJson, "data" -> e.asJson)
       case e: LinkProgress        => Json.obj("type" -> "LinkProgress".asJson, "data" -> e.asJson)
       case e: LinkFinished        => Json.obj("type" -> "LinkFinished".asJson, "data" -> e.asJson)
@@ -541,6 +559,8 @@ object BleepBspProtocol {
         case "CompileFinished"     => cursor.downField("data").as[CompileFinished]
         case "CompileStalled"      => cursor.downField("data").as[CompileStalled]
         case "CompileResumed"      => cursor.downField("data").as[CompileResumed]
+        case "LockContention"      => cursor.downField("data").as[LockContention]
+        case "LockAcquired"        => cursor.downField("data").as[LockAcquired]
         case "LinkStarted"         => cursor.downField("data").as[LinkStarted]
         case "LinkProgress"        => cursor.downField("data").as[LinkProgress]
         case "LinkFinished"        => cursor.downField("data").as[LinkFinished]

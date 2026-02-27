@@ -112,6 +112,20 @@ object BuildEvent {
       timestamp: Long
   ) extends BuildEvent
 
+  /** A project is waiting to acquire its compile lock (another compile is holding it) */
+  case class LockContention(
+      project: String,
+      waitingMs: Long,
+      timestamp: Long
+  ) extends BuildEvent
+
+  /** A project acquired its compile lock after waiting */
+  case class LockAcquired(
+      project: String,
+      waitedMs: Long,
+      timestamp: Long
+  ) extends BuildEvent
+
   /** A test suite has started execution */
   case class SuiteStarted(
       project: String,

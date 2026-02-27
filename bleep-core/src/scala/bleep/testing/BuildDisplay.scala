@@ -598,6 +598,12 @@ object BuildDisplay {
       case _: BuildEvent.CompileResumed =>
         IO.unit // silence — compile will proceed and emit its own events
 
+      case BuildEvent.LockContention(project, _, _) =>
+        logWarn(s"$project: waiting for compile lock (another compile is holding it)")
+
+      case BuildEvent.LockAcquired(project, waitedMs, _) =>
+        log(s"$project: compile lock acquired after ${waitedMs}ms")
+
       case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, _) =>
         if (!quietMode) {
           val detail = if (trackedApis > 0) s" ($trackedApis APIs)" else ""

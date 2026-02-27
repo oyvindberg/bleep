@@ -66,6 +66,7 @@ object FancyBuildDisplay {
       runningSuites: mutable.LinkedHashMap[String, RunningSuite] = mutable.LinkedHashMap.empty,
       recentPasses: mutable.ArrayDeque[String] = mutable.ArrayDeque.empty,
       stalledProjects: Map[String, BuildEvent.CompileStalled] = Map.empty,
+      lockedProjects: Map[String, BuildEvent.LockContention] = Map.empty,
       startTime: Instant = Instant.now(),
       frame: Int = 0,
       issueScrollOffset: Int = 0,
@@ -472,6 +473,9 @@ object FancyBuildDisplay {
       case _: BuildEvent.CompileStalled | _: BuildEvent.CompileResumed =>
         () // Handled below via stalledProjects state
 
+      case _: BuildEvent.LockContention | _: BuildEvent.LockAcquired =>
+        () // Handled below via lockedProjects state
+
       case _: BuildEvent.WorkspaceBusy | _: BuildEvent.WorkspaceReady =>
         () // Handled below via workspaceBusy state
     }
@@ -501,10 +505,21 @@ object FancyBuildDisplay {
       case _ =>
         state.stalledProjects
     }
+    val updatedLockedProjects = event match {
+      case e: BuildEvent.LockContention =>
+        state.lockedProjects.updated(e.project, e)
+      case e: BuildEvent.LockAcquired =>
+        state.lockedProjects - e.project
+      case BuildEvent.CompileFinished(project, _, _, _, _, _) =>
+        state.lockedProjects - project
+      case _ =>
+        state.lockedProjects
+    }
     state.copy(
       core = newCore,
       suitesDiscovered = updatedSuitesDiscovered,
       stalledProjects = updatedStalledProjects,
+      lockedProjects = updatedLockedProjects,
       workspaceBusy = updatedWorkspaceBusy
     )
   }
@@ -959,6 +974,22 @@ object FancyBuildDisplay {
             Span.styled(stalled.project, s(Palette.text)),
             Span.styled(s" ${stalled.heapUsedMb}MB/${stalled.heapMaxMb}MB", s(Palette.warning)),
             Span.styled(s" retry ${waitSec}s", s(Palette.textDim))
+          )
+        )
+      )
+    }
+
+    // Show lock contention
+    state.lockedProjects.values.foreach { locked =>
+      val waitSec = (System.currentTimeMillis() - locked.timestamp + 999) / 1000
+      val spinner = spinnerFrames(state.frame % spinnerFrames.length)
+      items += ListWidget.Item(
+        Text.fromSpans(
+          Spans.from(
+            Span.styled(s" $spinner ", s(Palette.warning)),
+            Span.styled("LOCK ", s(Palette.warning)),
+            Span.styled(locked.project, s(Palette.text)),
+            Span.styled(s" waiting ${waitSec}s", s(Palette.textDim))
           )
         )
       )
