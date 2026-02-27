@@ -257,6 +257,9 @@ object BuildStateReducer {
     case _: BuildEvent.CompileStalled | _: BuildEvent.CompileResumed =>
       state // Heap pressure events don't affect build state — handled by display
 
+    case _: BuildEvent.LockContention | _: BuildEvent.LockAcquired =>
+      state // Lock contention events don't affect build state — handled by display
+
     case BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDumpInfo, _) =>
       val key = s"$project:$suite"
       val timeoutFailure = TestFailure(

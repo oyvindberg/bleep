@@ -36,22 +36,30 @@ object ProjectLock {
     *   The project's output directory (lock file will be created here)
     * @param timeout
     *   Maximum time to wait for lock acquisition
+    * @param onContention
+    *   Called once on the first failed lock attempt (before retrying). Use to notify callers that a lock is contended.
     * @return
-    *   Resource that holds the lock while in scope
+    *   Resource that holds the lock while in scope. The boolean indicates whether there was contention (true = had to wait).
     */
   def acquire(
       project: CrossProjectName,
       outputDir: Path,
-      timeout: scala.concurrent.duration.FiniteDuration
-  ): Resource[IO, Unit] =
-    Resource.make(acquireLock(project, outputDir, timeout))(_ => releaseLock(project, outputDir))
+      timeout: scala.concurrent.duration.FiniteDuration,
+      onContention: () => Unit
+  ): Resource[IO, Boolean] =
+    Resource.make(acquireLock(project, outputDir, timeout, onContention))(_ => releaseLock(project, outputDir))
 
-  /** Try to acquire lock, with retry and timeout */
+  /** Try to acquire lock, with retry and timeout.
+    *
+    * @return
+    *   true if there was contention (had to wait), false if acquired immediately
+    */
   private def acquireLock(
       project: CrossProjectName,
       outputDir: Path,
-      timeout: scala.concurrent.duration.FiniteDuration
-  ): IO[Unit] = {
+      timeout: scala.concurrent.duration.FiniteDuration,
+      onContention: () => Unit
+  ): IO[Boolean] = {
     // Place lock file in parent directory (e.g. target/.bleep-lock, not target/classes/.bleep-lock).
     // On Windows, mandatory file locks prevent ALL access to the locked file — including Zinc scanning
     // the classes directory for incremental compilation.
@@ -59,7 +67,7 @@ object ProjectLock {
     val retryDelay = scala.concurrent.duration.Duration(50, scala.concurrent.duration.MILLISECONDS)
     val maxAttempts = (timeout.toMillis / retryDelay.toMillis).toInt.max(1)
 
-    def attempt(remaining: Int): IO[Unit] =
+    def attempt(remaining: Int, notified: Boolean): IO[Boolean] =
       IO.blocking {
         // First acquire JVM-level lock (fast path for same-process)
         val jvmLock = getJvmLock(project)
@@ -77,7 +85,7 @@ object ProjectLock {
               // Store lock info for later release
               activeLocks.put(project, LockInfo(raf, channel, fileLock))
               success = true
-              () // Success
+              notified // Return whether we had to wait
             } else {
               throw new LockNotAcquiredException(project)
             }
@@ -94,21 +102,22 @@ object ProjectLock {
         }
       }.handleErrorWith {
         case _: LockNotAcquiredException if remaining > 1 =>
-          IO.sleep(retryDelay) >> attempt(remaining - 1)
+          IO(if (!notified) onContention()) >>
+            IO.sleep(retryDelay) >> attempt(remaining - 1, true)
         case _: LockNotAcquiredException =>
           IO.raiseError(new LockTimeoutException(project, timeout))
         case e: java.io.IOException if remaining > 1 && isWindowsSharingViolation(e) =>
           // On Windows, antivirus scanners and indexing services can briefly hold
           // exclusive handles on newly-created files. Retry in the same way as for
           // lock contention.
-          IO.sleep(retryDelay) >> attempt(remaining - 1)
+          IO.sleep(retryDelay) >> attempt(remaining - 1, notified)
         case e: java.io.IOException if isWindowsSharingViolation(e) =>
           IO.raiseError(new LockTimeoutException(project, timeout))
         case e =>
           IO.raiseError(e)
       }
 
-    attempt(maxAttempts)
+    attempt(maxAttempts, false)
   }
 
   /** Release a project lock */

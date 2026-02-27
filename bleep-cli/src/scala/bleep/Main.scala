@@ -447,6 +447,11 @@ object Main {
               commands.SetupIde(projectNames, forceJvm)
             }
           ),
+          Opts.subcommand("setup-mcp-server", "generate .mcp.json so AI agents (Claude Code, etc.) can compile and test")(
+            Opts.flag("force-jvm", "force MCP server running through JVM").orFalse.map { forceJvm =>
+              commands.SetupMcpServer(forceJvm)
+            }
+          ),
           Opts.subcommand("clean", "clean")(
             projectNames.map(projectNames => commands.Clean(projectNames))
           ),
@@ -525,7 +530,9 @@ object Main {
             }
           },
           Opts.subcommand("fmt", "format Scala and Java source files") {
-            Opts.flag("check", "ensure that all files are already formatted").orFalse.map(commands.Fmt.apply)
+            (Opts.flag("check", "ensure that all files are already formatted").orFalse, projectNames).mapN { case (check, projects) =>
+              commands.Fmt(check, projects)
+            }
           },
           Opts.subcommand("setup-dev-script", "setup a bash script which can run the code bleep has compiled")(
             (projectName, Opts.option[String]("main-class", "override main class").orNone).mapN { case (projectNames, main) =>
@@ -774,6 +781,23 @@ object Main {
               case Left(be) => fatal("", logger, be)
               case Right(pre) =>
                 bsp.BspProxy.run(pre)
+            }
+          }
+        }
+
+      case "mcp-server" :: args =>
+        val (commonOpts, _) = CommonOpts.parse(args)
+        val cwd = cwdFor(commonOpts)
+        val buildLoader = BuildLoader.find(cwd)
+        maybeRunWithDifferentVersion(_args, bleepLoggers.stderrAll(commonOpts), buildLoader, commonOpts).andThen {
+          val buildPaths = BuildPaths(cwd, buildLoader, model.BuildVariant.Normal)
+          val config = BleepConfigOps.loadOrDefault(userPaths).orThrow
+
+          bleepLoggers.stderrAndFileLogging(config, commonOpts, buildPaths).use { logger =>
+            buildLoader.existing.map(existing => Prebootstrapped(logger, userPaths, buildPaths, existing, ec)) match {
+              case Left(be) => fatal("", logger, be)
+              case Right(pre) =>
+                mcp.McpServerRunner.run(pre)
             }
           }
         }

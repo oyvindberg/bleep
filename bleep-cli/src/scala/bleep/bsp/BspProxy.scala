@@ -16,8 +16,7 @@ object BspProxy {
       resolvedJvm = pre.resolvedJvm.forceGet,
       userPaths = pre.userPaths,
       resolver = resolver,
-      logger = pre.logger,
-      workingDir = pre.buildPaths.cwd
+      logger = pre.logger
     ).orThrow
 
     val program = BspRifle.ensureRunningAndConnect(bspConfig, pre.logger).use { connection =>

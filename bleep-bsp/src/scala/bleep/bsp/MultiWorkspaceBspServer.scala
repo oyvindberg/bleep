@@ -175,7 +175,7 @@ class MultiWorkspaceBspServer(
     val requestId = request.id.map(_.key).getOrElse("unknown")
 
     val handler: IO[Unit] = IO
-      .blocking(handleRequestSync(request))
+      .interruptible(handleRequestSync(request))
       .guarantee(IO.blocking(activeFibers.remove(requestId)).void)
 
     handler.start.flatMap { fiber =>
@@ -211,6 +211,11 @@ class MultiWorkspaceBspServer(
           ()
       }
     } catch {
+      case _: InterruptedException =>
+        // Fiber was cancelled (client disconnected). Re-set interrupt flag so CE detects it,
+        // clean up the request token, and return — no error response needed since the client is gone.
+        Thread.currentThread().interrupt()
+        request.id.foreach(id => activeRequests.remove(id.key))
       case oom: OutOfMemoryError =>
         handleOutOfMemory(request, oom)
       case e: BspException =>
@@ -2041,8 +2046,31 @@ class MultiWorkspaceBspServer(
     }
 
     val outputDir = started.projectPaths(project).targetDir / "classes"
+    val lockStart = System.currentTimeMillis()
     ProjectLock
-      .acquire(project, outputDir, lockTimeout)
+      .acquire(
+        project,
+        outputDir,
+        lockTimeout,
+        onContention = () =>
+          sendCompileEvent(
+            originId,
+            s"compile:${project.value}",
+            BleepBspProtocol.Event.LockContention(project.value, 0, System.currentTimeMillis())
+          )
+      )
+      .evalTap { hadContention =>
+        IO {
+          if (hadContention) {
+            val waited = System.currentTimeMillis() - lockStart
+            sendCompileEvent(
+              originId,
+              s"compile:${project.value}",
+              BleepBspProtocol.Event.LockAcquired(project.value, waited, System.currentTimeMillis())
+            )
+          }
+        }
+      }
       .use { _ =>
         compiler.compile(config, diagnosticListener, cancellation, Map.empty, progressListener)
       }
@@ -3194,7 +3222,7 @@ class MultiWorkspaceBspServer(
   }
 
   private def handleJvmRunEnvironment(params: JvmRunEnvironmentParams): JvmRunEnvironmentResult = {
-    val workspace = activeWorkspace.get().getOrElse(Path.of("."))
+    val workspace = activeWorkspace.get().getOrElse(throw BspException(JsonRpcErrorCodes.ServerNotInitialized, "No active workspace"))
     val items = params.targets.map { targetId =>
       val classpath = (for {
         started <- getActiveBuild.toOption
@@ -3215,7 +3243,7 @@ class MultiWorkspaceBspServer(
   }
 
   private def handleJvmTestEnvironment(params: JvmTestEnvironmentParams): JvmTestEnvironmentResult = {
-    val workspace = activeWorkspace.get().getOrElse(Path.of("."))
+    val workspace = activeWorkspace.get().getOrElse(throw BspException(JsonRpcErrorCodes.ServerNotInitialized, "No active workspace"))
     val items = params.targets.map { targetId =>
       val classpath = (for {
         started <- getActiveBuild.toOption
