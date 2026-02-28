@@ -143,18 +143,25 @@ object BleepBspProtocol {
   // Shared types
   // ==========================================================================
 
-  /** A compiler diagnostic with severity */
+  /** A compiler diagnostic with severity.
+    *
+    * `message` is the short/plain error text (from problem.message()).
+    * `rendered` is the compiler's rich formatted output including source line and caret (from problem.rendered()).
+    * `path` is the full file path with line:col suffix.
+    */
   case class Diagnostic(
       severity: String, // "error", "warning", "info"
-      message: String
+      message: String,
+      rendered: Option[String],
+      path: Option[String] // full path:line:col for file-associated diagnostics
   )
 
   object Diagnostic {
     implicit val codec: Codec[Diagnostic] = deriveCodec
 
-    def error(message: String): Diagnostic = Diagnostic("error", message)
-    def warning(message: String): Diagnostic = Diagnostic("warning", message)
-    def info(message: String): Diagnostic = Diagnostic("info", message)
+    def error(message: String): Diagnostic = Diagnostic("error", message, None, None)
+    def warning(message: String): Diagnostic = Diagnostic("warning", message, None, None)
+    def info(message: String): Diagnostic = Diagnostic("info", message, None, None)
   }
 
   // ==========================================================================

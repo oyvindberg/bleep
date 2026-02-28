@@ -151,12 +151,18 @@ object BuildSummary {
         val countSuffix = if (countParts.nonEmpty) s" (${countParts.mkString(", ")})" else ""
         lines += s"${C.RED}x ${cf.project}${C.RESET}$countSuffix"
         errors.take(10).foreach { diag =>
-          lines += s"  ${C.RED}|${C.RESET} ${diag.message}"
+          val text = diag.rendered.getOrElse(diag.message)
+          text.linesIterator.foreach { line =>
+            lines += s"  ${C.RED}|${C.RESET} $line"
+          }
         }
         if (errors.size > 10)
           lines += s"  ${C.RED}|${C.RESET} ... and ${errors.size - 10} more errors"
         warnings.take(5).foreach { diag =>
-          lines += s"  ${C.YELLOW}|${C.RESET} ${diag.message}"
+          val text = diag.rendered.getOrElse(diag.message)
+          text.linesIterator.foreach { line =>
+            lines += s"  ${C.YELLOW}|${C.RESET} $line"
+          }
         }
         if (warnings.size > 5)
           lines += s"  ${C.YELLOW}|${C.RESET} ... and ${warnings.size - 5} more warnings"
@@ -781,11 +787,17 @@ object BuildDisplay {
           }
           for {
             _ <- log(s"  ${SConsole.RED}x${SConsole.RESET} ${f.project}$countSuffix")
-            // Show errors first
-            _ <- errors.take(10).traverse_(e => log(s"    ${SConsole.RED}|${SConsole.RESET} ${e.message}"))
+            // Show errors first (use rendered when available for source line + caret)
+            _ <- errors.take(10).traverse_ { e =>
+              val text = e.rendered.getOrElse(e.message)
+              text.linesIterator.toList.traverse_(line => log(s"    ${SConsole.RED}|${SConsole.RESET} $line"))
+            }
             _ <- if (errors.size > 10) log(s"    ${SConsole.RED}|${SConsole.RESET} ... and ${errors.size - 10} more errors") else IO.unit
             // Then warnings
-            _ <- warnings.take(5).traverse_(w => log(s"    ${SConsole.YELLOW}|${SConsole.RESET} ${w.message}"))
+            _ <- warnings.take(5).traverse_ { w =>
+              val text = w.rendered.getOrElse(w.message)
+              text.linesIterator.toList.traverse_(line => log(s"    ${SConsole.YELLOW}|${SConsole.RESET} $line"))
+            }
             _ <- if (warnings.size > 5) log(s"    ${SConsole.YELLOW}|${SConsole.RESET} ... and ${warnings.size - 5} more warnings") else IO.unit
           } yield ()
         }

@@ -205,6 +205,7 @@ object KotlinJsCompiler {
               line = 0,
               column = 0,
               message = s"Kotlin/JS compilation output:\n$output",
+              rendered = None,
               severity = CompilerError.Severity.Error
             )
           )
@@ -242,7 +243,7 @@ object KotlinJsCompiler {
         } else e.getMessage
         val fullMsg = if (output.nonEmpty) s"$causeMsg\nCompiler output:\n$output" else causeMsg
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS compilation failed: $fullMsg", severity = CompilerError.Severity.Error)
+          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS compilation failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
         )
         KotlinJsCompileResult(outputDir, None, None, 1)
       case e: Exception =>
@@ -253,7 +254,7 @@ object KotlinJsCompiler {
           if (output.nonEmpty) s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}\nCompiler output:\n$output"
           else s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}"
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS compilation failed: $fullMsg", severity = CompilerError.Severity.Error)
+          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS compilation failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
         )
         KotlinJsCompileResult(outputDir, None, None, 1)
     }
@@ -399,9 +400,9 @@ object KotlinJsCompiler {
 
               if (isError) {
                 hasErrorsRef.set(true)
-                listener.onDiagnostic(CompilerError(path, line, column, message, CompilerError.Severity.Error))
+                listener.onDiagnostic(CompilerError(path, line, column, message, None, CompilerError.Severity.Error))
               } else if (isWarning) {
-                listener.onDiagnostic(CompilerError(path, line, column, message, CompilerError.Severity.Warning))
+                listener.onDiagnostic(CompilerError(path, line, column, message, None, CompilerError.Severity.Warning))
               }
               // Ignore INFO, LOGGING, OUTPUT etc.
               null
@@ -612,6 +613,7 @@ object KotlinJsLinker {
               line = 0,
               column = 0,
               message = s"Kotlin/JS linking output:\n$output",
+              rendered = None,
               severity = CompilerError.Severity.Error
             )
           )
@@ -646,7 +648,7 @@ object KotlinJsLinker {
         } else e.getMessage
         val fullMsg = if (output.nonEmpty) s"$causeMsg\nLinker output:\n$output" else causeMsg
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS linking failed: $fullMsg", severity = CompilerError.Severity.Error)
+          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS linking failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
         )
         KotlinJsLinkResult(outputDir, None, 1)
       case e: Exception =>
@@ -657,7 +659,7 @@ object KotlinJsLinker {
           if (output.nonEmpty) s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}\nLinker output:\n$output"
           else s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}"
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS linking failed: $fullMsg", severity = CompilerError.Severity.Error)
+          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS linking failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
         )
         KotlinJsLinkResult(outputDir, None, 1)
     }
@@ -785,9 +787,9 @@ object KotlinJsLinker {
 
               if (isError) {
                 hasErrorsRef.set(true)
-                listener.onDiagnostic(CompilerError(path, line, column, message, CompilerError.Severity.Error))
+                listener.onDiagnostic(CompilerError(path, line, column, message, None, CompilerError.Severity.Error))
               } else if (isWarning) {
-                listener.onDiagnostic(CompilerError(path, line, column, message, CompilerError.Severity.Warning))
+                listener.onDiagnostic(CompilerError(path, line, column, message, None, CompilerError.Severity.Warning))
               }
               null
             case _ =>

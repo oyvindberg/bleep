@@ -114,7 +114,8 @@ case class CompilerError(
     line: Int,
     column: Int,
     message: String,
-    severity: CompilerError.Severity = CompilerError.Severity.Error
+    rendered: Option[String],
+    severity: CompilerError.Severity
 ) {
   def formatted: String = {
     val loc = path match {
@@ -406,7 +407,7 @@ object Compiler {
         case e: Exception if cancellation.isCancelled =>
           CompilationCancelled
         case e: Exception =>
-          val err = CompilerError(None, 0, 0, s"Compilation failed: ${e.getMessage}")
+          val err = CompilerError(None, 0, 0, s"Compilation failed: ${e.getMessage}", None, CompilerError.Severity.Error)
           listener.onDiagnostic(err)
           CompilationFailure(List(err))
       }

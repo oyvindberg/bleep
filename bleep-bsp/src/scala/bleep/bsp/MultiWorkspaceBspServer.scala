@@ -3031,16 +3031,20 @@ class MultiWorkspaceBspServer(
 
   /** Convert a compiler error to a protocol Diagnostic preserving severity */
   private def toDiagnostic(error: CompilerError): BleepBspProtocol.Diagnostic = {
-    val location = error.path match {
-      case Some(path) => s"${path.getFileName}:${error.line}:${error.column}: "
-      case None       => ""
+    val pathStr = error.path.map { p =>
+      val locPart = (error.line, error.column) match {
+        case (0, 0) => ""
+        case (l, 0) => s":$l"
+        case (l, c) => s":$l:$c"
+      }
+      s"$p$locPart"
     }
     val severity = error.severity match {
       case CompilerError.Severity.Error   => "error"
       case CompilerError.Severity.Warning => "warning"
       case CompilerError.Severity.Info    => "info"
     }
-    BleepBspProtocol.Diagnostic(severity, s"$location${error.message}")
+    BleepBspProtocol.Diagnostic(severity, error.message, error.rendered, pathStr)
   }
 
   private val sendEventCounter = new java.util.concurrent.atomic.AtomicInteger(0)

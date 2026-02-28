@@ -272,7 +272,7 @@ class CompilationCoordinator(
                 key,
                 CompilationFailure(
                   List(
-                    CompilerError(None, 0, 0, s"Internal error: ${e.getMessage}", CompilerError.Severity.Error)
+                    CompilerError(None, 0, 0, s"Internal error: ${e.getMessage}", None, CompilerError.Severity.Error)
                   )
                 )
               )

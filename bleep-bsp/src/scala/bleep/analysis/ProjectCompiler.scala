@@ -292,7 +292,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
       case CompilationFailure(errs) =>
         ProjectCompileFailure(errs)
       case CompilationCancelled =>
-        ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled")))
+        ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
     }
   }
 }
@@ -536,11 +536,11 @@ object KotlinJsProjectCompiler extends ProjectCompiler {
           val outputFiles = result.outputFile.toSet ++ result.klibFile.toSet
           ProjectCompileSuccess(result.outputDir, outputFiles, None)
         } else {
-          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}")))
+          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error)))
         }
       }
       .handleErrorWith { case e: Exception =>
-        IO.pure(ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation error: ${e.getMessage}"))))
+        IO.pure(ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation error: ${e.getMessage}", None, CompilerError.Severity.Error))))
       }
   }
 }
@@ -728,11 +728,11 @@ object KotlinNativeProjectCompiler extends ProjectCompiler {
         if (result.isSuccess) {
           ProjectCompileSuccess(config.outputDir, Set(result.outputPath), None)
         } else {
-          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/Native compilation failed with exit code ${result.exitCode}")))
+          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/Native compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error)))
         }
       }
       .handleErrorWith { case e: Exception =>
-        IO.pure(ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/Native compilation error: ${e.getMessage}"))))
+        IO.pure(ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/Native compilation error: ${e.getMessage}", None, CompilerError.Severity.Error))))
       }
   }
 }

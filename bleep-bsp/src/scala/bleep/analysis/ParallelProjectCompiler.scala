@@ -70,7 +70,7 @@ object ParallelProjectCompiler {
             Map(
               err.toString -> ProjectCompileFailure(
                 List(
-                  CompilerError(None, 0, 0, s"DAG validation failed: $err")
+                  CompilerError(None, 0, 0, s"DAG validation failed: $err", None, CompilerError.Severity.Error)
                 )
               )
             ),
@@ -139,7 +139,7 @@ object ParallelProjectCompiler {
           } else if (cancellationToken.isCancelled) {
             val remaining = dag.projects.keySet -- completedNames -- running
             remaining.toList.traverse_ { name =>
-              val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled")))
+              val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
               completedRef.update(_ + (name -> result)) >>
                 deferreds(name).complete(result).attempt.void
             }
@@ -149,7 +149,7 @@ object ParallelProjectCompiler {
               // All running tasks done and we have failures — cancel remaining
               val remaining = dag.projects.keySet -- completedNames
               remaining.toList.traverse_ { name =>
-                val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Not started due to dependency failure")))
+                val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Not started due to dependency failure", None, CompilerError.Severity.Error)))
                 completedRef.update(_ + (name -> result)) >>
                   deferreds(name).complete(result).attempt.void
               }
@@ -188,7 +188,7 @@ object ParallelProjectCompiler {
                         // Stuck — shouldn't happen with a valid DAG, but handle gracefully
                         val stuck = dag.projects.keySet -- nowCompleted.keySet
                         stuck.toList.traverse_ { name =>
-                          val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Stuck: no progress possible")))
+                          val result = ProjectCompileFailure(List(CompilerError(None, 0, 0, "Stuck: no progress possible", None, CompilerError.Severity.Error)))
                           completedRef.update(_ + (name -> result)) >>
                             deferreds(name).complete(result).attempt.void
                         }
@@ -230,7 +230,7 @@ object ParallelProjectCompiler {
           IO.pure(
             ProjectCompileFailure(
               List(
-                CompilerError(None, 0, 0, s"Dependency failed: ${depFailures.flatMap(_.errors).map(_.message).mkString(", ")}")
+                CompilerError(None, 0, 0, s"Dependency failed: ${depFailures.flatMap(_.errors).map(_.message).mkString(", ")}", None, CompilerError.Severity.Error)
               )
             )
           )

@@ -187,7 +187,7 @@ object KotlinSourceCompiler extends Compiler {
     val config = input.config match {
       case c: KotlinConfig => c
       case other =>
-        val err = CompilerError(None, 0, 0, s"KotlinSourceCompiler requires KotlinConfig, got ${other.getClass.getSimpleName}")
+        val err = CompilerError(None, 0, 0, s"KotlinSourceCompiler requires KotlinConfig, got ${other.getClass.getSimpleName}", None, CompilerError.Severity.Error)
         listener.onDiagnostic(err)
         return CompilationFailure(List(err))
     }
@@ -244,7 +244,7 @@ object KotlinSourceCompiler extends Compiler {
       case e: Exception =>
         debug(s"Exception: ${e.getClass.getName}: ${e.getMessage}")
         e.printStackTrace(System.err)
-        val err = CompilerError(None, 0, 0, s"Compilation failed: ${e.getMessage}")
+        val err = CompilerError(None, 0, 0, s"Compilation failed: ${e.getMessage}", None, CompilerError.Severity.Error)
         listener.onDiagnostic(err)
         CompilationFailure(List(err))
     } finally
@@ -527,7 +527,7 @@ object KotlinSourceCompiler extends Compiler {
         CompilationSuccess(input.outputDir, classFiles)
       } else {
         if collectedErrors.isEmpty then {
-          val err = CompilerError(None, 0, 0, s"Kotlin incremental compilation failed with exit code: $exitCode")
+          val err = CompilerError(None, 0, 0, s"Kotlin incremental compilation failed with exit code: $exitCode", None, CompilerError.Severity.Error)
           listener.onDiagnostic(err)
           collectedErrors += err
         }
@@ -540,14 +540,14 @@ object KotlinSourceCompiler extends Compiler {
         else {
           val msg = s"Kotlin compilation failed: ${cause.getClass.getName}: ${cause.getMessage}"
           if debugEnabled then cause.printStackTrace(System.err)
-          val err = CompilerError(None, 0, 0, msg)
+          val err = CompilerError(None, 0, 0, msg, None, CompilerError.Severity.Error)
           listener.onDiagnostic(err)
           CompilationFailure(List(err))
         }
       case e: Exception =>
         val msg = s"Kotlin compilation failed: ${e.getClass.getName}: ${e.getMessage}"
         if debugEnabled then e.printStackTrace(System.err)
-        val err = CompilerError(None, 0, 0, msg)
+        val err = CompilerError(None, 0, 0, msg, None, CompilerError.Severity.Error)
         listener.onDiagnostic(err)
         CompilationFailure(List(err))
     }
@@ -572,7 +572,7 @@ object KotlinSourceCompiler extends Compiler {
     compileThread.join(5 * 60 * 1000L) // 5 minute timeout
     if (compileThread.isAlive) {
       compileThread.interrupt()
-      val err = CompilerError(None, 0, 0, "Kotlin compilation timed out after 5 minutes")
+      val err = CompilerError(None, 0, 0, "Kotlin compilation timed out after 5 minutes", None, CompilerError.Severity.Error)
       listener.onDiagnostic(err)
       CompilationFailure(List(err))
     } else {
@@ -686,7 +686,7 @@ object KotlinSourceCompiler extends Compiler {
         CompilationSuccess(input.outputDir, classFiles)
       } else {
         if collectedErrors.isEmpty then {
-          val err = CompilerError(None, 0, 0, s"Kotlin compilation failed with exit code: $exitCode")
+          val err = CompilerError(None, 0, 0, s"Kotlin compilation failed with exit code: $exitCode", None, CompilerError.Severity.Error)
           listener.onDiagnostic(err)
           collectedErrors += err
         }
@@ -697,12 +697,12 @@ object KotlinSourceCompiler extends Compiler {
         val cause = Option(e.getCause).getOrElse(e)
         if cause.getClass.getName.contains("CompilationCanceledException") || cancellation.isCancelled then CompilationCancelled
         else {
-          val err = CompilerError(None, 0, 0, s"Compiler invocation failed: ${cause.getMessage}")
+          val err = CompilerError(None, 0, 0, s"Compiler invocation failed: ${cause.getMessage}", None, CompilerError.Severity.Error)
           listener.onDiagnostic(err)
           CompilationFailure(List(err))
         }
       case e: Exception =>
-        val err = CompilerError(None, 0, 0, s"Reflection failed: ${e.getClass.getName}: ${e.getMessage}")
+        val err = CompilerError(None, 0, 0, s"Reflection failed: ${e.getClass.getName}: ${e.getMessage}", None, CompilerError.Severity.Error)
         listener.onDiagnostic(err)
         CompilationFailure(List(err))
     }
@@ -751,7 +751,7 @@ object KotlinSourceCompiler extends Compiler {
                     }
                   else (None, 0, 0)
 
-                val error = CompilerError(path, line, col, message, CompilerError.Severity.Error)
+                val error = CompilerError(path, line, col, message, None, CompilerError.Severity.Error)
                 listener.onDiagnostic(error)
                 collectedErrors += error
               }
