@@ -31,10 +31,12 @@ object McpEventFilter {
         if (e.diagnostics.nonEmpty) {
           fields += "diagnostics" -> Json.arr(
             e.diagnostics.map { d =>
-              Json.obj(
-                "severity" -> Json.fromString(d.severity),
-                "message" -> Json.fromString(d.message)
-              )
+              val diagFields = List.newBuilder[(String, Json)]
+              diagFields += "severity" -> Json.fromString(d.severity)
+              diagFields += "message" -> Json.fromString(d.message)
+              d.rendered.foreach(r => diagFields += "rendered" -> Json.fromString(r))
+              d.path.foreach(p => diagFields += "path" -> Json.fromString(p))
+              Json.obj(diagFields.result()*)
             }*
           )
         }

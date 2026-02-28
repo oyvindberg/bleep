@@ -226,6 +226,7 @@ object KotlinNativeCompiler {
             line = 0,
             column = 0,
             message = s"Kotlin/Native compilation failed: ${if (cause != null) cause.getMessage else e.getMessage}",
+            rendered = None,
             severity = CompilerError.Severity.Error
           )
         )
@@ -241,6 +242,7 @@ object KotlinNativeCompiler {
             line = 0,
             column = 0,
             message = s"Kotlin/Native compilation failed: ${e.getMessage}",
+            rendered = None,
             severity = CompilerError.Severity.Error
           )
         )
@@ -285,6 +287,7 @@ object KotlinNativeCompiler {
           line = 0,
           column = 0,
           message = "Kotlin/Native compiler (konanc) not found. Please install Kotlin/Native.",
+          rendered = None,
           severity = CompilerError.Severity.Error
         )
       )
@@ -360,6 +363,7 @@ object KotlinNativeCompiler {
             line = 0,
             column = 0,
             message = s"Kotlin/Native compilation failed: ${e.getMessage}",
+            rendered = None,
             severity = CompilerError.Severity.Error
           )
         )

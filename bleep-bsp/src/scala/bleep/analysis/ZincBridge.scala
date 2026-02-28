@@ -281,6 +281,7 @@ object ZincBridge {
               line = 0,
               column = 0,
               message = "Corrupt incremental state detected, cleaned. Please recompile.",
+              rendered = None,
               severity = CompilerError.Severity.Error
             )
           )
@@ -732,7 +733,8 @@ object ZincBridge {
       path = pos.sourcePath().toScala.map(Path.of(_)),
       line = pos.line().toScala.map(_.intValue).getOrElse(0),
       column = pos.pointer().toScala.map(_.intValue).getOrElse(0),
-      message = problem.rendered().toScala.getOrElse(problem.message()),
+      message = problem.message(),
+      rendered = problem.rendered().toScala,
       severity = severity
     )
   }
@@ -741,11 +743,11 @@ object ZincBridge {
   private class BleepLogger(listener: DiagnosticListener) extends Logger {
     def debug(msg: java.util.function.Supplier[String]): Unit = ()
     def error(msg: java.util.function.Supplier[String]): Unit =
-      listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), CompilerError.Severity.Error))
+      listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), None, CompilerError.Severity.Error))
     def info(msg: java.util.function.Supplier[String]): Unit = ()
     def trace(err: java.util.function.Supplier[Throwable]): Unit = ()
     def warn(msg: java.util.function.Supplier[String]): Unit =
-      listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), CompilerError.Severity.Warning))
+      listener.onDiagnostic(CompilerError(None, 0, 0, msg.get(), None, CompilerError.Severity.Warning))
   }
 
   /** Reporter that forwards problems to DiagnosticListener */

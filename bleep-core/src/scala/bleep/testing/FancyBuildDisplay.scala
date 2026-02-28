@@ -71,6 +71,7 @@ object FancyBuildDisplay {
       frame: Int = 0,
       issueScrollOffset: Int = 0,
       issueScrollAtBottom: Boolean = false,
+      issueHScrollOffset: Int = 0,
       workspaceBusy: Option[WorkspaceBusyInfo] = None
   ) {
     def suiteProgress: Double = {
@@ -227,7 +228,7 @@ object FancyBuildDisplay {
     val autoExitDelayTicks = 20 // 2 seconds at 100ms tick rate
     val tickRate = Duration.ofMillis(100)
     var lastTick = Instant.now()
-    var lastIssueItemCount = 0
+    var lastIssueLineCount = 0
     var lastIssueMaxVisible = 0
     var mouseCaptureSuspendedAt = 0L // 0 = mouse capture active; >0 = timestamp when suspended
     val mouseCaptureSuspendMs = 2000L // re-enable after 2s so scroll works again
@@ -269,13 +270,13 @@ object FancyBuildDisplay {
         }
       }
 
-      // Pre-compute issue pane to get item count for scroll handling
+      // Pre-compute issue pane to get line count for scroll handling
       val issuePane = buildIssuePane(state)
-      lastIssueItemCount = issuePane.items.length
+      lastIssueLineCount = issuePane.items.map(_.height).sum
 
       // Auto-follow: snap to bottom when new items arrive
       if (state.issueScrollAtBottom) {
-        val maxOffset = math.max(0, lastIssueItemCount - math.max(1, lastIssueMaxVisible))
+        val maxOffset = math.max(0, lastIssueLineCount - math.max(1, lastIssueMaxVisible))
         state = state.copy(issueScrollOffset = maxOffset)
       }
 
@@ -308,15 +309,19 @@ object FancyBuildDisplay {
                 done = true
                 userCancelled = true
               case _: tui.crossterm.KeyCode.Up =>
-                state = scrollIssues(state, -1, lastIssueItemCount, lastIssueMaxVisible)
+                state = scrollIssues(state, -1, lastIssueLineCount, lastIssueMaxVisible)
               case _: tui.crossterm.KeyCode.Down =>
-                state = scrollIssues(state, 1, lastIssueItemCount, lastIssueMaxVisible)
+                state = scrollIssues(state, 1, lastIssueLineCount, lastIssueMaxVisible)
               case _: tui.crossterm.KeyCode.PageUp =>
                 val pageSize = math.max(1, lastIssueMaxVisible - 1)
-                state = scrollIssues(state, -pageSize, lastIssueItemCount, lastIssueMaxVisible)
+                state = scrollIssues(state, -pageSize, lastIssueLineCount, lastIssueMaxVisible)
               case _: tui.crossterm.KeyCode.PageDown =>
                 val pageSize = math.max(1, lastIssueMaxVisible - 1)
-                state = scrollIssues(state, pageSize, lastIssueItemCount, lastIssueMaxVisible)
+                state = scrollIssues(state, pageSize, lastIssueLineCount, lastIssueMaxVisible)
+              case _: tui.crossterm.KeyCode.Left =>
+                state = state.copy(issueHScrollOffset = math.max(0, state.issueHScrollOffset - 4))
+              case _: tui.crossterm.KeyCode.Right =>
+                state = state.copy(issueHScrollOffset = state.issueHScrollOffset + 4)
               case _ =>
                 key.keyEvent.code match {
                   case char: tui.crossterm.KeyCode.Char if char.c().toInt == 3 =>
@@ -328,9 +333,9 @@ object FancyBuildDisplay {
           case mouse: tui.crossterm.Event.Mouse =>
             mouse.mouseEvent.kind match {
               case _: tui.crossterm.MouseEventKind.ScrollUp =>
-                state = scrollIssues(state, -3, lastIssueItemCount, lastIssueMaxVisible)
+                state = scrollIssues(state, -3, lastIssueLineCount, lastIssueMaxVisible)
               case _: tui.crossterm.MouseEventKind.ScrollDown =>
-                state = scrollIssues(state, 3, lastIssueItemCount, lastIssueMaxVisible)
+                state = scrollIssues(state, 3, lastIssueLineCount, lastIssueMaxVisible)
               case _: tui.crossterm.MouseEventKind.Down =>
                 // Suspend mouse capture so terminal handles text selection for copy/paste.
                 // Re-enabled automatically after mouseCaptureSuspendMs.
@@ -579,20 +584,29 @@ object FancyBuildDisplay {
       val maxVisible = math.max(0, height - 2)
       val area = chunks(2 + i)
       if (pane eq issuePane) {
-        // Report maxVisible back to the loop for scroll calculations
+        // Report maxVisible back to the loop for scroll calculations (in lines)
         issueMetrics(0) = maxVisible
 
-        val totalItems = pane.items.length
-        val effectiveOffset = if (state.issueScrollAtBottom) {
-          math.max(0, totalItems - maxVisible)
+        val totalLines = pane.items.map(_.height).sum
+        val effectiveLineOffset = if (state.issueScrollAtBottom) {
+          math.max(0, totalLines - maxVisible)
         } else {
-          math.min(state.issueScrollOffset, math.max(0, totalItems - maxVisible))
+          math.min(state.issueScrollOffset, math.max(0, totalLines - maxVisible))
         }
 
-        val visibleItems = pane.items.slice(effectiveOffset, effectiveOffset + maxVisible)
+        // Convert line offset to item index: find first item whose start line >= offset
+        var linesSoFar = 0
+        var startItem = 0
+        while (startItem < pane.items.length && linesSoFar + pane.items(startItem).height <= effectiveLineOffset) {
+          linesSoFar += pane.items(startItem).height
+          startItem += 1
+        }
+
+        val visibleItems = pane.items.drop(startItem)
+          .map(item => hShiftItem(item, state.issueHScrollOffset))
         renderPane(f, area, pane.title, pane.titleColor, pane.borderColor, visibleItems)
-        if (totalItems > maxVisible) {
-          renderScrollIndicator(f, area, totalItems, effectiveOffset, maxVisible)
+        if (totalLines > maxVisible) {
+          renderScrollIndicator(f, area, totalLines, effectiveLineOffset, maxVisible)
         }
       } else {
         val visibleItems = if (pane.items.length > maxVisible) pane.items.take(maxVisible) else pane.items
@@ -1186,6 +1200,10 @@ object FancyBuildDisplay {
     PaneData(items.toArray, title, Palette.info, Palette.border)
   }
 
+  /** Flatten a potentially multiline message into a single line for compact display */
+  private def flattenMessage(msg: String): String =
+    msg.linesIterator.map(_.trim).filter(_.nonEmpty).mkString(" ")
+
   private def buildIssuePane(state: State): PaneData = {
     val items = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
     val warningItems = scala.collection.mutable.ArrayBuffer.empty[ListWidget.Item]
@@ -1208,27 +1226,34 @@ object FancyBuildDisplay {
           )
         )
         errors.foreach { diag =>
-          items += ListWidget.Item(
-            Text.fromSpans(
-              Spans.from(
-                Span.styled("    E ", s(Palette.error)),
-                Span.styled(diag.message.take(200), s(Palette.error))
-              )
-            )
+          val pathLine = diag.path match {
+            case Some(p) =>
+              Spans.from(Span.styled(s"    $p", s(Palette.textDim)))
+            case None =>
+              Spans.from(Span.styled("    <unknown>", s(Palette.textDim)))
+          }
+          val messageLine = Spans.from(
+            Span.styled("    E ", s(Palette.error)),
+            Span.styled(flattenMessage(diag.message), s(Palette.error))
           )
+          items += ListWidget.Item(Text.fromSpans(pathLine, messageLine))
         }
       }
 
       warnings.foreach { diag =>
-        warningItems += ListWidget.Item(
-          Text.fromSpans(
+        val pathLine = diag.path match {
+          case Some(p) =>
+            Spans.from(Span.styled(s"    $p", s(Palette.textDim)))
+          case None =>
             Spans.from(
-              Span.styled(s"    W ", s(Palette.warning)),
-              Span.styled(s"${cf.project}: ", s(Palette.accent)),
-              Span.styled(diag.message.take(200), s(Palette.warning))
+              Span.styled(s"    ${cf.project}", s(Palette.textDim))
             )
-          )
+        }
+        val messageLine = Spans.from(
+          Span.styled("    W ", s(Palette.warning)),
+          Span.styled(flattenMessage(diag.message), s(Palette.warning))
         )
+        warningItems += ListWidget.Item(Text.fromSpans(pathLine, messageLine))
       }
     }
 
@@ -1247,16 +1272,10 @@ object FancyBuildDisplay {
             Span.styled(s" $icon ", s(color)),
             Span.styled(s"${failure.project} ", s(Palette.accent)),
             Span.styled(s"${failure.suite}.${failure.test}", s(Palette.text))
-          )
-        )
-      )
-
-      val msg = failure.message.getOrElse("(no message)")
-      items += ListWidget.Item(
-        Text.fromSpans(
+          ),
           Spans.from(
             Span.styled("    ", sBg),
-            Span.styled(msg.take(300), s(Palette.textMuted))
+            Span.styled(flattenMessage(failure.message.getOrElse("(no message)")), s(Palette.textMuted))
           )
         )
       )
@@ -1271,6 +1290,35 @@ object FancyBuildDisplay {
       if (totalWarnings > 0) s"Issues ($totalErrors errors, $totalWarnings warnings)"
       else s"Issues ($totalErrors)"
     PaneData(items.toArray, title, Palette.error, Palette.error)
+  }
+
+  /** Shift spans content left by `offset` characters for horizontal scrolling */
+  private def hShiftSpans(spans: Spans, offset: Int): Spans = {
+    if (offset <= 0) return spans
+    var remaining = offset
+    val shifted = Array.newBuilder[Span]
+    spans.spans.foreach { span =>
+      if (remaining <= 0) {
+        shifted += span
+      } else {
+        val len = span.content.length
+        if (len <= remaining) {
+          remaining -= len
+        } else {
+          shifted += span.copy(content = span.content.substring(remaining))
+          remaining = 0
+        }
+      }
+    }
+    Spans(shifted.result())
+  }
+
+  private def hShiftItem(item: ListWidget.Item, offset: Int): ListWidget.Item = {
+    if (offset <= 0) return item
+    ListWidget.Item(
+      Text(item.content.lines.map(line => hShiftSpans(line, offset))),
+      item.style
+    )
   }
 
   private def scrollIssues(s: State, delta: Int, totalItems: Int, maxVisible: Int): State = {
