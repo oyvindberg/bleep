@@ -279,15 +279,16 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         if (projects.isEmpty) {
           IO.pure("""{"success":true,"message":"No projects to clean."}""")
         } else {
-          IO.fromEither(commands.Clean(projects).run(started))
-            .as(
-              Json
-                .obj(
-                  "success" -> Json.fromBoolean(true),
-                  "projects" -> Json.arr(projects.map(p => Json.fromString(p.value)).toList*)
-                )
-                .noSpaces
+          for {
+            _ <- IO.fromEither(commands.Clean(projects).run(started))
+            projectNames = projects.map(_.value).toSet
+            _ <- buildHistory.update(_.dropProjects(projectNames))
+          } yield Json
+            .obj(
+              "success" -> Json.fromBoolean(true),
+              "projects" -> Json.arr(projects.map(p => Json.fromString(p.value)).toList*)
             )
+            .noSpaces
         }
       },
       None
