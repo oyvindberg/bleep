@@ -258,6 +258,7 @@ object ZincBridge {
         diagnosticListener.onCompilePhase(config.name, CompilePhase.SavingAnalysis)
         debug(s"[ZincBridge] Saving analysis for ${config.name}")
         saveAnalysis(analysisFile, result.analysis, result.setup)
+        checkCaseInsensitiveCollisions(result.analysis, config.name, diagnosticListener)
       }
 
       val classFiles = collectClassFiles(config.outputDir)
@@ -340,6 +341,36 @@ object ZincBridge {
     } else {
       Set.empty
     }
+
+  /** Check for class names that differ only in case, which cause silent file collisions on case-insensitive filesystems (macOS HFS+/APFS, Windows NTFS).
+    *
+    * Uses Zinc's in-memory analysis (apis.internal) which records class names from the compiler, not from the filesystem. This means it correctly detects both
+    * names even when the filesystem has already silently clobbered one file with the other.
+    *
+    * Cost: O(n) string operations on class names already in memory. Zero I/O.
+    */
+  private def checkCaseInsensitiveCollisions(
+      analysis: CompileAnalysis,
+      projectName: String,
+      diagnosticListener: DiagnosticListener
+  ): Unit = {
+    val internalAnalysis = analysis.asInstanceOf[sbt.internal.inc.Analysis]
+    val classNames = internalAnalysis.apis.internal.keySet.toList
+    val collisions = classNames.groupBy(_.toLowerCase).filter(_._2.size > 1)
+    collisions.foreach { case (_, names) =>
+      diagnosticListener.onDiagnostic(
+        CompilerError(
+          path = None,
+          line = 0,
+          column = 0,
+          message = s"Case-insensitive class name collision in $projectName: ${names.sorted.mkString(" vs ")}. " +
+            "These produce class files that overwrite each other on case-insensitive filesystems (macOS, Windows), causing NoClassDefFoundError.",
+          rendered = None,
+          severity = CompilerError.Severity.Error
+        )
+      )
+    }
+  }
 
   private def getScalaInstance(scalaVersion: String): ZincScalaInstance =
     scalaInstanceCache.computeIfAbsent(
