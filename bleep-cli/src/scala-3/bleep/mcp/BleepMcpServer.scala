@@ -82,9 +82,18 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     override def instructions: IO[Option[String]] =
       IO.pure(
         Some(
-          """Bleep build tool MCP server. Available tools:
-          |- bleep.compile — compile projects, returns diagnostics
-          |- bleep.test — run tests, returns pass/fail results
+          """Bleep build tool MCP server.
+          |
+          |## Response model
+          |Compile and test responses are always compact summaries (error/warning counts, diff against previous run).
+          |Errors stream as log notifications during the build so you see failures immediately.
+          |For full diagnostics, call bleep.status after a build completes.
+          |Use verbose=true on compile/test only when you need every diagnostic in the response.
+          |
+          |## Tools
+          |- bleep.compile — compile projects. Returns compact summary. Streams errors per-project as they occur.
+          |- bleep.test — run tests. Returns compact summary with pass/fail counts and diff.
+          |- bleep.status — get cached results from the last build. Use this to inspect full error details after compile/test.
           |- bleep.test.suites — discover test suites without running them (requires compiled code)
           |- bleep.sourcegen — run source generators for projects
           |- bleep.fmt — format Scala and Java source files
@@ -95,8 +104,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           |- bleep.projects — list all projects with dependencies
           |- bleep.programs — list projects that have a mainClass (runnable programs)
           |- bleep.scripts — list scripts defined in the build
-          |- bleep.run — compile and run a project or script, returns stdout/stderr
-          |- bleep.status — show cached results from last build without re-running""".stripMargin
+          |- bleep.run — compile and run a project or script, returns stdout/stderr""".stripMargin
         )
       )
 
@@ -162,7 +170,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         "bleep.compile",
         Some("Compile"),
         Some(
-          "Compile bleep projects. Returns diagnostics diff against previous run (new/fixed errors). Streams per-project progress via notifications. Use verbose=true for full output."
+          "Compile bleep projects. Returns compact summary (error counts, diff). Errors stream per-project as they finish. Call bleep.status for full diagnostic details. Use verbose=true only when you need every diagnostic in the response."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -176,7 +184,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         "bleep.test",
         Some("Test"),
         Some(
-          "Run tests for bleep projects. Returns test results diff against previous run (new failures/fixes). Use verbose=true for full output."
+          "Run tests for bleep projects. Returns compact summary (pass/fail counts, diff). Failures stream as they occur. Call bleep.status for full details. Use verbose=true only when you need full failure messages/stacktraces."
         ),
         ToolFunction.Effect.ReadOnly,
         false
@@ -444,7 +452,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         }.toArray
       }
 
-    /** Execute a one-shot compile via BSP. Streams per-project diff lines via MCP notifications. */
+    /** Execute a one-shot compile via BSP. Reports progress heartbeat every 30s, returns compact summary. */
     private def executeBspOperation(
         config: BspRifleConfig,
         projectNames: List[String],
@@ -462,11 +470,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         previousState <- buildHistory.get.map(_.previousRunState)
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
+        done <- Ref.of[IO, Boolean](false)
 
         bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
 
         // Consumer fiber: filter events, log per-project diffs to MCP, collect for final response
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
+
+        // Heartbeat fiber: report progress every 30s so the client isn't blind
+        heartbeatFiber <- heartbeat(collectedEvents, done, "compile", context).start
 
         _ <- BspRifle
           .connectWithRetry(config, started.logger)
@@ -493,13 +505,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           .guarantee(eventQueue.offer(None))
 
         _ <- consumerFiber.joinWithNever
+        _ <- done.set(true)
+        _ <- heartbeatFiber.cancel
         events <- collectedEvents.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "compile", events.reverse)))
       } yield formatCompileResult(events.reverse, previousState, verbose)
     }
 
-    /** Execute a one-shot test via BSP. */
+    /** Execute a one-shot test via BSP. Reports progress heartbeat every 30s, returns compact summary. */
     private def executeBspTestOperation(
         config: BspRifleConfig,
         projectNames: List[String],
@@ -519,9 +533,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         previousState <- buildHistory.get.map(_.previousRunState)
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
+        done <- Ref.of[IO, Boolean](false)
 
         bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
+        heartbeatFiber <- heartbeat(collectedEvents, done, "test", context).start
 
         testRunResult <- Ref.of[IO, Option[BleepBspProtocol.TestRunResult]](None)
 
@@ -563,6 +579,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           .guarantee(eventQueue.offer(None))
 
         _ <- consumerFiber.joinWithNever
+        _ <- done.set(true)
+        _ <- heartbeatFiber.cancel
         events <- collectedEvents.get
         trr <- testRunResult.get
         // Push to history
@@ -988,7 +1006,43 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         case None => IO.unit
       }
 
-    /** Stream a per-project diff line for actionable events. Replaces the old "only stream failures" strategy with more informative diff lines. */
+    /** Periodic heartbeat that logs build progress every 30 seconds so the MCP client sees activity. */
+    private def heartbeat(
+        collectedEvents: Ref[IO, List[BleepBspProtocol.Event]],
+        done: Ref[IO, Boolean],
+        operation: String,
+        context: CallContext[IO]
+    ): IO[Unit] = {
+      import BleepBspProtocol.{Event => E}
+      import scala.concurrent.duration.*
+
+      val tick: IO[Unit] = for {
+        isDone <- done.get
+        _ <-
+          if (isDone) IO.unit
+          else
+            collectedEvents.get.flatMap { events =>
+              val finished = events.collect { case e: E.CompileFinished => e }
+              val started = events.collect { case _: E.CompileStarted => () }.size
+              val inProgress = started - finished.size
+              val failed = finished.count(_.status == "failed")
+              val suites = events.collect { case e: E.SuiteFinished => e }
+
+              val parts = List.newBuilder[String]
+              if (finished.nonEmpty) parts += s"${finished.size} compiled"
+              if (failed > 0) parts += s"$failed failed"
+              if (inProgress > 0) parts += s"$inProgress in progress"
+              if (suites.nonEmpty) parts += s"${suites.size} suites done"
+              val status = if (parts.result().nonEmpty) parts.result().mkString(", ") else "starting"
+
+              context.log(protocol.LoggingLevel.Info, s"[$operation] $status...")
+            }
+      } yield ()
+
+      (IO.sleep(30.seconds) >> tick).foreverM.void
+    }
+
+    /** Stream per-project progress as compact one-liners. Errors/failures stream immediately so the agent can react without waiting for the full build. */
     private def streamDiffLine(
         event: BleepBspProtocol.Event,
         previousState: PreviousRunState,
@@ -998,59 +1052,56 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       import BleepBspProtocol.{Event => E}
       event match {
         case e: E.CompileFinished =>
+          val errorCount = e.diagnostics.count(_.severity == "error")
           val previousDiags = previousState.compileDiagnostics.getOrElse(e.project, Nil)
           val hasPrevious = previousState.compileDiagnostics.contains(e.project)
-          if (hasPrevious) {
-            val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
-            context.log(
-              if (e.status == "failed") protocol.LoggingLevel.Error else protocol.LoggingLevel.Info,
-              BuildDiff.formatCompileDiff(diff)
-            )
-          } else if (e.status == "failed") {
-            // No previous to diff against — stream full failure
-            McpEventFilter.filter(event) match {
-              case Some(json) => context.log(protocol.LoggingLevel.Error, json)
-              case None       => IO.unit
+
+          if (e.status == "failed") {
+            // Stream failures immediately — agent needs to know ASAP
+            if (hasPrevious) {
+              val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
+              context.log(protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
+            } else {
+              // First run, no diff baseline — report error count and first few messages
+              val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(_.message)
+              val moreStr = if (errorCount > 3) s" (+${errorCount - 3} more)" else ""
+              context.log(protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
             }
+          } else if (hasPrevious) {
+            val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
+            if (diff.fixedErrors > 0 || diff.newErrors > 0) {
+              context.log(protocol.LoggingLevel.Info, BuildDiff.formatCompileDiff(diff))
+            } else IO.unit
           } else IO.unit
 
         case e: E.SuiteFinished =>
-          // Collect test results for this suite from already-collected events
+          // Always stream suite results — compact one-liner with diff if available
           collectedEvents.get.flatMap { collected =>
             val suiteTests = collected.collect {
               case tf: E.TestFinished if tf.project == e.project && tf.suite == e.suite => tf
             }
-            val hasPrevious = suiteTests.exists(tf => previousState.testResults.contains((tf.project, tf.suite, tf.test)))
-            if (hasPrevious || suiteTests.exists(tf => tf.status == "failed" || tf.status == "error")) {
-              // Build a diff using BuildDiff helpers (convert protocol test results to the format it expects)
-              val newFailures = suiteTests.filter { tf =>
-                val key = (tf.project, tf.suite, tf.test)
-                val prev = previousState.testResults.get(key)
-                val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
-                (tf.status == "failed" || tf.status == "error") && !prevFailed
-              }
-              val fixedTests = suiteTests.filter { tf =>
-                val key = (tf.project, tf.suite, tf.test)
-                val prev = previousState.testResults.get(key)
-                val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
-                prevFailed && tf.status != "failed" && tf.status != "error"
-              }
-              val stillFailing = suiteTests.filter { tf =>
-                val key = (tf.project, tf.suite, tf.test)
-                val prev = previousState.testResults.get(key)
-                val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
-                prevFailed && (tf.status == "failed" || tf.status == "error")
-              }
+            val newFailures = suiteTests.filter { tf =>
+              val key = (tf.project, tf.suite, tf.test)
+              val prev = previousState.testResults.get(key)
+              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
+              (tf.status == "failed" || tf.status == "error") && !prevFailed
+            }
+            val fixedTests = suiteTests.filter { tf =>
+              val key = (tf.project, tf.suite, tf.test)
+              val prev = previousState.testResults.get(key)
+              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
+              prevFailed && tf.status != "failed" && tf.status != "error"
+            }
 
+            // Stream if there are failures or diffs
+            if (e.failed > 0 || newFailures.nonEmpty || fixedTests.nonEmpty) {
               val diffParts = List.newBuilder[String]
               fixedTests.foreach(t => diffParts += s"${t.test} fixed")
               newFailures.foreach(t => diffParts += s"${t.test} new failure")
-              stillFailing.foreach(t => diffParts += s"${t.test} still failing")
               val details = diffParts.result()
               val countsStr = s"${e.passed} passed, ${e.failed} failed"
               val detailStr = if (details.nonEmpty) s" (${details.mkString(", ")})" else ""
               val level = if (e.failed > 0) protocol.LoggingLevel.Error else protocol.LoggingLevel.Info
-
               context.log(level, s"${e.project} ${e.suite}: $countsStr$detailStr")
             } else IO.unit
           }
@@ -1075,39 +1126,10 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     // Diagnostic streaming
     // ========================================================================
 
-    /** Create a callback that streams compile errors to the MCP client as soon as the compiler reports them.
-      *
-      * Only streams errors — warnings are included in the final tool response via CompileFinished. Called from BSP threads — uses unsafeRunSync to bridge into
-      * IO.
+    /** Diagnostic callback — no-op since we stream errors per-project via CompileFinished events in streamDiffLine.
+      * Per-diagnostic streaming was too verbose (N individual JSON objects flooding the agent's context).
       */
-    private def diagnosticCallback(context: CallContext[IO]): bsp4j.PublishDiagnosticsParams => Unit = { params =>
-      val errors = params.getDiagnostics.asScala.toList.filter(d => d.getSeverity == bsp4j.DiagnosticSeverity.ERROR)
-      if (errors.nonEmpty) {
-        val project = params.getBuildTarget.getUri.split("=").lastOption.getOrElse("unknown")
-        val file = {
-          val uri = params.getTextDocument.getUri
-          val prefix = started.buildPaths.buildDir.toUri.toString
-          if (uri.startsWith(prefix)) uri.stripPrefix(prefix)
-          else uri.stripPrefix("file://").stripPrefix("file:")
-        }
-        val items = errors.map { d =>
-          val fields = List.newBuilder[(String, Json)]
-          fields += "message" -> Json.fromString(d.getMessage)
-          fields += "file" -> Json.fromString(file)
-          Option(d.getRange).foreach { range =>
-            fields += "line" -> Json.fromInt(range.getStart.getLine + 1)
-            fields += "column" -> Json.fromInt(range.getStart.getCharacter + 1)
-          }
-          Json.obj(fields.result()*)
-        }
-        val json = Json.obj(
-          "event" -> Json.fromString("CompileError"),
-          "project" -> Json.fromString(project),
-          "errors" -> Json.arr(items*)
-        )
-        context.log(protocol.LoggingLevel.Error, json.noSpaces).unsafeRunSync()(cats.effect.unsafe.implicits.global)
-      }
-    }
+    private def diagnosticCallback(context: CallContext[IO]): bsp4j.PublishDiagnosticsParams => Unit = _ => ()
 
     // ========================================================================
     // Formatting
@@ -1126,10 +1148,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       val warningCount = allDiagnostics.count(_.severity == "warning")
       val success = failedProjects.isEmpty
 
-      val hasPrevious = previousState.compileDiagnostics.nonEmpty
-
-      if (verbose || !hasPrevious) {
-        // Full output — same as before but built from protocol events
+      if (verbose) {
+        // Explicit verbose request — full diagnostics
         val diagnosticJsons = allDiagnostics.map { d =>
           val fields = List.newBuilder[(String, Json)]
           fields += "severity" -> Json.fromString(d.severity)
@@ -1147,49 +1167,58 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           )
           .noSpaces
       } else {
-        // Diff mode — terse summary
-        var totalNew = 0
-        var totalFixed = 0
-        compileEvents.foreach { e =>
-          val prev = previousState.compileDiagnostics.getOrElse(e.project, Nil)
-          val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, prev, e.durationMs)
-          totalNew += diff.newErrors
-          totalFixed += diff.fixedErrors
-        }
-        // Also count errors fixed in projects that didn't compile this time (already clean)
-        previousState.compileDiagnostics.keys.foreach { project =>
-          if (!compileEvents.exists(_.project == project)) {
-            val prev = previousState.compileDiagnostics(project)
-            totalFixed += prev.count(_.severity == "error")
-          }
-        }
+        // Compact summary — always. Agent uses bleep.status for details.
+        val hasPrevious = previousState.compileDiagnostics.nonEmpty
 
         val fields = List.newBuilder[(String, Json)]
         fields += "success" -> Json.fromBoolean(success)
         fields += "errors" -> Json.fromInt(errorCount)
         fields += "warnings" -> Json.fromInt(warningCount)
-        fields += "newErrors" -> Json.fromInt(totalNew)
-        fields += "fixedErrors" -> Json.fromInt(totalFixed)
-        fields += "summary" -> Json.fromString(BuildDiff.formatCompileSummary(compileEvents.size, errorCount, warningCount, totalNew, totalFixed))
 
-        // Include diagnostics for failed projects even in diff mode
+        if (hasPrevious) {
+          var totalNew = 0
+          var totalFixed = 0
+          compileEvents.foreach { e =>
+            val prev = previousState.compileDiagnostics.getOrElse(e.project, Nil)
+            val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, prev, e.durationMs)
+            totalNew += diff.newErrors
+            totalFixed += diff.fixedErrors
+          }
+          previousState.compileDiagnostics.keys.foreach { project =>
+            if (!compileEvents.exists(_.project == project)) {
+              val prev = previousState.compileDiagnostics(project)
+              totalFixed += prev.count(_.severity == "error")
+            }
+          }
+          fields += "newErrors" -> Json.fromInt(totalNew)
+          fields += "fixedErrors" -> Json.fromInt(totalFixed)
+          fields += "summary" -> Json.fromString(BuildDiff.formatCompileSummary(compileEvents.size, errorCount, warningCount, totalNew, totalFixed))
+        } else {
+          val summaryParts = List.newBuilder[String]
+          if (success) summaryParts += s"Build succeeded (${compileEvents.size} projects)"
+          else summaryParts += s"Build failed: $errorCount errors in ${failedProjects.map(_.project).distinct.size} projects"
+          if (warningCount > 0) summaryParts += s"$warningCount warnings"
+          if (!success) summaryParts += "Use bleep.status for error details"
+          fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
+        }
+
         if (failedProjects.nonEmpty) {
-          val failDiags = failedProjects.flatMap(_.diagnostics).filter(_.severity == "error").map { d =>
+          fields += "failedProjects" -> Json.arr(failedProjects.map(_.project).distinct.map(Json.fromString)*)
+          // Always include first 3 errors so the agent has something actionable
+          val topErrors = allDiagnostics.filter(_.severity == "error").take(3).map { d =>
             val df = List.newBuilder[(String, Json)]
-            df += "severity" -> Json.fromString(d.severity)
             df += "message" -> Json.fromString(d.message)
-            d.rendered.foreach(r => df += "rendered" -> Json.fromString(r))
             d.path.foreach(p => df += "path" -> Json.fromString(p))
             Json.obj(df.result()*)
           }
-          fields += "diagnostics" -> Json.arr(failDiags*)
+          fields += "topErrors" -> Json.arr(topErrors*)
         }
 
         Json.obj(fields.result()*).noSpaces
       }
     }
 
-    /** Format test result from protocol events. In diff mode, returns a terse diff summary. In verbose mode, returns full test results. */
+    /** Format test result from protocol events. Always compact; verbose=true for full failure details. */
     private def formatTestResult(
         events: List[BleepBspProtocol.Event],
         testRunResult: Option[BleepBspProtocol.TestRunResult],
@@ -1202,124 +1231,59 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       val failedTests = testEvents.filter(e => e.status == "failed" || e.status == "error")
       val hasPrevious = previousState.testResults.nonEmpty
 
-      testRunResult match {
-        case Some(trr) =>
-          if (verbose || !hasPrevious) {
-            // Full output
-            val failureJsons = failedTests.map { e =>
-              val fields = List.newBuilder[(String, Json)]
-              fields += "project" -> Json.fromString(e.project)
-              fields += "suite" -> Json.fromString(e.suite)
-              fields += "test" -> Json.fromString(e.test)
-              fields += "status" -> Json.fromString(e.status)
-              fields += "durationMs" -> Json.fromLong(e.durationMs)
-              e.message.foreach(m => fields += "message" -> Json.fromString(m))
-              e.throwable.foreach(t => fields += "throwable" -> Json.fromString(t))
-              Json.obj(fields.result()*)
-            }
-            Json
-              .obj(
-                "success" -> Json.fromBoolean(trr.totalFailed == 0),
-                "passed" -> Json.fromInt(trr.totalPassed),
-                "failed" -> Json.fromInt(trr.totalFailed),
-                "skipped" -> Json.fromInt(trr.totalSkipped),
-                "ignored" -> Json.fromInt(trr.totalIgnored),
-                "durationMs" -> Json.fromLong(trr.durationMs),
-                "failures" -> Json.arr(failureJsons*)
-              )
-              .noSpaces
-          } else {
-            // Diff mode
-            val newFailures = failedTests.count { tf =>
-              val key = (tf.project, tf.suite, tf.test)
-              val prev = previousState.testResults.get(key)
-              !prev.exists(p => p == "failed" || p == "error" || p == "timeout")
-            }
-            val fixedTests = previousState.testResults.count { case (key, prev) =>
-              val prevFailed = prev == "failed" || prev == "error" || prev == "timeout"
-              val currentResult = testEvents.find(t => (t.project, t.suite, t.test) == key)
-              prevFailed && currentResult.exists(t => t.status != "failed" && t.status != "error")
-            }
-            val fields = List.newBuilder[(String, Json)]
-            fields += "success" -> Json.fromBoolean(trr.totalFailed == 0)
-            fields += "passed" -> Json.fromInt(trr.totalPassed)
-            fields += "failed" -> Json.fromInt(trr.totalFailed)
-            fields += "newFailures" -> Json.fromInt(newFailures)
-            fields += "fixedTests" -> Json.fromInt(fixedTests)
-            fields += "durationMs" -> Json.fromLong(trr.durationMs)
-            fields += "summary" -> Json.fromString(BuildDiff.formatTestSummary(trr.totalPassed, trr.totalFailed, newFailures, fixedTests))
-            // Always include actual failure details even in diff mode
-            if (failedTests.nonEmpty) {
-              val failureJsons = failedTests.map { e =>
-                val df = List.newBuilder[(String, Json)]
-                df += "project" -> Json.fromString(e.project)
-                df += "suite" -> Json.fromString(e.suite)
-                df += "test" -> Json.fromString(e.test)
-                df += "status" -> Json.fromString(e.status)
-                e.message.foreach(m => df += "message" -> Json.fromString(m))
-                e.throwable.foreach(t => df += "throwable" -> Json.fromString(t))
-                Json.obj(df.result()*)
-              }
-              fields += "failures" -> Json.arr(failureJsons*)
-            }
-            Json.obj(fields.result()*).noSpaces
-          }
+      val passed = testRunResult.map(_.totalPassed).getOrElse(testEvents.count(_.status == "passed"))
+      val failed = testRunResult.map(_.totalFailed).getOrElse(failedTests.size)
+      val durationMs = testRunResult.map(_.durationMs)
 
-        case None =>
-          val passed = testEvents.count(_.status == "passed")
-          val failed = failedTests.size
-          if (verbose || !hasPrevious) {
-            val failureJsons = failedTests.map { e =>
-              val fields = List.newBuilder[(String, Json)]
-              fields += "project" -> Json.fromString(e.project)
-              fields += "suite" -> Json.fromString(e.suite)
-              fields += "test" -> Json.fromString(e.test)
-              fields += "status" -> Json.fromString(e.status)
-              e.message.foreach(m => fields += "message" -> Json.fromString(m))
-              e.throwable.foreach(t => fields += "throwable" -> Json.fromString(t))
-              Json.obj(fields.result()*)
-            }
-            Json
-              .obj(
-                "success" -> Json.fromBoolean(failed == 0),
-                "passed" -> Json.fromInt(passed),
-                "failed" -> Json.fromInt(failed),
-                "failures" -> Json.arr(failureJsons*)
-              )
-              .noSpaces
-          } else {
-            val newFailures = failedTests.count { tf =>
-              val key = (tf.project, tf.suite, tf.test)
-              !previousState.testResults.get(key).exists(p => p == "failed" || p == "error")
-            }
-            val fixedTests = previousState.testResults.count { case (key, prev) =>
-              val prevFailed = prev == "failed" || prev == "error"
-              val current = testEvents.find(t => (t.project, t.suite, t.test) == key)
-              prevFailed && current.exists(t => t.status != "failed" && t.status != "error")
-            }
-            val fields = List.newBuilder[(String, Json)]
-            fields += "success" -> Json.fromBoolean(failed == 0)
-            fields += "passed" -> Json.fromInt(passed)
-            fields += "failed" -> Json.fromInt(failed)
-            fields += "newFailures" -> Json.fromInt(newFailures)
-            fields += "fixedTests" -> Json.fromInt(fixedTests)
-            fields += "summary" -> Json.fromString(BuildDiff.formatTestSummary(passed, failed, newFailures, fixedTests))
-            if (failedTests.nonEmpty) {
-              val failureJsons = failedTests.map { e =>
-                val df = List.newBuilder[(String, Json)]
-                df += "project" -> Json.fromString(e.project)
-                df += "suite" -> Json.fromString(e.suite)
-                df += "test" -> Json.fromString(e.test)
-                df += "status" -> Json.fromString(e.status)
-                e.message.foreach(m => df += "message" -> Json.fromString(m))
-                e.throwable.foreach(t => df += "throwable" -> Json.fromString(t))
-                Json.obj(df.result()*)
-              }
-              fields += "failures" -> Json.arr(failureJsons*)
-            }
-            Json.obj(fields.result()*).noSpaces
-          }
+      val fields = List.newBuilder[(String, Json)]
+      fields += "success" -> Json.fromBoolean(failed == 0)
+      fields += "passed" -> Json.fromInt(passed)
+      fields += "failed" -> Json.fromInt(failed)
+      testRunResult.foreach { trr =>
+        fields += "skipped" -> Json.fromInt(trr.totalSkipped)
+        fields += "ignored" -> Json.fromInt(trr.totalIgnored)
       }
+      durationMs.foreach(d => fields += "durationMs" -> Json.fromLong(d))
+
+      if (hasPrevious) {
+        val newFailures = failedTests.count { tf =>
+          val key = (tf.project, tf.suite, tf.test)
+          !previousState.testResults.get(key).exists(p => p == "failed" || p == "error" || p == "timeout")
+        }
+        val fixedTests = previousState.testResults.count { case (key, prev) =>
+          val prevFailed = prev == "failed" || prev == "error" || prev == "timeout"
+          val currentResult = testEvents.find(t => (t.project, t.suite, t.test) == key)
+          prevFailed && currentResult.exists(t => t.status != "failed" && t.status != "error")
+        }
+        fields += "newFailures" -> Json.fromInt(newFailures)
+        fields += "fixedTests" -> Json.fromInt(fixedTests)
+        fields += "summary" -> Json.fromString(BuildDiff.formatTestSummary(passed, failed, newFailures, fixedTests))
+      } else {
+        val summaryParts = List.newBuilder[String]
+        if (failed == 0) summaryParts += s"All $passed tests passed"
+        else summaryParts += s"$failed tests failed, $passed passed"
+        if (failed > 0) summaryParts += "Use bleep.status for failure details"
+        fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
+      }
+
+      // Include failure details: compact by default, full with verbose
+      if (failedTests.nonEmpty) {
+        val failureJsons = failedTests.map { e =>
+          val df = List.newBuilder[(String, Json)]
+          df += "project" -> Json.fromString(e.project)
+          df += "suite" -> Json.fromString(e.suite)
+          df += "test" -> Json.fromString(e.test)
+          df += "status" -> Json.fromString(e.status)
+          if (verbose) {
+            e.message.foreach(m => df += "message" -> Json.fromString(m))
+            e.throwable.foreach(t => df += "throwable" -> Json.fromString(t))
+          }
+          Json.obj(df.result()*)
+        }
+        fields += "failures" -> Json.arr(failureJsons*)
+      }
+
+      Json.obj(fields.result()*).noSpaces
     }
 
   }
