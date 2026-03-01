@@ -18,6 +18,10 @@ import java.util.UUID
 import java.util.concurrent.CountDownLatch
 import scala.jdk.CollectionConverters.*
 
+/** Strip ANSI escape sequences from text. Subprocess output and compiler diagnostics often contain color codes that are noise for MCP clients. */
+private[mcp] val AnsiPattern = java.util.regex.Pattern.compile("\u001b\\[[0-9;]*[a-zA-Z]")
+private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAll("")
+
 /** MCP server for bleep that exposes compile, test, watch, and project info to AI agents.
   *
   * Connects to the bleep-bsp daemon (same server used by the TUI) and translates BSP events into MCP tool results and notifications. Runs on stdio transport.
@@ -1001,7 +1005,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 
       stdoutThread.join(5000)
       stderrThread.join(5000)
-      (stdoutBuf.toString(), stderrBuf.toString(), proc.exitValue())
+      (stripAnsi(stdoutBuf.toString()), stripAnsi(stderrBuf.toString()), proc.exitValue())
     }
 
     // ========================================================================
@@ -1085,7 +1089,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
               context.log(protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
             } else {
               // First run, no diff baseline — report error count and first few messages
-              val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(_.message)
+              val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(d => stripAnsi(d.message))
               val moreStr = if (errorCount > 3) s" (+${errorCount - 3} more)" else ""
               context.log(protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
             }
@@ -1175,8 +1179,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         val diagnosticJsons = allDiagnostics.map { d =>
           val fields = List.newBuilder[(String, Json)]
           fields += "severity" -> Json.fromString(d.severity)
-          fields += "message" -> Json.fromString(d.message)
-          d.rendered.foreach(r => fields += "rendered" -> Json.fromString(r))
+          fields += "message" -> Json.fromString(stripAnsi(d.message))
+          d.rendered.foreach(r => fields += "rendered" -> Json.fromString(stripAnsi(r)))
           d.path.foreach(p => fields += "path" -> Json.fromString(p))
           Json.obj(fields.result()*)
         }
@@ -1229,7 +1233,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           // Always include first 3 errors so the agent has something actionable
           val topErrors = allDiagnostics.filter(_.severity == "error").take(3).map { d =>
             val df = List.newBuilder[(String, Json)]
-            df += "message" -> Json.fromString(d.message)
+            df += "message" -> Json.fromString(stripAnsi(d.message))
             d.path.foreach(p => df += "path" -> Json.fromString(p))
             Json.obj(df.result()*)
           }
@@ -1297,8 +1301,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           df += "test" -> Json.fromString(e.test)
           df += "status" -> Json.fromString(e.status)
           if (verbose) {
-            e.message.foreach(m => df += "message" -> Json.fromString(m))
-            e.throwable.foreach(t => df += "throwable" -> Json.fromString(t))
+            e.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
+            e.throwable.foreach(t => df += "throwable" -> Json.fromString(stripAnsi(t)))
           }
           Json.obj(df.result()*)
         }

@@ -33,8 +33,8 @@ object McpEventFilter {
             e.diagnostics.map { d =>
               val diagFields = List.newBuilder[(String, Json)]
               diagFields += "severity" -> Json.fromString(d.severity)
-              diagFields += "message" -> Json.fromString(d.message)
-              d.rendered.foreach(r => diagFields += "rendered" -> Json.fromString(r))
+              diagFields += "message" -> Json.fromString(stripAnsi(d.message))
+              d.rendered.foreach(r => diagFields += "rendered" -> Json.fromString(stripAnsi(r)))
               d.path.foreach(p => diagFields += "path" -> Json.fromString(p))
               Json.obj(diagFields.result()*)
             }*
