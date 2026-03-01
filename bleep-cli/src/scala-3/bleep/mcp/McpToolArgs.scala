@@ -12,11 +12,14 @@ private def schema(json: Json): JsonSchemaEncoder[Nothing] =
   new JsonSchemaEncoder[Nothing] { def schema: Json = json }
 
 /** Args for compile, test.suites, sourcegen, fmt, clean. */
-case class ProjectsArgs(projects: List[String])
+case class ProjectsArgs(projects: List[String], verbose: Boolean)
 object ProjectsArgs {
-  given Decoder[ProjectsArgs] = Decoder.instance(
-    _.downField("projects").as[List[String]].orElse(Right(Nil)).map(ProjectsArgs.apply)
-  )
+  given Decoder[ProjectsArgs] = Decoder.instance { c =>
+    for {
+      projects <- c.downField("projects").as[List[String]].orElse(Right(Nil))
+      verbose <- c.downField("verbose").as[Boolean].orElse(Right(false))
+    } yield ProjectsArgs(projects, verbose)
+  }
   given JsonSchemaEncoder[ProjectsArgs] = schema(
     Json.obj(
       "type" -> Json.fromString("object"),
@@ -25,6 +28,10 @@ object ProjectsArgs {
           "type" -> Json.fromString("array"),
           "items" -> Json.obj("type" -> Json.fromString("string")),
           "description" -> Json.fromString("Project names. Omit or empty for all projects.")
+        ),
+        "verbose" -> Json.obj(
+          "type" -> Json.fromString("boolean"),
+          "description" -> Json.fromString("Return full output instead of diff against previous run. Default: false.")
         )
       )
     )
@@ -32,14 +39,15 @@ object ProjectsArgs {
 }
 
 /** Args for test (with test filtering). */
-case class TestArgs(projects: List[String], only: List[String], exclude: List[String])
+case class TestArgs(projects: List[String], only: List[String], exclude: List[String], verbose: Boolean)
 object TestArgs {
   given Decoder[TestArgs] = Decoder.instance { c =>
     for {
       projects <- c.downField("projects").as[List[String]].orElse(Right(Nil))
       only <- c.downField("only").as[List[String]].orElse(Right(Nil))
       exclude <- c.downField("exclude").as[List[String]].orElse(Right(Nil))
-    } yield TestArgs(projects, only, exclude)
+      verbose <- c.downField("verbose").as[Boolean].orElse(Right(false))
+    } yield TestArgs(projects, only, exclude, verbose)
   }
   given JsonSchemaEncoder[TestArgs] = schema(
     Json.obj(
@@ -59,6 +67,10 @@ object TestArgs {
           "type" -> Json.fromString("array"),
           "items" -> Json.obj("type" -> Json.fromString("string")),
           "description" -> Json.fromString("Exclude these test class names.")
+        ),
+        "verbose" -> Json.obj(
+          "type" -> Json.fromString("boolean"),
+          "description" -> Json.fromString("Return full output instead of diff against previous run. Default: false.")
         )
       )
     )

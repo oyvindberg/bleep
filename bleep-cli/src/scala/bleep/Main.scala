@@ -332,10 +332,14 @@ object Main {
                 Opts.flag("no-tui", "disable TUI, show summary only (for CI/agents)").orFalse,
                 Opts.flag("quiet", "alias for --no-tui", "q").orFalse
               ).mapN(_ || _),
+              Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel
-            ).mapN { case (watch, projectNames, noTui, flamegraph, cancel) =>
-              commands.ReactiveBsp.compile(watch, projectNames, commands.DisplayMode.fromFlags(noTui), flamegraph, cancel)
+            ).mapN { case (watch, projectNames, noTui, diffWatch, flamegraph, cancel) =>
+              val (effectiveWatch, effectiveDisplayMode) =
+                if (diffWatch) (true, commands.DisplayMode.DiffWatch)
+                else (watch, commands.DisplayMode.fromFlags(noTui))
+              commands.ReactiveBsp.compile(effectiveWatch, projectNames, effectiveDisplayMode, flamegraph, cancel)
             }
           ),
           Opts.subcommand("link", "link projects")(
@@ -381,6 +385,7 @@ object Main {
                 Opts.flag("quiet", "alias for --no-tui", "q").orFalse,
                 Opts.flag("summary-only", "alias for --no-tui").orFalse
               ).mapN(_ || _ || _),
+              Opts.flag("diff-watch", "watch mode with per-project diffs between cycles").orFalse,
               Opts.options[String]("jvm-opt", "JVM options for forked test processes").orEmpty,
               Opts.options[String]("test-arg", "arguments passed to test framework").orEmpty,
               only,
@@ -388,11 +393,14 @@ object Main {
               Opts.flag("flamegraph", "generate execution trace (open in chrome://tracing or ui.perfetto.dev)").orFalse,
               cancel,
               Opts.option[String]("junit-report", "write JUnit XML reports to this directory").orNone
-            ).mapN { case (watch, projectNames, noTui, jvmOpts, testArgs, only, exclude, flamegraph, cancel, junitReportDir) =>
+            ).mapN { case (watch, projectNames, noTui, diffWatch, jvmOpts, testArgs, only, exclude, flamegraph, cancel, junitReportDir) =>
+              val (effectiveWatch, effectiveDisplayMode) =
+                if (diffWatch) (true, commands.DisplayMode.DiffWatch)
+                else (watch, commands.DisplayMode.fromFlags(noTui))
               commands.ReactiveBsp.test(
-                watch = watch,
+                watch = effectiveWatch,
                 projects = projectNames,
-                displayMode = commands.DisplayMode.fromFlags(noTui),
+                displayMode = effectiveDisplayMode,
                 jvmOptions = jvmOpts.toList,
                 testArgs = testArgs.toList,
                 only = only.map(_.toList).getOrElse(Nil),

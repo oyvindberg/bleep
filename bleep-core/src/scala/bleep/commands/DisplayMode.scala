@@ -10,9 +10,13 @@ object DisplayMode {
   /** Simple output, just failures and summary (for CI/agents) */
   case object NoTui extends DisplayMode
 
+  /** Watch mode with per-project diffs between cycles. Implies --no-tui and --watch. */
+  case object DiffWatch extends DisplayMode
+
   /** Smart constructor - checks if TUI is supported */
   def resolve(requested: DisplayMode): DisplayMode = requested match {
     case Tui if !bleep.testing.FancyBuildDisplay.isSupported => NoTui
+    case DiffWatch                                           => DiffWatch
     case other                                               => other
   }
 

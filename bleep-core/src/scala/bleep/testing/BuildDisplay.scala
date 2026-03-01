@@ -862,6 +862,133 @@ object BuildDisplay {
       (display, signalCompletionAndWait, waitForUserQuit, cancelBlockingSignal)
     }
 
+  /** Create a diff-watch display that shows terse per-project diffs against a previous run */
+  def createDiffWatch(
+      logger: ryddig.Logger,
+      mode: BuildMode,
+      previousRun: PreviousRunState
+  ): IO[BuildDisplay] =
+    for {
+      state <- Ref.of[IO, BuildState](BuildState.empty)
+      startTime <- IO.realTime.map(_.toMillis)
+      currentTestResults <- Ref.of[IO, List[BuildEvent.TestFinished]](Nil)
+    } yield new DiffWatchBuildDisplayImpl(state, startTime, logger, mode, previousRun, currentTestResults)
+
+  private class DiffWatchBuildDisplayImpl(
+      state: Ref[IO, BuildState],
+      startTime: Long,
+      logger: ryddig.Logger,
+      mode: BuildMode,
+      previousRun: PreviousRunState,
+      currentTestResults: Ref[IO, List[BuildEvent.TestFinished]]
+  ) extends BuildDisplay {
+
+    private def log(msg: String): IO[Unit] = IO.delay(logger.info(msg))
+    private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
+    private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
+
+    override def handle(event: BuildEvent): IO[Unit] =
+      state.update(s => BuildStateReducer.reduce(s, event)) >>
+        trackTestResults(event) >>
+        printDiffSideEffects(event)
+
+    private def trackTestResults(event: BuildEvent): IO[Unit] = event match {
+      case tf: BuildEvent.TestFinished =>
+        currentTestResults.update(tf :: _)
+      case _ => IO.unit
+    }
+
+    private def printDiffSideEffects(event: BuildEvent): IO[Unit] = event match {
+      case cf: BuildEvent.CompileFinished =>
+        val previousDiags = previousRun.compileDiagnostics.getOrElse(cf.project, Nil)
+        val diff = BuildDiff.diffCompile(cf.project, cf.status, cf.diagnostics, previousDiags, cf.durationMs)
+        val line = BuildDiff.formatCompileDiff(diff)
+        // For failed compiles, also show the actual errors
+        if (cf.status == "failed" && cf.diagnostics.nonEmpty) {
+          val errors = cf.diagnostics.filter(_.severity == "error")
+          val errorLines = errors.take(10).flatMap { d =>
+            val text = d.rendered.getOrElse(d.message)
+            text.linesIterator.map(l => s"  ${SConsole.RED}|${SConsole.RESET} $l").toList
+          }
+          val truncation = if (errors.size > 10) List(s"  ${SConsole.RED}|${SConsole.RESET} ... and ${errors.size - 10} more errors") else Nil
+          log(line) >> (errorLines ++ truncation).traverse_(log)
+        } else {
+          log(line)
+        }
+
+      case sf: BuildEvent.SuiteFinished =>
+        currentTestResults.get.flatMap { allResults =>
+          val suiteTests = allResults.filter(t => t.project == sf.project && t.suite == sf.suite)
+          val diff = BuildDiff.diffSuite(
+            sf.project, sf.suite, suiteTests, previousRun.testResults,
+            sf.passed, sf.failed, sf.skipped, sf.ignored, sf.durationMs
+          )
+          log(BuildDiff.formatSuiteDiff(diff))
+        }
+
+      case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, _, _) =>
+        logError(s"[TIMEOUT] $suite after ${timeoutMs / 1000}s")
+
+      case BuildEvent.SuiteError(_, suite, error, _, signal, _, _) =>
+        val desc = signal.map(s => s"Process crashed (signal $s)").getOrElse(error)
+        logError(s"[ERROR] $suite: $desc")
+
+      case BuildEvent.Error(project, message, _, _) =>
+        val projectInfo = if (project.nonEmpty) s" [$project]" else ""
+        logError(s"[ERROR]$projectInfo $message")
+
+      case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
+        val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
+        logWarn(s"$project: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+
+      case _ => IO.unit
+    }
+
+    override def summary: IO[BuildSummary] =
+      for {
+        s <- state.get
+        now <- IO.realTime.map(_.toMillis)
+      } yield s.toSummary(durationMs = now - startTime, wasCancelled = false)
+
+    override def printSummary: IO[Unit] =
+      for {
+        s <- summary
+        allTests <- currentTestResults.get
+        _ <- mode match {
+          case BuildMode.Compile | BuildMode.Link(_) =>
+            val totalNew = s.compileFailures.map { cf =>
+              val prev = previousRun.compileDiagnostics.getOrElse(cf.project, Nil)
+              val diff = BuildDiff.diffCompile(cf.project, "failed", cf.diagnostics, prev, 0)
+              diff.newErrors
+            }.sum
+            val totalFixed = previousRun.compileDiagnostics.keys.toList.map { project =>
+              val prev = previousRun.compileDiagnostics.getOrElse(project, Nil)
+              val current = s.compileFailures.find(_.project == project).map(_.diagnostics).getOrElse(Nil)
+              val diff = BuildDiff.diffCompile(project, "unknown", current, prev, 0)
+              diff.fixedErrors
+            }.sum
+            val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == "error")
+            log(BuildDiff.formatCompileSummary(s.compilesCompleted, totalErrors, 0, totalNew, totalFixed))
+
+          case BuildMode.Test =>
+            val newFailures = allTests.count { t =>
+              val key = (t.project, t.suite, t.test)
+              val prev = previousRun.testResults.get(key)
+              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout" || p == "cancelled")
+              t.status.isFailure && !prevFailed
+            }
+            val fixedTests = previousRun.testResults.count { case (key, prev) =>
+              val prevFailed = prev == "failed" || prev == "error" || prev == "timeout" || prev == "cancelled"
+              val currentResult = allTests.find(t => (t.project, t.suite, t.test) == key)
+              prevFailed && currentResult.exists(t => !t.status.isFailure)
+            }
+            log(BuildDiff.formatTestSummary(s.testsPassed, s.testsFailed, newFailures, fixedTests))
+
+          case BuildMode.Run(_, _) => IO.unit
+        }
+      } yield ()
+  }
+
   private class FancyBridgeDisplay(
       eventQueue: cats.effect.std.Queue[IO, Option[BuildEvent]],
       state: Ref[IO, BuildState],

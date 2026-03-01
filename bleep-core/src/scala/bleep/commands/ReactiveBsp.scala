@@ -5,7 +5,7 @@ import bleep.bsp.{BspConnection, BspRequestHelper, BspRifle, BspRifleConfig, Bsp
 import bleep.bsp.protocol.BleepBspProtocol
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.internal.{bleepLoggers, BspClientDisplayProgress, TransitiveProjects}
-import bleep.testing.{BuildDisplay, BuildEvent, BuildSummary, FancyBuildDisplay, JUnitXmlCollector}
+import bleep.testing.{BuildDisplay, BuildEvent, BuildSummary, FancyBuildDisplay, JUnitXmlCollector, PreviousRunState}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.effect.unsafe.implicits.global
@@ -14,7 +14,7 @@ import ch.epfl.scala.bsp4j
 import java.nio.file.Path
 import scala.jdk.CollectionConverters._
 import scala.util.Try
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 
 /** Unified reactive BSP command that handles compile, link, test, and run operations.
   *
@@ -40,6 +40,14 @@ case class ReactiveBsp(
     cancel: Boolean,
     junitReportDir: Option[Path]
 ) extends BleepBuildCommand {
+
+  /** Persists across watch cycles for per-project diff (only used in DiffWatch mode) */
+  private val previousRunState: AtomicReference[PreviousRunState] =
+    new AtomicReference[PreviousRunState](PreviousRunState.empty)
+
+  /** Events collected during the current run cycle (only used in DiffWatch mode) */
+  private val collectedBuildEvents: AtomicReference[List[BuildEvent]] =
+    new AtomicReference[List[BuildEvent]](Nil)
 
   override def run(started: Started): Either[BleepException, Unit] =
     if (watch) WatchMode.run(started, s => TransitiveProjects(s.build, projects))(runOnce)
@@ -173,13 +181,15 @@ case class ReactiveBsp(
       bleep.testing.FancyBuildDisplay.checkSupport.left.foreach(reason => started.logger.warn(reason))
     }
     val isTui = effectiveMode == DisplayMode.Tui && FancyBuildDisplay.isSupported
+    val isDiffWatch = effectiveMode == DisplayMode.DiffWatch
     val bspLogger = effectiveMode match {
       case DisplayMode.Tui =>
         // Reinstall JUL bridge to file-only logger so lsp4j warnings don't clobber the TUI
         val fileLoggerResource = bleepLoggers.fileOnly(started.buildPaths.logFile).acquire()
         bleepLoggers.installJulBridge(fileLoggerResource.value)
         bleepLoggers.silent
-      case DisplayMode.NoTui => started.logger
+      case DisplayMode.NoTui    => started.logger
+      case DisplayMode.DiffWatch => started.logger
     }
 
     // Pre-create diagnostic log writer OUTSIDE IO monad for faster startup
@@ -210,11 +220,16 @@ case class ReactiveBsp(
       // None is the poison pill — signals the consumer to stop.
       eventQueue <- Queue.unbounded[IO, Option[BuildEvent]]
 
+      // Reset collected events for diff-watch mode
+      _ <- IO(if (isDiffWatch) collectedBuildEvents.set(Nil))
+
       // Create display (TUI fiber starts but waits for bspReady before rendering)
       cancelBlockingSignalDefault <- Deferred[IO, Unit]
       displayAndCompletionAndQuit <- effectiveMode match {
         case DisplayMode.NoTui =>
           BuildDisplay.create(false, started.logger, mode).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
+        case DisplayMode.DiffWatch =>
+          BuildDisplay.createDiffWatch(started.logger, mode, previousRunState.get()).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
         case DisplayMode.Tui =>
           if (FancyBuildDisplay.isSupported) {
             BuildDisplay.createFancy(mode, Some(diagLogWriter), readySignal = Some(bspReady))
@@ -367,6 +382,8 @@ case class ReactiveBsp(
       // Always signal completion to TUI (even if BSP failed or user quit)
       summary <- signalCompletion
       _ <- display.printSummary
+      // Update previousRunState from collected events (only in DiffWatch mode)
+      _ <- if (isDiffWatch) IO(previousRunState.set(PreviousRunState.fromEvents(collectedBuildEvents.get().reverse))) else IO.unit
       _ <- IO.delay(started.logger.info(s"  BSP server log: ${BspRifle.getOutputFile(config)}"))
       _ <-
         if (flamegraph)
@@ -458,14 +475,19 @@ case class ReactiveBsp(
       diagLog: String => Unit,
       count: AtomicInteger,
       junitCollector: Option[JUnitXmlCollector]
-  ): IO[Unit] =
+  ): IO[Unit] = {
+    val isDiffWatchMode = displayMode == DisplayMode.DiffWatch
+    def collectDiffEvent(event: BuildEvent): IO[Unit] =
+      if (isDiffWatchMode) IO(collectedBuildEvents.updateAndGet(event :: _)).void
+      else IO.unit
+
     queue.take.flatMap {
       case Some(event) =>
         val n = count.incrementAndGet()
         val collectJunit = IO(junitCollector.foreach(_.handle(event)))
         event match {
           case sf: BuildEvent.SuiteFinished =>
-            IO(diagLog(s"[CONSUME#$n] SuiteFinished suite=${sf.suite}")) >> collectJunit >> display.handle(event) >> consumeEvents(
+            IO(diagLog(s"[CONSUME#$n] SuiteFinished suite=${sf.suite}")) >> collectJunit >> collectDiffEvent(event) >> display.handle(event) >> consumeEvents(
               queue,
               display,
               diagLog,
@@ -473,7 +495,7 @@ case class ReactiveBsp(
               junitCollector
             )
           case _: BuildEvent.TestRunCompleted =>
-            IO(diagLog(s"[CONSUME#$n] TestRunCompleted")) >> collectJunit >> display.handle(event) >> consumeEvents(
+            IO(diagLog(s"[CONSUME#$n] TestRunCompleted")) >> collectJunit >> collectDiffEvent(event) >> display.handle(event) >> consumeEvents(
               queue,
               display,
               diagLog,
@@ -481,11 +503,12 @@ case class ReactiveBsp(
               junitCollector
             )
           case _ =>
-            collectJunit >> display.handle(event) >> consumeEvents(queue, display, diagLog, count, junitCollector)
+            collectJunit >> collectDiffEvent(event) >> display.handle(event) >> consumeEvents(queue, display, diagLog, count, junitCollector)
         }
       case None =>
         IO(diagLog(s"[CONSUME] Poison pill received after ${count.get()} events")) // Done — all events processed
     }
+  }
 
   /** Execute BSP request based on mode (compile/test/link/run). Shared by runWithBleepBsp and runInProcess. */
   private def executeBspRequest(
