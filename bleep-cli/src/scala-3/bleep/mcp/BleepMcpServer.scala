@@ -424,7 +424,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             case Some(run) =>
               val events = run.events
               val mode = run.mode
-              if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, true)
+              if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, true, includeThrowables = true)
               else formatCompileResult(events, PreviousRunState.empty, true)
             case None =>
               """{"message":"No previous build results. Run bleep.compile or bleep.test first."}"""
@@ -612,7 +612,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         trr <- testRunResult.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "test", events.reverse)))
-      } yield formatTestResult(events.reverse, trr, previousState, verbose)
+      } yield formatTestResult(events.reverse, trr, previousState, verbose, includeThrowables = false)
     }
 
     /** Start a background watch job. */
@@ -708,7 +708,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           modeStr = if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile"
           _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), modeStr, reversedEvents)))
 
-          summary = if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false) else formatCompileResult(reversedEvents, previousState, false)
+          summary = if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false, includeThrowables = false) else formatCompileResult(reversedEvents, previousState, false)
           watchMode = new WatchMode(if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile")
           _ <- watchResults.update(_ + (jobId -> WatchCycleResult(jobId, watchMode, summary, System.currentTimeMillis())))
           _ <- context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Cycle complete: $summary")
@@ -1250,7 +1250,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         events: List[BleepBspProtocol.Event],
         testRunResult: Option[BleepBspProtocol.TestRunResult],
         previousState: PreviousRunState,
-        verbose: Boolean
+        verbose: Boolean,
+        includeThrowables: Boolean
     ): String = {
       import BleepBspProtocol.{Event => E}
 
@@ -1293,7 +1294,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         fields += "summary" -> Json.fromString(summaryParts.result().mkString(". "))
       }
 
-      // Include failure details: compact by default, full with verbose
+      // Include failure details: always include message, never inline full stack traces
       if (failedTests.nonEmpty) {
         val failureJsons = failedTests.map { e =>
           val df = List.newBuilder[(String, Json)]
@@ -1301,9 +1302,10 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           df += "suite" -> Json.fromString(e.suite)
           df += "test" -> Json.fromString(e.test)
           df += "status" -> Json.fromString(e.status)
-          if (verbose) {
-            e.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
-            e.throwable.foreach(t => df += "throwable" -> Json.fromString(stripAnsi(t)))
+          e.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
+          e.throwable.foreach { t =>
+            if (includeThrowables) df += "throwable" -> Json.fromString(stripAnsi(t))
+            else df += "throwable" -> Json.fromString("present. Use bleep.status for full stack trace")
           }
           Json.obj(df.result()*)
         }
