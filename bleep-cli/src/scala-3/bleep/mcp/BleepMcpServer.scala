@@ -97,7 +97,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           |## Tools
           |- bleep.compile — compile projects. Returns compact summary. Streams errors per-project as they occur.
           |- bleep.test — run tests. Returns compact summary with pass/fail counts and diff.
-          |- bleep.status — get cached results from the last build. Use this to inspect full error details after compile/test.
+          |- bleep.status — get cached results from the last build. Use project/limit/offset to paginate large results.
           |- bleep.test.suites — discover test suites without running them (requires compiled code)
           |- bleep.sourcegen — run source generators for projects
           |- bleep.fmt — format Scala and Java source files
@@ -410,22 +410,25 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       None
     )
 
-    private def statusTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+    private def statusTool: ToolFunction[IO] = ToolFunction.text[IO, StatusArgs](
       ToolFunction.Info(
         "bleep.status",
         Some("Build Status"),
-        Some("Show cached results from the last build/test run without re-running. Returns full diagnostics and test results from the most recent run."),
+        Some("Show cached results from the last build/test run without re-running. Returns full diagnostics and test results. Use project/limit/offset to paginate large results."),
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (_, _) =>
+      (args, _) =>
         buildHistory.get.map { history =>
           history.last match {
             case Some(run) =>
-              val events = run.events
+              val events = args.project match {
+                case Some(proj) => filterEventsByProject(run.events, proj)
+                case None => run.events
+              }
               val mode = run.mode
-              if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, true, includeThrowables = true)
-              else formatCompileResult(events, PreviousRunState.empty, true)
+              if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, true, includeThrowables = true, args.limit, args.offset)
+              else formatCompileResult(events, PreviousRunState.empty, true, args.limit, args.offset)
             case None =>
               """{"message":"No previous build results. Run bleep.compile or bleep.test first."}"""
           }
@@ -537,7 +540,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         events <- collectedEvents.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "compile", events.reverse)))
-      } yield formatCompileResult(events.reverse, previousState, verbose)
+      } yield formatCompileResult(events.reverse, previousState, verbose, None, None)
     }
 
     /** Execute a one-shot test via BSP. Reports progress heartbeat every 30s, returns compact summary. */
@@ -612,7 +615,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         trr <- testRunResult.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "test", events.reverse)))
-      } yield formatTestResult(events.reverse, trr, previousState, verbose, includeThrowables = false)
+      } yield formatTestResult(events.reverse, trr, previousState, verbose, includeThrowables = false, None, None)
     }
 
     /** Start a background watch job. */
@@ -708,7 +711,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           modeStr = if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile"
           _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), modeStr, reversedEvents)))
 
-          summary = if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false, includeThrowables = false) else formatCompileResult(reversedEvents, previousState, false)
+          summary = if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false, includeThrowables = false, None, None) else formatCompileResult(reversedEvents, previousState, false, None, None)
           watchMode = new WatchMode(if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile")
           _ <- watchResults.update(_ + (jobId -> WatchCycleResult(jobId, watchMode, summary, System.currentTimeMillis())))
           _ <- context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Cycle complete: $summary")
@@ -1033,6 +1036,10 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         case None => IO.unit
       }
 
+    /** Log to both MCP notifications/message (for the model) and stderr (for the Claude Code UI). */
+    private def stderrAndLog(context: CallContext[IO], level: protocol.LoggingLevel, message: String): IO[Unit] =
+      IO(System.err.println(message)) >> context.log(level, message)
+
     /** Periodic heartbeat that logs build progress every 30 seconds so the MCP client sees activity. */
     private def heartbeat(
         collectedEvents: Ref[IO, List[BleepBspProtocol.Event]],
@@ -1062,7 +1069,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
               if (suites.nonEmpty) parts += s"${suites.size} suites done"
               val status = if (parts.result().nonEmpty) parts.result().mkString(", ") else "starting"
 
-              context.log(protocol.LoggingLevel.Info, s"[$operation] $status...")
+              stderrAndLog(context, protocol.LoggingLevel.Info, s"[$operation] $status...")
             }
       } yield ()
 
@@ -1087,17 +1094,17 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             // Stream failures immediately — agent needs to know ASAP
             if (hasPrevious) {
               val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
-              context.log(protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
+              stderrAndLog(context, protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
             } else {
               // First run, no diff baseline — report error count and first few messages
               val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(d => stripAnsi(d.message))
               val moreStr = if (errorCount > 3) s" (+${errorCount - 3} more)" else ""
-              context.log(protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
+              stderrAndLog(context, protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
             }
           } else if (hasPrevious) {
             val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
             if (diff.fixedErrors > 0 || diff.newErrors > 0) {
-              context.log(protocol.LoggingLevel.Info, BuildDiff.formatCompileDiff(diff))
+              stderrAndLog(context, protocol.LoggingLevel.Info, BuildDiff.formatCompileDiff(diff))
             } else IO.unit
           } else IO.unit
 
@@ -1129,19 +1136,19 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
               val countsStr = s"${e.passed} passed, ${e.failed} failed"
               val detailStr = if (details.nonEmpty) s" (${details.mkString(", ")})" else ""
               val level = if (e.failed > 0) protocol.LoggingLevel.Error else protocol.LoggingLevel.Info
-              context.log(level, s"${e.project} ${e.suite}: $countsStr$detailStr")
+              stderrAndLog(context, level, s"${e.project} ${e.suite}: $countsStr$detailStr")
             } else IO.unit
           }
 
         case _: E.SuiteError | _: E.SuiteTimedOut | _: E.Error =>
           McpEventFilter.filter(event) match {
-            case Some(json) => context.log(protocol.LoggingLevel.Error, json)
+            case Some(json) => stderrAndLog(context, protocol.LoggingLevel.Error, json.noSpaces)
             case None       => IO.unit
           }
 
         case e: E.LinkFinished if !e.success =>
           McpEventFilter.filter(event) match {
-            case Some(json) => context.log(protocol.LoggingLevel.Error, json)
+            case Some(json) => stderrAndLog(context, protocol.LoggingLevel.Error, json.noSpaces)
             case None       => IO.unit
           }
 
@@ -1159,13 +1166,43 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     private def diagnosticCallback(context: CallContext[IO]): bsp4j.PublishDiagnosticsParams => Unit = _ => ()
 
     // ========================================================================
+    // Filtering
+    // ========================================================================
+
+    /** Keep only events that belong to the given project. Events without a project field (e.g. SourcegenStarted) are dropped. */
+    private def filterEventsByProject(events: List[BleepBspProtocol.Event], project: String): List[BleepBspProtocol.Event] = {
+      import BleepBspProtocol.{Event => E}
+      events.filter {
+        case e: E.CompileStarted      => e.project == project
+        case e: E.CompilationReason   => e.project == project
+        case e: E.CompileProgress     => e.project == project
+        case e: E.CompilePhaseChanged => e.project == project
+        case e: E.CompileFinished     => e.project == project
+        case e: E.CompileStalled      => e.project == project
+        case e: E.CompileResumed      => e.project == project
+        case e: E.LockContention      => e.project == project
+        case e: E.LockAcquired        => e.project == project
+        case e: E.LinkStarted         => e.project == project
+        case e: E.LinkProgress        => e.project == project
+        case e: E.LinkFinished        => e.project == project
+        case e: E.DiscoveryStarted    => e.project == project
+        case e: E.SuitesDiscovered    => e.project == project
+        case e: E.SuiteStarted        => e.project == project
+        case e: E.TestStarted         => e.project == project
+        case e: E.TestFinished        => e.project == project
+        case e: E.SuiteFinished       => e.project == project
+        case _                        => false
+      }
+    }
+
+    // ========================================================================
     // Formatting
     // ========================================================================
 
     /** Format compile result from protocol events. In diff mode (verbose=false with previous state), returns a terse diff summary. In verbose mode, returns full
-      * diagnostics.
+      * diagnostics. When limit/offset are provided, the diagnostics array is sliced and a totalDiagnostics count is included.
       */
-    private def formatCompileResult(events: List[BleepBspProtocol.Event], previousState: PreviousRunState, verbose: Boolean): String = {
+    private def formatCompileResult(events: List[BleepBspProtocol.Event], previousState: PreviousRunState, verbose: Boolean, limit: Option[Int], offset: Option[Int]): String = {
       import BleepBspProtocol.{Event => E}
 
       val compileEvents = events.collect { case e: E.CompileFinished => e }
@@ -1177,7 +1214,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 
       if (verbose) {
         // Explicit verbose request — full diagnostics
-        val diagnosticJsons = allDiagnostics.map { d =>
+        val allDiagnosticJsons = allDiagnostics.map { d =>
           val fields = List.newBuilder[(String, Json)]
           fields += "severity" -> Json.fromString(d.severity)
           fields += "message" -> Json.fromString(stripAnsi(d.message))
@@ -1185,14 +1222,18 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           d.path.foreach(p => fields += "path" -> Json.fromString(p))
           Json.obj(fields.result()*)
         }
-        Json
-          .obj(
-            "success" -> Json.fromBoolean(success),
-            "errors" -> Json.fromInt(errorCount),
-            "warnings" -> Json.fromInt(warningCount),
-            "diagnostics" -> Json.arr(diagnosticJsons*)
-          )
-          .noSpaces
+        val totalDiagnostics = allDiagnosticJsons.size
+        val sliced = {
+          val afterOffset = offset.map(o => allDiagnosticJsons.drop(o)).getOrElse(allDiagnosticJsons)
+          limit.map(l => afterOffset.take(l)).getOrElse(afterOffset)
+        }
+        val resultFields = List.newBuilder[(String, Json)]
+        resultFields += "success" -> Json.fromBoolean(success)
+        resultFields += "errors" -> Json.fromInt(errorCount)
+        resultFields += "warnings" -> Json.fromInt(warningCount)
+        resultFields += "totalDiagnostics" -> Json.fromInt(totalDiagnostics)
+        resultFields += "diagnostics" -> Json.arr(sliced*)
+        Json.obj(resultFields.result()*).noSpaces
       } else {
         // Compact summary — always. Agent uses bleep.status for details.
         val hasPrevious = previousState.compileDiagnostics.nonEmpty
@@ -1245,13 +1286,17 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       }
     }
 
-    /** Format test result from protocol events. Always compact; verbose=true for full failure details. */
+    /** Format test result from protocol events. Always compact; verbose=true for full failure details. When limit/offset are provided, the failures array is sliced
+      * and a totalFailures count is included. Summary counts (passed/failed) always reflect the full run.
+      */
     private def formatTestResult(
         events: List[BleepBspProtocol.Event],
         testRunResult: Option[BleepBspProtocol.TestRunResult],
         previousState: PreviousRunState,
         verbose: Boolean,
-        includeThrowables: Boolean
+        includeThrowables: Boolean,
+        limit: Option[Int],
+        offset: Option[Int]
     ): String = {
       import BleepBspProtocol.{Event => E}
 
@@ -1296,7 +1341,13 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 
       // Include failure details: always include message, never inline full stack traces
       if (failedTests.nonEmpty) {
-        val failureJsons = failedTests.map { e =>
+        val totalFailures = failedTests.size
+        fields += "totalFailures" -> Json.fromInt(totalFailures)
+        val slicedFailures = {
+          val afterOffset = offset.map(o => failedTests.drop(o)).getOrElse(failedTests)
+          limit.map(l => afterOffset.take(l)).getOrElse(afterOffset)
+        }
+        val failureJsons = slicedFailures.map { e =>
           val df = List.newBuilder[(String, Json)]
           df += "project" -> Json.fromString(e.project)
           df += "suite" -> Json.fromString(e.suite)
