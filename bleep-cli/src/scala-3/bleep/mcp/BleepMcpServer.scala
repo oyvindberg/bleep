@@ -104,7 +104,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           |- bleep.projects — list all projects with dependencies
           |- bleep.programs — list projects that have a mainClass (runnable programs)
           |- bleep.scripts — list scripts defined in the build
-          |- bleep.run — compile and run a project or script, returns stdout/stderr""".stripMargin
+          |- bleep.run — compile and run a project or script, returns stdout/stderr
+          |- bleep.restart — restart the MCP server process (e.g. after producing a new bleep binary)""".stripMargin
         )
       )
 
@@ -123,7 +124,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         programsTool,
         scriptsTool,
         runTool,
-        statusTool
+        statusTool,
+        restartTool
       )
     )
 
@@ -422,6 +424,26 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             case None =>
               """{"message":"No previous build results. Run bleep.compile or bleep.test first."}"""
           }
+        },
+      None
+    )
+
+    private def restartTool: ToolFunction[IO] = ToolFunction.text[IO, NoArgs](
+      ToolFunction.Info(
+        "bleep.restart",
+        Some("Restart"),
+        Some("Restart the MCP server process. Use after producing a new bleep binary or when the server is in a bad state. The process exits and the MCP client will relaunch it."),
+        ToolFunction.Effect.Destructive(true),
+        false
+      ),
+      (_, _) =>
+        IO {
+          started.logger.info("MCP server restart requested, exiting process")
+          new Thread(() => {
+            Thread.sleep(200) // give time for the response to be sent
+            System.exit(0)
+          }).start()
+          """{"restarting":true}"""
         },
       None
     )
