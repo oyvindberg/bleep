@@ -256,7 +256,7 @@ jobs:
           bleep my-publish-local
           bleep config compile-server stop-all
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: artifacts
