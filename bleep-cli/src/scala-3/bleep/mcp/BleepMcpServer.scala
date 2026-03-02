@@ -1041,11 +1041,13 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         case None => IO.unit
       }
 
-    /** Log to both MCP notifications/message (for the model) and stderr (for the Claude Code UI). */
-    private def stderrAndLog(context: CallContext[IO], level: protocol.LoggingLevel, message: String): IO[Unit] =
-      IO(System.err.println(message)) >> context.log(level, message)
+    /** Log via all available channels: notifications/message (model), notifications/progress (Claude Code UI), stderr (fallback). */
+    private def streamNotification(context: CallContext[IO], level: protocol.LoggingLevel, message: String): IO[Unit] =
+      context.reportProgress(0.0, None, Some(message)).attempt >>
+        IO(System.err.println(message)) >>
+        context.log(level, message)
 
-    /** Periodic heartbeat that logs build progress every 30 seconds so the MCP client sees activity. */
+    /** Periodic heartbeat that reports build progress every 30 seconds. */
     private def heartbeat(
         collectedEvents: Ref[IO, List[BleepBspProtocol.Event]],
         done: Ref[IO, Boolean],
@@ -1074,7 +1076,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
               if (suites.nonEmpty) parts += s"${suites.size} suites done"
               val status = if (parts.result().nonEmpty) parts.result().mkString(", ") else "starting"
 
-              stderrAndLog(context, protocol.LoggingLevel.Info, s"[$operation] $status...")
+              streamNotification(context, protocol.LoggingLevel.Info, s"[$operation] $status...")
             }
       } yield ()
 
@@ -1099,17 +1101,17 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             // Stream failures immediately — agent needs to know ASAP
             if (hasPrevious) {
               val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
-              stderrAndLog(context, protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
+              streamNotification(context, protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
             } else {
               // First run, no diff baseline — report error count and first few messages
               val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(d => stripAnsi(d.message))
               val moreStr = if (errorCount > 3) s" (+${errorCount - 3} more)" else ""
-              stderrAndLog(context, protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
+              streamNotification(context, protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
             }
           } else if (hasPrevious) {
             val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
             if (diff.fixedErrors > 0 || diff.newErrors > 0) {
-              stderrAndLog(context, protocol.LoggingLevel.Info, BuildDiff.formatCompileDiff(diff))
+              streamNotification(context, protocol.LoggingLevel.Info, BuildDiff.formatCompileDiff(diff))
             } else IO.unit
           } else IO.unit
 
@@ -1141,19 +1143,19 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
               val countsStr = s"${e.passed} passed, ${e.failed} failed"
               val detailStr = if (details.nonEmpty) s" (${details.mkString(", ")})" else ""
               val level = if (e.failed > 0) protocol.LoggingLevel.Error else protocol.LoggingLevel.Info
-              stderrAndLog(context, level, s"${e.project} ${e.suite}: $countsStr$detailStr")
+              streamNotification(context, level, s"${e.project} ${e.suite}: $countsStr$detailStr")
             } else IO.unit
           }
 
         case _: E.SuiteError | _: E.SuiteTimedOut | _: E.Error =>
           McpEventFilter.filter(event) match {
-            case Some(json) => stderrAndLog(context, protocol.LoggingLevel.Error, json.noSpaces)
+            case Some(json) => streamNotification(context, protocol.LoggingLevel.Error, json.noSpaces)
             case None       => IO.unit
           }
 
         case e: E.LinkFinished if !e.success =>
           McpEventFilter.filter(event) match {
-            case Some(json) => stderrAndLog(context, protocol.LoggingLevel.Error, json.noSpaces)
+            case Some(json) => streamNotification(context, protocol.LoggingLevel.Error, json.noSpaces)
             case None       => IO.unit
           }
 
