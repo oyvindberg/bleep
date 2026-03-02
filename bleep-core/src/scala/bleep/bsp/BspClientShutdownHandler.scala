@@ -63,6 +63,29 @@ object BspRequestHelper {
     false
   }
 
+  /** Execute a BSP request, racing against the connection's listening future.
+    *
+    * When the BSP server dies, lsp4j does NOT fail outstanding request futures — they hang forever. The listening future (from launcher.startListening())
+    * completes when the reader thread exits. Racing against it ensures we detect server death immediately.
+    *
+    * @param future
+    *   The CompletableFuture returned by an lsp4j BSP method call
+    * @param listening
+    *   The listening future from launcher.startListening()
+    * @return
+    *   IO that completes with the result, or fails if the connection dies
+    */
+  def callCancellable[T](future: => CompletableFuture[T], listening: java.util.concurrent.Future[Void]): IO[T] = {
+    val request = callCancellable(future)
+    val connectionDied = IO.interruptible(listening.get()).attempt.flatMap { _ =>
+      IO.raiseError[T](new BleepException.Text("BSP server connection lost (server may have crashed)"))
+    }
+    IO.race(request, connectionDied).flatMap {
+      case Left(result) => IO.pure(result)
+      case Right(_)     => IO.raiseError(new BleepException.Text("BSP server connection lost (server may have crashed)"))
+    }
+  }
+
   /** Execute a BSP request with a timeout, supporting cancellation.
     *
     * @param future

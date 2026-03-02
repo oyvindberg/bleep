@@ -521,13 +521,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   server = server,
                   clientName = "bleep-mcp",
                   clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString
+                  rootUri = started.buildPaths.buildDir.toUri.toString,
+                  buildData = None,
+                  listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                _ <- BspRequestHelper.callCancellable {
+                _ <- BspRequestHelper.callCancellable({
                   val params = new bsp4j.CompileParams(targets)
                   server.buildTargetCompile(params)
-                }.void
+                }, lifecycle.listening).void
                 _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                 _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
               } yield ()
@@ -582,16 +584,18 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   server = server,
                   clientName = "bleep-mcp",
                   clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString
+                  rootUri = started.buildPaths.buildDir.toUri.toString,
+                  buildData = None,
+                  listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                result <- BspRequestHelper.callCancellable {
+                result <- BspRequestHelper.callCancellable({
                   val params = new bsp4j.TestParams(targets)
                   val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
                   params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
                   params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
                   server.buildTargetTest(params)
-                }
+                }, lifecycle.listening)
                 // Extract TestRunResult from response
                 _ <- IO {
                   for {
@@ -680,23 +684,25 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                     server = server,
                     clientName = "bleep-mcp-watch",
                     clientVersion = model.BleepVersion.current.value,
-                    rootUri = started.buildPaths.buildDir.toUri.toString
+                    rootUri = started.buildPaths.buildDir.toUri.toString,
+                    buildData = None,
+                    listening = lifecycle.listening
                   )
                   targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
                   _ <- mode match {
                     case BleepBspProtocol.BuildMode.Test =>
-                      BspRequestHelper.callCancellable {
+                      BspRequestHelper.callCancellable({
                         val params = new bsp4j.TestParams(targets)
                         val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
                         params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
                         params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
                         server.buildTargetTest(params)
-                      }.void
+                      }, lifecycle.listening).void
                     case _ =>
-                      BspRequestHelper.callCancellable {
+                      BspRequestHelper.callCancellable({
                         val params = new bsp4j.CompileParams(targets)
                         server.buildTargetCompile(params)
-                      }.void
+                      }, lifecycle.listening).void
                   }
                   _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                   _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
@@ -825,10 +831,12 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   server = server,
                   clientName = "bleep-mcp",
                   clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString
+                  rootUri = started.buildPaths.buildDir.toUri.toString,
+                  buildData = None,
+                  listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                classesResult <- IO.blocking(server.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)).get())
+                classesResult <- BspRequestHelper.callCancellable(server.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)), lifecycle.listening)
                 _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                 _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
               } yield classesResult
@@ -962,13 +970,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   server = server,
                   clientName = "bleep-mcp",
                   clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString
+                  rootUri = started.buildPaths.buildDir.toUri.toString,
+                  buildData = None,
+                  listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                result <- BspRequestHelper.callCancellable {
+                result <- BspRequestHelper.callCancellable({
                   val params = new bsp4j.CompileParams(targets)
                   server.buildTargetCompile(params)
-                }
+                }, lifecycle.listening)
                 _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                 _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
                 _ <- IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
