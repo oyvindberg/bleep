@@ -109,8 +109,9 @@ object BspServerBuilder {
       clientName: String,
       clientVersion: String,
       rootUri: String,
-      buildData: Option[BspBuildData.Payload] = None
-  ): IO[ch.epfl.scala.bsp4j.InitializeBuildResult] = IO.blocking {
+      buildData: Option[BspBuildData.Payload],
+      listening: java.util.concurrent.Future[Void]
+  ): IO[ch.epfl.scala.bsp4j.InitializeBuildResult] = {
     import ch.epfl.scala.bsp4j._
     import scala.jdk.CollectionConverters._
 
@@ -135,9 +136,9 @@ object BspServerBuilder {
       params.setData(jsonElement)
     }
 
-    val result = server.buildInitialize(params).get()
-    server.onBuildInitialized()
-    result
+    BspRequestHelper.callCancellable(server.buildInitialize(params), listening).flatMap { result =>
+      IO.blocking(server.onBuildInitialized()).as(result)
+    }
   }
 }
 

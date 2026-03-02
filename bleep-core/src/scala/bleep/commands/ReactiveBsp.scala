@@ -133,7 +133,8 @@ case class ReactiveBsp(
               clientName = "bleep",
               clientVersion = model.BleepVersion.current.value,
               rootUri = started.buildPaths.buildDir.toUri.toString,
-              buildData = buildData
+              buildData = buildData,
+              listening = lifecycle.listening
             )
             targets = targetProjects.map(p => buildTarget(started.buildPaths, p)).toList
             _ <- executeBspRequest(server, targets, eventQueue, bspLogger, diagLog)
@@ -278,7 +279,9 @@ case class ReactiveBsp(
                 server = server,
                 clientName = "bleep",
                 clientVersion = model.BleepVersion.current.value,
-                rootUri = started.buildPaths.buildDir.toUri.toString
+                rootUri = started.buildPaths.buildDir.toUri.toString,
+                buildData = None,
+                listening = lifecycle.listening
               )
 
               _ <- IO(diagLog(s"[BSP_OP] Initialize complete, starting main operation. mode=$mode targets=${targetProjects.map(_.value).mkString(",")}"))

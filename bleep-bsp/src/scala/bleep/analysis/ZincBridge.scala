@@ -142,8 +142,8 @@ object ZincBridge {
     }
   }
 
-  /** Run a single compilation attempt. Unexpected Zinc exceptions propagate — the sentinel file ensures the next compile starts clean if this one is
-    * interrupted by process death.
+  /** Run a single compilation attempt. Unexpected Zinc exceptions propagate. On cancellation, the analysis file is preserved so the next compile can be
+    * incremental. Corrupt analysis is detected and cleaned automatically.
     */
   private def compileOnce(
       config: ProjectConfig,
@@ -164,23 +164,6 @@ object ZincBridge {
     val logger = new BleepLogger(diagnosticListener)
     val reporter = new BleepReporter(diagnosticListener)
 
-    // Sentinel file to detect interrupted compilations (OOM, SIGKILL, etc.)
-    // Written before compilation starts, deleted after. If it exists when we
-    // start, the previous compile was interrupted and state may be corrupt.
-    val compilingSentinel = analysisFile.resolveSibling("compiling")
-
-    if (Files.exists(compilingSentinel)) {
-      debug(s"[ZincBridge] ${config.name}: detected interrupted compilation (sentinel exists), cleaning state")
-      System.err.println(s"[ZincBridge] ${config.name}: previous compilation was interrupted, rebuilding from clean state")
-      Files.deleteIfExists(analysisFile)
-      analysisCache.remove(analysisFile)
-      if (Files.exists(config.outputDir)) {
-        bleep.internal.FileUtils.deleteDirectory(config.outputDir)
-        Files.createDirectories(config.outputDir)
-      }
-      Files.deleteIfExists(compilingSentinel)
-    }
-
     val previousResult = loadPreviousResult(analysisFile)
     val hasPrevAnalysis = previousResult.analysis().isPresent
     debug(s"[ZincBridge] ${config.name}: ${sources.length} sources, hasPreviousAnalysis=$hasPrevAnalysis, outputDir=${config.outputDir}")
@@ -191,8 +174,8 @@ object ZincBridge {
     } else 0
     diagnosticListener.onCompilePhase(config.name, CompilePhase.ReadingAnalysis(trackedApis))
 
-    // When there's no analysis but old class files exist (e.g. analysis deleted by
-    // cancellation cleanup or manual clean), we must clear the output directory.
+    // When there's no analysis but old class files exist (e.g. manual clean or
+    // corrupt analysis deletion), we must clear the output directory.
     // Without this, zinc does a clean compile (all sources) but the output dir is
     // on the classpath (for incremental Java compilation), so javac sees both the
     // stale .class files AND the source files → "duplicate class" errors.
@@ -236,10 +219,7 @@ object ZincBridge {
     val compiler = incrementalCompiler
 
     // Ensure analysis directory exists (may have been deleted by stale-class-files guard above)
-    Files.createDirectories(compilingSentinel.getParent)
-
-    // Write sentinel before compilation so we can detect interrupted compiles
-    Files.writeString(compilingSentinel, config.name, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+    Files.createDirectories(analysisFile.getParent)
 
     // Signal analyzing phase — zinc will compute invalidation before the first advance() callback
     diagnosticListener.onCompilePhase(config.name, CompilePhase.Analyzing)
@@ -287,18 +267,6 @@ object ZincBridge {
             )
           )
         )
-    } finally {
-      // Remove sentinel — compilation finished (success or failure).
-      // Only a process death (OOM, SIGKILL) leaves the sentinel behind,
-      // which triggers a clean rebuild on the next compile attempt.
-      Files.deleteIfExists(compilingSentinel)
-
-      // If compilation was cancelled, delete the analysis file so that the
-      // next compile triggers a clean rebuild via the stale-class-files guard.
-      if (cancellationToken.isCancelled) {
-        debug(s"[ZincBridge] Cancel cleanup for ${config.name}: deleting analysis=${analysisFile}")
-        Files.deleteIfExists(analysisFile)
-      }
     }
   }
 

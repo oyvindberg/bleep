@@ -45,7 +45,9 @@ object BspQuery {
             server = server,
             clientName = "bleep",
             clientVersion = model.BleepVersion.current.value,
-            rootUri = started.buildPaths.buildDir.toUri.toString
+            rootUri = started.buildPaths.buildDir.toUri.toString,
+            buildData = None,
+            listening = lifecycle.listening
           )
           .flatMap { _ =>
             IO.blocking(f(server))
