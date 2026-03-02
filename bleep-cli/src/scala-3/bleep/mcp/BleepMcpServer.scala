@@ -26,7 +26,7 @@ private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAl
   *
   * Connects to the bleep-bsp daemon (same server used by the TUI) and translates BSP events into MCP tool results and notifications. Runs on stdio transport.
   */
-class BleepMcpServer(started: Started) extends McpServer[IO] {
+class BleepMcpServer(started: Started, restartSignal: Deferred[IO, Unit]) extends McpServer[IO] {
 
   override def initialize(
       client: McpServer.Client[IO],
@@ -440,19 +440,13 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       ToolFunction.Info(
         "bleep.restart",
         Some("Restart"),
-        Some("Restart the MCP server process. Use after producing a new bleep binary or when the server is in a bad state. The process exits and the MCP client will relaunch it."),
+        Some("Reload the build configuration and restart the MCP session. Use after changing bleep.yaml or when the server is in a bad state. The session reconnects automatically."),
         ToolFunction.Effect.Destructive(true),
         false
       ),
       (_, _) =>
-        IO {
-          started.logger.info("MCP server restart requested, exiting process")
-          new Thread(() => {
-            Thread.sleep(200) // give time for the response to be sent
-            System.exit(0)
-          }).start()
-          """{"restarting":true}"""
-        },
+        IO(started.logger.info("MCP server restart requested")) >>
+          restartSignal.complete(()).as("""{"restarting":true}"""),
       None
     )
 
@@ -1370,7 +1364,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 }
 
 object BleepMcpServer {
-  def apply(started: Started): BleepMcpServer = new BleepMcpServer(started)
+  def apply(started: Started, restartSignal: Deferred[IO, Unit]): BleepMcpServer = new BleepMcpServer(started, restartSignal)
 }
 
 /** Type-safe wrapper for watch job IDs. */
