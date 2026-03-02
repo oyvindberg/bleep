@@ -462,10 +462,6 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     )
 
     // ========================================================================
-    // Argument helpers
-    // ========================================================================
-
-    // ========================================================================
     // Tool implementations
     // ========================================================================
 
@@ -487,7 +483,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         }.toArray
       }
 
-    /** Execute a one-shot compile via BSP. Reports progress heartbeat every 30s, returns compact summary. */
+    /** Execute a one-shot compile via BSP. Reports progress heartbeat every 1s, returns compact summary. */
     private def executeBspOperation(
         config: BspRifleConfig,
         projectNames: List[String],
@@ -512,7 +508,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
         // Consumer fiber: filter events, log per-project diffs to MCP, collect for final response
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
 
-        // Heartbeat fiber: report progress every 30s so the client isn't blind
+        // Heartbeat fiber: report progress every 1s
         heartbeatFiber <- heartbeat(collectedEvents, done, "compile", context).start
 
         _ <- BspRifle
@@ -548,7 +544,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       } yield formatCompileResult(events.reverse, previousState, verbose, None, None)
     }
 
-    /** Execute a one-shot test via BSP. Reports progress heartbeat every 30s, returns compact summary. */
+    /** Execute a one-shot test via BSP. Reports progress heartbeat every 1s, returns compact summary. */
     private def executeBspTestOperation(
         config: BspRifleConfig,
         projectNames: List[String],
@@ -1063,16 +1059,24 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           if (isDone) IO.unit
           else
             collectedEvents.get.flatMap { events =>
+              val now = System.currentTimeMillis()
               val finished = events.collect { case e: E.CompileFinished => e }
-              val started = events.collect { case _: E.CompileStarted => () }.size
-              val inProgress = started - finished.size
+              val startedEvents = events.collect { case e: E.CompileStarted => e }
+              val finishedProjects = finished.map(_.project).toSet
+              val inProgressEvents = startedEvents.filterNot(e => finishedProjects.contains(e.project))
               val failed = finished.count(_.status == "failed")
               val suites = events.collect { case e: E.SuiteFinished => e }
 
               val parts = List.newBuilder[String]
               if (finished.nonEmpty) parts += s"${finished.size} compiled"
               if (failed > 0) parts += s"$failed failed"
-              if (inProgress > 0) parts += s"$inProgress in progress"
+              if (inProgressEvents.nonEmpty) {
+                val details = inProgressEvents.map { e =>
+                  val elapsed = (now - e.timestamp) / 1000
+                  s"${e.project} (${elapsed}s)"
+                }
+                parts += s"in progress: ${details.mkString(", ")}"
+              }
               if (suites.nonEmpty) parts += s"${suites.size} suites done"
               val status = if (parts.result().nonEmpty) parts.result().mkString(", ") else "starting"
 
@@ -1080,7 +1084,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             }
       } yield ()
 
-      (IO.sleep(30.seconds) >> tick).foreverM.void
+      (IO.sleep(1.second) >> tick).foreverM.void
     }
 
     /** Stream per-project progress as compact one-liners. Errors/failures stream immediately so the agent can react without waiting for the full build. */
