@@ -136,6 +136,39 @@ object JobIdArgs {
   ).asInstanceOf[JsonSchemaEncoder[JobIdArgs]]
 }
 
+/** Args for bleep.status (filtered view of last run). */
+case class StatusArgs(project: Option[String], limit: Option[Int], offset: Option[Int])
+object StatusArgs {
+  given Decoder[StatusArgs] = Decoder.instance { c =>
+    Right(
+      StatusArgs(
+        project = c.downField("project").as[String].toOption,
+        limit = c.downField("limit").as[Int].toOption,
+        offset = c.downField("offset").as[Int].toOption
+      )
+    )
+  }
+  given JsonSchemaEncoder[StatusArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        "project" -> Json.obj(
+          "type" -> Json.fromString("string"),
+          "description" -> Json.fromString("Filter to a single project name.")
+        ),
+        "limit" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("Max number of items (diagnostics for compile, failures for test) to return.")
+        ),
+        "offset" -> Json.obj(
+          "type" -> Json.fromString("integer"),
+          "description" -> Json.fromString("Skip the first N items before applying limit.")
+        )
+      )
+    )
+  ).asInstanceOf[JsonSchemaEncoder[StatusArgs]]
+}
+
 /** No arguments. */
 case class NoArgs()
 object NoArgs {

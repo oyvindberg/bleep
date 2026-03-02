@@ -262,7 +262,7 @@ object TaskDag {
   ) {
 
     /** All finished tasks (any terminal state) */
-    private def finished: Set[String] = completed ++ failed ++ errored ++ skipped ++ killed ++ timedOut
+    def finished: Set[String] = completed ++ failed ++ errored ++ skipped ++ killed ++ timedOut
 
     /** States that propagate failure to downstream tasks. Note: timedOut does NOT propagate - downstream tasks still run. */
     private def propagatesFailure(taskId: String): Boolean =
@@ -778,9 +778,20 @@ object TaskDag {
                     dagRef.get.flatMap { newDag =>
                       if (newDag.isComplete) IO.unit
                       else {
-                        // Nothing to do - create fresh signal and try again
-                        Deferred[IO, Unit].flatMap { newSignal =>
-                          signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef)
+                        // Check if we're actually stuck: no ready tasks and nothing to skip
+                        val stillReady = newDag.ready
+                        val stillToSkip = newDag.toSkip
+                        if (stillReady.isEmpty && stillToSkip.isEmpty) {
+                          // Deadlock: nothing running, nothing ready, nothing to skip, but DAG not complete
+                          val remaining = newDag.tasks.keySet -- newDag.finished
+                          IO.raiseError(new RuntimeException(
+                            s"DAG deadlock: ${remaining.size} tasks stuck with unsatisfied dependencies: ${remaining.mkString(", ")}"
+                          ))
+                        } else {
+                          // Some tasks became ready (e.g., from skipping) — retry
+                          Deferred[IO, Unit].flatMap { newSignal =>
+                            signalRef.set(newSignal) >> loop(dagRef, runningRef, taskKillSignals, signalRef)
+                          }
                         }
                       }
                     }
