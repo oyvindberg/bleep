@@ -26,7 +26,7 @@ private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAl
   *
   * Connects to the bleep-bsp daemon (same server used by the TUI) and translates BSP events into MCP tool results and notifications. Runs on stdio transport.
   */
-class BleepMcpServer(started: Started, restartSignal: Deferred[IO, Unit]) extends McpServer[IO] {
+class BleepMcpServer(started: Started) extends McpServer[IO] {
 
   override def initialize(
       client: McpServer.Client[IO],
@@ -440,13 +440,24 @@ class BleepMcpServer(started: Started, restartSignal: Deferred[IO, Unit]) extend
       ToolFunction.Info(
         "bleep.restart",
         Some("Restart"),
-        Some("Reload the build configuration and restart the MCP session. Use after changing bleep.yaml or when the server is in a bad state. The session reconnects automatically."),
+        Some("Restart the MCP server process. Use after producing a new bleep binary or when the server is in a bad state. The process exits and Claude Code will relaunch it. Wait a few seconds before calling other tools."),
         ToolFunction.Effect.Destructive(true),
         false
       ),
       (_, _) =>
-        IO(started.logger.info("MCP server restart requested")) >>
-          restartSignal.complete(()).as("""{"restarting":true}"""),
+        IO {
+          started.logger.info("MCP server restart requested, exiting process")
+          val daemon = new Thread(() => {
+            // flush stdout so the JSON-RPC response reaches the client before we die
+            System.out.flush()
+            Thread.sleep(1000)
+            System.out.flush()
+            Runtime.getRuntime.halt(0)
+          })
+          daemon.setDaemon(true)
+          daemon.start()
+          """{"restarting":true,"message":"Process exiting. Tools will be available again in a few seconds."}"""
+        },
       None
     )
 
@@ -1364,7 +1375,7 @@ class BleepMcpServer(started: Started, restartSignal: Deferred[IO, Unit]) extend
 }
 
 object BleepMcpServer {
-  def apply(started: Started, restartSignal: Deferred[IO, Unit]): BleepMcpServer = new BleepMcpServer(started, restartSignal)
+  def apply(started: Started): BleepMcpServer = new BleepMcpServer(started)
 }
 
 /** Type-safe wrapper for watch job IDs. */
