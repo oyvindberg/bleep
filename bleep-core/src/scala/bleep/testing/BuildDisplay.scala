@@ -505,6 +505,10 @@ object BuildDisplay {
     private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
     private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
 
+    private def logP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).info(msg))
+    private def logWarnP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).warn(msg))
+    private def logErrorP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).error(msg))
+
     /** Convert phase name to past tense for completed-phase logging */
     private def phasePastTense(phase: String): String = phase match {
       case "reading-analysis" => "read analysis"
@@ -519,7 +523,7 @@ object BuildDisplay {
       IO.delay(activePhase.remove(project)).flatMap {
         case Some((prevPhase, detail, startTs)) =>
           val dur = now - startTs
-          log(s"$project: ${phasePastTense(prevPhase)}$detail (${dur}ms)")
+          logP(project, s"📦 ${phasePastTense(prevPhase)}$detail (${dur}ms)")
         case None => IO.unit
       }
 
@@ -538,9 +542,9 @@ object BuildDisplay {
         } else IO.unit
         val printMsg = if (!quietMode) {
           val msg = reason match {
-            case "clean-build"  => s"Compiling: $project (clean build, no previous analysis)"
-            case "empty-output" => s"Compiling: $project (clean build, output directory empty)"
-            case "up-to-date"   => s"$project: up to date"
+            case "clean-build"  => "🔨 compiling (clean build, no previous analysis)"
+            case "empty-output" => "🔨 compiling (clean build, output directory empty)"
+            case "up-to-date"   => "✅ up to date"
             case "incremental" =>
               val invalidatedCount = invalidatedFiles.size
               val depCount = changedDeps.size
@@ -559,11 +563,11 @@ object BuildDisplay {
                   s"$depCount changed deps: ${depNames.mkString(", ")}$suffix"
                 }
               val parts = List(invalidatedStr, depStr).filter(_.nonEmpty)
-              if (parts.isEmpty) s"Compiling: $project (changes detected)"
-              else s"Compiling: $project (${parts.mkString("; ")})"
-            case other => s"Compiling: $project ($other)"
+              if (parts.isEmpty) s"🔨 compiling ($totalFiles source files)"
+              else s"🔨 compiling (${parts.mkString("; ")})"
+            case other => s"🔨 compiling ($other)"
           }
-          log(msg)
+          logP(project, msg)
         } else IO.unit
         trackUpToDate >> printMsg
 
@@ -581,15 +585,15 @@ object BuildDisplay {
             if (upToDate.contains(project) && status == "success") {
               IO.unit // Already showed "project: up to date" - nothing more needed
             } else if (!quietMode) {
-              val displayStatus = status match {
-                case "success"   => "done"
-                case "failed"    => "FAILED"
-                case "error"     => "ERROR"
-                case "skipped"   => "SKIPPED"
-                case "cancelled" => "cancelled"
-                case other       => other
+              val (emoji, displayStatus) = status match {
+                case "success"   => ("✅", "compiled")
+                case "failed"    => ("❌", "compile failed")
+                case "error"     => ("❌", "compile error")
+                case "skipped"   => ("⏭️", "skipped")
+                case "cancelled" => ("🚫", "cancelled")
+                case other       => ("❓", other)
               }
-              log(s"Compile $displayStatus: $project (${durationMs}ms)")
+              logP(project, s"$emoji $displayStatus (${durationMs}ms)")
             } else IO.unit
           }
 
@@ -614,26 +618,26 @@ object BuildDisplay {
       case BuildEvent.SuitesDiscovered(project, suites, totalDiscovered, _) =>
         if (!quietMode) {
           if (suites.isEmpty)
-            log(s"Discovered 0 test suites in $project")
+            logP(project, "🔍 discovered 0 test suites")
           else
-            log(s"Discovered ${suites.size} test suites in $project (total: $totalDiscovered)")
+            logP(project, s"🔍 discovered ${suites.size} test suites (total: $totalDiscovered)")
         } else IO.unit
 
       case BuildEvent.ProjectSkipped(project, reason, _) =>
-        if (!quietMode) logWarn(s"[SKIPPED] $project: $reason") else IO.unit
+        if (!quietMode) logWarnP(project, s"⏭️ skipped ($reason)") else IO.unit
 
       case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
         val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
-        logWarn(s"$project: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        logWarnP(project, s"⏳ waiting for memory (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
 
       case _: BuildEvent.CompileResumed =>
         IO.unit // silence — compile will proceed and emit its own events
 
       case BuildEvent.LockContention(project, _, _) =>
-        logWarn(s"$project: waiting for compile lock (another compile is holding it)")
+        logWarnP(project, "⏳ waiting for compile lock")
 
       case BuildEvent.LockAcquired(project, waitedMs, _) =>
-        log(s"$project: compile lock acquired after ${waitedMs}ms")
+        logP(project, s"🔓 lock acquired (${waitedMs}ms)")
 
       case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, timestamp) =>
         if (!quietMode) {
@@ -652,7 +656,7 @@ object BuildDisplay {
       case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, threadDumpInfo, _) =>
         val timeoutSec = timeoutMs / 1000
         for {
-          _ <- logError(s"[TIMEOUT] $suite after ${timeoutSec}s")
+          _ <- IO.delay(logger.withContext("suite", suite).error(s"⏰ timed out after ${timeoutSec}s"))
           _ <- threadDumpInfo.flatMap(_.singleThreadStack) match {
             case Some(stack) => log(s"  Stack trace:\n$stack")
             case None        => IO.unit
@@ -665,19 +669,19 @@ object BuildDisplay {
 
       case BuildEvent.SuiteError(_, suite, error, exitCode, signal, _, _) =>
         val desc = signal match {
-          case Some(sig) => s"Process crashed (signal $sig)"
+          case Some(sig) => s"crashed (signal $sig)"
           case None =>
             exitCode match {
-              case Some(code) => s"Process exited with code $code"
+              case Some(code) => s"exited with code $code"
               case None       => error
             }
         }
-        logError(s"[ERROR] $suite: $desc")
+        IO.delay(logger.withContext("suite", suite).error(s"❌ $desc"))
 
       case BuildEvent.Error(project, message, details, _) =>
-        val projectInfo = if (project.nonEmpty) s" [$project]" else ""
         for {
-          _ <- logError(s"[ERROR]$projectInfo $message")
+          _ <- if (project.nonEmpty) logErrorP(project, s"❌ $message")
+               else logError(s"❌ $message")
           _ <- details match {
             case Some(d) => d.split("\n").toList.traverse_(line => log(s"  $line"))
             case None    => IO.unit
@@ -686,36 +690,36 @@ object BuildDisplay {
 
       case BuildEvent.SuiteCancelled(_, suite, reason, _) =>
         val reasonStr = reason.getOrElse("unknown reason (likely exceeded timeout)")
-        logWarn(s"[CANCELLED] $suite: $reasonStr")
+        IO.delay(logger.withContext("suite", suite).warn(s"🚫 cancelled ($reasonStr)"))
 
       case BuildEvent.LinkStarted(project, platform, _) =>
-        if (!quietMode) log(s"Linking: $project [$platform]") else IO.unit
+        if (!quietMode) logP(project, s"🔗 linking [$platform]") else IO.unit
 
       case BuildEvent.LinkSucceeded(project, platform, durationMs, _) =>
-        if (!quietMode) log(s"Link done: $project [$platform] (${durationMs}ms)") else IO.unit
+        if (!quietMode) logP(project, s"✅ linked [$platform] (${durationMs}ms)") else IO.unit
 
       case BuildEvent.LinkFailed(project, platform, durationMs, error, _) =>
-        logError(s"Link FAILED: $project [$platform] (${durationMs}ms): $error")
+        logErrorP(project, s"❌ link failed [$platform] (${durationMs}ms): $error")
 
       case BuildEvent.SourcegenStarted(scriptMain, forProjects, _) =>
-        if (!quietMode) log(s"Sourcegen: $scriptMain for ${forProjects.mkString(", ")}") else IO.unit
+        if (!quietMode) IO.delay(logger.withContext("script", scriptMain).info(s"⚙️ sourcegen for ${forProjects.mkString(", ")}")) else IO.unit
 
       case BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, _) =>
         if (success) {
-          if (!quietMode) log(s"Sourcegen done: $scriptMain (${durationMs}ms)") else IO.unit
+          if (!quietMode) IO.delay(logger.withContext("script", scriptMain).info(s"✅ sourcegen done (${durationMs}ms)")) else IO.unit
         } else {
-          logError(s"Sourcegen FAILED: $scriptMain (${durationMs}ms): ${error.getOrElse("unknown error")}")
+          IO.delay(logger.withContext("script", scriptMain).error(s"❌ sourcegen failed (${durationMs}ms): ${error.getOrElse("unknown error")}"))
         }
 
       case _: BuildEvent.ConnectionLost =>
-        logWarn(s"[BSP] Connection lost - server may have been killed")
+        logWarn("💀 connection lost — server may have been killed")
 
       case BuildEvent.WorkspaceBusy(_, operation, projects, startedAgoMs, _) =>
         val elapsed = startedAgoMs / 1000
-        logWarn(s"Workspace busy: $operation ${projects.mkString(", ")} (started ${elapsed}s ago). Waiting...")
+        logWarn(s"⏳ workspace busy ($operation on ${projects.mkString(", ")}, started ${elapsed}s ago)")
 
       case _: BuildEvent.WorkspaceReady =>
-        log("Workspace available, proceeding...")
+        log("✅ workspace available, proceeding")
 
       case _: BuildEvent.TestRunCompleted =>
         IO.unit // State updated via BuildStateReducer; no side effects needed
