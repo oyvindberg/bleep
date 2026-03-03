@@ -1,0 +1,105 @@
+# bleep build
+
+Rewrite and manage build configuration.
+
+## Synopsis
+
+```bash
+bleep build <subcommand> [options]
+```
+
+## Description
+
+The `build` command provides subcommands for managing and transforming your `bleep.yaml` configuration.
+
+## Subcommands
+
+### show
+
+Display the resolved build configuration:
+
+```bash
+bleep build show
+```
+
+This shows the fully resolved build with all templates expanded and defaults filled in.
+
+### update-deps
+
+Update dependency versions:
+
+```bash
+bleep build update-deps
+```
+
+This checks for newer versions of your dependencies and updates `bleep.yaml`.
+
+### normalize
+
+Normalize the build file format:
+
+```bash
+bleep build normalize
+```
+
+This reformats `bleep.yaml` with consistent formatting and ordering.
+
+### templates-reapply
+
+Reapply templates to projects:
+
+```bash
+bleep build templates-reapply
+```
+
+This recalculates which fields should be in templates vs projects.
+
+### templates-generate-new
+
+Generate new templates from common patterns:
+
+```bash
+bleep build templates-generate-new
+```
+
+This analyzes your projects and suggests templates to reduce duplication.
+
+## Examples
+
+### View resolved build
+
+```bash
+bleep build show
+```
+
+### Update all dependencies
+
+```bash
+bleep build update-deps
+```
+
+### Normalize formatting
+
+```bash
+bleep build normalize
+```
+
+## Use Cases
+
+### Debugging Build Issues
+
+Use `bleep build show` to see exactly what bleep sees after resolving templates, defaults, and inheritance.
+
+### Keeping Dependencies Current
+
+Run `bleep build update-deps` periodically to stay up to date with library releases.
+
+### Reducing Duplication
+
+If you notice repeated configuration across projects, run `bleep build templates-generate-new` to identify opportunities for templates.
+
+## Related Pages
+
+- [Build Model Overview](/docs/model) - Understanding bleep.yaml
+- [Templates & Inheritance](/docs/concepts/templates-inheritance) - Using templates
+- [Build Rewrites](/docs/usage/build-rewrites) - Automated build transformations

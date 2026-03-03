@@ -1,0 +1,51 @@
+# FAQ
+
+## General
+
+### What is bleep?
+
+A native-compiled Scala build tool with instant startup, YAML configuration, and fast IDE imports.
+
+### Why another build tool?
+
+Bleep prioritizes speed and simplicity. See [Why Bleep?](/docs/why-bleep).
+
+### Is bleep production ready?
+
+Bleep is used in real projects and can handle large builds. It's evolving rapidly.
+
+## Getting Started
+
+### How do I install bleep?
+
+See [Installation](/docs/installing).
+
+### Can I import my sbt project?
+
+Yes. See [Import from sbt](/docs/demos/importing-sbt-build).
+
+### Which IDEs are supported?
+
+Any IDE with BSP support: IntelliJ IDEA, VS Code (Metals), Vim, Emacs.
+
+## Configuration
+
+### Where is my build configuration?
+
+In `bleep.yaml` at the project root.
+
+### How do I add a dependency?
+
+```yaml
+dependencies:
+  - com.lihaoyi::fansi:0.5.0
+```
+
+### What's the difference between `:` and `::`?
+
+`::` is for Scala libraries (adds Scala version suffix), `:` is for Java libraries.
+
+## More Help
+
+- [Troubleshooting](/docs/appendix/troubleshooting)
+- [GitHub Discussions](https://github.com/oyvindberg/bleep/discussions)

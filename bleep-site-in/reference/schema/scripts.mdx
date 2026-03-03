@@ -1,0 +1,59 @@
+# Scripts Schema
+
+Scripts define custom build commands.
+
+## Defining Scripts
+
+```yaml
+scripts:
+  my-script:
+    main: scripts.MyScript
+    project: scripts
+```
+
+## Script Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `main` | Yes | Fully qualified main class |
+| `project` | Yes | Project containing the script |
+
+## Scripts Project
+
+Scripts need a project with bleep dependencies:
+
+```yaml
+projects:
+  scripts:
+    dependencies:
+      - build.bleep::bleep-core:${BLEEP_VERSION}
+    scala:
+      version: 3.3.3
+```
+
+## Running Scripts
+
+```bash
+bleep my-script
+# or
+bleep run my-script
+```
+
+## Script Implementation
+
+```scala
+package scripts
+
+import bleep._
+import bleep.commands.Script
+
+object MyScript extends Script("MyScript"):
+  override def run(
+    started: Started,
+    commands: Commands,
+    args: List[String]
+  ): Unit =
+    started.logger.info("Hello from script!")
+```
+
+See [Write Your First Script](/docs/tutorials/your-first-script) for details.

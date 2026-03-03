@@ -1,0 +1,118 @@
+# CI/CD Setup
+
+Configure continuous integration and deployment for bleep projects.
+
+## GitHub Actions
+
+### Basic CI
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: bleep-build/bleep-setup-action@0.0.2
+
+      - name: Compile
+        run: bleep compile
+
+      - name: Test
+        run: bleep test
+```
+
+### With Caching
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: bleep-build/bleep-setup-action@0.0.2
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/coursier
+            ~/.bleep
+          key: ${{ runner.os }}-bleep-${{ hashFiles('**/bleep.yaml') }}
+
+      - run: bleep compile
+      - run: bleep test
+```
+
+### Release Workflow
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: bleep-build/bleep-setup-action@0.0.2
+
+      - name: Publish
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: bleep publish
+```
+
+## CI Flags
+
+For CI environments:
+
+```bash
+bleep --no-color --no-bsp-progress compile
+```
+
+- `--no-color` - Disable ANSI colors
+- `--no-bsp-progress` - Disable progress bars
+
+## Matrix Builds
+
+Test multiple Scala versions:
+
+```yaml
+jobs:
+  test:
+    strategy:
+      matrix:
+        scala: [2.13, 3]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bleep-build/bleep-setup-action@0.0.2
+      - run: bleep test mylib@jvm${{ matrix.scala }}*
+```
+
+## Other CI Systems
+
+Bleep works with any CI that can run shell commands. Install bleep via Coursier:
+
+```bash
+cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json bleep
+```
+
+See [Installation](/docs/installing) for more options.
