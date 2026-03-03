@@ -602,7 +602,8 @@ object FancyBuildDisplay {
           startItem += 1
         }
 
-        val visibleItems = pane.items.drop(startItem)
+        val visibleItems = pane.items
+          .drop(startItem)
           .map(item => hShiftItem(item, state.issueHScrollOffset))
         renderPane(f, area, pane.title, pane.titleColor, pane.borderColor, visibleItems)
         if (totalLines > maxVisible) {

@@ -6,6 +6,7 @@ import scala.concurrent.duration.*
 object HeapPressureGate {
   val DefaultThreshold: Double = 0.80
   val DefaultRetryMs: DurationMs = DurationMs(2000L)
+
   /** Minimum scaling factor — even at 0% heap, wait at least this fraction of retryMs */
   val MinDelayFraction: Double = 0.10
 
@@ -24,14 +25,12 @@ object HeapPressureGate {
 
   /** Wait until it is safe to start a new compilation.
     *
-    * Always staggers when other compilations are running, with delay
-    * proportional to heap pressure:
+    * Always staggers when other compilations are running, with delay proportional to heap pressure:
     *   - At low heap (e.g. 2%/80%): short delay (~200ms) then proceed
     *   - At moderate heap (e.g. 50%/80%): longer delay (~1250ms) then proceed
     *   - At high heap (>= threshold): full delay, keep waiting until heap drops
     *
-    * This prevents stampedes (all cores starting simultaneously) while
-    * avoiding unnecessary waits when memory is plentiful.
+    * This prevents stampedes (all cores starting simultaneously) while avoiding unnecessary waits when memory is plentiful.
     */
   def waitForHeapPressure(
       heapMonitor: HeapMonitor,

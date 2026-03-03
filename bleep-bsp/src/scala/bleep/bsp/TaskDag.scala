@@ -794,9 +794,11 @@ object TaskDag {
                         if (stillReady.isEmpty && stillToSkip.isEmpty) {
                           // Deadlock: nothing running, nothing ready, nothing to skip, but DAG not complete
                           val remaining = newDag.tasks.keySet -- newDag.finished
-                          IO.raiseError(new RuntimeException(
-                            s"DAG deadlock: ${remaining.size} tasks stuck with unsatisfied dependencies: ${remaining.mkString(", ")}"
-                          ))
+                          IO.raiseError(
+                            new RuntimeException(
+                              s"DAG deadlock: ${remaining.size} tasks stuck with unsatisfied dependencies: ${remaining.mkString(", ")}"
+                            )
+                          )
                         } else {
                           // Some tasks became ready (e.g., from skipping) — retry
                           Deferred[IO, Unit].flatMap { newSignal =>

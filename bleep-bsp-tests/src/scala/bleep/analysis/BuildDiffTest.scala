@@ -46,12 +46,18 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val events = List(
       BuildEvent.CompileStarted("proj-a", ts),
       BuildEvent.CompileFinished(
-        "proj-a", "success", durationMs = 100, timestamp = ts + 1,
+        "proj-a",
+        "success",
+        durationMs = 100,
+        timestamp = ts + 1,
         diagnostics = List(warningDiag("unused import", "Foo.scala:10:5"))
       ),
       BuildEvent.CompileStarted("proj-b", ts + 2),
       BuildEvent.CompileFinished(
-        "proj-b", "failed", durationMs = 200, timestamp = ts + 3,
+        "proj-b",
+        "failed",
+        durationMs = 200,
+        timestamp = ts + 3,
         diagnostics = List(errorDiag("type mismatch", "Bar.scala:20:3"))
       )
     )
@@ -179,14 +185,14 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     )
     val current = List(
       errorDiag("not found: value x", "Bar.scala:25:3"), // same file+message, different line — matches
-      errorDiag("implicit not found", "Qux.scala:1:1")   // new error
+      errorDiag("implicit not found", "Qux.scala:1:1") // new error
     )
 
     val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 300)
 
     diff.totalErrors shouldBe 2
-    diff.newErrors shouldBe 1       // implicit not found is new
-    diff.fixedErrors shouldBe 2     // type mismatch and missing argument were fixed
+    diff.newErrors shouldBe 1 // implicit not found is new
+    diff.fixedErrors shouldBe 2 // type mismatch and missing argument were fixed
   }
 
   test("diffCompile: line number change does not affect matching") {
@@ -214,11 +220,11 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val diff = BuildDiff.diffCompile("proj", "success", current, previous, 100)
 
     diff.totalErrors shouldBe 0
-    diff.fixedErrors shouldBe 1     // type mismatch fixed
+    diff.fixedErrors shouldBe 1 // type mismatch fixed
     diff.newErrors shouldBe 0
     diff.totalWarnings shouldBe 2
-    diff.newWarnings shouldBe 1     // deprecation is new
-    diff.fixedWarnings shouldBe 0   // unused import still present
+    diff.newWarnings shouldBe 1 // deprecation is new
+    diff.fixedWarnings shouldBe 0 // unused import still present
   }
 
   test("diffCompile: diagnostics without path are matched by message only") {
@@ -229,7 +235,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
 
     diff.totalErrors shouldBe 1
-    diff.newErrors shouldBe 0   // same error
+    diff.newErrors shouldBe 0 // same error
     diff.fixedErrors shouldBe 0
   }
 
@@ -356,7 +362,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val currentTests = List(
       testFinished("proj", "MySuite", "test1", TestStatus.Failed), // was passing, now failing
       testFinished("proj", "MySuite", "test2", TestStatus.Passed), // was failing, now fixed
-      testFinished("proj", "MySuite", "test3", TestStatus.Failed)  // still failing
+      testFinished("proj", "MySuite", "test3", TestStatus.Failed) // still failing
     )
 
     val diff = BuildDiff.diffSuite("proj", "MySuite", currentTests, previousResults, passed = 1, failed = 2, skipped = 0, ignored = 0, durationMs = 100)
@@ -535,8 +541,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val curr = List(errorDiag("type mismatch", "src/Bar.scala:10:5"))
 
     val diff = BuildDiff.diffCompile("proj", "failed", curr, prev, 100)
-    diff.newErrors shouldBe 1       // Bar.scala error is new
-    diff.fixedErrors shouldBe 1     // Foo.scala error was fixed
+    diff.newErrors shouldBe 1 // Bar.scala error is new
+    diff.fixedErrors shouldBe 1 // Foo.scala error was fixed
   }
 
   test("diffCompile: path without line:col is preserved as-is") {
@@ -560,7 +566,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
     val diff = BuildDiff.diffCompile("proj", "failed", current, Nil, 100)
     diff.totalErrors shouldBe 2
-    diff.newErrors shouldBe 2           // multiset: 0 previous, 2 current = 2 new
+    diff.newErrors shouldBe 2 // multiset: 0 previous, 2 current = 2 new
   }
 
   test("diffCompile: fixing one of two identical errors shows 1 fixed") {
@@ -575,7 +581,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
     diff.totalErrors shouldBe 1
     diff.newErrors shouldBe 0
-    diff.fixedErrors shouldBe 1         // had 2, now 1 = 1 fixed
+    diff.fixedErrors shouldBe 1 // had 2, now 1 = 1 fixed
   }
 
   test("diffCompile: adding a third identical error shows 1 new") {
@@ -591,7 +597,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
     val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
     diff.totalErrors shouldBe 3
-    diff.newErrors shouldBe 1           // had 2, now 3 = 1 new
+    diff.newErrors shouldBe 1 // had 2, now 3 = 1 new
     diff.fixedErrors shouldBe 0
   }
 
@@ -603,7 +609,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
     val diff = BuildDiff.diffCompile("proj", "failed", current, Nil, 100)
     diff.totalErrors shouldBe 2
-    diff.newErrors shouldBe 2           // different messages = different keys
+    diff.newErrors shouldBe 2 // different messages = different keys
   }
 
   test("PreviousRunState.empty has no diagnostics and no test results") {

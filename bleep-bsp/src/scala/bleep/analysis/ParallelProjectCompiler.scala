@@ -230,7 +230,14 @@ object ParallelProjectCompiler {
           IO.pure(
             ProjectCompileFailure(
               List(
-                CompilerError(None, 0, 0, s"Dependency failed: ${depFailures.flatMap(_.errors).map(_.message).mkString(", ")}", None, CompilerError.Severity.Error)
+                CompilerError(
+                  None,
+                  0,
+                  0,
+                  s"Dependency failed: ${depFailures.flatMap(_.errors).map(_.message).mkString(", ")}",
+                  None,
+                  CompilerError.Severity.Error
+                )
               )
             )
           )

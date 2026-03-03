@@ -414,7 +414,9 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       ToolFunction.Info(
         "bleep.status",
         Some("Build Status"),
-        Some("Show cached results from the last build/test run without re-running. Returns full diagnostics and test results. Use project/limit/offset to paginate large results."),
+        Some(
+          "Show cached results from the last build/test run without re-running. Returns full diagnostics and test results. Use project/limit/offset to paginate large results."
+        ),
         ToolFunction.Effect.ReadOnly,
         false
       ),
@@ -424,7 +426,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
             case Some(run) =>
               val events = args.project match {
                 case Some(proj) => filterEventsByProject(run.events, proj)
-                case None => run.events
+                case None       => run.events
               }
               val mode = run.mode
               if (mode == "test") formatTestResult(events, None, PreviousRunState.empty, true, includeThrowables = true, args.limit, args.offset)
@@ -440,7 +442,9 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       ToolFunction.Info(
         "bleep.restart",
         Some("Restart"),
-        Some("Restart the MCP server process. Use after producing a new bleep binary or when the server is in a bad state. The process exits and Claude Code will relaunch it. Wait a few seconds before calling other tools."),
+        Some(
+          "Restart the MCP server process. Use after producing a new bleep binary or when the server is in a bad state. The process exits and Claude Code will relaunch it. Wait a few seconds before calling other tools."
+        ),
         ToolFunction.Effect.Destructive(true),
         false
       ),
@@ -526,10 +530,15 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                _ <- BspRequestHelper.callCancellable({
-                  val params = new bsp4j.CompileParams(targets)
-                  server.buildTargetCompile(params)
-                }, lifecycle.listening).void
+                _ <- BspRequestHelper
+                  .callCancellable(
+                    {
+                      val params = new bsp4j.CompileParams(targets)
+                      server.buildTargetCompile(params)
+                    },
+                    lifecycle.listening
+                  )
+                  .void
                 _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                 _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
               } yield ()
@@ -589,13 +598,16 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                result <- BspRequestHelper.callCancellable({
-                  val params = new bsp4j.TestParams(targets)
-                  val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
-                  params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
-                  params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
-                  server.buildTargetTest(params)
-                }, lifecycle.listening)
+                result <- BspRequestHelper.callCancellable(
+                  {
+                    val params = new bsp4j.TestParams(targets)
+                    val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
+                    params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
+                    params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
+                    server.buildTargetTest(params)
+                  },
+                  lifecycle.listening
+                )
                 // Extract TestRunResult from response
                 _ <- IO {
                   for {
@@ -691,18 +703,28 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
                   _ <- mode match {
                     case BleepBspProtocol.BuildMode.Test =>
-                      BspRequestHelper.callCancellable({
-                        val params = new bsp4j.TestParams(targets)
-                        val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
-                        params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
-                        params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
-                        server.buildTargetTest(params)
-                      }, lifecycle.listening).void
+                      BspRequestHelper
+                        .callCancellable(
+                          {
+                            val params = new bsp4j.TestParams(targets)
+                            val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
+                            params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
+                            params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
+                            server.buildTargetTest(params)
+                          },
+                          lifecycle.listening
+                        )
+                        .void
                     case _ =>
-                      BspRequestHelper.callCancellable({
-                        val params = new bsp4j.CompileParams(targets)
-                        server.buildTargetCompile(params)
-                      }, lifecycle.listening).void
+                      BspRequestHelper
+                        .callCancellable(
+                          {
+                            val params = new bsp4j.CompileParams(targets)
+                            server.buildTargetCompile(params)
+                          },
+                          lifecycle.listening
+                        )
+                        .void
                   }
                   _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                   _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
@@ -718,7 +740,9 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           modeStr = if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile"
           _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), modeStr, reversedEvents)))
 
-          summary = if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false, includeThrowables = false, None, None) else formatCompileResult(reversedEvents, previousState, false, None, None)
+          summary =
+            if (mode == BleepBspProtocol.BuildMode.Test) formatTestResult(reversedEvents, None, previousState, false, includeThrowables = false, None, None)
+            else formatCompileResult(reversedEvents, previousState, false, None, None)
           watchMode = new WatchMode(if (mode == BleepBspProtocol.BuildMode.Test) "test" else "compile")
           _ <- watchResults.update(_ + (jobId -> WatchCycleResult(jobId, watchMode, summary, System.currentTimeMillis())))
           _ <- context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Cycle complete: $summary")
@@ -836,7 +860,10 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                classesResult <- BspRequestHelper.callCancellable(server.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)), lifecycle.listening)
+                classesResult <- BspRequestHelper.callCancellable(
+                  server.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)),
+                  lifecycle.listening
+                )
                 _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                 _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
               } yield classesResult
@@ -975,10 +1002,13 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
                   listening = lifecycle.listening
                 )
                 targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                result <- BspRequestHelper.callCancellable({
-                  val params = new bsp4j.CompileParams(targets)
-                  server.buildTargetCompile(params)
-                }, lifecycle.listening)
+                result <- BspRequestHelper.callCancellable(
+                  {
+                    val params = new bsp4j.CompileParams(targets)
+                    server.buildTargetCompile(params)
+                  },
+                  lifecycle.listening
+                )
                 _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
                 _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
                 _ <- IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
@@ -1120,7 +1150,11 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
               // First run, no diff baseline — report error count and first few messages
               val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(d => stripAnsi(d.message))
               val moreStr = if (errorCount > 3) s" (+${errorCount - 3} more)" else ""
-              streamNotification(context, protocol.LoggingLevel.Error, s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr")
+              streamNotification(
+                context,
+                protocol.LoggingLevel.Error,
+                s"${e.project}: $errorCount errors (${e.durationMs}ms). ${firstErrors.mkString("; ")}$moreStr"
+              )
             }
           } else if (hasPrevious) {
             val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
@@ -1181,8 +1215,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     // Diagnostic streaming
     // ========================================================================
 
-    /** Diagnostic callback — no-op since we stream errors per-project via CompileFinished events in streamDiffLine.
-      * Per-diagnostic streaming was too verbose (N individual JSON objects flooding the agent's context).
+    /** Diagnostic callback — no-op since we stream errors per-project via CompileFinished events in streamDiffLine. Per-diagnostic streaming was too verbose (N
+      * individual JSON objects flooding the agent's context).
       */
     private def diagnosticCallback(context: CallContext[IO]): bsp4j.PublishDiagnosticsParams => Unit = _ => ()
 
@@ -1220,10 +1254,16 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
     // Formatting
     // ========================================================================
 
-    /** Format compile result from protocol events. In diff mode (verbose=false with previous state), returns a terse diff summary. In verbose mode, returns full
-      * diagnostics. When limit/offset are provided, the diagnostics array is sliced and a totalDiagnostics count is included.
+    /** Format compile result from protocol events. In diff mode (verbose=false with previous state), returns a terse diff summary. In verbose mode, returns
+      * full diagnostics. When limit/offset are provided, the diagnostics array is sliced and a totalDiagnostics count is included.
       */
-    private def formatCompileResult(events: List[BleepBspProtocol.Event], previousState: PreviousRunState, verbose: Boolean, limit: Option[Int], offset: Option[Int]): String = {
+    private def formatCompileResult(
+        events: List[BleepBspProtocol.Event],
+        previousState: PreviousRunState,
+        verbose: Boolean,
+        limit: Option[Int],
+        offset: Option[Int]
+    ): String = {
       import BleepBspProtocol.{Event => E}
 
       val compileEvents = events.collect { case e: E.CompileFinished => e }
@@ -1307,8 +1347,8 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       }
     }
 
-    /** Format test result from protocol events. Always compact; verbose=true for full failure details. When limit/offset are provided, the failures array is sliced
-      * and a totalFailures count is included. Summary counts (passed/failed) always reflect the full run.
+    /** Format test result from protocol events. Always compact; verbose=true for full failure details. When limit/offset are provided, the failures array is
+      * sliced and a totalFailures count is included. Summary counts (passed/failed) always reflect the full run.
       */
     private def formatTestResult(
         events: List[BleepBspProtocol.Event],

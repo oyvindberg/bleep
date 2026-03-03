@@ -536,7 +536,9 @@ object KotlinJsProjectCompiler extends ProjectCompiler {
           val outputFiles = result.outputFile.toSet ++ result.klibFile.toSet
           ProjectCompileSuccess(result.outputDir, outputFiles, None)
         } else {
-          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error)))
+          ProjectCompileFailure(
+            List(CompilerError(None, 0, 0, s"Kotlin/JS compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
+          )
         }
       }
       .handleErrorWith { case e: Exception =>
@@ -728,7 +730,9 @@ object KotlinNativeProjectCompiler extends ProjectCompiler {
         if (result.isSuccess) {
           ProjectCompileSuccess(config.outputDir, Set(result.outputPath), None)
         } else {
-          ProjectCompileFailure(List(CompilerError(None, 0, 0, s"Kotlin/Native compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error)))
+          ProjectCompileFailure(
+            List(CompilerError(None, 0, 0, s"Kotlin/Native compilation failed with exit code ${result.exitCode}", None, CompilerError.Severity.Error))
+          )
         }
       }
       .handleErrorWith { case e: Exception =>

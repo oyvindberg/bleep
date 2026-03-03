@@ -145,9 +145,8 @@ object BleepBspProtocol {
 
   /** A compiler diagnostic with severity.
     *
-    * `message` is the short/plain error text (from problem.message()).
-    * `rendered` is the compiler's rich formatted output including source line and caret (from problem.rendered()).
-    * `path` is the full file path with line:col suffix.
+    * `message` is the short/plain error text (from problem.message()). `rendered` is the compiler's rich formatted output including source line and caret (from
+    * problem.rendered()). `path` is the full file path with line:col suffix.
     */
   case class Diagnostic(
       severity: String, // "error", "warning", "info"
