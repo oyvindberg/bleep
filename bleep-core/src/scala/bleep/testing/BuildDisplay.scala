@@ -47,6 +47,7 @@ case class BuildSummary(
     testsSkipped: Int,
     testsIgnored: Int,
     currentlyRunning: List[String],
+    killedTasks: List[KilledTask], // tasks that were started but never finished (cancelled builds)
     failures: List[TestFailure],
     skipped: List[TestSkipped],
     cancelledSuites: List[CancelledSuite],
@@ -128,6 +129,19 @@ object BuildSummary {
     } else ""
     lines += s"  Duration: $durationStr$parallelismStr"
     lines += ""
+
+    // === Killed tasks (cancelled builds) ===
+    if (summary.killedTasks.nonEmpty) {
+      lines += s"${C.YELLOW}${C.BOLD}Killed Tasks (${summary.killedTasks.size})${C.RESET}"
+      summary.killedTasks.foreach { kt =>
+        val elapsed = if (kt.elapsedMs > 0) {
+          val secs = kt.elapsedMs / 1000.0
+          f" (ran for ${secs}%.1fs)"
+        } else ""
+        lines += s"  ${C.YELLOW}!${C.RESET} ${kt.kind}: ${kt.project}$elapsed"
+      }
+      lines += ""
+    }
 
     // === Story: sourcegen and compile errors and their consequences ===
 
@@ -384,6 +398,7 @@ object BuildSummary {
     testsSkipped = 0,
     testsIgnored = 0,
     currentlyRunning = Nil,
+    killedTasks = Nil,
     failures = Nil,
     skipped = Nil,
     cancelledSuites = Nil,
@@ -444,6 +459,13 @@ case class CancelledSuite(
     project: String,
     suite: String,
     reason: Option[String]
+)
+
+/** A task that was started but never finished (e.g. compile or test suite killed by user cancellation) */
+case class KilledTask(
+    kind: String, // "compile", "link", "test"
+    project: String, // project name, or "project:suite" for test suites
+    elapsedMs: Long
 )
 
 object BuildDisplay {
@@ -628,7 +650,8 @@ object BuildDisplay {
 
       case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
         val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
-        logWarnP(project, s"⏳ waiting to ensure sufficient memory (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        if (waitSec > 0) logWarnP(project, s"⏳ waiting to ensure sufficient memory (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        else IO.unit
 
       case _: BuildEvent.CompileResumed =>
         IO.unit // silence — compile will proceed and emit its own events
@@ -970,7 +993,8 @@ object BuildDisplay {
 
       case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
         val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
-        logWarn(s"$project: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        if (waitSec > 0) logWarn(s"$project: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        else IO.unit
 
       case _ => IO.unit
     }
