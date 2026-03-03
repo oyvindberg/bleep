@@ -72,8 +72,17 @@ object ProjectLock {
         // First acquire JVM-level lock (fast path for same-process)
         val jvmLock = getJvmLock(project)
         jvmLock.synchronized {
-          // Ensure output directory exists
-          Files.createDirectories(outputDir)
+          // Ensure output directory exists.
+          // Catch FileAlreadyExistsException: JDK's createDirectories has a known
+          // TOCTOU race when parallel threads create overlapping directory trees.
+          // The JDK's internal symlink check uses NOFOLLOW_LINKS, which can fail
+          // when the final component is a symlink-to-directory created by another thread.
+          // Our isDirectory check omits NOFOLLOW_LINKS so symlinks are fine.
+          try Files.createDirectories(outputDir)
+          catch {
+            case _: java.nio.file.FileAlreadyExistsException if Files.isDirectory(outputDir) =>
+              () // Race: another thread created it. It's a directory, which is what we wanted.
+          }
 
           // Try to acquire file lock with proper resource management
           val raf = new RandomAccessFile(lockFile.toFile, "rw")

@@ -1,9 +1,10 @@
 package bleep.analysis
 
 import cats.effect.IO
-import java.io.File
+import java.io.{DataInputStream, DataOutputStream, File}
 import java.lang.ref.SoftReference
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.Optional
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
@@ -77,6 +78,28 @@ object ZincBridge {
     */
   private val analysisCache = new java.util.concurrent.ConcurrentHashMap[Path, SoftReference[CompileAnalysis]]()
 
+  // ─── Pre-Zinc noop detection via unix:ctime manifest ──────────────────────
+  // On macOS/Linux, st_ctime (inode change time) is kernel-managed and updated
+  // by ALL file operations (cp, mv, rsync -a, tar x, touch -t, echo >, git ops).
+  // Non-root users cannot fake it. This gives a reliable "was this file touched?"
+  // signal without reading file contents (~3-5μs/call vs ~3ms/file for FarmHash).
+
+  private case class FileStatEntry(ctimeMillis: Long, mtimeMillis: Long, size: Long)
+
+  private case class NoopManifest(
+      sourceStats: Map[Path, FileStatEntry],
+      depAnalysisStats: Map[Path, Long], // outputDir → dep analysis mtime millis
+      optionsHash: Long,
+      cachedResult: ProjectCompileSuccess
+  )
+
+  private val noopManifestCache = new java.util.concurrent.ConcurrentHashMap[Path, NoopManifest]()
+  private val ctimeAvailable: Boolean =
+    !System.getProperty("os.name", "").toLowerCase.contains("win")
+
+  private val NoopManifestMagic: Int = 0x4E4F4F50
+  private val NoopManifestVersion: Byte = 1
+
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
   private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
 
@@ -142,6 +165,273 @@ object ZincBridge {
     }
   }
 
+  // ─── Noop manifest: check ────────────────────────────────────────────────
+
+  /** Check if we can skip Zinc entirely because nothing has changed.
+    *
+    * Check order (cheapest first):
+    *   1. ctime available? (disabled on Windows)
+    *   2. In-memory cache lookup, then disk fallback
+    *   3. Source count match
+    *   4. Options hash match
+    *   5. Dependency analysis mtime check
+    *   6. Per-source (ctime, mtime, size) check
+    *
+    * Any mismatch → None (fall through to Zinc).
+    */
+  private def checkNoopManifest(
+      analysisFile: Path,
+      sources: Array[VirtualFile],
+      dependencyAnalyses: Map[Path, Path],
+      language: ProjectLanguage.ScalaJava,
+      ecjVersion: Option[String]
+  ): Option[ProjectCompileSuccess] = {
+    if (!ctimeAvailable) return None
+
+    val manifest = {
+      val mem = noopManifestCache.get(analysisFile)
+      if (mem != null) mem
+      else {
+        val disk = loadNoopManifest(analysisFile)
+        if (disk != null) {
+          noopManifestCache.put(analysisFile, disk)
+          disk
+        } else return None
+      }
+    }
+
+    // 3. Source count
+    if (sources.length != manifest.sourceStats.size) return None
+
+    // 4. Options hash
+    val currentHash = computeOptionsHash(language, ecjVersion)
+    if (currentHash != manifest.optionsHash) return None
+
+    // 5. Dependency analysis mtimes
+    if (dependencyAnalyses.size != manifest.depAnalysisStats.size) return None
+    val depIter = dependencyAnalyses.iterator
+    while (depIter.hasNext) {
+      val (outputDir, depAnalysisFile) = depIter.next()
+      manifest.depAnalysisStats.get(outputDir) match {
+        case None => return None
+        case Some(expectedMtime) =>
+          if (!Files.exists(depAnalysisFile)) return None
+          val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
+          if (actualMtime != expectedMtime) return None
+      }
+    }
+
+    // 6. Per-source stat check
+    val srcIter = sources.iterator
+    while (srcIter.hasNext) {
+      val vf = srcIter.next()
+      val path = vf match {
+        case pvf: PlainVirtualFile => pvf.path
+        case other                 => Path.of(other.id())
+      }
+      manifest.sourceStats.get(path) match {
+        case None => return None
+        case Some(expected) =>
+          val stat = statFile(path)
+          if (stat == null) return None
+          if (stat.ctimeMillis != expected.ctimeMillis ||
+            stat.mtimeMillis != expected.mtimeMillis ||
+            stat.size != expected.size) return None
+      }
+    }
+
+    Some(manifest.cachedResult)
+  }
+
+  /** Stat a file: read ctime, mtime, size. Returns null on any error. */
+  private def statFile(path: Path): FileStatEntry = {
+    val attrs = Files.readAttributes(path, classOf[BasicFileAttributes])
+    val ctimeAttr = Files.getAttribute(path, "unix:ctime").asInstanceOf[java.nio.file.attribute.FileTime]
+    FileStatEntry(
+      ctimeMillis = ctimeAttr.toMillis,
+      mtimeMillis = attrs.lastModifiedTime().toMillis,
+      size = attrs.size()
+    )
+  }
+
+  /** FNV-1a hash of compiler options for cheap equality check. */
+  private def computeOptionsHash(language: ProjectLanguage.ScalaJava, ecjVersion: Option[String]): Long = {
+    var hash = 0xcbf29ce484222325L
+    val prime = 0x100000001b3L
+
+    def mix(s: String): Unit = {
+      var i = 0
+      while (i < s.length) {
+        hash ^= s.charAt(i).toLong
+        hash *= prime
+        i += 1
+      }
+      hash ^= 0L // separator
+      hash *= prime
+    }
+
+    mix(language.scalaVersion)
+    language.scalaOptions.foreach(mix)
+    language.javaRelease.foreach(r => mix(r.toString))
+    language.javaOptions.foreach(mix)
+    ecjVersion.foreach(mix)
+    hash
+  }
+
+  // ─── Noop manifest: save ────────────────────────────────────────────────
+
+  /** Save a noop manifest after successful compilation. */
+  private def saveNoopManifest(
+      analysisFile: Path,
+      sources: Array[VirtualFile],
+      dependencyAnalyses: Map[Path, Path],
+      language: ProjectLanguage.ScalaJava,
+      ecjVersion: Option[String],
+      result: ProjectCompileSuccess
+  ): Unit = {
+    if (!ctimeAvailable) return
+
+    val sourceStats = new java.util.HashMap[Path, FileStatEntry](sources.length * 2)
+    var i = 0
+    while (i < sources.length) {
+      val vf = sources(i)
+      val path = vf match {
+        case pvf: PlainVirtualFile => pvf.path
+        case other                 => Path.of(other.id())
+      }
+      val stat = statFile(path)
+      sourceStats.put(path, stat)
+      i += 1
+    }
+
+    val depStats = dependencyAnalyses.map { case (outputDir, depAnalysisFile) =>
+      val mtime = if (Files.exists(depAnalysisFile)) Files.getLastModifiedTime(depAnalysisFile).toMillis else 0L
+      outputDir -> mtime
+    }
+
+    val manifest = NoopManifest(
+      sourceStats = {
+        import scala.jdk.CollectionConverters.*
+        sourceStats.asScala.toMap
+      },
+      depAnalysisStats = depStats,
+      optionsHash = computeOptionsHash(language, ecjVersion),
+      cachedResult = result
+    )
+
+    noopManifestCache.put(analysisFile, manifest)
+    writeNoopManifest(analysisFile, manifest)
+  }
+
+  // ─── Noop manifest: disk I/O ───────────────────────────────────────────
+
+  private def manifestPath(analysisFile: Path): Path =
+    analysisFile.resolveSibling("noop-manifest.bin")
+
+  private def writeNoopManifest(analysisFile: Path, manifest: NoopManifest): Unit = {
+    val target = manifestPath(analysisFile)
+    val tmpFile = target.resolveSibling(target.getFileName.toString + ".tmp")
+    val out = new DataOutputStream(new java.io.BufferedOutputStream(Files.newOutputStream(tmpFile)))
+    try {
+      out.writeInt(NoopManifestMagic)
+      out.writeByte(NoopManifestVersion)
+      out.writeLong(manifest.optionsHash)
+
+      // Sources
+      out.writeInt(manifest.sourceStats.size)
+      manifest.sourceStats.foreach { case (path, stat) =>
+        out.writeUTF(path.toString)
+        out.writeLong(stat.ctimeMillis)
+        out.writeLong(stat.mtimeMillis)
+        out.writeLong(stat.size)
+      }
+
+      // Dependency analyses
+      out.writeInt(manifest.depAnalysisStats.size)
+      manifest.depAnalysisStats.foreach { case (outputDir, mtime) =>
+        out.writeUTF(outputDir.toString)
+        out.writeLong(mtime)
+      }
+
+      // Cached result
+      out.writeUTF(manifest.cachedResult.outputDir.toString)
+      val analysisPath = manifest.cachedResult.analysisFile match {
+        case Some(p) => p.toString
+        case None    => ""
+      }
+      out.writeUTF(analysisPath)
+      out.writeInt(manifest.cachedResult.classFiles.size)
+      manifest.cachedResult.classFiles.foreach(cf => out.writeUTF(cf.toString))
+
+      out.flush()
+    } finally out.close()
+
+    val _ = Files.move(tmpFile, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+  }
+
+  /** Load noop manifest from disk. Returns null if file doesn't exist. Throws on corruption. */
+  private def loadNoopManifest(analysisFile: Path): NoopManifest = {
+    val target = manifestPath(analysisFile)
+    if (!Files.exists(target)) return null
+
+    val in = new DataInputStream(new java.io.BufferedInputStream(Files.newInputStream(target)))
+    try {
+      val magic = in.readInt()
+      if (magic != NoopManifestMagic)
+        throw new IllegalStateException(s"Bad noop-manifest magic: 0x${magic.toHexString}, expected 0x${NoopManifestMagic.toHexString}")
+      val version = in.readByte()
+      if (version != NoopManifestVersion)
+        throw new IllegalStateException(s"Bad noop-manifest version: $version, expected $NoopManifestVersion")
+      val optionsHash = in.readLong()
+
+      // Sources
+      val sourceCount = in.readInt()
+      val sourceStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+      sourceStatsBuilder.sizeHint(sourceCount)
+      var i = 0
+      while (i < sourceCount) {
+        val path = Path.of(in.readUTF())
+        val ctime = in.readLong()
+        val mtime = in.readLong()
+        val size = in.readLong()
+        sourceStatsBuilder += path -> FileStatEntry(ctime, mtime, size)
+        i += 1
+      }
+
+      // Dependency analyses
+      val depCount = in.readInt()
+      val depStatsBuilder = Map.newBuilder[Path, Long]
+      depStatsBuilder.sizeHint(depCount)
+      i = 0
+      while (i < depCount) {
+        val outputDir = Path.of(in.readUTF())
+        val mtime = in.readLong()
+        depStatsBuilder += outputDir -> mtime
+        i += 1
+      }
+
+      // Cached result
+      val outputDir = Path.of(in.readUTF())
+      val analysisPathStr = in.readUTF()
+      val cachedAnalysisFile = if (analysisPathStr.isEmpty) None else Some(Path.of(analysisPathStr))
+      val classFileCount = in.readInt()
+      val classFilesBuilder = Set.newBuilder[Path]
+      classFilesBuilder.sizeHint(classFileCount)
+      i = 0
+      while (i < classFileCount) {
+        classFilesBuilder += Path.of(in.readUTF())
+        i += 1
+      }
+
+      NoopManifest(
+        sourceStats = sourceStatsBuilder.result(),
+        depAnalysisStats = depStatsBuilder.result(),
+        optionsHash = optionsHash,
+        cachedResult = ProjectCompileSuccess(outputDir, classFilesBuilder.result(), cachedAnalysisFile)
+      )
+    } finally in.close()
+  }
+
   /** Run a single compilation attempt. Unexpected Zinc exceptions propagate. On cancellation, the analysis file is preserved so the next compile can be
     * incremental. Corrupt analysis is detected and cleaned automatically.
     */
@@ -156,9 +446,16 @@ object ZincBridge {
       ecjVersion: Option[String],
       analysisFile: Path
   ): ProjectCompileResult = {
-    // Always delegate to Zinc for up-to-date detection.
-    // Zinc uses content hashing (farmHash) which is robust across git operations
-    // like rebase that preserve file timestamps.
+    // Fast path: check noop manifest BEFORE any Zinc work (loading analysis,
+    // creating compilers, hashing files). This skips ~5s of FarmHash I/O per
+    // project on noop builds by using unix:ctime as a reliable change detector.
+    checkNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion) match {
+      case Some(cachedResult) =>
+        diagnosticListener.onCompilationReason(config.name, CompilationReason.UpToDate)
+        return cachedResult
+      case None => ()
+    }
+
     val scalaInstance = getScalaInstance(language.scalaVersion)
     val compilers = createCompilers(scalaInstance, language, ecjVersion, cancellationToken, progressListener)
     val logger = new BleepLogger(diagnosticListener)
@@ -213,7 +510,8 @@ object ZincBridge {
       dependencyAnalyses,
       progressListener,
       cancellationToken,
-      diagnosticListener
+      diagnosticListener,
+      !hasPrevAnalysis
     )
 
     val compiler = incrementalCompiler
@@ -242,7 +540,9 @@ object ZincBridge {
       }
 
       val classFiles = collectClassFiles(config.outputDir)
-      ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
+      val success = ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
+      saveNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, success)
+      success
     } catch {
       case e: xsbti.CompileFailed =>
         ProjectCompileFailure(e.problems.toList.map(problemToError))
@@ -251,6 +551,7 @@ object ZincBridge {
         System.err.println(s"[ZincBridge] ${config.name}: corrupt analysis detected (${e.getMessage}), deleting for clean rebuild")
         Files.deleteIfExists(analysisFile)
         analysisCache.remove(analysisFile)
+        noopManifestCache.remove(analysisFile)
         if (Files.exists(config.outputDir)) {
           bleep.internal.FileUtils.deleteDirectory(config.outputDir)
           Files.createDirectories(config.outputDir)
@@ -505,7 +806,8 @@ object ZincBridge {
       dependencyAnalyses: Map[Path, Path],
       progressListener: ProgressListener,
       cancellationToken: CancellationToken,
-      diagnosticListener: DiagnosticListener
+      diagnosticListener: DiagnosticListener,
+      isCleanBuild: Boolean
   ): Inputs = {
     val outputDir = config.outputDir
     // Include output directory in classpath for incremental Java compilation.
@@ -592,12 +894,80 @@ object ZincBridge {
       }
     }
 
+    // Detect Zinc incremental cycle bugs:
+    // 1. After a clean build, Zinc should never want another cycle — the analysis is fresh.
+    // 2. If Zinc re-invalidates the exact same classes after recompiling them, it will never converge.
+    // In both cases: stop the cycle and warn.
+    var previousInvalidations: Option[Set[String]] = None
+    // Extend ExternalLookup directly (not NoopExternalLookup) because NoopExternalLookup
+    // narrows lookupAnalyzedClass return type to None.type which we can't widen back.
+    val cycleGuard: ExternalLookup = new ExternalLookup {
+      // Return Some(emptyAnalyzedClass) so LookupImpl falls through to super.lookupAnalyzedClass
+      // (the normal dependency analysis path). Returning None would short-circuit the lookup,
+      // making Zinc think ALL external dependencies are missing → massive over-invalidation.
+      override def lookupAnalyzedClass(binaryClassName: String, file: Option[VirtualFileRef]): Option[xsbti.api.AnalyzedClass] =
+        Some(APIs.emptyAnalyzedClass)
+
+      override def changedSources(previousAnalysis: CompileAnalysis): Option[Changes[VirtualFileRef]] = None
+      override def changedBinaries(previousAnalysis: CompileAnalysis): Option[Set[VirtualFileRef]] = None
+      override def removedProducts(previousAnalysis: CompileAnalysis): Option[Set[VirtualFileRef]] = None
+      override def hashClasspath(classpath: Array[VirtualFile]): Optional[Array[FileHash]] = Optional.empty()
+
+      override def shouldDoIncrementalCompilation(
+          changedClasses: Set[String],
+          analysis: CompileAnalysis
+      ): Boolean = {
+        val isBug = if (isCleanBuild && previousInvalidations.isEmpty) {
+          // Clean build just finished — any invalidation is a Zinc bug
+          true
+        } else {
+          previousInvalidations match {
+            case Some(prev) if prev == changedClasses => true
+            case _                                    => false
+          }
+        }
+
+        if (isBug) {
+          val classes = changedClasses.toList.sorted.take(20).mkString(", ")
+          val more = if (changedClasses.size > 20) s" (and ${changedClasses.size - 20} more)" else ""
+          val reason = if (isCleanBuild && previousInvalidations.isEmpty)
+            "after a clean build"
+          else
+            "after recompiling, re-invalidated the exact same class(es)"
+          System.err.println(
+            s"[ZincBridge] WARNING: Zinc incremental compilation bug in ${config.name}: " +
+              s"$reason. ${changedClasses.size} class(es): $classes$more"
+          )
+          diagnosticListener.onDiagnostic(
+            CompilerError(
+              path = None,
+              line = 0,
+              column = 0,
+              message = s"Zinc incremental compilation bug in ${config.name}: " +
+                s"$reason. ${changedClasses.size} class(es): $classes$more",
+              rendered = None,
+              severity = CompilerError.Severity.Warning
+            )
+          )
+          false
+        } else {
+          previousInvalidations = Some(changedClasses)
+          true
+        }
+      }
+    }
+    val externalHooks = new DefaultExternalHooks(
+      Optional.of[ExternalHooks.Lookup](cycleGuard),
+      Optional.empty[ClassFileManager]()
+    )
+    val incOptions = IncOptions.of().withExternalHooks(externalHooks)
+
     val setup = Setup.of(
       lookup,
       false, // skip
       cachePath,
       CompilerCache.fresh,
-      IncOptions.of(),
+      incOptions,
       reporter,
       Optional.of(progress),
       Array.empty[xsbti.T2[String, String]]
