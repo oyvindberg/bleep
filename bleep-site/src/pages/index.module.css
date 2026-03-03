@@ -10,9 +10,31 @@
   overflow: hidden;
 }
 
+.heroLogo {
+  height: 80px;
+  width: auto;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+}
+
+.heroDescription {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto 2rem auto;
+}
+
 @media screen and (max-width: 996px) {
   .heroBanner {
     padding: 2rem;
+  }
+
+  .heroLogo {
+    height: 60px;
+  }
+
+  .heroDescription {
+    font-size: 1rem;
   }
 }
 
@@ -20,4 +42,100 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* AI Banner Section */
+.aiBanner {
+  padding: 2.5rem 0;
+  background: linear-gradient(
+    135deg,
+    var(--ifm-color-emphasis-100) 0%,
+    var(--ifm-color-emphasis-200) 100%
+  );
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.aiBannerContent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.bannerIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--ifm-color-primary);
+  flex-shrink: 0;
+}
+
+.aiBannerText {
+  text-align: left;
+}
+
+.aiBannerText h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.aiBannerText p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .aiBannerContent {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .aiBannerText {
+    text-align: center;
+  }
+
+  .bannerIcon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* Demo Section */
+.demoSection {
+  padding: 4rem 0;
+  text-align: center;
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.demoSection h2 {
+  margin-bottom: 0.5rem;
+}
+
+.demoSection > div > p {
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 2rem;
+}
+
+.demoLinks {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+@media screen and (max-width: 768px) {
+  .demoLinks {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .demoLinks a {
+    margin: 0 !important;
+    width: 100%;
+    max-width: 280px;
+  }
 }

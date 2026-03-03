@@ -1,30 +1,141 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Bleep Brand Styles
+ * Purple color palette with Inter and JetBrains Mono fonts
  */
 
-/* You can override the default Infima variables here. */
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Light Mode - Purple palette optimized for white backgrounds */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* Primary purple colors */
+  --ifm-color-primary: #7C3AED;          /* Purple-600 - main brand color */
+  --ifm-color-primary-dark: #6D28D9;     /* Purple-700 */
+  --ifm-color-primary-darker: #5B21B6;   /* Purple-800 */
+  --ifm-color-primary-darkest: #4C1D95;  /* Purple-900 */
+  --ifm-color-primary-light: #8B5CF6;    /* Purple-500 */
+  --ifm-color-primary-lighter: #A78BFA;  /* Purple-400 */
+  --ifm-color-primary-lightest: #C4B5FD; /* Purple-300 */
+
+  /* Background accents */
+  --ifm-background-surface-color: #FAF5FF; /* Purple-50 tint */
+
+  /* Typography */
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --ifm-font-family-monospace: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Semantic colors */
+  --ifm-color-success: #22C55E;
+  --ifm-color-warning: #F59E0B;
+  --ifm-color-danger: #EF4444;
+  --ifm-color-info: #3B82F6;
+
+  /* Code highlighting */
+  --docusaurus-highlighted-code-line-bg: rgba(124, 58, 237, 0.1);
 }
 
-/* For readability concerns, you should choose a lighter palette in dark mode. */
+/* Dark Mode - Lighter purple palette for dark backgrounds */
 [data-theme="dark"] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --ifm-color-primary: #A78BFA;          /* Purple-400 - main brand color */
+  --ifm-color-primary-dark: #8B5CF6;     /* Purple-500 */
+  --ifm-color-primary-darker: #7C3AED;   /* Purple-600 */
+  --ifm-color-primary-darkest: #6D28D9;  /* Purple-700 */
+  --ifm-color-primary-light: #C4B5FD;    /* Purple-300 */
+  --ifm-color-primary-lighter: #DDD6FE;  /* Purple-200 */
+  --ifm-color-primary-lightest: #EDE9FE; /* Purple-100 */
+
+  /* Code highlighting */
+  --docusaurus-highlighted-code-line-bg: rgba(167, 139, 250, 0.2);
+}
+
+/* Headings - use Inter with slightly heavier weight */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 600;
+}
+
+/* Code blocks */
+code, pre {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* Navbar styling */
+.navbar {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.navbar__title {
+  font-weight: 700;
+}
+
+/* Footer styling */
+.footer--dark {
+  background-color: #1e1b4b; /* Indigo-950 for deep purple footer */
+}
+
+/* Button enhancements */
+.button--primary {
+  background: linear-gradient(135deg, var(--ifm-color-primary) 0%, var(--ifm-color-primary-dark) 100%);
+  border: none;
+}
+
+.button--primary:hover {
+  background: linear-gradient(135deg, var(--ifm-color-primary-dark) 0%, var(--ifm-color-primary-darker) 100%);
+}
+
+/* Hero section enhancement */
+.hero--primary {
+  background: linear-gradient(135deg, var(--ifm-color-primary-darkest) 0%, var(--ifm-color-primary-dark) 100%);
+}
+
+/* Hero text - ensure all text is white and visible */
+.hero--primary .hero__title,
+.hero--primary .hero__subtitle,
+.hero--primary p {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .hero--primary {
+  background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 100%);
+}
+
+[data-theme="dark"] .hero--primary .hero__title,
+[data-theme="dark"] .hero--primary .hero__subtitle,
+[data-theme="dark"] .hero--primary p {
+  color: #ffffff !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Hero buttons - ensure visibility on purple background */
+.hero--primary .button--secondary {
+  background-color: #ffffff !important;
+  color: var(--ifm-color-primary-darkest) !important;
+  border: 2px solid #ffffff !important;
+}
+
+.hero--primary .button--secondary:hover {
+  background-color: #f3f4f6 !important;
+  color: var(--ifm-color-primary-darkest) !important;
+}
+
+.hero--primary .button--outline.button--secondary {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.hero--primary .button--outline.button--secondary:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* Link styling */
+a {
+  transition: color 0.2s ease;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
 }

@@ -6,12 +6,12 @@ import { themes as prismThemes } from "prism-react-renderer";
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "Bleep",
-  tagline: "Blazing fast scala build tool",
+  tagline: "A Bleeping Fast Build Tool",
   url: "https://bleep.build",
   baseUrl: "/",
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",
-  favicon: "img/favicon.ico",
+  favicon: "img/bleep-logo-mark.svg",
 
   // GitHub pages deployment config.
   organizationName: "oyvindberg",
@@ -44,8 +44,8 @@ const config = {
       navbar: {
         title: "Bleep",
         logo: {
-          alt: "My Site Logo",
-          src: "img/logo.svg",
+          alt: "Bleep Logo",
+          src: "img/bleep-logo-mark.svg",
         },
         items: [
           {
@@ -80,18 +80,18 @@ const config = {
                 label: "GitHub",
                 href: "https://github.com/oyvindberg/bleep",
               },
-            ],
-          },
-          {
-            title: "More",
-            items: [
               {
-                label: "GitHub",
-                href: "https://github.com/oyvindberg/bleep",
+                label: "Discussions",
+                href: "https://github.com/oyvindberg/bleep/discussions",
+              },
+              {
+                label: "Releases",
+                href: "https://github.com/oyvindberg/bleep/releases",
               },
             ],
           },
         ],
+        copyright: `Copyright ${new Date().getFullYear()} Bleep Contributors. Built with Docusaurus.`,
       },
       prism: {
         theme: prismThemes.github,
