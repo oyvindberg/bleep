@@ -1258,7 +1258,7 @@ class MultiWorkspaceBspServer(
                 .interruptible(compileSemaphore.acquire())
                 .bracket { _ =>
                   IO(activeCompileCount.incrementAndGet()) >>
-                    waitForHeapPressure(projectName, params.originId) >> {
+                    waitForHeapPressure(projectName, params.originId, serverConfig.effectiveHeapPressureThreshold) >> {
                       val compileStartTime = System.currentTimeMillis()
                       IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
                         compileProject(started, compileTask.project, params.originId, token)
@@ -1421,28 +1421,24 @@ class MultiWorkspaceBspServer(
   /** Create a HeapPressureGate.Listener that sends BSP events and logs */
   private def makeHeapPressureListener(originId: Option[String]): HeapPressureGate.Listener =
     new HeapPressureGate.Listener {
-      def onStall(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit = {
+      def onWait(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit = {
         sendCompileEvent(
           originId,
           s"compile:$project",
           BleepBspProtocol.Event.CompileStalled(project, used.value, max.value, retryAt.value, now.value)
         )
-        logger.warn(
-          s"[HEAP] $project: stalled (heap: ${used.value}MB/${max.value}MB) — retrying in ${HeapPressureGate.DefaultRetryMs.value}ms"
+        logger.withContext("project", project).warn(
+          s"waiting to ensure sufficient memory (heap: ${used.value}MB/${max.value}MB) — retrying in ${HeapPressureGate.DefaultRetryMs.value}ms"
         )
       }
-      def onResume(project: String, used: HeapMb, max: HeapMb, stalledFor: DurationMs, now: EpochMs): Unit = {
+      def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit = {
         sendCompileEvent(
           originId,
           s"compile:$project",
-          BleepBspProtocol.Event.CompileResumed(project, used.value, max.value, stalledFor.value, now.value)
+          BleepBspProtocol.Event.CompileResumed(project, used.value, max.value, waitedFor.value, now.value)
         )
-        logger.warn(s"[HEAP] $project: resumed after ${stalledFor.value}ms stall (heap: ${used.value}MB/${max.value}MB)")
+        logger.withContext("project", project).info(s"resuming after ${waitedFor.value}ms wait (heap: ${used.value}MB/${max.value}MB)")
       }
-      def onSkipBecauseAlone(project: String, used: HeapMb, max: HeapMb): Unit =
-        logger.warn(
-          s"[HEAP] $project: heap at ${used.value}MB/${max.value}MB but proceeding — no other compiles running"
-        )
     }
 
   /** Wait until heap pressure is below threshold before starting compilation.
@@ -1451,12 +1447,13 @@ class MultiWorkspaceBspServer(
     */
   private def waitForHeapPressure(
       projectName: String,
-      originId: Option[String]
+      originId: Option[String],
+      threshold: Double
   ): IO[Unit] =
     HeapPressureGate.waitForHeapPressure(
       heapMonitor = heapMonitor,
       activeCompileCount = activeCompileCount,
-      threshold = HeapPressureGate.DefaultThreshold,
+      threshold = threshold,
       retryMs = HeapPressureGate.DefaultRetryMs,
       projectName = projectName,
       listener = makeHeapPressureListener(originId)
@@ -1669,7 +1666,7 @@ class MultiWorkspaceBspServer(
                     .interruptible(compileSemaphore.acquire())
                     .bracket { _ =>
                       IO(activeCompileCount.incrementAndGet()) >>
-                        waitForHeapPressure(projectName, params.originId) >> {
+                        waitForHeapPressure(projectName, params.originId, serverConfig.effectiveHeapPressureThreshold) >> {
                           val compileStartTime = System.currentTimeMillis()
                           IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
                             compileProject(started, compileTask.project, params.originId, token)

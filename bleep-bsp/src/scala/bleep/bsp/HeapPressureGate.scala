@@ -7,31 +7,24 @@ object HeapPressureGate {
   val DefaultThreshold: Double = 0.80
   val DefaultRetryMs: DurationMs = DurationMs(2000L)
 
-  /** Callback for when compilation stalls due to heap pressure */
+  /** Callback for when compilation waits for memory */
   trait Listener {
-    def onStall(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit
-    def onResume(project: String, used: HeapMb, max: HeapMb, stalledFor: DurationMs, now: EpochMs): Unit
-    def onSkipBecauseAlone(project: String, used: HeapMb, max: HeapMb): Unit
+    def onWait(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit
+    def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit
   }
 
   object Listener {
     val noop: Listener = new Listener {
-      def onStall(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit = ()
-      def onResume(project: String, used: HeapMb, max: HeapMb, stalledFor: DurationMs, now: EpochMs): Unit = ()
-      def onSkipBecauseAlone(project: String, used: HeapMb, max: HeapMb): Unit = ()
+      def onWait(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit = ()
+      def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit = ()
     }
   }
 
-  /** Wait until it is safe to start a new compilation.
+  /** Wait until heap pressure is below threshold before starting compilation.
     *
-    * When other compilations are running, we ALWAYS wait at least one cycle
-    * (`retryMs`) before proceeding — even if heap usage is currently low.
-    * This gives existing compilations time to allocate the memory they need.
-    * Without this delay, `numCores` compilations could all pass the heap
-    * check simultaneously (while heap is still low), then compete for memory.
-    *
-    * After the mandatory initial delay, the normal heap-pressure check takes
-    * over: proceed when heap drops below `threshold`, or loop otherwise.
+    * When other compilations are running and heap usage exceeds `threshold`,
+    * delays this compilation until memory is freed. If heap is below the
+    * threshold or no other compilations are running, proceeds immediately.
     */
   def waitForHeapPressure(
       heapMonitor: HeapMonitor,
@@ -41,38 +34,29 @@ object HeapPressureGate {
       projectName: String,
       listener: Listener
   )(implicit clock: Clock[IO]): IO[Unit] = {
-    def loop(stallStart: Option[EpochMs]): IO[Unit] =
+    def loop(waitStart: Option[EpochMs]): IO[Unit] =
       for {
         usage <- IO(heapMonitor.heapUsage())
         nowMs <- clock.realTime.map(d => EpochMs(d.toMillis))
         othersCompiling = activeCompileCount.get() > 1
         result <-
-          if (!othersCompiling) {
-            // We're the only active compilation — proceed immediately
-            stallStart match {
+          if (!othersCompiling || usage.fraction < threshold) {
+            // Safe to proceed: either we're alone or heap is below threshold
+            waitStart match {
               case Some(start) =>
-                val stalledFor = DurationMs(nowMs.value - start.value)
-                IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, stalledFor, nowMs))
+                val waitedFor = DurationMs(nowMs.value - start.value)
+                IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, waitedFor, nowMs))
               case None =>
-                if (usage.fraction >= threshold) {
-                  IO(listener.onSkipBecauseAlone(projectName, usage.usedMb, usage.maxMb))
-                } else IO.unit
+                IO.unit
             }
-          } else if (stallStart.isDefined && usage.fraction < threshold) {
-            // Others compiling, but we already waited at least one cycle
-            // and heap is below threshold — safe to proceed
-            val stalledFor = DurationMs(nowMs.value - stallStart.get.value)
-            IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, stalledFor, nowMs))
           } else {
-            // Others compiling and either:
-            //  - stallStart.isEmpty: first check, need mandatory initial delay
-            //  - heap >= threshold: heap still under pressure, keep waiting
+            // Others compiling and heap >= threshold — wait for memory
             val retryAt = EpochMs(nowMs.value + retryMs.value)
-            val effectiveStallStart = stallStart.getOrElse(nowMs)
-            IO(listener.onStall(projectName, usage.usedMb, usage.maxMb, retryAt, nowMs)) >>
+            val effectiveWaitStart = waitStart.getOrElse(nowMs)
+            IO(listener.onWait(projectName, usage.usedMb, usage.maxMb, retryAt, nowMs)) >>
               IO(BspMetrics.recordHeapPressureStall(projectName, usage.usedMb.value, usage.maxMb.value)) >>
               IO.sleep(retryMs.value.millis) >>
-              loop(Some(effectiveStallStart))
+              loop(Some(effectiveWaitStart))
           }
       } yield result
     loop(None)

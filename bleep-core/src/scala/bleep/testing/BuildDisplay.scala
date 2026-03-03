@@ -628,7 +628,7 @@ object BuildDisplay {
 
       case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
         val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
-        logWarnP(project, s"⏳ waiting for memory (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        logWarnP(project, s"⏳ waiting to ensure sufficient memory (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
 
       case _: BuildEvent.CompileResumed =>
         IO.unit // silence — compile will proceed and emit its own events

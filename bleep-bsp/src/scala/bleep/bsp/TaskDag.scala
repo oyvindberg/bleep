@@ -603,12 +603,22 @@ object TaskDag {
               )
             }
             .handleErrorWith { error =>
-              val errorMsg = s"$taskName failed: ${error.getMessage}"
-              val causeMsg = Option(error.getCause).flatMap(c => Option(c.getMessage)).filter(_.nonEmpty)
-              val diagMessage = causeMsg match {
-                case Some(cause) => s"$errorMsg\nCaused by: $cause"
-                case None        => errorMsg
+              val errorMsg = s"$taskName failed: ${error.getClass.getName}: ${error.getMessage}"
+              // Build a detailed diagnostic with cause chain and brief stack trace
+              val lines = new scala.collection.mutable.ArrayBuffer[String]()
+              lines += errorMsg
+              var cause = error.getCause
+              while (cause != null) {
+                lines += s"  Caused by: ${cause.getClass.getName}: ${cause.getMessage}"
+                cause = cause.getCause
               }
+              // Include first few relevant stack frames (skip internal framework frames)
+              val frames = error.getStackTrace.take(10)
+              if (frames.nonEmpty) {
+                lines += "  Stack trace:"
+                frames.foreach(f => lines += s"    at $f")
+              }
+              val diagMessage = lines.mkString("\n")
               IO.pure(
                 TaskResult.Failure(
                   error = errorMsg,
