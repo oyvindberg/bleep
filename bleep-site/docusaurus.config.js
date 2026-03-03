@@ -1,6 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
+import { themes as prismThemes } from "prism-react-renderer";
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "Bleep",
@@ -12,14 +14,10 @@ const config = {
   favicon: "img/favicon.ico",
 
   // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
-  organizationName: "oyvindberg", // Usually your GitHub org/user name.
-  projectName: "bleep", // Usually your repo name.
+  organizationName: "oyvindberg",
+  projectName: "bleep",
   trailingSlash: true,
 
-  // Even if you don't use internalization, you can use this field to set useful
-  // metadata like html lang. For example, if your site is Chinese, you may want
-  // to replace "en" with "zh-Hans".
   i18n: {
     defaultLocale: "en",
     locales: ["en"],
@@ -31,10 +29,10 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          sidebarPath: require.resolve("./sidebars.js"),
+          sidebarPath: "./sidebars.js",
         },
         theme: {
-          customCss: require.resolve("./src/css/custom.css"),
+          customCss: "./src/css/custom.css",
         },
       }),
     ],
@@ -79,16 +77,8 @@ const config = {
             title: "Community",
             items: [
               {
-                label: "Stack Overflow",
-                href: "https://stackoverflow.com/questions/tagged/docusaurus",
-              },
-              {
-                label: "Discord",
-                href: "https://discordapp.com/invite/docusaurus",
-              },
-              {
-                label: "Twitter",
-                href: "https://twitter.com/docusaurus",
+                label: "GitHub",
+                href: "https://github.com/oyvindberg/bleep",
               },
             ],
           },
@@ -104,11 +94,11 @@ const config = {
         ],
       },
       prism: {
-        theme: require("prism-react-renderer/themes/github"),
-        darkTheme: require("prism-react-renderer/themes/oceanicNext"),
-        additionalLanguages: ["java", "scala", "yaml"],
+        theme: prismThemes.github,
+        darkTheme: prismThemes.oceanicNext,
+        additionalLanguages: ["java", "scala", "yaml", "bash"],
       },
     }),
 };
 
-module.exports = config;
+export default config;
