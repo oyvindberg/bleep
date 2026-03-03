@@ -1421,14 +1421,15 @@ class MultiWorkspaceBspServer(
   /** Create a HeapPressureGate.Listener that sends BSP events and logs */
   private def makeHeapPressureListener(originId: Option[String]): HeapPressureGate.Listener =
     new HeapPressureGate.Listener {
-      def onWait(project: String, used: HeapMb, max: HeapMb, retryAt: EpochMs, now: EpochMs): Unit = {
+      def onWait(project: String, used: HeapMb, max: HeapMb, delayMs: Long, now: EpochMs): Unit = {
+        val retryAt = EpochMs(now.value + delayMs)
         sendCompileEvent(
           originId,
           s"compile:$project",
           BleepBspProtocol.Event.CompileStalled(project, used.value, max.value, retryAt.value, now.value)
         )
         logger.withContext("project", project).warn(
-          s"waiting to ensure sufficient memory (heap: ${used.value}MB/${max.value}MB) — retrying in ${HeapPressureGate.DefaultRetryMs.value}ms"
+          s"waiting to ensure sufficient memory (heap: ${used.value}MB/${max.value}MB) — retrying in ${delayMs}ms"
         )
       }
       def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit = {
