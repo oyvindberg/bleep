@@ -32,7 +32,7 @@ templates:
     extends: template-common
   template-js:
     platform:
-      jsNodeVersion: 18.4.0
+      jsNodeVersion: 24.13.0
       jsVersion: 1.19.0
       name: js
   template-jvm:

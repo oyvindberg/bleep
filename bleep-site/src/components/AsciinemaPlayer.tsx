@@ -1,5 +1,5 @@
 import * as React from "react";
-import BrowserOnly from "@docusaurus/core/lib/client/exports/BrowserOnly";
+import BrowserOnly from "@docusaurus/BrowserOnly";
 import "asciinema-player/dist/bundle/asciinema-player.css";
 
 // https://github.com/asciinema/asciinema-player/issues/72#issuecomment-1051545675

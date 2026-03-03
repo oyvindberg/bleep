@@ -664,7 +664,7 @@ templates:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
-      jsNodeVersion: 18.4.0
+      jsNodeVersion: 24.13.0
       jsVersion: 1.16.0
       name: js
   template-jvm:
