@@ -3063,9 +3063,8 @@ class MultiWorkspaceBspServer(
   private def sendTestEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
     val n = sendEventCounter.incrementAndGet()
     val eventType = event.getClass.getSimpleName
-    // Log first 20, then every 100th, and all suite-level events
-    val isSuiteEvent = eventType.startsWith("Suite") || eventType == "SuitesDiscovered"
-    if (n <= 20 || n % 100 == 0 || isSuiteEvent)
+    // Skip CompileProgress (percentage updates) — too noisy for logs
+    if (!event.isInstanceOf[BleepBspProtocol.Event.CompileProgress])
       logger.warn(s"[BSP-SERVER] sendTestEvent #$n: $eventType taskId=$taskId thread=${Thread.currentThread().getName}")
     val eventJson = BleepBspProtocol.encode(event)
     sendNotification(
