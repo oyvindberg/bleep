@@ -1,0 +1,96 @@
+# bleep setup-ide
+
+Generate BSP configuration for IDE import.
+
+## Synopsis
+
+```bash
+bleep setup-ide [options]
+```
+
+## Description
+
+The `setup-ide` command generates a `.bsp/bleep.json` file that allows IDEs to import your project using the Build Server Protocol (BSP).
+
+## Options
+
+Accepts all [global options](/docs/reference/cli/overview#global-options).
+
+## Examples
+
+### Generate BSP configuration
+
+```bash
+bleep setup-ide
+```
+
+This creates `.bsp/bleep.json` in your project directory.
+
+## IDE Import
+
+### IntelliJ IDEA
+
+1. Run `bleep setup-ide`
+2. Open IntelliJ IDEA
+3. Select **File → Open** (not Import)
+4. Navigate to your project directory
+5. IntelliJ will detect BSP and offer to import
+
+Import typically completes in about one second.
+
+### VS Code with Metals
+
+1. Run `bleep setup-ide`
+2. Open the project folder in VS Code
+3. Install the Metals extension if not already installed
+4. Metals will detect `.bsp/bleep.json` and import automatically
+
+### Other Editors
+
+Any editor with BSP support (Vim with nvim-metals, Emacs with lsp-metals, etc.) will work:
+
+1. Run `bleep setup-ide`
+2. Open the project in your editor
+3. The BSP client should detect and use the configuration
+
+## What Gets Generated
+
+The `.bsp/bleep.json` file contains:
+
+```json
+{
+  "name": "bleep",
+  "version": "0.0.14",
+  "bspVersion": "2.0.0",
+  "languages": ["scala", "java"],
+  "argv": ["bleep", "bsp"]
+}
+```
+
+This tells IDEs how to communicate with bleep's BSP server.
+
+## Refreshing
+
+After making significant changes to `bleep.yaml` (adding projects, changing dependencies), your IDE should automatically refresh. If not:
+
+- **IntelliJ**: Click the refresh icon in the BSP tool window
+- **Metals**: Run "Metals: Import build" from the command palette
+
+## Troubleshooting
+
+### IDE doesn't recognize BSP
+
+Ensure `.bsp/bleep.json` exists and contains valid JSON.
+
+### Import takes too long
+
+First import may take longer as dependencies are downloaded. Subsequent imports should be fast.
+
+### Compilation errors in IDE don't match CLI
+
+Run `bleep setup-ide` again to ensure the IDE configuration is in sync.
+
+## Related Pages
+
+- [IDE Integration Guide](/docs/demos/ide-import) - Detailed IDE setup
+- [`compile`](/docs/reference/cli/compile) - Compile from CLI

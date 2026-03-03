@@ -1,0 +1,124 @@
+# CLI Reference
+
+Bleep provides a comprehensive command-line interface for building, testing, and managing Scala projects.
+
+## Global Options
+
+These options can be used with any command:
+
+| Option | Description |
+|--------|-------------|
+| `--help` | Display help text |
+| `--no-color` | Enable CI-friendly output (no ANSI colors) |
+| `--debug` | Enable more verbose output |
+| `-d, --directory <path>` | Specify a project directory instead of current working directory |
+| `--dev` | Use current bleep binary instead of the one specified in bleep.yaml |
+| `--no-bsp-progress` | Don't show compilation progress (good for CI) |
+
+## Core Commands
+
+### Building
+
+| Command | Description |
+|---------|-------------|
+| [`compile`](/docs/reference/cli/compile) | Compile projects |
+| [`test`](/docs/reference/cli/test) | Run tests |
+| [`run`](/docs/reference/cli/run) | Run a project or script |
+| `link` | Link Scala.js or Scala Native projects |
+| `clean` | Clean build artifacts |
+
+### Project Management
+
+| Command | Description |
+|---------|-------------|
+| [`build`](/docs/reference/cli/build) | Rewrite and manage build configuration |
+| `projects` | Show projects under current directory |
+| `projects-test` | Show test projects under current directory |
+| [`import`](/docs/reference/cli/import) | Import an existing sbt build |
+
+### IDE Integration
+
+| Command | Description |
+|---------|-------------|
+| [`setup-ide`](/docs/reference/cli/setup-ide) | Generate BSP configuration for IDE import |
+| `extract-info` | JSON output for IDE integration |
+
+### Publishing
+
+| Command | Description |
+|---------|-------------|
+| [`publish-local`](/docs/reference/cli/publish-local) | Publish projects to local repository |
+| `dist` | Create a runnable distribution folder |
+
+### Code Quality
+
+| Command | Description |
+|---------|-------------|
+| [`fmt`](/docs/reference/cli/fmt) | Format Scala and Java source files |
+| `sourcegen` | Run source generators for projects |
+
+### Configuration
+
+| Command | Description |
+|---------|-------------|
+| `config` | Configure bleep settings |
+| `install-tab-completions-bash` | Install bash tab completions |
+| `install-tab-completions-zsh` | Install zsh tab completions |
+
+### Development
+
+| Command | Description |
+|---------|-------------|
+| `setup-dev-script` | Setup a bash script to run compiled code |
+| `list-tests` | List tests in projects |
+
+## Scripts
+
+Commands listed after the core commands (like `publish`, `native-image`, etc.) are **scripts** defined in your `bleep.yaml`. These are custom build commands specific to your project.
+
+See [Write Your First Script](/docs/tutorials/your-first-script) to learn how to create your own.
+
+## Project Selection
+
+Many commands accept project names as arguments. You can:
+
+- Specify a single project: `bleep compile myapp`
+- Specify multiple projects: `bleep compile myapp mylib`
+- Use wildcards: `bleep compile myapp*`
+- Compile all projects: `bleep compile` (no arguments)
+
+See [Selecting Projects](/docs/usage/selecting-projects) for more details.
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Command-line usage error |
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `BLEEP_BUILD_DIR` | Override the build directory location |
+| `JAVA_HOME` | JVM to use (if not managed by bleep) |
+
+## Examples
+
+```bash
+# Compile all projects
+bleep compile
+
+# Run tests with verbose output
+bleep --debug test
+
+# Compile in a specific directory
+bleep -d /path/to/project compile
+
+# Run a main class
+bleep run myapp
+
+# Format code
+bleep fmt
+```

@@ -1,0 +1,51 @@
+# Troubleshooting
+
+## Build Issues
+
+### Dependencies not resolving
+
+```bash
+bleep build show      # Check resolved dependencies
+bleep build update-deps  # Update dependency cache
+```
+
+### Compilation errors
+
+```bash
+bleep clean && bleep compile  # Clean rebuild
+bleep --debug compile         # Verbose output
+```
+
+### Version mismatch
+
+Ensure `$version` in `bleep.yaml` matches your installed bleep version.
+
+## IDE Issues
+
+### Project not importing
+
+1. Run `bleep setup-ide`
+2. Verify `.bsp/bleep.json` exists
+3. Restart your IDE
+
+### IntelliJ BSP not detected
+
+Use "Open" not "Import". Check BSP plugin is enabled.
+
+## Performance Issues
+
+### Slow first compile
+
+Normal - dependencies are downloading. Subsequent compiles are fast.
+
+### Bloop server issues
+
+```bash
+bleep clean
+# Or manually: pkill -f bloop
+```
+
+## Getting Help
+
+- [GitHub Issues](https://github.com/oyvindberg/bleep/issues)
+- [GitHub Discussions](https://github.com/oyvindberg/bleep/discussions)
