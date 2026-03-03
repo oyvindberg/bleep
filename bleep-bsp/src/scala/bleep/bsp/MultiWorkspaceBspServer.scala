@@ -1261,11 +1261,17 @@ class MultiWorkspaceBspServer(
                     waitForHeapPressure(projectName, params.originId) >> {
                       val compileStartTime = System.currentTimeMillis()
                       IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                        compileProject(started, compileTask.project, params.originId, token).flatMap { result =>
-                          val dur = System.currentTimeMillis() - compileStartTime
-                          val ok = result == TaskDag.TaskResult.Success
-                          IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)).as(result)
-                        }
+                        compileProject(started, compileTask.project, params.originId, token)
+                          .guaranteeCase {
+                            case cats.effect.Outcome.Succeeded(resultIO) =>
+                              resultIO.flatMap { result =>
+                                val dur = System.currentTimeMillis() - compileStartTime
+                                val ok = result == TaskDag.TaskResult.Success
+                                IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                              }
+                            case _ =>
+                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                          }
                     }
                 }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
               val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
@@ -1666,11 +1672,17 @@ class MultiWorkspaceBspServer(
                         waitForHeapPressure(projectName, params.originId) >> {
                           val compileStartTime = System.currentTimeMillis()
                           IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                            compileProject(started, compileTask.project, params.originId, token).flatMap { result =>
-                              val dur = System.currentTimeMillis() - compileStartTime
-                              val ok = result == TaskDag.TaskResult.Success
-                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok)).as(result)
-                            }
+                            compileProject(started, compileTask.project, params.originId, token)
+                              .guaranteeCase {
+                                case cats.effect.Outcome.Succeeded(resultIO) =>
+                                  resultIO.flatMap { result =>
+                                    val dur = System.currentTimeMillis() - compileStartTime
+                                    val ok = result == TaskDag.TaskResult.Success
+                                    IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                                  }
+                                case _ =>
+                                  IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                              }
                         }
                     }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
                   val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
