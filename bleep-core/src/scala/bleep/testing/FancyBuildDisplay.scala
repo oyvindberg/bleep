@@ -984,7 +984,7 @@ object FancyBuildDisplay {
         Text.fromSpans(
           Spans.from(
             Span.styled(s" $spinner ", s(Palette.warning)),
-            Span.styled("HEAP ", s(Palette.warning)),
+            Span.styled("WAIT ", s(Palette.warning)),
             Span.styled(stalled.project, s(Palette.text)),
             Span.styled(s" ${stalled.heapUsedMb}MB/${stalled.heapMaxMb}MB", s(Palette.warning)),
             Span.styled(s" retry ${waitSec}s", s(Palette.textDim))

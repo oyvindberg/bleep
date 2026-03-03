@@ -88,6 +88,7 @@ object ZincBridge {
 
   private case class NoopManifest(
       sourceStats: Map[Path, FileStatEntry],
+      sourceDirStats: Map[Path, FileStatEntry], // source dir → stat (detects file add/delete)
       depAnalysisStats: Map[Path, Long], // outputDir → dep analysis mtime millis
       optionsHash: Long,
       cachedResult: ProjectCompileSuccess
@@ -98,7 +99,7 @@ object ZincBridge {
     !System.getProperty("os.name", "").toLowerCase.contains("win")
 
   private val NoopManifestMagic: Int = 0x4E4F4F50
-  private val NoopManifestVersion: Byte = 1
+  private val NoopManifestVersion: Byte = 2
 
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
   private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
@@ -120,6 +121,25 @@ object ZincBridge {
     } catch {
       case _: Exception => () // Silent failure for file logging
     }
+  }
+
+  /** Check if a project is a noop (nothing changed since last successful compile).
+    *
+    * Uses the ctime manifest to detect changes without any Zinc work. Intended to be called BEFORE acquiring compile semaphore / heap pressure gate so that
+    * noop projects don't consume concurrency slots or wait for memory.
+    *
+    * @return
+    *   Some(result) if noop, None if compilation is needed
+    */
+  def isNoop(
+      config: ProjectConfig,
+      language: ProjectLanguage.ScalaJava,
+      dependencyAnalyses: Map[Path, Path],
+      ecjVersion: Option[String]
+  ): Option[ProjectCompileSuccess] = {
+    val analysisDir = config.analysisDir.getOrElse(config.outputDir.resolve(".zinc"))
+    val analysisFile = analysisDir.resolve("analysis.zip")
+    checkNoopFromDirs(analysisFile, config.sources, dependencyAnalyses, language, ecjVersion)
   }
 
   /** Compile a Scala/Java project using Zinc.
@@ -167,7 +187,84 @@ object ZincBridge {
 
   // ─── Noop manifest: check ────────────────────────────────────────────────
 
-  /** Check if we can skip Zinc entirely because nothing has changed.
+  /** Check noop using source DIRECTORIES (no file walk).
+    *
+    * Instead of walking directories to collect sources, this checks:
+    *   1. Source directory stats (mtime changes when files are added/deleted/renamed — POSIX guarantee)
+    *   2. Per-source file stats from the manifest's recorded paths
+    *
+    * This avoids the O(files) directory walk entirely, making the noop check O(dirs + recorded_files) with pure stat calls.
+    */
+  private def checkNoopFromDirs(
+      analysisFile: Path,
+      sourceDirs: Set[Path],
+      dependencyAnalyses: Map[Path, Path],
+      language: ProjectLanguage.ScalaJava,
+      ecjVersion: Option[String]
+  ): Option[ProjectCompileSuccess] = {
+    if (!ctimeAvailable) return None
+
+    val manifest = {
+      val mem = noopManifestCache.get(analysisFile)
+      if (mem != null) mem
+      else {
+        val disk = loadNoopManifest(analysisFile)
+        if (disk != null) {
+          noopManifestCache.put(analysisFile, disk)
+          disk
+        } else return None
+      }
+    }
+
+    // Check options hash (cheap)
+    val currentHash = computeOptionsHash(language, ecjVersion)
+    if (currentHash != manifest.optionsHash) return None
+
+    // Check source directory stats — detects file add/delete/rename
+    val normalizedDirs = removeNestedDirs(sourceDirs)
+    if (normalizedDirs.size != manifest.sourceDirStats.size) return None
+    val dirIter = normalizedDirs.iterator
+    while (dirIter.hasNext) {
+      val dir = dirIter.next()
+      manifest.sourceDirStats.get(dir) match {
+        case None => return None
+        case Some(expected) =>
+          if (!Files.isDirectory(dir)) return None
+          val stat = statFile(dir)
+          if (stat.ctimeMillis != expected.ctimeMillis ||
+            stat.mtimeMillis != expected.mtimeMillis) return None
+      }
+    }
+
+    // Check dependency analysis mtimes
+    if (dependencyAnalyses.size != manifest.depAnalysisStats.size) return None
+    val depIter = dependencyAnalyses.iterator
+    while (depIter.hasNext) {
+      val (outputDir, depAnalysisFile) = depIter.next()
+      manifest.depAnalysisStats.get(outputDir) match {
+        case None => return None
+        case Some(expectedMtime) =>
+          if (!Files.exists(depAnalysisFile)) return None
+          val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
+          if (actualMtime != expectedMtime) return None
+      }
+    }
+
+    // Check per-source file stats (from manifest's recorded paths — no directory walk)
+    val srcIter = manifest.sourceStats.iterator
+    while (srcIter.hasNext) {
+      val (path, expected) = srcIter.next()
+      if (!Files.exists(path)) return None
+      val stat = statFile(path)
+      if (stat.ctimeMillis != expected.ctimeMillis ||
+        stat.mtimeMillis != expected.mtimeMillis ||
+        stat.size != expected.size) return None
+    }
+
+    Some(manifest.cachedResult)
+  }
+
+  /** Check noop using an already-collected source file array.
     *
     * Check order (cheapest first):
     *   1. ctime available? (disabled on Windows)
@@ -283,6 +380,7 @@ object ZincBridge {
   /** Save a noop manifest after successful compilation. */
   private def saveNoopManifest(
       analysisFile: Path,
+      sourceDirs: Set[Path],
       sources: Array[VirtualFile],
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
@@ -304,6 +402,13 @@ object ZincBridge {
       i += 1
     }
 
+    // Stat source directories — mtime changes on file add/delete/rename (POSIX)
+    val normalizedDirs = removeNestedDirs(sourceDirs)
+    val sourceDirStatsMap = normalizedDirs.flatMap { dir =>
+      if (Files.isDirectory(dir)) Some(dir -> statFile(dir))
+      else None
+    }.toMap
+
     val depStats = dependencyAnalyses.map { case (outputDir, depAnalysisFile) =>
       val mtime = if (Files.exists(depAnalysisFile)) Files.getLastModifiedTime(depAnalysisFile).toMillis else 0L
       outputDir -> mtime
@@ -314,6 +419,7 @@ object ZincBridge {
         import scala.jdk.CollectionConverters.*
         sourceStats.asScala.toMap
       },
+      sourceDirStats = sourceDirStatsMap,
       depAnalysisStats = depStats,
       optionsHash = computeOptionsHash(language, ecjVersion),
       cachedResult = result
@@ -341,6 +447,15 @@ object ZincBridge {
       out.writeInt(manifest.sourceStats.size)
       manifest.sourceStats.foreach { case (path, stat) =>
         out.writeUTF(path.toString)
+        out.writeLong(stat.ctimeMillis)
+        out.writeLong(stat.mtimeMillis)
+        out.writeLong(stat.size)
+      }
+
+      // Source directories
+      out.writeInt(manifest.sourceDirStats.size)
+      manifest.sourceDirStats.foreach { case (dir, stat) =>
+        out.writeUTF(dir.toString)
         out.writeLong(stat.ctimeMillis)
         out.writeLong(stat.mtimeMillis)
         out.writeLong(stat.size)
@@ -398,6 +513,20 @@ object ZincBridge {
         i += 1
       }
 
+      // Source directories
+      val dirCount = in.readInt()
+      val sourceDirStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+      sourceDirStatsBuilder.sizeHint(dirCount)
+      i = 0
+      while (i < dirCount) {
+        val dir = Path.of(in.readUTF())
+        val dirCtime = in.readLong()
+        val dirMtime = in.readLong()
+        val dirSize = in.readLong()
+        sourceDirStatsBuilder += dir -> FileStatEntry(dirCtime, dirMtime, dirSize)
+        i += 1
+      }
+
       // Dependency analyses
       val depCount = in.readInt()
       val depStatsBuilder = Map.newBuilder[Path, Long]
@@ -425,6 +554,7 @@ object ZincBridge {
 
       NoopManifest(
         sourceStats = sourceStatsBuilder.result(),
+        sourceDirStats = sourceDirStatsBuilder.result(),
         depAnalysisStats = depStatsBuilder.result(),
         optionsHash = optionsHash,
         cachedResult = ProjectCompileSuccess(outputDir, classFilesBuilder.result(), cachedAnalysisFile)
@@ -541,7 +671,7 @@ object ZincBridge {
 
       val classFiles = collectClassFiles(config.outputDir)
       val success = ProjectCompileSuccess(config.outputDir, classFiles, Some(analysisFile))
-      saveNoopManifest(analysisFile, sources, dependencyAnalyses, language, ecjVersion, success)
+      saveNoopManifest(analysisFile, config.sources, sources, dependencyAnalyses, language, ecjVersion, success)
       success
     } catch {
       case e: xsbti.CompileFailed =>
