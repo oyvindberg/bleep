@@ -26,7 +26,12 @@ case class ServerMetrics(logger: Logger, userPaths: UserPaths, pid: Option[Long]
         val html = generateHtml(events)
         val tempFile = Files.createTempFile("bleep-metrics-", ".html")
         Files.writeString(tempFile, html)
-        java.awt.Desktop.getDesktop.browse(tempFile.toUri)
+        val os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT)
+        val openCmd =
+          if (os.contains("mac")) Array("open", tempFile.toString)
+          else if (os.contains("win")) Array("cmd", "/c", "start", tempFile.toString)
+          else Array("xdg-open", tempFile.toString)
+        Runtime.getRuntime.exec(openCmd)
         logger.info(s"Dashboard opened: $tempFile")
         logger.info(s"Metrics source: $metricsPath")
         Right(())

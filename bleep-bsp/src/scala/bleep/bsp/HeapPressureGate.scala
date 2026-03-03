@@ -22,6 +22,17 @@ object HeapPressureGate {
     }
   }
 
+  /** Wait until it is safe to start a new compilation.
+    *
+    * When other compilations are running, we ALWAYS wait at least one cycle
+    * (`retryMs`) before proceeding — even if heap usage is currently low.
+    * This gives existing compilations time to allocate the memory they need.
+    * Without this delay, `numCores` compilations could all pass the heap
+    * check simultaneously (while heap is still low), then compete for memory.
+    *
+    * After the mandatory initial delay, the normal heap-pressure check takes
+    * over: proceed when heap drops below `threshold`, or loop otherwise.
+    */
   def waitForHeapPressure(
       heapMonitor: HeapMonitor,
       activeCompileCount: java.util.concurrent.atomic.AtomicInteger,
@@ -36,7 +47,8 @@ object HeapPressureGate {
         nowMs <- clock.realTime.map(d => EpochMs(d.toMillis))
         othersCompiling = activeCompileCount.get() > 1
         result <-
-          if (usage.fraction < threshold || !othersCompiling) {
+          if (!othersCompiling) {
+            // We're the only active compilation — proceed immediately
             stallStart match {
               case Some(start) =>
                 val stalledFor = DurationMs(nowMs.value - start.value)
@@ -46,7 +58,15 @@ object HeapPressureGate {
                   IO(listener.onSkipBecauseAlone(projectName, usage.usedMb, usage.maxMb))
                 } else IO.unit
             }
+          } else if (stallStart.isDefined && usage.fraction < threshold) {
+            // Others compiling, but we already waited at least one cycle
+            // and heap is below threshold — safe to proceed
+            val stalledFor = DurationMs(nowMs.value - stallStart.get.value)
+            IO(listener.onResume(projectName, usage.usedMb, usage.maxMb, stalledFor, nowMs))
           } else {
+            // Others compiling and either:
+            //  - stallStart.isEmpty: first check, need mandatory initial delay
+            //  - heap >= threshold: heap still under pressure, keep waiting
             val retryAt = EpochMs(nowMs.value + retryMs.value)
             val effectiveStallStart = stallStart.getOrElse(nowMs)
             IO(listener.onStall(projectName, usage.usedMb, usage.maxMb, retryAt, nowMs)) >>
