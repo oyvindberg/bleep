@@ -25,7 +25,9 @@ case class BuildState(
     suitesFailed: Int,
     suitesCancelled: Int,
     currentlyRunning: Set[String],
+    suiteStartTimes: Map[String, Long], // "project:suite" -> timestamp when suite started
     currentlyCompiling: Set[String],
+    compileStartTimes: Map[String, Long], // project -> timestamp when compile started
     currentlyLinking: Set[String],
     linksCompleted: Int,
     linksFailed: Int,
@@ -40,7 +42,20 @@ case class BuildState(
 ) {
 
   /** Project to BuildSummary (lists are reversed since we prepend during accumulation) */
-  def toSummary(durationMs: Long, wasCancelled: Boolean): BuildSummary =
+  def toSummary(durationMs: Long, wasCancelled: Boolean): BuildSummary = {
+    val nowMs = System.currentTimeMillis()
+    val killedCompiles = currentlyCompiling.toList.sorted.map { project =>
+      val startedAt = compileStartTimes.getOrElse(project, nowMs)
+      KilledTask("compile", project, nowMs - startedAt)
+    }
+    val killedLinks = currentlyLinking.toList.sorted.map { project =>
+      KilledTask("link", project, 0)
+    }
+    // currentlyRunning keys are "project:suite" or "project:suite:test" — only take suite-level
+    val killedSuites = currentlyRunning.toList.filter(_.count(_ == ':') == 1).sorted.map { key =>
+      val startedAt = suiteStartTimes.getOrElse(key, nowMs)
+      KilledTask("test", key, nowMs - startedAt)
+    }
     BuildSummary(
       sourcegenFailed = sourcegenFailed,
       compilesCompleted = compilesCompleted,
@@ -59,6 +74,7 @@ case class BuildState(
       testsSkipped = testsSkipped,
       testsIgnored = testsIgnored,
       currentlyRunning = currentlyRunning.toList,
+      killedTasks = killedCompiles ++ killedLinks ++ killedSuites,
       failures = failures.reverse,
       skipped = skipped.reverse,
       cancelledSuites = cancelledSuites.reverse,
@@ -69,6 +85,7 @@ case class BuildState(
       totalTaskTimeMs = totalTaskTimeMs,
       wasCancelled = wasCancelled
     )
+  }
 }
 
 object BuildState {
@@ -92,7 +109,9 @@ object BuildState {
     suitesFailed = 0,
     suitesCancelled = 0,
     currentlyRunning = Set.empty,
+    suiteStartTimes = Map.empty,
     currentlyCompiling = Set.empty,
+    compileStartTimes = Map.empty,
     currentlyLinking = Set.empty,
     linksCompleted = 0,
     linksFailed = 0,
@@ -125,8 +144,11 @@ object BuildStateReducer {
         sourcegenFailed = if (success) state.sourcegenFailed else state.sourcegenFailed + 1
       )
 
-    case BuildEvent.CompileStarted(project, _) =>
-      state.copy(currentlyCompiling = state.currentlyCompiling + project)
+    case BuildEvent.CompileStarted(project, timestamp) =>
+      state.copy(
+        currentlyCompiling = state.currentlyCompiling + project,
+        compileStartTimes = state.compileStartTimes + (project -> timestamp)
+      )
 
     case BuildEvent.CompilationReason(_, _, _, _, _, _) =>
       // CompilationReason is purely informational for display - no state change needed
@@ -149,16 +171,18 @@ object BuildStateReducer {
         compilesSkipped = state.compilesSkipped + (if (status == "skipped") 1 else 0),
         compilesCancelled = state.compilesCancelled + (if (status == "cancelled") 1 else 0),
         currentlyCompiling = state.currentlyCompiling - project,
+        compileStartTimes = state.compileStartTimes - project,
         compileFailures = updatedCompileFailures,
         skippedProjects = updatedSkippedProjects,
         totalTaskTimeMs = state.totalTaskTimeMs + durationMs
       )
 
-    case BuildEvent.SuiteStarted(project, suite, _) =>
+    case BuildEvent.SuiteStarted(project, suite, timestamp) =>
       val key = s"$project:$suite"
       state.copy(
         suitesTotal = state.suitesTotal + 1,
-        currentlyRunning = state.currentlyRunning + key
+        currentlyRunning = state.currentlyRunning + key,
+        suiteStartTimes = state.suiteStartTimes + (key -> timestamp)
       )
 
     case BuildEvent.TestStarted(project, suite, test, _) =>
@@ -229,6 +253,7 @@ object BuildStateReducer {
         suitesCompleted = state.suitesCompleted + 1,
         suitesFailed = state.suitesFailed + (if (failed > 0) 1 else 0),
         currentlyRunning = state.currentlyRunning - key,
+        suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
         failures = syntheticFailures ++ state.failures
       )
@@ -276,6 +301,7 @@ object BuildStateReducer {
         suitesFailed = state.suitesFailed + 1,
         testsTimedOut = state.testsTimedOut + 1,
         currentlyRunning = state.currentlyRunning - key,
+        suiteStartTimes = state.suiteStartTimes - key,
         failures = timeoutFailure :: state.failures
       )
 
@@ -306,6 +332,7 @@ object BuildStateReducer {
         suitesFailed = if (alreadyCounted) state.suitesFailed else state.suitesFailed + 1,
         testsFailed = if (alreadyCounted) state.testsFailed else state.testsFailed + 1,
         currentlyRunning = state.currentlyRunning - key,
+        suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
         failures = errorFailure :: state.failures
       )
@@ -331,6 +358,7 @@ object BuildStateReducer {
         suitesCompleted = state.suitesCompleted + 1,
         suitesCancelled = state.suitesCancelled + 1,
         currentlyRunning = state.currentlyRunning - key,
+        suiteStartTimes = state.suiteStartTimes - key,
         cancelledSuites = CancelledSuite(project, suite, reason) :: state.cancelledSuites
       )
 
@@ -375,6 +403,7 @@ object BuildStateReducer {
         suitesCancelled = state.suitesCancelled + suiteLevelCancelled.size,
         suitesCompleted = state.suitesCompleted + suiteLevelCancelled.size,
         currentlyRunning = Set.empty,
+        suiteStartTimes = Map.empty,
         cancelledSuites = suiteLevelCancelled ++ state.cancelledSuites
       )
 
