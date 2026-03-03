@@ -2,7 +2,7 @@
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  docs: [
+  learn: [
     // GETTING STARTED
     {
       type: "category",
@@ -184,55 +184,6 @@ const sidebars = {
       ],
     },
 
-    // REFERENCE
-    {
-      type: "category",
-      label: "Reference",
-      collapsed: true,
-      items: [
-        {
-          type: "category",
-          label: "CLI Commands",
-          collapsed: true,
-          items: [
-            { type: "doc", label: "Overview", id: "reference/cli/overview" },
-            { type: "doc", label: "compile", id: "reference/cli/compile" },
-            { type: "doc", label: "test", id: "reference/cli/test" },
-            { type: "doc", label: "run", id: "reference/cli/run" },
-            { type: "doc", label: "build", id: "reference/cli/build" },
-            { type: "doc", label: "fmt", id: "reference/cli/fmt" },
-            { type: "doc", label: "setup-ide", id: "reference/cli/setup-ide" },
-            { type: "doc", label: "import", id: "reference/cli/import" },
-            { type: "doc", label: "publish-local", id: "reference/cli/publish-local" },
-          ],
-        },
-        {
-          type: "category",
-          label: "bleep.yaml Schema",
-          collapsed: true,
-          items: [
-            { type: "doc", label: "Overview", id: "reference/schema/overview" },
-            { type: "doc", label: "Projects", id: "reference/schema/projects" },
-            { type: "doc", label: "Templates", id: "reference/schema/templates" },
-            { type: "doc", label: "Scripts", id: "reference/schema/scripts" },
-            { type: "doc", label: "Dependencies", id: "reference/schema/dependencies" },
-            { type: "doc", label: "Platform Configuration", id: "reference/schema/platform" },
-          ],
-        },
-        {
-          type: "category",
-          label: "Build Environment",
-          collapsed: true,
-          items: [
-            { type: "doc", label: "Stable Builds", id: "usage/stable-builds" },
-            { type: "doc", label: "Compile Servers", id: "usage/compile-servers" },
-            { type: "doc", label: "Project Selection", id: "usage/selecting-projects" },
-            { type: "doc", label: "Tab Completions", id: "usage/tab-completions" },
-          ],
-        },
-      ],
-    },
-
     // APPENDIX
     {
       type: "category",
@@ -276,6 +227,49 @@ const sidebars = {
       ],
     },
   ],
+
+  reference: [
+    {
+      type: "category",
+      label: "CLI Commands",
+      collapsed: false,
+      items: [
+        { type: "doc", label: "Overview", id: "reference/cli/overview" },
+        { type: "doc", label: "compile", id: "reference/cli/compile" },
+        { type: "doc", label: "test", id: "reference/cli/test" },
+        { type: "doc", label: "run", id: "reference/cli/run" },
+        { type: "doc", label: "build", id: "reference/cli/build" },
+        { type: "doc", label: "fmt", id: "reference/cli/fmt" },
+        { type: "doc", label: "setup-ide", id: "reference/cli/setup-ide" },
+        { type: "doc", label: "import", id: "reference/cli/import" },
+        { type: "doc", label: "publish-local", id: "reference/cli/publish-local" },
+      ],
+    },
+    {
+      type: "category",
+      label: "bleep.yaml Schema",
+      collapsed: false,
+      items: [
+        { type: "doc", label: "Overview", id: "reference/schema/overview" },
+        { type: "doc", label: "Projects", id: "reference/schema/projects" },
+        { type: "doc", label: "Templates", id: "reference/schema/templates" },
+        { type: "doc", label: "Scripts", id: "reference/schema/scripts" },
+        { type: "doc", label: "Dependencies", id: "reference/schema/dependencies" },
+        { type: "doc", label: "Platform Configuration", id: "reference/schema/platform" },
+      ],
+    },
+    {
+      type: "category",
+      label: "Build Environment",
+      collapsed: false,
+      items: [
+        { type: "doc", label: "Stable Builds", id: "usage/stable-builds" },
+        { type: "doc", label: "Compile Servers", id: "usage/compile-servers" },
+        { type: "doc", label: "Project Selection", id: "usage/selecting-projects" },
+        { type: "doc", label: "Tab Completions", id: "usage/tab-completions" },
+      ],
+    },
+  ],
 };
 
-module.exports = sidebars;
+export default sidebars;
