@@ -602,6 +602,21 @@ object Main {
             ),
             Opts.subcommand[BleepCommand]("max-memory-clear", "remove compile server max heap setting (use JVM default)")(
               Opts(() => BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(compileServerMaxMemory = None))).map(_ => ()))
+            ),
+            Opts.subcommand[BleepCommand](
+              "heap-pressure-threshold",
+              "set heap usage fraction (0.0-1.0) above which new compilations wait for memory (default: 0.80)"
+            )(
+              Opts.argument[Double]("threshold").map { threshold => () =>
+                BleepConfigOps
+                  .rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = Some(threshold))))
+                  .map(_ => ())
+              }
+            ),
+            Opts.subcommand[BleepCommand]("heap-pressure-threshold-clear", "remove heap pressure threshold setting (use default: 0.80)")(
+              Opts(() =>
+                BleepConfigOps.rewritePersisted(logger, userPaths)(updateBspServerConfig(_.copy(heapPressureThreshold = None))).map(_ => ())
+              )
             )
           ).foldK
         ),

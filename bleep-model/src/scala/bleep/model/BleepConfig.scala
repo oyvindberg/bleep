@@ -36,7 +36,13 @@ case class BspServerConfig(
     /** Max heap for forked test runner JVMs, e.g. "512m", "2g". None = JVM default */
     testRunnerMaxMemory: Option[String],
     /** Max heap for the compile server JVM, e.g. "4g". None = JVM default */
-    compileServerMaxMemory: Option[String]
+    compileServerMaxMemory: Option[String],
+    /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory.
+      * When other compilations are running and heap exceeds this threshold,
+      * the server delays starting new compilations until memory is freed.
+      * Default: 0.80
+      */
+    heapPressureThreshold: Option[Double]
 ) {
   def effectiveParallelism: Int = {
     val cores = Runtime.getRuntime.availableProcessors
@@ -47,17 +53,22 @@ case class BspServerConfig(
 
   def effectiveTestIdleTimeoutMinutes: Int =
     testIdleTimeoutMinutes.getOrElse(BspServerConfig.DefaultTestIdleTimeoutMinutes)
+
+  def effectiveHeapPressureThreshold: Double =
+    heapPressureThreshold.getOrElse(BspServerConfig.DefaultHeapPressureThreshold)
 }
 
 object BspServerConfig {
   val DefaultTestIdleTimeoutMinutes: Int = 2
+  val DefaultHeapPressureThreshold: Double = 0.80
 
   val default: BspServerConfig = BspServerConfig(
     parallelism = None,
     parallelismRatio = None,
     testIdleTimeoutMinutes = None,
     testRunnerMaxMemory = None,
-    compileServerMaxMemory = None
+    compileServerMaxMemory = None,
+    heapPressureThreshold = None
   )
 
   implicit val decoder: Decoder[BspServerConfig] = deriveDecoder
