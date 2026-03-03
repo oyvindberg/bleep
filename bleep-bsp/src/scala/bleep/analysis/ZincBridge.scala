@@ -208,11 +208,12 @@ object ZincBridge {
       val mem = noopManifestCache.get(analysisFile)
       if (mem != null) mem
       else {
-        val disk = loadNoopManifest(analysisFile)
-        if (disk != null) {
-          noopManifestCache.put(analysisFile, disk)
-          disk
-        } else return None
+        loadNoopManifest(analysisFile) match {
+          case Some(disk) =>
+            noopManifestCache.put(analysisFile, disk)
+            disk
+          case None => return None
+        }
       }
     }
 
@@ -289,11 +290,12 @@ object ZincBridge {
       val mem = noopManifestCache.get(analysisFile)
       if (mem != null) mem
       else {
-        val disk = loadNoopManifest(analysisFile)
-        if (disk != null) {
-          noopManifestCache.put(analysisFile, disk)
-          disk
-        } else return None
+        loadNoopManifest(analysisFile) match {
+          case Some(disk) =>
+            noopManifestCache.put(analysisFile, disk)
+            disk
+          case None => return None
+        }
       }
     }
 
@@ -330,7 +332,6 @@ object ZincBridge {
         case None => return None
         case Some(expected) =>
           val stat = statFile(path)
-          if (stat == null) return None
           if (stat.ctimeMillis != expected.ctimeMillis ||
             stat.mtimeMillis != expected.mtimeMillis ||
             stat.size != expected.size) return None
@@ -340,7 +341,7 @@ object ZincBridge {
     Some(manifest.cachedResult)
   }
 
-  /** Stat a file: read ctime, mtime, size. Returns null on any error. */
+  /** Stat a file: read ctime, mtime, size. */
   private def statFile(path: Path): FileStatEntry = {
     val attrs = Files.readAttributes(path, classOf[BasicFileAttributes])
     val ctimeAttr = Files.getAttribute(path, "unix:ctime").asInstanceOf[java.nio.file.attribute.FileTime]
@@ -484,10 +485,10 @@ object ZincBridge {
     val _ = Files.move(tmpFile, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
   }
 
-  /** Load noop manifest from disk. Returns null if file doesn't exist. Throws on corruption. */
-  private def loadNoopManifest(analysisFile: Path): NoopManifest = {
+  /** Load noop manifest from disk. Returns None if file doesn't exist or has a stale format version. */
+  private def loadNoopManifest(analysisFile: Path): Option[NoopManifest] = {
     val target = manifestPath(analysisFile)
-    if (!Files.exists(target)) return null
+    if (!Files.exists(target)) return None
 
     val in = new DataInputStream(new java.io.BufferedInputStream(Files.newInputStream(target)))
     try {
@@ -495,8 +496,7 @@ object ZincBridge {
       if (magic != NoopManifestMagic)
         throw new IllegalStateException(s"Bad noop-manifest magic: 0x${magic.toHexString}, expected 0x${NoopManifestMagic.toHexString}")
       val version = in.readByte()
-      if (version != NoopManifestVersion)
-        throw new IllegalStateException(s"Bad noop-manifest version: $version, expected $NoopManifestVersion")
+      if (version != NoopManifestVersion) return None // stale format — treat as cache miss
       val optionsHash = in.readLong()
 
       // Sources
@@ -552,13 +552,13 @@ object ZincBridge {
         i += 1
       }
 
-      NoopManifest(
+      Some(NoopManifest(
         sourceStats = sourceStatsBuilder.result(),
         sourceDirStats = sourceDirStatsBuilder.result(),
         depAnalysisStats = depStatsBuilder.result(),
         optionsHash = optionsHash,
         cachedResult = ProjectCompileSuccess(outputDir, classFilesBuilder.result(), cachedAnalysisFile)
-      )
+      ))
     } finally in.close()
   }
 
