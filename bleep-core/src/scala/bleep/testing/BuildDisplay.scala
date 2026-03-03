@@ -473,6 +473,10 @@ object BuildDisplay {
     private val activeCompileProgress: mutable.Map[String, Int] = mutable.Map.empty
     private var lastProgressLine: String = ""
 
+    // Track compile phase start times per project: project -> (phase, detail, startTimestamp)
+    // Used to print completed phase with duration when next phase arrives or compile finishes
+    private val activePhase: mutable.Map[String, (String, String, Long)] = mutable.Map.empty
+
     private val progressMonitor: Option[LoggerFn] = logger match {
       case tl: TypedLogger[?] => tl.progressMonitor
       case _                  => None
@@ -500,6 +504,24 @@ object BuildDisplay {
     private def log(msg: String): IO[Unit] = IO.delay(logger.info(msg))
     private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
     private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
+
+    /** Convert phase name to past tense for completed-phase logging */
+    private def phasePastTense(phase: String): String = phase match {
+      case "reading-analysis" => "read analysis"
+      case "analyzing"        => "analyzed"
+      case "compiling"        => "compiled"
+      case "saving-analysis"  => "saved analysis"
+      case other              => other
+    }
+
+    /** Log the previously active phase as completed with duration, then record the new phase. */
+    private def completePhase(project: String, now: Long): IO[Unit] =
+      IO.delay(activePhase.remove(project)).flatMap {
+        case Some((prevPhase, detail, startTs)) =>
+          val dur = now - startTs
+          log(s"$project: ${phasePastTense(prevPhase)}$detail (${dur}ms)")
+        case None => IO.unit
+      }
 
     private def printSideEffects(event: BuildEvent): IO[Unit] = event match {
       case BuildEvent.CompileStarted(project, _) =>
@@ -545,12 +567,15 @@ object BuildDisplay {
         } else IO.unit
         trackUpToDate >> printMsg
 
-      case BuildEvent.CompileFinished(project, status, durationMs, _, _, _) =>
+      case BuildEvent.CompileFinished(project, status, durationMs, timestamp, _, _) =>
+        // Complete the last tracked phase (e.g. saving-analysis) and clean up
+        val finishPhase = completePhase(project, timestamp)
         // Remove from active progress tracking
-        IO.delay {
+        val removeProgress = IO.delay {
           val _ = activeCompileProgress.remove(project)
           renderCompileProgress()
-        } >>
+        }
+        finishPhase >> removeProgress >>
           // Suppress output for up-to-date projects (only show single line from CompilationReason)
           upToDateProjects.get.flatMap { upToDate =>
             if (upToDate.contains(project) && status == "success") {
@@ -610,10 +635,12 @@ object BuildDisplay {
       case BuildEvent.LockAcquired(project, waitedMs, _) =>
         log(s"$project: compile lock acquired after ${waitedMs}ms")
 
-      case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, _) =>
+      case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, timestamp) =>
         if (!quietMode) {
-          val detail = if (trackedApis > 0) s" ($trackedApis APIs)" else ""
-          log(s"$project: $phase$detail")
+          val detail = if (trackedApis > 0) s", $trackedApis APIs" else ""
+          // Log the previous phase as completed, then record the new one
+          completePhase(project, timestamp) >>
+            IO.delay { activePhase(project) = (phase, detail, timestamp) }
         } else IO.unit
 
       case BuildEvent.CompileProgress(project, percent, _) =>
