@@ -808,7 +808,7 @@ templates:
       jsEmitSourceMaps: false
       jsJsdom: false
       jsKind: none
-      jsNodeVersion: 18.4.0
+      jsNodeVersion: 24.13.0
       jsVersion: 1.18.2
       name: js
     resources:
