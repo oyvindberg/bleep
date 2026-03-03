@@ -531,7 +531,11 @@ class MultiWorkspaceBspServer(
     buildResult match {
       case Right(started) =>
         buildLoadError.set(None)
-        logger.withContext("projects", started.build.explodedProjects.size).withContext("workspace", buildRoot.toString).withContext("variant", variant.toString).info("Build loaded")
+        logger
+          .withContext("projects", started.build.explodedProjects.size)
+          .withContext("workspace", buildRoot.toString)
+          .withContext("variant", variant.toString)
+          .info("Build loaded")
       case Left(err) =>
         val msg = s"Failed to load build: ${err.getMessage}"
         buildLoadError.set(Some(msg))
@@ -1441,9 +1445,11 @@ class MultiWorkspaceBspServer(
           s"compile:$project",
           BleepBspProtocol.Event.CompileStalled(project, used.value, max.value, retryAt.value, now.value)
         )
-        logger.withContext("project", project).warn(
-          s"waiting to ensure sufficient memory (heap: ${used.value}MB/${max.value}MB) — retrying in ${delayMs}ms"
-        )
+        logger
+          .withContext("project", project)
+          .warn(
+            s"waiting to ensure sufficient memory (heap: ${used.value}MB/${max.value}MB) — retrying in ${delayMs}ms"
+          )
       }
       def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit = {
         sendCompileEvent(
@@ -1673,7 +1679,7 @@ class MultiWorkspaceBspServer(
               val token = CancellationToken.create()
               taskKillSignal.tryGet.flatMap {
                 case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
-                case None =>
+                case None    =>
                   // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
                   val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
                   val noopResult = config.language match {
@@ -3095,19 +3101,56 @@ class MultiWorkspaceBspServer(
     val n = sendEventCounter.incrementAndGet()
     event match {
       case e: E.CompileFinished =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("status", e.status).withContext("project", e.project).withContext("durationMs", e.durationMs).warn("sendTestEvent: CompileFinished")
+        logger
+          .withContext("n", n)
+          .withContext("taskId", taskId)
+          .withContext("status", e.status)
+          .withContext("project", e.project)
+          .withContext("durationMs", e.durationMs)
+          .warn("sendTestEvent: CompileFinished")
       case e: E.CompileStarted =>
         logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project).warn("sendTestEvent: CompileStarted")
       case e: E.TestFinished =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("status", e.status).withContext("project", e.project).withContext("suite", e.suite).withContext("test", e.test).warn("sendTestEvent: TestFinished")
+        logger
+          .withContext("n", n)
+          .withContext("taskId", taskId)
+          .withContext("status", e.status)
+          .withContext("project", e.project)
+          .withContext("suite", e.suite)
+          .withContext("test", e.test)
+          .warn("sendTestEvent: TestFinished")
       case e: E.SuiteFinished =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project).withContext("suite", e.suite).withContext("passed", e.passed).withContext("failed", e.failed).warn("sendTestEvent: SuiteFinished")
+        logger
+          .withContext("n", n)
+          .withContext("taskId", taskId)
+          .withContext("project", e.project)
+          .withContext("suite", e.suite)
+          .withContext("passed", e.passed)
+          .withContext("failed", e.failed)
+          .warn("sendTestEvent: SuiteFinished")
       case e: E.SuiteError =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project).withContext("suite", e.suite).withContext("error", e.error).warn("sendTestEvent: SuiteError")
+        logger
+          .withContext("n", n)
+          .withContext("taskId", taskId)
+          .withContext("project", e.project)
+          .withContext("suite", e.suite)
+          .withContext("error", e.error)
+          .warn("sendTestEvent: SuiteError")
       case e: E.SuiteCancelled =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project).withContext("suite", e.suite).warn("sendTestEvent: SuiteCancelled")
+        logger
+          .withContext("n", n)
+          .withContext("taskId", taskId)
+          .withContext("project", e.project)
+          .withContext("suite", e.suite)
+          .warn("sendTestEvent: SuiteCancelled")
       case e: E.SuiteTimedOut =>
-        logger.withContext("n", n).withContext("taskId", taskId).withContext("project", e.project).withContext("suite", e.suite).withContext("timeoutMs", e.timeoutMs).warn("sendTestEvent: SuiteTimedOut")
+        logger
+          .withContext("n", n)
+          .withContext("taskId", taskId)
+          .withContext("project", e.project)
+          .withContext("suite", e.suite)
+          .withContext("timeoutMs", e.timeoutMs)
+          .warn("sendTestEvent: SuiteTimedOut")
       case _: E.CompileProgress => () // too noisy
       case _ =>
         logger.withContext("n", n).withContext("taskId", taskId).withContext("event", event.getClass.getSimpleName).warn("sendTestEvent")

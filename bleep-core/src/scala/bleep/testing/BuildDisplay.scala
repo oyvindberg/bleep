@@ -703,8 +703,9 @@ object BuildDisplay {
 
       case BuildEvent.Error(project, message, details, _) =>
         for {
-          _ <- if (project.nonEmpty) logErrorP(project, s"❌ $message")
-               else logError(s"❌ $message")
+          _ <-
+            if (project.nonEmpty) logErrorP(project, s"❌ $message")
+            else logError(s"❌ $message")
           _ <- details match {
             case Some(d) => d.split("\n").toList.traverse_(line => log(s"  $line"))
             case None    => IO.unit
@@ -974,8 +975,15 @@ object BuildDisplay {
         currentTestResults.get.flatMap { allResults =>
           val suiteTests = allResults.filter(t => t.project == sf.project && t.suite == sf.suite)
           val diff = BuildDiff.diffSuite(
-            sf.project, sf.suite, suiteTests, previousRun.testResults,
-            sf.passed, sf.failed, sf.skipped, sf.ignored, sf.durationMs
+            sf.project,
+            sf.suite,
+            suiteTests,
+            previousRun.testResults,
+            sf.passed,
+            sf.failed,
+            sf.skipped,
+            sf.ignored,
+            sf.durationMs
           )
           log(BuildDiff.formatSuiteDiff(diff))
         }

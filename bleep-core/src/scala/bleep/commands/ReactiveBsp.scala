@@ -189,7 +189,7 @@ case class ReactiveBsp(
         val fileLoggerResource = bleepLoggers.fileOnly(started.buildPaths.logFile).acquire()
         bleepLoggers.installJulBridge(fileLoggerResource.value)
         bleepLoggers.silent
-      case DisplayMode.NoTui    => started.logger
+      case DisplayMode.NoTui     => started.logger
       case DisplayMode.DiffWatch => started.logger
     }
 
@@ -230,7 +230,9 @@ case class ReactiveBsp(
         case DisplayMode.NoTui =>
           BuildDisplay.create(false, started.logger, mode).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
         case DisplayMode.DiffWatch =>
-          BuildDisplay.createDiffWatch(started.logger, mode, previousRunState.get()).map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
+          BuildDisplay
+            .createDiffWatch(started.logger, mode, previousRunState.get())
+            .map(d => (d, d.summary, IO.never[BuildSummary], cancelBlockingSignalDefault))
         case DisplayMode.Tui =>
           if (FancyBuildDisplay.isSupported) {
             BuildDisplay.createFancy(mode, Some(diagLogWriter), readySignal = Some(bspReady))

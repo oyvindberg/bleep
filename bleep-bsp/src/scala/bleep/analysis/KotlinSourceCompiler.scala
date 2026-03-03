@@ -187,7 +187,8 @@ object KotlinSourceCompiler extends Compiler {
     val config = input.config match {
       case c: KotlinConfig => c
       case other =>
-        val err = CompilerError(None, 0, 0, s"KotlinSourceCompiler requires KotlinConfig, got ${other.getClass.getSimpleName}", None, CompilerError.Severity.Error)
+        val err =
+          CompilerError(None, 0, 0, s"KotlinSourceCompiler requires KotlinConfig, got ${other.getClass.getSimpleName}", None, CompilerError.Severity.Error)
         listener.onDiagnostic(err)
         return CompilationFailure(List(err))
     }

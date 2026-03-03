@@ -7,8 +7,7 @@ import ch.linkyard.mcp.jsonrpc2.transport.StdioJsonRpcConnection
 
 /** Entry point for the MCP server. Bootstraps the build, creates the MCP server, and runs on stdio.
   *
-  * Automatically restarts the server if it crashes, with exponential backoff up to 30 seconds. Interrupted exceptions
-  * (clean shutdown) are not retried.
+  * Automatically restarts the server if it crashes, with exponential backoff up to 30 seconds. Interrupted exceptions (clean shutdown) are not retried.
   */
 object McpServerRunner {
 

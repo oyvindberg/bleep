@@ -243,7 +243,14 @@ object KotlinJsCompiler {
         } else e.getMessage
         val fullMsg = if (output.nonEmpty) s"$causeMsg\nCompiler output:\n$output" else causeMsg
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS compilation failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
+          CompilerError(
+            path = None,
+            line = 0,
+            column = 0,
+            message = s"Kotlin/JS compilation failed: $fullMsg",
+            rendered = None,
+            severity = CompilerError.Severity.Error
+          )
         )
         KotlinJsCompileResult(outputDir, None, None, 1)
       case e: Exception =>
@@ -254,7 +261,14 @@ object KotlinJsCompiler {
           if (output.nonEmpty) s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}\nCompiler output:\n$output"
           else s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}"
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS compilation failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
+          CompilerError(
+            path = None,
+            line = 0,
+            column = 0,
+            message = s"Kotlin/JS compilation failed: $fullMsg",
+            rendered = None,
+            severity = CompilerError.Severity.Error
+          )
         )
         KotlinJsCompileResult(outputDir, None, None, 1)
     }
@@ -648,7 +662,14 @@ object KotlinJsLinker {
         } else e.getMessage
         val fullMsg = if (output.nonEmpty) s"$causeMsg\nLinker output:\n$output" else causeMsg
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS linking failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
+          CompilerError(
+            path = None,
+            line = 0,
+            column = 0,
+            message = s"Kotlin/JS linking failed: $fullMsg",
+            rendered = None,
+            severity = CompilerError.Severity.Error
+          )
         )
         KotlinJsLinkResult(outputDir, None, 1)
       case e: Exception =>
@@ -659,7 +680,14 @@ object KotlinJsLinker {
           if (output.nonEmpty) s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}\nLinker output:\n$output"
           else s"${e.getClass.getName}: ${e.getMessage}\n${sw.toString}"
         diagnosticListener.onDiagnostic(
-          CompilerError(path = None, line = 0, column = 0, message = s"Kotlin/JS linking failed: $fullMsg", rendered = None, severity = CompilerError.Severity.Error)
+          CompilerError(
+            path = None,
+            line = 0,
+            column = 0,
+            message = s"Kotlin/JS linking failed: $fullMsg",
+            rendered = None,
+            severity = CompilerError.Severity.Error
+          )
         )
         KotlinJsLinkResult(outputDir, None, 1)
     }

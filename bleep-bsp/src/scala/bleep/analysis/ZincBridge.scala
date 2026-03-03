@@ -98,7 +98,7 @@ object ZincBridge {
   private val ctimeAvailable: Boolean =
     !System.getProperty("os.name", "").toLowerCase.contains("win")
 
-  private val NoopManifestMagic: Int = 0x4E4F4F50
+  private val NoopManifestMagic: Int = 0x4e4f4f50
   private val NoopManifestVersion: Byte = 2
 
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
@@ -232,8 +232,10 @@ object ZincBridge {
         case Some(expected) =>
           if (!Files.isDirectory(dir)) return None
           val stat = statFile(dir)
-          if (stat.ctimeMillis != expected.ctimeMillis ||
-            stat.mtimeMillis != expected.mtimeMillis) return None
+          if (
+            stat.ctimeMillis != expected.ctimeMillis ||
+            stat.mtimeMillis != expected.mtimeMillis
+          ) return None
       }
     }
 
@@ -257,9 +259,11 @@ object ZincBridge {
       val (path, expected) = srcIter.next()
       if (!Files.exists(path)) return None
       val stat = statFile(path)
-      if (stat.ctimeMillis != expected.ctimeMillis ||
+      if (
+        stat.ctimeMillis != expected.ctimeMillis ||
         stat.mtimeMillis != expected.mtimeMillis ||
-        stat.size != expected.size) return None
+        stat.size != expected.size
+      ) return None
     }
 
     Some(manifest.cachedResult)
@@ -332,9 +336,11 @@ object ZincBridge {
         case None => return None
         case Some(expected) =>
           val stat = statFile(path)
-          if (stat.ctimeMillis != expected.ctimeMillis ||
+          if (
+            stat.ctimeMillis != expected.ctimeMillis ||
             stat.mtimeMillis != expected.mtimeMillis ||
-            stat.size != expected.size) return None
+            stat.size != expected.size
+          ) return None
       }
     }
 
@@ -552,13 +558,15 @@ object ZincBridge {
         i += 1
       }
 
-      Some(NoopManifest(
-        sourceStats = sourceStatsBuilder.result(),
-        sourceDirStats = sourceDirStatsBuilder.result(),
-        depAnalysisStats = depStatsBuilder.result(),
-        optionsHash = optionsHash,
-        cachedResult = ProjectCompileSuccess(outputDir, classFilesBuilder.result(), cachedAnalysisFile)
-      ))
+      Some(
+        NoopManifest(
+          sourceStats = sourceStatsBuilder.result(),
+          sourceDirStats = sourceDirStatsBuilder.result(),
+          depAnalysisStats = depStatsBuilder.result(),
+          optionsHash = optionsHash,
+          cachedResult = ProjectCompileSuccess(outputDir, classFilesBuilder.result(), cachedAnalysisFile)
+        )
+      )
     } finally in.close()
   }
 
@@ -1029,10 +1037,11 @@ object ZincBridge {
         if (isBug) {
           val classes = changedClasses.toList.sorted.take(20).mkString(", ")
           val more = if (changedClasses.size > 20) s" (and ${changedClasses.size - 20} more)" else ""
-          val reason = if (isCleanBuild && previousInvalidations.isEmpty)
-            "after a clean build"
-          else
-            "after recompiling, re-invalidated the exact same class(es)"
+          val reason =
+            if (isCleanBuild && previousInvalidations.isEmpty)
+              "after a clean build"
+            else
+              "after recompiling, re-invalidated the exact same class(es)"
           System.err.println(
             s"[ZincBridge] WARNING: Zinc incremental compilation bug in ${config.name}: " +
               s"$reason. ${changedClasses.size} class(es): $classes$more"

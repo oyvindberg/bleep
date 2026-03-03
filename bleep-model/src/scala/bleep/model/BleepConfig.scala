@@ -37,10 +37,8 @@ case class BspServerConfig(
     testRunnerMaxMemory: Option[String],
     /** Max heap for the compile server JVM, e.g. "4g". None = JVM default */
     compileServerMaxMemory: Option[String],
-    /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory.
-      * When other compilations are running and heap exceeds this threshold,
-      * the server delays starting new compilations until memory is freed.
-      * Default: 0.80
+    /** Heap usage fraction (0.0–1.0) above which new compilations wait for memory. When other compilations are running and heap exceeds this threshold, the
+      * server delays starting new compilations until memory is freed. Default: 0.80
       */
     heapPressureThreshold: Option[Double]
 ) {

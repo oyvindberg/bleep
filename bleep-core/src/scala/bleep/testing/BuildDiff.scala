@@ -63,8 +63,8 @@ object BuildDiff {
 
   /** Diagnostic matching key — file path (without line:col) + message.
     *
-    * Line numbers are stripped because they shift between edits and would cause noisy "1 fixed, 1 new" churn.
-    * Message alone is specific enough (includes concrete types, variable names, etc.) to distinguish different errors.
+    * Line numbers are stripped because they shift between edits and would cause noisy "1 fixed, 1 new" churn. Message alone is specific enough (includes
+    * concrete types, variable names, etc.) to distinguish different errors.
     */
   case class DiagKey(file: Option[String], message: String)
 
@@ -128,8 +128,7 @@ object BuildDiff {
 
   /** Diff two multisets: returns (newCount, fixedCount).
     *
-    * For each key, if current has more occurrences than previous, the excess are "new".
-    * If previous had more, the deficit are "fixed".
+    * For each key, if current has more occurrences than previous, the excess are "new". If previous had more, the deficit are "fixed".
     */
   private def diffMultiset(current: Map[DiagKey, Int], previous: Map[DiagKey, Int]): (Int, Int) = {
     val allKeys = current.keySet ++ previous.keySet
@@ -181,8 +180,8 @@ object BuildDiff {
       failed: Int,
       skipped: Int,
       ignored: Int,
-      newFailures: List[String],  // test names that flipped to fail
-      fixedTests: List[String],   // test names that flipped to pass
+      newFailures: List[String], // test names that flipped to fail
+      fixedTests: List[String], // test names that flipped to pass
       stillFailing: List[String], // test names that were failing and still are
       durationMs: Long
   )
@@ -263,7 +262,7 @@ object BuildDiff {
       totalWarnings: Int,
       newErrors: Int,
       fixedErrors: Int
-  ): String = {
+  ): String =
     if (totalErrors == 0 && fixedErrors > 0) {
       s"Build: $totalProjects projects compiled, all clear (fixed $fixedErrors error${plural(fixedErrors)})"
     } else if (totalErrors == 0) {
@@ -278,7 +277,6 @@ object BuildDiff {
       val detailStr = if (detail.nonEmpty) s" (${detail.mkString(", ")})" else ""
       s"Build: $totalProjects projects compiled, $totalErrors error${plural(totalErrors)}$detailStr"
     }
-  }
 
   /** Format a terse end-of-build summary line for test diff */
   def formatTestSummary(
@@ -286,7 +284,7 @@ object BuildDiff {
       totalFailed: Int,
       newFailures: Int,
       fixedTests: Int
-  ): String = {
+  ): String =
     if (totalFailed == 0 && fixedTests > 0) {
       s"Tests: $totalPassed passed (${fixedTests} fixed)"
     } else if (totalFailed == 0) {
@@ -299,7 +297,6 @@ object BuildDiff {
       val detailStr = if (detail.nonEmpty) s" (${detail.mkString(", ")})" else ""
       s"Tests: $totalPassed passed, $totalFailed failed$detailStr"
     }
-  }
 
   private def plural(n: Int): String = if (n == 1) "" else "s"
 }
