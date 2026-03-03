@@ -49,14 +49,14 @@ const config = {
         },
         items: [
           {
-            type: "doc",
-            docId: "why-bleep",
+            type: "docSidebar",
+            sidebarId: "learn",
             position: "left",
             label: "Learn",
           },
           {
-            type: "doc",
-            docId: "reference/cli/overview",
+            type: "docSidebar",
+            sidebarId: "reference",
             position: "left",
             label: "Reference",
           },
