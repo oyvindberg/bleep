@@ -1,0 +1,70 @@
+# bleep fmt
+
+Format Scala and Java source files.
+
+## Synopsis
+
+```bash
+bleep fmt [options] [projects...]
+```
+
+## Description
+
+The `fmt` command formats source code using Scalafmt for Scala files and (optionally) a Java formatter for Java files.
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `projects` | Optional list of projects to format. If omitted, formats all projects. |
+
+## Options
+
+Accepts all [global options](/docs/reference/cli/overview#global-options).
+
+## Examples
+
+### Format all projects
+
+```bash
+bleep fmt
+```
+
+### Format a specific project
+
+```bash
+bleep fmt myapp
+```
+
+## Configuration
+
+### Scalafmt
+
+Bleep uses Scalafmt for Scala formatting. Create a `.scalafmt.conf` in your project root:
+
+```hocon
+version = 3.7.17
+runner.dialect = scala3
+
+maxColumn = 120
+align.preset = more
+```
+
+### Java Formatting
+
+For Java files, bleep can use javafmt. Create a `.javafmt.conf` in your project root to enable and configure Java formatting.
+
+## CI Integration
+
+Check formatting in CI without modifying files:
+
+```bash
+bleep fmt --check
+```
+
+This exits with a non-zero code if files would be modified.
+
+## Related Commands
+
+- [`compile`](/docs/reference/cli/compile) - Compile after formatting
+- `sourcegen` - Run source generators

@@ -1,0 +1,59 @@
+# Glossary
+
+## Bleep Terms
+
+**bleep.yaml**
+: The build configuration file. Defines projects, dependencies, and scripts.
+
+**Project**
+: A compilation unit with sources, dependencies, and configuration.
+
+**Template**
+: Reusable configuration that projects can inherit via `extends:`.
+
+**Script**
+: A custom build command implemented as a Scala program.
+
+**Cross ID**
+: Identifier for a cross-build variant (e.g., `jvm3`, `js213`). Appears after `@` in project names.
+
+## Build Ecosystem
+
+**Bloop**
+: The Scala build server that bleep uses for compilation. Provides fast incremental compilation.
+
+**BSP**
+: Build Server Protocol. Standard for IDE-build tool communication. Enables fast IDE imports.
+
+**Coursier**
+: Dependency resolver used by bleep. Downloads JVMs and Maven artifacts.
+
+## Dependency Notation
+
+**`::`** (double colon)
+: Scala dependency. Bleep appends the Scala version. Example: `com.lihaoyi::fansi:0.5.0`
+
+**`:`** (single colon)
+: Java dependency. No Scala version suffix. Example: `org.slf4j:slf4j-api:2.0.9`
+
+**Maven coordinates**
+: Standard format: `organization:artifact:version`
+
+## Platforms
+
+**JVM**
+: Java Virtual Machine. Default platform.
+
+**Scala.js**
+: Compiles Scala to JavaScript.
+
+**Scala Native**
+: Compiles Scala to native executables via LLVM.
+
+## Configuration
+
+**Exploded project**
+: A project with all templates resolved and defaults applied. What bleep actually uses.
+
+**Normalized build**
+: Build configuration with consistent formatting and ordering.
