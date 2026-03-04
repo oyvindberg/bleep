@@ -130,6 +130,10 @@ jobs:
         run: bleep compile bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
+      - name: Restart compile server before sourcegen (windows)
+        run: bleep config compile-server stop-all
+        shell: cmd
+        if: runner.os == 'Windows'
       - name: Sourcegen (windows)
         run: bleep sourcegen
         shell: cmd
