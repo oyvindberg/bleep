@@ -27,10 +27,6 @@ jobs:
 
       - name: Scalafmt Check
         run: |
-          # Workaround: released 1.0.0-M2 BSP server has a cross-variant resolution bug
-          # that picks @jvm213 deps for non-cross Scala 3 projects. Pre-compiling @jvm3
-          # deps ensures the correct class files exist on the classpath.
-          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep setup-dev-script bleep-cli
           ./bleep-cli.sh --dev fmt --check
@@ -39,7 +35,6 @@ jobs:
         env:
           CI: true
         run: |
-          bleep compile bleep-core@jvm3
           bleep compile
           bleep sourcegen
           # publish locally so test runner and bsp server are available
@@ -111,7 +106,6 @@ jobs:
 
       - name: Build native image (non-windows)
         run: |
-          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep sourcegen
           # publish locally so test runner and bsp server are available
@@ -132,12 +126,12 @@ jobs:
         if: runner.os != 'Windows' && matrix.run_tests
 
         # Windows: cmd shell, one command per step
-      - name: Compile cross deps (windows)
-        run: bleep compile bleep-core@jvm3
-        shell: cmd
-        if: runner.os == 'Windows'
       - name: Compile (windows)
         run: bleep compile bleep-cli
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Restart compile server before sourcegen (windows)
+        run: bleep config compile-server stop-all
         shell: cmd
         if: runner.os == 'Windows'
       - name: Sourcegen (windows)
@@ -156,34 +150,6 @@ jobs:
           distribution: 'graalvm-community'
           java-version: '25.0.1'
           native-image-job-reports: 'true'
-      - name: Fix backslash jar entries (windows)
-        shell: pwsh
-        if: runner.os == 'Windows'
-        run: |
-          # The released bleep creates jars with backslash path entries on Windows
-          # (e.g. bleep\bsp\BspServerDaemon.class instead of bleep/bsp/...).
-          # Re-create jars from extracted contents to normalize entries.
-          $ivyLocal = "$env:USERPROFILE\.ivy2\local\build.bleep"
-          if (Test-Path $ivyLocal) {
-            Get-ChildItem -Path $ivyLocal -Filter "*.jar" -Recurse | ForEach-Object {
-              $jar = $_.FullName
-              $tmp = "$jar.fix"
-              $extractDir = "$jar.extracted"
-              New-Item -ItemType Directory -Path $extractDir -Force | Out-Null
-              Push-Location $extractDir
-              & jar xf $jar 2>$null
-              Pop-Location
-              if (Test-Path "$extractDir\META-INF") {
-                & jar cf $tmp -C $extractDir .
-                if ($LASTEXITCODE -eq 0) {
-                  Move-Item -Path $tmp -Destination $jar -Force
-                }
-              }
-              Remove-Item -Path $extractDir -Recurse -Force -ErrorAction SilentlyContinue
-              Remove-Item -Path $tmp -Force -ErrorAction SilentlyContinue
-            }
-            Write-Host "Fixed jar entries in $ivyLocal"
-          }
       - name: Stop compile server and clean state (windows)
         shell: pwsh
         if: runner.os == 'Windows'
@@ -250,7 +216,6 @@ jobs:
         uses: battila7/get-version-action@v2
       - name: Publish bleep-bsp and test-runner locally
         run: |
-          bleep compile bleep-core@jvm3
           bleep compile bleep-cli
           bleep sourcegen
           bleep my-publish-local
