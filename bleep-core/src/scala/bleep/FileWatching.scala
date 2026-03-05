@@ -67,7 +67,7 @@ object FileWatching {
 
   trait Watcher {
     private[FileWatching] def isShutdown: Boolean
-    private[FileWatching] def close(): Unit
+    private[bleep] def close(): Unit
     private[FileWatching] def step(): Unit
 
     final def run(stopWhen: StopWhen, waitMillis: Long = 10): Unit = {

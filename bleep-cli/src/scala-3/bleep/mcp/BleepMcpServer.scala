@@ -16,6 +16,7 @@ import io.circe.Json
 import java.nio.file.Files
 import java.util.UUID
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicReference
 import scala.jdk.CollectionConverters.*
 
 /** Strip ANSI escape sequences from text. Subprocess output and compiler diagnostics often contain color codes that are noise for MCP clients. */
@@ -26,7 +27,9 @@ private[mcp] def stripAnsi(s: String): String = AnsiPattern.matcher(s).replaceAl
   *
   * Connects to the bleep-bsp daemon (same server used by the TUI) and translates BSP events into MCP tool results and notifications. Runs on stdio transport.
   */
-class BleepMcpServer(started: Started) extends McpServer[IO] {
+class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
+  private val startedRef = new AtomicReference(initialStarted)
+  private def started: Started = startedRef.get()
 
   override def initialize(
       client: McpServer.Client[IO],
@@ -45,6 +48,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
           s"MCP client connected: $clientName $clientVersion (sampling=$sampling, elicitation=$elicitation, roots=$roots)"
         )
       })
+      _ <- startBuildWatcher(client)
       watchJobs <- Resource.eval(Ref.of[IO, Map[JobId, WatchJob]](Map.empty))
       watchResults <- Resource.eval(Ref.of[IO, Map[JobId, WatchCycleResult]](Map.empty))
       buildHistory <- Resource.eval(Ref.of[IO, BuildHistory](BuildHistory.empty))
@@ -69,6 +73,36 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
       case _: bsp.BspServerClasspathSource.InProcess =>
         Left(new BleepException.Text("MCP server does not support in-process BSP mode"))
     }
+
+  /** Watch bleep.yaml (and config/project selection) for changes and auto-reload the build. Sends a log notification to the MCP client when the build is
+    * reloaded.
+    */
+  private def startBuildWatcher(client: McpServer.Client[IO]): Resource[IO, Unit] =
+    Resource
+      .make(
+        IO {
+          val watcher = BleepFileWatching.build(started.pre) { changedFiles =>
+            started.reloadFromDisk() match {
+              case Left(ex) =>
+                val msg = s"Build file changed (${changedFiles.mkString(", ")}), but reload failed: ${ex.getMessage}"
+                started.logger.error(msg)
+                client.log(protocol.LoggingLevel.Error, None, msg).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+              case Right(None) =>
+                () // parsed JSON identical, no actual change
+              case Right(Some(newStarted)) =>
+                startedRef.set(newStarted)
+                val msg = s"Build reloaded (${changedFiles.mkString(", ")}). Project list and build model updated."
+                newStarted.logger.info(msg)
+                client.log(protocol.LoggingLevel.Info, None, msg).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+            }
+          }
+          val thread = new Thread(() => watcher.run(FileWatching.StopWhen.Never), "mcp-build-watcher")
+          thread.setDaemon(true)
+          thread.start()
+          watcher
+        }
+      )(watcher => IO(watcher.close()))
+      .void
 
   private class BleepMcpSession(
       _client: McpServer.Client[IO],
@@ -1431,7 +1465,7 @@ class BleepMcpServer(started: Started) extends McpServer[IO] {
 }
 
 object BleepMcpServer {
-  def apply(started: Started): BleepMcpServer = new BleepMcpServer(started)
+  def apply(initialStarted: Started): BleepMcpServer = new BleepMcpServer(initialStarted)
 }
 
 /** Type-safe wrapper for watch job IDs. */
