@@ -1,0 +1,72 @@
+# bleep compile
+
+Compile one or more projects.
+
+## Synopsis
+
+```bash
+bleep compile [options] [projects...]
+```
+
+## Description
+
+The `compile` command compiles Scala and Java source files in the specified projects. If no projects are specified, all projects in the build are compiled.
+
+Compilation is incremental by default - only changed files and their dependents are recompiled.
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `projects` | Optional list of project names to compile. If omitted, compiles all projects. |
+
+## Options
+
+Accepts all [global options](/docs/reference/cli/overview#global-options).
+
+## Examples
+
+### Compile all projects
+
+```bash
+bleep compile
+```
+
+### Compile a specific project
+
+```bash
+bleep compile myapp
+```
+
+### Compile multiple projects
+
+```bash
+bleep compile myapp mylib
+```
+
+### Compile with wildcard
+
+```bash
+bleep compile myapp*
+```
+
+This compiles all projects whose names start with "myapp".
+
+### Compile with verbose output
+
+```bash
+bleep --debug compile
+```
+
+## Behavior
+
+1. **Dependency resolution**: If dependencies haven't been resolved, bleep resolves them first
+2. **Incremental compilation**: Only changed files are recompiled
+3. **Dependency ordering**: Projects are compiled in dependency order
+4. **Parallel compilation**: Independent projects compile in parallel
+
+## Related Commands
+
+- [`test`](/docs/reference/cli/test) - Compile and run tests
+- [`run`](/docs/reference/cli/run) - Compile and run a project
+- `clean` - Remove compiled artifacts

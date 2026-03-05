@@ -1,0 +1,67 @@
+# Templates Schema
+
+Templates define reusable configuration.
+
+## Defining Templates
+
+```yaml
+templates:
+  common:
+    scala:
+      version: 3.3.3
+      options: -deprecation
+```
+
+## Using Templates
+
+```yaml
+projects:
+  myapp:
+    extends: common
+```
+
+Multiple templates:
+
+```yaml
+projects:
+  myapp:
+    extends:
+      - common
+      - with-logging
+```
+
+## Template Inheritance
+
+Templates can extend other templates:
+
+```yaml
+templates:
+  base:
+    scala:
+      version: 3.3.3
+
+  with-testing:
+    extends: base
+    dependencies:
+      - org.scalameta::munit:1.0.0
+```
+
+## All Template Fields
+
+Templates support all project fields except `cross`:
+
+```yaml
+templates:
+  example:
+    extends: other-template
+    dependencies: []
+    dependsOn: []
+    scala: {}
+    java: {}
+    platform: {}
+    sources: []
+    resources: []
+    version: string
+    publish: {}
+    isTestProject: boolean
+```

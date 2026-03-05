@@ -49,10 +49,16 @@ const config = {
         },
         items: [
           {
-            type: "doc",
-            docId: "readme",
+            type: "docSidebar",
+            sidebarId: "learn",
             position: "left",
-            label: "Documentation",
+            label: "Learn",
+          },
+          {
+            type: "docSidebar",
+            sidebarId: "reference",
+            position: "left",
+            label: "Reference",
           },
           {
             href: "https://github.com/oyvindberg/bleep",
@@ -65,11 +71,32 @@ const config = {
         style: "dark",
         links: [
           {
-            title: "Docs",
+            title: "Learn",
             items: [
               {
-                label: "Documentation",
-                to: "/docs",
+                label: "Why Bleep?",
+                to: "/docs/why-bleep",
+              },
+              {
+                label: "Installation",
+                to: "/docs/installing",
+              },
+              {
+                label: "Tutorials",
+                to: "/docs/tutorials/your-first-project",
+              },
+            ],
+          },
+          {
+            title: "Reference",
+            items: [
+              {
+                label: "CLI Commands",
+                to: "/docs/reference/cli/overview",
+              },
+              {
+                label: "bleep.yaml Schema",
+                to: "/docs/reference/schema/overview",
               },
             ],
           },
