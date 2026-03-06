@@ -58,6 +58,23 @@ object CompilerTestLibraries {
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
+
+  /** JUnit 5 (Jupiter) API for compiling JUnit 5 tests */
+  lazy val junit5Library: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("org.junit.jupiter"), ModuleName("junit-jupiter-api")), "5.9.1")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
+
+  /** Jupiter interface (sbt-testing bridge for JUnit 5) + test-interface for ForkedTestRunner */
+  lazy val jupiterInterfaceLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("net.aichler"), ModuleName("jupiter-interface")), "0.11.1"),
+      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), "1.0")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
 }
 
 /** Integration tests for the compiler implementations.
