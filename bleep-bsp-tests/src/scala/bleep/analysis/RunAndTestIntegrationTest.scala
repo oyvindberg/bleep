@@ -3,6 +3,8 @@ package bleep.analysis
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import java.nio.file.{Files, Path}
+import java.io.{BufferedReader, InputStreamReader, PrintWriter}
+import scala.collection.mutable.ListBuffer
 
 /** Integration tests for running and testing compiled code.
   *
@@ -11,7 +13,7 @@ import java.nio.file.{Files, Path}
   *   2. Test classes can be compiled and run with test frameworks
   *   3. All three languages (Scala, Kotlin, Java) work correctly
   */
-class RunAndTestIntegrationTest extends AnyFunSuite with Matchers {
+class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTestHelpers {
 
   def createTempDir(prefix: String): Path =
     Files.createTempDirectory(prefix)
@@ -461,5 +463,157 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers {
       output should include("2 tests successful")
       info(s"Tests ran successfully")
     } finally deleteRecursively(outputDir)
+  }
+
+  // ============================================================================
+  // JUnit 5 (Jupiter) Test Framework Tests
+  // ============================================================================
+
+  val javaJunit5TestSource = SourceFile(
+    Path.of("example/ExampleJunit5Test.java"),
+    """package example;
+      |
+      |import org.junit.jupiter.api.Test;
+      |import static org.junit.jupiter.api.Assertions.*;
+      |
+      |public class ExampleJunit5Test {
+      |    @Test
+      |    public void additionWorks() {
+      |        assertEquals(2, 1 + 1);
+      |    }
+      |
+      |    @Test
+      |    public void stringOperations() {
+      |        assertEquals(5, "hello".length());
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  test("Java: compile test class with JUnit 5") {
+    val outputDir = createTempDir("java-junit5-test-")
+    try {
+      val input = CompilationInput(
+        sources = Seq(javaJunit5TestSource),
+        classpath = CompilerTestLibraries.junit5Library,
+        outputDir = outputDir,
+        config = JavaConfig()
+      )
+
+      val result = Compiler.forConfig(input.config).compile(input)
+      result shouldBe a[CompilationSuccess]
+
+      val success = result.asInstanceOf[CompilationSuccess]
+      success.compiledClasses should not be empty
+
+      val testClass = success.compiledClasses.find(_.toString.contains("ExampleJunit5Test"))
+      testClass shouldBe defined
+      info(s"Compiled JUnit 5 test class: ${testClass.get}")
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("Java: run JUnit 5 tests with ForkedTestRunner") {
+    val outputDir = createTempDir("java-junit5-run-")
+    try {
+      val input = CompilationInput(
+        sources = Seq(javaJunit5TestSource),
+        classpath = CompilerTestLibraries.junit5Library,
+        outputDir = outputDir,
+        config = JavaConfig()
+      )
+
+      val result = Compiler.forConfig(input.config).compile(input)
+      result shouldBe a[CompilationSuccess]
+
+      // Build classpath: compiled test classes + jupiter-interface + ForkedTestRunner
+      val testRunnerLocation = classOf[bleep.testing.runner.ForkedTestRunner].getProtectionDomain.getCodeSource.getLocation.toURI
+      val testRunnerPath = Path.of(testRunnerLocation)
+
+      val classpathEntries = List(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.jupiterInterfaceLibrary.toList
+
+      val classpath = classpathEntries
+        .map(_.toString)
+        .mkString(java.io.File.pathSeparator)
+
+      val javaHome = System.getProperty("java.home")
+      val javaBin = Path.of(javaHome, "bin", "java").toString
+
+      val process = new ProcessBuilder(
+        javaBin,
+        "-cp",
+        classpath,
+        "bleep.testing.runner.ForkedTestRunner"
+      )
+        .start()
+
+      val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
+      val writer = new PrintWriter(process.getOutputStream, true)
+      val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+      try {
+        // Wait for Ready
+        val readyLine = reader.readLine()
+        readyLine should include("\"type\":\"Ready\"")
+
+        // Send RunSuite command
+        val command = bleep.testing.runner.TestProtocol.encodeRunSuite(
+          "example.ExampleJunit5Test",
+          "JUnit Jupiter",
+          java.util.List.of()
+        )
+        writer.println(command)
+
+        // Collect all protocol output until SuiteDone
+        val lines = collectUntilSuiteDone(reader)
+
+        // Send shutdown
+        writer.println(bleep.testing.runner.TestProtocol.encodeShutdown())
+
+        // Verify we got test results
+        val testFinishedLines = lines.filter(_.contains("\"type\":\"TestFinished\""))
+        val suiteDoneLines = lines.filter(_.contains("\"type\":\"SuiteDone\""))
+
+        info(s"Protocol lines: ${lines.size}")
+        lines.foreach(l => info(s"  $l"))
+
+        testFinishedLines.size shouldBe 2
+        testFinishedLines.foreach { line =>
+          line should include("\"status\":\"passed\"")
+        }
+
+        suiteDoneLines.size shouldBe 1
+        suiteDoneLines.head should include("\"passed\":2")
+        suiteDoneLines.head should include("\"failed\":0")
+
+        info("JUnit 5 tests ran successfully via ForkedTestRunner")
+      } finally {
+        process.destroyForcibly()
+        reader.close()
+        writer.close()
+        stderr.close()
+      }
+    } finally deleteRecursively(outputDir)
+  }
+}
+
+trait RunAndTestHelpers {
+
+  /** Read protocol lines from ForkedTestRunner until we see a SuiteDone message */
+  def collectUntilSuiteDone(reader: BufferedReader): List[String] = {
+    val lines = ListBuffer[String]()
+    var done = false
+    while (!done) {
+      val line = reader.readLine()
+      if (line == null) {
+        done = true
+      } else {
+        lines += line
+        if (line.contains("\"type\":\"SuiteDone\"")) {
+          done = true
+        }
+      }
+    }
+    lines.toList
   }
 }

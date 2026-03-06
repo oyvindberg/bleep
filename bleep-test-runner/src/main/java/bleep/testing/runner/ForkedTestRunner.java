@@ -216,21 +216,32 @@ public class ForkedTestRunner {
           framework.runner(
               args.toArray(new String[0]), new String[0], ForkedTestRunner.class.getClassLoader());
 
-      // Create a TaskDef for the class - let the framework handle discovery
-      // BSP already told us this is a test class, so trust that
+      // Try each fingerprint from the framework until we find one that produces tasks.
+      // Different fingerprints match different test patterns (e.g. @Test annotation vs
+      // TestCase subclass), so we need to find the right one for this class.
       Fingerprint[] fingerprints = framework.fingerprints();
-      Fingerprint fingerprint = fingerprints.length > 0 ? fingerprints[0] : null;
 
-      if (fingerprint == null) {
+      if (fingerprints.length == 0) {
         send(TestProtocol.encodeError("Framework has no fingerprints: " + frameworkName, null));
         return;
       }
 
-      TaskDef taskDef =
-          new TaskDef(className, fingerprint, false, new Selector[] {new SuiteSelector()});
-      Task[] tasks = runner.tasks(new TaskDef[] {taskDef});
+      Task[] tasks = null;
 
-      if (tasks.length == 0) {
+      for (Fingerprint fingerprint : fingerprints) {
+        TaskDef taskDef =
+            new TaskDef(className, fingerprint, true, new Selector[] {new SuiteSelector()});
+        Task[] candidate = runner.tasks(new TaskDef[] {taskDef});
+        if (candidate.length > 0) {
+          tasks = candidate;
+          send(
+              TestProtocol.encodeLog(
+                  "debug", "Matched fingerprint: " + describeFingerprint(fingerprint)));
+          break;
+        }
+      }
+
+      if (tasks == null || tasks.length == 0) {
         send(TestProtocol.encodeError("No tests found for class: " + className, null));
         return;
       }
@@ -434,6 +445,17 @@ public class ForkedTestRunner {
         send(TestProtocol.encodeLog("error", stackTraceToString(t)));
       }
     };
+  }
+
+  private static String describeFingerprint(Fingerprint fp) {
+    if (fp instanceof SubclassFingerprint) {
+      SubclassFingerprint sfp = (SubclassFingerprint) fp;
+      return "SubclassFingerprint(" + sfp.superclassName() + ", isModule=" + sfp.isModule() + ")";
+    } else if (fp instanceof AnnotatedFingerprint) {
+      AnnotatedFingerprint afp = (AnnotatedFingerprint) fp;
+      return "AnnotatedFingerprint(" + afp.annotationName() + ", isModule=" + afp.isModule() + ")";
+    }
+    return fp.toString();
   }
 
   private static String stackTraceToString(Throwable t) {
