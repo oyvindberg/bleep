@@ -253,6 +253,12 @@ object ZincBridge {
       }
     }
 
+    // Check output directory exists — bleep clean deletes it while BSP server keeps stale in-memory cache
+    if (!Files.isDirectory(manifest.cachedResult.outputDir)) {
+      noopManifestCache.remove(analysisFile)
+      return None
+    }
+
     // Check per-source file stats (from manifest's recorded paths — no directory walk)
     val srcIter = manifest.sourceStats.iterator
     while (srcIter.hasNext) {
@@ -324,7 +330,13 @@ object ZincBridge {
       }
     }
 
-    // 6. Per-source stat check
+    // 6. Output directory exists — bleep clean deletes it while BSP server keeps stale in-memory cache
+    if (!Files.isDirectory(manifest.cachedResult.outputDir)) {
+      noopManifestCache.remove(analysisFile)
+      return None
+    }
+
+    // 7. Per-source stat check
     val srcIter = sources.iterator
     while (srcIter.hasNext) {
       val vf = srcIter.next()

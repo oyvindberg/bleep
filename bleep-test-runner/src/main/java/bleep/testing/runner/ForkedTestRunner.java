@@ -201,6 +201,12 @@ public class ForkedTestRunner {
             "info",
             "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
 
+    // Counters declared outside try so they're accessible in catch for SuiteDone reporting
+    final int[] passed = {0};
+    final int[] failed = {0};
+    final int[] skipped = {0};
+    final int[] ignored = {0};
+
     try {
       // Flush any pending output before starting
       capturedOut.flush();
@@ -245,12 +251,6 @@ public class ForkedTestRunner {
         send(TestProtocol.encodeError("No tests found for class: " + className, null));
         return;
       }
-
-      // Collect results
-      final int[] passed = {0};
-      final int[] failed = {0};
-      final int[] skipped = {0};
-      final int[] ignored = {0};
 
       // Custom event handler to capture test events
       EventHandler eventHandler =
@@ -346,14 +346,22 @@ public class ForkedTestRunner {
       } else {
         throw e;
       }
-    } catch (Exception e) {
+    } catch (Throwable e) {
+      // Must catch Throwable (not just Exception) because test frameworks may let
+      // Errors (e.g. AssertionError) escape from task.execute() in some edge cases.
+      // Without this, the forked JVM crashes without sending SuiteDone, causing
+      // the parent to report "0 passed, 0 failed" regardless of actual results.
       send(
           TestProtocol.encodeLog(
-              "error", "Exception in runSuite: " + e.getClass().getName() + ": " + e.getMessage()));
+              "error", "Error in runSuite: " + e.getClass().getName() + ": " + e.getMessage()));
       send(TestProtocol.encodeLog("error", stackTraceToString(e)));
+      // Send SuiteDone with counts collected so far (from EventHandler, if any events arrived
+      // before the error). If the error happened before the EventHandler was called, counts
+      // will be 0/0 and the error message below provides the failure signal.
       send(
-          TestProtocol.encodeError(
-              "Error running suite " + className + ": " + e.getMessage(), stackTraceToString(e)));
+          TestProtocol.encodeSuiteDone(
+              className, passed[0], failed[0] + 1, skipped[0], ignored[0],
+              System.currentTimeMillis() - startTime));
     }
   }
 
@@ -371,8 +379,10 @@ public class ForkedTestRunner {
         executeTasks(nestedTasks, eventHandler, loggers);
       } catch (InterruptedException e) {
         throw e;
-      } catch (Exception e) {
-        // Log error but continue with other tasks
+      } catch (Throwable e) {
+        // Log error but continue with other tasks.
+        // Must catch Throwable (not just Exception) because test frameworks may let
+        // Errors (e.g. AssertionError) escape from task.execute() in some edge cases.
         send(
             TestProtocol.encodeLog(
                 "error",
