@@ -666,7 +666,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         trr <- testRunResult.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "test", events.reverse)))
-      } yield formatTestResult(events.reverse, trr, previousState, verbose, includeThrowables = false, None, None)
+      } yield formatTestResult(events.reverse, trr, previousState, verbose, includeThrowables = verbose, None, None)
     }
 
     /** Start a background watch job. */
