@@ -1,0 +1,95 @@
+# Projects Schema
+
+Projects are defined in the `projects:` section.
+
+## Basic Project
+
+```yaml
+projects:
+  myapp:
+    scala:
+      version: 3.3.3
+```
+
+## All Fields
+
+```yaml
+projects:
+  myapp:
+    # Inheritance
+    extends: template-name
+
+    # Dependencies
+    dependencies:
+      - com.lihaoyi::fansi:0.5.0
+    dependsOn: other-project
+
+    # Scala configuration
+    scala:
+      version: 3.3.3
+      options: -deprecation -feature
+
+    # Java configuration
+    java:
+      options: -source 11
+
+    # Platform
+    platform:
+      name: jvm  # or js, native
+      mainClass: com.example.Main
+      jvmOptions:
+        - -Xmx2g
+
+    # Sources
+    sources:
+      - src/scala
+    resources:
+      - resources
+
+    # Publishing
+    version: 1.0.0
+    publish:
+      organization: com.example
+      name: my-library
+
+    # Testing
+    isTestProject: true
+
+    # Cross-building
+    cross:
+      jvm3:
+        scala:
+          version: 3.3.3
+```
+
+## Test Projects
+
+```yaml
+projects:
+  myapp-test:
+    isTestProject: true
+    dependsOn: myapp
+    dependencies:
+      - org.scalameta::munit:1.0.0
+```
+
+## Publish Metadata
+
+```yaml
+projects:
+  mylib:
+    version: 1.0.0
+    publish:
+      organization: com.example
+      name: my-library
+      description: A useful library
+      url: https://github.com/user/repo
+      licenses:
+        - name: Apache-2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+      developers:
+        - id: username
+          name: Full Name
+      scm:
+        url: https://github.com/user/repo
+```

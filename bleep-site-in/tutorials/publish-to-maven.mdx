@@ -1,0 +1,269 @@
+# Publish to Maven Central
+
+This tutorial walks you through publishing your Scala library to Maven Central using bleep.
+
+## Prerequisites
+
+- A working bleep project
+- A Sonatype account (OSSRH or Central Portal)
+- A PGP key for signing artifacts
+
+## Overview
+
+Publishing to Maven Central requires:
+
+1. **Project metadata** - Group ID, artifact ID, version, description, licenses
+2. **Sonatype credentials** - For uploading to the repository
+3. **PGP signing** - All artifacts must be signed
+4. **A publish script** - To orchestrate the process
+
+Bleep provides liberated plugins for all of these: `bleep-plugin-sonatype`, `bleep-plugin-pgp`, and `bleep-plugin-ci-release`.
+
+## Step 1: Add Publish Metadata
+
+Update your `bleep.yaml` with the required metadata:
+
+```yaml
+$schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
+$version: 0.0.12
+
+jvm:
+  name: graalvm-community:21
+
+projects:
+  mylib:
+    scala:
+      version: 3.3.3
+    version: 0.1.0
+    publish:
+      organization: io.github.myusername
+      name: my-library
+      description: A useful library for doing things
+      url: https://github.com/myusername/mylib
+      developers:
+        - id: myusername
+          name: My Name
+          email: me@example.com
+          url: https://github.com/myusername
+      licenses:
+        - name: Apache-2.0
+          url: https://www.apache.org/licenses/LICENSE-2.0.txt
+      scm:
+        url: https://github.com/myusername/mylib
+        connection: scm:git:git://github.com/myusername/mylib.git
+        developerConnection: scm:git:ssh://github.com/myusername/mylib.git
+```
+
+## Step 2: Create a Publish Script
+
+Add a scripts project with publish dependencies:
+
+```yaml
+projects:
+  scripts:
+    dependencies:
+      - build.bleep::bleep-core:${BLEEP_VERSION}
+      - build.bleep::bleep-plugin-ci-release:${BLEEP_VERSION}
+      - build.bleep::bleep-plugin-sonatype:${BLEEP_VERSION}
+      - build.bleep::bleep-plugin-pgp:${BLEEP_VERSION}
+    scala:
+      version: 3.3.3
+
+scripts:
+  publish:
+    main: scripts.Publish
+    project: scripts
+```
+
+Create `scripts/src/scala/scripts/Publish.scala`:
+
+```scala
+package scripts
+
+import bleep._
+import bleep.commands.Script
+import bleep.plugin.cirelease.CiReleasePlugin
+import bleep.plugin.pgp.PgpPlugin
+import bleep.plugin.sonatype.Sonatype
+
+object Publish extends Script("Publish"):
+  override def run(started: Started, commands: Commands, args: List[String]): Unit =
+    // Projects to publish
+    val projectsToPublish = List(
+      model.ProjectName("mylib")
+    )
+
+    // Initialize the CI release plugin
+    val ciRelease = new CiReleasePlugin(
+      sonatypeCredentialHost = Sonatype.sonatypeLegacy, // or Sonatype.sonatypeCentralPortal
+      logger = started.logger
+    )
+
+    // Run the publish
+    ciRelease.ciRelease(
+      started = started,
+      commands = commands,
+      projects = projectsToPublish
+    )
+```
+
+## Step 3: Set Up Credentials
+
+### Sonatype Credentials
+
+Set environment variables for your Sonatype account:
+
+```bash
+export SONATYPE_USERNAME=your-sonatype-username
+export SONATYPE_PASSWORD=your-sonatype-password
+```
+
+For CI (GitHub Actions):
+
+```yaml
+env:
+  SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+  SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+```
+
+### PGP Key
+
+Set your PGP private key and passphrase:
+
+```bash
+export PGP_SECRET=base64-encoded-private-key
+export PGP_PASSPHRASE=your-key-passphrase
+```
+
+To get your base64-encoded key:
+
+```bash
+gpg --armor --export-secret-keys YOUR_KEY_ID | base64 | tr -d '\n'
+```
+
+## Step 4: Publish Locally First
+
+Test the process by publishing locally:
+
+```bash
+bleep publish-local mylib
+```
+
+Check `~/.ivy2/local/` or `~/.m2/repository/` for your artifacts.
+
+## Step 5: Publish to Maven Central
+
+When ready to publish:
+
+```bash
+bleep publish
+```
+
+The script will:
+1. Compile and package your project
+2. Sign artifacts with PGP
+3. Upload to Sonatype staging
+4. Close and release the staging repository
+
+## GitHub Actions Workflow
+
+Here's a complete CI workflow for publishing releases:
+
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: bleep-build/bleep-setup-action@0.0.2
+
+      - name: Publish
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        run: bleep publish
+```
+
+## Using Dynamic Versions
+
+Instead of hardcoding the version, you can use dynamic versioning based on git tags:
+
+```yaml
+projects:
+  mylib:
+    scala:
+      version: 3.3.3
+    # Remove static version, let dynver compute it
+    publish:
+      # ... metadata
+```
+
+Add dynver to your publish script:
+
+```scala
+import bleep.plugin.dynver.DynVerPlugin
+
+// In your script
+val dynVer = new DynVerPlugin(started.buildPaths.buildDir, started.logger)
+val version = dynVer.version
+started.logger.info(s"Publishing version: $version")
+```
+
+## Cross-Publishing
+
+For cross-built projects (multiple Scala versions), update your script:
+
+```scala
+val projectsToPublish = started.build.explodedProjects.keys
+  .filter(_.value.startsWith("mylib"))
+  .toList
+
+ciRelease.ciRelease(
+  started = started,
+  commands = commands,
+  projects = projectsToPublish
+)
+```
+
+## Troubleshooting
+
+### "No public key" errors
+
+Your PGP key must be published to a key server:
+
+```bash
+gpg --keyserver keyserver.ubuntu.com --send-keys YOUR_KEY_ID
+```
+
+### "Invalid signature" errors
+
+Ensure your `PGP_SECRET` is properly base64 encoded with no line breaks.
+
+### "Repository not found" errors
+
+Check that your Sonatype namespace (group ID) is properly configured and you have publishing permissions.
+
+### "Close failed" errors
+
+Review the Sonatype staging repository for validation errors. Common issues:
+- Missing required POM metadata
+- Invalid license URL
+- Missing SCM information
+
+## Next Steps
+
+- [CI/CD Setup](/docs/guides/ci-cd-setup) - Complete CI configuration
+- [Porting sbt Plugins](/docs/porting-sbt-plugins) - Customize the publish process
+- [Cross-Building](/docs/concepts/cross-building) - Publish for multiple Scala versions

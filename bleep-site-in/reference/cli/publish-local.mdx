@@ -1,0 +1,93 @@
+# bleep publish-local
+
+Publish projects to local repository.
+
+## Synopsis
+
+```bash
+bleep publish-local [options] [projects...]
+```
+
+## Description
+
+The `publish-local` command compiles, packages, and publishes projects to your local Ivy repository (`~/.ivy2/local/`) or Maven repository (`~/.m2/repository/`).
+
+This is useful for testing your library locally before publishing to a remote repository.
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `projects` | Optional list of projects to publish. If omitted, publishes all publishable projects. |
+
+## Options
+
+Accepts all [global options](/docs/reference/cli/overview#global-options).
+
+## Examples
+
+### Publish all projects locally
+
+```bash
+bleep publish-local
+```
+
+### Publish a specific project
+
+```bash
+bleep publish-local mylib
+```
+
+## Configuration
+
+For a project to be publishable, it needs publish metadata in `bleep.yaml`:
+
+```yaml
+projects:
+  mylib:
+    version: 0.1.0
+    publish:
+      organization: com.example
+      name: my-library
+```
+
+## What Gets Published
+
+- Compiled class files (JAR)
+- Source files (sources JAR)
+- POM file with dependencies
+- Ivy descriptor
+
+## Using Published Artifacts
+
+After publishing locally, other projects can depend on your library:
+
+**In another bleep project:**
+```yaml
+dependencies:
+  - com.example::my-library:0.1.0
+```
+
+**In sbt:**
+```scala
+libraryDependencies += "com.example" %% "my-library" % "0.1.0"
+```
+
+## Verifying Publication
+
+Check that artifacts were published:
+
+```bash
+ls ~/.ivy2/local/com.example/my-library_3/0.1.0/
+```
+
+Or for Maven:
+
+```bash
+ls ~/.m2/repository/com/example/my-library_3/0.1.0/
+```
+
+## Related Pages
+
+- [Publish to Maven Central](/docs/tutorials/publish-to-maven) - Remote publishing
+- [Projects Schema](/docs/reference/schema/projects) - Publish configuration

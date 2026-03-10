@@ -1,0 +1,85 @@
+# bleep test
+
+Run tests for one or more projects.
+
+## Synopsis
+
+```bash
+bleep test [options] [projects...]
+```
+
+## Description
+
+The `test` command compiles and runs tests for the specified projects. If no projects are specified, tests are run for all test projects in the build.
+
+Test projects are identified by having `isTestProject: true` in their configuration.
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `projects` | Optional list of test project names. If omitted, runs all test projects. |
+
+## Options
+
+Accepts all [global options](/docs/reference/cli/overview#global-options).
+
+## Examples
+
+### Run all tests
+
+```bash
+bleep test
+```
+
+### Run tests for a specific project
+
+```bash
+bleep test myapp-test
+```
+
+### Run tests with verbose output
+
+```bash
+bleep --debug test
+```
+
+### Run tests in CI (no progress output)
+
+```bash
+bleep --no-color --no-bsp-progress test
+```
+
+## Test Frameworks
+
+Bleep supports standard Scala test frameworks:
+
+- **MUnit** - Scala testing library
+- **ScalaTest** - Feature-rich testing framework
+- **Specs2** - Software specifications
+- **utest** - Lightweight testing
+- **JUnit** - Java testing (via scala-junit-interface)
+
+Configure your test framework as a dependency in your test project:
+
+```yaml
+projects:
+  myapp-test:
+    isTestProject: true
+    dependencies:
+      - org.scalameta::munit:1.0.0
+```
+
+## Listing Tests
+
+To see what tests would run without actually running them:
+
+```bash
+bleep list-tests myapp-test
+```
+
+## Related Commands
+
+- [`compile`](/docs/reference/cli/compile) - Compile without running tests
+- `list-tests` - List available tests
+- `projects-test` - Show all test projects
