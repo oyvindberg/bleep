@@ -360,7 +360,11 @@ public class ForkedTestRunner {
       // will be 0/0 and the error message below provides the failure signal.
       send(
           TestProtocol.encodeSuiteDone(
-              className, passed[0], failed[0] + 1, skipped[0], ignored[0],
+              className,
+              passed[0],
+              failed[0] + 1,
+              skipped[0],
+              ignored[0],
               System.currentTimeMillis() - startTime));
     }
   }
