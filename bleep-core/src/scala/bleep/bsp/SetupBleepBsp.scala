@@ -35,13 +35,17 @@ object SetupBleepBsp {
       resolvedJvm: ResolvedJvm,
       userPaths: UserPaths,
       resolver: CoursierResolver,
-      logger: Logger
+      logger: Logger,
+      extraServerClasspath: Seq[Path]
   ): Either[BleepException, BspRifleConfig] = {
     val extraJavaOpts = config.bspServerConfigOrDefault.compileServerMaxMemory.map(m => s"-Xmx$m").toList
     val majorVersion = BspRifleConfig.jvmMajorVersion(resolvedJvm.jvm.name)
     val versionOpts = BspRifleConfig.jdkVersionOpts(majorVersion)
     val javaOpts = BspRifleConfig.defaultJavaOpts ++ versionOpts ++ extraJavaOpts
-    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, versionOpts.toList ++ extraJavaOpts)
+    // Include extra classpath JAR filenames in the JVM key so the hash differs
+    // when semanticdb-javac is present, giving a dedicated server instance
+    val extraCpOpts = extraServerClasspath.map(p => s"--extra-cp=${p.getFileName}").toList
+    val jvmKey = createJvmKey(resolvedJvm.jvm, compileServerMode, versionOpts.toList ++ extraJavaOpts ++ extraCpOpts)
 
     for {
       serverClasspath <- resolveServerClasspath(resolver, userPaths, logger)
@@ -61,7 +65,7 @@ object SetupBleepBsp {
         javaPath = resolvedJvm.javaBin,
         javaOpts = javaOpts,
         serverMainClass = "bleep.bsp.BspServerDaemon",
-        serverClasspath = serverClasspath,
+        serverClasspath = serverClasspath ++ extraServerClasspath,
         workingDir = socketDir,
         startCheckPeriod = 10.millis,
         startCheckTimeout = 1.minute,

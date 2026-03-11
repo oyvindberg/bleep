@@ -77,7 +77,8 @@ case class ReactiveBsp(
           resolvedJvm = started.resolvedJvm.forceGet,
           userPaths = started.pre.userPaths,
           resolver = resolver,
-          logger = started.logger
+          logger = started.logger,
+          extraServerClasspath = Seq.empty
         ) match {
           case Left(err) =>
             Left(err)
