@@ -79,6 +79,15 @@ class MultiWorkspaceBspServer(
   /** Classpath overrides from client (used by ReplaceBleepDependencies) */
   private val providedClasspathOverrides = AtomicReference[Map[model.CrossProjectName, List[Path]]](Map.empty)
 
+  /** Active build rewrites (set during initialize, applied on build load/reload) */
+  private val activeRewrites = AtomicReference[List[bleep.rewrites.BuildRewrite]](Nil)
+
+  /** Whether the connected client is an IDE (Metals, IntelliJ) — set during initialize */
+  private val ideClient = AtomicBoolean(false)
+
+  /** Resolved path to com.sourcegraph:semanticdb-javac JAR for Java semanticdb support (set during initialize for IDE clients) */
+  private val javaSemanticdbPlugin = AtomicReference[Option[Path]](None)
+
   /** Per-workspace loaded builds (using bleep-core's Started) */
   private val loadedBuilds = ConcurrentHashMap[Path, Started]()
 
@@ -511,9 +520,52 @@ class MultiWorkspaceBspServer(
         }
       }
 
-    val variant = parsedPayload.map(_.variantName).map(model.BuildVariant.fromName).getOrElse(model.BuildVariant.Normal)
+    // Detect IDE clients by name (Metals, IntelliJ, etc.) — NOT by parsedPayload emptiness,
+    // since old bleep CLI versions also don't send BspBuildData.Payload.
+    val knownIdeClients = Set("Metals", "IntelliJ", "IntelliJ-BSP")
+    val isIdeClient = knownIdeClients.contains(params.displayName)
+
+    // For IDE clients (e.g. Metals), extract semanticdbVersion and javaSemanticdbVersion from init data
+    val parsedInitData: Option[io.circe.Json] = if (isIdeClient) {
+      params.data.flatMap { rawJson =>
+        try {
+          val jsonStr = new String(rawJson.value, "UTF-8")
+          io.circe.parser.parse(jsonStr).toOption
+        } catch {
+          case e: Throwable =>
+            debugLog(s"Failed to parse IDE build params: ${e.getMessage}")
+            None
+        }
+      }
+    } else None
+
+    val semanticDbVersionFromIde: Option[String] =
+      parsedInitData.flatMap(_.hcursor.get[String]("semanticdbVersion").toOption)
+    val javaSemanticDbVersionFromIde: Option[String] =
+      parsedInitData.flatMap(_.hcursor.get[String]("javaSemanticdbVersion").toOption)
+
+    ideClient.set(isIdeClient)
+
+    val variant = parsedPayload.map(_.variantName).map(model.BuildVariant.fromName).getOrElse(
+      if (isIdeClient) model.BuildVariant.BSP else model.BuildVariant.Normal
+    )
     providedBuild.set(parsedPayload.map(_.build))
     providedClasspathOverrides.set(parsedPayload.map(_.classpathOverrides).getOrElse(Map.empty))
+
+    // Set up rewrites for IDE clients (SemanticDB support for goto-definition, find-references, etc.)
+    val rewrites: List[bleep.rewrites.BuildRewrite] = if (isIdeClient) {
+      val sdVersion = semanticDbVersionFromIde.getOrElse("4.15.2")
+      logger.info(s"IDE client '${params.displayName}' detected, applying semanticDb rewrite with version $sdVersion")
+      List(new bleep.rewrites.semanticDb(sdVersion))
+    } else Nil
+    activeRewrites.set(rewrites)
+
+    // Resolve Java semanticdb plugin for IDE clients
+    if (isIdeClient) {
+      val javaSDVersion = javaSemanticDbVersionFromIde.getOrElse("0.10.0")
+      logger.info(s"Resolving Java semanticdb plugin: com.sourcegraph:semanticdb-javac:$javaSDVersion")
+      resolveJavaSemanticdbPlugin(javaSDVersion)
+    }
 
     activeWorkspace.set(Some(buildRoot))
     activeVariant.set(variant)
@@ -719,7 +771,7 @@ class MultiWorkspaceBspServer(
           started <- bootstrap.from(
             pre = pre,
             resolveProjects = ResolveProjects.InMemory,
-            rewrites = Nil,
+            rewrites = activeRewrites.get(),
             config = bleepConfig,
             resolverFactory = CoursierResolver.Factory.default
           )
@@ -864,9 +916,48 @@ class MultiWorkspaceBspServer(
   private def projectToBuildTarget(started: Started, crossName: CrossProjectName, project: model.Project): BuildTarget = {
     val targetId = buildTargetId(started.buildPaths, crossName)
     val projectPaths = started.projectPaths(crossName)
+    val resolved = started.resolvedProjects.get(crossName).map(_.forceGet)
+    val resolvedJvm = started.resolvedJvm.forceGet
+    val javaHome = resolvedJvm.javaBin.getParent.getParent
+    // jvm.name is e.g. "graalvm-community:25.0.1" — extract version after the colon.
+    // For "system" JVM there's no version in the name, so fall back to the running JVM's version.
+    // javaVersion is optional/informational in BSP (used by Metals doctor), so None is fine as last resort.
+    val jvmVersion: Option[String] =
+      if (model.Jvm.isSystem(resolvedJvm.jvm)) Option(System.getProperty("java.version"))
+      else resolvedJvm.jvm.name.split(':') match {
+        case Array(_, version) => Some(version)
+        case _                 => None
+      }
 
-    val hasScala = project.scala.flatMap(_.version).isDefined
-    val languages = if (hasScala) List("scala", "java") else List("java")
+    val jvmTarget = JvmBuildTarget(
+      javaHome = Some(Uri(javaHome.toUri)),
+      javaVersion = jvmVersion
+    )
+
+    val (languages, dataKind, data) = resolved.map(_.language) match {
+      case Some(sc: ResolvedProject.Language.Scala) =>
+        val scalaBuildTarget = ScalaBuildTarget(
+          scalaOrganization = sc.organization,
+          scalaVersion = sc.version,
+          scalaBinaryVersion = scalaBinaryVersion(sc.version),
+          platform = ScalaPlatform.Jvm,
+          jars = sc.compilerJars.map(p => Uri(p.toUri)),
+          jvmBuildTarget = Some(jvmTarget)
+        )
+        (List("scala", "java"), BuildTargetDataKind.Scala, RawJson(writeToArray(scalaBuildTarget)(using ScalaBuildTarget.codec)))
+
+      case Some(kt: ResolvedProject.Language.Kotlin) =>
+        val kotlinBuildTarget = KotlinBuildTarget(
+          kotlinVersion = kt.version,
+          jvmTarget = jvmVersion.getOrElse(""),
+          kotlincOptions = kt.options,
+          isK2 = kt.version.split('.').headOption.flatMap(_.toIntOption).exists(_ >= 2)
+        )
+        (List("kotlin", "java"), KotlinBuildTargetDataKind.Kotlin, RawJson(writeToArray(kotlinBuildTarget)(using KotlinBuildTarget.codec)))
+
+      case _ =>
+        (List("java"), BuildTargetDataKind.Jvm, RawJson(writeToArray(jvmTarget)(using JvmBuildTarget.codec)))
+    }
 
     val isTest = project.isTestProject.getOrElse(false)
     val hasMain = project.platform.flatMap(_.mainClass).isDefined
@@ -886,13 +977,58 @@ class MultiWorkspaceBspServer(
       dependencies = dependencies,
       capabilities = BuildTargetCapabilities(
         canCompile = Some(true),
-        canTest = Some(isTest),
-        canRun = Some(hasMain),
-        canDebug = Some(false)
+        canTest = Some(true),
+        canRun = Some(true),
+        canDebug = Some(true)
       ),
-      dataKind = if (hasScala) Some(BuildTargetDataKind.Scala) else Some(BuildTargetDataKind.Jvm),
-      data = None
+      dataKind = Some(dataKind),
+      data = Some(data)
     )
+  }
+
+  private def scalaBinaryVersion(version: String): String =
+    if (version.startsWith("3.")) "3"
+    else if (version.startsWith("2.13.")) "2.13"
+    else if (version.startsWith("2.12.")) "2.12"
+    else version
+
+  /** Resolve the com.sourcegraph:semanticdb-javac plugin JAR via coursier */
+  private def resolveJavaSemanticdbPlugin(version: String): Unit = {
+    try {
+      import coursier.*
+      val dep = Dependency(Module(Organization("com.sourcegraph"), ModuleName("semanticdb-javac")), version)
+      val fetch = Fetch().addDependencies(dep)
+      val files = fetch.run()
+      files.find(_.getName.startsWith("semanticdb-javac")) match {
+        case Some(jar) =>
+          val path = jar.toPath
+          logger.info(s"Resolved Java semanticdb plugin: $path")
+          javaSemanticdbPlugin.set(Some(path))
+        case None =>
+          logger.warn(s"Could not find semanticdb-javac JAR in resolved files: ${files.map(_.getName)}")
+      }
+    } catch {
+      case e: Throwable =>
+        logger.warn(s"Failed to resolve com.sourcegraph:semanticdb-javac: ${e.getMessage}")
+    }
+  }
+
+  /** Compute Java semanticdb javac options for IDE clients */
+  private def javaSemanticdbOptions(pluginPath: Path, workspaceDir: Path, classesDir: Path): List[String] = {
+    val baseOptions = List(
+      s"-Xplugin:semanticdb -sourceroot:$workspaceDir -targetroot:$classesDir",
+      "-processorpath",
+      pluginPath.toString
+    )
+    // Java 17+ needs --add-exports for javac internals
+    val addExports = List(
+      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+    )
+    addExports ::: baseOptions
   }
 
   private def handleReload(): Unit =
@@ -927,7 +1063,23 @@ class MultiWorkspaceBspServer(
 
   private def handleDependencySources(params: DependencySourcesParams): DependencySourcesResult = {
     val items = params.targets.map { targetId =>
-      DependencySourcesItem(target = targetId, sources = List.empty)
+      val sourceJars = (for {
+        started <- getActiveBuild.toOption
+        crossName <- crossNameFromTargetId(started, targetId)
+        resolved <- started.resolvedProjects.get(crossName)
+      } yield {
+        val p = resolved.forceGet
+        p.resolution match {
+          case Some(res) =>
+            res.modules.flatMap { m =>
+              m.artifacts
+                .filter(a => a.classifier.contains("sources"))
+                .map(a => Uri(a.path.toUri))
+            }.distinct
+          case None => List.empty
+        }
+      }).getOrElse(List.empty)
+      DependencySourcesItem(target = targetId, sources = sourceJars)
     }
     DependencySourcesResult(items)
   }
@@ -3305,6 +3457,7 @@ class MultiWorkspaceBspServer(
   }
 
   private def handleJavacOptions(params: JavacOptionsParams): JavacOptionsResult = {
+    val maybePlugin = javaSemanticdbPlugin.get()
     val items = params.targets.map { targetId =>
       (for {
         started <- getActiveBuild.toOption
@@ -3312,8 +3465,20 @@ class MultiWorkspaceBspServer(
         resolved <- started.resolvedProjects.get(crossName)
       } yield {
         val p = resolved.forceGet
-        val options = p.language.javaOptions
-        val classpath = p.classpath.map(_.toUri.toString)
+        val baseOptions = p.language.javaOptions
+        val options = maybePlugin match {
+          case Some(pluginPath) =>
+            val sdOpts = javaSemanticdbOptions(pluginPath, started.buildPaths.buildDir, p.classesDir)
+            sdOpts ::: baseOptions
+          case None => baseOptions
+        }
+        val classpath = maybePlugin match {
+          case Some(pluginPath) =>
+            val pluginUri = pluginPath.toUri.toString
+            if (p.classpath.exists(_.toString == pluginPath.toString)) p.classpath.map(_.toUri.toString)
+            else pluginUri :: p.classpath.map(_.toUri.toString)
+          case None => p.classpath.map(_.toUri.toString)
+        }
         val classDir = p.classesDir.toUri.toString
         JavacOptionsItem(target = targetId, options = options, classpath = classpath, classDirectory = classDir)
       }).getOrElse(
