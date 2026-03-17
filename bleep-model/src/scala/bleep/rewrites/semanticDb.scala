@@ -6,7 +6,7 @@ package rewrites
   * @param semanticDbVersion
   *   the version for `org.scalameta:::semanticdb-scalac`
   */
-class semanticDb(semanticDbVersion: String = "4.9.9") extends BuildRewrite {
+class semanticDb(semanticDbVersion: String) extends BuildRewrite {
   override val name = model.BuildRewriteName("semanticdb")
 
   protected def newExplodedProjects(oldBuild: model.Build, buildPaths: BuildPaths): Map[model.CrossProjectName, model.Project] =

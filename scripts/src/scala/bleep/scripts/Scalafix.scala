@@ -5,7 +5,7 @@ import bleep.plugin.scalafix.ScalafixPlugin
 import bleep.rewrites.semanticDb
 
 object Scalafix extends BleepScript("Scalafix") {
-  override val rewrites = List(new semanticDb)
+  override val rewrites = List(new semanticDb("4.15.2"))
 
   def run(started: Started, commands: Commands, args: List[String]): Unit = {
     val projects = started.globs.projectNameMap.get("jvm3").toList.flatten
