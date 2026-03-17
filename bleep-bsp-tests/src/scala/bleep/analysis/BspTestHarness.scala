@@ -179,6 +179,12 @@ object BspTestHarness {
 
     /** Clear collected events and diagnostics */
     def clear(): Unit
+
+    /** Query scalac options for targets */
+    def scalacOptions(targets: List[BuildTargetIdentifier]): ScalacOptionsResult
+
+    /** Query javac options for targets */
+    def javacOptions(targets: List[BuildTargetIdentifier]): JavacOptionsResult
   }
 }
 
@@ -613,6 +619,16 @@ class BspTestHarness(workspaceRoot: Path, projectConfigs: Option[List[BspTestHar
     override def link(targets: List[BuildTargetIdentifier], release: Boolean): CompileResult = {
       val args = if (release) List("--link", "--release") else List("--link")
       compile(targets, args)
+    }
+
+    override def scalacOptions(targets: List[BuildTargetIdentifier]): ScalacOptionsResult = {
+      val params = ScalacOptionsParams(targets = targets)
+      sendRequest[ScalacOptionsParams, ScalacOptionsResult]("buildTarget/scalacOptions", params)
+    }
+
+    override def javacOptions(targets: List[BuildTargetIdentifier]): JavacOptionsResult = {
+      val params = JavacOptionsParams(targets = targets)
+      sendRequest[JavacOptionsParams, JavacOptionsResult]("buildTarget/javacOptions", params)
     }
 
     // Async versions for cancellation testing
