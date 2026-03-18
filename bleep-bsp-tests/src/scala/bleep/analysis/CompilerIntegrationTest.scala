@@ -1287,6 +1287,68 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
   // Mixed Java + Kotlin Compilation
   // ============================================================================
 
+  test("Kotlin: kotlinc references pre-compiled Java classes on classpath") {
+    // Verify kotlinc can reference pre-compiled Java class files on the classpath
+    // (the Java-first compilation order relies on this)
+    val javaOutputDir = createTempDir("kotlin-java-precompiled-")
+    val kotlinOutputDir = createTempDir("kotlin-classpath-test-")
+    try {
+      // Phase 1: Compile JavaHelper.java with javac
+      val javaTempDir = Files.createTempDirectory("javac-src-")
+      val javaDir = javaTempDir.resolve("com/example")
+      Files.createDirectories(javaDir)
+      Files.writeString(javaDir.resolve("JavaHelper.java"),
+        """package com.example;
+          |public class JavaHelper {
+          |    public String getMessage() { return "Hello!"; }
+          |}
+          |""".stripMargin
+      )
+      val javac = javax.tools.ToolProvider.getSystemJavaCompiler
+      val fm = javac.getStandardFileManager(null, null, null)
+      val units = fm.getJavaFileObjectsFromPaths(java.util.List.of(javaDir.resolve("JavaHelper.java")))
+      Files.createDirectories(javaOutputDir)
+      val task = javac.getTask(null, fm, null, java.util.List.of("-d", javaOutputDir.toString), null, units)
+      assert(task.call(), "javac compilation failed")
+      fm.close()
+
+      val javaClassFile = javaOutputDir.resolve("com/example/JavaHelper.class")
+      assert(Files.exists(javaClassFile), s"JavaHelper.class not found at $javaClassFile")
+      info(s"Java class compiled to $javaClassFile")
+
+      // Phase 2: Compile Kotlin source with Java classes on classpath
+      val kotlinSource = SourceFile(
+        Path.of("com/example/Greeter.kt"),
+        """package com.example
+          |class Greeter {
+          |    fun greet(helper: JavaHelper): String = helper.getMessage()
+          |}
+          |""".stripMargin
+      )
+
+      val input = CompilationInput(
+        sources = Seq(kotlinSource),
+        classpath = CompilerTestLibraries.kotlinLibrary :+ javaOutputDir,
+        outputDir = kotlinOutputDir,
+        config = KotlinConfig(version = "2.3.0", jvmTarget = "11")
+      )
+
+      val result = KotlinSourceCompiler.compile(input)
+      result match {
+        case CompilationSuccess(dir, classes) =>
+          info(s"Kotlin compiled ${classes.size} class files")
+          classes.exists(_.toString.contains("Greeter.class")) shouldBe true
+        case CompilationFailure(errors) =>
+          fail(s"Kotlin compilation with Java classpath failed: ${errors.map(_.formatted).mkString("\n")}")
+        case CompilationCancelled =>
+          fail("Cancelled")
+      }
+    } finally {
+      deleteRecursively(javaOutputDir)
+      deleteRecursively(kotlinOutputDir)
+    }
+  }
+
   test("Kotlin: mixed Java+Kotlin compilation - kotlinc uses Java for type resolution") {
     // kotlinc does NOT compile .java files — it only uses them for type resolution.
     // This test verifies that passing .java sources alongside .kt sources allows
@@ -1339,11 +1401,13 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
     } finally deleteRecursively(outputDir)
   }
 
-  test("Kotlin: mixed Java+Kotlin compilation - ProjectCompiler includes Java files") {
+  test("Kotlin: mixed Java+Kotlin compilation - ProjectCompiler compiles Java first then Kotlin") {
     val sourceDir = createTempDir("kotlin-mixed-project-src-")
     val outputDir = createTempDir("kotlin-mixed-project-out-")
     try {
       // Write source files to directory (simulating a real project layout)
+      // Java-first order: javac compiles JavaHelper.java, then kotlinc compiles Greeter.kt
+      // with Java class output on classpath
       val ktDir = sourceDir.resolve("com/example")
       Files.createDirectories(ktDir)
       Files.writeString(ktDir.resolve("Greeter.kt"),

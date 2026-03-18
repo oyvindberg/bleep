@@ -4,7 +4,7 @@ package rewrites
 object Defaults {
   // values copied from bloops `Config.CompileSetup.empty`
   val DefaultCompileSetup = model.CompileSetup(
-    order = Some(model.CompileOrder.Mixed),
+    order = Some(model.CompileOrder.JavaThenScala),
     addLibraryToBootClasspath = Some(true),
     addCompilerToClasspath = Some(false),
     addExtraJarsToClasspath = Some(false),

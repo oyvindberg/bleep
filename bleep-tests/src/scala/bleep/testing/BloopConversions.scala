@@ -150,7 +150,6 @@ object BloopConversions {
   }
 
   private def compileOrderFrom(order: model.CompileOrder): Config.CompileOrder = order match {
-    case model.CompileOrder.Mixed         => Config.Mixed
     case model.CompileOrder.JavaThenScala => Config.JavaThenScala
     case model.CompileOrder.ScalaThenJava => Config.ScalaThenJava
   }

@@ -63,10 +63,9 @@
       ]
     },
     "CompileOrder": {
-      "description": "defaulted to 'mixed'",
+      "description": "defaulted to 'java->scala'",
       "type": "string",
       "enum": [
-        "mixed",
         "java->scala",
         "scala->java"
       ]
