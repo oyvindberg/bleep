@@ -204,7 +204,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
             stream
               .iterator()
               .asScala
-              .filter(p => p.toString.endsWith(".kt") || p.toString.endsWith(".kts"))
+              .filter(p => p.toString.endsWith(".kt") || p.toString.endsWith(".kts") || p.toString.endsWith(".java"))
               .map(p => SourceFile(p, Files.readString(p)))
               .toSeq
           }
@@ -287,13 +287,91 @@ object KotlinProjectCompiler extends ProjectCompiler {
   ): ProjectCompileResult = {
     val input = CompilationInput(sourceFiles, config.classpath, config.outputDir, kotlinConfig)
     KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken) match {
-      case CompilationSuccess(outDir, compiledClasses) =>
-        ProjectCompileSuccess(outDir, compiledClasses, None)
+      case CompilationSuccess(outDir, kotlinClasses) =>
+        // kotlinc does NOT compile .java files — it only uses them for type resolution.
+        // Compile Java sources separately with javac, with Kotlin output on classpath.
+        val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
+        if (javaSources.isEmpty) {
+          ProjectCompileSuccess(outDir, kotlinClasses, None)
+        } else {
+          compileJavaSourcesForKotlinProject(javaSources, config, outDir, kotlinClasses, diagnosticListener)
+        }
       case CompilationFailure(errs) =>
         ProjectCompileFailure(errs)
       case CompilationCancelled =>
         ProjectCompileFailure(List(CompilerError(None, 0, 0, "Compilation cancelled", None, CompilerError.Severity.Error)))
     }
+  }
+
+  /** Compile .java files in a Kotlin project using javac.
+    *
+    * After kotlinc compiles .kt files, we need to separately compile any .java files. The javac classpath includes the Kotlin output directory so Java code can
+    * reference Kotlin-generated classes.
+    */
+  private def compileJavaSourcesForKotlinProject(
+      javaSources: Seq[SourceFile],
+      config: ProjectConfig,
+      kotlinOutputDir: Path,
+      kotlinClasses: Set[Path],
+      diagnosticListener: DiagnosticListener
+  ): ProjectCompileResult = {
+    val javac = javax.tools.ToolProvider.getSystemJavaCompiler
+    val diagnosticCollector = new javax.tools.DiagnosticCollector[javax.tools.JavaFileObject]()
+    val fileManager = javac.getStandardFileManager(diagnosticCollector, null, null)
+
+    try {
+      // Write Java sources to temp dir and collect paths
+      val tempDir = Files.createTempDirectory("kotlin-java-compile-")
+      try {
+        val javaFiles = javaSources.map { sf =>
+          val target = tempDir.resolve(sf.path)
+          Files.createDirectories(target.getParent)
+          Files.writeString(target, sf.content)
+          target
+        }
+
+        val compilationUnits = fileManager.getJavaFileObjectsFromPaths(javaFiles.asJava)
+
+        // Classpath: Kotlin output + project classpath
+        val fullClasspath = (Seq(kotlinOutputDir) ++ config.classpath).map(_.toString).mkString(java.io.File.pathSeparator)
+        val options = java.util.List.of("-d", kotlinOutputDir.toString, "-classpath", fullClasspath)
+
+        val task = javac.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits)
+        val success = task.call()
+
+        if (success) {
+          // Re-collect all class files (Kotlin + Java)
+          val allClasses = Compiler.collectClassFilesStatic(kotlinOutputDir)
+          ProjectCompileSuccess(kotlinOutputDir, allClasses, None)
+        } else {
+          val errors = diagnosticCollector.getDiagnostics.asScala.toList
+            .filter(_.getKind == javax.tools.Diagnostic.Kind.ERROR)
+            .map { d =>
+              val path = Option(d.getSource).map(s => Path.of(s.toUri))
+              CompilerError(
+                path,
+                d.getLineNumber.toInt,
+                d.getColumnNumber.toInt,
+                d.getMessage(null),
+                None,
+                CompilerError.Severity.Error
+              )
+            }
+          errors.foreach(diagnosticListener.onDiagnostic)
+          ProjectCompileFailure(errors)
+        }
+      } finally {
+        // Clean up temp dir
+        import scala.util.Using
+        import scala.jdk.StreamConverters.*
+        Using(Files.walk(tempDir)) { stream =>
+          stream
+            .toScala(LazyList)
+            .sorted(Ordering[String].reverse.on[Path](_.toString))
+            .foreach(p => scala.util.Try(Files.delete(p)))
+        }
+      }
+    } finally fileManager.close()
   }
 }
 
