@@ -278,6 +278,14 @@ object KotlinProjectCompiler extends ProjectCompiler {
     }
   }
 
+  /** Compile a Kotlin project with Java-first order.
+    *
+    * kotlinc does NOT compile .java files — it only uses them for type resolution. So for mixed Java+Kotlin projects we use Java-first compilation order:
+    *   1. Compile .java files with javac (output to project output dir)
+    *   2. Compile .kt/.kts files with kotlinc (with Java class output on classpath)
+    *
+    * This matches the default compile order for Scala projects (JavaThenScala).
+    */
   private def doKotlinCompile(
       sourceFiles: Seq[SourceFile],
       config: ProjectConfig,
@@ -285,17 +293,39 @@ object KotlinProjectCompiler extends ProjectCompiler {
       diagnosticListener: DiagnosticListener,
       cancellationToken: CancellationToken
   ): ProjectCompileResult = {
-    val input = CompilationInput(sourceFiles, config.classpath, config.outputDir, kotlinConfig)
+    val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
+    val kotlinSources = sourceFiles.filterNot(_.path.toString.endsWith(".java"))
+
+    // Phase 1: Compile Java sources with javac to a separate directory.
+    // We use a separate temp directory (NOT under outputDir) because the Kotlin incremental
+    // compiler may clean the output directory on full compiles.
+    val javaClassesDir = if (javaSources.nonEmpty) {
+      val javaDir = Files.createTempDirectory("kotlin-project-java-classes-")
+      val javaConfig = config.copy(outputDir = javaDir)
+      val javaResult = compileJavaSources(javaSources, javaConfig, diagnosticListener)
+      javaResult match {
+        case failure: ProjectCompileFailure => return failure
+        case _                             => // continue to Kotlin
+      }
+      Some(javaDir)
+    } else None
+
+    if (kotlinSources.isEmpty) {
+      // Copy Java classes to main output dir
+      javaClassesDir.foreach(jd => copyClassFiles(jd, config.outputDir))
+      val allClasses = Compiler.collectClassFilesStatic(config.outputDir)
+      return ProjectCompileSuccess(config.outputDir, allClasses, None)
+    }
+
+    // Phase 2: Compile Kotlin sources with kotlinc (Java classes dir on classpath)
+    val kotlinClasspath = javaClassesDir.fold(config.classpath)(jd => config.classpath :+ jd)
+    val input = CompilationInput(kotlinSources, kotlinClasspath, config.outputDir, kotlinConfig)
     KotlinSourceCompiler.compile(input, diagnosticListener, cancellationToken) match {
-      case CompilationSuccess(outDir, kotlinClasses) =>
-        // kotlinc does NOT compile .java files — it only uses them for type resolution.
-        // Compile Java sources separately with javac, with Kotlin output on classpath.
-        val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
-        if (javaSources.isEmpty) {
-          ProjectCompileSuccess(outDir, kotlinClasses, None)
-        } else {
-          compileJavaSourcesForKotlinProject(javaSources, config, outDir, kotlinClasses, diagnosticListener)
-        }
+      case CompilationSuccess(outDir, _) =>
+        // Copy Java classes into the main output dir alongside Kotlin classes
+        javaClassesDir.foreach(jd => copyClassFiles(jd, outDir))
+        val allClasses = Compiler.collectClassFilesStatic(outDir)
+        ProjectCompileSuccess(outDir, allClasses, None)
       case CompilationFailure(errs) =>
         ProjectCompileFailure(errs)
       case CompilationCancelled =>
@@ -303,16 +333,10 @@ object KotlinProjectCompiler extends ProjectCompiler {
     }
   }
 
-  /** Compile .java files in a Kotlin project using javac.
-    *
-    * After kotlinc compiles .kt files, we need to separately compile any .java files. The javac classpath includes the Kotlin output directory so Java code can
-    * reference Kotlin-generated classes.
-    */
-  private def compileJavaSourcesForKotlinProject(
+  /** Compile .java files using javac, outputting to the project's output directory. */
+  private def compileJavaSources(
       javaSources: Seq[SourceFile],
       config: ProjectConfig,
-      kotlinOutputDir: Path,
-      kotlinClasses: Set[Path],
       diagnosticListener: DiagnosticListener
   ): ProjectCompileResult = {
     val javac = javax.tools.ToolProvider.getSystemJavaCompiler
@@ -320,7 +344,6 @@ object KotlinProjectCompiler extends ProjectCompiler {
     val fileManager = javac.getStandardFileManager(diagnosticCollector, null, null)
 
     try {
-      // Write Java sources to temp dir and collect paths
       val tempDir = Files.createTempDirectory("kotlin-java-compile-")
       try {
         val javaFiles = javaSources.map { sf =>
@@ -330,19 +353,17 @@ object KotlinProjectCompiler extends ProjectCompiler {
           target
         }
 
+        Files.createDirectories(config.outputDir)
         val compilationUnits = fileManager.getJavaFileObjectsFromPaths(javaFiles.asJava)
-
-        // Classpath: Kotlin output + project classpath
-        val fullClasspath = (Seq(kotlinOutputDir) ++ config.classpath).map(_.toString).mkString(java.io.File.pathSeparator)
-        val options = java.util.List.of("-d", kotlinOutputDir.toString, "-classpath", fullClasspath)
+        val fullClasspath = config.classpath.map(_.toString).mkString(java.io.File.pathSeparator)
+        val options = java.util.List.of("-d", config.outputDir.toString, "-classpath", fullClasspath)
 
         val task = javac.getTask(null, fileManager, diagnosticCollector, options, null, compilationUnits)
         val success = task.call()
 
         if (success) {
-          // Re-collect all class files (Kotlin + Java)
-          val allClasses = Compiler.collectClassFilesStatic(kotlinOutputDir)
-          ProjectCompileSuccess(kotlinOutputDir, allClasses, None)
+          val classFiles = Compiler.collectClassFilesStatic(config.outputDir)
+          ProjectCompileSuccess(config.outputDir, classFiles, None)
         } else {
           val errors = diagnosticCollector.getDiagnostics.asScala.toList
             .filter(_.getKind == javax.tools.Diagnostic.Kind.ERROR)
@@ -361,7 +382,6 @@ object KotlinProjectCompiler extends ProjectCompiler {
           ProjectCompileFailure(errors)
         }
       } finally {
-        // Clean up temp dir
         import scala.util.Using
         import scala.jdk.StreamConverters.*
         Using(Files.walk(tempDir)) { stream =>
@@ -372,6 +392,22 @@ object KotlinProjectCompiler extends ProjectCompiler {
         }
       }
     } finally fileManager.close()
+  }
+
+  /** Copy .class files from source dir to target dir, preserving package directory structure. */
+  private def copyClassFiles(sourceDir: Path, targetDir: Path): Unit = {
+    import scala.jdk.StreamConverters.*
+    import scala.util.Using
+    Using(Files.walk(sourceDir)) { stream =>
+      stream.toScala(LazyList)
+        .filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class"))
+        .foreach { classFile =>
+          val relativePath = sourceDir.relativize(classFile)
+          val target = targetDir.resolve(relativePath)
+          Files.createDirectories(target.getParent)
+          Files.copy(classFile, target, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
   }
 }
 

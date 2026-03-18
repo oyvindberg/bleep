@@ -111,7 +111,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-postgres-circe/jvm213/inc_compile.zip",
       "setup": {
-        "order": "mixed",
+        "order": "java->scala",
         "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

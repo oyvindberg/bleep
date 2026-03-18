@@ -1135,10 +1135,10 @@ object ZincBridge {
       javacOptions,
       100, // maxErrors
       sourcePositionMapper,
-      CompileOrder.Mixed
+      CompileOrder.JavaThenScala
     )
 
-    debug(s"[ZincBridge] Current setup: outputDir=$outputDir, order=Mixed")
+    debug(s"[ZincBridge] Current setup: outputDir=$outputDir, order=JavaThenScala")
     debug(s"[ZincBridge] Current scalacOptions: ${scalacOptions.mkString(", ")}")
     debug(s"[ZincBridge] Source count: ${sources.length}, classpath count: ${classpathVf.length}")
     // Log sample source info for debugging

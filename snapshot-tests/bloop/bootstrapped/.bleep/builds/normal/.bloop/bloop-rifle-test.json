@@ -76,7 +76,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/bloop/bootstrapped/.bleep/builds/normal/.bloop/bloop-rifle-test/inc_compile.zip",
       "setup": {
-        "order": "mixed",
+        "order": "java->scala",
         "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

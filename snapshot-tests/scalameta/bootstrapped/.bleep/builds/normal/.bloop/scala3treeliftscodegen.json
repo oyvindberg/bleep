@@ -67,7 +67,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/scala3treeliftscodegen/inc_compile.zip",
       "setup": {
-        "order": "mixed",
+        "order": "java->scala",
         "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

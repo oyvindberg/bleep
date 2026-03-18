@@ -91,7 +91,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/js3/inc_compile.zip",
       "setup": {
-        "order": "mixed",
+        "order": "java->scala",
         "addLibraryToBootClasspath": false,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

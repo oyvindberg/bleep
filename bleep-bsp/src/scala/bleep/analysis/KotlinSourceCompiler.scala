@@ -400,7 +400,7 @@ object KotlinSourceCompiler extends Compiler {
       val sourceFilesList = sourceFiles.map(_.toAbsolutePath.toFile).asJava
 
       // Kotlin source file extensions
-      val kotlinExtensions = Set("kt", "kts", "java").asJava
+      val kotlinExtensions = Set("kt", "kts").asJava
 
       // Create IncrementalCompilationFeatures with default constructor
       val icFeatures = setup.icFeaturesClass.getDeclaredConstructor().newInstance()

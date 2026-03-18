@@ -185,7 +185,7 @@
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-sttp-stub4-server-test/js212/inc_compile.zip",
       "setup": {
-        "order": "mixed",
+        "order": "java->scala",
         "addLibraryToBootClasspath": true,
         "addCompilerToClasspath": false,
         "addExtraJarsToClasspath": false,

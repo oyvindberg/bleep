@@ -19,13 +19,12 @@ object conversions {
 
   object compileOrder extends Bijection[Config.CompileOrder, model.CompileOrder] {
     override def to(t1: Config.CompileOrder): model.CompileOrder = t1 match {
-      case Config.Mixed         => model.CompileOrder.Mixed
+      case Config.Mixed         => model.CompileOrder.JavaThenScala // Mixed no longer supported, map to JavaThenScala
       case Config.JavaThenScala => model.CompileOrder.JavaThenScala
       case Config.ScalaThenJava => model.CompileOrder.ScalaThenJava
     }
 
     override def from(t2: model.CompileOrder): Config.CompileOrder = t2 match {
-      case model.CompileOrder.Mixed         => Config.Mixed
       case model.CompileOrder.JavaThenScala => Config.JavaThenScala
       case model.CompileOrder.ScalaThenJava => Config.ScalaThenJava
     }
