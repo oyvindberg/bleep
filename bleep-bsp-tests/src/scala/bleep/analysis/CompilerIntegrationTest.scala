@@ -1284,6 +1284,128 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
   }
 
   // ============================================================================
+  // Mixed Java + Kotlin Compilation
+  // ============================================================================
+
+  test("Kotlin: mixed Java+Kotlin compilation - kotlinc uses Java for type resolution") {
+    // kotlinc does NOT compile .java files — it only uses them for type resolution.
+    // This test verifies that passing .java sources alongside .kt sources allows
+    // Kotlin code to reference Java types, even though only .kt files produce .class output.
+    val outputDir = createTempDir("kotlin-mixed-source-")
+    try {
+      val kotlinSource = SourceFile(
+        Path.of("com/example/Greeter.kt"),
+        """package com.example
+          |
+          |class Greeter {
+          |    fun greet(helper: JavaHelper): String = helper.getMessage()
+          |}
+          |""".stripMargin
+      )
+
+      val javaSource = SourceFile(
+        Path.of("com/example/JavaHelper.java"),
+        """package com.example;
+          |
+          |public class JavaHelper {
+          |    public String getMessage() {
+          |        return "Hello from Java!";
+          |    }
+          |}
+          |""".stripMargin
+      )
+
+      val input = CompilationInput(
+        sources = Seq(kotlinSource, javaSource),
+        classpath = CompilerTestLibraries.kotlinLibrary,
+        outputDir = outputDir,
+        config = KotlinConfig(version = "2.3.0", jvmTarget = "11")
+      )
+
+      val result = KotlinSourceCompiler.compile(input)
+
+      result match {
+        case CompilationSuccess(dir, classes) =>
+          info(s"Compiled ${classes.size} class files to $dir")
+          // kotlinc compiles Greeter.kt (which references JavaHelper)
+          classes.exists(_.toString.contains("Greeter.class")) shouldBe true
+          // kotlinc does NOT compile JavaHelper.java — only uses it for type resolution
+          classes.exists(_.toString.contains("JavaHelper.class")) shouldBe false
+        case CompilationFailure(errors) =>
+          fail(s"Mixed compilation failed: ${errors.map(_.formatted).mkString("\n")}")
+        case CompilationCancelled =>
+          fail("Compilation was cancelled")
+      }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("Kotlin: mixed Java+Kotlin compilation - ProjectCompiler includes Java files") {
+    val sourceDir = createTempDir("kotlin-mixed-project-src-")
+    val outputDir = createTempDir("kotlin-mixed-project-out-")
+    try {
+      // Write source files to directory (simulating a real project layout)
+      val ktDir = sourceDir.resolve("com/example")
+      Files.createDirectories(ktDir)
+      Files.writeString(ktDir.resolve("Greeter.kt"),
+        """package com.example
+          |
+          |class Greeter {
+          |    fun greet(helper: JavaHelper): String = helper.getMessage()
+          |}
+          |""".stripMargin
+      )
+      Files.writeString(ktDir.resolve("JavaHelper.java"),
+        """package com.example;
+          |
+          |public class JavaHelper {
+          |    public String getMessage() {
+          |        return "Hello from Java!";
+          |    }
+          |}
+          |""".stripMargin
+      )
+
+      val language = ProjectLanguage.Kotlin(
+        kotlinVersion = "2.3.0",
+        jvmTarget = "11",
+        kotlinOptions = Nil
+      )
+
+      val config = ProjectConfig(
+        name = "mixed-kotlin-java",
+        sources = Set(sourceDir),
+        classpath = CompilerTestLibraries.kotlinLibrary,
+        outputDir = outputDir,
+        language = language,
+        analysisDir = None
+      )
+
+      import cats.effect.unsafe.implicits.global
+      val result = KotlinProjectCompiler.compile(
+        config,
+        DiagnosticListener.noop,
+        CancellationToken.never,
+        Map.empty,
+        ProgressListener.noop
+      ).unsafeRunSync()
+
+      result match {
+        case ProjectCompileSuccess(dir, classFiles, _) =>
+          info(s"Compiled ${classFiles.size} class files to $dir")
+          val classNames = classFiles.map(_.getFileName.toString)
+          classNames should contain("Greeter.class")
+          // This is the key assertion: Java files must be compiled too
+          classNames should contain("JavaHelper.class")
+        case ProjectCompileFailure(errors) =>
+          fail(s"Mixed compilation failed: ${errors.map(_.formatted).mkString("\n")}")
+      }
+    } finally {
+      deleteRecursively(sourceDir)
+      deleteRecursively(outputDir)
+    }
+  }
+
+  // ============================================================================
   // Classloader Isolation Verification
   // ============================================================================
 

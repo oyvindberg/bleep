@@ -325,6 +325,19 @@ trait Compiler {
 object Compiler {
   import cats.effect.unsafe.implicits.global
 
+  /** Collect .class files from a directory */
+  def collectClassFilesStatic(dir: Path): Set[Path] =
+    if !Files.exists(dir) then Set.empty
+    else {
+      import scala.jdk.StreamConverters.*
+      import scala.util.Using
+      Using(Files.walk(dir)) { stream =>
+        stream
+          .toScala(Set)
+          .filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class"))
+      }.getOrElse(Set.empty)
+    }
+
   def forConfig(config: LanguageConfig): Compiler = config match {
     case c: JavaConfig   => new ZincAdapterCompiler(toProjectLanguageJava(c))
     case c: ScalaConfig  => new ZincAdapterCompiler(toProjectLanguageScala(c))
