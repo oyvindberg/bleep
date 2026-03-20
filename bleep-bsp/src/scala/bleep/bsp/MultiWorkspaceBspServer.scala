@@ -546,9 +546,12 @@ class MultiWorkspaceBspServer(
 
     ideClient.set(isIdeClient)
 
-    val variant = parsedPayload.map(_.variantName).map(model.BuildVariant.fromName).getOrElse(
-      if (isIdeClient) model.BuildVariant.BSP else model.BuildVariant.Normal
-    )
+    val variant = parsedPayload
+      .map(_.variantName)
+      .map(model.BuildVariant.fromName)
+      .getOrElse(
+        if (isIdeClient) model.BuildVariant.BSP else model.BuildVariant.Normal
+      )
     providedBuild.set(parsedPayload.map(_.build))
     providedClasspathOverrides.set(parsedPayload.map(_.classpathOverrides).getOrElse(Map.empty))
 
@@ -924,10 +927,11 @@ class MultiWorkspaceBspServer(
     // javaVersion is optional/informational in BSP (used by Metals doctor), so None is fine as last resort.
     val jvmVersion: Option[String] =
       if (model.Jvm.isSystem(resolvedJvm.jvm)) Option(System.getProperty("java.version"))
-      else resolvedJvm.jvm.name.split(':') match {
-        case Array(_, version) => Some(version)
-        case _                 => None
-      }
+      else
+        resolvedJvm.jvm.name.split(':') match {
+          case Array(_, version) => Some(version)
+          case _                 => None
+        }
 
     val jvmTarget = JvmBuildTarget(
       javaHome = Some(Uri(javaHome.toUri)),
@@ -993,7 +997,7 @@ class MultiWorkspaceBspServer(
     else version
 
   /** Resolve the com.sourcegraph:semanticdb-javac plugin JAR via coursier */
-  private def resolveJavaSemanticdbPlugin(version: String): Unit = {
+  private def resolveJavaSemanticdbPlugin(version: String): Unit =
     try {
       import coursier.*
       val dep = Dependency(Module(Organization("com.sourcegraph"), ModuleName("semanticdb-javac")), version)
@@ -1011,7 +1015,6 @@ class MultiWorkspaceBspServer(
       case e: Throwable =>
         logger.warn(s"Failed to resolve com.sourcegraph:semanticdb-javac: ${e.getMessage}")
     }
-  }
 
   /** Compute Java semanticdb javac options for IDE clients */
   private def javaSemanticdbOptions(pluginPath: Path, workspaceDir: Path, classesDir: Path): List[String] = {
@@ -1022,11 +1025,16 @@ class MultiWorkspaceBspServer(
     )
     // Java 17+ needs --add-exports for javac internals
     val addExports = List(
-      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
-      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-      "-J--add-exports", "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+      "-J--add-exports",
+      "-Jjdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
     )
     addExports ::: baseOptions
   }

@@ -1347,7 +1347,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
       val javaTempDir = Files.createTempDirectory("javac-src-")
       val javaDir = javaTempDir.resolve("com/example")
       Files.createDirectories(javaDir)
-      Files.writeString(javaDir.resolve("JavaHelper.java"),
+      Files.writeString(
+        javaDir.resolve("JavaHelper.java"),
         """package com.example;
           |public class JavaHelper {
           |    public String getMessage() { return "Hello!"; }
@@ -1460,7 +1461,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
       // with Java class output on classpath
       val ktDir = sourceDir.resolve("com/example")
       Files.createDirectories(ktDir)
-      Files.writeString(ktDir.resolve("Greeter.kt"),
+      Files.writeString(
+        ktDir.resolve("Greeter.kt"),
         """package com.example
           |
           |class Greeter {
@@ -1468,7 +1470,8 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
           |}
           |""".stripMargin
       )
-      Files.writeString(ktDir.resolve("JavaHelper.java"),
+      Files.writeString(
+        ktDir.resolve("JavaHelper.java"),
         """package com.example;
           |
           |public class JavaHelper {
@@ -1495,13 +1498,15 @@ class CompilerVersionIsolationTest extends AnyFunSuite with Matchers {
       )
 
       import cats.effect.unsafe.implicits.global
-      val result = KotlinProjectCompiler.compile(
-        config,
-        DiagnosticListener.noop,
-        CancellationToken.never,
-        Map.empty,
-        ProgressListener.noop
-      ).unsafeRunSync()
+      val result = KotlinProjectCompiler
+        .compile(
+          config,
+          DiagnosticListener.noop,
+          CancellationToken.never,
+          Map.empty,
+          ProgressListener.noop
+        )
+        .unsafeRunSync()
 
       result match {
         case ProjectCompileSuccess(dir, classFiles, _) =>
