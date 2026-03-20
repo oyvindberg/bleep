@@ -305,7 +305,7 @@ object KotlinProjectCompiler extends ProjectCompiler {
       val javaResult = compileJavaSources(javaSources, javaConfig, diagnosticListener)
       javaResult match {
         case failure: ProjectCompileFailure => return failure
-        case _                             => // continue to Kotlin
+        case _                              => // continue to Kotlin
       }
       Some(javaDir)
     } else None
@@ -399,7 +399,8 @@ object KotlinProjectCompiler extends ProjectCompiler {
     import scala.jdk.StreamConverters.*
     import scala.util.Using
     Using(Files.walk(sourceDir)) { stream =>
-      stream.toScala(LazyList)
+      stream
+        .toScala(LazyList)
         .filter(p => Files.isRegularFile(p) && p.toString.endsWith(".class"))
         .foreach { classFile =>
           val relativePath = sourceDir.relativize(classFile)

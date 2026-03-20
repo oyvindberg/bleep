@@ -439,17 +439,14 @@ public class ForkedTestRunner {
         try {
           Class<?> clazz = Class.forName(frameworkClass);
           Framework fw = (Framework) clazz.getDeclaredConstructor().newInstance();
-          send(
-              TestProtocol.encodeLog(
-                  "info", "Loaded TestNG framework: " + frameworkClass));
+          send(TestProtocol.encodeLog("info", "Loaded TestNG framework: " + frameworkClass));
           return fw;
         } catch (ClassNotFoundException e) {
           // Try next one
         }
       }
       throw new ClassNotFoundException(
-          "No TestNG framework found. Tried: "
-              + String.join(", ", TESTNG_FRAMEWORKS));
+          "No TestNG framework found. Tried: " + String.join(", ", TESTNG_FRAMEWORKS));
     }
 
     String className = FRAMEWORK_CLASSES.getOrDefault(name, name);
