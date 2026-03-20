@@ -2385,19 +2385,13 @@ class MultiWorkspaceBspServer(
       model.IgnoreEvictionErrors.No
     )
 
-    // Filter to only bleep-test-runner.jar and test-interface.jar
-    val neededJars = result.jars.filter { p =>
-      val name = p.getFileName.toString
-      name.contains("bleep-test-runner") || name.contains("test-interface")
-    }
-
-    if (neededJars.isEmpty) {
+    if (result.jars.isEmpty) {
       throw new RuntimeException(
-        s"bleep-test-runner jar not found in resolved files: ${result.jars.map(_.getFileName).mkString(", ")}"
+        s"bleep-test-runner resolution returned no jars for version $version"
       )
     }
 
-    neededJars
+    result.jars
   }
 
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
