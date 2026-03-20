@@ -595,6 +595,96 @@ class RunAndTestIntegrationTest extends AnyFunSuite with Matchers with RunAndTes
       }
     } finally deleteRecursively(outputDir)
   }
+
+  // ============================================================================
+  // JUnit 4 via ForkedTestRunner (vintage engine)
+  // ============================================================================
+
+  test("Java: run JUnit 4 tests with ForkedTestRunner via vintage engine") {
+    val outputDir = createTempDir("java-junit4-forked-")
+    try {
+      val input = CompilationInput(
+        sources = Seq(javaTestSource),
+        classpath = CompilerTestLibraries.junitLibrary,
+        outputDir = outputDir,
+        config = JavaConfig()
+      )
+
+      val result = Compiler.forConfig(input.config).compile(input)
+      result shouldBe a[CompilationSuccess]
+
+      // Build classpath: compiled test classes + jupiter-interface (with vintage engine) + ForkedTestRunner
+      val testRunnerLocation = classOf[bleep.testing.runner.ForkedTestRunner].getProtectionDomain.getCodeSource.getLocation.toURI
+      val testRunnerPath = Path.of(testRunnerLocation)
+
+      val classpathEntries = List(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.jupiterInterfaceLibrary.toList ++
+        CompilerTestLibraries.junitLibrary.toList
+
+      val classpath = classpathEntries
+        .map(_.toString)
+        .mkString(java.io.File.pathSeparator)
+
+      val javaHome = System.getProperty("java.home")
+      val javaBin = Path.of(javaHome, "bin", "java").toString
+
+      val process = new ProcessBuilder(
+        javaBin,
+        "-cp",
+        classpath,
+        "bleep.testing.runner.ForkedTestRunner"
+      )
+        .start()
+
+      val reader = new BufferedReader(new InputStreamReader(process.getInputStream))
+      val writer = new PrintWriter(process.getOutputStream, true)
+      val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+      try {
+        // Wait for Ready
+        val readyLine = reader.readLine()
+        readyLine should include("\"type\":\"Ready\"")
+
+        // Send RunSuite command — framework name is "JUnit" (ForkedTestRunner
+        // loads JupiterFramework first, which via vintage engine can run JUnit 4 tests)
+        val command = bleep.testing.runner.TestProtocol.encodeRunSuite(
+          "example.ExampleTest",
+          "JUnit",
+          java.util.List.of()
+        )
+        writer.println(command)
+
+        // Collect all protocol output until SuiteDone
+        val lines = collectUntilSuiteDone(reader)
+
+        // Send shutdown
+        writer.println(bleep.testing.runner.TestProtocol.encodeShutdown())
+
+        // Verify we got test results
+        val testFinishedLines = lines.filter(_.contains("\"type\":\"TestFinished\""))
+        val suiteDoneLines = lines.filter(_.contains("\"type\":\"SuiteDone\""))
+
+        info(s"Protocol lines: ${lines.size}")
+        lines.foreach(l => info(s"  $l"))
+
+        testFinishedLines.size shouldBe 2
+        testFinishedLines.foreach { line =>
+          line should include("\"status\":\"passed\"")
+        }
+
+        suiteDoneLines.size shouldBe 1
+        suiteDoneLines.head should include("\"passed\":2")
+        suiteDoneLines.head should include("\"failed\":0")
+
+        info("JUnit 4 tests ran successfully via ForkedTestRunner (vintage engine)")
+      } finally {
+        process.destroyForcibly()
+        reader.close()
+        writer.close()
+        stderr.close()
+      }
+    } finally deleteRecursively(outputDir)
+  }
 }
 
 trait RunAndTestHelpers {
