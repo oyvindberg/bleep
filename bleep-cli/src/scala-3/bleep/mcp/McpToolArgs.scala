@@ -169,6 +169,28 @@ object StatusArgs {
   ).asInstanceOf[JsonSchemaEncoder[StatusArgs]]
 }
 
+/** Args for bleep.build (project config inspection). */
+case class BuildArgs(projects: List[String])
+object BuildArgs {
+  given Decoder[BuildArgs] = Decoder.instance { c =>
+    for {
+      projects <- c.downField("projects").as[List[String]].orElse(Right(Nil))
+    } yield BuildArgs(projects)
+  }
+  given JsonSchemaEncoder[BuildArgs] = schema(
+    Json.obj(
+      "type" -> Json.fromString("object"),
+      "properties" -> Json.obj(
+        "projects" -> Json.obj(
+          "type" -> Json.fromString("array"),
+          "items" -> Json.obj("type" -> Json.fromString("string")),
+          "description" -> Json.fromString("Project names to show. Omit or empty for all projects.")
+        )
+      )
+    )
+  ).asInstanceOf[JsonSchemaEncoder[BuildArgs]]
+}
+
 /** No arguments. */
 case class NoArgs()
 object NoArgs {

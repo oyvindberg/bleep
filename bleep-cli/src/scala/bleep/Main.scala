@@ -301,8 +301,8 @@ object Main {
               )(
                 Opts(commands.BuildMoveFilesIntoBleepLayout)
               ),
-              Opts.subcommand("diff", "diff exploded projects compared to git HEAD or wanted revision")(
-                Opts.subcommand("exploded", "show projects after applying templates")(
+              Opts.subcommand("diff", "diff effective project config compared to git HEAD or wanted revision")(
+                Opts.subcommand("effective", "show projects after applying templates")(
                   (projectNames, commands.BuildDiff.opts).mapN { case (names, opts) =>
                     commands.BuildDiff(opts, names)
                   }
@@ -313,8 +313,8 @@ object Main {
                   Opts.subcommand("short", "the projects as you wrote it in YAML")(
                     projectNamesNoCross.map(commands.BuildShow.Short.apply)
                   ),
-                  Opts.subcommand("exploded", "the cross projects as you wrote it in YAML after templates have been applied")(
-                    projectNames.map(commands.BuildShow.Exploded.apply)
+                  Opts.subcommand("effective", "the final project configuration after all templates have been applied")(
+                    projectNames.map(commands.BuildShow.Effective.apply)
                   )
                 ).foldK
               ),

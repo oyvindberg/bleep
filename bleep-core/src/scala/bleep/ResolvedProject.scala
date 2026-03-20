@@ -1,5 +1,9 @@
 package bleep
 
+import bleep.internal.codecs._
+import io.circe.Encoder
+import io.circe.generic.semiauto.deriveEncoder
+
 import java.nio.file.Path
 
 /** A resolved project with all dependencies and options expanded.
@@ -23,6 +27,7 @@ case class ResolvedProject(
 )
 
 object ResolvedProject {
+  implicit val encodes: Encoder[ResolvedProject] = deriveEncoder
 
   /** Language configuration - exactly one of Scala, Java, or Kotlin */
   sealed trait Language {
@@ -57,6 +62,15 @@ object ResolvedProject {
         compilerJars: List[Path],
         javaOptions: List[String]
     ) extends Language
+
+    implicit val encodesJava: Encoder[Java] = deriveEncoder
+    implicit val encodesScala: Encoder[Scala] = deriveEncoder
+    implicit val encodesKotlin: Encoder[Kotlin] = deriveEncoder
+    implicit val encodes: Encoder[Language] = Encoder.instance {
+      case j: Java   => encodesJava(j).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("java")))
+      case s: Scala  => encodesScala(s).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("scala")))
+      case k: Kotlin => encodesKotlin(k).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("kotlin")))
+    }
   }
 
   case class CompileSetup(
@@ -67,6 +81,9 @@ object ResolvedProject {
       manageBootClasspath: Boolean,
       filterLibraryFromClasspath: Boolean
   )
+  object CompileSetup {
+    implicit val encodes: Encoder[CompileSetup] = deriveEncoder
+  }
 
   /** Platform configuration */
   sealed trait Platform
@@ -93,12 +110,24 @@ object ResolvedProject {
         gc: String,
         mainClass: Option[String]
     ) extends Platform
+
+    implicit val encodesJvm: Encoder[Jvm] = deriveEncoder
+    implicit val encodesJs: Encoder[Js] = deriveEncoder
+    implicit val encodesNative: Encoder[Native] = deriveEncoder
+    implicit val encodes: Encoder[Platform] = Encoder.instance {
+      case j: Jvm    => encodesJvm(j).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("jvm")))
+      case j: Js     => encodesJs(j).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("js")))
+      case n: Native => encodesNative(n).deepMerge(io.circe.Json.obj("type" -> io.circe.Json.fromString("native")))
+    }
   }
 
   /** Resolution information for dependencies */
   case class Resolution(
       modules: List[ResolvedModule]
   )
+  object Resolution {
+    implicit val encodes: Encoder[Resolution] = deriveEncoder
+  }
 
   case class ResolvedModule(
       organization: String,
@@ -106,12 +135,18 @@ object ResolvedProject {
       version: String,
       artifacts: List[ResolvedArtifact]
   )
+  object ResolvedModule {
+    implicit val encodes: Encoder[ResolvedModule] = deriveEncoder
+  }
 
   case class ResolvedArtifact(
       name: String,
       classifier: Option[String],
       path: Path
   )
+  object ResolvedArtifact {
+    implicit val encodes: Encoder[ResolvedArtifact] = deriveEncoder
+  }
 
   /** Project tag for IDE integration */
   sealed trait Tag
