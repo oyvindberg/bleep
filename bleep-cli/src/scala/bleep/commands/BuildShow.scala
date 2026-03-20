@@ -16,11 +16,10 @@ object BuildShow {
       Right(())
     }
   }
-  case class Exploded(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
+  case class Effective(projects: Array[model.CrossProjectName]) extends BleepBuildCommand {
     override def run(started: Started): Either[BleepException, Unit] = {
       projects.foreach { crossProjectName =>
         val p0 = started.build.explodedProjects(crossProjectName)
-        // we don't currently do these cleanups to be able to go back to short version
         val p = p0.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
         println(fansi.Color.Red(crossProjectName.value))
         println(yaml.encodeShortened(p))

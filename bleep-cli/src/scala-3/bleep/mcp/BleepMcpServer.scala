@@ -159,6 +159,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         watchTool,
         syncTool,
         watchStopTool,
+        buildTool,
+        buildResolvedTool,
         projectsTool,
         programsTool,
         scriptsTool,
@@ -389,6 +391,34 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         false
       ),
       (args, _) => stopWatch(args.jobId.map(new JobId(_))),
+      None
+    )
+
+    private def buildTool: ToolFunction[IO] = ToolFunction.text[IO, BuildArgs](
+      ToolFunction.Info(
+        "bleep.build.effective",
+        Some("Effective Build Config"),
+        Some(
+          "Show the effective project configuration after all templates have been applied. Shows dependencies, scala/java/kotlin version, platform, source layout, test frameworks — everything from bleep.yaml fully expanded. Does NOT include resolved classpaths or compiled output paths. Use bleep.projects for a quick dependency overview instead."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => showBuildConfig(args.projects),
+      None
+    )
+
+    private def buildResolvedTool: ToolFunction[IO] = ToolFunction.text[IO, BuildArgs](
+      ToolFunction.Info(
+        "bleep.build.resolved",
+        Some("Resolved Build Config"),
+        Some(
+          "Show the fully resolved project configuration: actual classpath JARs, source directories, compiler JARs, classes output directory, and all compilation inputs. This is what the compiler sees. Requires projects to be compiled first (classpath resolution happens during compilation)."
+        ),
+        ToolFunction.Effect.ReadOnly,
+        false
+      ),
+      (args, _) => showResolvedConfig(args.projects),
       None
     )
 
@@ -855,6 +885,39 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     }
 
     /** List all projects with dependencies. */
+    /** Show effective project configuration after templates have been applied. */
+    private def showBuildConfig(projectNames: List[String]): IO[String] = IO {
+      val projects = if (projectNames.isEmpty) {
+        started.build.explodedProjects.toList
+      } else {
+        val resolved = resolveProjects(projectNames)
+        resolved.toList.flatMap { cpn =>
+          started.build.explodedProjects.get(cpn).map(p => (cpn, p))
+        }
+      }
+      val entries = projects.sortBy(_._1.value).map { case (crossName, p) =>
+        val exploded = p.copy(cross = model.JsonMap.empty, `extends` = model.JsonSet.empty)
+        crossName.value -> io.circe.Encoder[model.Project].apply(exploded)
+      }
+      Json.obj(entries*).noSpaces
+    }
+
+    /** Show fully resolved project configuration with actual paths. */
+    private def showResolvedConfig(projectNames: List[String]): IO[String] = IO {
+      val crossNames = if (projectNames.isEmpty) {
+        started.build.explodedProjects.keys.toList.sorted
+      } else {
+        resolveProjects(projectNames).toList
+      }
+      val entries = crossNames.flatMap { cpn =>
+        started.resolvedProjects.get(cpn).map { lazyResolved =>
+          val rp = lazyResolved.forceGet
+          cpn.value -> io.circe.Encoder[ResolvedProject].apply(rp)
+        }
+      }
+      Json.obj(entries*).noSpaces
+    }
+
     private def listProjects(): IO[String] = IO {
       val projects = started.build.explodedProjects.toList.map { case (crossName, p) =>
         Json.obj(
