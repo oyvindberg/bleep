@@ -50,7 +50,7 @@ object TemplateDef {
   case object Common extends TemplateDef {
     override def name = "common"
 
-    override def parents = Nil
+    override def parents: List[TemplateDef] = Nil
 
     override def include(p: model.Project): Boolean = true
   }
