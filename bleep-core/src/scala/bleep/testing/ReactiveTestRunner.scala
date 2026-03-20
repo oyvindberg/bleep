@@ -479,19 +479,12 @@ object ReactiveTestRunner {
 
     try {
       val files = fetch.run()
-      // Only use bleep-test-runner.jar and test-interface.jar
-      // The test project's classpath already has the test framework dependencies (junit, scalatest, etc)
-      // but may not have test-interface which bleep-test-runner needs
-      val neededJars = files.filter { f =>
-        val name = f.getName
-        name.contains("bleep-test-runner") || name.contains("test-interface")
-      }
-      if (neededJars.isEmpty) {
+      if (files.isEmpty) {
         throw new RuntimeException(
-          s"bleep-test-runner jar not found in fetched files: ${files.map(_.getName).mkString(", ")}"
+          s"bleep-test-runner resolution returned no jars for version $version"
         )
       }
-      val paths = neededJars.map(f => Path.of(f.getAbsolutePath)).toList
+      val paths = files.map(f => Path.of(f.getAbsolutePath)).toList
       debugLog(s"Using jars: ${paths.mkString(", ")}")
       paths
     } catch {

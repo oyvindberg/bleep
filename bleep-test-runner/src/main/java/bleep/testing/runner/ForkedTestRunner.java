@@ -249,6 +249,9 @@ public class ForkedTestRunner {
 
       if (tasks == null || tasks.length == 0) {
         send(TestProtocol.encodeError("No tests found for class: " + className, null));
+        send(
+            TestProtocol.encodeSuiteDone(
+                className, 0, 1, 0, 0, System.currentTimeMillis() - startTime));
         return;
       }
 

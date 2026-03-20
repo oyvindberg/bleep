@@ -2816,13 +2816,14 @@ class MultiWorkspaceBspServer(
                 null
 
               case tt: TaskDag.TestSuiteTask =>
-                // SuiteFinished is emitted by TestRunner with actual counts
-                // Only handle timeout, skipped, error, and cancelled cases here
+                // SuiteFinished is emitted by TestRunner with actual counts for normal test failures.
+                // For infrastructure errors (JVM crash, classpath issues, etc.), SuiteFinished may not
+                // have been emitted. We emit SuiteError here to ensure the client is always notified.
                 result match {
                   case TaskDag.TaskResult.Success =>
                     null // SuiteFinished already emitted by TestRunner
-                  case TaskDag.TaskResult.Failure(_, _) =>
-                    null // SuiteFinished already emitted by TestRunner
+                  case TaskDag.TaskResult.Failure(errorMsg, _) =>
+                    BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, errorMsg, None, None, durationMs, timestamp)
                   case TaskDag.TaskResult.Error(error, exitCode, signal) =>
                     val desc = signal match {
                       case Some(sig) => s"Process crashed (signal $sig)"
@@ -2843,7 +2844,15 @@ class MultiWorkspaceBspServer(
                     BleepBspProtocol.Event.SuiteTimedOut(tt.project.value, tt.suiteName, durationMs, None, timestamp)
                 }
             }
-            traceRecorder.recordEnd(cat, name) >>
+            // For test suite failures where SuiteFinished may not have been emitted by TestRunner,
+            // ensure totalFailedRef is at least 1 so the summary doesn't show "0 passed, 0 failed"
+            val failureRefUpdate = (task, result) match {
+              case (_: TaskDag.TestSuiteTask, _: TaskDag.TaskResult.Failure) =>
+                totalFailedRef.update(n => math.max(n, 1))
+              case _ =>
+                IO.unit
+            }
+            traceRecorder.recordEnd(cat, name) >> failureRefUpdate >>
               IO(if (protocolEvent != null) sendTestEvent(originId, task.id, protocolEvent))
 
           case TaskDag.DagEvent.TestStarted(project, suite, test, timestamp) =>
