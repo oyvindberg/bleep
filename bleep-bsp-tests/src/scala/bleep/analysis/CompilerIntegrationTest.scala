@@ -76,6 +76,22 @@ object CompilerTestLibraries {
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
+
+  /** sbt test-interface (needed by ForkedTestRunner) */
+  lazy val testInterfaceLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), "1.0")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
+
+  /** MUnit test library */
+  lazy val munitLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("org.scalameta"), ModuleName("munit_3")), "1.0.0")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
 }
 
 /** Integration tests for the compiler implementations.
