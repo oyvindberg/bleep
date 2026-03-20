@@ -47,6 +47,12 @@ public class ForkedTestRunner {
     "com.novocode.junit.JUnitFramework" // JUnit 4 (junit-interface)
   };
 
+  // TestNG bridge - try multiple package names (different Mill versions)
+  private static final String[] TESTNG_FRAMEWORKS = {
+    "mill.testng.TestNGFramework", // Mill 0.9.x
+    "mill.contrib.testng.TestNGFramework" // Mill 0.10+
+  };
+
   static {
     FRAMEWORK_CLASSES.put("ScalaTest", "org.scalatest.tools.Framework");
     FRAMEWORK_CLASSES.put("scalatest", "org.scalatest.tools.Framework");
@@ -60,6 +66,8 @@ public class ForkedTestRunner {
     // JUnit is handled specially in loadFramework() to try multiple implementations
     FRAMEWORK_CLASSES.put("Weaver", "weaver.sbt.WeaverFramework");
     FRAMEWORK_CLASSES.put("weaver", "weaver.sbt.WeaverFramework");
+    // TestNG has two possible framework classes depending on the Mill version
+    // We try both in loadFramework()
   }
 
   public static void main(String[] args) {
@@ -423,6 +431,25 @@ public class ForkedTestRunner {
               + name
               + ". Tried: "
               + String.join(", ", JUNIT_FRAMEWORKS));
+    }
+
+    // Special handling for TestNG - try multiple bridge implementations
+    if (name.equalsIgnoreCase("TestNG")) {
+      for (String frameworkClass : TESTNG_FRAMEWORKS) {
+        try {
+          Class<?> clazz = Class.forName(frameworkClass);
+          Framework fw = (Framework) clazz.getDeclaredConstructor().newInstance();
+          send(
+              TestProtocol.encodeLog(
+                  "info", "Loaded TestNG framework: " + frameworkClass));
+          return fw;
+        } catch (ClassNotFoundException e) {
+          // Try next one
+        }
+      }
+      throw new ClassNotFoundException(
+          "No TestNG framework found. Tried: "
+              + String.join(", ", TESTNG_FRAMEWORKS));
     }
 
     String className = FRAMEWORK_CLASSES.getOrDefault(name, name);

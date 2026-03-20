@@ -92,6 +92,39 @@ object CompilerTestLibraries {
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
+
+  /** utest library */
+  lazy val utestLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("com.lihaoyi"), ModuleName("utest_3")), "0.8.4")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
+
+  /** Kotest libraries (runner + assertions) */
+  lazy val kotestLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("io.kotest"), ModuleName("kotest-runner-junit5-jvm")), "5.9.1"),
+      Dependency(Module(Organization("io.kotest"), ModuleName("kotest-assertions-core-jvm")), "5.9.1")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
+
+  /** TestNG library */
+  lazy val testngLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("org.testng"), ModuleName("testng")), "7.10.2")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
+
+  /** Mill TestNG bridge (sbt-testing adapter for TestNG) */
+  lazy val testngBridgeLibrary: Seq[Path] = {
+    val deps = Seq(
+      Dependency(Module(Organization("com.lihaoyi"), ModuleName("mill-contrib-testng_2.13")), "0.9.6")
+    )
+    Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
+  }
 }
 
 /** Integration tests for the compiler implementations.

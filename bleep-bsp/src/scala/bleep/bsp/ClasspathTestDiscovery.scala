@@ -46,7 +46,8 @@ object ClasspathTestDiscovery {
     "com.github.sbt.junit.JupiterFramework", // JUnit 5 (older version)
     "net.aichler.jupiter.api.JupiterFramework", // JUnit 5 (legacy)
     "com.novocode.junit.JUnitFramework", // JUnit 4
-    // TestNG (via mill adapter)
+    // TestNG (via mill adapter - different package names across versions)
+    "mill.testng.TestNGFramework",
     "mill.contrib.testng.TestNGFramework"
   )
 
@@ -370,8 +371,12 @@ object ClasspathTestDiscovery {
       runtimes += "junit4"
     }
 
-    // TestNG runtime
-    if (Try(classLoader.loadClass("mill.contrib.testng.TestNGFramework")).isSuccess) {
+    // TestNG runtime (try both Mill package names)
+    val testngClasses = List(
+      "mill.testng.TestNGFramework",
+      "mill.contrib.testng.TestNGFramework"
+    )
+    if (testngClasses.exists(c => Try(classLoader.loadClass(c)).isSuccess)) {
       runtimes += "testng"
     }
 

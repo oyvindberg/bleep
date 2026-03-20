@@ -137,6 +137,12 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
     result shouldBe a[CompilationSuccess]
   }
 
+  def compileKotlin(sources: Seq[SourceFile], classpath: Seq[Path], outputDir: Path): Unit = {
+    val input = CompilationInput(sources = sources, classpath = classpath, outputDir = outputDir, config = KotlinConfig(version = "2.3.0"))
+    val result = KotlinSourceCompiler.compile(input)
+    result shouldBe a[CompilationSuccess]
+  }
+
   // ============================================================================
   // JUnit 4 Test Sources
   // ============================================================================
@@ -574,6 +580,354 @@ class ForkedTestRunnerFrameworkTest extends AnyFunSuite with Matchers with RunAn
       val cp = Seq(outputDir, testRunnerPath) ++
         CompilerTestLibraries.munitLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
       val result = runSuiteViaProtocol(cp, "example.ThrowingMUnitTest", "MUnit")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.testResults.count(_._2 == "passed") shouldBe 1
+      result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  // ============================================================================
+  // utest Test Sources
+  // ============================================================================
+
+  val utestSuccess = SourceFile(
+    Path.of("SuccessfulUTest.scala"),
+    """package example
+      |
+      |import utest._
+      |
+      |object SuccessfulUTest extends TestSuite {
+      |  val tests = Tests {
+      |    test("addition works") {
+      |      assert(1 + 1 == 2)
+      |    }
+      |    test("string length") {
+      |      assert("hello".length == 5)
+      |    }
+      |  }
+      |}
+      |""".stripMargin
+  )
+
+  val utestFailure = SourceFile(
+    Path.of("FailingUTest.scala"),
+    """package example
+      |
+      |import utest._
+      |
+      |object FailingUTest extends TestSuite {
+      |  val tests = Tests {
+      |    test("passing test") {
+      |      assert(1 + 1 == 2)
+      |    }
+      |    test("failing test") {
+      |      assert(1 + 1 == 3)
+      |    }
+      |  }
+      |}
+      |""".stripMargin
+  )
+
+  val utestThrowing = SourceFile(
+    Path.of("ThrowingUTest.scala"),
+    """package example
+      |
+      |import utest._
+      |
+      |object ThrowingUTest extends TestSuite {
+      |  val tests = Tests {
+      |    test("passing test") {
+      |      assert(1 + 1 == 2)
+      |    }
+      |    test("throwing test") {
+      |      throw new RuntimeException("Unexpected error in test!")
+      |    }
+      |  }
+      |}
+      |""".stripMargin
+  )
+
+  // ============================================================================
+  // Kotest Test Sources (Kotlin)
+  // ============================================================================
+
+  val kotestSuccess = SourceFile(
+    Path.of("example/SuccessfulKotest.kt"),
+    """package example
+      |
+      |import io.kotest.core.spec.style.FunSpec
+      |import io.kotest.matchers.shouldBe
+      |
+      |class SuccessfulKotest : FunSpec({
+      |    test("addition works") {
+      |        (1 + 1) shouldBe 2
+      |    }
+      |    test("string length") {
+      |        "hello".length shouldBe 5
+      |    }
+      |})
+      |""".stripMargin
+  )
+
+  val kotestFailure = SourceFile(
+    Path.of("example/FailingKotest.kt"),
+    """package example
+      |
+      |import io.kotest.core.spec.style.FunSpec
+      |import io.kotest.matchers.shouldBe
+      |
+      |class FailingKotest : FunSpec({
+      |    test("passing test") {
+      |        (1 + 1) shouldBe 2
+      |    }
+      |    test("failing test") {
+      |        (1 + 1) shouldBe 3
+      |    }
+      |})
+      |""".stripMargin
+  )
+
+  val kotestThrowing = SourceFile(
+    Path.of("example/ThrowingKotest.kt"),
+    """package example
+      |
+      |import io.kotest.core.spec.style.FunSpec
+      |import io.kotest.matchers.shouldBe
+      |
+      |class ThrowingKotest : FunSpec({
+      |    test("passing test") {
+      |        (1 + 1) shouldBe 2
+      |    }
+      |    test("throwing test") {
+      |        throw RuntimeException("Unexpected error in test!")
+      |    }
+      |})
+      |""".stripMargin
+  )
+
+  // ============================================================================
+  // TestNG Test Sources (Java)
+  // ============================================================================
+
+  val testngSuccess = SourceFile(
+    Path.of("example/TestNGSuccessTest.java"),
+    """package example;
+      |
+      |import org.testng.annotations.Test;
+      |import static org.testng.Assert.*;
+      |
+      |public class TestNGSuccessTest {
+      |    @Test
+      |    public void additionWorks() {
+      |        assertEquals(1 + 1, 2);
+      |    }
+      |
+      |    @Test
+      |    public void stringLength() {
+      |        assertEquals("hello".length(), 5);
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  val testngFailure = SourceFile(
+    Path.of("example/TestNGFailureTest.java"),
+    """package example;
+      |
+      |import org.testng.annotations.Test;
+      |import static org.testng.Assert.*;
+      |
+      |public class TestNGFailureTest {
+      |    @Test
+      |    public void passingTest() {
+      |        assertEquals(1 + 1, 2);
+      |    }
+      |
+      |    @Test
+      |    public void failingTest() {
+      |        assertEquals(1 + 1, 3, "expected 3 but was 2");
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  val testngThrowing = SourceFile(
+    Path.of("example/TestNGThrowingTest.java"),
+    """package example;
+      |
+      |import org.testng.annotations.Test;
+      |import static org.testng.Assert.*;
+      |
+      |public class TestNGThrowingTest {
+      |    @Test
+      |    public void passingTest() {
+      |        assertEquals(1 + 1, 2);
+      |    }
+      |
+      |    @Test
+      |    public void throwingTest() {
+      |        throw new RuntimeException("Unexpected error in test!");
+      |    }
+      |}
+      |""".stripMargin
+  )
+
+  // ============================================================================
+  // utest Tests
+  // ============================================================================
+
+  test("utest: all tests pass") {
+    val outputDir = createTempDir("utest-success-")
+    try {
+      val compileClasspath = CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.utestLibrary
+      compileScala(Seq(utestSuccess), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.SuccessfulUTest", "utest")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 2
+      result.failed shouldBe 0
+      result.testResults.size shouldBe 2
+      result.testResults.foreach { case (_, status) => status shouldBe "passed" }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("utest: assertion failure") {
+    val outputDir = createTempDir("utest-failure-")
+    try {
+      val compileClasspath = CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.utestLibrary
+      compileScala(Seq(utestFailure), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.FailingUTest", "utest")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.testResults.count(_._2 == "passed") shouldBe 1
+      result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("utest: uncaught exception") {
+    val outputDir = createTempDir("utest-throwing-")
+    try {
+      val compileClasspath = CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.utestLibrary
+      compileScala(Seq(utestThrowing), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.utestLibrary ++ CompilerTestLibraries.scalaLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.ThrowingUTest", "utest")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.testResults.count(_._2 == "passed") shouldBe 1
+      result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  // ============================================================================
+  // Kotest Tests (Kotlin, via JUnit Platform)
+  // ============================================================================
+
+  test("Kotest: all tests pass") {
+    val outputDir = createTempDir("kotest-success-")
+    try {
+      val compileClasspath = CompilerTestLibraries.kotlinLibrary ++ CompilerTestLibraries.kotestLibrary
+      compileKotlin(Seq(kotestSuccess), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
+      val result = runSuiteViaProtocol(cp, "example.SuccessfulKotest", "Kotest")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 2
+      result.failed shouldBe 0
+      result.testResults.size shouldBe 2
+      result.testResults.foreach { case (_, status) => status shouldBe "passed" }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("Kotest: assertion failure") {
+    val outputDir = createTempDir("kotest-failure-")
+    try {
+      val compileClasspath = CompilerTestLibraries.kotlinLibrary ++ CompilerTestLibraries.kotestLibrary
+      compileKotlin(Seq(kotestFailure), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
+      val result = runSuiteViaProtocol(cp, "example.FailingKotest", "Kotest")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.testResults.count(_._2 == "passed") shouldBe 1
+      result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("Kotest: uncaught exception") {
+    val outputDir = createTempDir("kotest-throwing-")
+    try {
+      val compileClasspath = CompilerTestLibraries.kotlinLibrary ++ CompilerTestLibraries.kotestLibrary
+      compileKotlin(Seq(kotestThrowing), compileClasspath, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.jupiterInterfaceLibrary ++ CompilerTestLibraries.kotestLibrary ++ CompilerTestLibraries.kotlinLibrary
+      val result = runSuiteViaProtocol(cp, "example.ThrowingKotest", "Kotest")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.testResults.count(_._2 == "passed") shouldBe 1
+      result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  // ============================================================================
+  // TestNG Tests (Java, via Mill bridge)
+  // ============================================================================
+
+  test("TestNG: all tests pass") {
+    val outputDir = createTempDir("testng-success-")
+    try {
+      compileJava(Seq(testngSuccess), CompilerTestLibraries.testngLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.TestNGSuccessTest", "TestNG")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 2
+      result.failed shouldBe 0
+      result.testResults.size shouldBe 2
+      result.testResults.foreach { case (_, status) => status shouldBe "passed" }
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("TestNG: assertion failure") {
+    val outputDir = createTempDir("testng-failure-")
+    try {
+      compileJava(Seq(testngFailure), CompilerTestLibraries.testngLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.TestNGFailureTest", "TestNG")
+
+      info(s"Test results: ${result.testResults}")
+      result.passed shouldBe 1
+      result.failed shouldBe 1
+      result.testResults.count(_._2 == "passed") shouldBe 1
+      result.testResults.count(t => t._2 == "failed" || t._2 == "error") shouldBe 1
+    } finally deleteRecursively(outputDir)
+  }
+
+  test("TestNG: uncaught exception") {
+    val outputDir = createTempDir("testng-throwing-")
+    try {
+      compileJava(Seq(testngThrowing), CompilerTestLibraries.testngLibrary, outputDir)
+      val cp = Seq(outputDir, testRunnerPath) ++
+        CompilerTestLibraries.testngBridgeLibrary ++ CompilerTestLibraries.testngLibrary ++ CompilerTestLibraries.testInterfaceLibrary
+      val result = runSuiteViaProtocol(cp, "example.TestNGThrowingTest", "TestNG")
 
       info(s"Test results: ${result.testResults}")
       result.passed shouldBe 1
