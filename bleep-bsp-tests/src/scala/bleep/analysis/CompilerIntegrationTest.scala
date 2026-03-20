@@ -67,11 +67,12 @@ object CompilerTestLibraries {
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
 
-  /** Jupiter interface (sbt-testing bridge for JUnit 5) + test-interface for ForkedTestRunner */
+  /** Jupiter interface (sbt-testing bridge for JUnit 5) + test-interface + vintage engine for ForkedTestRunner */
   lazy val jupiterInterfaceLibrary: Seq[Path] = {
     val deps = Seq(
       Dependency(Module(Organization("net.aichler"), ModuleName("jupiter-interface")), "0.11.1"),
-      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), "1.0")
+      Dependency(Module(Organization("org.scala-sbt"), ModuleName("test-interface")), "1.0"),
+      Dependency(Module(Organization("org.junit.vintage"), ModuleName("junit-vintage-engine")), "5.9.1")
     )
     Fetch().addDependencies(deps*).run().map(_.toPath).toSeq
   }
