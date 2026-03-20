@@ -252,7 +252,7 @@ templates:
       jvm213:
         scala:
           options: -Xsource:3
-          version: 2.13.11
+          version: 2.13.18
       jvm3:
         extends: template-scala-3
     extends: template-common
