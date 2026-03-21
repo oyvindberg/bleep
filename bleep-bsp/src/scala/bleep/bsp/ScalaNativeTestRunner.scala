@@ -247,7 +247,7 @@ object ScalaNativeTestRunner {
           val simpleName = fqn.split('.').lastOption.getOrElse(fqn)
           TestSuite(simpleName, fqn)
         }
-    }.getOrElse(List.empty)
+    }.get // Fail loudly if directory walk fails (permission error, etc.)
   }
 
   /** Run tests in a Scala Native binary. */
