@@ -425,18 +425,17 @@ object BuildStateReducer {
           _,
           _
         ) =>
-      // Authoritative source from BSP response — override accumulated counts.
-      // Notification events (SuiteFinished etc.) are fire-and-forget and may be lost,
-      // but the BSP response is reliable (request-response).
-      // Also clear cancelledSuites list — the authoritative response tells us the real
-      // cancellation count. Any ConnectionLost cancellations that fired during the race
-      // between socket EOF and BSP shutdown are spurious.
+      // BSP response is the authoritative source for suite-level counts (suitesTotal, etc.)
+      // which must be able to correct DOWN (e.g. ConnectionLost inflates cancellations).
+      // For test-level counts (passed/failed/skipped/ignored), use math.max: if server counts
+      // are correct, they match accumulated from individual TestFinished notifications (max = either).
+      // If server counts are wrong due to cancellation race (0), accumulated counts are preserved.
       val authoritativeCancelled = if (suitesCancelled > 0) state.cancelledSuites.take(suitesCancelled) else Nil
       state.copy(
-        testsPassed = totalPassed,
-        testsFailed = totalFailed,
-        testsSkipped = totalSkipped,
-        testsIgnored = totalIgnored,
+        testsPassed = math.max(state.testsPassed, totalPassed),
+        testsFailed = math.max(state.testsFailed, totalFailed),
+        testsSkipped = math.max(state.testsSkipped, totalSkipped),
+        testsIgnored = math.max(state.testsIgnored, totalIgnored),
         suitesTotal = suitesTotal,
         suitesCompleted = suitesCompleted,
         suitesFailed = suitesFailed,

@@ -2945,9 +2945,15 @@ class MultiWorkspaceBspServer(
       // After processing, check if any notification send detected a dead client.
       // sendNotification catches IOException (to avoid crashing compiler callbacks)
       // and sets clientDisconnected flag instead. We check it here to trigger kill signal.
-      (processEvent >> IO.whenA(clientDisconnected.get()) {
-        IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
-      }).handleErrorWith {
+      // Wrap in uncancelable so that once we start processing an event, ALL ref updates
+      // complete atomically. Without this, fiber cancellation between chained >> operations
+      // (e.g. totalPassedRef.update >> totalFailedRef.update) leaves counts inconsistent,
+      // causing "0 passed, 0 failed" despite tests actually passing.
+      IO.uncancelable { _ =>
+        processEvent >> IO.whenA(clientDisconnected.get()) {
+          IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
+        }
+      }.handleErrorWith {
         case error: java.io.IOException =>
           IO(logger.withContext("error", error.getMessage).error("Event send failed (connection dead)")) >>
             killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
@@ -3082,9 +3088,11 @@ class MultiWorkspaceBspServer(
           IO.unit
       }
 
-      (processEvent >> IO.whenA(clientDisconnected.get()) {
-        IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
-      }).handleErrorWith {
+      IO.uncancelable { _ =>
+        processEvent >> IO.whenA(clientDisconnected.get()) {
+          IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
+        }
+      }.handleErrorWith {
         case error: java.io.IOException =>
           IO(logger.withContext("error", error.getMessage).error("Compile event send failed (connection dead)")) >>
             killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
