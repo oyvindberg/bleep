@@ -125,9 +125,15 @@ object JvmPool {
       val key: JvmKey
   ) {
     @volatile private var alive = true
+    @volatile private var _protocolClean = true
 
     def isAlive: Boolean =
       alive && process.isAlive
+
+    def protocolClean: Boolean = _protocolClean
+
+    def markProtocolDirty(): Unit =
+      _protocolClean = false
 
     def markDead(): Unit =
       alive = false
@@ -307,7 +313,7 @@ object JvmPool {
 
     /** Return a JVM to the pool for reuse */
     private def release(jvm: ManagedJvm): IO[Unit] =
-      if (jvm.isAlive) {
+      if (jvm.isAlive && jvm.protocolClean) {
         for {
           queue <- IO(
             pool.getOrElseUpdate(
@@ -320,8 +326,8 @@ object JvmPool {
           _ <- queue.offer(jvm)
         } yield ()
       } else {
-        // Dead JVM, just remove from tracking
-        allJvms.update(_ - jvm)
+        // Dead or protocol-dirty JVM — kill and remove from tracking
+        IO(jvm.kill()).attempt >> allJvms.update(_ - jvm)
       }
 
     private class TestJvmImpl(jvm: ManagedJvm) extends TestJvm {
@@ -360,6 +366,7 @@ object JvmPool {
               TestProtocol.decodeResponse(line) match {
                 case Right(response) => Some(response)
                 case Left(err) =>
+                  jvm.markProtocolDirty()
                   Some(
                     TestProtocol.TestResponse.Error(
                       s"Protocol error: ${err.getMessage}",
