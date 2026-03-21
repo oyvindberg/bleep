@@ -206,6 +206,7 @@ object KotlinTestRunner {
             Ref
               .of[IO, RunState](RunState.empty)
               .flatMap { stateRef =>
+                Ref.of[IO, List[String]](Nil).flatMap { pendingStderrRef =>
                 val work = ProcessRunner.start(pb).use { process =>
                   // Kill process immediately when kill signal fires.
                   // This breaks the deadlock where IO.blocking(readLine) can't be
@@ -216,6 +217,8 @@ object KotlinTestRunner {
                         parseTestEvent(line) match {
                           case Some(TestEvent.SuiteStarted(suite)) =>
                             stateRef.update(_.copy(currentSuite = Some(suite))) >>
+                              // Flush any early stderr to this suite
+                              pendingStderrRef.getAndSet(Nil).flatMap(_.reverse.traverse_(l => IO.delay(eventHandler.onOutput(suite, l, isError = true)))) >>
                               IO.delay(eventHandler.onSuiteStarted(suite))
 
                           case Some(TestEvent.SuiteFinished(suite, p, f, s)) =>
@@ -256,7 +259,9 @@ object KotlinTestRunner {
                         stateRef.get.flatMap { state =>
                           state.currentSuite match {
                             case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = true))
-                            case None        => IO.unit
+                            case None =>
+                              // Buffer early stderr before any suite starts (e.g. Node.js startup errors)
+                              pendingStderrRef.update(line :: _)
                           }
                         }
                       }
@@ -320,7 +325,7 @@ object KotlinTestRunner {
                 }
               }
               .guarantee(IO.blocking(Files.deleteIfExists(scriptPath)).void)
-          }
+          }}
       }
 
     private def createDiscoveryScript(jsOutput: Path): String =
@@ -329,7 +334,7 @@ object KotlinTestRunner {
          |const vm = require('vm');
          |const path = require('path');
          |
-         |const jsPath = '${jsOutput.toAbsolutePath.toString.replace("\\", "\\\\")}';
+         |const jsPath = '${jsOutput.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")}';
          |const jsCode = fs.readFileSync(jsPath, 'utf-8');
          |
          |const sandbox = {
@@ -428,7 +433,7 @@ object KotlinTestRunner {
          |}
          |
          |async function runTests() {
-         |  const jsPath = '${jsOutput.toAbsolutePath.toString.replace("\\", "\\\\")}';
+         |  const jsPath = '${jsOutput.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")}';
          |
          |  // Load the Kotlin/JS module - this registers tests via QUnit.test() calls
          |  require(jsPath);
@@ -620,7 +625,12 @@ object KotlinTestRunner {
               .directory(workingDir.toFile)
             env.foreach { case (k, v) => pb.environment().put(k, v) }
 
-            Ref.of[IO, NativeRunState](NativeRunState.empty).flatMap { stateRef =>
+            (Ref.of[IO, NativeRunState](NativeRunState.empty), Ref.of[IO, List[String]](Nil)).flatMapN { (stateRef, pendingStderrRef) =>
+
+              def drainPendingStderr(suite: String): IO[Unit] =
+                pendingStderrRef.getAndSet(Nil).flatMap { pending =>
+                  pending.reverse.traverse_(l => IO.delay(eventHandler.onOutput(suite, l, isError = true)))
+                }
 
               def finishCurrentSuite: IO[Unit] =
                 stateRef
@@ -656,7 +666,8 @@ object KotlinTestRunner {
                       case suiteStartPattern(suite) =>
                         finishCurrentSuite >>
                           stateRef.update(_.copy(currentSuite = Some(suite), suitePassed = 0, suiteFailed = 0, suiteSkipped = 0)) >>
-                          IO.delay(eventHandler.onSuiteStarted(suite))
+                          IO.delay(eventHandler.onSuiteStarted(suite)) >>
+                          drainPendingStderr(suite)
 
                       case testRunPattern(test) =>
                         // Test started - extract test name from fully qualified name
@@ -700,8 +711,9 @@ object KotlinTestRunner {
 
                   val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
                     stateRef.get.flatMap { st =>
-                      st.currentSuite.traverse_ { suite =>
-                        IO.delay(eventHandler.onOutput(suite, line, isError = true))
+                      st.currentSuite match {
+                        case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = true))
+                        case None        => pendingStderrRef.update(line :: _)
                       }
                     }
                   }
