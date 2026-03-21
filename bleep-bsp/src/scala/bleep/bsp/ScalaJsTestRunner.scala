@@ -394,7 +394,7 @@ object ScalaJsTestRunner {
        |const vm = require('vm');
        |const path = require('path');
        |
-       |const jsPath = '${linkedJs.toAbsolutePath.toString.replace("\\", "\\\\")}';
+       |const jsPath = '${linkedJs.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")}';
        |const jsCode = fs.readFileSync(jsPath, 'utf-8');
        |
        |const sandbox = {
@@ -508,7 +508,7 @@ object ScalaJsTestRunner {
       suites: List[TestSuite]
   ): String = {
     val suiteNames = suites.map(s => s"'${s.fullyQualifiedName}'").mkString(", ")
-    val jsPath = linkedJs.toAbsolutePath.toString.replace("\\", "\\\\")
+    val jsPath = linkedJs.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")
 
     // This script runs Scala.js tests by:
     // 1. Patching the linked JS to disable Bridge.start() (which requires scalajsCom protocol)
