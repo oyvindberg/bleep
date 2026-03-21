@@ -185,12 +185,15 @@ class MultiWorkspaceBspServer(
   private def spawnRequest(request: JsonRpcRequest): IO[Unit] = {
     val requestId = request.id.map(_.key).getOrElse("unknown")
 
-    val handler: IO[Unit] = IO
-      .interruptible(handleRequestSync(request))
-      .guarantee(IO.blocking(activeFibers.remove(requestId)).void)
+    Deferred[IO, Unit].flatMap { registered =>
+      val handler: IO[Unit] =
+        registered.get >>
+          IO.interruptible(handleRequestSync(request))
+            .guarantee(IO.blocking(activeFibers.remove(requestId)).void)
 
-    handler.start.flatMap { fiber =>
-      IO.blocking(activeFibers.put(requestId, fiber))
+      handler.start.flatMap { fiber =>
+        IO.blocking(activeFibers.put(requestId, fiber)) >> registered.complete(()).void
+      }
     }
   }
 
@@ -1427,7 +1430,7 @@ class MultiWorkspaceBspServer(
                 IO.pure(TaskDag.TaskResult.Success)
               } else {
                 // Cooperative cancellation: set CancellationToken so advance() returns false
-                val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+                val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
 
                 // Gate on server-wide semaphore to limit total concurrent compiles across all connections
                 val gatedCompile = IO
@@ -1452,7 +1455,9 @@ class MultiWorkspaceBspServer(
                   }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
                 val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
 
-                cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
+                cooperativeCancelIO.flatMap { cancelFiber =>
+                  IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
+                }
               }
           }
         }
@@ -1849,7 +1854,7 @@ class MultiWorkspaceBspServer(
                   if (noopResult.isDefined) {
                     IO.pure(TaskDag.TaskResult.Success)
                   } else {
-                    val cooperativeCancel = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+                    val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
                     // Gate on server-wide semaphore to limit total concurrent compiles across all connections
                     val gatedCompile = IO
                       .interruptible(compileSemaphore.acquire())
@@ -1872,7 +1877,9 @@ class MultiWorkspaceBspServer(
                           }
                       }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
                     val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-                    cooperativeCancel >> IO.race(gatedCompile, waitForKill).map(_.merge)
+                    cooperativeCancelIO.flatMap { cancelFiber =>
+                      IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
+                    }
                   }
               }
             }
