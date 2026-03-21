@@ -546,10 +546,8 @@ object ScalaNativeTestRunner {
             runner.tasks(taskDefs)
           }
 
-          var passed = 0
-          var failed = 0
-          var skipped = 0
-          var ignored = 0
+          // Per-suite counters (suite name → (passed, failed, skipped, ignored))
+          val suiteCounts = new scala.collection.mutable.HashMap[String, (Int, Int, Int, Int)]()
 
           // Execute each task
           val sbtEventHandler = new sbt.testing.EventHandler {
@@ -565,25 +563,32 @@ object ScalaNativeTestRunner {
 
               val (status, statusEnum) = event.status() match {
                 case sbt.testing.Status.Success =>
-                  passed += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p + 1, f, s, i)
                   (TestStatus.Passed, "passed")
                 case sbt.testing.Status.Failure =>
-                  failed += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f + 1, s, i)
                   (TestStatus.Failed, "failed")
                 case sbt.testing.Status.Error =>
-                  failed += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f + 1, s, i)
                   (TestStatus.Failed, "error")
                 case sbt.testing.Status.Skipped =>
-                  skipped += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s + 1, i)
                   (TestStatus.Skipped, "skipped")
                 case sbt.testing.Status.Ignored =>
-                  ignored += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s, i + 1)
                   (TestStatus.Ignored, "ignored")
                 case sbt.testing.Status.Canceled =>
-                  skipped += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s + 1, i)
                   (TestStatus.Cancelled, "cancelled")
                 case sbt.testing.Status.Pending =>
-                  skipped += 1
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s + 1, i)
                   (TestStatus.Skipped, "pending")
               }
 
@@ -629,9 +634,10 @@ object ScalaNativeTestRunner {
             executeNested(nestedTasks)
           }
 
-          // Finish all tracked suites
+          // Finish all tracked suites with per-suite counts
           suiteNames.foreach { name =>
-            eventHandler.onSuiteFinished(name, passed, failed, skipped)
+            val (p, f, s, _) = suiteCounts.getOrElse(name, (0, 0, 0, 0))
+            eventHandler.onSuiteFinished(name, p, f, s)
           }
 
           // runner.done() signals the native process to shut down.
@@ -640,7 +646,11 @@ object ScalaNativeTestRunner {
           try runner.done()
           catch { case _: Exception => () }
           eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
-          TestResult(passed, failed, skipped, ignored, TerminationReason.Completed)
+          val totalPassed = suiteCounts.values.map(_._1).sum
+          val totalFailed = suiteCounts.values.map(_._2).sum
+          val totalSkipped = suiteCounts.values.map(_._3).sum
+          val totalIgnored = suiteCounts.values.map(_._4).sum
+          TestResult(totalPassed, totalFailed, totalSkipped, totalIgnored, TerminationReason.Completed)
       }
     } finally
       // Close adapter (kills native process)
