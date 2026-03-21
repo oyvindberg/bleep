@@ -232,6 +232,8 @@ object BuildStateReducer {
 
     case BuildEvent.SuiteFinished(project, suite, _, failed, _, _, _, _) =>
       val key = s"$project:$suite"
+      // Check if SuiteError already counted this suite (SuiteError can arrive before SuiteFinished)
+      val alreadyCounted = state.failures.exists(f => f.project == project && f.suite == suite && f.category == FailureCategory.ProcessError)
       // If suite reports failures but no individual TestFinished events created TestFailure entries,
       // create a synthetic failure so the summary shows useful info instead of "detailed info was not captured"
       val existingFailuresForSuite = state.failures.count(f => f.project == project && f.suite == suite)
@@ -250,8 +252,8 @@ object BuildStateReducer {
         )
       } else Nil
       state.copy(
-        suitesCompleted = state.suitesCompleted + 1,
-        suitesFailed = state.suitesFailed + (if (failed > 0) 1 else 0),
+        suitesCompleted = if (alreadyCounted) state.suitesCompleted else state.suitesCompleted + 1,
+        suitesFailed = if (alreadyCounted) state.suitesFailed else state.suitesFailed + (if (failed > 0) 1 else 0),
         currentlyRunning = state.currentlyRunning - key,
         suiteStartTimes = state.suiteStartTimes - key,
         pendingOutput = state.pendingOutput - key,
@@ -428,10 +430,10 @@ object BuildStateReducer {
       // between socket EOF and BSP shutdown are spurious.
       val authoritativeCancelled = if (suitesCancelled > 0) state.cancelledSuites.take(suitesCancelled) else Nil
       state.copy(
-        testsPassed = math.max(state.testsPassed, totalPassed),
-        testsFailed = math.max(state.testsFailed, totalFailed),
-        testsSkipped = math.max(state.testsSkipped, totalSkipped),
-        testsIgnored = math.max(state.testsIgnored, totalIgnored),
+        testsPassed = totalPassed,
+        testsFailed = totalFailed,
+        testsSkipped = totalSkipped,
+        testsIgnored = totalIgnored,
         suitesTotal = suitesTotal,
         suitesCompleted = suitesCompleted,
         suitesFailed = suitesFailed,
