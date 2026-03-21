@@ -149,7 +149,7 @@ object BleepBspProtocol {
     * problem.rendered()). `path` is the full file path with line:col suffix.
     */
   case class Diagnostic(
-      severity: String, // "error", "warning", "info"
+      severity: DiagnosticSeverity,
       message: String,
       rendered: Option[String],
       path: Option[String] // full path:line:col for file-associated diagnostics
@@ -158,9 +158,9 @@ object BleepBspProtocol {
   object Diagnostic {
     implicit val codec: Codec[Diagnostic] = deriveCodec
 
-    def error(message: String): Diagnostic = Diagnostic("error", message, None, None)
-    def warning(message: String): Diagnostic = Diagnostic("warning", message, None, None)
-    def info(message: String): Diagnostic = Diagnostic("info", message, None, None)
+    def error(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Error, message, None, None)
+    def warning(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Warning, message, None, None)
+    def info(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Info, message, None, None)
   }
 
   // ==========================================================================

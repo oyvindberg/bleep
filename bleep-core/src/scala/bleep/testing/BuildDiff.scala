@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, TestStatus}
 
 /** Indexed view of a previous run's results, built from events, for fast per-project diff lookups.
   *
@@ -140,10 +140,10 @@ object BuildDiff {
       previousDiagnostics: List[BleepBspProtocol.Diagnostic],
       durationMs: Long
   ): CompileDiff = {
-    val currentErrors = currentDiagnostics.filter(_.severity == "error")
-    val currentWarnings = currentDiagnostics.filter(_.severity == "warning")
-    val previousErrors = previousDiagnostics.filter(_.severity == "error")
-    val previousWarnings = previousDiagnostics.filter(_.severity == "warning")
+    val currentErrors = currentDiagnostics.filter(_.severity == DiagnosticSeverity.Error)
+    val currentWarnings = currentDiagnostics.filter(_.severity == DiagnosticSeverity.Warning)
+    val previousErrors = previousDiagnostics.filter(_.severity == DiagnosticSeverity.Error)
+    val previousWarnings = previousDiagnostics.filter(_.severity == DiagnosticSeverity.Warning)
 
     val (newErrors, fixedErrors) = diffMultiset(countKeys(currentErrors), countKeys(previousErrors))
     val (newWarnings, fixedWarnings) = diffMultiset(countKeys(currentWarnings), countKeys(previousWarnings))

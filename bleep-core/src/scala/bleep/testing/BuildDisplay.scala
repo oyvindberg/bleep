@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, DiagnosticSeverity, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.syntax.all._
@@ -141,7 +141,7 @@ object BuildSummary {
           val secs = kt.elapsedMs / 1000.0
           f" (ran for ${secs}%.1fs)"
         } else ""
-        lines += s"  ${C.YELLOW}!${C.RESET} ${kt.kind}: ${kt.project}$elapsed"
+        lines += s"  ${C.YELLOW}!${C.RESET} ${kt.kind.label}: ${kt.project}$elapsed"
       }
       lines += ""
     }
@@ -159,8 +159,8 @@ object BuildSummary {
       lines += ""
 
       summary.compileFailures.foreach { cf =>
-        val errors = cf.diagnostics.filter(_.severity == "error")
-        val warnings = cf.diagnostics.filter(_.severity == "warning")
+        val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+        val warnings = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
         val countParts = List(
           if (errors.nonEmpty) Some(s"${errors.size} error${if (errors.size != 1) "s" else ""}") else None,
           if (warnings.nonEmpty) Some(s"${warnings.size} warning${if (warnings.size != 1) "s" else ""}") else None
@@ -464,9 +464,19 @@ case class CancelledSuite(
     reason: Option[String]
 )
 
+/** Kind of build task. */
+sealed trait TaskKind {
+  def label: String
+}
+object TaskKind {
+  case object Compile extends TaskKind { val label = "compile" }
+  case object Link extends TaskKind { val label = "link" }
+  case object Test extends TaskKind { val label = "test" }
+}
+
 /** A task that was started but never finished (e.g. compile or test suite killed by user cancellation) */
 case class KilledTask(
-    kind: String, // "compile", "link", "test"
+    kind: TaskKind,
     project: String, // project name, or "project:suite" for test suites
     elapsedMs: Long
 )
@@ -840,8 +850,8 @@ object BuildDisplay {
         _ <- log("")
         _ <- log(SConsole.RED + "Compilation Failures:" + SConsole.RESET)
         _ <- failures.traverse_ { f =>
-          val errors = f.diagnostics.filter(_.severity == "error")
-          val warnings = f.diagnostics.filter(_.severity == "warning")
+          val errors = f.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+          val warnings = f.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
           val errorCount = errors.size
           val warningCount = warnings.size
           val countSuffix = {
@@ -973,7 +983,7 @@ object BuildDisplay {
         val line = BuildDiff.formatCompileDiff(diff)
         // For failed compiles, also show the actual errors
         if (cf.status == bleep.bsp.protocol.CompileStatus.Failed && cf.diagnostics.nonEmpty) {
-          val errors = cf.diagnostics.filter(_.severity == "error")
+          val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
           val errorLines = errors.take(10).flatMap { d =>
             val text = d.rendered.getOrElse(d.message)
             text.linesIterator.map(l => s"  ${SConsole.RED}|${SConsole.RESET} $l").toList
@@ -1044,7 +1054,7 @@ object BuildDisplay {
               val diff = BuildDiff.diffCompile(project, CompileStatus.Success, current, prev, 0)
               diff.fixedErrors
             }.sum
-            val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == "error")
+            val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Error)
             log(BuildDiff.formatCompileSummary(s.compilesCompleted, totalErrors, 0, totalNew, totalFixed))
 
           case BuildMode.Test =>

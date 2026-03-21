@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{DiagnosticSeverity, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.effect.std.Queue
@@ -1212,8 +1212,8 @@ object FancyBuildDisplay {
 
     // Show compile failures: errors first, collect warnings for the bottom
     state.core.compileFailures.foreach { cf =>
-      val errors = cf.diagnostics.filter(_.severity == "error")
-      val warnings = cf.diagnostics.filter(_.severity == "warning")
+      val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+      val warnings = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
       val skippedCount = state.core.skippedProjects.count(_.reason.contains(cf.project))
       val skippedSuffix = if (skippedCount > 0) s" (${skippedCount} skipped)" else ""
 
@@ -1286,8 +1286,8 @@ object FancyBuildDisplay {
     // Warnings at the bottom — new warnings always appear at the end
     items ++= warningItems
 
-    val totalErrors = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == "error") + state.core.failures.size
-    val totalWarnings = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == "warning")
+    val totalErrors = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Error) + state.core.failures.size
+    val totalWarnings = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Warning)
     val title =
       if (totalWarnings > 0) s"Issues ($totalErrors errors, $totalWarnings warnings)"
       else s"Issues ($totalErrors)"

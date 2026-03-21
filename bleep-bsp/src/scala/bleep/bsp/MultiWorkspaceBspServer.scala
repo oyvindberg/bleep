@@ -2794,7 +2794,7 @@ class MultiWorkspaceBspServer(
                     // Ensure diagnostics always contain the error message — the errorMsg field
                     // has the human-readable description but was previously discarded
                     val effectiveDiags =
-                      if (diags.exists(d => d.severity == "error" && d.message.nonEmpty)) diags
+                      if (diags.exists(d => d.severity == bleep.bsp.protocol.DiagnosticSeverity.Error && d.message.nonEmpty)) diags
                       else List(BleepBspProtocol.Diagnostic.error(errorMsg))
                     BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
                   case TaskDag.TaskResult.Error(error, _, _) =>
@@ -3112,9 +3112,9 @@ class MultiWorkspaceBspServer(
       s"$p$locPart"
     }
     val severity = error.severity match {
-      case CompilerError.Severity.Error   => "error"
-      case CompilerError.Severity.Warning => "warning"
-      case CompilerError.Severity.Info    => "info"
+      case CompilerError.Severity.Error   => bleep.bsp.protocol.DiagnosticSeverity.Error
+      case CompilerError.Severity.Warning => bleep.bsp.protocol.DiagnosticSeverity.Warning
+      case CompilerError.Severity.Info    => bleep.bsp.protocol.DiagnosticSeverity.Info
     }
     BleepBspProtocol.Diagnostic(severity, error.message, error.rendered, pathStr)
   }

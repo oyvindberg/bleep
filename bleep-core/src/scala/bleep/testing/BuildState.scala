@@ -48,15 +48,15 @@ case class BuildState(
     val nowMs = System.currentTimeMillis()
     val killedCompiles = currentlyCompiling.toList.sorted.map { project =>
       val startedAt = compileStartTimes.getOrElse(project, nowMs)
-      KilledTask("compile", project, nowMs - startedAt)
+      KilledTask(TaskKind.Compile, project, nowMs - startedAt)
     }
     val killedLinks = currentlyLinking.toList.sorted.map { project =>
-      KilledTask("link", project, 0)
+      KilledTask(TaskKind.Link, project, 0)
     }
     // currentlyRunning keys are "project:suite" or "project:suite:test" — only take suite-level
     val killedSuites = currentlyRunning.toList.filter(_.count(_ == ':') == 1).sorted.map { key =>
       val startedAt = suiteStartTimes.getOrElse(key, nowMs)
-      KilledTask("test", key, nowMs - startedAt)
+      KilledTask(TaskKind.Test, key, nowMs - startedAt)
     }
     BuildSummary(
       sourcegenFailed = sourcegenFailed,
