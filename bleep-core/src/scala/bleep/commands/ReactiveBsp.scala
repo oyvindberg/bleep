@@ -350,6 +350,7 @@ case class ReactiveBsp(
         case ReactiveBsp.BspAttemptResult.ServerCrashed =>
           IO(bspLogger.warn("BSP server crashed, restarting and retrying...")) >>
             IO(diagLog("[RETRY] Server crashed, killing stale server and retrying")) >>
+            display.reset >> // Reset display state to avoid double-counting events from crashed attempt
             BspRifle.forceStop(config) >>
             BspRifle.ensureRunning(config, bspLogger) >>
             attemptBspOperation.void

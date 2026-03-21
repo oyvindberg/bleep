@@ -25,6 +25,9 @@ trait BuildDisplay {
   /** Get the current summary */
   def summary: IO[BuildSummary]
 
+  /** Reset display state (e.g., before retry after server crash) */
+  def reset: IO[Unit]
+
   /** Print final summary */
   def printSummary: IO[Unit]
 }
@@ -491,6 +494,12 @@ object BuildDisplay {
       upToDateProjects: Ref[IO, Set[String]]
   ) extends BuildDisplay {
 
+    override def reset: IO[Unit] = state.set(BuildState.empty) >> IO {
+      activeCompileProgress.clear()
+      lastProgressLine = ""
+      activePhase.clear()
+    }
+
     // Track active compilations and their progress for progressMonitor display
     private val activeCompileProgress: mutable.Map[String, Int] = mutable.Map.empty
     private var lastProgressLine: String = ""
@@ -938,6 +947,8 @@ object BuildDisplay {
       currentTestResults: Ref[IO, List[BuildEvent.TestFinished]]
   ) extends BuildDisplay {
 
+    override def reset: IO[Unit] = state.set(BuildState.empty) >> currentTestResults.set(Nil)
+
     private def log(msg: String): IO[Unit] = IO.delay(logger.info(msg))
     private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
     private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
@@ -1057,6 +1068,8 @@ object BuildDisplay {
       state: Ref[IO, BuildState],
       startTime: Long
   ) extends BuildDisplay {
+
+    override def reset: IO[Unit] = state.set(BuildState.empty)
 
     override def handle(event: BuildEvent): IO[Unit] =
       for {
