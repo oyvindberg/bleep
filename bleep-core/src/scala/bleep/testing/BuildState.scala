@@ -428,10 +428,10 @@ object BuildStateReducer {
       // between socket EOF and BSP shutdown are spurious.
       val authoritativeCancelled = if (suitesCancelled > 0) state.cancelledSuites.take(suitesCancelled) else Nil
       state.copy(
-        testsPassed = totalPassed,
-        testsFailed = totalFailed,
-        testsSkipped = totalSkipped,
-        testsIgnored = totalIgnored,
+        testsPassed = math.max(state.testsPassed, totalPassed),
+        testsFailed = math.max(state.testsFailed, totalFailed),
+        testsSkipped = math.max(state.testsSkipped, totalSkipped),
+        testsIgnored = math.max(state.testsIgnored, totalIgnored),
         suitesTotal = suitesTotal,
         suitesCompleted = suitesCompleted,
         suitesFailed = suitesFailed,

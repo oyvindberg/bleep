@@ -527,7 +527,7 @@ object TaskDag {
     def execute(
         dag: Dag,
         maxParallelism: Int,
-        eventQueue: Queue[IO, DagEvent],
+        eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag]
   }
@@ -566,12 +566,12 @@ object TaskDag {
     override def execute(
         initialDag: Dag,
         maxParallelism: Int,
-        eventQueue: Queue[IO, DagEvent],
+        eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag] = {
       def now: IO[Long] = IO.realTime.map(_.toMillis)
 
-      def emit(event: DagEvent): IO[Unit] = eventQueue.offer(event)
+      def emit(event: DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
       /** Check if kill has been requested (non-blocking) */
       def isKilled: IO[Option[KillReason]] = killSignal.tryGet

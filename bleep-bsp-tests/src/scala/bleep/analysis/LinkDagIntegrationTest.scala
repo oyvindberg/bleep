@@ -225,7 +225,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val result = (for {
-      eventQueue <- Queue.unbounded[IO, DagEvent]
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
@@ -265,7 +265,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val events = (for {
-      eventQueue <- Queue.unbounded[IO, DagEvent]
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       _ <- executor.execute(dag, 4, eventQueue, killSignal)
       allEvents <- drainQueue(eventQueue)
@@ -300,7 +300,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val result = (for {
-      eventQueue <- Queue.unbounded[IO, DagEvent]
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
@@ -349,11 +349,12 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
   // Helpers
   // ==========================================================================
 
-  private def drainQueue(queue: Queue[IO, DagEvent]): IO[List[DagEvent]] = {
+  private def drainQueue(queue: Queue[IO, Option[DagEvent]]): IO[List[DagEvent]] = {
     def loop(acc: List[DagEvent]): IO[List[DagEvent]] =
       queue.tryTake.flatMap {
-        case Some(event) => loop(event :: acc)
-        case None        => IO.pure(acc.reverse)
+        case Some(Some(event)) => loop(event :: acc)
+        case Some(None)        => IO.pure(acc.reverse) // poison pill
+        case None              => IO.pure(acc.reverse)
       }
     // Small delay to let events accumulate
     IO.sleep(scala.concurrent.duration.Duration(100, scala.concurrent.duration.MILLISECONDS)) >> loop(Nil)

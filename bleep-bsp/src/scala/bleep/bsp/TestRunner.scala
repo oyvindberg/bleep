@@ -60,7 +60,7 @@ object TestRunner {
       framework: String,
       classpath: List[Path],
       pool: JvmPool,
-      eventQueue: Queue[IO, TaskDag.DagEvent],
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       options: Options,
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -89,14 +89,14 @@ object TestRunner {
       suiteName: String,
       framework: String,
       jvm: TestJvm,
-      eventQueue: Queue[IO, TaskDag.DagEvent],
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       testArgs: List[String],
       idleTimeout: FiniteDuration,
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
     def now: IO[Long] = IO.realTime.map(_.toMillis)
 
-    def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(event)
+    def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
     val startTime = System.currentTimeMillis()
 
