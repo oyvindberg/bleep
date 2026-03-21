@@ -2935,9 +2935,12 @@ class MultiWorkspaceBspServer(
               IO(sendTestEvent(originId, s"link:$project", protocolEvent))
         }
 
-      // If notification fails due to dead connection, trigger kill signal to stop work.
-      // For other errors (e.g. serialization), log and continue.
-      processEvent.handleErrorWith {
+      // After processing, check if any notification send detected a dead client.
+      // sendNotification catches IOException (to avoid crashing compiler callbacks)
+      // and sets clientDisconnected flag instead. We check it here to trigger kill signal.
+      (processEvent >> IO.whenA(clientDisconnected.get()) {
+        IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
+      }).handleErrorWith {
         case error: java.io.IOException =>
           IO(logger.withContext("error", error.getMessage).error("Event send failed (connection dead)")) >>
             killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
@@ -3068,9 +3071,9 @@ class MultiWorkspaceBspServer(
           IO.unit
       }
 
-      // If notification fails due to dead connection, trigger kill signal to stop compiling.
-      // For other errors (e.g. serialization), log and continue — compilation is still valid.
-      processEvent.handleErrorWith {
+      (processEvent >> IO.whenA(clientDisconnected.get()) {
+        IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
+      }).handleErrorWith {
         case error: java.io.IOException =>
           IO(logger.withContext("error", error.getMessage).error("Compile event send failed (connection dead)")) >>
             killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
@@ -3180,6 +3183,11 @@ class MultiWorkspaceBspServer(
     *
     * Notifications are best-effort — a disconnected client should not crash the server or abort compilation. Log the error and continue.
     */
+  /** Set to true when a notification send fails with IOException, indicating the client has disconnected.
+    * Checked by event consumers to trigger kill signal.
+    */
+  private val clientDisconnected = new java.util.concurrent.atomic.AtomicBoolean(false)
+
   private def sendNotification[T](method: String, params: T)(using codec: JsonValueCodec[T]): Unit = {
     val notification = JsonRpcNotification(
       jsonrpc = "2.0",
@@ -3189,6 +3197,7 @@ class MultiWorkspaceBspServer(
     try transport.sendNotification(notification)
     catch {
       case e: java.io.IOException =>
+        clientDisconnected.set(true)
         logger.withContext("method", method).withContext("error", e.getMessage).error("Failed to send notification (client disconnected)")
       case e: Exception =>
         logger.withContext("method", method).withContext("error", e.getMessage).error("Failed to send notification", e)
