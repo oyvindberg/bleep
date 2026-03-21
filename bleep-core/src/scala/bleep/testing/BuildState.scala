@@ -1,5 +1,7 @@
 package bleep.testing
 
+import bleep.bsp.protocol.TestStatus
+
 /** Canonical state for build/test progress tracking.
   *
   * This is the single source of truth for counting and classification. All display implementations (basic, fancy bridge, TUI) derive their state from this via
@@ -155,21 +157,22 @@ object BuildStateReducer {
       state
 
     case BuildEvent.CompileFinished(project, status, durationMs, _, diagnostics, skippedBecause) =>
+      import bleep.bsp.protocol.CompileStatus
       val updatedCompileFailures = status match {
-        case "failed" | "error" => ProjectCompileFailure(project, diagnostics) :: state.compileFailures
-        case _                  => state.compileFailures
+        case CompileStatus.Failed | CompileStatus.Error => ProjectCompileFailure(project, diagnostics) :: state.compileFailures
+        case _                                          => state.compileFailures
       }
       val updatedSkippedProjects = status match {
-        case "skipped" =>
+        case CompileStatus.Skipped =>
           val reason = skippedBecause.map(dep => s"dependency $dep failed").getOrElse("dependency failed")
           SkippedProject(project, reason) :: state.skippedProjects
         case _ => state.skippedProjects
       }
       state.copy(
         compilesCompleted = state.compilesCompleted + 1,
-        compilesFailed = state.compilesFailed + (if (status == "failed" || status == "error") 1 else 0),
-        compilesSkipped = state.compilesSkipped + (if (status == "skipped") 1 else 0),
-        compilesCancelled = state.compilesCancelled + (if (status == "cancelled") 1 else 0),
+        compilesFailed = state.compilesFailed + (if (!status.isSuccess && status != CompileStatus.Skipped && status != CompileStatus.Cancelled) 1 else 0),
+        compilesSkipped = state.compilesSkipped + (if (status == CompileStatus.Skipped) 1 else 0),
+        compilesCancelled = state.compilesCancelled + (if (status == CompileStatus.Cancelled) 1 else 0),
         currentlyCompiling = state.currentlyCompiling - project,
         compileStartTimes = state.compileStartTimes - project,
         compileFailures = updatedCompileFailures,

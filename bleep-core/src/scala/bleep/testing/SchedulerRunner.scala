@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.bsp.protocol.TestStatus
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -187,16 +188,16 @@ class SchedulerInterpreter(
 
                 case Right(TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable)) =>
                   val testStatus = TestStatus.fromString(status)
-                  val newState = status match {
-                    case "passed" => state.copy(passed = state.passed + 1)
-                    case "failed" =>
+                  val newState = testStatus match {
+                    case TestStatus.Passed => state.copy(passed = state.passed + 1)
+                    case s if s.isFailure =>
                       state.copy(
                         failed = state.failed + 1,
                         failures = state.failures :+ TestFailureInfo(TestTypes.TestName(test), message, throwable)
                       )
-                    case "skipped" => state.copy(skipped = state.skipped + 1)
-                    case "ignored" => state.copy(ignored = state.ignored + 1)
-                    case _         => state
+                    case TestStatus.Skipped | TestStatus.AssumptionFailed => state.copy(skipped = state.skipped + 1)
+                    case TestStatus.Ignored | TestStatus.Pending          => state.copy(ignored = state.ignored + 1)
+                    case _                                                => state
                   }
                   // Emit TestActivity to scheduler (resets idle timeout) and display event
                   for {

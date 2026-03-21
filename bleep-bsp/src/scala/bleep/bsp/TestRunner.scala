@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
 import bleep.model.CrossProjectName
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}
 import cats.effect._
@@ -117,18 +117,12 @@ object TestRunner {
             case TestProtocol.TestResponse.TestStarted(_, test) =>
               now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project.value, suiteName, test, ts)))
 
-            case TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable) =>
-              val updateCount = status match {
-                case "passed" =>
-                  passedCount.update(_ + 1)
-                case "failed" | "error" =>
-                  failedCount.update(_ + 1) >>
-                    failures.update(test :: _)
-                case "skipped" | "ignored" | "pending" | "cancelled" =>
-                  skippedCount.update(_ + 1)
-                case _ =>
-                  IO.unit
-              }
+            case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable) =>
+              val status = TestStatus.fromString(statusStr)
+              val updateCount =
+                if (status == TestStatus.Passed) passedCount.update(_ + 1)
+                else if (status.isFailure) failedCount.update(_ + 1) >> failures.update(test :: _)
+                else skippedCount.update(_ + 1)
               updateCount >> now.flatMap { ts =>
                 // Reset idle timeout on each test completion
                 lastActivityAt.set(ts) >>

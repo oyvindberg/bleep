@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import bleep.model.CrossProjectName
 import cats.effect._
@@ -223,7 +223,7 @@ object TaskDag {
         project: String,
         suite: String,
         test: String,
-        status: String,
+        status: TestStatus,
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],

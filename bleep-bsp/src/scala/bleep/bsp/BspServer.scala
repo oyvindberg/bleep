@@ -1243,10 +1243,10 @@ class BspServer(
                 if (allSuites.isEmpty) {
                   IO.delay(sendLogMessage("No test suites discovered", MessageType.Warning)).as(true)
                 } else {
-                  val eventHandler = new ScalaJsTestRunner.TestEventHandler {
+                  val eventHandler = new TestRunnerTypes.TestEventHandler {
                     def onTestStarted(suite: String, test: String): Unit =
                       sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-                    def onTestFinished(suite: String, test: String, status: ScalaJsTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+                    def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
                       sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
                     def onSuiteStarted(suite: String): Unit =
                       sendLogMessage(s"Suite: $suite", MessageType.Log)
@@ -1313,10 +1313,10 @@ class BspServer(
       )
       result <- linkResult match {
         case TaskDag.LinkResult.NativeSuccess(binary, _) =>
-          val eventHandler = new ScalaNativeTestRunner.TestEventHandler {
+          val eventHandler = new TestRunnerTypes.TestEventHandler {
             def onTestStarted(suite: String, test: String): Unit =
               sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-            def onTestFinished(suite: String, test: String, status: ScalaNativeTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+            def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
               sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
             def onSuiteStarted(suite: String): Unit =
               sendLogMessage(s"Suite: $suite", MessageType.Log)
@@ -1372,10 +1372,10 @@ class BspServer(
           if (suites.isEmpty) {
             IO.delay(sendLogMessage("No Kotlin/JS test suites discovered", MessageType.Warning)).as(true)
           } else {
-            val eventHandler = new KotlinTestRunner.TestEventHandler {
+            val eventHandler = new TestRunnerTypes.TestEventHandler {
               def onTestStarted(suite: String, test: String): Unit =
                 sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-              def onTestFinished(suite: String, test: String, status: KotlinTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+              def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
                 sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
               def onSuiteStarted(suite: String): Unit =
                 sendLogMessage(s"Suite: $suite", MessageType.Log)
@@ -1416,10 +1416,10 @@ class BspServer(
           if (suites.isEmpty) {
             IO.delay(sendLogMessage("No Kotlin/Native test suites discovered", MessageType.Warning)).as(true)
           } else {
-            val eventHandler = new KotlinTestRunner.TestEventHandler {
+            val eventHandler = new TestRunnerTypes.TestEventHandler {
               def onTestStarted(suite: String, test: String): Unit =
                 sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-              def onTestFinished(suite: String, test: String, status: KotlinTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+              def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
                 sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
               def onSuiteStarted(suite: String): Unit =
                 sendLogMessage(s"Suite: $suite", MessageType.Log)

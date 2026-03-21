@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.bsp.protocol.TestStatus
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.effect.std.Queue
@@ -451,14 +452,14 @@ object FancyBuildDisplay {
         }
 
       case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, _) =>
+        import bleep.bsp.protocol.{CompilePhase => CP}
         state.compilingProjects.get(project).foreach { cp =>
           val displayPhase = phase match {
-            case "reading-analysis" if trackedApis > 0 => Some(s"reading analysis ($trackedApis APIs)")
-            case "reading-analysis"                    => Some("reading analysis")
-            case "analyzing"                           => Some("analyzing")
-            case "compiling"                           => None // CompileProgress takes over
-            case "saving-analysis"                     => Some("saving analysis")
-            case _                                     => None
+            case CP.ReadingAnalysis if trackedApis > 0 => Some(s"reading analysis ($trackedApis APIs)")
+            case CP.ReadingAnalysis                    => Some("reading analysis")
+            case CP.Analyzing                          => Some("analyzing")
+            case CP.Compiling                          => None // CompileProgress takes over
+            case CP.SavingAnalysis                     => Some("saving analysis")
           }
           state.compilingProjects.put(project, cp.copy(phase = displayPhase)): Unit
         }

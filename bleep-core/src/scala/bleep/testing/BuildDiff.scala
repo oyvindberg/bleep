@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, TestStatus}
 
 /** Indexed view of a previous run's results, built from events, for fast per-project diff lookups.
   *
@@ -8,7 +8,7 @@ import bleep.bsp.protocol.BleepBspProtocol
   */
 case class PreviousRunState(
     compileDiagnostics: Map[String, List[BleepBspProtocol.Diagnostic]],
-    testResults: Map[(String, String, String), String] // (project, suite, test) -> status
+    testResults: Map[(String, String, String), TestStatus] // (project, suite, test) -> status
 )
 
 object PreviousRunState {
@@ -17,24 +17,13 @@ object PreviousRunState {
   /** Build from a list of BuildEvents collected during a run */
   def fromEvents(events: List[BuildEvent]): PreviousRunState = {
     val compileDiags = Map.newBuilder[String, List[BleepBspProtocol.Diagnostic]]
-    val testRes = Map.newBuilder[(String, String, String), String]
+    val testRes = Map.newBuilder[(String, String, String), TestStatus]
 
     events.foreach {
       case e: BuildEvent.CompileFinished =>
         compileDiags += e.project -> e.diagnostics
       case e: BuildEvent.TestFinished =>
-        val statusStr = e.status match {
-          case TestStatus.Passed           => "passed"
-          case TestStatus.Failed           => "failed"
-          case TestStatus.Error            => "error"
-          case TestStatus.Skipped          => "skipped"
-          case TestStatus.Ignored          => "ignored"
-          case TestStatus.Cancelled        => "cancelled"
-          case TestStatus.AssumptionFailed => "assumption_failed"
-          case TestStatus.Timeout          => "timeout"
-          case TestStatus.Pending          => "pending"
-        }
-        testRes += (e.project, e.suite, e.test) -> statusStr
+        testRes += (e.project, e.suite, e.test) -> e.status
       case _ => ()
     }
 
@@ -44,7 +33,7 @@ object PreviousRunState {
   /** Build from a list of BleepBspProtocol events (used by MCP server which stores protocol events directly) */
   def fromProtocolEvents(events: List[BleepBspProtocol.Event]): PreviousRunState = {
     val compileDiags = Map.newBuilder[String, List[BleepBspProtocol.Diagnostic]]
-    val testRes = Map.newBuilder[(String, String, String), String]
+    val testRes = Map.newBuilder[(String, String, String), TestStatus]
 
     events.foreach {
       case e: BleepBspProtocol.Event.CompileFinished =>
@@ -79,7 +68,7 @@ object BuildDiff {
   /** Result of diffing diagnostics for a single project */
   case class CompileDiff(
       project: String,
-      status: String,
+      status: CompileStatus,
       totalErrors: Int,
       totalWarnings: Int,
       newErrors: Int,
@@ -94,7 +83,7 @@ object BuildDiff {
     val project = diff.project
     val duration = s"(${diff.durationMs}ms)"
 
-    if (diff.status == "success" || diff.status == "skipped") {
+    if (diff.status == CompileStatus.Success || diff.status == CompileStatus.Skipped) {
       if (diff.fixedErrors > 0) {
         val fixedStr = s"fixed ${diff.fixedErrors} error${plural(diff.fixedErrors)}"
         val warningStr = if (diff.totalWarnings > 0) s", ${diff.totalWarnings} warning${plural(diff.totalWarnings)}" else ""
@@ -146,7 +135,7 @@ object BuildDiff {
   /** Compute compile diff for a single project */
   def diffCompile(
       project: String,
-      status: String,
+      status: CompileStatus,
       currentDiagnostics: List[BleepBspProtocol.Diagnostic],
       previousDiagnostics: List[BleepBspProtocol.Diagnostic],
       durationMs: Long
@@ -214,7 +203,7 @@ object BuildDiff {
       project: String,
       suite: String,
       currentTests: List[BuildEvent.TestFinished],
-      previousTestResults: Map[(String, String, String), String],
+      previousTestResults: Map[(String, String, String), TestStatus],
       passed: Int,
       failed: Int,
       skipped: Int,
@@ -232,7 +221,7 @@ object BuildDiff {
 
       prevStatus match {
         case Some(prev) =>
-          val prevFailed = prev == "failed" || prev == "error" || prev == "timeout" || prev == "cancelled"
+          val prevFailed = prev.isFailure
           if (currentFailed && !prevFailed) newFailures += t.test
           else if (!currentFailed && prevFailed) fixedTests += t.test
           else if (currentFailed && prevFailed) stillFailing += t.test

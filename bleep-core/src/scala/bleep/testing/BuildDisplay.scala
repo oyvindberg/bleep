@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.syntax.all._
@@ -506,7 +506,7 @@ object BuildDisplay {
 
     // Track compile phase start times per project: project -> (phase, detail, startTimestamp)
     // Used to print completed phase with duration when next phase arrives or compile finishes
-    private val activePhase: mutable.Map[String, (String, String, Long)] = mutable.Map.empty
+    private val activePhase: mutable.Map[String, (bleep.bsp.protocol.CompilePhase, String, Long)] = mutable.Map.empty
 
     private val progressMonitor: Option[LoggerFn] = logger match {
       case tl: TypedLogger[?] => tl.progressMonitor
@@ -540,13 +540,15 @@ object BuildDisplay {
     private def logWarnP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).warn(msg))
     private def logErrorP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).error(msg))
 
-    /** Convert phase name to past tense for completed-phase logging */
-    private def phasePastTense(phase: String): String = phase match {
-      case "reading-analysis" => "read analysis"
-      case "analyzing"        => "analyzed"
-      case "compiling"        => "compiled"
-      case "saving-analysis"  => "saved analysis"
-      case other              => other
+    /** Convert phase to past tense for completed-phase logging */
+    private def phasePastTense(phase: bleep.bsp.protocol.CompilePhase): String = {
+      import bleep.bsp.protocol.CompilePhase
+      phase match {
+        case CompilePhase.ReadingAnalysis => "read analysis"
+        case CompilePhase.Analyzing       => "analyzed"
+        case CompilePhase.Compiling       => "compiled"
+        case CompilePhase.SavingAnalysis  => "saved analysis"
+      }
     }
 
     /** Log the previously active phase as completed with duration, then record the new phase. */
@@ -603,6 +605,7 @@ object BuildDisplay {
         trackUpToDate >> printMsg
 
       case BuildEvent.CompileFinished(project, status, durationMs, timestamp, _, _) =>
+        import bleep.bsp.protocol.CompileStatus
         // Complete the last tracked phase (e.g. saving-analysis) and clean up
         val finishPhase = completePhase(project, timestamp)
         // Remove from active progress tracking
@@ -613,16 +616,15 @@ object BuildDisplay {
         finishPhase >> removeProgress >>
           // Suppress output for up-to-date projects (only show single line from CompilationReason)
           upToDateProjects.get.flatMap { upToDate =>
-            if (upToDate.contains(project) && status == "success") {
+            if (upToDate.contains(project) && status == CompileStatus.Success) {
               IO.unit // Already showed "project: up to date" - nothing more needed
             } else if (!quietMode) {
               val (emoji, displayStatus) = status match {
-                case "success"   => ("✅", "compiled")
-                case "failed"    => ("❌", "compile failed")
-                case "error"     => ("❌", "compile error")
-                case "skipped"   => ("⏭️", "skipped")
-                case "cancelled" => ("🚫", "cancelled")
-                case other       => ("❓", other)
+                case CompileStatus.Success   => ("✅", "compiled")
+                case CompileStatus.Failed    => ("❌", "compile failed")
+                case CompileStatus.Error     => ("❌", "compile error")
+                case CompileStatus.Skipped   => ("⏭️", "skipped")
+                case CompileStatus.Cancelled => ("🚫", "cancelled")
               }
               logP(project, s"$emoji $displayStatus (${durationMs}ms)")
             } else IO.unit
@@ -970,7 +972,7 @@ object BuildDisplay {
         val diff = BuildDiff.diffCompile(cf.project, cf.status, cf.diagnostics, previousDiags, cf.durationMs)
         val line = BuildDiff.formatCompileDiff(diff)
         // For failed compiles, also show the actual errors
-        if (cf.status == "failed" && cf.diagnostics.nonEmpty) {
+        if (cf.status == bleep.bsp.protocol.CompileStatus.Failed && cf.diagnostics.nonEmpty) {
           val errors = cf.diagnostics.filter(_.severity == "error")
           val errorLines = errors.take(10).flatMap { d =>
             val text = d.rendered.getOrElse(d.message)
@@ -1030,15 +1032,16 @@ object BuildDisplay {
         allTests <- currentTestResults.get
         _ <- mode match {
           case BuildMode.Compile | BuildMode.Link(_) =>
-            val totalNew = s.compileFailures.map { cf =>
+            import bleep.bsp.protocol.CompileStatus
+            val totalNew: Int = s.compileFailures.map { cf =>
               val prev = previousRun.compileDiagnostics.getOrElse(cf.project, Nil)
-              val diff = BuildDiff.diffCompile(cf.project, "failed", cf.diagnostics, prev, 0)
+              val diff = BuildDiff.diffCompile(cf.project, CompileStatus.Failed, cf.diagnostics, prev, 0)
               diff.newErrors
             }.sum
-            val totalFixed = previousRun.compileDiagnostics.keys.toList.map { project =>
+            val totalFixed: Int = previousRun.compileDiagnostics.keys.toList.map { project =>
               val prev = previousRun.compileDiagnostics.getOrElse(project, Nil)
               val current = s.compileFailures.find(_.project == project).map(_.diagnostics).getOrElse(Nil)
-              val diff = BuildDiff.diffCompile(project, "unknown", current, prev, 0)
+              val diff = BuildDiff.diffCompile(project, CompileStatus.Success, current, prev, 0)
               diff.fixedErrors
             }.sum
             val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == "error")
@@ -1048,11 +1051,11 @@ object BuildDisplay {
             val newFailures = allTests.count { t =>
               val key = (t.project, t.suite, t.test)
               val prev = previousRun.testResults.get(key)
-              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout" || p == "cancelled")
+              val prevFailed = prev.exists(_.isFailure)
               t.status.isFailure && !prevFailed
             }
             val fixedTests = previousRun.testResults.count { case (key, prev) =>
-              val prevFailed = prev == "failed" || prev == "error" || prev == "timeout" || prev == "cancelled"
+              val prevFailed = prev.isFailure
               val currentResult = allTests.find(t => (t.project, t.suite, t.test) == key)
               prevFailed && currentResult.exists(t => !t.status.isFailure)
             }

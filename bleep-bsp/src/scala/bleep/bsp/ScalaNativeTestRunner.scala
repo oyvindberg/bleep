@@ -3,6 +3,8 @@ package bleep.bsp
 import bleep.analysis._
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.LinkResult
+import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
+import bleep.bsp.protocol.TestStatus
 import cats.effect.{Deferred, IO, Ref}
 import cats.effect.std.Semaphore
 import cats.syntax.all._
@@ -12,88 +14,6 @@ import scala.jdk.CollectionConverters._
 
 /** Runner for Scala Native tests. */
 object ScalaNativeTestRunner {
-
-  /** Test event handler for receiving test execution events. */
-  trait TestEventHandler {
-    def onTestStarted(suite: String, test: String): Unit
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit
-    def onSuiteStarted(suite: String): Unit
-    def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit
-    def onOutput(suite: String, line: String, isError: Boolean): Unit
-    def onRunnerEvent(event: RunnerEvent): Unit = ()
-  }
-
-  /** Events from the test runner about execution status. */
-  sealed trait RunnerEvent
-  object RunnerEvent {
-    case object Started extends RunnerEvent
-    case class Killed(reason: KillReason) extends RunnerEvent
-    case class ProcessExited(exitCode: Int) extends RunnerEvent
-    case class ProcessCrashed(signal: String, exitCode: Int) extends RunnerEvent
-    case class Error(message: String, cause: Option[Throwable]) extends RunnerEvent
-  }
-
-  /** Test execution status. */
-  sealed trait TestStatus
-  object TestStatus {
-    case object Passed extends TestStatus
-    case object Failed extends TestStatus
-    case object Skipped extends TestStatus
-    case object Ignored extends TestStatus
-    case object Cancelled extends TestStatus
-  }
-
-  /** Result of test execution. */
-  case class TestResult(
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
-      terminationReason: TerminationReason
-  ) {
-    def isSuccess: Boolean = failed == 0 && terminationReason == TerminationReason.Completed
-  }
-
-  /** Why the test run terminated. */
-  sealed trait TerminationReason {
-    def description: String
-  }
-  object TerminationReason {
-    case object Completed extends TerminationReason { val description = "completed normally" }
-    case class Killed(reason: KillReason) extends TerminationReason {
-      val description: String = reason match {
-        case KillReason.UserRequest    => "cancelled by user"
-        case KillReason.Timeout        => "timed out"
-        case KillReason.ParentDying    => "parent process dying"
-        case KillReason.ServerShutdown => "server shutting down"
-        case KillReason.DeadClient     => "client disconnected"
-      }
-    }
-    case class Crashed(signal: Int) extends TerminationReason {
-      val description: String = signal match {
-        case 11 => "crashed (SIGSEGV - segmentation fault)"
-        case 6  => "crashed (SIGABRT - aborted)"
-        case 9  => "killed (SIGKILL)"
-        case 15 => "terminated (SIGTERM)"
-        case n  => s"crashed (signal $n)"
-      }
-    }
-    case class ExitCode(code: Int) extends TerminationReason {
-      val description = s"exited with code $code"
-    }
-    case class Error(message: String) extends TerminationReason {
-      val description = s"error: $message"
-    }
-    case class TruncatedOutput(suite: String) extends TerminationReason {
-      val description = s"process exited with truncated output (suite '$suite' started but never finished)"
-    }
-  }
-
-  /** A test suite. */
-  case class TestSuite(
-      name: String,
-      fullyQualifiedName: String
-  )
 
   /** Detected test framework. */
   sealed trait TestFramework {
@@ -561,35 +481,35 @@ object ScalaNativeTestRunner {
 
               eventHandler.onTestStarted(suiteName, testName)
 
-              val (status, statusEnum) = event.status() match {
+              val status = event.status() match {
                 case sbt.testing.Status.Success =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p + 1, f, s, i)
-                  (TestStatus.Passed, "passed")
+                  TestStatus.Passed
                 case sbt.testing.Status.Failure =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p, f + 1, s, i)
-                  (TestStatus.Failed, "failed")
+                  TestStatus.Failed
                 case sbt.testing.Status.Error =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p, f + 1, s, i)
-                  (TestStatus.Failed, "error")
+                  TestStatus.Error
                 case sbt.testing.Status.Skipped =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p, f, s + 1, i)
-                  (TestStatus.Skipped, "skipped")
+                  TestStatus.Skipped
                 case sbt.testing.Status.Ignored =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p, f, s, i + 1)
-                  (TestStatus.Ignored, "ignored")
+                  TestStatus.Ignored
                 case sbt.testing.Status.Canceled =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p, f, s + 1, i)
-                  (TestStatus.Cancelled, "cancelled")
+                  TestStatus.Cancelled
                 case sbt.testing.Status.Pending =>
                   val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
                   suiteCounts(suiteName) = (p, f, s + 1, i)
-                  (TestStatus.Skipped, "pending")
+                  TestStatus.Pending
               }
 
               val durationMs = event.duration()

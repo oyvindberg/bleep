@@ -1,6 +1,8 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
+import bleep.bsp.TestRunnerTypes.{TestEventHandler, RunnerEvent, TestResult, TerminationReason, TestSuite}
+import bleep.bsp.protocol.TestStatus
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
 import java.nio.file.{Files, Path}
@@ -15,88 +17,6 @@ import scala.jdk.CollectionConverters._
   * Kotlin/JS: Runs tests via Node.js with kotlin-test-js Kotlin/Native: Runs tests as native binary with kotlin-test-native
   */
 object KotlinTestRunner {
-
-  /** Test event handler for receiving test execution events. */
-  trait TestEventHandler {
-    def onTestStarted(suite: String, test: String): Unit
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit
-    def onSuiteStarted(suite: String): Unit
-    def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit
-    def onOutput(suite: String, line: String, isError: Boolean): Unit
-    def onRunnerEvent(event: RunnerEvent): Unit = () // Optional - default no-op
-  }
-
-  /** Events from the test runner about execution status. */
-  sealed trait RunnerEvent
-  object RunnerEvent {
-    case object Started extends RunnerEvent
-    case class Killed(reason: KillReason) extends RunnerEvent
-    case class ProcessExited(exitCode: Int) extends RunnerEvent
-    case class ProcessCrashed(signal: String, exitCode: Int) extends RunnerEvent
-    case class Error(message: String, cause: Option[Throwable]) extends RunnerEvent
-  }
-
-  /** Test execution status. */
-  sealed trait TestStatus
-  object TestStatus {
-    case object Passed extends TestStatus
-    case object Failed extends TestStatus
-    case object Skipped extends TestStatus
-    case object Ignored extends TestStatus
-    case object Cancelled extends TestStatus
-  }
-
-  /** Result of test execution. */
-  case class TestResult(
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
-      terminationReason: TerminationReason
-  ) {
-    def isSuccess: Boolean = failed == 0 && terminationReason == TerminationReason.Completed
-  }
-
-  /** Why the test run terminated. */
-  sealed trait TerminationReason {
-    def description: String
-  }
-  object TerminationReason {
-    case object Completed extends TerminationReason { val description = "completed normally" }
-    case class Killed(reason: KillReason) extends TerminationReason {
-      val description: String = reason match {
-        case KillReason.UserRequest    => "cancelled by user"
-        case KillReason.Timeout        => "timed out"
-        case KillReason.ParentDying    => "parent process dying"
-        case KillReason.ServerShutdown => "server shutting down"
-        case KillReason.DeadClient     => "client disconnected"
-      }
-    }
-    case class Crashed(signal: Int) extends TerminationReason {
-      val description: String = signal match {
-        case 11 => "crashed (SIGSEGV - segmentation fault)"
-        case 6  => "crashed (SIGABRT - aborted)"
-        case 9  => "killed (SIGKILL)"
-        case 15 => "terminated (SIGTERM)"
-        case n  => s"crashed (signal $n)"
-      }
-    }
-    case class ExitCode(code: Int) extends TerminationReason {
-      val description = s"exited with code $code"
-    }
-    case class Error(message: String) extends TerminationReason {
-      val description = s"error: $message"
-    }
-    case class TruncatedOutput(suite: String) extends TerminationReason {
-      val description = s"process exited with truncated output (suite '$suite' started but never finished)"
-    }
-  }
-
-  /** A test suite. */
-  case class TestSuite(
-      name: String,
-      fullyQualifiedName: String
-  )
 
   // ==========================================================================
   // Kotlin/JS Test Runner

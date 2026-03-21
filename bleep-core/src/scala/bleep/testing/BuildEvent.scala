@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, CompilePhase, CompileStatus, TestStatus}
 import java.nio.file.Path
 
 /** Events emitted during build execution for progress tracking and reporting */
@@ -72,11 +72,11 @@ object BuildEvent {
   /** A project has finished compiling */
   case class CompileFinished(
       project: String,
-      status: String, // "success", "failed", "error", "skipped", "cancelled"
+      status: CompileStatus,
       durationMs: Long,
       timestamp: Long,
-      diagnostics: List[BleepBspProtocol.Diagnostic] = Nil,
-      skippedBecause: Option[String] = None // CrossProjectName.value of failed dependency
+      diagnostics: List[BleepBspProtocol.Diagnostic],
+      skippedBecause: Option[String] // CrossProjectName.value of failed dependency
   ) extends BuildEvent
 
   /** Compilation progress update */
@@ -89,7 +89,7 @@ object BuildEvent {
   /** Compilation sub-phase transition (reading analysis, analyzing, compiling, saving) */
   case class CompilePhaseChanged(
       project: String,
-      phase: String, // "reading-analysis", "analyzing", "compiling", "saving-analysis"
+      phase: CompilePhase,
       trackedApis: Int,
       timestamp: Long
   ) extends BuildEvent
@@ -309,52 +309,4 @@ object BuildEvent {
       durationMs: Long,
       timestamp: Long
   ) extends BuildEvent
-}
-
-/** Status of an individual test */
-sealed trait TestStatus {
-  def isFailure: Boolean
-}
-
-object TestStatus {
-  case object Passed extends TestStatus {
-    val isFailure: Boolean = false
-  }
-  case object Failed extends TestStatus {
-    val isFailure: Boolean = true
-  }
-  case object Error extends TestStatus {
-    val isFailure: Boolean = true
-  }
-  case object Skipped extends TestStatus {
-    val isFailure: Boolean = false
-  }
-  case object Ignored extends TestStatus {
-    val isFailure: Boolean = false
-  }
-  case object Cancelled extends TestStatus {
-    val isFailure: Boolean = true
-  }
-  case object AssumptionFailed extends TestStatus {
-    val isFailure: Boolean = false
-  }
-  case object Pending extends TestStatus {
-    val isFailure: Boolean = false // ScalaTest "pending" = not yet implemented, similar to ignored
-  }
-  case object Timeout extends TestStatus {
-    val isFailure: Boolean = true
-  }
-
-  def fromString(s: String): TestStatus = s.toLowerCase match {
-    case "passed" | "success" => Passed
-    case "failed" | "failure" => Failed
-    case "error"              => Error
-    case "skipped"            => Skipped
-    case "ignored"            => Ignored
-    case "cancelled"          => Cancelled
-    case "assumption-failed"  => AssumptionFailed
-    case "pending"            => Pending
-    case "timeout"            => Timeout
-    case _                    => Failed
-  }
 }

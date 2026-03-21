@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.bsp.protocol.TestStatus
 import java.nio.file.{Files, Path}
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter

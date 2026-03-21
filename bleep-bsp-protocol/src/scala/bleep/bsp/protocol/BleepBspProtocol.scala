@@ -200,14 +200,14 @@ object BleepBspProtocol {
     /** Compilation sub-phase transition (reading analysis, analyzing, compiling, saving) */
     case class CompilePhaseChanged(
         project: String,
-        phase: String, // "reading-analysis", "analyzing", "compiling", "saving-analysis"
+        phase: CompilePhase,
         trackedApis: Int, // number of tracked API structures from analysis (non-zero only for "reading-analysis")
         timestamp: Long
     ) extends Event
 
     case class CompileFinished(
         project: String,
-        status: String, // "success", "failed", "error", "skipped", "cancelled"
+        status: CompileStatus,
         durationMs: Long,
         diagnostics: List[BleepBspProtocol.Diagnostic],
         skippedBecause: Option[String], // CrossProjectName.value of the dependency whose failure caused this to be skipped
@@ -319,7 +319,7 @@ object BleepBspProtocol {
         project: String,
         suite: String,
         test: String,
-        status: String, // passed, failed, error, skipped, ignored, pending, cancelled
+        status: TestStatus,
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],

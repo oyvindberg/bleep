@@ -743,8 +743,8 @@ class ReactiveBspClient(
     if (Option(params.getDataKind).contains("compile-report")) {
       Option(params.getData).foreach { data =>
         extractBuildTarget(data).foreach { project =>
-          val status = if (params.getStatus == bsp4j.StatusCode.OK) "success" else "failed"
-          emit(BuildEvent.CompileFinished(project, status, 0, System.currentTimeMillis()))
+          val status = if (params.getStatus == bsp4j.StatusCode.OK) bleep.bsp.protocol.CompileStatus.Success else bleep.bsp.protocol.CompileStatus.Failed
+          emit(BuildEvent.CompileFinished(project, status, 0, System.currentTimeMillis(), Nil, None))
         }
       }
     }
@@ -819,8 +819,7 @@ class ReactiveBspClient(
         Some(BuildEvent.TestStarted(project, suite, test, timestamp))
 
       case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
-        val testStatus = bleep.testing.TestStatus.fromString(status)
-        Some(BuildEvent.TestFinished(project, suite, test, testStatus, durationMs, message, throwable, timestamp))
+        Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp))
 
       case PE.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp) =>
         Some(BuildEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp))

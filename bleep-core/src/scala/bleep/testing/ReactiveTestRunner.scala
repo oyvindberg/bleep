@@ -1,5 +1,6 @@
 package bleep.testing
 
+import bleep.bsp.protocol.TestStatus
 import bleep.bsp.BuildServer
 import bleep.{model, Started}
 import bleep.model.CrossProjectName
