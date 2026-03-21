@@ -115,7 +115,7 @@ object TestRunner {
           .runSuite(suiteName, framework, testArgs)
           .evalMap {
             case TestProtocol.TestResponse.TestStarted(_, test) =>
-              now.flatMap(ts => emit(TaskDag.DagEvent.TestStarted(project.value, suiteName, test, ts)))
+              now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project.value, suiteName, test, ts)))
 
             case TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable) =>
               val updateCount = status match {
@@ -147,10 +147,12 @@ object TestRunner {
               }
 
             case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, _, _) =>
-              // Update counts from suite done if we haven't tracked individual tests
-              passedCount.update(c => if (c == 0) passed else c) >>
-                failedCount.update(c => if (c == 0) failed else c) >>
-                skippedCount.update(c => if (c == 0) skipped else c)
+              // Use the higher of accumulated individual counts vs authoritative SuiteDone.
+              // Individual TestFinished events may be partially received (stream ended early),
+              // so SuiteDone provides a correction floor.
+              passedCount.update(c => math.max(c, passed)) >>
+                failedCount.update(c => math.max(c, failed)) >>
+                skippedCount.update(c => math.max(c, skipped))
 
             case TestProtocol.TestResponse.Log(level, message, suite) =>
               val isError = level == "error" || level == "stderr"
