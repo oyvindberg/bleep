@@ -1,6 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.{LinkExecutor, Outcome, ScalaNativeTestRunner}
+import bleep.bsp.{LinkExecutor, Outcome, ScalaNativeTestRunner, TestRunnerTypes}
+import bleep.bsp.protocol.TestStatus
 import bleep.bsp.Outcome.KillReason
 import bleep.model
 import cats.effect.{Deferred, IO}
@@ -40,9 +41,9 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
   // Test Event Handler
   // ==========================================================================
 
-  class RecordingEventHandler extends ScalaNativeTestRunner.TestEventHandler {
+  class RecordingEventHandler extends TestRunnerTypes.TestEventHandler {
     val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, ScalaNativeTestRunner.TestStatus, Long, Option[String])]()
+    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
     val outputs = mutable.Buffer[(String, String, Boolean)]()
@@ -50,7 +51,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
     def onTestStarted(suite: String, test: String): Unit =
       testStarts += ((suite, test))
 
-    def onTestFinished(suite: String, test: String, status: ScalaNativeTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
 
     def onSuiteStarted(suite: String): Unit =
@@ -68,11 +69,11 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestStatus: all statuses") {
-    ScalaNativeTestRunner.TestStatus.Passed shouldBe a[ScalaNativeTestRunner.TestStatus]
-    ScalaNativeTestRunner.TestStatus.Failed shouldBe a[ScalaNativeTestRunner.TestStatus]
-    ScalaNativeTestRunner.TestStatus.Skipped shouldBe a[ScalaNativeTestRunner.TestStatus]
-    ScalaNativeTestRunner.TestStatus.Ignored shouldBe a[ScalaNativeTestRunner.TestStatus]
-    ScalaNativeTestRunner.TestStatus.Cancelled shouldBe a[ScalaNativeTestRunner.TestStatus]
+    TestStatus.Passed shouldBe a[TestStatus]
+    TestStatus.Failed shouldBe a[TestStatus]
+    TestStatus.Skipped shouldBe a[TestStatus]
+    TestStatus.Ignored shouldBe a[TestStatus]
+    TestStatus.Cancelled shouldBe a[TestStatus]
   }
 
   // ==========================================================================
@@ -80,40 +81,40 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestResult: success when no failures") {
-    val result = ScalaNativeTestRunner.TestResult(
+    val result = TestRunnerTypes.TestResult(
       passed = 5,
       failed = 0,
       skipped = 1,
       ignored = 0,
-      terminationReason = ScalaNativeTestRunner.TerminationReason.Completed
+      terminationReason = TestRunnerTypes.TerminationReason.Completed
     )
 
     result.isSuccess shouldBe true
   }
 
   test("TestResult: not success when failures") {
-    val result = ScalaNativeTestRunner.TestResult(
+    val result = TestRunnerTypes.TestResult(
       passed = 4,
       failed = 1,
       skipped = 0,
       ignored = 0,
-      terminationReason = ScalaNativeTestRunner.TerminationReason.Completed
+      terminationReason = TestRunnerTypes.TerminationReason.Completed
     )
 
     result.isSuccess shouldBe false
   }
 
   test("TestResult: not success when cancelled") {
-    val result = ScalaNativeTestRunner.TestResult(
+    val result = TestRunnerTypes.TestResult(
       passed = 5,
       failed = 0,
       skipped = 0,
       ignored = 0,
-      terminationReason = ScalaNativeTestRunner.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest)
+      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest)
     )
 
     result.isSuccess shouldBe false
-    result.terminationReason shouldBe a[ScalaNativeTestRunner.TerminationReason.Killed]
+    result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
   }
 
   // ==========================================================================
@@ -180,7 +181,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestSuite: stores name and fully qualified name") {
-    val suite = ScalaNativeTestRunner.TestSuite("MySuite", "com.example.MySuite")
+    val suite = TestRunnerTypes.TestSuite("MySuite", "com.example.MySuite")
 
     suite.name shouldBe "MySuite"
     suite.fullyQualifiedName shouldBe "com.example.MySuite"
@@ -214,7 +215,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       binary.toFile.setExecutable(true)
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaNativeTestRunner.TestSuite("MySuite", "MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "MySuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -230,7 +231,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       } yield res).unsafeRunSync()
 
       result.passed should be >= 0 // Parsing may vary
-      result.terminationReason shouldBe ScalaNativeTestRunner.TerminationReason.Completed
+      result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
     } finally deleteRecursively(tempDir)
   }
 
@@ -257,7 +258,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       binary.toFile.setExecutable(true)
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaNativeTestRunner.TestSuite("MySuite", "MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "MySuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -274,7 +275,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
 
       // The parser should have detected passed and failed tests
       handler.suiteStarts should contain("MySuite")
-      result.terminationReason shouldBe ScalaNativeTestRunner.TerminationReason.Completed
+      result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
     } finally deleteRecursively(tempDir)
   }
 
@@ -299,7 +300,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
       binary.toFile.setExecutable(true)
 
       val handler = new RecordingEventHandler()
-      val suites = List.empty[ScalaNativeTestRunner.TestSuite]
+      val suites = List.empty[TestRunnerTypes.TestSuite]
 
       val result = (for {
         killSignal <- Deferred[IO, KillReason]
@@ -315,7 +316,7 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
         )
       } yield r).unsafeRunSync()
 
-      result.terminationReason shouldBe a[ScalaNativeTestRunner.TerminationReason.Killed]
+      result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
     } finally deleteRecursively(tempDir)
   }
 }
@@ -326,9 +327,9 @@ class ScalaNativeTestIntegrationTest extends AnyFunSuite with Matchers {
   */
 class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers with PlatformTestHelper {
 
-  class RecordingEventHandler extends ScalaNativeTestRunner.TestEventHandler {
+  class RecordingEventHandler extends TestRunnerTypes.TestEventHandler {
     val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, ScalaNativeTestRunner.TestStatus, Long, Option[String])]()
+    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
     val outputs = mutable.Buffer[(String, String, Boolean)]()
@@ -336,7 +337,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
     def onTestStarted(suite: String, test: String): Unit =
       testStarts += ((suite, test))
 
-    def onTestFinished(suite: String, test: String, status: ScalaNativeTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
 
     def onSuiteStarted(suite: String): Unit =
@@ -459,7 +460,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
       val binary = compileAndLinkTestBinary(tempDir, testSource, "MySuite.scala", "example.TestRunner", frameworkDeps)
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaNativeTestRunner.TestSuite("MySuite", "example.MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "example.MySuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -518,7 +519,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
       val binary = compileAndLinkTestBinary(tempDir, testSource, "MyScalaTestSuite.scala", "example.TestRunner", frameworkDeps)
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaNativeTestRunner.TestSuite("MyScalaTestSuite", "example.MyScalaTestSuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MyScalaTestSuite", "example.MyScalaTestSuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -579,7 +580,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
       val binary = compileAndLinkTestBinary(tempDir, testSource, "MyUTestSuite.scala", "example.TestRunner", frameworkDeps)
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaNativeTestRunner.TestSuite("MyUTestSuite", "example.MyUTestSuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MyUTestSuite", "example.MyUTestSuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -620,7 +621,7 @@ class ScalaNativeAdvancedTestIntegrationTest extends AnyFunSuite with Matchers w
       val binary = compileAndLinkTestBinary(tempDir, testSource, "MySuite.scala", ScalaNativeTestRunner.TestMainClass, frameworkDeps)
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaNativeTestRunner.TestSuite("MySuite", "example.MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "example.MySuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal

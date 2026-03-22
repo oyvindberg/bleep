@@ -2,7 +2,7 @@ package bleep.analysis
 
 import bleep.bsp.{Outcome, TaskDag}
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.TaskDag._
+import bleep.bsp.TaskDag.{TaskId, _}
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Queue
@@ -43,7 +43,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     // DiscoverTask should depend on CompileTask
     val discoverTask = dag.tasks.values.collectFirst { case dt: DiscoverTask => dt }.get
-    discoverTask.dependencies should contain(s"compile:${project.value}")
+    discoverTask.dependencies should contain(TaskId.Compile(project))
   }
 
   test("buildTestDag: Scala.js project has compile → link → discover dependency") {
@@ -62,13 +62,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     // LinkTask should depend on CompileTask
     val linkTask = dag.tasks.values.collectFirst { case lt: LinkTask => lt }.get
-    linkTask.dependencies should contain(s"compile:${project.value}")
+    linkTask.dependencies should contain(TaskId.Compile(project))
     linkTask.platform shouldBe platform
     linkTask.isTest shouldBe true
 
     // DiscoverTask should depend on LinkTask
     val discoverTask = dag.tasks.values.collectFirst { case dt: DiscoverTask => dt }.get
-    discoverTask.dependencies should contain(s"link:${project.value}")
+    discoverTask.dependencies should contain(TaskId.Link(project))
   }
 
   test("buildTestDag: Scala Native project has compile → link → discover dependency") {
@@ -232,7 +232,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     linkCalled shouldBe true
     linkPlatformReceived shouldBe Some(platform)
-    result.completed should contain(s"link:${project.value}")
+    result.completed should contain(TaskId.Link(project))
   }
 
   test("executor: emits link events") {
@@ -305,8 +305,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
       finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
 
-    result.failed should contain(s"link:${project.value}")
-    result.skipped should contain(s"discover:${project.value}")
+    result.failed should contain(TaskId.Link(project))
+    result.skipped should contain(TaskId.Discover(project))
   }
 
   // ==========================================================================
@@ -321,7 +321,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
       isTest = false
     )
 
-    task.id shouldBe "link:myapp-js"
+    task.id.value shouldBe "link:myapp-js"
   }
 
   test("LinkPlatform: all platforms have correct types") {

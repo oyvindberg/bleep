@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.TaskDag
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
 import bleep.testing.TestProtocol
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -314,14 +314,14 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         project = "my-project",
         suite = "MySuite",
         test = "myTest",
-        status = "failed",
+        status = TestStatus.Failed,
         durationMs = 150,
         message = Some("assertion failed: expected true"),
         throwable = Some("java.lang.AssertionError"),
         timestamp = ts
       )
 
-      event.status shouldBe "failed"
+      event.status shouldBe TestStatus.Failed
       event.durationMs shouldBe 150
       event.message shouldBe Some("assertion failed: expected true")
       event.throwable shouldBe Some("java.lang.AssertionError")

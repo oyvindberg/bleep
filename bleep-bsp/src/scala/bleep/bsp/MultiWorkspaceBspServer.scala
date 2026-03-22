@@ -21,6 +21,7 @@ import bleep.analysis.{
 }
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus}
+import bleep.bsp.TraceCategory
 import bleep.model.CrossProjectName
 import bleep.testing.JvmPool
 import cats.effect.{Deferred, FiberIO, IO, Ref}
@@ -2757,11 +2758,11 @@ class MultiWorkspaceBspServer(
   ): fs2.Stream[IO, Unit] =
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
       // Helper to get category and name for trace recording
-      def taskCatName(task: TaskDag.Task): (String, String) = task match {
-        case ct: TaskDag.CompileTask   => ("compile", ct.project.value)
-        case lt: TaskDag.LinkTask      => ("link", lt.project.value)
-        case dt: TaskDag.DiscoverTask  => ("discover", dt.project.value)
-        case tt: TaskDag.TestSuiteTask => ("test", s"${tt.project.value}:${tt.suiteName}")
+      def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
+        case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
+        case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
+        case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
+        case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName}")
       }
 
       // Wrap event processing - if notification fails (connection dead),
@@ -2770,65 +2771,71 @@ class MultiWorkspaceBspServer(
         event match {
           case TaskDag.DagEvent.TaskStarted(task, timestamp) =>
             val (cat, name) = taskCatName(task)
-            val protocolEvent = task match {
+            val protocolEvent: Option[BleepBspProtocol.Event] = task match {
               case ct: TaskDag.CompileTask =>
-                BleepBspProtocol.Event.CompileStarted(ct.project.value, timestamp)
+                Some(BleepBspProtocol.Event.CompileStarted(ct.project.value, timestamp))
               case _: TaskDag.LinkTask =>
-                null // Link tasks are not exposed via test protocol
+                None // Link tasks are not exposed via test protocol
               case dt: TaskDag.DiscoverTask =>
-                BleepBspProtocol.Event.DiscoveryStarted(dt.project.value, timestamp)
+                Some(BleepBspProtocol.Event.DiscoveryStarted(dt.project.value, timestamp))
               case tt: TaskDag.TestSuiteTask =>
-                BleepBspProtocol.Event.SuiteStarted(tt.project.value, tt.suiteName, timestamp)
+                Some(BleepBspProtocol.Event.SuiteStarted(tt.project.value, tt.suiteName, timestamp))
             }
             traceRecorder.recordStart(cat, name) >>
-              IO(if (protocolEvent != null) sendTestEvent(originId, task.id, protocolEvent))
+              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
 
           case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
             val (cat, name) = taskCatName(task)
-            val protocolEvent = task match {
+            val protocolEvent: Option[BleepBspProtocol.Event] = task match {
               case ct: TaskDag.CompileTask =>
                 result match {
                   case TaskDag.TaskResult.Success =>
-                    BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp)
+                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp))
                   case TaskDag.TaskResult.Failure(errorMsg, diags) =>
                     // Ensure diagnostics always contain the error message — the errorMsg field
                     // has the human-readable description but was previously discarded
                     val effectiveDiags =
                       if (diags.exists(d => d.severity == bleep.bsp.protocol.DiagnosticSeverity.Error && d.message.nonEmpty)) diags
                       else List(BleepBspProtocol.Diagnostic.error(errorMsg))
-                    BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
+                    Some(
+                      BleepBspProtocol.Event
+                        .CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
+                    )
                   case TaskDag.TaskResult.Error(error, _, _) =>
-                    BleepBspProtocol.Event.CompileFinished(
-                      ct.project.value,
-                      CompileStatus.Error,
-                      durationMs,
-                      List(BleepBspProtocol.Diagnostic.error(error)),
-                      skippedBecause = None,
-                      timestamp
+                    Some(
+                      BleepBspProtocol.Event.CompileFinished(
+                        ct.project.value,
+                        CompileStatus.Error,
+                        durationMs,
+                        List(BleepBspProtocol.Diagnostic.error(error)),
+                        skippedBecause = None,
+                        timestamp
+                      )
                     )
                   case TaskDag.TaskResult.Skipped(failedDep) =>
-                    BleepBspProtocol.Event.CompileFinished(
-                      ct.project.value,
-                      CompileStatus.Skipped,
-                      durationMs,
-                      Nil,
-                      skippedBecause = Some(failedDep.project.value),
-                      timestamp
+                    Some(
+                      BleepBspProtocol.Event.CompileFinished(
+                        ct.project.value,
+                        CompileStatus.Skipped,
+                        durationMs,
+                        Nil,
+                        skippedBecause = Some(failedDep.project.value),
+                        timestamp
+                      )
                     )
                   case TaskDag.TaskResult.Killed(_) =>
-                    BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
                   case TaskDag.TaskResult.Cancelled =>
-                    BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
                   case TaskDag.TaskResult.TimedOut =>
-                    BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
                 }
 
               case _: TaskDag.LinkTask =>
-                null // Link tasks are not exposed via test protocol
+                None // Link tasks are not exposed via test protocol
 
-              case dt: TaskDag.DiscoverTask =>
-                // Discovery finished is handled by SuitesDiscovered event
-                null
+              case _: TaskDag.DiscoverTask =>
+                None // Discovery finished is handled by SuitesDiscovered event
 
               case tt: TaskDag.TestSuiteTask =>
                 // SuiteFinished is emitted by TestRunner with actual counts for normal test failures.
@@ -2836,9 +2843,9 @@ class MultiWorkspaceBspServer(
                 // have been emitted. We emit SuiteError here to ensure the client is always notified.
                 result match {
                   case TaskDag.TaskResult.Success =>
-                    null // SuiteFinished already emitted by TestRunner
+                    None // SuiteFinished already emitted by TestRunner
                   case TaskDag.TaskResult.Failure(errorMsg, _) =>
-                    BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, errorMsg, None, None, durationMs, timestamp)
+                    Some(BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, errorMsg, None, None, durationMs, timestamp))
                   case TaskDag.TaskResult.Error(error, exitCode, signal) =>
                     val desc = signal match {
                       case Some(sig) => s"Process crashed (signal $sig)"
@@ -2848,15 +2855,17 @@ class MultiWorkspaceBspServer(
                           case None       => error
                         }
                     }
-                    BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, desc, exitCode, signal, durationMs, timestamp)
+                    Some(BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, desc, exitCode, signal, durationMs, timestamp))
                   case TaskDag.TaskResult.Skipped(failedDep) =>
-                    BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some(s"dependency ${failedDep.project.value} failed"), timestamp)
+                    Some(
+                      BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some(s"dependency ${failedDep.project.value} failed"), timestamp)
+                    )
                   case TaskDag.TaskResult.Killed(_) =>
-                    BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some("killed"), timestamp)
+                    Some(BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some("killed"), timestamp))
                   case TaskDag.TaskResult.Cancelled =>
-                    BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some("cancelled"), timestamp)
+                    Some(BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some("cancelled"), timestamp))
                   case TaskDag.TaskResult.TimedOut =>
-                    BleepBspProtocol.Event.SuiteTimedOut(tt.project.value, tt.suiteName, durationMs, None, timestamp)
+                    Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project.value, tt.suiteName, durationMs, None, timestamp))
                 }
             }
             // For test suite failures where SuiteFinished may not have been emitted by TestRunner,
@@ -2868,7 +2877,7 @@ class MultiWorkspaceBspServer(
                 IO.unit
             }
             traceRecorder.recordEnd(cat, name) >> failureRefUpdate >>
-              IO(if (protocolEvent != null) sendTestEvent(originId, task.id, protocolEvent))
+              IO(protocolEvent.foreach(e => sendTestEvent(originId, task.id.value, e)))
 
           case TaskDag.DagEvent.TestStarted(project, suite, test, timestamp) =>
             val protocolEvent = BleepBspProtocol.Event.TestStarted(project, suite, test, timestamp)
@@ -2903,7 +2912,7 @@ class MultiWorkspaceBspServer(
             task match {
               case ct: TaskDag.CompileTask =>
                 val protocolEvent = BleepBspProtocol.Event.CompileProgress(ct.project.value, percent, timestamp)
-                IO(sendTestEvent(originId, task.id, protocolEvent))
+                IO(sendTestEvent(originId, task.id.value, protocolEvent))
               case _ =>
                 IO.unit
             }
@@ -2922,7 +2931,7 @@ class MultiWorkspaceBspServer(
 
           case TaskDag.DagEvent.LinkStarted(project, platform, timestamp) =>
             val protocolEvent = BleepBspProtocol.Event.LinkStarted(project, platform, timestamp)
-            traceRecorder.recordStart("link", project) >>
+            traceRecorder.recordStart(TraceCategory.Link, project) >>
               IO(sendTestEvent(originId, s"link:$project", protocolEvent))
 
           case TaskDag.DagEvent.LinkProgress(project, phase, _, timestamp) =>
@@ -2938,7 +2947,7 @@ class MultiWorkspaceBspServer(
               case TaskDag.LinkResult.NotApplicable                  => (true, None, "JVM", None)
             }
             val protocolEvent = BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
-            traceRecorder.recordEnd("link", project) >>
+            traceRecorder.recordEnd(TraceCategory.Link, project) >>
               IO(sendTestEvent(originId, s"link:$project", protocolEvent))
         }
 
@@ -2975,31 +2984,31 @@ class MultiWorkspaceBspServer(
   ): fs2.Stream[IO, Unit] =
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
       // Helper to get category and name for trace recording
-      def taskCatName(task: TaskDag.Task): (String, String) = task match {
-        case ct: TaskDag.CompileTask   => ("compile", ct.project.value)
-        case lt: TaskDag.LinkTask      => ("link", lt.project.value)
-        case dt: TaskDag.DiscoverTask  => ("discover", dt.project.value)
-        case tt: TaskDag.TestSuiteTask => ("test", s"${tt.project.value}:${tt.suiteName}")
+      def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
+        case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
+        case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
+        case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
+        case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName}")
       }
 
       def processEvent: IO[Unit] = event match {
         case TaskDag.DagEvent.TaskStarted(task, timestamp) =>
           val (cat, name) = taskCatName(task)
-          val protocolEvent = task match {
+          val protocolEvent: Option[BleepBspProtocol.Event] = task match {
             case ct: TaskDag.CompileTask =>
               logger.withContext("project", ct.project.value).info("Compile starting")
-              BleepBspProtocol.Event.CompileStarted(ct.project.value, timestamp)
+              Some(BleepBspProtocol.Event.CompileStarted(ct.project.value, timestamp))
             case _: TaskDag.LinkTask =>
-              null // Link started is emitted by LinkStarted event
+              None // Link started is emitted by LinkStarted event
             case _ =>
-              null // Ignore discover/test tasks (shouldn't appear in compile DAGs)
+              None // Ignore discover/test tasks (shouldn't appear in compile DAGs)
           }
           traceRecorder.recordStart(cat, name) >>
-            IO(if (protocolEvent != null) sendCompileEvent(originId, task.id, protocolEvent))
+            IO(protocolEvent.foreach(e => sendCompileEvent(originId, task.id.value, e)))
 
         case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
           val (cat, name) = taskCatName(task)
-          val protocolEvent = task match {
+          val protocolEvent: Option[BleepBspProtocol.Event] = task match {
             case ct: TaskDag.CompileTask =>
               val status: CompileStatus = result match {
                 case TaskDag.TaskResult.Success        => CompileStatus.Success
@@ -3017,54 +3026,58 @@ class MultiWorkspaceBspServer(
                 .info("Compile finished")
               result match {
                 case TaskDag.TaskResult.Success =>
-                  BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp)
+                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp))
                 case TaskDag.TaskResult.Failure(_, diags) =>
-                  BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, diags, skippedBecause = None, timestamp)
+                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, diags, skippedBecause = None, timestamp))
                 case TaskDag.TaskResult.Error(error, _, _) =>
-                  BleepBspProtocol.Event.CompileFinished(
-                    ct.project.value,
-                    CompileStatus.Error,
-                    durationMs,
-                    List(BleepBspProtocol.Diagnostic.error(error)),
-                    skippedBecause = None,
-                    timestamp
+                  Some(
+                    BleepBspProtocol.Event.CompileFinished(
+                      ct.project.value,
+                      CompileStatus.Error,
+                      durationMs,
+                      List(BleepBspProtocol.Diagnostic.error(error)),
+                      skippedBecause = None,
+                      timestamp
+                    )
                   )
                 case TaskDag.TaskResult.Skipped(failedDep) =>
-                  BleepBspProtocol.Event.CompileFinished(
-                    ct.project.value,
-                    CompileStatus.Skipped,
-                    durationMs,
-                    Nil,
-                    skippedBecause = Some(failedDep.project.value),
-                    timestamp
+                  Some(
+                    BleepBspProtocol.Event.CompileFinished(
+                      ct.project.value,
+                      CompileStatus.Skipped,
+                      durationMs,
+                      Nil,
+                      skippedBecause = Some(failedDep.project.value),
+                      timestamp
+                    )
                   )
                 case TaskDag.TaskResult.Killed(_) =>
-                  BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
                 case TaskDag.TaskResult.Cancelled =>
-                  BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
                 case TaskDag.TaskResult.TimedOut =>
-                  BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
               }
             case _: TaskDag.LinkTask =>
-              null // Link finished is emitted by LinkFinished event
+              None // Link finished is emitted by LinkFinished event
             case _ =>
-              null // Ignore discover/test tasks
+              None // Ignore discover/test tasks
           }
           traceRecorder.recordEnd(cat, name) >>
-            IO(if (protocolEvent != null) sendCompileEvent(originId, task.id, protocolEvent))
+            IO(protocolEvent.foreach(e => sendCompileEvent(originId, task.id.value, e)))
 
         case TaskDag.DagEvent.TaskProgress(task, percent, timestamp) =>
           task match {
             case ct: TaskDag.CompileTask =>
               val protocolEvent = BleepBspProtocol.Event.CompileProgress(ct.project.value, percent, timestamp)
-              IO(sendCompileEvent(originId, task.id, protocolEvent))
+              IO(sendCompileEvent(originId, task.id.value, protocolEvent))
             case _ =>
               IO.unit
           }
 
         case TaskDag.DagEvent.LinkStarted(project, platform, timestamp) =>
           val protocolEvent = BleepBspProtocol.Event.LinkStarted(project, platform, timestamp)
-          traceRecorder.recordStart("link", project) >>
+          traceRecorder.recordStart(TraceCategory.Link, project) >>
             IO(sendLinkEvent(originId, s"link:$project", protocolEvent))
 
         case TaskDag.DagEvent.LinkProgress(project, phase, _, timestamp) =>
@@ -3080,7 +3093,7 @@ class MultiWorkspaceBspServer(
             case TaskDag.LinkResult.NotApplicable                  => (true, None, "JVM", None)
           }
           val protocolEvent = BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
-          traceRecorder.recordEnd("link", project) >>
+          traceRecorder.recordEnd(TraceCategory.Link, project) >>
             IO(sendLinkEvent(originId, s"link:$project", protocolEvent))
 
         case _ =>
