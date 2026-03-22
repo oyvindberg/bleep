@@ -2,6 +2,8 @@ package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.protocol.TestStatus
+import cats.effect.{Deferred, IO, Ref}
+import cats.syntax.all._
 
 /** Shared types for non-JVM test runners (Kotlin/JS, Kotlin/Native, Scala.js, Scala Native).
   *
@@ -81,32 +83,110 @@ object TestRunnerTypes {
       fullyQualifiedName: String
   )
 
-  /** Interpret a process exit code into a TerminationReason.
+  /** Result of interpreting a process exit code. */
+  case class ExitCodeResult(
+      adjustedFailed: Int,
+      terminationReason: TerminationReason
+  )
+
+  /** Interpret a process exit code, fire appropriate runner events, and compute adjusted failed count.
     *
     * Exit codes > 128 indicate the process was killed by a signal: signal = exitCode - 128. Common signals: 9 = SIGKILL, 11 = SIGSEGV, 6 = SIGABRT, 15 =
     * SIGTERM.
+    *
+    * Condition ordering: signal detection first, then "tests actually ran" (which means the process completed enough to produce results, even if a suite
+    * appears unfinished due to parser artifacts), then truncated suite for genuine startup crashes, then exit code handling.
     *
     * @param exitCode
     *   the process exit code
     * @param truncatedSuite
     *   if a suite started but never finished, its name
+    * @param passed
+    *   number of passed tests so far
+    * @param failed
+    *   number of failed tests so far
+    * @param eventHandler
+    *   handler for runner lifecycle events
     */
-  def interpretExitCode(exitCode: Int, truncatedSuite: Option[String]): TerminationReason =
-    if (exitCode == 0) {
-      truncatedSuite match {
-        case Some(suite) => TerminationReason.TruncatedOutput(suite)
-        case None        => TerminationReason.Completed
-      }
-    } else if (exitCode > 128) {
+  def interpretExitCode(
+      exitCode: Int,
+      truncatedSuite: Option[String],
+      passed: Int,
+      failed: Int,
+      eventHandler: TestEventHandler
+  ): ExitCodeResult =
+    if (exitCode > 128) {
       val signal = exitCode - 128
       truncatedSuite match {
-        case Some(suite) => TerminationReason.TruncatedOutput(suite)
-        case None        => TerminationReason.Crashed(signal)
+        case Some(suite) =>
+          eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
+          ExitCodeResult(failed + 1, TerminationReason.TruncatedOutput(suite))
+        case None =>
+          eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"signal $signal", exitCode))
+          ExitCodeResult(failed, TerminationReason.Crashed(signal))
       }
+    } else if (passed > 0 || failed > 0) {
+      // Tests ran — non-zero exit just means test failures.
+      // An unfinished suite here is a parser artifact (last suite may not have
+      // an explicit close event), not actual truncation.
+      eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
+      ExitCodeResult(failed, TerminationReason.Completed)
+    } else if (truncatedSuite.isDefined) {
+      // No tests completed but suite started — process died during startup
+      val suite = truncatedSuite.get
+      eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
+      ExitCodeResult(failed + 1, TerminationReason.TruncatedOutput(suite))
+    } else if (exitCode == 0) {
+      eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
+      ExitCodeResult(failed, TerminationReason.Completed)
     } else {
-      truncatedSuite match {
-        case Some(suite) => TerminationReason.TruncatedOutput(suite)
-        case None        => TerminationReason.ExitCode(exitCode)
-      }
+      eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
+      ExitCodeResult(failed + 1, TerminationReason.ExitCode(exitCode))
     }
+
+  /** Buffer for stderr lines that arrive before any suite starts.
+    *
+    * Many non-JVM runners emit diagnostic output on stderr before the first suite event. This buffer collects those lines and drains them to the event handler
+    * when the first suite starts.
+    */
+  class StderrBuffer(ref: Ref[IO, List[String]], eventHandler: TestEventHandler) {
+
+    /** Buffer a line of stderr output (prepends for O(1), reversed on drain). */
+    def buffer(line: String): IO[Unit] = ref.update(line :: _)
+
+    /** Drain all buffered lines to the event handler for the given suite. */
+    def drain(suite: String): IO[Unit] =
+      ref.getAndSet(Nil).flatMap { pending =>
+        pending.reverse.traverse_(l => IO.delay(eventHandler.onOutput(suite, l, isError = true)))
+      }
+  }
+
+  object StderrBuffer {
+    def create(eventHandler: TestEventHandler): IO[StderrBuffer] =
+      Ref.of[IO, List[String]](Nil).map(ref => new StderrBuffer(ref, eventHandler))
+  }
+
+  /** Start a fiber that kills a process when the kill signal fires.
+    *
+    * This breaks the deadlock where IO.blocking(readLine) can't be cancelled but needs the process to die for the stream to close.
+    *
+    * @param process
+    *   the process to kill
+    * @param killSignal
+    *   deferred that completes when a kill is requested
+    * @param killDescendants
+    *   if true, kill all descendant processes first (needed for shell scripts where children inherit the pipe)
+    */
+  def startKillWatcher(process: Process, killSignal: Deferred[IO, KillReason], killDescendants: Boolean): IO[cats.effect.Fiber[IO, Throwable, Unit]] =
+    killSignal.get
+      .flatMap(_ =>
+        IO.blocking {
+          if (killDescendants) {
+            process.descendants().forEach(p => p.destroyForcibly(): Unit)
+          }
+          process.destroyForcibly()
+          ()
+        }
+      )
+      .start
 }

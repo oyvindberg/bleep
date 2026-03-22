@@ -5,11 +5,10 @@ import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.LinkResult
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.TestStatus
-import cats.effect.{Deferred, IO, Ref}
+import cats.effect.{Deferred, IO}
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 import java.nio.file.{Files, Path}
-import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 /** Runner for Scala Native tests. */
@@ -46,7 +45,7 @@ object ScalaNativeTestRunner {
         def onCancel(callback: () => Unit): Unit =
           callbacks.synchronized {
             if (cancelled.get()) callback()
-            else callbacks += callback
+            else { callbacks += callback: Unit }
           }
       }
     }.flatTap { token =>
@@ -207,79 +206,32 @@ object ScalaNativeTestRunner {
             }
 
             val work = ProcessRunner.start(pb).use { process =>
-              // Kill process and all descendants when kill signal fires.
-              // Must kill descendants too: destroyForcibly on a shell script kills
-              // the shell but child processes inherit the pipe, blocking readLine.
-              killSignal.get
-                .flatMap(_ =>
-                  IO.blocking {
-                    process.descendants().forEach(_.destroyForcibly())
-                    process.destroyForcibly()
-                    ()
+              TestRunnerTypes.startKillWatcher(process, killSignal, killDescendants = true).flatMap { killFiber =>
+                IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)) >> {
+                  val stdout = ProcessRunner.lines(process.getInputStream).evalMap { line =>
+                    parserLock.permit.surround(IO.delay(parser.parseLine(line)))
                   }
-                )
-                .start
-                .flatMap { killFiber =>
-                  IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)) >> {
-                    val stdout = ProcessRunner.lines(process.getInputStream).evalMap { line =>
-                      parserLock.permit.surround(IO.delay(parser.parseLine(line)))
-                    }
-                    val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
-                      parserLock.permit.surround(IO.delay(parser.parseError(line)))
-                    }
+                  val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
+                    parserLock.permit.surround(IO.delay(parser.parseError(line)))
+                  }
 
-                    (stdout.compile.drain, stderr.compile.drain).parTupled.void >>
-                      IO.blocking(process.waitFor()).flatMap { exitCode =>
-                        // Check if process was killed by our kill watcher
-                        killSignal.tryGet.map {
-                          case Some(reason) =>
-                            eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                            val counts = parser.getCounts
-                            TestResult(counts._1, counts._2, counts._3, counts._4, TerminationReason.Killed(reason))
-                          case None =>
-                            val truncatedSuite = parser.unfinishedSuite
-                            val counts = parser.getCounts
-                            var (passed, failed, skipped, ignored) = counts
-
-                            // Determine termination reason based on exit code and test results.
-                            val terminationReason =
-                              if (exitCode > 128) {
-                                val signal = exitCode - 128
-                                if (truncatedSuite.isDefined) {
-                                  val suite = truncatedSuite.get
-                                  failed += 1
-                                  eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
-                                  TerminationReason.TruncatedOutput(suite)
-                                } else {
-                                  eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"signal $signal", exitCode))
-                                  TerminationReason.Crashed(signal)
-                                }
-                              } else if (passed > 0 || failed > 0) {
-                                // Tests ran - non-zero exit just means test failures.
-                                // An unfinished suite here is a parser artifact (last suite
-                                // has no explicit close), not actual truncation.
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
-                                TerminationReason.Completed
-                              } else if (truncatedSuite.isDefined) {
-                                // No tests completed but suite started - process died mid-startup
-                                val suite = truncatedSuite.get
-                                failed += 1
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
-                                TerminationReason.TruncatedOutput(suite)
-                              } else if (exitCode == 0) {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
-                                TerminationReason.Completed
-                              } else {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
-                                failed = 1
-                                TerminationReason.ExitCode(exitCode)
-                              }
-
-                            TestResult(passed, failed, skipped, ignored, terminationReason)
-                        }
+                  (stdout.compile.drain, stderr.compile.drain).parTupled.void >>
+                    IO.blocking(process.waitFor()).flatMap { exitCode =>
+                      // Check if process was killed by our kill watcher
+                      killSignal.tryGet.map {
+                        case Some(reason) =>
+                          eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
+                          val counts = parser.getCounts
+                          TestResult(counts._1, counts._2, counts._3, counts._4, TerminationReason.Killed(reason))
+                        case None =>
+                          val counts = parser.getCounts
+                          val (passed, failed, skipped, ignored) = counts
+                          val exitResult = TestRunnerTypes.interpretExitCode(exitCode, parser.unfinishedSuite, passed, failed, eventHandler)
+                          TestResult(passed, exitResult.adjustedFailed, skipped, ignored, exitResult.terminationReason)
                       }
-                  }.guarantee(killFiber.cancel)
-                }
+                    }
+                }.guarantee(killFiber.cancel)
+              }
             }
 
             Outcome.raceKill(killSignal)(work).flatMap {
@@ -576,7 +528,7 @@ object ScalaNativeTestRunner {
       // Close adapter (kills native process)
       try {
         val closeMethod = adapterClass.getMethod("close")
-        closeMethod.invoke(adapter)
+        closeMethod.invoke(adapter): Unit
       } catch { case _: Exception => () }
   }
 
@@ -642,7 +594,7 @@ object ScalaNativeTestRunner {
     private var passed = 0
     private var failed = 0
     private var skipped = 0
-    private var ignored = 0
+    private val ignored = 0
 
     private val suiteStartPattern = """^\s*(\S+):$""".r
     private val testPassedPattern = """^\s*\+\s+(.+?)\s+(\d+(?:\.\d+)?[a-z]+)$""".r
@@ -783,7 +735,7 @@ object ScalaNativeTestRunner {
     private var passed = 0
     private var failed = 0
     private var skipped = 0
-    private var ignored = 0
+    private val ignored = 0
 
     private val testPassedPattern = """^\+\s+(.+?)\s+(\d+)ms$""".r
     private val testFailedPattern = """^X\s+(.+?)\s+(\d+)ms$""".r
