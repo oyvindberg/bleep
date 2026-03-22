@@ -25,7 +25,7 @@ import bleep.bsp.TraceCategory
 import bleep.model.CrossProjectName
 import bleep.testing.JvmPool
 import cats.effect.{Deferred, FiberIO, IO, Ref}
-import cats.effect.std.Queue
+import cats.effect.std.{Dispatcher, Queue}
 import cats.effect.unsafe.implicits.global
 import cats.syntax.all.*
 import ch.epfl.scala.bsp.*
@@ -2416,6 +2416,29 @@ class MultiWorkspaceBspServer(
     result.jars
   }
 
+  /** Create a TestEventHandler that offers events to the DAG queue via a Dispatcher.
+    *
+    * Using a Dispatcher avoids the overhead of `unsafeRunSync()` on every callback (test started, test finished, output line). The Dispatcher amortizes CE3
+    * runtime setup across all calls. `unsafeRunSync` is safe here because the queue is unbounded (offer never suspends).
+    */
+  private def makeTestEventHandler(
+      dispatcher: Dispatcher[IO],
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
+      project: String
+  ): TestRunnerTypes.TestEventHandler =
+    new TestRunnerTypes.TestEventHandler {
+      def onTestStarted(suite: String, test: String): Unit =
+        dispatcher.unsafeRunSync(eventQueue.offer(Some(TaskDag.DagEvent.TestStarted(project, suite, test, System.currentTimeMillis()))))
+      def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
+        dispatcher.unsafeRunSync(
+          eventQueue.offer(Some(TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, None, System.currentTimeMillis())))
+        )
+      def onSuiteStarted(suite: String): Unit = ()
+      def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
+      def onOutput(suite: String, line: String, isError: Boolean): Unit =
+        dispatcher.unsafeRunSync(eventQueue.offer(Some(TaskDag.DagEvent.Output(project, suite, line, isError, System.currentTimeMillis()))))
+    }
+
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
   private def runScalaJsTestSuite(
       started: Started,
@@ -2451,44 +2474,33 @@ class MultiWorkspaceBspServer(
       taskResult <- linkResult match {
         case (TaskDag.TaskResult.Success, TaskDag.LinkResult.JsSuccess(mainModule, _, _, _)) =>
           // Run the specific test suite via Node.js
-          val eventHandler = new TestRunnerTypes.TestEventHandler {
-            def onTestStarted(suite: String, test: String): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.TestStarted(testTask.project.value, suite, test, System.currentTimeMillis()))).unsafeRunSync()
-            def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
-              eventQueue
-                .offer(Some(TaskDag.DagEvent.TestFinished(testTask.project.value, suite, test, status, durationMs, message, None, System.currentTimeMillis())))
-                .unsafeRunSync()
-            def onSuiteStarted(suite: String): Unit = ()
-            def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
-            def onOutput(suite: String, line: String, isError: Boolean): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, suite, line, isError, System.currentTimeMillis()))).unsafeRunSync()
-          }
-
-          val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName, testTask.suiteName))
-          ScalaJsTestRunner
-            .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, Map.empty, killSignal)
-            .map { result =>
-              val endTs = System.currentTimeMillis()
-              val durationMs = endTs - startTs
-              eventQueue
-                .offer(
-                  Some(
-                    TaskDag.DagEvent
-                      .SuiteFinished(
-                        testTask.project.value,
-                        testTask.suiteName,
-                        result.passed,
-                        result.failed,
-                        result.skipped,
-                        result.ignored,
-                        durationMs,
-                        endTs
-                      )
+          Dispatcher.sequential[IO].use { dispatcher =>
+            val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project.value)
+            val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName, testTask.suiteName))
+            ScalaJsTestRunner
+              .runTests(mainModule, linkConfig.moduleKind, suites, eventHandler, ScalaJsTestRunner.NodeEnvironment.Node, Map.empty, killSignal)
+              .flatMap { result =>
+                val endTs = System.currentTimeMillis()
+                val durationMs = endTs - startTs
+                eventQueue
+                  .offer(
+                    Some(
+                      TaskDag.DagEvent
+                        .SuiteFinished(
+                          testTask.project.value,
+                          testTask.suiteName,
+                          result.passed,
+                          result.failed,
+                          result.skipped,
+                          result.ignored,
+                          durationMs,
+                          endTs
+                        )
+                    )
                   )
-                )
-                .unsafeRunSync()
-              classifyTestResult(result)
-            }
+                  .as(classifyTestResult(result))
+              }
+          }
         case (result, _) =>
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
@@ -2548,67 +2560,53 @@ class MultiWorkspaceBspServer(
       )
       taskResult <- linkResult match {
         case TaskDag.LinkResult.NativeSuccess(binary, _) =>
-          val eventHandler = new TestRunnerTypes.TestEventHandler {
-            def onTestStarted(suite: String, test: String): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.TestStarted(testTask.project.value, suite, test, System.currentTimeMillis()))).unsafeRunSync()
-            def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
-              eventQueue
-                .offer(Some(TaskDag.DagEvent.TestFinished(testTask.project.value, suite, test, status, durationMs, message, None, System.currentTimeMillis())))
-                .unsafeRunSync()
-            def onSuiteStarted(suite: String): Unit = ()
-            def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
-            def onOutput(suite: String, line: String, isError: Boolean): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, suite, line, isError, System.currentTimeMillis()))).unsafeRunSync()
-          }
-
-          val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName, testTask.suiteName))
-          ScalaNativeTestRunner
-            .runTestsViaAdapter(binary, suites, framework, eventHandler, Map.empty, started.buildPaths.cwd, snVersion.scalaNativeVersion, killSignal)
-            .map { result =>
-              val endTs = System.currentTimeMillis()
-              val durationMs = endTs - startTs
-              // Emit error/crash details as Output so they appear in failure details
-              result.terminationReason match {
-                case TestRunnerTypes.TerminationReason.Error(msg) =>
-                  eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, msg, true, endTs))).unsafeRunSync()
-                case TestRunnerTypes.TerminationReason.Crashed(signal) =>
-                  eventQueue
-                    .offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process crashed (signal $signal)", true, endTs)))
-                    .unsafeRunSync()
-                case TestRunnerTypes.TerminationReason.TruncatedOutput(suite) =>
-                  eventQueue
-                    .offer(
+          Dispatcher.sequential[IO].use { dispatcher =>
+            val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project.value)
+            val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName, testTask.suiteName))
+            ScalaNativeTestRunner
+              .runTestsViaAdapter(binary, suites, framework, eventHandler, Map.empty, started.buildPaths.cwd, snVersion.scalaNativeVersion, killSignal)
+              .flatMap { result =>
+                val endTs = System.currentTimeMillis()
+                val durationMs = endTs - startTs
+                // Emit error/crash details as Output so they appear in failure details
+                val terminationEvent: IO[Unit] = result.terminationReason match {
+                  case TestRunnerTypes.TerminationReason.Error(msg) =>
+                    eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, msg, true, endTs)))
+                  case TestRunnerTypes.TerminationReason.Crashed(signal) =>
+                    eventQueue.offer(
+                      Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process crashed (signal $signal)", true, endTs))
+                    )
+                  case TestRunnerTypes.TerminationReason.TruncatedOutput(suite) =>
+                    eventQueue.offer(
                       Some(
                         TaskDag.DagEvent
                           .Output(testTask.project.value, testTask.suiteName, s"Process exited with truncated output (suite '$suite')", true, endTs)
                       )
                     )
-                    .unsafeRunSync()
-                case TestRunnerTypes.TerminationReason.ExitCode(code) =>
+                  case TestRunnerTypes.TerminationReason.ExitCode(code) =>
+                    eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process exited with code $code", true, endTs)))
+                  case _ => IO.unit
+                }
+                terminationEvent >>
                   eventQueue
-                    .offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process exited with code $code", true, endTs)))
-                    .unsafeRunSync()
-                case _ => ()
-              }
-              eventQueue
-                .offer(
-                  Some(
-                    TaskDag.DagEvent
-                      .SuiteFinished(
-                        testTask.project.value,
-                        testTask.suiteName,
-                        result.passed,
-                        result.failed,
-                        result.skipped,
-                        result.ignored,
-                        durationMs,
-                        endTs
+                    .offer(
+                      Some(
+                        TaskDag.DagEvent
+                          .SuiteFinished(
+                            testTask.project.value,
+                            testTask.suiteName,
+                            result.passed,
+                            result.failed,
+                            result.skipped,
+                            result.ignored,
+                            durationMs,
+                            endTs
+                          )
                       )
-                  )
-                )
-                .unsafeRunSync()
-              classifyTestResult(result)
-            }
+                    )
+                    .as(classifyTestResult(result))
+              }
+          }
         case _ =>
           val endTs = System.currentTimeMillis()
           val durationMs = endTs - startTs
@@ -2645,32 +2643,30 @@ class MultiWorkspaceBspServer(
           eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project.value, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
             IO.pure(TaskDag.TaskResult.Failure(s"Kotlin/JS output not found: $jsOutput", List.empty))
         } else {
-          val eventHandler = new TestRunnerTypes.TestEventHandler {
-            def onTestStarted(suite: String, test: String): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.TestStarted(testTask.project.value, suite, test, System.currentTimeMillis()))).unsafeRunSync()
-            def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
+          Dispatcher.sequential[IO].use { dispatcher =>
+            val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project.value)
+            val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName, testTask.suiteName))
+            KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, Map.empty, killSignal).flatMap { result =>
+              val endTs = System.currentTimeMillis()
+              val durationMs = endTs - startTs
               eventQueue
-                .offer(Some(TaskDag.DagEvent.TestFinished(testTask.project.value, suite, test, status, durationMs, message, None, System.currentTimeMillis())))
-                .unsafeRunSync()
-            def onSuiteStarted(suite: String): Unit = ()
-            def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
-            def onOutput(suite: String, line: String, isError: Boolean): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, suite, line, isError, System.currentTimeMillis()))).unsafeRunSync()
-          }
-
-          val suites = List(TestRunnerTypes.TestSuite(testTask.suiteName, testTask.suiteName))
-          KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, Map.empty, killSignal).map { result =>
-            val endTs = System.currentTimeMillis()
-            val durationMs = endTs - startTs
-            eventQueue
-              .offer(
-                Some(
-                  TaskDag.DagEvent
-                    .SuiteFinished(testTask.project.value, testTask.suiteName, result.passed, result.failed, result.skipped, result.ignored, durationMs, endTs)
+                .offer(
+                  Some(
+                    TaskDag.DagEvent
+                      .SuiteFinished(
+                        testTask.project.value,
+                        testTask.suiteName,
+                        result.passed,
+                        result.failed,
+                        result.skipped,
+                        result.ignored,
+                        durationMs,
+                        endTs
+                      )
+                  )
                 )
-              )
-              .unsafeRunSync()
-            classifyTestResult(result)
+                .as(classifyTestResult(result))
+            }
           }
         }
     } yield taskResult
@@ -2710,33 +2706,31 @@ class MultiWorkspaceBspServer(
           eventQueue.offer(Some(TaskDag.DagEvent.SuiteFinished(testTask.project.value, testTask.suiteName, 0, 1, 0, 0, durationMs, endTs))).void >>
             IO.pure(TaskDag.TaskResult.Failure(s"Kotlin/Native binary not found: $binary", List.empty))
         } else {
-          val eventHandler = new TestRunnerTypes.TestEventHandler {
-            def onTestStarted(suite: String, test: String): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.TestStarted(testTask.project.value, suite, test, System.currentTimeMillis()))).unsafeRunSync()
-            def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
+          Dispatcher.sequential[IO].use { dispatcher =>
+            val eventHandler = makeTestEventHandler(dispatcher, eventQueue, testTask.project.value)
+            // Run all tests in the binary - passing an empty list means no filter
+            // This is safer than trying to match synthetic suite names to actual test classes
+            KotlinTestRunner.Native.runTests(binary, List.empty, eventHandler, Map.empty, started.buildPaths.cwd, killSignal).flatMap { result =>
+              val endTs = System.currentTimeMillis()
+              val durationMs = endTs - startTs
               eventQueue
-                .offer(Some(TaskDag.DagEvent.TestFinished(testTask.project.value, suite, test, status, durationMs, message, None, System.currentTimeMillis())))
-                .unsafeRunSync()
-            def onSuiteStarted(suite: String): Unit = ()
-            def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
-            def onOutput(suite: String, line: String, isError: Boolean): Unit =
-              eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, suite, line, isError, System.currentTimeMillis()))).unsafeRunSync()
-          }
-
-          // Run all tests in the binary - passing an empty list means no filter
-          // This is safer than trying to match synthetic suite names to actual test classes
-          KotlinTestRunner.Native.runTests(binary, List.empty, eventHandler, Map.empty, started.buildPaths.cwd, killSignal).map { result =>
-            val endTs = System.currentTimeMillis()
-            val durationMs = endTs - startTs
-            eventQueue
-              .offer(
-                Some(
-                  TaskDag.DagEvent
-                    .SuiteFinished(testTask.project.value, testTask.suiteName, result.passed, result.failed, result.skipped, result.ignored, durationMs, endTs)
+                .offer(
+                  Some(
+                    TaskDag.DagEvent
+                      .SuiteFinished(
+                        testTask.project.value,
+                        testTask.suiteName,
+                        result.passed,
+                        result.failed,
+                        result.skipped,
+                        result.ignored,
+                        durationMs,
+                        endTs
+                      )
+                  )
                 )
-              )
-              .unsafeRunSync()
-            classifyTestResult(result)
+                .as(classifyTestResult(result))
+            }
           }
         }
     } yield taskResult
