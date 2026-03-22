@@ -6,7 +6,6 @@ import bleep.model
 import bleep.model.{CrossProjectName, Java, Kotlin}
 
 import java.nio.file.Paths
-import scala.util.Try
 
 /** Converts bleep's build model to the compilation infrastructure types.
   *
@@ -30,12 +29,11 @@ object BleepBuildConverter {
     val projects = projectsToCompile.getOrElse(started.build.explodedProjects.keySet)
 
     val configs = projects.toSeq.flatMap { crossName =>
-      started.resolvedProjects.get(crossName).flatMap { lazyResolved =>
-        Try(lazyResolved.forceGet).toOption.map { resolved =>
-          val config = toProjectConfig(crossName, resolved, started)
-          val deps = getDependencies(crossName, started)
-          (config, deps)
-        }
+      started.resolvedProjects.get(crossName).map { lazyResolved =>
+        val resolved = lazyResolved.forceGet
+        val config = toProjectConfig(crossName, resolved, started)
+        val deps = getDependencies(crossName, started)
+        (config, deps)
       }
     }
 
@@ -57,17 +55,13 @@ object BleepBuildConverter {
   def toSingleProjectDag(
       started: Started,
       project: CrossProjectName
-  ): ProjectDag =
-    started.resolvedProjects
-      .get(project)
-      .flatMap { lazyResolved =>
-        Try(lazyResolved.forceGet).toOption.map { resolved =>
-          val config = toProjectConfig(project, resolved, started)
-          // No dependencies in DAG - caller handles ordering
-          ProjectDag.fromProjects(Seq((config, Set.empty[String])))
-        }
-      }
-      .getOrElse(ProjectDag.fromProjects(Seq.empty))
+  ): ProjectDag = {
+    val lazyResolved = started.resolvedProjects(project)
+    val resolved = lazyResolved.forceGet
+    val config = toProjectConfig(project, resolved, started)
+    // No dependencies in DAG - caller handles ordering
+    ProjectDag.fromProjects(Seq((config, Set.empty[String])))
+  }
 
   /** Convert a ResolvedProject to ProjectConfig for compilation.
     *

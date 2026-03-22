@@ -326,7 +326,7 @@ object BspServerOperations {
   /** Read PID from file */
   def readPid(pidFile: Path): IO[Option[Long]] = IO.blocking {
     if (Files.exists(pidFile)) {
-      Try(Files.readString(pidFile).trim.toLong).toOption
+      Some(Files.readString(pidFile).trim.toLong)
     } else {
       None
     }

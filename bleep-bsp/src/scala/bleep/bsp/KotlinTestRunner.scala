@@ -672,9 +672,9 @@ object KotlinTestRunner {
         Some(
           TestEvent.SuiteFinished(
             parts(1),
-            parts(2).toIntOption.getOrElse(0),
-            parts(3).toIntOption.getOrElse(0),
-            parts(4).toIntOption.getOrElse(0)
+            parts(2).toInt,
+            parts(3).toInt,
+            parts(4).toInt
           )
         )
 
@@ -688,7 +688,7 @@ object KotlinTestRunner {
             parts(1),
             parts(2),
             parts(3),
-            parts(4).toLongOption.getOrElse(0L),
+            parts(4).toLong,
             message
           )
         )

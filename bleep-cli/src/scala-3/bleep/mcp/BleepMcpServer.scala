@@ -371,7 +371,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
                 Json.obj(
                   "jobId" -> Json.fromString(r.jobId.value),
                   "mode" -> Json.fromString(r.mode.value),
-                  "result" -> io.circe.parser.parse(r.summary).getOrElse(Json.fromString(r.summary)),
+                  "result" -> io.circe.parser.parse(r.summary).fold(throw _, identity),
                   "timestampMs" -> Json.fromLong(r.timestampMs)
                 )
               }

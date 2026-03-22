@@ -7,7 +7,7 @@ import ryddig.Logger
 import java.nio.file.*
 import java.nio.file.attribute.PosixFilePermission
 import scala.concurrent.duration.*
-import scala.util.{Properties, Random, Try}
+import scala.util.{Properties, Try}
 
 /** How the bleep-bsp server is provided to commands. */
 sealed trait BspServerClasspathSource
@@ -164,7 +164,7 @@ object SetupBleepBsp {
 
     // Ensure directory exists with proper permissions
     if (!Files.isDirectory(dir)) {
-      val tmpId = Try(ProcessHandle.current.pid).getOrElse(Random.nextInt().toLong).toString
+      val tmpId = ProcessHandle.current.pid.toString
       val tmpDir = dir.getParent.resolve(s".${dir.getFileName}.tmp-$tmpId")
 
       try {

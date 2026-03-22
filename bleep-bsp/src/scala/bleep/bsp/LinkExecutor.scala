@@ -416,16 +416,12 @@ object LinkExecutor {
           Seq(p)
         } else if (Files.isDirectory(p)) {
           // Check directory for KLIB files
-          try
-            scala.util
-              .Using(Files.list(p)) { stream =>
-                import scala.jdk.CollectionConverters._
-                stream.iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
-              }
-              .getOrElse(Seq.empty)
-          catch {
-            case _: Exception => Seq.empty
-          }
+          scala.util
+            .Using(Files.list(p)) { stream =>
+              import scala.jdk.CollectionConverters._
+              stream.iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
+            }
+            .get
         } else {
           Seq.empty
         }

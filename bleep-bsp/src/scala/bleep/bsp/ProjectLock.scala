@@ -133,13 +133,9 @@ object ProjectLock {
   private def releaseLock(project: CrossProjectName, outputDir: Path): IO[Unit] =
     IO.blocking {
       Option(activeLocks.remove(project)).foreach { info =>
-        try {
-          info.fileLock.release()
-          info.channel.close()
-          info.raf.close()
-        } catch {
-          case _: Exception => () // Best effort cleanup
-        }
+        info.fileLock.release()
+        info.channel.close()
+        info.raf.close()
       }
     }
 
