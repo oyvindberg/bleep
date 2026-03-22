@@ -119,7 +119,7 @@ class MultiWorkspaceBspServer(
     */
   def run(): Unit = {
     val program = runConcurrent
-      .handleErrorWith { err =>
+      .onError { err =>
         IO.delay(logger.withContext("error", err.getClass.getName).error(s"Message loop failed: ${err.getMessage}", err))
       }
       .guarantee(
@@ -190,6 +190,9 @@ class MultiWorkspaceBspServer(
       val handler: IO[Unit] =
         registered.get >>
           IO.interruptible(handleRequestSync(request))
+            .onError { err =>
+              IO.delay(logger.withContext("request", requestId).error(s"Request handler failed: ${err.getClass.getName}: ${err.getMessage}", err))
+            }
             .guarantee(IO.blocking(activeFibers.remove(requestId)).void)
 
       handler.start.flatMap { fiber =>
@@ -2967,7 +2970,8 @@ class MultiWorkspaceBspServer(
           IO(logger.withContext("error", error.getMessage).error("Event send failed (connection dead)")) >>
             killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
         case error =>
-          IO(logger.withContext("error", error.getMessage).error("Event processing failed (continuing)"))
+          IO(logger.withContext("error", error.getMessage).error("Event processing failed")) >>
+            IO.raiseError(error)
       }
     }
 
@@ -3110,7 +3114,8 @@ class MultiWorkspaceBspServer(
           IO(logger.withContext("error", error.getMessage).error("Compile event send failed (connection dead)")) >>
             killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
         case error =>
-          IO(logger.withContext("error", error.getMessage).error("Compile event processing failed (continuing)"))
+          IO(logger.withContext("error", error.getMessage).error("Compile event processing failed")) >>
+            IO.raiseError(error)
       }
     }
 

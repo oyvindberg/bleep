@@ -605,8 +605,11 @@ object TaskDag {
             taskKill <- Deferred[IO, KillReason]
             // Register this task's kill signal
             _ <- taskKillSignals.update(_ + (task.id -> taskKill))
-            // Set up propagation from global kill signal to this task's signal
-            _ <- killSignal.get.flatMap(reason => taskKill.complete(reason).attempt.void).start
+            // Set up propagation from global kill signal to this task's signal.
+            // .attempt handles already-completed Deferred (task finished before global kill arrived).
+            _ <- killSignal.get
+              .flatMap(reason => taskKill.complete(reason).attempt.void)
+              .start
           } yield taskKill
 
         // Helper to convert ALL outcomes (success, error, killed) to TaskResult
@@ -794,7 +797,8 @@ object TaskDag {
                     executeTask(task, dagRef, taskKillSignals)
                       .guarantee(
                         runningRef.update(_ - task.id) >>
-                          // Signal the CURRENT deferred (read from ref to avoid stale reference)
+                          // Signal the CURRENT deferred (read from ref to avoid stale reference).
+                          // .attempt handles already-completed Deferred (multiple tasks finishing concurrently).
                           signalRef.get.flatMap(_.complete(()).attempt.void)
                       )
                       .start

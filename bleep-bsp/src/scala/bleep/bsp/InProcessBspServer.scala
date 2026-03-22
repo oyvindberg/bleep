@@ -30,7 +30,8 @@ object InProcessBspServer {
                 new MultiWorkspaceBspServer(serverIn, serverOut, logger, socketDir = None, compileSemaphore = semaphore, heapMonitor = HeapMonitor.system)
               server.run()
             } catch {
-              case _: Exception => ()
+              case e: Exception =>
+                logger.error(s"In-process BSP server failed: ${e.getClass.getName}: ${e.getMessage}", e)
             } finally {
               try serverOut.close()
               catch { case _: Exception => () }

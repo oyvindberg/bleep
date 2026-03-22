@@ -127,12 +127,9 @@ object BspServerDaemon {
       res match {
         case Left(err: LockError) if err.isInstanceOf[LockError.ZombieFound] =>
           logger.warn(s"Found zombie process, removing files in ${config.socketDir}")
-          try Files.deleteIfExists(lockFiles.pidFile)
-          catch { case _: Exception => () }
-          try Files.deleteIfExists(lockFiles.lockFile)
-          catch { case _: Exception => () }
-          try Files.deleteIfExists(lockFiles.socketPaths.path)
-          catch { case _: Exception => () }
+          Files.deleteIfExists(lockFiles.pidFile)
+          Files.deleteIfExists(lockFiles.lockFile)
+          Files.deleteIfExists(lockFiles.socketPaths.path)
           if (remainingAttempts > 0) {
             loop(remainingAttempts - 1)
           } else {
