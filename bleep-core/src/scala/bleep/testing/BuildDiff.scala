@@ -8,7 +8,7 @@ import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, 
   */
 case class PreviousRunState(
     compileDiagnostics: Map[String, List[BleepBspProtocol.Diagnostic]],
-    testResults: Map[(String, String, String), TestStatus] // (project, suite, test) -> status
+    testResults: Map[TestKey, TestStatus]
 )
 
 object PreviousRunState {
@@ -17,13 +17,13 @@ object PreviousRunState {
   /** Build from a list of BuildEvents collected during a run */
   def fromEvents(events: List[BuildEvent]): PreviousRunState = {
     val compileDiags = Map.newBuilder[String, List[BleepBspProtocol.Diagnostic]]
-    val testRes = Map.newBuilder[(String, String, String), TestStatus]
+    val testRes = Map.newBuilder[TestKey, TestStatus]
 
     events.foreach {
       case e: BuildEvent.CompileFinished =>
         compileDiags += e.project -> e.diagnostics
       case e: BuildEvent.TestFinished =>
-        testRes += (e.project, e.suite, e.test) -> e.status
+        testRes += TestKey(e.project, e.suite, e.test) -> e.status
       case _ => ()
     }
 
@@ -33,13 +33,13 @@ object PreviousRunState {
   /** Build from a list of BleepBspProtocol events (used by MCP server which stores protocol events directly) */
   def fromProtocolEvents(events: List[BleepBspProtocol.Event]): PreviousRunState = {
     val compileDiags = Map.newBuilder[String, List[BleepBspProtocol.Diagnostic]]
-    val testRes = Map.newBuilder[(String, String, String), TestStatus]
+    val testRes = Map.newBuilder[TestKey, TestStatus]
 
     events.foreach {
       case e: BleepBspProtocol.Event.CompileFinished =>
         compileDiags += e.project -> e.diagnostics
       case e: BleepBspProtocol.Event.TestFinished =>
-        testRes += (e.project, e.suite, e.test) -> e.status
+        testRes += TestKey(e.project, e.suite, e.test) -> e.status
       case _ => ()
     }
 
@@ -203,7 +203,7 @@ object BuildDiff {
       project: String,
       suite: String,
       currentTests: List[BuildEvent.TestFinished],
-      previousTestResults: Map[(String, String, String), TestStatus],
+      previousTestResults: Map[TestKey, TestStatus],
       passed: Int,
       failed: Int,
       skipped: Int,
@@ -215,7 +215,7 @@ object BuildDiff {
     val stillFailing = List.newBuilder[String]
 
     currentTests.foreach { t =>
-      val key = (t.project, t.suite, t.test)
+      val key = TestKey(t.project, t.suite, t.test)
       val prevStatus = previousTestResults.get(key)
       val currentFailed = t.status.isFailure
 

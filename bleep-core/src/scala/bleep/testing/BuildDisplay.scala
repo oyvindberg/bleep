@@ -773,8 +773,8 @@ object BuildDisplay {
     private def printStatus: IO[Unit] =
       for {
         s <- state.get
-        running = s.currentlyRunning.take(3).mkString(", ")
-        more = if (s.currentlyRunning.size > 3) s" (+${s.currentlyRunning.size - 3} more)" else ""
+        running = s.runningSuites.toList.sorted.take(3).mkString(", ")
+        more = if (s.runningSuites.size > 3) s" (+${s.runningSuites.size - 3} more)" else ""
         _ <- log(s"Running: $running$more")
       } yield ()
 
@@ -1059,14 +1059,14 @@ object BuildDisplay {
 
           case BuildMode.Test =>
             val newFailures = allTests.count { t =>
-              val key = (t.project, t.suite, t.test)
+              val key = TestKey(t.project, t.suite, t.test)
               val prev = previousRun.testResults.get(key)
               val prevFailed = prev.exists(_.isFailure)
               t.status.isFailure && !prevFailed
             }
             val fixedTests = previousRun.testResults.count { case (key, prev) =>
               val prevFailed = prev.isFailure
-              val currentResult = allTests.find(t => (t.project, t.suite, t.test) == key)
+              val currentResult = allTests.find(t => TestKey(t.project, t.suite, t.test) == key)
               prevFailed && currentResult.exists(t => !t.status.isFailure)
             }
             log(BuildDiff.formatTestSummary(s.testsPassed, s.testsFailed, newFailures, fixedTests))

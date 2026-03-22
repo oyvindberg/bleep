@@ -4,7 +4,8 @@ import bleep._
 import bleep.bsp.{BspRequestHelper, BspRifle, BspRifleConfig, BspServerBuilder, SetupBleepBsp}
 import bleep.bsp.protocol.BleepBspProtocol
 import bleep.internal.BspClientDisplayProgress
-import bleep.testing.{BuildDiff, PreviousRunState}
+import bleep.bsp.protocol.{CompileStatus, DiagnosticSeverity, TestStatus}
+import bleep.testing.{BuildDiff, PreviousRunState, TestKey}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -1202,7 +1203,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               val startedEvents = events.collect { case e: E.CompileStarted => e }
               val finishedProjects = finished.map(_.project).toSet
               val inProgressEvents = startedEvents.filterNot(e => finishedProjects.contains(e.project))
-              val failed = finished.count(_.status == "failed")
+              val failed = finished.count(_.status == CompileStatus.Failed)
               val suites = events.collect { case e: E.SuiteFinished => e }
 
               val parts = List.newBuilder[String]
@@ -1235,18 +1236,18 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       import BleepBspProtocol.{Event => E}
       event match {
         case e: E.CompileFinished =>
-          val errorCount = e.diagnostics.count(_.severity == "error")
+          val errorCount = e.diagnostics.count(_.severity == DiagnosticSeverity.Error)
           val previousDiags = previousState.compileDiagnostics.getOrElse(e.project, Nil)
           val hasPrevious = previousState.compileDiagnostics.contains(e.project)
 
-          if (e.status == "failed") {
+          if (e.status == CompileStatus.Failed) {
             // Stream failures immediately — agent needs to know ASAP
             if (hasPrevious) {
               val diff = BuildDiff.diffCompile(e.project, e.status, e.diagnostics, previousDiags, e.durationMs)
               streamNotification(context, protocol.LoggingLevel.Error, BuildDiff.formatCompileDiff(diff))
             } else {
               // First run, no diff baseline — report error count and first few messages
-              val firstErrors = e.diagnostics.filter(_.severity == "error").take(3).map(d => stripAnsi(d.message))
+              val firstErrors = e.diagnostics.filter(_.severity == DiagnosticSeverity.Error).take(3).map(d => stripAnsi(d.message))
               val moreStr = if (errorCount > 3) s" (+${errorCount - 3} more)" else ""
               streamNotification(
                 context,
@@ -1268,16 +1269,16 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               case tf: E.TestFinished if tf.project == e.project && tf.suite == e.suite => tf
             }
             val newFailures = suiteTests.filter { tf =>
-              val key = (tf.project, tf.suite, tf.test)
+              val key = TestKey(tf.project, tf.suite, tf.test)
               val prev = previousState.testResults.get(key)
-              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
-              (tf.status == "failed" || tf.status == "error") && !prevFailed
+              val prevFailed = prev.exists(_.isFailure)
+              tf.status.isFailure && !prevFailed
             }
             val fixedTests = suiteTests.filter { tf =>
-              val key = (tf.project, tf.suite, tf.test)
+              val key = TestKey(tf.project, tf.suite, tf.test)
               val prev = previousState.testResults.get(key)
-              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout")
-              prevFailed && tf.status != "failed" && tf.status != "error"
+              val prevFailed = prev.exists(_.isFailure)
+              prevFailed && !tf.status.isFailure
             }
 
             // Stream if there are failures or diffs
@@ -1365,17 +1366,17 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       import BleepBspProtocol.{Event => E}
 
       val compileEvents = events.collect { case e: E.CompileFinished => e }
-      val failedProjects = compileEvents.filter(_.status == "failed")
+      val failedProjects = compileEvents.filter(_.status == CompileStatus.Failed)
       val allDiagnostics = compileEvents.flatMap(_.diagnostics)
-      val errorCount = allDiagnostics.count(_.severity == "error")
-      val warningCount = allDiagnostics.count(_.severity == "warning")
+      val errorCount = allDiagnostics.count(_.severity == DiagnosticSeverity.Error)
+      val warningCount = allDiagnostics.count(_.severity == DiagnosticSeverity.Warning)
       val success = failedProjects.isEmpty
 
       if (verbose) {
         // Explicit verbose request — full diagnostics
         val allDiagnosticJsons = allDiagnostics.map { d =>
           val fields = List.newBuilder[(String, Json)]
-          fields += "severity" -> Json.fromString(d.severity)
+          fields += "severity" -> Json.fromString(d.severity.wireValue)
           fields += "message" -> Json.fromString(stripAnsi(d.message))
           d.rendered.foreach(r => fields += "rendered" -> Json.fromString(stripAnsi(r)))
           d.path.foreach(p => fields += "path" -> Json.fromString(p))
@@ -1414,7 +1415,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           previousState.compileDiagnostics.keys.foreach { project =>
             if (!compileEvents.exists(_.project == project)) {
               val prev = previousState.compileDiagnostics(project)
-              totalFixed += prev.count(_.severity == "error")
+              totalFixed += prev.count(_.severity == DiagnosticSeverity.Error)
             }
           }
           fields += "newErrors" -> Json.fromInt(totalNew)
@@ -1432,7 +1433,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         if (failedProjects.nonEmpty) {
           fields += "failedProjects" -> Json.arr(failedProjects.map(_.project).distinct.map(Json.fromString)*)
           // Always include first 3 errors so the agent has something actionable
-          val topErrors = allDiagnostics.filter(_.severity == "error").take(3).map { d =>
+          val topErrors = allDiagnostics.filter(_.severity == DiagnosticSeverity.Error).take(3).map { d =>
             val df = List.newBuilder[(String, Json)]
             df += "message" -> Json.fromString(stripAnsi(d.message))
             d.path.foreach(p => df += "path" -> Json.fromString(p))
@@ -1460,10 +1461,10 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       import BleepBspProtocol.{Event => E}
 
       val testEvents = events.collect { case e: E.TestFinished => e }
-      val failedTests = testEvents.filter(e => e.status == "failed" || e.status == "error")
+      val failedTests = testEvents.filter(e => e.status.isFailure)
       val hasPrevious = previousState.testResults.nonEmpty
 
-      val passed = testRunResult.map(_.totalPassed).getOrElse(testEvents.count(_.status == "passed"))
+      val passed = testRunResult.map(_.totalPassed).getOrElse(testEvents.count(_.status == TestStatus.Passed))
       val failed = testRunResult.map(_.totalFailed).getOrElse(failedTests.size)
       val durationMs = testRunResult.map(_.durationMs)
 
@@ -1479,13 +1480,13 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
       if (hasPrevious) {
         val newFailures = failedTests.count { tf =>
-          val key = (tf.project, tf.suite, tf.test)
-          !previousState.testResults.get(key).exists(p => p == "failed" || p == "error" || p == "timeout")
+          val key = TestKey(tf.project, tf.suite, tf.test)
+          !previousState.testResults.get(key).exists(_.isFailure)
         }
         val fixedTests = previousState.testResults.count { case (key, prev) =>
-          val prevFailed = prev == "failed" || prev == "error" || prev == "timeout"
-          val currentResult = testEvents.find(t => (t.project, t.suite, t.test) == key)
-          prevFailed && currentResult.exists(t => t.status != "failed" && t.status != "error")
+          val prevFailed = prev.isFailure
+          val currentResult = testEvents.find(t => TestKey(t.project, t.suite, t.test) == key)
+          prevFailed && currentResult.exists(t => !t.status.isFailure)
         }
         fields += "newFailures" -> Json.fromInt(newFailures)
         fields += "fixedTests" -> Json.fromInt(fixedTests)
@@ -1511,7 +1512,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           df += "project" -> Json.fromString(e.project)
           df += "suite" -> Json.fromString(e.suite)
           df += "test" -> Json.fromString(e.test)
-          df += "status" -> Json.fromString(e.status)
+          df += "status" -> Json.fromString(e.status.wireValue)
           e.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
           e.throwable.foreach { t =>
             if (includeThrowables) df += "throwable" -> Json.fromString(stripAnsi(t))

@@ -1,5 +1,6 @@
 package bleep.analysis
 
+import bleep.bsp.protocol.TestStatus
 import bleep.testing._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -80,7 +81,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
   }
 
   test("SuiteFinished clears pending output for suite") {
-    val key = "proj:com.example.MySuite"
+    val key = SuiteKey("proj", "com.example.MySuite")
 
     // After Output events, pending output should exist
     val stateWithOutput = reduce(
@@ -108,14 +109,15 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
       BuildEvent.ConnectionLost("", ts + 2)
     )
 
-    state.currentlyRunning shouldBe empty
+    state.runningSuites shouldBe empty
+    state.runningTests shouldBe empty
     state.cancelledSuites should have size 2
     state.cancelledSuites.foreach { cs =>
       cs.reason shouldBe Some("BSP connection lost")
     }
-    val cancelledKeys = state.cancelledSuites.map(cs => s"${cs.project}:${cs.suite}").toSet
-    cancelledKeys should contain("p1:suite1")
-    cancelledKeys should contain("p2:suite2")
+    val cancelledKeys = state.cancelledSuites.map(cs => SuiteKey(cs.project, cs.suite)).toSet
+    cancelledKeys should contain(SuiteKey("p1", "suite1"))
+    cancelledKeys should contain(SuiteKey("p2", "suite2"))
   }
 
   // ==========================================================================
@@ -157,6 +159,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     state.suitesCompleted shouldBe 5
     state.suitesFailed shouldBe 1
     state.suitesCancelled shouldBe 0
-    state.currentlyRunning shouldBe empty
+    state.runningSuites shouldBe empty
+    state.runningTests shouldBe empty
   }
 }

@@ -26,13 +26,13 @@ object McpEventFilter {
         val fields = List.newBuilder[(String, Json)]
         fields += "event" -> Json.fromString("CompileFinished")
         fields += "project" -> Json.fromString(e.project)
-        fields += "status" -> Json.fromString(e.status)
+        fields += "status" -> Json.fromString(e.status.wireValue)
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         if (e.diagnostics.nonEmpty) {
           fields += "diagnostics" -> Json.arr(
             e.diagnostics.map { d =>
               val diagFields = List.newBuilder[(String, Json)]
-              diagFields += "severity" -> Json.fromString(d.severity)
+              diagFields += "severity" -> Json.fromString(d.severity.wireValue)
               diagFields += "message" -> Json.fromString(stripAnsi(d.message))
               d.rendered.foreach(r => diagFields += "rendered" -> Json.fromString(stripAnsi(r)))
               d.path.foreach(p => diagFields += "path" -> Json.fromString(p))
@@ -51,7 +51,7 @@ object McpEventFilter {
         fields += "project" -> Json.fromString(e.project)
         fields += "suite" -> Json.fromString(e.suite)
         fields += "test" -> Json.fromString(e.test)
-        fields += "status" -> Json.fromString(e.status)
+        fields += "status" -> Json.fromString(e.status.wireValue)
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         e.message.foreach(m => fields += "message" -> Json.fromString(m))
         e.throwable.foreach(t => fields += "throwable" -> Json.fromString(t))

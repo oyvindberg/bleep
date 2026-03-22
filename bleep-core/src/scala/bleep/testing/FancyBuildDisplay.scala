@@ -377,10 +377,10 @@ object FancyBuildDisplay {
       userQuitSignal.foreach(_.complete(()).unsafeRunSync())
     }
 
-    // Use runningSuites for cancellation tracking (format: "project:suite")
-    // runningTests might be empty between tests even when suite is running
+    // Use FancyBuildDisplay's own runningSuites for cancellation tracking
+    // (runningTests might be empty between tests even when suite is running)
     val summary = state.core.toSummary(durationMs = state.elapsedMs, wasCancelled = userCancelled)
-    summary.copy(currentlyRunning = state.runningSuites.keys.toList)
+    summary.copy(currentlyRunning = state.runningSuites.keys.toList.sorted)
   }
 
   private def processEvent(state: State, event: BuildEvent): State = {

@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, TestStatus}
 import bleep.testing._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -17,14 +17,14 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   // Helper constructors
   // ==========================================================================
 
-  private def diag(severity: String, message: String, path: String): BleepBspProtocol.Diagnostic =
+  private def diag(severity: DiagnosticSeverity, message: String, path: String): BleepBspProtocol.Diagnostic =
     BleepBspProtocol.Diagnostic(severity = severity, message = message, rendered = None, path = Some(path))
 
   private def errorDiag(message: String, path: String): BleepBspProtocol.Diagnostic =
-    diag("error", message, path)
+    diag(DiagnosticSeverity.Error, message, path)
 
   private def warningDiag(message: String, path: String): BleepBspProtocol.Diagnostic =
-    diag("warning", message, path)
+    diag(DiagnosticSeverity.Warning, message, path)
 
   private def testFinished(project: String, suite: String, test: String, status: TestStatus): BuildEvent.TestFinished =
     BuildEvent.TestFinished(
@@ -47,27 +47,29 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       BuildEvent.CompileStarted("proj-a", ts),
       BuildEvent.CompileFinished(
         "proj-a",
-        "success",
+        CompileStatus.Success,
         durationMs = 100,
         timestamp = ts + 1,
-        diagnostics = List(warningDiag("unused import", "Foo.scala:10:5"))
+        diagnostics = List(warningDiag("unused import", "Foo.scala:10:5")),
+        skippedBecause = None
       ),
       BuildEvent.CompileStarted("proj-b", ts + 2),
       BuildEvent.CompileFinished(
         "proj-b",
-        "failed",
+        CompileStatus.Failed,
         durationMs = 200,
         timestamp = ts + 3,
-        diagnostics = List(errorDiag("type mismatch", "Bar.scala:20:3"))
+        diagnostics = List(errorDiag("type mismatch", "Bar.scala:20:3")),
+        skippedBecause = None
       )
     )
 
     val state = PreviousRunState.fromEvents(events)
     state.compileDiagnostics should have size 2
     state.compileDiagnostics("proj-a") should have size 1
-    state.compileDiagnostics("proj-a").head.severity shouldBe "warning"
+    state.compileDiagnostics("proj-a").head.severity shouldBe DiagnosticSeverity.Warning
     state.compileDiagnostics("proj-b") should have size 1
-    state.compileDiagnostics("proj-b").head.severity shouldBe "error"
+    state.compileDiagnostics("proj-b").head.severity shouldBe DiagnosticSeverity.Error
   }
 
   test("PreviousRunState.fromEvents extracts test results per (project, suite, test)") {
@@ -80,8 +82,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
     val state = PreviousRunState.fromEvents(events)
     state.testResults should have size 2
-    state.testResults(("proj", "MySuite", "test1")) shouldBe "passed"
-    state.testResults(("proj", "MySuite", "test2")) shouldBe "failed"
+    state.testResults(TestKey("proj", "MySuite", "test1")) shouldBe TestStatus.Passed
+    state.testResults(TestKey("proj", "MySuite", "test2")) shouldBe TestStatus.Failed
   }
 
   test("PreviousRunState.fromEvents ignores non-compile-finished and non-test-finished events") {
@@ -105,7 +107,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val events: List[BleepBspProtocol.Event] = List(
       BleepBspProtocol.Event.CompileFinished(
         project = "proj-a",
-        status = "success",
+        status = CompileStatus.Success,
         durationMs = 100,
         diagnostics = List(warningDiag("unused", "A.scala:1:1")),
         skippedBecause = None,
@@ -115,7 +117,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
         project = "proj-b",
         suite = "MySuite",
         test = "testFoo",
-        status = "passed",
+        status = TestStatus.Passed,
         durationMs = 50,
         message = None,
         throwable = None,
@@ -127,7 +129,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     state.compileDiagnostics should have size 1
     state.compileDiagnostics("proj-a") should have size 1
     state.testResults should have size 1
-    state.testResults(("proj-b", "MySuite", "testFoo")) shouldBe "passed"
+    state.testResults(TestKey("proj-b", "MySuite", "testFoo")) shouldBe TestStatus.Passed
   }
 
   // ==========================================================================
@@ -137,7 +139,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   test("diffCompile: clean project with no previous = all zeros") {
     val diff = BuildDiff.diffCompile(
       project = "proj",
-      status = "success",
+      status = CompileStatus.Success,
       currentDiagnostics = Nil,
       previousDiagnostics = Nil,
       durationMs = 100
@@ -157,7 +159,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("not found: value x", "Bar.scala:20:3")
     )
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, Nil, 200)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, Nil, 200)
 
     diff.totalErrors shouldBe 2
     diff.newErrors shouldBe 2
@@ -170,7 +172,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("not found: value x", "Bar.scala:20:3")
     )
 
-    val diff = BuildDiff.diffCompile("proj", "success", Nil, previous, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Success, Nil, previous, 100)
 
     diff.totalErrors shouldBe 0
     diff.newErrors shouldBe 0
@@ -188,7 +190,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("implicit not found", "Qux.scala:1:1") // new error
     )
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 300)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, previous, 300)
 
     diff.totalErrors shouldBe 2
     diff.newErrors shouldBe 1 // implicit not found is new
@@ -199,7 +201,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val previous = List(errorDiag("type mismatch", "Foo.scala:10:5"))
     val current = List(errorDiag("type mismatch", "Foo.scala:42:8"))
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, previous, 100)
 
     // Same file + message = same error, line shift is ignored
     diff.newErrors shouldBe 0
@@ -217,7 +219,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       warningDiag("deprecation", "C.scala:3:1")
     )
 
-    val diff = BuildDiff.diffCompile("proj", "success", current, previous, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Success, current, previous, 100)
 
     diff.totalErrors shouldBe 0
     diff.fixedErrors shouldBe 1 // type mismatch fixed
@@ -228,11 +230,11 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   }
 
   test("diffCompile: diagnostics without path are matched by message only") {
-    val noDiag = BleepBspProtocol.Diagnostic(severity = "error", message = "build error", rendered = None, path = None)
+    val noDiag = BleepBspProtocol.Diagnostic(severity = DiagnosticSeverity.Error, message = "build error", rendered = None, path = None)
     val previous = List(noDiag)
     val current = List(noDiag)
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, previous, 100)
 
     diff.totalErrors shouldBe 1
     diff.newErrors shouldBe 0 // same error
@@ -260,8 +262,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: test flips from pass to fail = new failure") {
     val previousResults = Map(
-      ("proj", "MySuite", "test1") -> "passed",
-      ("proj", "MySuite", "test2") -> "passed"
+      TestKey("proj", "MySuite", "test1") -> TestStatus.Passed,
+      TestKey("proj", "MySuite", "test2") -> TestStatus.Passed
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "test1", TestStatus.Passed),
@@ -277,8 +279,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: test flips from fail to pass = fixed") {
     val previousResults = Map(
-      ("proj", "MySuite", "test1") -> "passed",
-      ("proj", "MySuite", "test2") -> "failed"
+      TestKey("proj", "MySuite", "test1") -> TestStatus.Passed,
+      TestKey("proj", "MySuite", "test2") -> TestStatus.Failed
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "test1", TestStatus.Passed),
@@ -294,7 +296,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: test still failing = still failing") {
     val previousResults = Map(
-      ("proj", "MySuite", "testBad") -> "failed"
+      TestKey("proj", "MySuite", "testBad") -> TestStatus.Failed
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "testBad", TestStatus.Failed)
@@ -309,7 +311,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: new test that immediately fails = new failure") {
     val previousResults = Map(
-      ("proj", "MySuite", "test1") -> "passed"
+      TestKey("proj", "MySuite", "test1") -> TestStatus.Passed
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "test1", TestStatus.Passed),
@@ -323,7 +325,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: new test that passes = no diff detail") {
     val previousResults = Map(
-      ("proj", "MySuite", "test1") -> "passed"
+      TestKey("proj", "MySuite", "test1") -> TestStatus.Passed
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "test1", TestStatus.Passed),
@@ -339,8 +341,8 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: error and timeout statuses count as failures in previous run") {
     val previousResults = Map(
-      ("proj", "MySuite", "testErr") -> "error",
-      ("proj", "MySuite", "testTimeout") -> "timeout"
+      TestKey("proj", "MySuite", "testErr") -> TestStatus.Error,
+      TestKey("proj", "MySuite", "testTimeout") -> TestStatus.Timeout
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "testErr", TestStatus.Passed),
@@ -355,9 +357,9 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: mixed scenario — fix one, break another, one still failing") {
     val previousResults = Map(
-      ("proj", "MySuite", "test1") -> "passed",
-      ("proj", "MySuite", "test2") -> "failed",
-      ("proj", "MySuite", "test3") -> "failed"
+      TestKey("proj", "MySuite", "test1") -> TestStatus.Passed,
+      TestKey("proj", "MySuite", "test2") -> TestStatus.Failed,
+      TestKey("proj", "MySuite", "test3") -> TestStatus.Failed
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "test1", TestStatus.Failed), // was passing, now failing
@@ -377,57 +379,57 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("formatCompileDiff: clean project with no previous") {
-    val diff = BuildDiff.CompileDiff("proj", "success", 0, 0, 0, 0, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Success, 0, 0, 0, 0, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: OK (100ms)"
   }
 
   test("formatCompileDiff: clean project after fixing errors") {
-    val diff = BuildDiff.CompileDiff("proj", "success", 0, 0, 0, 2, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Success, 0, 0, 0, 2, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: OK (fixed 2 errors) (100ms)"
   }
 
   test("formatCompileDiff: clean project with warnings") {
-    val diff = BuildDiff.CompileDiff("proj", "success", 0, 3, 0, 0, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Success, 0, 3, 0, 0, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: OK (3 warnings) (100ms)"
   }
 
   test("formatCompileDiff: clean project after fixing errors, with warnings") {
-    val diff = BuildDiff.CompileDiff("proj", "success", 0, 2, 0, 1, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Success, 0, 2, 0, 1, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: OK (fixed 1 error, 2 warnings) (100ms)"
   }
 
   test("formatCompileDiff: failed with all new errors") {
-    val diff = BuildDiff.CompileDiff("proj", "failed", 3, 0, 3, 0, 0, 0, 200)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Failed, 3, 0, 3, 0, 0, 0, 200)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: 3 errors (all new) (200ms)"
   }
 
   test("formatCompileDiff: failed with mix of new and fixed") {
-    val diff = BuildDiff.CompileDiff("proj", "failed", 2, 0, 1, 1, 0, 0, 300)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Failed, 2, 0, 1, 1, 0, 0, 300)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: 2 errors (1 new, 1 fixed) (300ms)"
   }
 
   test("formatCompileDiff: failed with some new and remaining") {
-    val diff = BuildDiff.CompileDiff("proj", "failed", 3, 0, 1, 0, 0, 0, 150)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Failed, 3, 0, 1, 0, 0, 0, 150)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: 3 errors (1 new, 2 remaining) (150ms)"
   }
 
   test("formatCompileDiff: failed with only remaining errors (no new, no fixed)") {
-    val diff = BuildDiff.CompileDiff("proj", "failed", 2, 0, 0, 0, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Failed, 2, 0, 0, 0, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: 2 errors (2 remaining) (100ms)"
   }
 
   test("formatCompileDiff: failed with errors and warnings") {
-    val diff = BuildDiff.CompileDiff("proj", "failed", 1, 2, 1, 0, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Failed, 1, 2, 1, 0, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: 1 error (all new, 2 warnings) (100ms)"
   }
 
   test("formatCompileDiff: singular error uses no 's'") {
-    val diff = BuildDiff.CompileDiff("proj", "failed", 1, 0, 1, 0, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Failed, 1, 0, 1, 0, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: 1 error (all new) (100ms)"
   }
 
   test("formatCompileDiff: singular warning uses no 's'") {
-    val diff = BuildDiff.CompileDiff("proj", "success", 0, 1, 0, 0, 0, 0, 100)
+    val diff = BuildDiff.CompileDiff("proj", CompileStatus.Success, 0, 1, 0, 0, 0, 0, 100)
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: OK (1 warning) (100ms)"
   }
 
@@ -530,7 +532,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val prev = List(errorDiag("type mismatch", "src/Foo.scala:10:5"))
     val curr = List(errorDiag("type mismatch", "src/Foo.scala:99:1"))
 
-    val diff = BuildDiff.diffCompile("proj", "failed", curr, prev, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, curr, prev, 100)
     // Line stripped — same file + same message = same error
     diff.newErrors shouldBe 0
     diff.fixedErrors shouldBe 0
@@ -540,7 +542,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val prev = List(errorDiag("type mismatch", "src/Foo.scala:10:5"))
     val curr = List(errorDiag("type mismatch", "src/Bar.scala:10:5"))
 
-    val diff = BuildDiff.diffCompile("proj", "failed", curr, prev, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, curr, prev, 100)
     diff.newErrors shouldBe 1 // Bar.scala error is new
     diff.fixedErrors shouldBe 1 // Foo.scala error was fixed
   }
@@ -549,7 +551,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
     val prev = List(errorDiag("error", "Foo.scala"))
     val curr = List(errorDiag("error", "Foo.scala"))
 
-    val diff = BuildDiff.diffCompile("proj", "failed", curr, prev, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, curr, prev, 100)
     diff.newErrors shouldBe 0
     diff.fixedErrors shouldBe 0
   }
@@ -564,7 +566,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("Found: Int, Required: String", "Foo.scala:20:5") // same file+message — counted via multiset
     )
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, Nil, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, Nil, 100)
     diff.totalErrors shouldBe 2
     diff.newErrors shouldBe 2 // multiset: 0 previous, 2 current = 2 new
   }
@@ -578,7 +580,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("Found: Int, Required: String", "Foo.scala:10:5")
     )
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, previous, 100)
     diff.totalErrors shouldBe 1
     diff.newErrors shouldBe 0
     diff.fixedErrors shouldBe 1 // had 2, now 1 = 1 fixed
@@ -595,7 +597,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("Found: Int, Required: String", "Foo.scala:30:5")
     )
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, previous, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, previous, 100)
     diff.totalErrors shouldBe 3
     diff.newErrors shouldBe 1 // had 2, now 3 = 1 new
     diff.fixedErrors shouldBe 0
@@ -607,7 +609,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       errorDiag("Found: Boolean, Required: List[Int]", "Foo.scala:20:5")
     )
 
-    val diff = BuildDiff.diffCompile("proj", "failed", current, Nil, 100)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Failed, current, Nil, 100)
     diff.totalErrors shouldBe 2
     diff.newErrors shouldBe 2 // different messages = different keys
   }
@@ -620,7 +622,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: cancelled status in previous counts as failure for diff") {
     val previousResults = Map(
-      ("proj", "MySuite", "testCancel") -> "cancelled"
+      TestKey("proj", "MySuite", "testCancel") -> TestStatus.Cancelled
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "testCancel", TestStatus.Passed)
@@ -633,7 +635,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffSuite: skipped previous status is not treated as failure") {
     val previousResults = Map(
-      ("proj", "MySuite", "testSkip") -> "skipped"
+      TestKey("proj", "MySuite", "testSkip") -> TestStatus.Skipped
     )
     val currentTests = List(
       testFinished("proj", "MySuite", "testSkip", TestStatus.Passed)
@@ -648,9 +650,9 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
 
   test("diffCompile: skipped status with fixed errors reports correctly") {
     val previous = List(errorDiag("missing import", "A.scala:1:1"))
-    val diff = BuildDiff.diffCompile("proj", "skipped", Nil, previous, 0)
+    val diff = BuildDiff.diffCompile("proj", CompileStatus.Skipped, Nil, previous, 0)
 
-    diff.status shouldBe "skipped"
+    diff.status shouldBe CompileStatus.Skipped
     diff.fixedErrors shouldBe 1
     BuildDiff.formatCompileDiff(diff) shouldBe "proj: OK (fixed 1 error) (0ms)"
   }
