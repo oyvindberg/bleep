@@ -3,7 +3,7 @@ package bleep.testing
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.BuildServer
 import bleep.{model, Started}
-import bleep.model.CrossProjectName
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 import cats.effect._
 import cats.syntax.all._
 import ch.epfl.scala.bsp4j
@@ -48,7 +48,7 @@ object ReactiveTestRunner {
       failed: Int,
       skipped: Int,
       ignored: Int,
-      failedSuites: List[String],
+      failedSuites: List[SuiteName],
       durationMs: Long
   ) {
     def success: Boolean = failed == 0
@@ -146,7 +146,7 @@ object ReactiveTestRunner {
     pool.acquire(classpath, options.jvmOptions, runnerClass).use { jvm =>
       suites.traverse_ { suite =>
         runSuite(
-          projectName = project.value,
+          projectName = project,
           suite = suite,
           jvm = jvm,
           display = display,
@@ -169,7 +169,7 @@ object ReactiveTestRunner {
 
   /** Run a single test suite on the given JVM */
   def runSuite(
-      projectName: String,
+      projectName: CrossProjectName,
       suite: DiscoveredSuite,
       jvm: TestJvm,
       display: BuildDisplay,
@@ -198,7 +198,7 @@ object ReactiveTestRunner {
       // Convert responses to events
       _ <- responses.traverse_ {
         case TestProtocol.TestResponse.TestStarted(_, test) =>
-          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.TestStarted(projectName, suite.className, test, now)))
+          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.TestStarted(projectName, SuiteName(suite.className), TestName(test), now)))
 
         case TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable) =>
           val testStatus = TestStatus.fromString(status)
@@ -215,7 +215,7 @@ object ReactiveTestRunner {
               // Reset idle timeout on each test completion
               lastActivityAt.set(now) >>
                 display.handle(
-                  BuildEvent.TestFinished(projectName, suite.className, test, testStatus, durationMs, message, throwable, now)
+                  BuildEvent.TestFinished(projectName, SuiteName(suite.className), TestName(test), testStatus, durationMs, message, throwable, now)
                 )
             }
 
@@ -224,21 +224,21 @@ object ReactiveTestRunner {
             .map(_.toMillis)
             .flatMap(now =>
               display.handle(
-                BuildEvent.SuiteFinished(projectName, suite.className, passed, failed, skipped, ignored, durationMs, now)
+                BuildEvent.SuiteFinished(projectName, SuiteName(suite.className), passed, failed, skipped, ignored, durationMs, now)
               )
             ) >> suiteFinishedSent.set(true)
 
         case TestProtocol.TestResponse.Log(level, message, logSuite) =>
           val channel = if (level == "error" || level == "warn") OutputChannel.Stderr else OutputChannel.Stdout
           val effectiveSuite = logSuite.getOrElse(suite.className)
-          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.Output(projectName, effectiveSuite, s"[$level] $message", channel, now)))
+          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.Output(projectName, SuiteName(effectiveSuite), s"[$level] $message", channel, now)))
 
         case TestProtocol.TestResponse.Error(message, throwable) =>
           IO.realTime
             .map(_.toMillis)
             .flatMap(now =>
-              display.handle(BuildEvent.Output(projectName, suite.className, s"[ERROR] $message", OutputChannel.Stderr, now)) >>
-                throwable.traverse_(t => display.handle(BuildEvent.Output(projectName, suite.className, t, OutputChannel.Stderr, now)))
+              display.handle(BuildEvent.Output(projectName, SuiteName(suite.className), s"[ERROR] $message", OutputChannel.Stderr, now)) >>
+                throwable.traverse_(t => display.handle(BuildEvent.Output(projectName, SuiteName(suite.className), t, OutputChannel.Stderr, now)))
             )
 
         case TestProtocol.TestResponse.Ready =>
@@ -275,12 +275,12 @@ object ReactiveTestRunner {
         // Note: we intentionally don't cancel dumpFiber here because it's blocked on readLine
         // and can't be cancelled anyway. It will terminate when we kill the JVM.
       }
-      threadDumpInfo <- IO(processThreadDump(projectName, suite.className, threadDump))
+      threadDumpInfo <- IO(processThreadDump(projectName, SuiteName(suite.className), threadDump))
       _ <- IO(debugLog(s"Killing JVM for $suiteKey..."))
       _ <- jvm.kill
       _ <- IO(debugLog(s"JVM killed for $suiteKey, sending SuiteTimedOut event"))
       _ <- display.handle(
-        BuildEvent.SuiteTimedOut(projectName, suite.className, idleTimeout.toMillis, threadDumpInfo, endTime)
+        BuildEvent.SuiteTimedOut(projectName, SuiteName(suite.className), idleTimeout.toMillis, threadDumpInfo, endTime)
       )
       _ <- IO(debugLog(s"IDLE TIMEOUT COMPLETE for $suiteKey"))
     } yield ()
@@ -305,7 +305,7 @@ object ReactiveTestRunner {
     for {
       startTime <- IO.realTime.map(_.toMillis)
       lastActivityAt <- Ref.of[IO, Long](startTime)
-      _ <- display.handle(BuildEvent.SuiteStarted(projectName, suite.className, startTime))
+      _ <- display.handle(BuildEvent.SuiteStarted(projectName, SuiteName(suite.className), startTime))
       _ <- IO(debugLog(s"Starting race: processResponses vs idleTimeout(${idleTimeout.toSeconds}s) for $suiteKey"))
       // Use racePair instead of race - race waits for cancellation of the loser,
       // but blocking IO (readLine) can't be cancelled, so race would hang.
@@ -324,7 +324,7 @@ object ReactiveTestRunner {
               (if (!result.suiteFinishedSent) {
                  display.handle(
                    BuildEvent
-                     .SuiteFinished(projectName, suite.className, result.passed, result.failed, result.skipped, result.ignored, endTime - startTime, endTime)
+                     .SuiteFinished(projectName, SuiteName(suite.className), result.passed, result.failed, result.skipped, result.ignored, endTime - startTime, endTime)
                  )
                } else IO.unit)
           }
@@ -339,8 +339,8 @@ object ReactiveTestRunner {
 
   /** Process thread dump and create ThreadDumpInfo */
   private def processThreadDump(
-      projectName: String,
-      suiteName: String,
+      projectName: CrossProjectName,
+      suiteName: SuiteName,
       threadDump: Option[TestProtocol.TestResponse.ThreadDump]
   ): Option[ThreadDumpInfo] =
     threadDump.map { dump =>
@@ -373,15 +373,15 @@ object ReactiveTestRunner {
       } else {
         // Multiple threads - write to temp file
         val timestamp = java.time.Instant.now().toString.replace(":", "-")
-        val safeSuiteName = suiteName.replaceAll("[^a-zA-Z0-9.-]", "_")
+        val safeSuiteName = suiteName.value.replaceAll("[^a-zA-Z0-9.-]", "_")
         val fileName = s"thread-dump-$safeSuiteName-$timestamp.txt"
         val dumpPath = Paths.get(System.getProperty("java.io.tmpdir"), "bleep-test-dumps", fileName)
 
         try {
           Files.createDirectories(dumpPath.getParent)
           val content = new StringBuilder()
-          content.append(s"Thread dump for suite: $suiteName\n")
-          content.append(s"Project: $projectName\n")
+          content.append(s"Thread dump for suite: ${suiteName.value}\n")
+          content.append(s"Project: ${projectName.value}\n")
           content.append(s"Time: ${java.time.Instant.now()}\n")
           content.append(s"Total threads: ${dump.threads.size}\n")
           content.append(s"Active threads: ${activeThreads.size}\n")

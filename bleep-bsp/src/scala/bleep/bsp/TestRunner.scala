@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, TestStatus}
-import bleep.model.CrossProjectName
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}
 import cats.effect._
 import cats.effect.std.Queue
@@ -115,7 +115,7 @@ object TestRunner {
           .runSuite(suiteName, framework, testArgs)
           .evalMap {
             case TestProtocol.TestResponse.TestStarted(_, test) =>
-              now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project.value, suiteName, test, ts)))
+              now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suiteName), TestName(test), ts)))
 
             case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable) =>
               val status = TestStatus.fromString(statusStr)
@@ -128,9 +128,9 @@ object TestRunner {
                 lastActivityAt.set(ts) >>
                   emit(
                     TaskDag.DagEvent.TestFinished(
-                      project = project.value,
-                      suite = suiteName,
-                      test = test,
+                      project = project,
+                      suite = SuiteName(suiteName),
+                      test = TestName(test),
                       status = status,
                       durationMs = durationMs,
                       message = message,
@@ -151,7 +151,7 @@ object TestRunner {
             case TestProtocol.TestResponse.Log(level, message, suite) =>
               val isError = level == "error" || level == "stderr"
               val effectiveSuite = suite.getOrElse(suiteName)
-              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project.value, effectiveSuite, message, OutputChannel.fromIsError(isError), ts)))
+              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
 
             case TestProtocol.TestResponse.Error(message, _) =>
               // Protocol errors - emit as test failure
@@ -195,7 +195,7 @@ object TestRunner {
             .flatMap { stderrLines =>
               if (stderrLines.nonEmpty) {
                 now.flatMap { ts =>
-                  stderrLines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, OutputChannel.Stderr, ts)))
+                  stderrLines.traverse_(line => emit(TaskDag.DagEvent.Output(project, SuiteName(suiteName), line, OutputChannel.Stderr, ts)))
                 }
               } else IO.unit
             }
@@ -206,8 +206,8 @@ object TestRunner {
               now.flatMap { ts =>
                 emit(
                   TaskDag.DagEvent.SuiteFinished(
-                    project.value,
-                    suiteName,
+                    project,
+                    SuiteName(suiteName),
                     result.passed,
                     result.failed,
                     result.skipped,
@@ -237,7 +237,7 @@ object TestRunner {
               .flatMap { lines =>
                 if (lines.nonEmpty) {
                   now.flatMap { ts =>
-                    lines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, OutputChannel.Stderr, ts)))
+                    lines.traverse_(line => emit(TaskDag.DagEvent.Output(project, SuiteName(suiteName), line, OutputChannel.Stderr, ts)))
                   }
                 } else IO.unit
               }

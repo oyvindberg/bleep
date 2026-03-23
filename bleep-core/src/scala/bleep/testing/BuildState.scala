@@ -1,6 +1,7 @@
 package bleep.testing
 
 import bleep.bsp.protocol.{ProcessExit, TestStatus}
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 
 /** Canonical state for build/test progress tracking.
   *
@@ -29,9 +30,9 @@ case class BuildState(
     runningSuites: Set[SuiteKey],
     runningTests: Set[TestKey],
     suiteStartTimes: Map[SuiteKey, Long],
-    currentlyCompiling: Set[String],
-    compileStartTimes: Map[String, Long], // project -> timestamp when compile started
-    currentlyLinking: Set[String],
+    currentlyCompiling: Set[CrossProjectName],
+    compileStartTimes: Map[CrossProjectName, Long], // project -> timestamp when compile started
+    currentlyLinking: Set[CrossProjectName],
     linksCompleted: Int,
     linksFailed: Int,
     linkFailures: List[LinkFailure],
@@ -49,10 +50,10 @@ case class BuildState(
     val nowMs = System.currentTimeMillis()
     val killedCompiles = currentlyCompiling.toList.sorted.map { project =>
       val startedAt = compileStartTimes.getOrElse(project, nowMs)
-      KilledTask(TaskKind.Compile, project, nowMs - startedAt)
+      KilledTask(TaskKind.Compile, project.value, nowMs - startedAt)
     }
     val killedLinks = currentlyLinking.toList.sorted.map { project =>
-      KilledTask(TaskKind.Link, project, 0)
+      KilledTask(TaskKind.Link, project.value, 0)
     }
     val killedSuites = runningSuites.toList.sorted.map { key =>
       val startedAt = suiteStartTimes.getOrElse(key, nowMs)
@@ -75,7 +76,7 @@ case class BuildState(
       testsCancelled = testsCancelled,
       testsSkipped = testsSkipped,
       testsIgnored = testsIgnored,
-      currentlyRunning = runningSuites.toList.sorted.map(_.toString),
+      currentlyRunning = runningSuites.toList.sorted.map(_.suite),
       killedTasks = killedCompiles ++ killedLinks ++ killedSuites,
       failures = failures.reverse,
       skipped = skipped.reverse,
@@ -165,7 +166,7 @@ object BuildStateReducer {
       }
       val updatedSkippedProjects = status match {
         case CompileStatus.Skipped =>
-          val reason = skippedBecause.map(dep => s"dependency $dep failed").getOrElse("dependency failed")
+          val reason = skippedBecause.map(dep => s"dependency ${dep.value} failed").getOrElse("dependency failed")
           SkippedProject(project, reason) :: state.skippedProjects
         case _ => state.skippedProjects
       }
@@ -216,7 +217,7 @@ object BuildStateReducer {
 
       val updatedSkipped = status match {
         case TestStatus.Skipped | TestStatus.Ignored | TestStatus.Pending =>
-          TestSkipped(project, suite, test, status) :: state.skipped
+          TestSkipped(project, suite, test, status, None) :: state.skipped
         case TestStatus.AssumptionFailed =>
           TestSkipped(project, suite, test, status, message) :: state.skipped
         case _ => state.skipped
@@ -248,7 +249,7 @@ object BuildStateReducer {
           TestFailure(
             project = project,
             suite = suite,
-            test = "(suite failed)",
+            test = TestName("(suite failed)"),
             message = Some(s"Suite reported $failed failure(s) but no individual test results were captured"),
             throwable = None,
             output = output,
@@ -297,7 +298,7 @@ object BuildStateReducer {
       val timeoutFailure = TestFailure(
         project = project,
         suite = suite,
-        test = "(timeout)",
+        test = TestName("(timeout)"),
         message = Some(s"Suite idle timeout after ${timeoutMs / 1000}s"),
         throwable = threadDumpInfo.flatMap(_.singleThreadStack),
         output = threadDumpInfo.flatMap(_.dumpFile).map(p => s"Thread dump: $p").toList,
@@ -325,7 +326,7 @@ object BuildStateReducer {
       val errorFailure = TestFailure(
         project = project,
         suite = suite,
-        test = "(process error)",
+        test = TestName("(process error)"),
         message = Some(desc),
         throwable = None,
         output = output,
@@ -341,11 +342,12 @@ object BuildStateReducer {
         failures = errorFailure :: state.failures
       )
 
-    case BuildEvent.Error(project, message, details, _) =>
+    case BuildEvent.Error(message, details, _) =>
+      // Error events are project-less — use a synthetic project name for the failure record
       val errorFailure = TestFailure(
-        project = project,
-        suite = "(error)",
-        test = "(error)",
+        project = CrossProjectName(bleep.model.ProjectName("(build)"), None),
+        suite = SuiteName("(error)"),
+        test = TestName("(error)"),
         message = Some(message),
         throwable = details,
         output = Nil,
@@ -389,7 +391,7 @@ object BuildStateReducer {
       // Workspace coordination events don't affect build state — handled by TUI display
       state
 
-    case BuildEvent.ConnectionLost(_, _) =>
+    case BuildEvent.ConnectionLost(_) =>
       // BSP connection died — mark all currently running suites as cancelled.
       // Their results will never arrive since the server is gone.
       val cancelledFromRunning = state.runningSuites.toList.map { key =>
@@ -409,7 +411,6 @@ object BuildStateReducer {
       )
 
     case BuildEvent.TestRunCompleted(
-          _,
           totalPassed,
           totalFailed,
           totalSkipped,

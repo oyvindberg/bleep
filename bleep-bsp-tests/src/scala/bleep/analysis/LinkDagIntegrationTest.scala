@@ -276,7 +276,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val linkFinished = events.collect { case e: DagEvent.LinkFinished => e }
 
     linkStarted should have size 1
-    linkStarted.head.project shouldBe project.value
+    linkStarted.head.project shouldBe project
     linkStarted.head.platform shouldBe LinkPlatformName.ScalaJs
 
     linkFinished should have size 1

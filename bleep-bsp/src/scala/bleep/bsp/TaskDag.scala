@@ -3,7 +3,7 @@ package bleep.bsp
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.model.{CrossProjectName, KotlinJsModuleKind}
+import bleep.model.{CrossProjectName, KotlinJsModuleKind, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -44,8 +44,8 @@ object TaskDag {
     case class Discover(project: CrossProjectName) extends TaskId {
       val value: String = s"discover:${project.value}"
     }
-    case class Test(project: CrossProjectName, suiteName: String) extends TaskId {
-      val value: String = s"test:${project.value}:$suiteName"
+    case class Test(project: CrossProjectName, suiteName: SuiteName) extends TaskId {
+      val value: String = s"test:${project.value}:${suiteName.value}"
     }
   }
 
@@ -142,7 +142,7 @@ object TaskDag {
   /** Execute a test suite */
   case class TestSuiteTask(
       project: CrossProjectName,
-      suiteName: String,
+      suiteName: SuiteName,
       framework: String
   ) extends Task {
     val id: TaskId = TaskId.Test(project, suiteName)
@@ -228,21 +228,21 @@ object TaskDag {
     case class TaskFinished(task: Task, result: TaskResult, durationMs: Long, timestamp: Long) extends DagEvent
 
     // Link-specific events
-    case class LinkStarted(project: String, platform: LinkPlatformName, timestamp: Long) extends DagEvent
-    case class LinkProgress(project: String, phase: String, percent: Int, timestamp: Long) extends DagEvent
+    case class LinkStarted(project: CrossProjectName, platform: LinkPlatformName, timestamp: Long) extends DagEvent
+    case class LinkProgress(project: CrossProjectName, phase: String, percent: Int, timestamp: Long) extends DagEvent
     case class LinkFinished(
-        project: String,
+        project: CrossProjectName,
         result: LinkResult,
         durationMs: Long,
         timestamp: Long
     ) extends DagEvent
 
     // Test-specific events (nested within TestSuiteTask execution)
-    case class TestStarted(project: String, suite: String, test: String, timestamp: Long) extends DagEvent
+    case class TestStarted(project: CrossProjectName, suite: SuiteName, test: TestName, timestamp: Long) extends DagEvent
     case class TestFinished(
-        project: String,
-        suite: String,
-        test: String,
+        project: CrossProjectName,
+        suite: SuiteName,
+        test: TestName,
         status: TestStatus,
         durationMs: Long,
         message: Option[String],
@@ -251,15 +251,15 @@ object TaskDag {
     ) extends DagEvent
 
     // Discovery events
-    case class SuitesDiscovered(project: String, suites: List[String], timestamp: Long) extends DagEvent
+    case class SuitesDiscovered(project: CrossProjectName, suites: List[SuiteName], timestamp: Long) extends DagEvent
 
     // Output events
-    case class Output(project: String, suite: String, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
+    case class Output(project: CrossProjectName, suite: SuiteName, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
 
     // Suite completion with counts
     case class SuiteFinished(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         passed: Int,
         failed: Int,
         skipped: Int,
@@ -676,10 +676,10 @@ object TaskDag {
                           case _: LinkPlatform.KotlinNative => LinkPlatformName.KotlinNative
                           case LinkPlatform.Jvm             => LinkPlatformName.Jvm
                         }
-                        _ <- emit(DagEvent.LinkStarted(lt.project.value, platformName, linkStartTs))
+                        _ <- emit(DagEvent.LinkStarted(lt.project, platformName, linkStartTs))
                         (result, linkResult) <- linkHandler(lt, taskKill)
                         linkEndTs <- now
-                        _ <- emit(DagEvent.LinkFinished(lt.project.value, linkResult, linkEndTs - linkStartTs, linkEndTs))
+                        _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs))
                         _ <- dagRef.update(_.recordLinkResult(lt.id, linkResult))
                       } yield result
                     }
@@ -692,10 +692,10 @@ object TaskDag {
                           case TaskResult.Success =>
                             // Add test tasks for discovered suites
                             val testTasks = suites.map { case (suiteName, framework) =>
-                              TestSuiteTask(dt.project, suiteName, framework)
+                              TestSuiteTask(dt.project, SuiteName(suiteName), framework)
                             }
                             dagRef.update(dag => testTasks.foldLeft(dag)(_.addTask(_))) >>
-                              emit(DagEvent.SuitesDiscovered(dt.project.value, suites.map(_._1), timestamp))
+                              emit(DagEvent.SuitesDiscovered(dt.project, suites.map(s => SuiteName(s._1)), timestamp))
                           case _ => IO.unit
                         }
                       } yield result
@@ -705,7 +705,7 @@ object TaskDag {
                     // Make test execution uncancelable so it always completes and reports status.
                     // Without this, fiber cancellation could abort mid-test and leave no status event.
                     IO.uncancelable { _ =>
-                      withRecovery(s"Test ${tt.suiteName}", taskKill)(testHandler(tt, taskKill))
+                      withRecovery(s"Test ${tt.suiteName.value}", taskKill)(testHandler(tt, taskKill))
                     }
                 }
                 // Unregister this task's kill signal

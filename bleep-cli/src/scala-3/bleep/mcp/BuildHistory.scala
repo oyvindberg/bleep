@@ -44,17 +44,17 @@ case class BuildRun(
   def dropProjects(projectValues: Set[String]): BuildRun = {
     import BleepBspProtocol.Event as E
     val filtered = events.filter {
-      case e: E.CompileStarted  => !projectValues.contains(e.project)
-      case e: E.CompileFinished => !projectValues.contains(e.project)
-      case e: E.CompileProgress => !projectValues.contains(e.project)
-      case e: E.SuiteStarted    => !projectValues.contains(e.project)
-      case e: E.SuiteFinished   => !projectValues.contains(e.project)
-      case e: E.SuiteError      => !projectValues.contains(e.project)
-      case e: E.SuiteTimedOut   => !projectValues.contains(e.project)
-      case e: E.TestStarted     => !projectValues.contains(e.project)
-      case e: E.TestFinished    => !projectValues.contains(e.project)
-      case e: E.LinkStarted     => !projectValues.contains(e.project)
-      case e: E.LinkFinished    => !projectValues.contains(e.project)
+      case e: E.CompileStarted  => !projectValues.contains(e.project.value)
+      case e: E.CompileFinished => !projectValues.contains(e.project.value)
+      case e: E.CompileProgress => !projectValues.contains(e.project.value)
+      case e: E.SuiteStarted    => !projectValues.contains(e.project.value)
+      case e: E.SuiteFinished   => !projectValues.contains(e.project.value)
+      case e: E.SuiteError      => !projectValues.contains(e.project.value)
+      case e: E.SuiteTimedOut   => !projectValues.contains(e.project.value)
+      case e: E.TestStarted     => !projectValues.contains(e.project.value)
+      case e: E.TestFinished    => !projectValues.contains(e.project.value)
+      case e: E.LinkStarted     => !projectValues.contains(e.project.value)
+      case e: E.LinkFinished    => !projectValues.contains(e.project.value)
       case _                    => true // keep non-project events (BuildFinished, TestRunFinished, etc.)
     }
     copy(events = filtered)

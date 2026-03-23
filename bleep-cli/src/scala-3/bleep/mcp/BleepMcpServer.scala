@@ -1284,13 +1284,13 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
             // Stream if there are failures or diffs
             if (e.failed > 0 || newFailures.nonEmpty || fixedTests.nonEmpty) {
               val diffParts = List.newBuilder[String]
-              fixedTests.foreach(t => diffParts += s"${t.test} fixed")
-              newFailures.foreach(t => diffParts += s"${t.test} new failure")
+              fixedTests.foreach(t => diffParts += s"${t.test.value} fixed")
+              newFailures.foreach(t => diffParts += s"${t.test.value} new failure")
               val details = diffParts.result()
               val countsStr = s"${e.passed} passed, ${e.failed} failed"
               val detailStr = if (details.nonEmpty) s" (${details.mkString(", ")})" else ""
               val level = if (e.failed > 0) protocol.LoggingLevel.Error else protocol.LoggingLevel.Info
-              streamNotification(context, level, s"${e.project} ${e.suite}: $countsStr$detailStr")
+              streamNotification(context, level, s"${e.project.value} ${e.suite.value}: $countsStr$detailStr")
             } else IO.unit
           }
 
@@ -1327,24 +1327,24 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     private def filterEventsByProject(events: List[BleepBspProtocol.Event], project: String): List[BleepBspProtocol.Event] = {
       import BleepBspProtocol.{Event => E}
       events.filter {
-        case e: E.CompileStarted      => e.project == project
-        case e: E.CompilationReason   => e.project == project
-        case e: E.CompileProgress     => e.project == project
-        case e: E.CompilePhaseChanged => e.project == project
-        case e: E.CompileFinished     => e.project == project
-        case e: E.CompileStalled      => e.project == project
-        case e: E.CompileResumed      => e.project == project
-        case e: E.LockContention      => e.project == project
-        case e: E.LockAcquired        => e.project == project
-        case e: E.LinkStarted         => e.project == project
-        case e: E.LinkProgress        => e.project == project
-        case e: E.LinkFinished        => e.project == project
-        case e: E.DiscoveryStarted    => e.project == project
-        case e: E.SuitesDiscovered    => e.project == project
-        case e: E.SuiteStarted        => e.project == project
-        case e: E.TestStarted         => e.project == project
-        case e: E.TestFinished        => e.project == project
-        case e: E.SuiteFinished       => e.project == project
+        case e: E.CompileStarted      => e.project.value == project
+        case e: E.CompilationReason   => e.project.value == project
+        case e: E.CompileProgress     => e.project.value == project
+        case e: E.CompilePhaseChanged => e.project.value == project
+        case e: E.CompileFinished     => e.project.value == project
+        case e: E.CompileStalled      => e.project.value == project
+        case e: E.CompileResumed      => e.project.value == project
+        case e: E.LockContention      => e.project.value == project
+        case e: E.LockAcquired        => e.project.value == project
+        case e: E.LinkStarted         => e.project.value == project
+        case e: E.LinkProgress        => e.project.value == project
+        case e: E.LinkFinished        => e.project.value == project
+        case e: E.DiscoveryStarted    => e.project.value == project
+        case e: E.SuitesDiscovered    => e.project.value == project
+        case e: E.SuiteStarted        => e.project.value == project
+        case e: E.TestStarted         => e.project.value == project
+        case e: E.TestFinished        => e.project.value == project
+        case e: E.SuiteFinished       => e.project.value == project
         case _                        => false
       }
     }
@@ -1431,7 +1431,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         }
 
         if (failedProjects.nonEmpty) {
-          fields += "failedProjects" -> Json.arr(failedProjects.map(_.project).distinct.map(Json.fromString)*)
+          fields += "failedProjects" -> Json.arr(failedProjects.map(_.project.value).distinct.map(Json.fromString)*)
           // Always include first 3 errors so the agent has something actionable
           val topErrors = allDiagnostics.filter(_.severity == DiagnosticSeverity.Error).take(3).map { d =>
             val df = List.newBuilder[(String, Json)]
@@ -1509,9 +1509,9 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         }
         val failureJsons = slicedFailures.map { e =>
           val df = List.newBuilder[(String, Json)]
-          df += "project" -> Json.fromString(e.project)
-          df += "suite" -> Json.fromString(e.suite)
-          df += "test" -> Json.fromString(e.test)
+          df += "project" -> Json.fromString(e.project.value)
+          df += "suite" -> Json.fromString(e.suite.value)
+          df += "test" -> Json.fromString(e.test.value)
           df += "status" -> Json.fromString(e.status.wireValue)
           e.message.foreach(m => df += "message" -> Json.fromString(stripAnsi(m)))
           e.throwable.foreach { t =>

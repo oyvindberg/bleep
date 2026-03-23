@@ -1,6 +1,7 @@
 package bleep.testing
 
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
+import bleep.model.{SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -201,7 +202,7 @@ class SchedulerInterpreter(
                     case s if s.isFailure =>
                       state.copy(
                         failed = state.failed + 1,
-                        failures = state.failures :+ TestFailureInfo(TestTypes.TestName(test), message, throwable)
+                        failures = state.failures :+ TestFailureInfo(TestName(test), message, throwable)
                       )
                     case TestStatus.Skipped | TestStatus.AssumptionFailed => state.copy(skipped = state.skipped + 1)
                     case TestStatus.Ignored | TestStatus.Pending          => state.copy(ignored = state.ignored + 1)
@@ -213,9 +214,9 @@ class SchedulerInterpreter(
                     _ <- eventQueue.offer(SchedulerEvent.TestActivity(jvmId, ts))
                     _ <- display.handle(
                       BuildEvent.TestFinished(
-                        job.project.value,
-                        job.suite.className,
-                        test,
+                        job.project,
+                        SuiteName(job.suite.className),
+                        TestName(test),
                         testStatus,
                         durationMs,
                         message,
@@ -233,7 +234,7 @@ class SchedulerInterpreter(
                   IO.pure(
                     state.copy(
                       failed = state.failed + 1,
-                      failures = state.failures :+ TestFailureInfo(TestTypes.TestName("(error)"), Some(msg), details),
+                      failures = state.failures :+ TestFailureInfo(TestName("(error)"), Some(msg), details),
                       done = true
                     )
                   )
@@ -243,7 +244,7 @@ class SchedulerInterpreter(
                   val effectiveSuite = suite.getOrElse(job.suite.className)
                   for {
                     ts <- IO.realTime.map(_.toMillis)
-                    _ <- display.handle(BuildEvent.Output(job.project.value, effectiveSuite, message, channel, ts))
+                    _ <- display.handle(BuildEvent.Output(job.project, SuiteName(effectiveSuite), message, channel, ts))
                     result <- processLoop(state)
                   } yield result
 
@@ -254,7 +255,7 @@ class SchedulerInterpreter(
       sendCommand >> processLoop(RunState(0, 0, 0, 0, Nil, false)).map { state =>
         val endTime = System.currentTimeMillis()
         SuiteResult(
-          suite = TestTypes.SuiteClassName(job.suite.className),
+          suite = SuiteName(job.suite.className),
           passed = state.passed,
           failed = state.failed,
           skipped = state.skipped,
@@ -287,7 +288,7 @@ class SchedulerInterpreter(
         if (stderrOutput.nonEmpty) {
           IO.realTime.map(_.toMillis).flatMap { ts =>
             stderrOutput.split('\n').toList.traverse_ { line =>
-              display.handle(BuildEvent.Output(job.project.value, job.suite.className, line, OutputChannel.Stderr, ts))
+              display.handle(BuildEvent.Output(job.project, SuiteName(job.suite.className), line, OutputChannel.Stderr, ts))
             }
           }
         } else IO.unit
@@ -296,13 +297,13 @@ class SchedulerInterpreter(
     // Handle errors
     def handleError(error: Throwable): IO[SuiteResult] = {
       val failureResult = SuiteResult(
-        suite = TestTypes.SuiteClassName(job.suite.className),
+        suite = SuiteName(job.suite.className),
         passed = 0,
         failed = 1,
         skipped = 0,
         ignored = 0,
         durationMs = System.currentTimeMillis() - startTime,
-        failures = List(TestFailureInfo(TestTypes.TestName("(error)"), Some(error.getMessage), None))
+        failures = List(TestFailureInfo(TestName("(error)"), Some(error.getMessage), None))
       )
       drainStderr >>
         eventQueue.offer(SchedulerEvent.JvmDied(jvmId, Some(error.getMessage))) >>
@@ -371,32 +372,32 @@ class SchedulerInterpreter(
   private def notifyTimeout(jvmId: JvmId, job: SuiteJob, reason: String, threadDump: Option[ThreadDumpInfo]): IO[Unit] = {
     val timestamp = System.currentTimeMillis()
     display.handle(
-      BuildEvent.SuiteTimedOut(job.project.value, job.suite.className, timeoutConfig.idleTimeoutMs, threadDump, timestamp)
+      BuildEvent.SuiteTimedOut(job.project, SuiteName(job.suite.className), timeoutConfig.idleTimeoutMs, threadDump, timestamp)
     ) >> updateTestRunStateForTimeout(job)
   }
 
   private def updateTestRunStateForSuiteStart(job: SuiteJob, jvmPid: Long, timestamp: Long): IO[Unit] = {
     val action = ProjectAction.StartSuite(
       job.project,
-      TestTypes.SuiteClassName(job.suite.className),
+      SuiteName(job.suite.className),
       jvmPid,
       timestamp
     )
     testRunState.update(_.reduceSimple(action)) >>
-      display.handle(BuildEvent.SuiteStarted(job.project.value, job.suite.className, timestamp))
+      display.handle(BuildEvent.SuiteStarted(job.project, SuiteName(job.suite.className), timestamp))
   }
 
   private def updateTestRunStateForSuiteFinish(job: SuiteJob, result: SuiteResult): IO[Unit] = {
     val action = ProjectAction.FinishSuite(
       job.project,
-      TestTypes.SuiteClassName(job.suite.className),
+      SuiteName(job.suite.className),
       result
     )
     testRunState.update(_.reduceSimple(action)) >>
       display.handle(
         BuildEvent.SuiteFinished(
-          job.project.value,
-          job.suite.className,
+          job.project,
+          SuiteName(job.suite.className),
           result.passed,
           result.failed,
           result.skipped,
@@ -409,17 +410,17 @@ class SchedulerInterpreter(
 
   private def updateTestRunStateForTimeout(job: SuiteJob): IO[Unit] = {
     val failureResult = SuiteResult(
-      suite = TestTypes.SuiteClassName(job.suite.className),
+      suite = SuiteName(job.suite.className),
       passed = 0,
       failed = 1,
       skipped = 0,
       ignored = 0,
       durationMs = 0,
-      failures = List(TestFailureInfo(TestTypes.TestName("(timeout)"), Some("Suite idle timeout"), None))
+      failures = List(TestFailureInfo(TestName("(timeout)"), Some("Suite idle timeout"), None))
     )
     val action = ProjectAction.FinishSuite(
       job.project,
-      TestTypes.SuiteClassName(job.suite.className),
+      SuiteName(job.suite.className),
       failureResult
     )
     testRunState.update(_.reduceSimple(action))
@@ -481,7 +482,7 @@ class SchedulerInterpreter(
       newFibers <- actions.traverse { action =>
         interpret(action, eventQueue, jvmsRef).void.handleErrorWith { error =>
           // Report error through display (safe for TUI)
-          display.handle(BuildEvent.Error("", s"Action ${action.name} failed", Some(error.getMessage), System.currentTimeMillis()))
+          display.handle(BuildEvent.Error(s"Action ${action.name} failed", Some(error.getMessage), System.currentTimeMillis()))
         }.start
       }
       _ <- fibersRef.update(_ ++ newFibers.toSet)

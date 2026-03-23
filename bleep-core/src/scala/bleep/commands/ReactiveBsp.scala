@@ -576,7 +576,6 @@ case class ReactiveBsp(
                   eventQueue.offer(
                     Some(
                       BuildEvent.TestRunCompleted(
-                        project = "",
                         totalPassed = result.totalPassed,
                         totalFailed = result.totalFailed,
                         totalSkipped = result.totalSkipped,
@@ -764,7 +763,7 @@ class ReactiveBspClient(
     delegate.onRunPrintStderr(params)
 
   /** Extract build target ID from bsp4j params data */
-  private def extractBuildTarget(data: AnyRef): Option[String] =
+  private def extractBuildTarget(data: AnyRef): Option[model.CrossProjectName] =
     try
       data match {
         case obj: com.google.gson.JsonObject =>
@@ -776,7 +775,7 @@ class ReactiveBspClient(
             case str: com.google.gson.JsonPrimitive => str.getAsString
             case _                                  => return None
           }
-          uri.split("\\?id=").lastOption
+          uri.split("\\?id=").lastOption.flatMap(model.CrossProjectName.fromString)
         case _ => None
       }
     catch {
@@ -840,7 +839,7 @@ class ReactiveBspClient(
         Some(BuildEvent.Output(project, suite, line, channel, timestamp))
 
       case PE.Error(message, details, timestamp) =>
-        Some(BuildEvent.Error("", message, details, timestamp))
+        Some(BuildEvent.Error(message, details, timestamp))
 
       case PE.LinkStarted(project, platform, timestamp) =>
         Some(BuildEvent.LinkStarted(project, platform, timestamp))
@@ -858,10 +857,10 @@ class ReactiveBspClient(
         Some(BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, timestamp))
 
       case PE.WorkspaceBusy(operation, projects, startedAgoMs, timestamp) =>
-        Some(BuildEvent.WorkspaceBusy("", operation, projects, startedAgoMs, timestamp))
+        Some(BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, timestamp))
 
       case PE.WorkspaceReady(timestamp) =>
-        Some(BuildEvent.WorkspaceReady("", timestamp))
+        Some(BuildEvent.WorkspaceReady(timestamp))
 
       case PE.LockContention(project, waitingMs, timestamp) =>
         Some(BuildEvent.LockContention(project, waitingMs, timestamp))

@@ -1,16 +1,18 @@
 package bleep.testing
 
-/** Typed key for a test suite within a project. Replaces stringly-typed "project:suite" composite keys. */
-case class SuiteKey(project: String, suite: String) extends Ordered[SuiteKey] {
-  override def toString: String = s"$project:$suite"
+import bleep.model.{CrossProjectName, SuiteName, TestName}
+
+/** Typed key for a test suite within a project. */
+case class SuiteKey(project: CrossProjectName, suite: SuiteName) extends Ordered[SuiteKey] {
+  override def toString: String = s"${project.value}:${suite.value}"
   override def compare(that: SuiteKey): Int = {
-    val c = project.compareTo(that.project)
-    if (c != 0) c else suite.compareTo(that.suite)
+    val c = project.value.compareTo(that.project.value)
+    if (c != 0) c else suite.value.compareTo(that.suite.value)
   }
 }
 
-/** Typed key for an individual test within a suite. Replaces stringly-typed "project:suite:test" composite keys. */
-case class TestKey(project: String, suite: String, test: String) {
+/** Typed key for an individual test within a suite. */
+case class TestKey(project: CrossProjectName, suite: SuiteName, test: TestName) {
   def suiteKey: SuiteKey = SuiteKey(project, suite)
-  override def toString: String = s"$project:$suite:$test"
+  override def toString: String = s"${project.value}:${suite.value}:${test.value}"
 }

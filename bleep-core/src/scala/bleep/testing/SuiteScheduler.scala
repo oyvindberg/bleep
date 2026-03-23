@@ -1,6 +1,7 @@
 package bleep.testing
 
 import bleep.model
+import bleep.model.{SuiteName, TestName}
 
 import java.nio.file.Path
 import java.security.MessageDigest
@@ -310,13 +311,13 @@ object SuiteScheduler {
           jobOpt match {
             case Some(job) =>
               val failureResult = SuiteResult(
-                suite = TestTypes.SuiteClassName(job.suite.className),
+                suite = SuiteName(job.suite.className),
                 passed = 0,
                 failed = 1,
                 skipped = 0,
                 ignored = 0,
                 durationMs = 0,
-                failures = List(TestFailureInfo(TestTypes.TestName("(JVM died)"), errorOpt, None))
+                failures = List(TestFailureInfo(TestName("(JVM died)"), errorOpt, None))
               )
               state.copy(
                 jvms = state.jvms - jvmId,
@@ -333,13 +334,13 @@ object SuiteScheduler {
         case Some(JvmState.Killing(_, _, job, _)) =>
           // Record as failed suite
           val failureResult = SuiteResult(
-            suite = TestTypes.SuiteClassName(job.suite.className),
+            suite = SuiteName(job.suite.className),
             passed = 0,
             failed = 1,
             skipped = 0,
             ignored = 0,
             durationMs = 0,
-            failures = List(TestFailureInfo(TestTypes.TestName("(timeout)"), Some("Suite idle timeout"), None))
+            failures = List(TestFailureInfo(TestName("(timeout)"), Some("Suite idle timeout"), None))
           )
           state.copy(
             jvms = state.jvms - jvmId,

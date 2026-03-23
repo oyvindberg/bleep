@@ -1,13 +1,14 @@
 package bleep.testing
 
 import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, TestStatus}
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 
 /** Indexed view of a previous run's results, built from events, for fast per-project diff lookups.
   *
   * Used by both CLI `--diff-watch` mode and MCP server to compute terse per-project diffs between consecutive build cycles.
   */
 case class PreviousRunState(
-    compileDiagnostics: Map[String, List[BleepBspProtocol.Diagnostic]],
+    compileDiagnostics: Map[CrossProjectName, List[BleepBspProtocol.Diagnostic]],
     testResults: Map[TestKey, TestStatus]
 )
 
@@ -16,7 +17,7 @@ object PreviousRunState {
 
   /** Build from a list of BuildEvents collected during a run */
   def fromEvents(events: List[BuildEvent]): PreviousRunState = {
-    val compileDiags = Map.newBuilder[String, List[BleepBspProtocol.Diagnostic]]
+    val compileDiags = Map.newBuilder[CrossProjectName, List[BleepBspProtocol.Diagnostic]]
     val testRes = Map.newBuilder[TestKey, TestStatus]
 
     events.foreach {
@@ -32,7 +33,7 @@ object PreviousRunState {
 
   /** Build from a list of BleepBspProtocol events (used by MCP server which stores protocol events directly) */
   def fromProtocolEvents(events: List[BleepBspProtocol.Event]): PreviousRunState = {
-    val compileDiags = Map.newBuilder[String, List[BleepBspProtocol.Diagnostic]]
+    val compileDiags = Map.newBuilder[CrossProjectName, List[BleepBspProtocol.Diagnostic]]
     val testRes = Map.newBuilder[TestKey, TestStatus]
 
     events.foreach {
@@ -67,7 +68,7 @@ object BuildDiff {
 
   /** Result of diffing diagnostics for a single project */
   case class CompileDiff(
-      project: String,
+      project: CrossProjectName,
       status: CompileStatus,
       totalErrors: Int,
       totalWarnings: Int,
@@ -80,7 +81,7 @@ object BuildDiff {
 
   /** Format a terse one-liner for a compile diff */
   def formatCompileDiff(diff: CompileDiff): String = {
-    val project = diff.project
+    val project = diff.project.value
     val duration = s"(${diff.durationMs}ms)"
 
     if (diff.status == CompileStatus.Success || diff.status == CompileStatus.Skipped) {
@@ -134,7 +135,7 @@ object BuildDiff {
 
   /** Compute compile diff for a single project */
   def diffCompile(
-      project: String,
+      project: CrossProjectName,
       status: CompileStatus,
       currentDiagnostics: List[BleepBspProtocol.Diagnostic],
       previousDiagnostics: List[BleepBspProtocol.Diagnostic],
@@ -163,21 +164,21 @@ object BuildDiff {
 
   /** Result of diffing test results for a single suite */
   case class SuiteDiff(
-      project: String,
-      suite: String,
+      project: CrossProjectName,
+      suite: SuiteName,
       passed: Int,
       failed: Int,
       skipped: Int,
       ignored: Int,
-      newFailures: List[String], // test names that flipped to fail
-      fixedTests: List[String], // test names that flipped to pass
-      stillFailing: List[String], // test names that were failing and still are
+      newFailures: List[TestName], // test names that flipped to fail
+      fixedTests: List[TestName], // test names that flipped to pass
+      stillFailing: List[TestName], // test names that were failing and still are
       durationMs: Long
   )
 
   /** Format a terse one-liner for a suite diff */
   def formatSuiteDiff(diff: SuiteDiff): String = {
-    val id = s"${diff.project} ${diff.suite}"
+    val id = s"${diff.project.value} ${diff.suite.value}"
     val parts = List.newBuilder[String]
     parts += s"${diff.passed} passed"
     if (diff.failed > 0) parts += s"${diff.failed} failed"
@@ -186,9 +187,9 @@ object BuildDiff {
     val countsStr = parts.result().mkString(", ")
 
     val diffParts = List.newBuilder[String]
-    diff.fixedTests.foreach(t => diffParts += s"$t fixed")
-    diff.newFailures.foreach(t => diffParts += s"$t new failure")
-    diff.stillFailing.foreach(t => diffParts += s"$t still failing")
+    diff.fixedTests.foreach(t => diffParts += s"${t.value} fixed")
+    diff.newFailures.foreach(t => diffParts += s"${t.value} new failure")
+    diff.stillFailing.foreach(t => diffParts += s"${t.value} still failing")
     val diffDetails = diffParts.result()
 
     if (diffDetails.nonEmpty) {
@@ -200,8 +201,8 @@ object BuildDiff {
 
   /** Compute suite diff by comparing current test results with previous */
   def diffSuite(
-      project: String,
-      suite: String,
+      project: CrossProjectName,
+      suite: SuiteName,
       currentTests: List[BuildEvent.TestFinished],
       previousTestResults: Map[TestKey, TestStatus],
       passed: Int,
@@ -210,9 +211,9 @@ object BuildDiff {
       ignored: Int,
       durationMs: Long
   ): SuiteDiff = {
-    val newFailures = List.newBuilder[String]
-    val fixedTests = List.newBuilder[String]
-    val stillFailing = List.newBuilder[String]
+    val newFailures = List.newBuilder[TestName]
+    val fixedTests = List.newBuilder[TestName]
+    val stillFailing = List.newBuilder[TestName]
 
     currentTests.foreach { t =>
       val key = TestKey(t.project, t.suite, t.test)
