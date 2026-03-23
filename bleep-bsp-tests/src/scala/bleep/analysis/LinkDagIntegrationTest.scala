@@ -3,6 +3,7 @@ package bleep.analysis
 import bleep.bsp.{Outcome, TaskDag}
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.{TaskId, _}
+import bleep.bsp.protocol.LinkPlatformName
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Queue
@@ -276,7 +277,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     linkStarted should have size 1
     linkStarted.head.project shouldBe project.value
-    linkStarted.head.platform shouldBe "Scala.js"
+    linkStarted.head.platform shouldBe LinkPlatformName.ScalaJs
 
     linkFinished should have size 1
     linkFinished.head.result shouldBe a[LinkResult.JsSuccess]
@@ -328,7 +329,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     LinkPlatform.Jvm shouldBe a[LinkPlatform]
     LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug) shouldBe a[LinkPlatform.ScalaJs]
     LinkPlatform.ScalaNative("0.5.6", "3.3.3", ScalaNativeLinkConfig.Debug) shouldBe a[LinkPlatform.ScalaNative]
-    LinkPlatform.KotlinJs("2.0.0", TaskDag.KotlinJsConfig("commonjs", true, false, java.nio.file.Path.of("."))) shouldBe a[LinkPlatform.KotlinJs]
+    LinkPlatform.KotlinJs("2.0.0", TaskDag.KotlinJsConfig(bleep.model.KotlinJsModuleKind.CommonJS, true, false, java.nio.file.Path.of("."))) shouldBe a[LinkPlatform.KotlinJs]
     LinkPlatform.KotlinNative("2.0.0", TaskDag.KotlinNativeConfig("linux-x64", true, false, false)) shouldBe a[LinkPlatform.KotlinNative]
   }
 

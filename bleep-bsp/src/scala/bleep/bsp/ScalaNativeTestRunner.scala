@@ -206,44 +206,25 @@ object ScalaNativeTestRunner {
               case TestFramework.Unknown   => new GenericOutputParser(eventHandler)
             }
 
-            val work = ProcessRunner.start(pb).use { process =>
-              TestRunnerTypes.startKillWatcher(process, killSignal, killDescendants = true).flatMap { killFiber =>
-                IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)) >> {
-                  val stdout = ProcessRunner.lines(process.getInputStream).evalMap { line =>
-                    parserLock.permit.surround(IO.delay(parser.parseLine(line)))
-                  }
-                  val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
-                    parserLock.permit.surround(IO.delay(parser.parseError(line)))
-                  }
-
-                  (stdout.compile.drain, stderr.compile.drain).parTupled.void >>
-                    IO.blocking(process.waitFor()).flatMap { exitCode =>
-                      // Check if process was killed by our kill watcher
-                      killSignal.tryGet.map {
-                        case Some(reason) =>
-                          eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                          val counts = parser.getCounts
-                          TestResult(counts._1, counts._2, counts._3, counts._4, TerminationReason.Killed(reason))
-                        case None =>
-                          val counts = parser.getCounts
-                          val (passed, failed, skipped, ignored) = counts
-                          val exitResult = TestRunnerTypes.interpretExitCode(exitCode, parser.unfinishedSuite, passed, failed, eventHandler)
-                          TestResult(passed, exitResult.adjustedFailed, skipped, ignored, exitResult.terminationReason)
-                      }
-                    }
-                }.guarantee(killFiber.cancel)
-              }
-            }
-
-            Outcome.raceKill(killSignal)(work).flatMap {
-              case Left(result) => IO.pure(result)
-              case Right(reason) =>
-                IO.delay {
-                  eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                  val counts = parser.getCounts
-                  TestResult(counts._1, counts._2, counts._3, counts._4, TerminationReason.Killed(reason))
-                }
-            }
+            ProcessTestRunner.run(ProcessTestRunner.Config(
+              processBuilder = pb,
+              handleStdoutLine = { line =>
+                parserLock.permit.surround(IO.delay(parser.parseLine(line)))
+              },
+              handleStderrLine = { line =>
+                parserLock.permit.surround(IO.delay(parser.parseError(line)))
+              },
+              getRunState = IO.delay {
+                val counts = parser.getCounts
+                ProcessTestRunner.RunState(counts._1, counts._2, counts._3, counts._4, parser.unfinishedSuite)
+              },
+              eventHandler = eventHandler,
+              killSignal = killSignal,
+              killDescendants = true,
+              preRun = IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)),
+              onNormalExit = IO.unit,
+              cleanup = IO.unit
+            ))
           }
         }
     }

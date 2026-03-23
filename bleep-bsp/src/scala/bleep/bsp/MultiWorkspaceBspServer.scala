@@ -1408,8 +1408,9 @@ class MultiWorkspaceBspServer(
               // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
               // Noop projects skip all waiting and don't consume concurrency slots.
               val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
+              val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
               val noopResult = config.language match {
-                case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, Map.empty, None)
+                case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
                 case _                             => None
               }
               if (noopResult.isDefined) {
@@ -1426,7 +1427,7 @@ class MultiWorkspaceBspServer(
                       waitForHeapPressure(projectName, params.originId, serverConfig.effectiveHeapPressureThreshold) >> {
                         val compileStartTime = System.currentTimeMillis()
                         IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                          compileProject(started, compileTask.project, params.originId, token)
+                          compileProject(started, compileTask.project, params.originId, token, depAnalyses)
                             .guaranteeCase {
                               case cats.effect.Outcome.Succeeded(resultIO) =>
                                 resultIO.flatMap { result =>
@@ -1834,8 +1835,9 @@ class MultiWorkspaceBspServer(
                 case None    =>
                   // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
                   val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
+                  val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
                   val noopResult = config.language match {
-                    case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, Map.empty, None)
+                    case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
                     case _                             => None
                   }
                   if (noopResult.isDefined) {
@@ -1850,7 +1852,7 @@ class MultiWorkspaceBspServer(
                           waitForHeapPressure(projectName, params.originId, serverConfig.effectiveHeapPressureThreshold) >> {
                             val compileStartTime = System.currentTimeMillis()
                             IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                              compileProject(started, compileTask.project, params.originId, token)
+                              compileProject(started, compileTask.project, params.originId, token, depAnalyses)
                                 .guaranteeCase {
                                   case cats.effect.Outcome.Succeeded(resultIO) =>
                                     resultIO.flatMap { result =>
@@ -2122,12 +2124,26 @@ class MultiWorkspaceBspServer(
     } finally releaseWorkspace(workspace, activeWork)
   }
 
+  /** Compute dependency analysis file paths for a project's compile-time dependencies.
+    *
+    * Returns a map from each dependency's output directory to its Zinc analysis file. This is needed for Zinc to detect API changes in upstream projects and
+    * invalidate downstream classes accordingly. Without this, Zinc treats each project as having no dependencies, missing cross-project invalidation entirely.
+    */
+  private def computeDependencyAnalyses(started: Started, projectDeps: Set[CrossProjectName]): Map[Path, Path] =
+    projectDeps.flatMap { dep =>
+      val depOutputDir = java.nio.file.Paths.get(started.resolvedProject(dep).classesDir.toString)
+      val depTargetDir = started.buildPaths.bleepBloopDir.resolve(dep.name.value).resolve(dep.crossId.fold("")(_.value))
+      val depAnalysisFile = depTargetDir.resolve(".zinc").resolve("analysis.zip")
+      if (java.nio.file.Files.exists(depAnalysisFile)) Some(depOutputDir -> depAnalysisFile)
+      else None
+    }.toMap
+
   /** Compile a single project (dependencies handled by TaskDag ordering).
     *
     * Calls the compiler directly (no ParallelProjectCompiler) so that CE fiber cancellation propagates through IO.interruptible in ZincBridge. This enables
     * IO.race in the compile handler to immediately interrupt compilation when the kill signal fires.
     */
-  private def compileProject(started: Started, project: CrossProjectName, originId: Option[String], cancellation: CancellationToken): IO[TaskDag.TaskResult] = {
+  private def compileProject(started: Started, project: CrossProjectName, originId: Option[String], cancellation: CancellationToken, dependencyAnalyses: Map[Path, Path]): IO[TaskDag.TaskResult] = {
     val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started)
     val compiler = ProjectCompiler.forLanguage(config.language)
 
@@ -2273,7 +2289,7 @@ class MultiWorkspaceBspServer(
         }
       }
       .use { _ =>
-        compiler.compile(config, diagnosticListener, cancellation, Map.empty, progressListener)
+        compiler.compile(config, diagnosticListener, cancellation, dependencyAnalyses, progressListener)
       }
       .map {
         case _ if cancellation.isCancelled =>

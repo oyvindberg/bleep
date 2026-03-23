@@ -79,19 +79,6 @@ object ScalaJsTestRunner {
         }
     }
 
-  /** Internal state tracked during test execution via Ref. */
-  private case class RunState(
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
-      currentSuite: Option[String]
-  )
-
-  private object RunState {
-    val empty: RunState = RunState(0, 0, 0, 0, None)
-  }
-
   def runTests(
       linkedJs: Path,
       moduleKind: ScalaJsLinkConfig.ModuleKind,
@@ -122,98 +109,72 @@ object ScalaJsTestRunner {
           env.foreach { case (k, v) => pb.environment().put(k, v) }
 
           (
-            Ref.of[IO, RunState](RunState.empty),
+            Ref.of[IO, ProcessTestRunner.RunState](ProcessTestRunner.RunState(0, 0, 0, 0, None)),
             StderrBuffer.create(eventHandler)
           ).flatMapN { (stateRef, stderrBuffer) =>
+            ProcessTestRunner.run(ProcessTestRunner.Config(
+              processBuilder = pb,
+              handleStdoutLine = { line =>
+                parseTestEvent(line) match {
+                  case Some(TestEvent.SuiteStarted(suite)) =>
+                    stateRef.update(_.copy(currentSuite = Some(suite))) >>
+                      IO.delay(eventHandler.onSuiteStarted(suite)) >>
+                      stderrBuffer.drain(suite)
 
-            val work = ProcessRunner.start(pb).use { process =>
-              TestRunnerTypes.startKillWatcher(process, killSignal, killDescendants = false).flatMap { killFiber =>
-                val stdout = ProcessRunner.lines(process.getInputStream).evalMap { line =>
-                  parseTestEvent(line) match {
-                    case Some(TestEvent.SuiteStarted(suite)) =>
-                      stateRef.update(_.copy(currentSuite = Some(suite))) >>
-                        IO.delay(eventHandler.onSuiteStarted(suite)) >>
-                        stderrBuffer.drain(suite)
-
-                    case Some(TestEvent.SuiteFinished(suite, p, f, s)) =>
-                      stderrBuffer.drain(suite) >>
-                        IO.delay(eventHandler.onSuiteFinished(suite, p, f, s)) >>
-                        stateRef.update(st =>
-                          st.copy(
-                            passed = st.passed + p,
-                            failed = st.failed + f,
-                            skipped = st.skipped + s,
-                            currentSuite = None
-                          )
+                  case Some(TestEvent.SuiteFinished(suite, p, f, s)) =>
+                    stderrBuffer.drain(suite) >>
+                      IO.delay(eventHandler.onSuiteFinished(suite, p, f, s)) >>
+                      stateRef.update(st =>
+                        st.copy(
+                          passed = st.passed + p,
+                          failed = st.failed + f,
+                          skipped = st.skipped + s,
+                          currentSuite = None
                         )
+                      )
 
-                    case Some(TestEvent.TestStarted(suite, test)) =>
-                      IO.delay(eventHandler.onTestStarted(suite, test))
+                  case Some(TestEvent.TestStarted(suite, test)) =>
+                    IO.delay(eventHandler.onTestStarted(suite, test))
 
-                    case Some(TestEvent.TestFinished(suite, test, status, duration, msg)) =>
-                      val testStatus = status match {
-                        case "passed"  => TestStatus.Passed
-                        case "failed"  => TestStatus.Failed
-                        case "skipped" => TestStatus.Skipped
-                        case "ignored" => TestStatus.Ignored
-                        case _         => TestStatus.Failed
-                      }
-                      IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
-
-                    case Some(TestEvent.Output(suite, outputLine, isError)) =>
-                      IO.delay(eventHandler.onOutput(suite, outputLine, OutputChannel.fromIsError(isError)))
-
-                    case None =>
-                      stateRef.get.flatMap { state =>
-                        state.currentSuite match {
-                          case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stdout))
-                          case None        => IO.unit
-                        }
-                      }
-                  }
-                }
-
-                val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
-                  stateRef.get.flatMap { state =>
-                    state.currentSuite match {
-                      case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stderr))
-                      case None        => stderrBuffer.buffer(line)
+                  case Some(TestEvent.TestFinished(suite, test, status, duration, msg)) =>
+                    val testStatus = status match {
+                      case "passed"  => TestStatus.Passed
+                      case "failed"  => TestStatus.Failed
+                      case "skipped" => TestStatus.Skipped
+                      case "ignored" => TestStatus.Ignored
+                      case _         => TestStatus.Failed
                     }
-                  }
-                }
+                    IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
 
-                val readAndWait = (stdout.compile.drain, stderr.compile.drain).parTupled.void >>
-                  IO.blocking(process.waitFor()).flatMap { exitCode =>
-                    // Check if process was killed by our kill watcher
-                    killSignal.tryGet.flatMap {
-                      case Some(reason) =>
-                        stateRef.get.map { state =>
-                          eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                          TestResult(state.passed, state.failed, state.skipped, state.ignored, TerminationReason.Killed(reason))
-                        }
-                      case None =>
-                        stateRef.get.flatMap { state =>
-                          state.currentSuite.traverse_(stderrBuffer.drain).as {
-                            val result = TestRunnerTypes.interpretExitCode(exitCode, state.currentSuite, state.passed, state.failed, eventHandler)
-                            TestResult(state.passed, result.adjustedFailed, state.skipped, state.ignored, result.terminationReason)
-                          }
-                        }
+                  case Some(TestEvent.Output(suite, outputLine, isError)) =>
+                    IO.delay(eventHandler.onOutput(suite, outputLine, OutputChannel.fromIsError(isError)))
+
+                  case None =>
+                    stateRef.get.flatMap { state =>
+                      state.currentSuite match {
+                        case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stdout))
+                        case None        => IO.unit
+                      }
                     }
-                  }
-
-                readAndWait.guarantee(killFiber.cancel)
-              }
-            }
-
-            Outcome.raceKill(killSignal)(work).flatMap {
-              case Left(result) => IO.pure(result)
-              case Right(reason) =>
-                stateRef.get.map { state =>
-                  eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                  TestResult(state.passed, state.failed, state.skipped, state.ignored, TerminationReason.Killed(reason))
                 }
-            }
-          }.guarantee(IO.blocking(Files.deleteIfExists(scriptPath)).void)
+              },
+              handleStderrLine = { line =>
+                stateRef.get.flatMap { state =>
+                  state.currentSuite match {
+                    case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stderr))
+                    case None        => stderrBuffer.buffer(line)
+                  }
+                }
+              },
+              getRunState = stateRef.get,
+              eventHandler = eventHandler,
+              killSignal = killSignal,
+              killDescendants = false,
+              preRun = IO.unit,
+              onNormalExit = stateRef.get.flatMap(s => s.currentSuite.traverse_(stderrBuffer.drain)),
+              cleanup = IO.blocking(Files.deleteIfExists(scriptPath)).void
+            ))
+          }
         }
     }
 
