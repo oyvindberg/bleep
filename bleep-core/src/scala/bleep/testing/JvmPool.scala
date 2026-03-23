@@ -241,15 +241,22 @@ object JvmPool {
         val javaPath = jvmCommand
         val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-        val cmd = List(javaPath.toString) ++ jvmOptions ++ List(
-          "-cp",
-          cpString,
-          runnerClass
-        )
+        // On Windows, command-line length is limited to 32,767 characters.
+        // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+        val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+
+        val cmd =
+          if (useEnvClasspath)
+            List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+          else
+            List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
         val pb = new ProcessBuilder(cmd: _*)
         pb.directory(workingDirectory.toFile)
         pb.redirectErrorStream(false)
+        if (useEnvClasspath) {
+          pb.environment().put("CLASSPATH", cpString)
+        }
 
         val process = pb.start()
         val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
@@ -262,7 +269,7 @@ object JvmPool {
       .flatTap(waitForReady)
 
     private def waitForReady(jvm: ManagedJvm): IO[Unit] =
-      IO.blocking {
+      IO.interruptible {
         val line = jvm.stdout.readLine()
         if (line == null) {
           // Process terminated - capture stderr to show actual error
@@ -357,7 +364,10 @@ object JvmPool {
 
       private def readResponses: Stream[IO, TestProtocol.TestResponse] =
         Stream.repeatEval {
-          IO.blocking {
+          // Use interruptible so timeout/cancellation can interrupt the blocked readLine thread.
+          // Periodically drain stderr to prevent buffer deadlock: if the child process fills
+          // its stderr buffer while we're blocked on stdout, both processes deadlock.
+          val readOne = IO.interruptible {
             val line = jvm.stdout.readLine()
             if (line == null) {
               jvm.markDead()
@@ -376,13 +386,22 @@ object JvmPool {
               }
             }
           }
+          // Race readOne against a periodic stderr drain to prevent buffer deadlock.
+          // Every 100ms while waiting for stdout, drain stderr.
+          def drainLoop: IO[Unit] =
+            IO.sleep(100.millis) >> IO.blocking(jvm.readStderr()).void >> drainLoop
+
+          IO.race(readOne, drainLoop).map {
+            case Left(result) => result
+            case Right(_)     => None // drainLoop never completes, but required for types
+          }
         }.unNoneTerminate
 
       override def getThreadDump: IO[Option[TestProtocol.TestResponse.ThreadDump]] =
         for {
           _ <- sendCommand(TestProtocol.TestCommand.GetThreadDump)
           response <- IO
-            .blocking {
+            .interruptible {
               val line = jvm.stdout.readLine()
               if (line == null) {
                 jvm.markDead()

@@ -101,15 +101,6 @@ class MultiWorkspaceBspServer(
   /** Active request fibers for cancellation */
   private val activeFibers = ConcurrentHashMap[String, FiberIO[Unit]]()
 
-  /** Track all spawned child processes for cleanup on shutdown */
-  private val childProcesses = ConcurrentHashMap.newKeySet[Process]()
-
-  /** Register a child process for tracking */
-  def registerChildProcess(p: Process): Unit = childProcesses.add(p)
-
-  /** Unregister a child process (after it exits normally) */
-  def unregisterChildProcess(p: Process): Unit = childProcesses.remove(p)
-
   /** Lock timeout for write operations */
   private val lockTimeout = 5.minutes
 
@@ -717,17 +708,7 @@ class MultiWorkspaceBspServer(
     // Cancel all active request tokens (triggers cancellation flow in running IOs)
     activeRequests.values().forEach(_.cancel())
 
-    // Force kill all tracked child processes (in case cancellation didn't clean them up)
-    childProcesses.forEach { p =>
-      try
-        if (p.isAlive) {
-          p.destroyForcibly()
-        }
-      catch { case _: Exception => }
-    }
-    childProcesses.clear()
-
-    // Also kill any child processes of this JVM (belt and suspenders)
+    // Kill any child processes of this JVM (belt and suspenders)
     killAllChildProcesses()
   }
 
@@ -1493,7 +1474,7 @@ class MultiWorkspaceBspServer(
       val traceRecorder = if (linkOpts.flamegraph) TraceRecorder.create.unsafeRunSync() else TraceRecorder.noop
 
       val ioProgram = for {
-        eventQueue <- Queue.unbounded[IO, Option[TaskDag.DagEvent]]
+        eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](100000)
         killSignal <- Outcome.fromCancellationToken(cancellation)
 
         // Start event consumer fiber - use guarantee to ensure cleanup on cancellation/error
@@ -1830,7 +1811,7 @@ class MultiWorkspaceBspServer(
       val startTime = System.currentTimeMillis()
 
       val ioProgram = for {
-        eventQueue <- Queue.unbounded[IO, Option[TaskDag.DagEvent]]
+        eventQueue <- Queue.bounded[IO, Option[TaskDag.DagEvent]](100000)
         totalSuitesRef <- Ref.of[IO, Int](0)
         totalPassedRef <- Ref.of[IO, Int](0)
         totalFailedRef <- Ref.of[IO, Int](0)

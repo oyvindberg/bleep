@@ -818,9 +818,14 @@ object TaskDag {
                         if (stillReady.isEmpty && stillToSkip.isEmpty) {
                           // Deadlock: nothing running, nothing ready, nothing to skip, but DAG not complete
                           val remaining = newDag.tasks.keySet -- newDag.finished
+                          val stuckDetails = remaining.toList.map { taskId =>
+                            val task = newDag.tasks(taskId)
+                            val unsatisfied = task.dependencies.filterNot(newDag.finished.contains)
+                            s"  $taskId (waiting for: ${unsatisfied.mkString(", ")})"
+                          }
                           IO.raiseError(
                             new RuntimeException(
-                              s"DAG deadlock: ${remaining.size} tasks stuck with unsatisfied dependencies: ${remaining.mkString(", ")}"
+                              s"DAG deadlock: ${remaining.size} tasks stuck:\n${stuckDetails.mkString("\n")}"
                             )
                           )
                         } else {

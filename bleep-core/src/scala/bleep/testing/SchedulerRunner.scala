@@ -84,14 +84,22 @@ class SchedulerInterpreter(
       val cpString = job.classpath.map(_.toString).mkString(java.io.File.pathSeparator)
       // Include scala3CompatOptions to suppress sun.misc.Unsafe warnings
       val allJvmOptions = bleep.internal.jvmRunCommand.scala3CompatOptions ++ jvmOptions
-      val cmd = List(job.jvmCommand.toString) ++ allJvmOptions ++ List(
-        "-cp",
-        cpString,
-        "bleep.testing.runner.ForkedTestRunner"
-      )
+
+      // On Windows, command-line length is limited to 32,767 characters.
+      // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+      val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+
+      val cmd =
+        if (useEnvClasspath)
+          List(job.jvmCommand.toString) ++ allJvmOptions ++ List("bleep.testing.runner.ForkedTestRunner")
+        else
+          List(job.jvmCommand.toString) ++ allJvmOptions ++ List("-cp", cpString, "bleep.testing.runner.ForkedTestRunner")
 
       val pb = new ProcessBuilder(cmd: _*)
       pb.redirectErrorStream(false)
+      if (useEnvClasspath) {
+        pb.environment().put("CLASSPATH", cpString)
+      }
       val process = pb.start()
       val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
       val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))

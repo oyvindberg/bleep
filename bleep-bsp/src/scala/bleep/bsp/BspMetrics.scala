@@ -33,8 +33,12 @@ object BspMetrics {
 
   private val SampleIntervalMs = 5000L
 
+  /** Maximum metrics file size before rotation (100MB) */
+  private val MaxMetricsFileBytes = 100L * 1024 * 1024
+
   def initialize(metricsDir: Path): Unit = {
     metricsPath = metricsDir.resolve("metrics.jsonl")
+    rotateIfNeeded()
     writer = new BufferedWriter(new FileWriter(metricsPath.toFile, true)) // append mode
 
     // Install OOM crash handler — records event before JVM dies
@@ -258,6 +262,15 @@ object BspMetrics {
       current = atom.get()
     }
   }
+
+  /** Rotate metrics file if it exceeds the size limit. Renames current file to metrics.prev.jsonl (overwriting any existing). */
+  private def rotateIfNeeded(): Unit =
+    try
+      if (Files.exists(metricsPath) && Files.size(metricsPath) > MaxMetricsFileBytes) {
+        val prev = metricsPath.resolveSibling("metrics.prev.jsonl")
+        Files.move(metricsPath, prev, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+      }
+    catch { case _: Exception => () }
 
   /** Escape a string for safe JSON embedding (minimal: backslash + double quote + newlines). */
   private def esc(s: String): String =

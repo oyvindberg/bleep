@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import cats.effect.IO
-import java.io.{DataInputStream, DataOutputStream, File}
+import java.io.{DataInputStream, DataOutputStream, File, IOException}
 import java.lang.ref.SoftReference
 import java.nio.file.{Files, Path, StandardCopyOption, StandardOpenOption}
 import java.nio.file.attribute.BasicFileAttributes
@@ -1029,14 +1029,13 @@ object ZincBridge {
     // Create progress callback that wraps our listener
     // Detect the transition from zinc's invalidation analysis to actual compilation
     // via the first advance() callback from the Scala compiler
-    @volatile var firstAdvance = true
+    val firstAdvance = new java.util.concurrent.atomic.AtomicBoolean(true)
     val progress: CompileProgress = new CompileProgress {
       override def startUnit(phase: String, unitPath: String): Unit =
         debug(s"[ZincBridge] startUnit called: phase=$phase, unitPath=$unitPath")
 
       override def advance(current: Int, total: Int, prevPhase: String, nextPhase: String): Boolean = {
-        if (firstAdvance) {
-          firstAdvance = false
+        if (firstAdvance.compareAndSet(true, false)) {
           diagnosticListener.onCompilePhase(config.name, CompilePhase.Compiling)
         }
         val shouldContinue = progressListener.onProgress(current, total, nextPhase)
@@ -1237,8 +1236,9 @@ object ZincBridge {
       analysisCache.put(analysisFile, new SoftReference(analysis))
     } catch {
       case e: Exception =>
-        Files.deleteIfExists(tempFile)
-        System.err.println(s"Warning: Failed to save analysis: ${e.getMessage}")
+        try Files.deleteIfExists(tempFile)
+        catch { case _: Exception => () }
+        throw new IOException(s"Failed to save analysis to $analysisFile: ${e.getMessage}", e)
     }
   }
 
@@ -1394,9 +1394,14 @@ private class EcjCompiler(
 
       // Wait for ECJ to notice cancellation via CompilationProgress.isCancelled().
       // If the bridge failed (hasProgress=false), ECJ won't check cancellation
-      // and we have to wait for it to finish naturally.
+      // and we have to wait for it to finish naturally — but with a timeout to
+      // prevent hanging the BSP server if ECJ is stuck (e.g., deadlocked or
+      // blocked on I/O from a network-mounted JAR).
       if (cancellationToken.isCancelled && compileThread.isAlive) {
-        compileThread.join()
+        compileThread.join(30000) // 30 second timeout
+        if (compileThread.isAlive) {
+          System.err.println(s"[ZincBridge] WARNING: ECJ thread did not exit within 30s after cancellation")
+        }
       }
 
       if (cancellationToken.isCancelled) {
