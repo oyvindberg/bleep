@@ -2,7 +2,7 @@ package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, StderrBuffer, TerminationReason, TestEventHandler, TestResult, TestSuite}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
 import java.nio.file.{Files, Path}
@@ -164,7 +164,7 @@ object KotlinTestRunner {
                         case None =>
                           stateRef.get.flatMap { state =>
                             state.currentSuite match {
-                              case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = false))
+                              case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stdout))
                               case None        => IO.unit
                             }
                           }
@@ -174,7 +174,7 @@ object KotlinTestRunner {
                     val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
                       stateRef.get.flatMap { state =>
                         state.currentSuite match {
-                          case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = true))
+                          case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stderr))
                           case None =>
                             stderrBuffer.buffer(line)
                         }
@@ -580,7 +580,7 @@ object KotlinTestRunner {
                       case _ =>
                         stateRef.get.flatMap { st =>
                           st.currentSuite.traverse_ { suite =>
-                            if (line.trim.nonEmpty) IO.delay(eventHandler.onOutput(suite, line, isError = false))
+                            if (line.trim.nonEmpty) IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stdout))
                             else IO.unit
                           }
                         }
@@ -590,7 +590,7 @@ object KotlinTestRunner {
                   val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
                     stateRef.get.flatMap { st =>
                       st.currentSuite match {
-                        case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = true))
+                        case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stderr))
                         case None        => stderrBuffer.buffer(line)
                       }
                     }

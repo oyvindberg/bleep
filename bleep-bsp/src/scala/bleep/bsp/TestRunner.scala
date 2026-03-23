@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, TestStatus}
 import bleep.model.CrossProjectName
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}
 import cats.effect._
@@ -151,7 +151,7 @@ object TestRunner {
             case TestProtocol.TestResponse.Log(level, message, suite) =>
               val isError = level == "error" || level == "stderr"
               val effectiveSuite = suite.getOrElse(suiteName)
-              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project.value, effectiveSuite, message, isError, ts)))
+              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project.value, effectiveSuite, message, OutputChannel.fromIsError(isError), ts)))
 
             case TestProtocol.TestResponse.Error(message, _) =>
               // Protocol errors - emit as test failure
@@ -195,7 +195,7 @@ object TestRunner {
             .flatMap { stderrLines =>
               if (stderrLines.nonEmpty) {
                 now.flatMap { ts =>
-                  stderrLines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, true, ts)))
+                  stderrLines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, OutputChannel.Stderr, ts)))
                 }
               } else IO.unit
             }
@@ -236,7 +236,7 @@ object TestRunner {
               .flatMap { lines =>
                 if (lines.nonEmpty) {
                   now.flatMap { ts =>
-                    lines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, true, ts)))
+                    lines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, OutputChannel.Stderr, ts)))
                   }
                 } else IO.unit
               }
@@ -267,8 +267,7 @@ object TestRunner {
               cleanup >> IO.pure(
                 TaskDag.TaskResult.Error(
                   error = s"Error during test: ${e.getMessage}",
-                  exitCode = None,
-                  signal = None
+                  processExit = ProcessExit.Unknown
                 )
               )
             case Outcome.Canceled() =>

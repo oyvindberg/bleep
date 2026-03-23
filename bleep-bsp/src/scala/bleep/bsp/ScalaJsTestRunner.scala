@@ -3,7 +3,7 @@ package bleep.bsp
 import bleep.analysis._
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, StderrBuffer, TerminationReason, TestEventHandler, TestResult, TestSuite}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
 import java.nio.file.{Files, Path}
@@ -161,12 +161,12 @@ object ScalaJsTestRunner {
                       IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
 
                     case Some(TestEvent.Output(suite, outputLine, isError)) =>
-                      IO.delay(eventHandler.onOutput(suite, outputLine, isError))
+                      IO.delay(eventHandler.onOutput(suite, outputLine, OutputChannel.fromIsError(isError)))
 
                     case None =>
                       stateRef.get.flatMap { state =>
                         state.currentSuite match {
-                          case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = false))
+                          case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stdout))
                           case None        => IO.unit
                         }
                       }
@@ -176,7 +176,7 @@ object ScalaJsTestRunner {
                 val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
                   stateRef.get.flatMap { state =>
                     state.currentSuite match {
-                      case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = true))
+                      case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stderr))
                       case None        => stderrBuffer.buffer(line)
                     }
                   }

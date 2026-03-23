@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{ProcessExit, TestStatus}
 
 /** Canonical state for build/test progress tracking.
   *
@@ -312,15 +312,12 @@ object BuildStateReducer {
         failures = timeoutFailure :: state.failures
       )
 
-    case BuildEvent.SuiteError(project, suite, error, exitCode, signal, _, _) =>
+    case BuildEvent.SuiteError(project, suite, error, processExit, _, _) =>
       val key = SuiteKey(project, suite)
-      val desc = signal match {
-        case Some(sig) => s"Process crashed (signal $sig)"
-        case None =>
-          exitCode match {
-            case Some(code) => s"Process exited with code $code"
-            case None       => error
-          }
+      val desc = processExit match {
+        case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
+        case ProcessExit.ExitCode(code) => s"Process exited with code $code"
+        case ProcessExit.Unknown        => error
       }
       val output = state.pendingOutput.getOrElse(key, Nil)
       // Only count as new failure if SuiteFinished didn't already count it

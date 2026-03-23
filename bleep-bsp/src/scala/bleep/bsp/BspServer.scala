@@ -700,7 +700,7 @@ class BspServer(
       TaskDag.LinkPlatform.KotlinJs(
         version,
         TaskDag.KotlinJsConfig(
-          moduleKind = "commonjs",
+          moduleKind = bleep.model.KotlinJsModuleKind.CommonJS,
           sourceMap = true,
           dce = false, // Default without DCE
           outputDir = project.outputDir.resolve("js")
@@ -1252,8 +1252,8 @@ class BspServer(
                       sendLogMessage(s"Suite: $suite", MessageType.Log)
                     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
                       sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-                    def onOutput(suite: String, line: String, isError: Boolean): Unit =
-                      sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+                    def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+                      sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
                   }
 
                   ScalaJsTestRunner
@@ -1322,8 +1322,8 @@ class BspServer(
               sendLogMessage(s"Suite: $suite", MessageType.Log)
             def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
               sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-            def onOutput(suite: String, line: String, isError: Boolean): Unit =
-              sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+            def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+              sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
           }
 
           // Use TestAdapter protocol (socket-based RPC) for proper communication with the native binary.
@@ -1381,8 +1381,8 @@ class BspServer(
                 sendLogMessage(s"Suite: $suite", MessageType.Log)
               def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
                 sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-              def onOutput(suite: String, line: String, isError: Boolean): Unit =
-                sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+              def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+                sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
             }
 
             KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, Map.empty, killSignal).map(_.isSuccess)
@@ -1425,8 +1425,8 @@ class BspServer(
                 sendLogMessage(s"Suite: $suite", MessageType.Log)
               def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
                 sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-              def onOutput(suite: String, line: String, isError: Boolean): Unit =
-                sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+              def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+                sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
             }
 
             KotlinTestRunner.Native.runTests(binary, suites, eventHandler, Map.empty, workspaceRoot, killSignal).map(_.isSuccess)

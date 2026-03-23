@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.Outcome.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
@@ -373,7 +373,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         } yield res).unsafeRunSync()
 
         result.passed shouldBe 1
-        handler.outputs.exists(_._3) shouldBe true // isError = true
+        handler.outputs.exists(_._3.isStderr) shouldBe true // stderr output
       } finally deleteRecursively(tempDir)
     }
   }
@@ -875,14 +875,14 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
     val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 
   // ==========================================================================
@@ -1010,14 +1010,14 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
     val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 
   class RecordingKotlinTestEventHandler extends TestRunnerTypes.TestEventHandler {
@@ -1025,13 +1025,13 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
     val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 }

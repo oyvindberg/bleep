@@ -4,7 +4,7 @@ import bleep.analysis._
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.LinkResult
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Semaphore
 import cats.syntax.all._
@@ -476,11 +476,11 @@ object ScalaNativeTestRunner {
 
           val sbtLoggers = Array[sbt.testing.Logger](new sbt.testing.Logger {
             def ansiCodesSupported(): Boolean = false
-            def error(msg: String): Unit = eventHandler.onOutput("", msg, isError = true)
-            def warn(msg: String): Unit = eventHandler.onOutput("", msg, isError = false)
-            def info(msg: String): Unit = eventHandler.onOutput("", msg, isError = false)
+            def error(msg: String): Unit = eventHandler.onOutput("", msg, OutputChannel.Stderr)
+            def warn(msg: String): Unit = eventHandler.onOutput("", msg, OutputChannel.Stdout)
+            def info(msg: String): Unit = eventHandler.onOutput("", msg, OutputChannel.Stdout)
             def debug(msg: String): Unit = ()
-            def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, isError = true)
+            def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, OutputChannel.Stderr)
           })
 
           // Track suites
@@ -639,14 +639,14 @@ object ScalaNativeTestRunner {
         case _ =>
           currentSuite.foreach { suite =>
             if (line.trim.nonEmpty) {
-              handler.onOutput(suite, line, isError = false)
+              handler.onOutput(suite, line, OutputChannel.Stdout)
             }
           }
       }
 
     override def parseError(line: String): Unit =
       currentSuite.foreach { suite =>
-        handler.onOutput(suite, line, isError = true)
+        handler.onOutput(suite, line, OutputChannel.Stderr)
       }
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, skipped, ignored)
@@ -716,14 +716,14 @@ object ScalaNativeTestRunner {
         case _ =>
           currentSuite.foreach { suite =>
             if (line.trim.nonEmpty) {
-              handler.onOutput(suite, line, isError = false)
+              handler.onOutput(suite, line, OutputChannel.Stdout)
             }
           }
       }
 
     override def parseError(line: String): Unit =
       currentSuite.foreach { suite =>
-        handler.onOutput(suite, line, isError = true)
+        handler.onOutput(suite, line, OutputChannel.Stderr)
       }
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, skipped, ignored)
@@ -785,14 +785,14 @@ object ScalaNativeTestRunner {
         case _ =>
           currentSuite.foreach { suite =>
             if (line.trim.nonEmpty) {
-              handler.onOutput(suite, line, isError = false)
+              handler.onOutput(suite, line, OutputChannel.Stdout)
             }
           }
       }
 
     override def parseError(line: String): Unit =
       currentSuite.foreach { suite =>
-        handler.onOutput(suite, line, isError = true)
+        handler.onOutput(suite, line, OutputChannel.Stderr)
       }
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, skipped, ignored)
@@ -813,11 +813,11 @@ object ScalaNativeTestRunner {
       } else if (failPattern.findFirstIn(line).isDefined) {
         failed += 1
       }
-      handler.onOutput(defaultSuite, line, isError = false)
+      handler.onOutput(defaultSuite, line, OutputChannel.Stdout)
     }
 
     override def parseError(line: String): Unit =
-      handler.onOutput(defaultSuite, line, isError = true)
+      handler.onOutput(defaultSuite, line, OutputChannel.Stderr)
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, 0, 0)
     override def unfinishedSuite: Option[String] = None

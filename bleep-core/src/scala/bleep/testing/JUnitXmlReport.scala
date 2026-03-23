@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{ProcessExit, TestStatus}
 import java.nio.file.{Files, Path}
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
@@ -222,10 +222,10 @@ class JUnitXmlCollector {
         )
       }
 
-    case BuildEvent.Output(project, suite, line, isError, _) =>
+    case BuildEvent.Output(project, suite, line, channel, _) =>
       val key = s"$project:$suite"
       activeSuites.get(key).foreach { state =>
-        if (isError) activeSuites(key) = state.copy(systemErr = state.systemErr :+ line)
+        if (channel.isStderr) activeSuites(key) = state.copy(systemErr = state.systemErr :+ line)
         else activeSuites(key) = state.copy(systemOut = state.systemOut :+ line)
       }
 
@@ -252,18 +252,15 @@ class JUnitXmlCollector {
         systemErr = state.map(_.systemErr).getOrElse(Nil)
       )
 
-    case BuildEvent.SuiteError(project, suite, error, exitCode, signal, durationMs, timestamp) =>
+    case BuildEvent.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>
       val key = s"$project:$suite"
       val state = activeSuites.remove(key)
       val startTime = state.map(_.startTime).getOrElse(Instant.ofEpochMilli(timestamp))
       val existingTests = state.map(_.testCases.reverse).getOrElse(Nil)
-      val desc = signal match {
-        case Some(sig) => s"Process crashed (signal $sig)"
-        case None =>
-          exitCode match {
-            case Some(code) => s"Process exited with code $code"
-            case None       => error
-          }
+      val desc = processExit match {
+        case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
+        case ProcessExit.ExitCode(code) => s"Process exited with code $code"
+        case ProcessExit.Unknown        => error
       }
       val errorCase = TestCaseResult(
         name = "(process error)",

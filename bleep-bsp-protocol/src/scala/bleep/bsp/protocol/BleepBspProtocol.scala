@@ -184,7 +184,7 @@ object BleepBspProtocol {
     /** Why compilation is being triggered */
     case class CompilationReason(
         project: String,
-        reason: String, // "clean-build", "empty-output", "incremental", "up-to-date"
+        reason: CompileReason,
         totalFiles: Int,
         invalidatedFiles: List[String], // file names (not full paths)
         changedDependencies: List[String], // dependency names
@@ -250,13 +250,13 @@ object BleepBspProtocol {
 
     case class LinkStarted(
         project: String,
-        platform: String, // "Scala.js", "Scala Native", "Kotlin/JS", "Kotlin/Native"
+        platform: LinkPlatformName,
         timestamp: Long
     ) extends Event
 
     case class LinkProgress(
         project: String,
-        phase: String,
+        phase: String, // Free-form: linker phase names vary by platform
         timestamp: Long
     ) extends Event
 
@@ -266,7 +266,7 @@ object BleepBspProtocol {
         durationMs: Long,
         outputPath: Option[String],
         timestamp: Long,
-        platform: String,
+        platform: LinkPlatformName,
         error: Option[String]
     ) extends Event
 
@@ -350,8 +350,7 @@ object BleepBspProtocol {
         project: String,
         suite: String,
         error: String,
-        exitCode: Option[Int],
-        signal: Option[Int],
+        processExit: ProcessExit,
         durationMs: Long,
         timestamp: Long
     ) extends Event
@@ -375,7 +374,7 @@ object BleepBspProtocol {
     case class RunOutput(
         project: String,
         line: String,
-        isError: Boolean,
+        channel: OutputChannel,
         timestamp: Long
     ) extends Event
 
@@ -392,7 +391,7 @@ object BleepBspProtocol {
         project: String,
         suite: String,
         line: String,
-        isError: Boolean,
+        channel: OutputChannel,
         timestamp: Long
     ) extends Event
 
@@ -400,7 +399,7 @@ object BleepBspProtocol {
 
     case class LogMessage(
         project: Option[String],
-        level: String, // "info", "warn", "error", "debug"
+        level: LogLevel,
         message: String,
         timestamp: Long
     ) extends Event
@@ -417,14 +416,14 @@ object BleepBspProtocol {
     /** Sent at the start of a build run to describe all projects involved */
     case class BuildInitialized(
         projects: List[ProjectInfo],
-        mode: String, // "compile", "link", "test", "run"
+        mode: BuildMode,
         timestamp: Long
     ) extends Event
 
     /** Sent when a project's state changes */
     case class ProjectStateChanged(
         project: String,
-        state: String, // pending, compiling, compiled, compile_failed, linking, linked, discovering, testing, completed, skipped
+        state: ProjectState,
         details: Option[String], // e.g., "waiting for dependency X" or error message
         timestamp: Long
     ) extends Event

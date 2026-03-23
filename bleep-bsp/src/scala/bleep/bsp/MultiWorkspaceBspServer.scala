@@ -20,7 +20,7 @@ import bleep.analysis.{
   ZincBridge
 }
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit}
 import bleep.bsp.TraceCategory
 import bleep.model.CrossProjectName
 import bleep.testing.JvmPool
@@ -1286,11 +1286,11 @@ class MultiWorkspaceBspServer(
               val outputDir = projectPaths.targetDir.resolve("link-output").resolve("js")
               val moduleKind = linkOpts.moduleKind
                 .map {
-                  case "esmodule" => "es"
-                  case "nomodule" => "plain"
-                  case _          => "commonjs"
+                  case "esmodule" => model.KotlinJsModuleKind.ESModule
+                  case "nomodule" => model.KotlinJsModuleKind.Plain
+                  case _          => model.KotlinJsModuleKind.CommonJS
                 }
-                .getOrElse("commonjs")
+                .getOrElse(model.KotlinJsModuleKind.CommonJS)
               val config = TaskDag.KotlinJsConfig(
                 moduleKind = moduleKind,
                 sourceMap = linkOpts.sourceMaps.getOrElse(!isRelease),
@@ -1748,7 +1748,7 @@ class MultiWorkspaceBspServer(
             val projectPaths = started.projectPaths(crossName)
             val outputDir = projectPaths.targetDir
             val config = TaskDag.KotlinJsConfig(
-              moduleKind = "umd",
+              moduleKind = model.KotlinJsModuleKind.UMD,
               sourceMap = false,
               dce = false, // Tests run without DCE
               outputDir = outputDir
@@ -2217,13 +2217,13 @@ class MultiWorkspaceBspServer(
 
         val (reasonType, totalFiles, invalidatedFiles, changedDeps) = reason match {
           case CompilationReason.CleanBuild =>
-            ("clean-build", 0, Nil, Nil)
+            (bleep.bsp.protocol.CompileReason.CleanBuild, 0, Nil, Nil)
           case CompilationReason.EmptyOutput =>
-            ("empty-output", 0, Nil, Nil)
+            (bleep.bsp.protocol.CompileReason.EmptyOutput, 0, Nil, Nil)
           case CompilationReason.UpToDate =>
-            ("up-to-date", 0, Nil, Nil)
+            (bleep.bsp.protocol.CompileReason.UpToDate, 0, Nil, Nil)
           case CompilationReason.Incremental(total, invalidated, changed) =>
-            ("incremental", total, invalidated.map(_.getFileName.toString).toList, changed.map(depName).toList)
+            (bleep.bsp.protocol.CompileReason.Incremental, total, invalidated.map(_.getFileName.toString).toList, changed.map(depName).toList)
         }
         val now = System.currentTimeMillis()
         sendCompileEvent(
@@ -2435,8 +2435,8 @@ class MultiWorkspaceBspServer(
         )
       def onSuiteStarted(suite: String): Unit = ()
       def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
-      def onOutput(suite: String, line: String, isError: Boolean): Unit =
-        dispatcher.unsafeRunSync(eventQueue.offer(Some(TaskDag.DagEvent.Output(project, suite, line, isError, System.currentTimeMillis()))))
+      def onOutput(suite: String, line: String, channel: OutputChannel): Unit =
+        dispatcher.unsafeRunSync(eventQueue.offer(Some(TaskDag.DagEvent.Output(project, suite, line, channel, System.currentTimeMillis()))))
     }
 
   /** Run a Scala.js test suite: link → run via Node.js, emit events to DAG queue. */
@@ -2571,20 +2571,30 @@ class MultiWorkspaceBspServer(
                 // Emit error/crash details as Output so they appear in failure details
                 val terminationEvent: IO[Unit] = result.terminationReason match {
                   case TestRunnerTypes.TerminationReason.Error(msg) =>
-                    eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, msg, true, endTs)))
+                    eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, msg, OutputChannel.Stderr, endTs)))
                   case TestRunnerTypes.TerminationReason.Crashed(signal) =>
                     eventQueue.offer(
-                      Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process crashed (signal $signal)", true, endTs))
+                      Some(
+                        TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process crashed (signal $signal)", OutputChannel.Stderr, endTs)
+                      )
                     )
                   case TestRunnerTypes.TerminationReason.TruncatedOutput(suite) =>
                     eventQueue.offer(
                       Some(
                         TaskDag.DagEvent
-                          .Output(testTask.project.value, testTask.suiteName, s"Process exited with truncated output (suite '$suite')", true, endTs)
+                          .Output(
+                            testTask.project.value,
+                            testTask.suiteName,
+                            s"Process exited with truncated output (suite '$suite')",
+                            OutputChannel.Stderr,
+                            endTs
+                          )
                       )
                     )
                   case TestRunnerTypes.TerminationReason.ExitCode(code) =>
-                    eventQueue.offer(Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process exited with code $code", true, endTs)))
+                    eventQueue.offer(
+                      Some(TaskDag.DagEvent.Output(testTask.project.value, testTask.suiteName, s"Process exited with code $code", OutputChannel.Stderr, endTs))
+                    )
                   case _ => IO.unit
                 }
                 terminationEvent >>
@@ -2798,7 +2808,7 @@ class MultiWorkspaceBspServer(
                       BleepBspProtocol.Event
                         .CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
                     )
-                  case TaskDag.TaskResult.Error(error, _, _) =>
+                  case TaskDag.TaskResult.Error(error, _) =>
                     Some(
                       BleepBspProtocol.Event.CompileFinished(
                         ct.project.value,
@@ -2842,17 +2852,14 @@ class MultiWorkspaceBspServer(
                   case TaskDag.TaskResult.Success =>
                     None // SuiteFinished already emitted by TestRunner
                   case TaskDag.TaskResult.Failure(errorMsg, _) =>
-                    Some(BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, errorMsg, None, None, durationMs, timestamp))
-                  case TaskDag.TaskResult.Error(error, exitCode, signal) =>
-                    val desc = signal match {
-                      case Some(sig) => s"Process crashed (signal $sig)"
-                      case None =>
-                        exitCode match {
-                          case Some(code) => s"Process exited with code $code"
-                          case None       => error
-                        }
+                    Some(BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, errorMsg, ProcessExit.Unknown, durationMs, timestamp))
+                  case TaskDag.TaskResult.Error(error, processExit) =>
+                    val desc = processExit match {
+                      case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
+                      case ProcessExit.ExitCode(code) => s"Process exited with code $code"
+                      case ProcessExit.Unknown        => error
                     }
-                    Some(BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, desc, exitCode, signal, durationMs, timestamp))
+                    Some(BleepBspProtocol.Event.SuiteError(tt.project.value, tt.suiteName, desc, processExit, durationMs, timestamp))
                   case TaskDag.TaskResult.Skipped(failedDep) =>
                     Some(
                       BleepBspProtocol.Event.SuiteCancelled(tt.project.value, tt.suiteName, Some(s"dependency ${failedDep.project.value} failed"), timestamp)
@@ -2914,8 +2921,8 @@ class MultiWorkspaceBspServer(
                 IO.unit
             }
 
-          case TaskDag.DagEvent.Output(project, suite, line, isError, timestamp) =>
-            val protocolEvent = BleepBspProtocol.Event.Output(project, suite, line, isError, timestamp)
+          case TaskDag.DagEvent.Output(project, suite, line, channel, timestamp) =>
+            val protocolEvent = BleepBspProtocol.Event.Output(project, suite, line, channel, timestamp)
             IO(sendTestEvent(originId, s"output:$project:$suite", protocolEvent))
 
           case TaskDag.DagEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp) =>
@@ -2937,11 +2944,11 @@ class MultiWorkspaceBspServer(
 
           case TaskDag.DagEvent.LinkFinished(project, result, durationMs, timestamp) =>
             val (success, outputPath, platform, error) = result match {
-              case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), "Scala.js", None)
-              case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), "Scala Native", None)
-              case TaskDag.LinkResult.Failure(err, _)                => (false, None, "", Some(err))
-              case TaskDag.LinkResult.Killed(reason)                 => (false, None, "", Some(s"Killed: $reason"))
-              case TaskDag.LinkResult.NotApplicable                  => (true, None, "JVM", None)
+              case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), LinkPlatformName.ScalaJs, None)
+              case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), LinkPlatformName.ScalaNative, None)
+              case TaskDag.LinkResult.Failure(err, _)                => (false, None, LinkPlatformName.Jvm, Some(err))
+              case TaskDag.LinkResult.Killed(reason)                 => (false, None, LinkPlatformName.Jvm, Some(s"Killed: $reason"))
+              case TaskDag.LinkResult.NotApplicable                  => (true, None, LinkPlatformName.Jvm, None)
             }
             val protocolEvent = BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
             traceRecorder.recordEnd(TraceCategory.Link, project) >>
@@ -3009,13 +3016,13 @@ class MultiWorkspaceBspServer(
           val protocolEvent: Option[BleepBspProtocol.Event] = task match {
             case ct: TaskDag.CompileTask =>
               val status: CompileStatus = result match {
-                case TaskDag.TaskResult.Success        => CompileStatus.Success
-                case TaskDag.TaskResult.Failure(_, _)  => CompileStatus.Failed
-                case TaskDag.TaskResult.Error(_, _, _) => CompileStatus.Error
-                case TaskDag.TaskResult.Skipped(_)     => CompileStatus.Skipped
-                case TaskDag.TaskResult.Killed(_)      => CompileStatus.Cancelled
-                case TaskDag.TaskResult.Cancelled      => CompileStatus.Cancelled
-                case TaskDag.TaskResult.TimedOut       => CompileStatus.Cancelled
+                case TaskDag.TaskResult.Success       => CompileStatus.Success
+                case TaskDag.TaskResult.Failure(_, _) => CompileStatus.Failed
+                case TaskDag.TaskResult.Error(_, _)   => CompileStatus.Error
+                case TaskDag.TaskResult.Skipped(_)    => CompileStatus.Skipped
+                case TaskDag.TaskResult.Killed(_)     => CompileStatus.Cancelled
+                case TaskDag.TaskResult.Cancelled     => CompileStatus.Cancelled
+                case TaskDag.TaskResult.TimedOut      => CompileStatus.Cancelled
               }
               logger
                 .withContext("project", ct.project.value)
@@ -3027,7 +3034,7 @@ class MultiWorkspaceBspServer(
                   Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp))
                 case TaskDag.TaskResult.Failure(_, diags) =>
                   Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, diags, skippedBecause = None, timestamp))
-                case TaskDag.TaskResult.Error(error, _, _) =>
+                case TaskDag.TaskResult.Error(error, _) =>
                   Some(
                     BleepBspProtocol.Event.CompileFinished(
                       ct.project.value,
@@ -3084,11 +3091,11 @@ class MultiWorkspaceBspServer(
 
         case TaskDag.DagEvent.LinkFinished(project, result, durationMs, timestamp) =>
           val (success, outputPath, platform, error) = result match {
-            case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), "Scala.js", None)
-            case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), "Scala Native", None)
-            case TaskDag.LinkResult.Failure(err, _)                => (false, None, "", Some(err))
-            case TaskDag.LinkResult.Killed(reason)                 => (false, None, "", Some(s"Killed: $reason"))
-            case TaskDag.LinkResult.NotApplicable                  => (true, None, "JVM", None)
+            case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), LinkPlatformName.ScalaJs, None)
+            case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), LinkPlatformName.ScalaNative, None)
+            case TaskDag.LinkResult.Failure(err, _)                => (false, None, LinkPlatformName.Jvm, Some(err))
+            case TaskDag.LinkResult.Killed(reason)                 => (false, None, LinkPlatformName.Jvm, Some(s"Killed: $reason"))
+            case TaskDag.LinkResult.NotApplicable                  => (true, None, LinkPlatformName.Jvm, None)
           }
           val protocolEvent = BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
           traceRecorder.recordEnd(TraceCategory.Link, project) >>
@@ -3270,13 +3277,13 @@ class MultiWorkspaceBspServer(
       case TestRunnerTypes.TerminationReason.Killed(reason) =>
         TaskDag.TaskResult.Killed(reason)
       case TestRunnerTypes.TerminationReason.Crashed(signal) =>
-        TaskDag.TaskResult.Error(s"Process crashed (signal $signal)", Some(128 + signal), Some(signal))
+        TaskDag.TaskResult.Error(s"Process crashed (signal $signal)", ProcessExit.Signal(signal))
       case TestRunnerTypes.TerminationReason.ExitCode(code) =>
-        TaskDag.TaskResult.Error(s"Process exited with code $code", Some(code), None)
+        TaskDag.TaskResult.Error(s"Process exited with code $code", ProcessExit.ExitCode(code))
       case TestRunnerTypes.TerminationReason.Error(message) =>
-        TaskDag.TaskResult.Error(message, None, None)
+        TaskDag.TaskResult.Error(message, ProcessExit.Unknown)
       case TestRunnerTypes.TerminationReason.TruncatedOutput(suite) =>
-        TaskDag.TaskResult.Error(s"Process exited with truncated output (suite '$suite' started but never finished)", None, None)
+        TaskDag.TaskResult.Error(s"Process exited with truncated output (suite '$suite' started but never finished)", ProcessExit.Unknown)
     }
 
   private def sendLogMessage(message: String, messageType: MessageType): Unit = {

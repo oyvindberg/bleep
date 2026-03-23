@@ -3,6 +3,8 @@ package bleep.bsp
 import bleep.analysis._
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag._
+import bleep.bsp.protocol.ProcessExit
+import bleep.model.KotlinJsModuleKind
 import cats.effect.{Deferred, IO}
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
@@ -278,7 +280,7 @@ object LinkExecutor {
             }
           case ex =>
             // Process-level crash (not a linker error)
-            IO.pure((TaskResult.Error(s"Scala.js linker crashed: ${ex.getMessage}", None, None), LinkResult.Failure(ex.getMessage, List.empty)))
+            IO.pure((TaskResult.Error(s"Scala.js linker crashed: ${ex.getMessage}", ProcessExit.Unknown), LinkResult.Failure(ex.getMessage, List.empty)))
         }
     }
 
@@ -342,9 +344,9 @@ object LinkExecutor {
             } else {
               // Non-zero exit code from linker - this is an infrastructure error (process crashed or linker bug)
               val exitCode = result.exitCode
-              val signal = if (exitCode > 128) Some(exitCode - 128) else None
+              val processExit = if (exitCode > 128) ProcessExit.Signal(exitCode - 128) else ProcessExit.ExitCode(exitCode)
               (
-                TaskResult.Error(s"Scala Native linking failed with exit code $exitCode", Some(exitCode), signal),
+                TaskResult.Error(s"Scala Native linking failed with exit code $exitCode", processExit),
                 LinkResult.Failure(s"Exit code: $exitCode", List.empty)
               )
             }
@@ -363,7 +365,7 @@ object LinkExecutor {
                 case None         => (TaskResult.Killed(KillReason.UserRequest), LinkResult.Cancelled)
               }
             case ex =>
-              IO.pure((TaskResult.Error(s"Scala Native linker crashed: ${ex.getMessage}", None, None), LinkResult.Failure(ex.getMessage, List.empty)))
+              IO.pure((TaskResult.Error(s"Scala Native linker crashed: ${ex.getMessage}", ProcessExit.Unknown), LinkResult.Failure(ex.getMessage, List.empty)))
           }
       }
     }
@@ -436,11 +438,11 @@ object LinkExecutor {
 
         // Create compiler config for linking
         val moduleKind = platform.config.moduleKind match {
-          case "umd"             => KotlinJsCompilerConfig.ModuleKind.UMD
-          case "commonjs"        => KotlinJsCompilerConfig.ModuleKind.CommonJS
-          case "amd"             => KotlinJsCompilerConfig.ModuleKind.AMD
-          case "es" | "esmodule" => KotlinJsCompilerConfig.ModuleKind.ESModule
-          case _                 => KotlinJsCompilerConfig.ModuleKind.Plain
+          case KotlinJsModuleKind.UMD      => KotlinJsCompilerConfig.ModuleKind.UMD
+          case KotlinJsModuleKind.CommonJS => KotlinJsCompilerConfig.ModuleKind.CommonJS
+          case KotlinJsModuleKind.AMD      => KotlinJsCompilerConfig.ModuleKind.AMD
+          case KotlinJsModuleKind.ESModule => KotlinJsCompilerConfig.ModuleKind.ESModule
+          case KotlinJsModuleKind.Plain    => KotlinJsCompilerConfig.ModuleKind.Plain
         }
 
         val config = KotlinJsCompilerConfig(
@@ -503,7 +505,7 @@ object LinkExecutor {
                 case None         => (TaskResult.Killed(KillReason.UserRequest), LinkResult.Cancelled)
               }
             case ex =>
-              IO.pure((TaskResult.Error(s"Kotlin/JS linker crashed: ${ex.getMessage}", None, None), LinkResult.Failure(ex.getMessage, List.empty)))
+              IO.pure((TaskResult.Error(s"Kotlin/JS linker crashed: ${ex.getMessage}", ProcessExit.Unknown), LinkResult.Failure(ex.getMessage, List.empty)))
           }
       }
     }

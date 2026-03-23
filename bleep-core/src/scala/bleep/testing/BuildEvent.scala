@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompilePhase, CompileStatus, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompilePhase, CompileReason, CompileStatus, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
 import java.nio.file.Path
 
 /** Events emitted during build execution for progress tracking and reporting */
@@ -30,7 +30,7 @@ object BuildEvent {
   /** Why compilation is being triggered */
   case class CompilationReason(
       project: String,
-      reason: String, // "clean-build", "empty-output", "incremental", "up-to-date"
+      reason: CompileReason,
       totalFiles: Int,
       invalidatedFiles: List[String],
       changedDependencies: List[String],
@@ -39,10 +39,10 @@ object BuildEvent {
 
     /** Format the reason for display */
     def formatted: String = reason match {
-      case "clean-build"  => s"$project: clean build (no previous analysis)"
-      case "empty-output" => s"$project: clean build (output directory empty)"
-      case "up-to-date"   => s"$project: up to date"
-      case "incremental" =>
+      case CompileReason.CleanBuild  => s"$project: clean build (no previous analysis)"
+      case CompileReason.EmptyOutput => s"$project: clean build (output directory empty)"
+      case CompileReason.UpToDate    => s"$project: up to date"
+      case CompileReason.Incremental =>
         val invalidatedCount = invalidatedFiles.size
         val depCount = changedDependencies.size
 
@@ -65,7 +65,6 @@ object BuildEvent {
         val parts = List(invalidatedStr, depStr).filter(_.nonEmpty)
         if (parts.isEmpty) s"$project: incremental (changes detected)"
         else s"$project: ${parts.mkString("; ")}"
-      case other => s"$project: $other"
     }
   }
 
@@ -179,8 +178,7 @@ object BuildEvent {
       project: String,
       suite: String,
       error: String,
-      exitCode: Option[Int],
-      signal: Option[Int],
+      processExit: ProcessExit,
       durationMs: Long,
       timestamp: Long
   ) extends BuildEvent
@@ -198,7 +196,7 @@ object BuildEvent {
       project: String,
       suite: String,
       line: String,
-      isError: Boolean,
+      channel: OutputChannel,
       timestamp: Long
   ) extends BuildEvent
 
@@ -220,14 +218,14 @@ object BuildEvent {
   /** A project has started linking (Scala.js, Scala Native, etc.) */
   case class LinkStarted(
       project: String,
-      platform: String,
+      platform: LinkPlatformName,
       timestamp: Long
   ) extends BuildEvent
 
   /** A project has finished linking successfully */
   case class LinkSucceeded(
       project: String,
-      platform: String,
+      platform: LinkPlatformName,
       durationMs: Long,
       timestamp: Long
   ) extends BuildEvent
@@ -235,7 +233,7 @@ object BuildEvent {
   /** A project has failed to link */
   case class LinkFailed(
       project: String,
-      platform: String,
+      platform: LinkPlatformName,
       durationMs: Long,
       error: String,
       timestamp: Long

@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{BleepBspProtocol, DiagnosticSeverity, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.syntax.all._
@@ -205,7 +205,7 @@ object BuildSummary {
       lines += s"${C.RED}${C.BOLD}Link Failures (${summary.linkFailures.size})${C.RESET}"
       lines += ""
       summary.linkFailures.foreach { lf =>
-        val platformStr = if (lf.platform.nonEmpty) s" [${lf.platform}]" else ""
+        val platformStr = s" [${lf.platform.wireValue}]"
         lines += s"${C.RED}x ${lf.project}$platformStr${C.RESET}"
         lines += s"  ${C.RED}|${C.RESET} ${lf.error}"
         lines += ""
@@ -426,7 +426,7 @@ object FailureCategory {
 
 case class LinkFailure(
     project: String,
-    platform: String,
+    platform: LinkPlatformName,
     error: String
 )
 
@@ -580,15 +580,15 @@ object BuildDisplay {
 
       case BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, _) =>
         // Track up-to-date projects so CompileFinished can suppress output for them
-        val trackUpToDate = if (reason == "up-to-date") {
+        val trackUpToDate = if (reason == CompileReason.UpToDate) {
           upToDateProjects.update(_ + project)
         } else IO.unit
         val printMsg = if (!quietMode) {
           val msg = reason match {
-            case "clean-build"  => "🔨 compiling (clean build, no previous analysis)"
-            case "empty-output" => "🔨 compiling (clean build, output directory empty)"
-            case "up-to-date"   => "✅ up to date"
-            case "incremental" =>
+            case CompileReason.CleanBuild  => "🔨 compiling (clean build, no previous analysis)"
+            case CompileReason.EmptyOutput => "🔨 compiling (clean build, output directory empty)"
+            case CompileReason.UpToDate    => "✅ up to date"
+            case CompileReason.Incremental =>
               val invalidatedCount = invalidatedFiles.size
               val depCount = changedDeps.size
               val invalidatedStr =
@@ -608,7 +608,6 @@ object BuildDisplay {
               val parts = List(invalidatedStr, depStr).filter(_.nonEmpty)
               if (parts.isEmpty) s"🔨 compiling ($totalFiles source files)"
               else s"🔨 compiling (${parts.mkString("; ")})"
-            case other => s"🔨 compiling ($other)"
           }
           logP(project, msg)
         } else IO.unit
@@ -711,14 +710,11 @@ object BuildDisplay {
           }
         } yield ()
 
-      case BuildEvent.SuiteError(_, suite, error, exitCode, signal, _, _) =>
-        val desc = signal match {
-          case Some(sig) => s"crashed (signal $sig)"
-          case None =>
-            exitCode match {
-              case Some(code) => s"exited with code $code"
-              case None       => error
-            }
+      case BuildEvent.SuiteError(_, suite, error, processExit, _, _) =>
+        val desc = processExit match {
+          case ProcessExit.Signal(sig)    => s"crashed (signal $sig)"
+          case ProcessExit.ExitCode(code) => s"exited with code $code"
+          case ProcessExit.Unknown        => error
         }
         IO.delay(logger.withContext("suite", suite).error(s"❌ $desc"))
 
@@ -738,13 +734,13 @@ object BuildDisplay {
         IO.delay(logger.withContext("suite", suite).warn(s"🚫 cancelled ($reasonStr)"))
 
       case BuildEvent.LinkStarted(project, platform, _) =>
-        if (!quietMode) logP(project, s"🔗 linking [$platform]") else IO.unit
+        if (!quietMode) logP(project, s"🔗 linking [${platform.wireValue}]") else IO.unit
 
       case BuildEvent.LinkSucceeded(project, platform, durationMs, _) =>
-        if (!quietMode) logP(project, s"✅ linked [$platform] (${durationMs}ms)") else IO.unit
+        if (!quietMode) logP(project, s"✅ linked [${platform.wireValue}] (${durationMs}ms)") else IO.unit
 
       case BuildEvent.LinkFailed(project, platform, durationMs, error, _) =>
-        logErrorP(project, s"❌ link failed [$platform] (${durationMs}ms): $error")
+        logErrorP(project, s"❌ link failed [${platform.wireValue}] (${durationMs}ms): $error")
 
       case BuildEvent.SourcegenStarted(scriptMain, forProjects, _) =>
         if (!quietMode) IO.delay(logger.withContext("script", scriptMain).info(s"⚙️ sourcegen for ${forProjects.mkString(", ")}")) else IO.unit
@@ -1014,8 +1010,12 @@ object BuildDisplay {
       case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, _, _) =>
         logError(s"[TIMEOUT] $suite after ${timeoutMs / 1000}s")
 
-      case BuildEvent.SuiteError(_, suite, error, _, signal, _, _) =>
-        val desc = signal.map(s => s"Process crashed (signal $s)").getOrElse(error)
+      case BuildEvent.SuiteError(_, suite, error, processExit, _, _) =>
+        val desc = processExit match {
+          case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
+          case ProcessExit.ExitCode(code) => s"Process exited with code $code"
+          case ProcessExit.Unknown        => error
+        }
         logError(s"[ERROR] $suite: $desc")
 
       case BuildEvent.Error(project, message, _, _) =>

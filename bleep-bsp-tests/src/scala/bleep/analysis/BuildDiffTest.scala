@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, CompileStatus, DiagnosticSeverity, OutputChannel, TestStatus}
 import bleep.testing._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -91,7 +91,7 @@ class BuildDiffTest extends AnyFunSuite with Matchers {
       BuildEvent.CompileStarted("proj-a", ts),
       BuildEvent.CompileProgress("proj-a", 50, ts + 1),
       BuildEvent.SuiteStarted("proj-b", "MySuite", ts + 2),
-      BuildEvent.Output("proj-b", "MySuite", "some output", isError = false, ts + 3)
+      BuildEvent.Output("proj-b", "MySuite", "some output", OutputChannel.Stdout, ts + 3)
     )
 
     val state = PreviousRunState.fromEvents(events)

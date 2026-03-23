@@ -1,9 +1,9 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.model.CrossProjectName
+import bleep.model.{CrossProjectName, KotlinJsModuleKind}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -110,7 +110,7 @@ object TaskDag {
 
   /** Kotlin/JS configuration */
   case class KotlinJsConfig(
-      moduleKind: String,
+      moduleKind: KotlinJsModuleKind,
       sourceMap: Boolean,
       dce: Boolean, // Dead Code Elimination - true = smaller output
       outputDir: java.nio.file.Path
@@ -163,7 +163,7 @@ object TaskDag {
   object TaskResult {
     case object Success extends TaskResult
     case class Failure(error: String, diagnostics: List[BleepBspProtocol.Diagnostic]) extends TaskResult
-    case class Error(error: String, exitCode: Option[Int], signal: Option[Int]) extends TaskResult
+    case class Error(error: String, processExit: ProcessExit) extends TaskResult
     case class Skipped(failedDependency: Task) extends TaskResult
     case class Killed(reason: KillReason) extends TaskResult
     case object TimedOut extends TaskResult
@@ -228,7 +228,7 @@ object TaskDag {
     case class TaskFinished(task: Task, result: TaskResult, durationMs: Long, timestamp: Long) extends DagEvent
 
     // Link-specific events
-    case class LinkStarted(project: String, platform: String, timestamp: Long) extends DagEvent
+    case class LinkStarted(project: String, platform: LinkPlatformName, timestamp: Long) extends DagEvent
     case class LinkProgress(project: String, phase: String, percent: Int, timestamp: Long) extends DagEvent
     case class LinkFinished(
         project: String,
@@ -254,7 +254,7 @@ object TaskDag {
     case class SuitesDiscovered(project: String, suites: List[String], timestamp: Long) extends DagEvent
 
     // Output events
-    case class Output(project: String, suite: String, line: String, isError: Boolean, timestamp: Long) extends DagEvent
+    case class Output(project: String, suite: String, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
 
     // Suite completion with counts
     case class SuiteFinished(
@@ -670,11 +670,11 @@ object TaskDag {
                       for {
                         linkStartTs <- now
                         platformName = lt.platform match {
-                          case _: LinkPlatform.ScalaJs      => "Scala.js"
-                          case _: LinkPlatform.ScalaNative  => "Scala Native"
-                          case _: LinkPlatform.KotlinJs     => "Kotlin/JS"
-                          case _: LinkPlatform.KotlinNative => "Kotlin/Native"
-                          case LinkPlatform.Jvm             => "JVM"
+                          case _: LinkPlatform.ScalaJs      => LinkPlatformName.ScalaJs
+                          case _: LinkPlatform.ScalaNative  => LinkPlatformName.ScalaNative
+                          case _: LinkPlatform.KotlinJs     => LinkPlatformName.KotlinJs
+                          case _: LinkPlatform.KotlinNative => LinkPlatformName.KotlinNative
+                          case LinkPlatform.Jvm             => LinkPlatformName.Jvm
                         }
                         _ <- emit(DagEvent.LinkStarted(lt.project.value, platformName, linkStartTs))
                         (result, linkResult) <- linkHandler(lt, taskKill)
@@ -716,12 +716,12 @@ object TaskDag {
           durationMs = endTimestamp - startTime
           _ <- emit(DagEvent.TaskFinished(task, result, durationMs, endTimestamp))
           _ <- result match {
-            case TaskResult.Success        => dagRef.update(_.complete(task.id))
-            case TaskResult.Failure(_, _)  => dagRef.update(_.fail(task.id))
-            case TaskResult.Error(_, _, _) => dagRef.update(_.error(task.id))
-            case TaskResult.Skipped(_)     => dagRef.update(_.skip(task.id))
-            case TaskResult.Killed(_)      => dagRef.update(_.kill(task.id))
-            case TaskResult.TimedOut       => dagRef.update(_.timeout(task.id))
+            case TaskResult.Success       => dagRef.update(_.complete(task.id))
+            case TaskResult.Failure(_, _) => dagRef.update(_.fail(task.id))
+            case TaskResult.Error(_, _)   => dagRef.update(_.error(task.id))
+            case TaskResult.Skipped(_)    => dagRef.update(_.skip(task.id))
+            case TaskResult.Killed(_)     => dagRef.update(_.kill(task.id))
+            case TaskResult.TimedOut      => dagRef.update(_.timeout(task.id))
           }
         } yield ()
       }

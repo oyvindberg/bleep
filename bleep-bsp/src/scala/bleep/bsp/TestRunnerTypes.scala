@@ -1,7 +1,7 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
 
@@ -17,7 +17,7 @@ object TestRunnerTypes {
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit
     def onSuiteStarted(suite: String): Unit
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit
-    def onOutput(suite: String, line: String, isError: Boolean): Unit
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit
     def onRunnerEvent(event: RunnerEvent): Unit = ()
   }
 
@@ -157,7 +157,7 @@ object TestRunnerTypes {
     /** Drain all buffered lines to the event handler for the given suite. */
     def drain(suite: String): IO[Unit] =
       ref.getAndSet(Nil).flatMap { pending =>
-        pending.reverse.traverse_(l => IO.delay(eventHandler.onOutput(suite, l, isError = true)))
+        pending.reverse.traverse_(l => IO.delay(eventHandler.onOutput(suite, l, OutputChannel.Stderr)))
       }
   }
 

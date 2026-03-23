@@ -72,13 +72,17 @@ object McpEventFilter {
         )
 
       case e: E.SuiteError =>
+        import bleep.bsp.protocol.ProcessExit
         val fields = List.newBuilder[(String, Json)]
         fields += "event" -> Json.fromString("SuiteError")
         fields += "project" -> Json.fromString(e.project)
         fields += "suite" -> Json.fromString(e.suite)
         fields += "error" -> Json.fromString(e.error)
-        e.exitCode.foreach(c => fields += "exitCode" -> Json.fromInt(c))
-        e.signal.foreach(s => fields += "signal" -> Json.fromInt(s))
+        e.processExit match {
+          case ProcessExit.ExitCode(code) => fields += "exitCode" -> Json.fromInt(code)
+          case ProcessExit.Signal(signal) => fields += "signal" -> Json.fromInt(signal)
+          case ProcessExit.Unknown        => ()
+        }
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         Some(Json.obj(fields.result()*))
 
@@ -98,7 +102,7 @@ object McpEventFilter {
         fields += "project" -> Json.fromString(e.project)
         fields += "success" -> Json.fromBoolean(e.success)
         fields += "durationMs" -> Json.fromLong(e.durationMs)
-        fields += "platform" -> Json.fromString(e.platform)
+        fields += "platform" -> Json.fromString(e.platform.wireValue)
         e.error.foreach(err => fields += "error" -> Json.fromString(err))
         Some(Json.obj(fields.result()*))
 

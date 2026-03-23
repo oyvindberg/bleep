@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.{LinkExecutor, Outcome, ScalaJsTestRunner, TestRunnerTypes}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.Outcome.KillReason
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
@@ -42,7 +42,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
     val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit =
       testStarts += ((suite, test))
@@ -56,8 +56,8 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
       suiteFinishes += ((suite, passed, failed, skipped))
 
-    def onOutput(suite: String, line: String, isError: Boolean): Unit =
-      outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit =
+      outputs += ((suite, line, channel))
   }
 
   // ==========================================================================

@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.TaskDag
-import bleep.bsp.protocol.{BleepBspProtocol, TestStatus}
+import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, TestStatus}
 import bleep.testing.TestProtocol
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -358,7 +358,7 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         project = "my-project",
         suite = "MySuite",
         line = "[info] Running tests...",
-        isError = false,
+        channel = OutputChannel.Stdout,
         timestamp = ts
       )
 
@@ -366,12 +366,12 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
         project = "my-project",
         suite = "MySuite",
         line = "[error] Test failed!",
-        isError = true,
+        channel = OutputChannel.Stderr,
         timestamp = ts
       )
 
-      stdout.isError shouldBe false
-      stderr.isError shouldBe true
+      stdout.channel shouldBe OutputChannel.Stdout
+      stderr.channel shouldBe OutputChannel.Stderr
     }
   }
 

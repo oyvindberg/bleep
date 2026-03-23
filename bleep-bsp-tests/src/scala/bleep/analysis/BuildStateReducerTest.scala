@@ -1,6 +1,6 @@
 package bleep.analysis
 
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.testing._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -23,8 +23,8 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
   test("SuiteFinished with failures creates synthetic TestFailure when no individual test events exist") {
     val state = reduce(
       BuildEvent.SuiteStarted("proj", "com.example.MySuite", ts),
-      BuildEvent.Output("proj", "com.example.MySuite", "error line 1", isError = true, ts + 1),
-      BuildEvent.Output("proj", "com.example.MySuite", "at com.example.MySuite.test(MySuite.scala:42)", isError = true, ts + 2),
+      BuildEvent.Output("proj", "com.example.MySuite", "error line 1", OutputChannel.Stderr, ts + 1),
+      BuildEvent.Output("proj", "com.example.MySuite", "at com.example.MySuite.test(MySuite.scala:42)", OutputChannel.Stderr, ts + 2),
       BuildEvent.SuiteFinished("proj", "com.example.MySuite", passed = 0, failed = 2, skipped = 0, ignored = 0, durationMs = 100, ts + 3)
     )
 
@@ -86,7 +86,7 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     // After Output events, pending output should exist
     val stateWithOutput = reduce(
       BuildEvent.SuiteStarted("proj", "com.example.MySuite", ts),
-      BuildEvent.Output("proj", "com.example.MySuite", "some output", isError = false, ts + 1)
+      BuildEvent.Output("proj", "com.example.MySuite", "some output", OutputChannel.Stdout, ts + 1)
     )
     stateWithOutput.pendingOutput should contain key key
 

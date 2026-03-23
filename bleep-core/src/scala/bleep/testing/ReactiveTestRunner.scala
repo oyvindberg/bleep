@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.BuildServer
 import bleep.{model, Started}
 import bleep.model.CrossProjectName
@@ -229,16 +229,16 @@ object ReactiveTestRunner {
             ) >> suiteFinishedSent.set(true)
 
         case TestProtocol.TestResponse.Log(level, message, logSuite) =>
-          val isError = level == "error" || level == "warn"
+          val channel = if (level == "error" || level == "warn") OutputChannel.Stderr else OutputChannel.Stdout
           val effectiveSuite = logSuite.getOrElse(suite.className)
-          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.Output(projectName, effectiveSuite, s"[$level] $message", isError, now)))
+          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.Output(projectName, effectiveSuite, s"[$level] $message", channel, now)))
 
         case TestProtocol.TestResponse.Error(message, throwable) =>
           IO.realTime
             .map(_.toMillis)
             .flatMap(now =>
-              display.handle(BuildEvent.Output(projectName, suite.className, s"[ERROR] $message", true, now)) >>
-                throwable.traverse_(t => display.handle(BuildEvent.Output(projectName, suite.className, t, true, now)))
+              display.handle(BuildEvent.Output(projectName, suite.className, s"[ERROR] $message", OutputChannel.Stderr, now)) >>
+                throwable.traverse_(t => display.handle(BuildEvent.Output(projectName, suite.className, t, OutputChannel.Stderr, now)))
             )
 
         case TestProtocol.TestResponse.Ready =>

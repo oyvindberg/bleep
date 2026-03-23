@@ -827,8 +827,8 @@ class ReactiveBspClient(
       case PE.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
         Some(BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDump.map(d => bleep.testing.ThreadDumpInfo(0, Some(d), None)), timestamp))
 
-      case PE.SuiteError(project, suite, error, exitCode, signal, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteError(project, suite, error, exitCode, signal, durationMs, timestamp))
+      case PE.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>
+        Some(BuildEvent.SuiteError(project, suite, error, processExit, durationMs, timestamp))
 
       case PE.SuiteCancelled(project, suite, reason, timestamp) =>
         Some(BuildEvent.SuiteCancelled(project, suite, reason, timestamp))
@@ -836,8 +836,8 @@ class ReactiveBspClient(
       case PE.ProjectSkipped(project, reason, timestamp) =>
         Some(BuildEvent.ProjectSkipped(project, reason, timestamp))
 
-      case PE.Output(project, suite, line, isError, timestamp) =>
-        Some(BuildEvent.Output(project, suite, line, isError, timestamp))
+      case PE.Output(project, suite, line, channel, timestamp) =>
+        Some(BuildEvent.Output(project, suite, line, channel, timestamp))
 
       case PE.Error(message, details, timestamp) =>
         Some(BuildEvent.Error("", message, details, timestamp))

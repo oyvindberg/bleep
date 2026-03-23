@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.{DiagnosticSeverity, TestStatus}
+import bleep.bsp.protocol.{CompileReason, DiagnosticSeverity, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
 import cats.effect._
 import cats.effect.std.Queue
@@ -117,7 +117,7 @@ object FancyBuildDisplay {
       name: String,
       startTime: Instant,
       progress: Option[Int],
-      reason: Option[String],
+      reason: Option[CompileReason],
       phase: Option[String]
   ) {
     def elapsedMs: Long = java.time.Duration.between(startTime, Instant.now()).toMillis
@@ -438,7 +438,7 @@ object FancyBuildDisplay {
         val key = s"$project:$suite"
         state.runningSuites.remove(key): Unit
 
-      case BuildEvent.SuiteError(project, suite, _, _, _, _, _) =>
+      case BuildEvent.SuiteError(project, suite, _, _, _, _) =>
         val key = s"$project:$suite"
         state.runningSuites.remove(key): Unit
 

@@ -1,6 +1,6 @@
 package bleep.testing
 
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -231,11 +231,11 @@ class SchedulerInterpreter(
                   )
 
                 case Right(TestProtocol.TestResponse.Log(level, message, suite)) =>
-                  val isError = level == "error" || level == "stderr"
+                  val channel = if (level == "error" || level == "stderr") OutputChannel.Stderr else OutputChannel.Stdout
                   val effectiveSuite = suite.getOrElse(job.suite.className)
                   for {
                     ts <- IO.realTime.map(_.toMillis)
-                    _ <- display.handle(BuildEvent.Output(job.project.value, effectiveSuite, message, isError, ts))
+                    _ <- display.handle(BuildEvent.Output(job.project.value, effectiveSuite, message, channel, ts))
                     result <- processLoop(state)
                   } yield result
 
@@ -279,7 +279,7 @@ class SchedulerInterpreter(
         if (stderrOutput.nonEmpty) {
           IO.realTime.map(_.toMillis).flatMap { ts =>
             stderrOutput.split('\n').toList.traverse_ { line =>
-              display.handle(BuildEvent.Output(job.project.value, job.suite.className, line, true, ts))
+              display.handle(BuildEvent.Output(job.project.value, job.suite.className, line, OutputChannel.Stderr, ts))
             }
           }
         } else IO.unit

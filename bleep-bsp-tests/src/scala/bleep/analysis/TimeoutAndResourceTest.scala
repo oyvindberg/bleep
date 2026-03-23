@@ -1,7 +1,7 @@
 package bleep.analysis
 
 import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
-import bleep.bsp.protocol.TestStatus
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.Outcome.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
@@ -320,20 +320,20 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   // ==========================================================================
 
   class RecordingHandler extends TestRunnerTypes.TestEventHandler {
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
     def onTestStarted(suite: String, test: String): Unit = {}
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit = {}
     def onSuiteStarted(suite: String): Unit = {}
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = {}
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 
   class RecordingNativeHandler extends TestRunnerTypes.TestEventHandler {
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
     def onTestStarted(suite: String, test: String): Unit = {}
     def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit = {}
     def onSuiteStarted(suite: String): Unit = {}
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = {}
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 }
