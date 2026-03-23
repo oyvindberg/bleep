@@ -187,21 +187,16 @@ object ZincBridge {
 
   // ─── Noop manifest: check ────────────────────────────────────────────────
 
-  /** Check noop using source DIRECTORIES (no file walk).
+  /** Load and validate the noop manifest: cache lookup → disk fallback → dep analysis check → output dir check.
     *
-    * Instead of walking directories to collect sources, this checks:
-    *   1. Source directory stats (mtime changes when files are added/deleted/renamed — POSIX guarantee)
-    *   2. Per-source file stats from the manifest's recorded paths
-    *
-    * This avoids the O(files) directory walk entirely, making the noop check O(dirs + recorded_files) with pure stat calls.
+    * Returns the validated manifest, or None if any shared validation fails. Callers still need to check sources.
     */
-  private def checkNoopFromDirs(
+  private def loadAndValidateManifest(
       analysisFile: Path,
-      sourceDirs: Set[Path],
       dependencyAnalyses: Map[Path, Path],
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String]
-  ): Option[ProjectCompileSuccess] = {
+  ): Option[NoopManifest] = {
     if (!ctimeAvailable) return None
 
     val manifest = {
@@ -217,9 +212,52 @@ object ZincBridge {
       }
     }
 
-    // Check options hash (cheap)
+    // Options hash (cheap)
     val currentHash = computeOptionsHash(language, ecjVersion)
     if (currentHash != manifest.optionsHash) return None
+
+    // Dependency analysis mtimes
+    if (dependencyAnalyses.size != manifest.depAnalysisStats.size) return None
+    val depIter = dependencyAnalyses.iterator
+    while (depIter.hasNext) {
+      val (outputDir, depAnalysisFile) = depIter.next()
+      manifest.depAnalysisStats.get(outputDir) match {
+        case None => return None
+        case Some(expectedMtime) =>
+          if (!Files.exists(depAnalysisFile)) return None
+          val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
+          if (actualMtime != expectedMtime) return None
+      }
+    }
+
+    // Output directory exists — bleep clean deletes it while BSP server keeps stale in-memory cache
+    if (!Files.isDirectory(manifest.cachedResult.outputDir)) {
+      noopManifestCache.remove(analysisFile)
+      return None
+    }
+
+    Some(manifest)
+  }
+
+  /** Check noop using source DIRECTORIES (no file walk).
+    *
+    * Instead of walking directories to collect sources, this checks:
+    *   1. Source directory stats (mtime changes when files are added/deleted/renamed — POSIX guarantee)
+    *   2. Per-source file stats from the manifest's recorded paths
+    *
+    * This avoids the O(files) directory walk entirely, making the noop check O(dirs + recorded_files) with pure stat calls.
+    */
+  private def checkNoopFromDirs(
+      analysisFile: Path,
+      sourceDirs: Set[Path],
+      dependencyAnalyses: Map[Path, Path],
+      language: ProjectLanguage.ScalaJava,
+      ecjVersion: Option[String]
+  ): Option[ProjectCompileSuccess] = {
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion) match {
+      case Some(m) => m
+      case None    => return None
+    }
 
     // Check source directory stats — detects file add/delete/rename
     val normalizedDirs = removeNestedDirs(sourceDirs)
@@ -237,26 +275,6 @@ object ZincBridge {
             stat.mtimeMillis != expected.mtimeMillis
           ) return None
       }
-    }
-
-    // Check dependency analysis mtimes
-    if (dependencyAnalyses.size != manifest.depAnalysisStats.size) return None
-    val depIter = dependencyAnalyses.iterator
-    while (depIter.hasNext) {
-      val (outputDir, depAnalysisFile) = depIter.next()
-      manifest.depAnalysisStats.get(outputDir) match {
-        case None => return None
-        case Some(expectedMtime) =>
-          if (!Files.exists(depAnalysisFile)) return None
-          val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
-          if (actualMtime != expectedMtime) return None
-      }
-    }
-
-    // Check output directory exists — bleep clean deletes it while BSP server keeps stale in-memory cache
-    if (!Files.isDirectory(manifest.cachedResult.outputDir)) {
-      noopManifestCache.remove(analysisFile)
-      return None
     }
 
     // Check per-source file stats (from manifest's recorded paths — no directory walk)
@@ -278,12 +296,9 @@ object ZincBridge {
   /** Check noop using an already-collected source file array.
     *
     * Check order (cheapest first):
-    *   1. ctime available? (disabled on Windows)
-    *   2. In-memory cache lookup, then disk fallback
-    *   3. Source count match
-    *   4. Options hash match
-    *   5. Dependency analysis mtime check
-    *   6. Per-source (ctime, mtime, size) check
+    *   1. Shared validation (ctime, manifest load, options hash, deps, output dir)
+    *   2. Source count match
+    *   3. Per-source (ctime, mtime, size) check
     *
     * Any mismatch → None (fall through to Zinc).
     */
@@ -294,49 +309,15 @@ object ZincBridge {
       language: ProjectLanguage.ScalaJava,
       ecjVersion: Option[String]
   ): Option[ProjectCompileSuccess] = {
-    if (!ctimeAvailable) return None
-
-    val manifest = {
-      val mem = noopManifestCache.get(analysisFile)
-      if (mem != null) mem
-      else {
-        loadNoopManifest(analysisFile) match {
-          case Some(disk) =>
-            noopManifestCache.put(analysisFile, disk)
-            disk
-          case None => return None
-        }
-      }
+    val manifest = loadAndValidateManifest(analysisFile, dependencyAnalyses, language, ecjVersion) match {
+      case Some(m) => m
+      case None    => return None
     }
 
-    // 3. Source count
+    // Source count
     if (sources.length != manifest.sourceStats.size) return None
 
-    // 4. Options hash
-    val currentHash = computeOptionsHash(language, ecjVersion)
-    if (currentHash != manifest.optionsHash) return None
-
-    // 5. Dependency analysis mtimes
-    if (dependencyAnalyses.size != manifest.depAnalysisStats.size) return None
-    val depIter = dependencyAnalyses.iterator
-    while (depIter.hasNext) {
-      val (outputDir, depAnalysisFile) = depIter.next()
-      manifest.depAnalysisStats.get(outputDir) match {
-        case None => return None
-        case Some(expectedMtime) =>
-          if (!Files.exists(depAnalysisFile)) return None
-          val actualMtime = Files.getLastModifiedTime(depAnalysisFile).toMillis
-          if (actualMtime != expectedMtime) return None
-      }
-    }
-
-    // 6. Output directory exists — bleep clean deletes it while BSP server keeps stale in-memory cache
-    if (!Files.isDirectory(manifest.cachedResult.outputDir)) {
-      noopManifestCache.remove(analysisFile)
-      return None
-    }
-
-    // 7. Per-source stat check
+    // Per-source stat check
     val srcIter = sources.iterator
     while (srcIter.hasNext) {
       val vf = srcIter.next()

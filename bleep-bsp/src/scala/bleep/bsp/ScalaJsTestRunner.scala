@@ -1,6 +1,6 @@
 package bleep.bsp
 
-import bleep.analysis._
+import bleep.analysis.ScalaJsLinkConfig
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TestRunnerTypes.{RunnerEvent, StderrBuffer, TerminationReason, TestEventHandler, TestResult, TestSuite}
 import bleep.bsp.protocol.{OutputChannel, TestStatus}
@@ -137,13 +137,7 @@ object ScalaJsTestRunner {
                     IO.delay(eventHandler.onTestStarted(suite, test))
 
                   case Some(TestEvent.TestFinished(suite, test, status, duration, msg)) =>
-                    val testStatus = status match {
-                      case "passed"  => TestStatus.Passed
-                      case "failed"  => TestStatus.Failed
-                      case "skipped" => TestStatus.Skipped
-                      case "ignored" => TestStatus.Ignored
-                      case _         => TestStatus.Failed
-                    }
+                    val testStatus = TestStatus.fromString(status)
                     IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
 
                   case Some(TestEvent.Output(suite, outputLine, isError)) =>

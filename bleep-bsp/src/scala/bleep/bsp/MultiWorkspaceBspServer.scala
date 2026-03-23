@@ -10,7 +10,6 @@ import bleep.analysis.{
   ParallelProjectCompiler,
   ProgressListener,
   ProjectCompileFailure,
-  ProjectCompileResult,
   ProjectCompileSuccess,
   ProjectCompiler,
   ProjectLanguage,
@@ -654,7 +653,7 @@ class MultiWorkspaceBspServer(
     SharedWorkspaceState.getActive(workspace) match {
       case Some(active) =>
         // Workspace busy — notify client and wait
-        sendCompileEvent(
+        sendEvent(
           originId,
           taskId,
           BleepBspProtocol.Event.WorkspaceBusy(
@@ -682,7 +681,7 @@ class MultiWorkspaceBspServer(
         if (SharedWorkspaceState.trySetActive(workspace, work)) {
           // Send WorkspaceReady if we had previously sent WorkspaceBusy
           if (sentBusyEvent) {
-            sendCompileEvent(
+            sendEvent(
               originId,
               taskId,
               BleepBspProtocol.Event.WorkspaceReady(timestamp = System.currentTimeMillis())
@@ -1393,61 +1392,7 @@ class MultiWorkspaceBspServer(
       val startTime = System.currentTimeMillis()
       BspMetrics.recordBuildStart(workspace.toString, allProjects.size)
 
-      // Create compile handler.
-      // Uses IO.race to race compilation against the kill signal. When the kill
-      // signal wins, IO.race cancels the compile fiber. Since ZincBridge uses
-      // IO.interruptible, CE interrupts the compilation thread immediately.
-      val compileHandler: (TaskDag.CompileTask, Deferred[IO, KillReason]) => IO[TaskDag.TaskResult] =
-        (compileTask, taskKillSignal) => {
-          val projectName = compileTask.project.value
-          val wsStr = workspace.toString
-          val token = CancellationToken.create()
-          taskKillSignal.tryGet.flatMap {
-            case Some(_) => IO.pure(TaskDag.TaskResult.Killed(KillReason.UserRequest))
-            case None    =>
-              // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
-              // Noop projects skip all waiting and don't consume concurrency slots.
-              val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
-              val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
-              val noopResult = config.language match {
-                case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
-                case _                             => None
-              }
-              if (noopResult.isDefined) {
-                IO.pure(TaskDag.TaskResult.Success)
-              } else {
-                // Cooperative cancellation: set CancellationToken so advance() returns false
-                val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
-
-                // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-                val gatedCompile = IO
-                  .interruptible(compileSemaphore.acquire())
-                  .bracket { _ =>
-                    IO(activeCompileCount.incrementAndGet()) >>
-                      waitForHeapPressure(projectName, params.originId, serverConfig.effectiveHeapPressureThreshold) >> {
-                        val compileStartTime = System.currentTimeMillis()
-                        IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                          compileProject(started, compileTask.project, params.originId, token, depAnalyses)
-                            .guaranteeCase {
-                              case cats.effect.Outcome.Succeeded(resultIO) =>
-                                resultIO.flatMap { result =>
-                                  val dur = System.currentTimeMillis() - compileStartTime
-                                  val ok = result == TaskDag.TaskResult.Success
-                                  IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                                }
-                              case _ =>
-                                IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                            }
-                      }
-                  }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
-                val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-
-                cooperativeCancelIO.flatMap { cancelFiber =>
-                  IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
-                }
-              }
-          }
-        }
+      val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
 
       // Create link handler
       val linkHandler: (TaskDag.LinkTask, Deferred[IO, KillReason]) => IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
@@ -1592,7 +1537,7 @@ class MultiWorkspaceBspServer(
     new HeapPressureGate.Listener {
       def onWait(project: String, used: HeapMb, max: HeapMb, delayMs: Long, now: EpochMs): Unit = {
         val retryAt = EpochMs(now.value + delayMs)
-        sendCompileEvent(
+        sendEvent(
           originId,
           s"compile:$project",
           BleepBspProtocol.Event.CompileStalled(project, used.value, max.value, retryAt.value, now.value)
@@ -1604,7 +1549,7 @@ class MultiWorkspaceBspServer(
           )
       }
       def onResume(project: String, used: HeapMb, max: HeapMb, waitedFor: DurationMs, now: EpochMs): Unit = {
-        sendCompileEvent(
+        sendEvent(
           originId,
           s"compile:$project",
           BleepBspProtocol.Event.CompileResumed(project, used.value, max.value, waitedFor.value, now.value)
@@ -1631,27 +1576,8 @@ class MultiWorkspaceBspServer(
       listener = makeHeapPressureListener(originId)
     )
 
-  /** Send a compile event via BSP notification with structured data */
-  private def sendCompileEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
-    val eventJson = BleepBspProtocol.encode(event)
-    sendNotification(
-      "build/taskProgress",
-      TaskProgressParams(
-        taskId = TaskId(taskId, None),
-        originId = originId,
-        eventTime = Some(event.timestamp),
-        message = None,
-        total = None,
-        progress = None,
-        unit = None,
-        dataKind = Some(BleepBspProtocol.DataKind),
-        data = Some(RawJson(eventJson.getBytes("UTF-8")))
-      )
-    )
-  }
-
-  /** Send a link event via BSP notification with structured data */
-  private def sendLinkEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
+  /** Send a structured event via BSP notification. Used for compile, link, and test events. */
+  private def sendEvent(originId: Option[String], taskId: String, event: BleepBspProtocol.Event): Unit = {
     val eventJson = BleepBspProtocol.encode(event)
     sendNotification(
       "build/taskProgress",
@@ -1824,54 +1750,7 @@ class MultiWorkspaceBspServer(
 
         // Create JVM pool for test execution
         testResult <- JvmPool.create(maxParallelism, started.jvmCommand, started.buildPaths.buildDir).use { jvmPool =>
-          // Create task handlers that accept kill signal
-          val compileHandler: (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
-            (compileTask, taskKillSignal) => {
-              val projectName = compileTask.project.value
-              val wsStr = workspace.toString
-              val token = CancellationToken.create()
-              taskKillSignal.tryGet.flatMap {
-                case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
-                case None    =>
-                  // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
-                  val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
-                  val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
-                  val noopResult = config.language match {
-                    case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
-                    case _                             => None
-                  }
-                  if (noopResult.isDefined) {
-                    IO.pure(TaskDag.TaskResult.Success)
-                  } else {
-                    val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
-                    // Gate on server-wide semaphore to limit total concurrent compiles across all connections
-                    val gatedCompile = IO
-                      .interruptible(compileSemaphore.acquire())
-                      .bracket { _ =>
-                        IO(activeCompileCount.incrementAndGet()) >>
-                          waitForHeapPressure(projectName, params.originId, serverConfig.effectiveHeapPressureThreshold) >> {
-                            val compileStartTime = System.currentTimeMillis()
-                            IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
-                              compileProject(started, compileTask.project, params.originId, token, depAnalyses)
-                                .guaranteeCase {
-                                  case cats.effect.Outcome.Succeeded(resultIO) =>
-                                    resultIO.flatMap { result =>
-                                      val dur = System.currentTimeMillis() - compileStartTime
-                                      val ok = result == TaskDag.TaskResult.Success
-                                      IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
-                                    }
-                                  case _ =>
-                                    IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
-                                }
-                          }
-                      }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
-                    val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
-                    cooperativeCancelIO.flatMap { cancelFiber =>
-                      IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
-                    }
-                  }
-              }
-            }
+          val compileHandler = makeCompileHandler(started, workspace, params.originId, serverConfig.effectiveHeapPressureThreshold)
 
           val discoverHandler: (TaskDag.DiscoverTask, Deferred[IO, Outcome.KillReason]) => IO[(TaskDag.TaskResult, List[(String, String)])] =
             (discoverTask, _) =>
@@ -2138,6 +2017,70 @@ class MultiWorkspaceBspServer(
       else None
     }.toMap
 
+  /** Create a compile handler for use in DAG executors.
+    *
+    * Uses IO.race to race compilation against the kill signal. When the kill signal wins, IO.race cancels the compile fiber. Since ZincBridge uses
+    * IO.interruptible, CE interrupts the compilation thread immediately.
+    *
+    * Shared between handleCompile and handleTest to eliminate duplicate compile handler definitions.
+    */
+  private def makeCompileHandler(
+      started: Started,
+      workspace: Path,
+      originId: Option[String],
+      heapPressureThreshold: Double
+  ): (TaskDag.CompileTask, Deferred[IO, Outcome.KillReason]) => IO[TaskDag.TaskResult] =
+    (compileTask, taskKillSignal) => {
+      val projectName = compileTask.project.value
+      val wsStr = workspace.toString
+      val token = CancellationToken.create()
+      taskKillSignal.tryGet.flatMap {
+        case Some(_) => IO.pure(TaskDag.TaskResult.Killed(Outcome.KillReason.UserRequest))
+        case None    =>
+          // Fast path: check noop manifest BEFORE acquiring semaphore / heap gate.
+          // Noop projects skip all waiting and don't consume concurrency slots.
+          val config = BleepBuildConverter.toProjectConfig(compileTask.project, started.resolvedProject(compileTask.project), started)
+          val depAnalyses = computeDependencyAnalyses(started, compileTask.projectDependencies)
+          val noopResult = config.language match {
+            case sl: ProjectLanguage.ScalaJava => ZincBridge.isNoop(config, sl, depAnalyses, None)
+            case _                             => None
+          }
+          if (noopResult.isDefined) {
+            IO.pure(TaskDag.TaskResult.Success)
+          } else {
+            // Cooperative cancellation: set CancellationToken so advance() returns false
+            val cooperativeCancelIO = taskKillSignal.get.flatMap(_ => IO(token.cancel())).start
+
+            // Gate on server-wide semaphore to limit total concurrent compiles across all connections
+            val gatedCompile = IO
+              .interruptible(compileSemaphore.acquire())
+              .bracket { _ =>
+                IO(activeCompileCount.incrementAndGet()) >>
+                  waitForHeapPressure(projectName, originId, heapPressureThreshold) >> {
+                    val compileStartTime = System.currentTimeMillis()
+                    IO(BspMetrics.recordCompileStart(projectName, wsStr)) >>
+                      compileProject(started, compileTask.project, originId, token, depAnalyses)
+                        .guaranteeCase {
+                          case cats.effect.Outcome.Succeeded(resultIO) =>
+                            resultIO.flatMap { result =>
+                              val dur = System.currentTimeMillis() - compileStartTime
+                              val ok = result == TaskDag.TaskResult.Success
+                              IO(BspMetrics.recordCompileEnd(projectName, wsStr, dur, ok))
+                            }
+                          case _ =>
+                            IO(BspMetrics.recordCompileEnd(projectName, wsStr, System.currentTimeMillis() - compileStartTime, false))
+                        }
+                  }
+              }(_ => IO(activeCompileCount.decrementAndGet()) >> IO(compileSemaphore.release()))
+            val waitForKill = taskKillSignal.get.map(reason => TaskDag.TaskResult.Killed(reason))
+
+            cooperativeCancelIO.flatMap { cancelFiber =>
+              IO.race(gatedCompile, waitForKill).map(_.merge).guarantee(cancelFiber.cancel)
+            }
+          }
+      }
+    }
+
   /** Compile a single project (dependencies handled by TaskDag ordering).
     *
     * Calls the compiler directly (no ParallelProjectCompiler) so that CE fiber cancellation propagates through IO.interruptible in ZincBridge. This enables
@@ -2193,7 +2136,7 @@ class MultiWorkspaceBspServer(
           case _                               => 0
         }
         BspMetrics.recordCompilePhase(projectName, phase.name, trackedApis)
-        sendCompileEvent(
+        sendEvent(
           originId,
           s"compile:$projectName",
           BleepBspProtocol.Event
@@ -2223,7 +2166,7 @@ class MultiWorkspaceBspServer(
             (bleep.bsp.protocol.CompileReason.Incremental, total, invalidated.map(_.getFileName.toString).toList, changed.map(depName).toList)
         }
         val now = System.currentTimeMillis()
-        sendCompileEvent(
+        sendEvent(
           originId,
           s"compile:$projectName",
           BleepBspProtocol.Event.CompilationReason(
@@ -2251,7 +2194,7 @@ class MultiWorkspaceBspServer(
           if (percent > maxPercent && now - lastEmitTime > 1000) {
             maxPercent = percent
             lastEmitTime = now
-            sendCompileEvent(
+            sendEvent(
               originId,
               s"compile:${project.value}",
               BleepBspProtocol.Event.CompileProgress(project.value, percent, now)
@@ -2270,7 +2213,7 @@ class MultiWorkspaceBspServer(
         outputDir,
         lockTimeout,
         onContention = () =>
-          sendCompileEvent(
+          sendEvent(
             originId,
             s"compile:${project.value}",
             BleepBspProtocol.Event.LockContention(project.value, 0, System.currentTimeMillis())
@@ -2280,7 +2223,7 @@ class MultiWorkspaceBspServer(
         IO {
           if (hadContention) {
             val waited = System.currentTimeMillis() - lockStart
-            sendCompileEvent(
+            sendEvent(
               originId,
               s"compile:${project.value}",
               BleepBspProtocol.Event.LockAcquired(project.value, waited, System.currentTimeMillis())
@@ -2743,6 +2686,92 @@ class MultiWorkspaceBspServer(
     } yield taskResult
   }
 
+  /** Get trace category and name for a task. */
+  private def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
+    case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
+    case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
+    case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
+    case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName}")
+  }
+
+  /** Convert a compile TaskResult to a CompileFinished protocol event. */
+  private def compileTaskFinishedEvent(
+      project: String,
+      result: TaskDag.TaskResult,
+      durationMs: Long,
+      timestamp: Long
+  ): BleepBspProtocol.Event.CompileFinished =
+    result match {
+      case TaskDag.TaskResult.Success =>
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp)
+      case TaskDag.TaskResult.Failure(errorMsg, diags) =>
+        val effectiveDiags =
+          if (diags.exists(d => d.severity == bleep.bsp.protocol.DiagnosticSeverity.Error && d.message.nonEmpty)) diags
+          else List(BleepBspProtocol.Diagnostic.error(errorMsg))
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
+      case TaskDag.TaskResult.Error(error, _) =>
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Error, durationMs, List(BleepBspProtocol.Diagnostic.error(error)), skippedBecause = None, timestamp)
+      case TaskDag.TaskResult.Skipped(failedDep) =>
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Skipped, durationMs, Nil, skippedBecause = Some(failedDep.project.value), timestamp)
+      case TaskDag.TaskResult.Killed(_) | TaskDag.TaskResult.Cancelled | TaskDag.TaskResult.TimedOut =>
+        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp)
+    }
+
+  /** Convert a LinkResult to a LinkFinished protocol event. */
+  private def linkFinishedEvent(
+      project: String,
+      result: TaskDag.LinkResult,
+      durationMs: Long,
+      timestamp: Long
+  ): BleepBspProtocol.Event.LinkFinished = {
+    val (success, outputPath, platform, error) = result match {
+      case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), LinkPlatformName.ScalaJs, None)
+      case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), LinkPlatformName.ScalaNative, None)
+      case TaskDag.LinkResult.Failure(err, _)                => (false, None, LinkPlatformName.Jvm, Some(err))
+      case TaskDag.LinkResult.Killed(reason)                 => (false, None, LinkPlatformName.Jvm, Some(s"Killed: $reason"))
+      case TaskDag.LinkResult.NotApplicable                  => (true, None, LinkPlatformName.Jvm, None)
+    }
+    BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
+  }
+
+  /** Process link-specific DagEvents shared between consumeEvents and consumeCompileEvents. */
+  private def processLinkEvent(
+      event: TaskDag.DagEvent,
+      originId: Option[String],
+      traceRecorder: TraceRecorder
+  ): IO[Unit] = event match {
+    case TaskDag.DagEvent.LinkStarted(project, platform, timestamp) =>
+      val protocolEvent = BleepBspProtocol.Event.LinkStarted(project, platform, timestamp)
+      traceRecorder.recordStart(TraceCategory.Link, project) >>
+        IO(sendEvent(originId, s"link:$project", protocolEvent))
+    case TaskDag.DagEvent.LinkProgress(project, phase, _, timestamp) =>
+      val protocolEvent = BleepBspProtocol.Event.LinkProgress(project, phase, timestamp)
+      IO(sendEvent(originId, s"link:$project", protocolEvent))
+    case TaskDag.DagEvent.LinkFinished(project, result, durationMs, timestamp) =>
+      val protocolEvent = linkFinishedEvent(project, result, durationMs, timestamp)
+      traceRecorder.recordEnd(TraceCategory.Link, project) >>
+        IO(sendEvent(originId, s"link:$project", protocolEvent))
+    case _ => IO.unit
+  }
+
+  /** Wrap event processing with dead-client detection and kill signal propagation. */
+  private def withDeadClientDetection(
+      killSignal: Deferred[IO, Outcome.KillReason],
+      contextLabel: String
+  )(processEvent: IO[Unit]): IO[Unit] =
+    IO.uncancelable { _ =>
+      processEvent >> IO.whenA(clientDisconnected.get()) {
+        IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
+      }
+    }.handleErrorWith {
+      case error: java.io.IOException =>
+        IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event send failed (connection dead)")) >>
+          killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
+      case error =>
+        IO(logger.withContext("error", error.getMessage).error(s"$contextLabel event processing failed")) >>
+          IO.raiseError(error)
+    }
+
   /** Consume events from the queue and send BSP notifications with rich test data.
     *
     * Uses BleepBspProtocol to send structured events in the BSP data field, allowing TestReactive to reconstruct rich TestEvents for FancyBuildDisplay.
@@ -2761,16 +2790,6 @@ class MultiWorkspaceBspServer(
       traceRecorder: TraceRecorder
   ): fs2.Stream[IO, Unit] =
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
-      // Helper to get category and name for trace recording
-      def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
-        case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
-        case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
-        case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
-        case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName}")
-      }
-
-      // Wrap event processing - if notification fails (connection dead),
-      // trigger kill signal to cancel all tasks, then re-raise
       def processEvent: IO[Unit] =
         event match {
           case TaskDag.DagEvent.TaskStarted(task, timestamp) =>
@@ -2792,48 +2811,7 @@ class MultiWorkspaceBspServer(
             val (cat, name) = taskCatName(task)
             val protocolEvent: Option[BleepBspProtocol.Event] = task match {
               case ct: TaskDag.CompileTask =>
-                result match {
-                  case TaskDag.TaskResult.Success =>
-                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp))
-                  case TaskDag.TaskResult.Failure(errorMsg, diags) =>
-                    // Ensure diagnostics always contain the error message — the errorMsg field
-                    // has the human-readable description but was previously discarded
-                    val effectiveDiags =
-                      if (diags.exists(d => d.severity == bleep.bsp.protocol.DiagnosticSeverity.Error && d.message.nonEmpty)) diags
-                      else List(BleepBspProtocol.Diagnostic.error(errorMsg))
-                    Some(
-                      BleepBspProtocol.Event
-                        .CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
-                    )
-                  case TaskDag.TaskResult.Error(error, _) =>
-                    Some(
-                      BleepBspProtocol.Event.CompileFinished(
-                        ct.project.value,
-                        CompileStatus.Error,
-                        durationMs,
-                        List(BleepBspProtocol.Diagnostic.error(error)),
-                        skippedBecause = None,
-                        timestamp
-                      )
-                    )
-                  case TaskDag.TaskResult.Skipped(failedDep) =>
-                    Some(
-                      BleepBspProtocol.Event.CompileFinished(
-                        ct.project.value,
-                        CompileStatus.Skipped,
-                        durationMs,
-                        Nil,
-                        skippedBecause = Some(failedDep.project.value),
-                        timestamp
-                      )
-                    )
-                  case TaskDag.TaskResult.Killed(_) =>
-                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
-                  case TaskDag.TaskResult.Cancelled =>
-                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
-                  case TaskDag.TaskResult.TimedOut =>
-                    Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
-                }
+                Some(compileTaskFinishedEvent(ct.project.value, result, durationMs, timestamp))
 
               case _: TaskDag.LinkTask =>
                 None // Link tasks are not exposed via test protocol
@@ -2842,9 +2820,6 @@ class MultiWorkspaceBspServer(
                 None // Discovery finished is handled by SuitesDiscovered event
 
               case tt: TaskDag.TestSuiteTask =>
-                // SuiteFinished is emitted by TestRunner with actual counts for normal test failures.
-                // For infrastructure errors (JVM crash, classpath issues, etc.), SuiteFinished may not
-                // have been emitted. We emit SuiteError here to ensure the client is always notified.
                 result match {
                   case TaskDag.TaskResult.Success =>
                     None // SuiteFinished already emitted by TestRunner
@@ -2869,8 +2844,6 @@ class MultiWorkspaceBspServer(
                     Some(BleepBspProtocol.Event.SuiteTimedOut(tt.project.value, tt.suiteName, durationMs, None, timestamp))
                 }
             }
-            // For test suite failures where SuiteFinished may not have been emitted by TestRunner,
-            // ensure totalFailedRef is at least 1 so the summary doesn't show "0 passed, 0 failed"
             val failureRefUpdate = (task, result) match {
               case (_: TaskDag.TestSuiteTask, _: TaskDag.TaskResult.Failure) =>
                 totalFailedRef.update(n => math.max(n, 1))
@@ -2885,42 +2858,24 @@ class MultiWorkspaceBspServer(
             IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent))
 
           case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
-            val protocolEvent = BleepBspProtocol.Event.TestFinished(
-              project,
-              suite,
-              test,
-              status,
-              durationMs,
-              message,
-              throwable,
-              timestamp
-            )
-            IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent))
+            IO(sendTestEvent(originId, s"test:$project:$suite", BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp)))
 
           case TaskDag.DagEvent.SuitesDiscovered(project, suites, timestamp) =>
             for {
               total <- totalSuitesRef.updateAndGet(_ + suites.size)
-              _ <- IO(
-                sendTestEvent(
-                  originId,
-                  s"discover:$project",
-                  BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, timestamp)
-                )
-              )
+              _ <- IO(sendTestEvent(originId, s"discover:$project", BleepBspProtocol.Event.SuitesDiscovered(project, suites, total, timestamp)))
             } yield ()
 
           case TaskDag.DagEvent.TaskProgress(task, percent, timestamp) =>
             task match {
               case ct: TaskDag.CompileTask =>
-                val protocolEvent = BleepBspProtocol.Event.CompileProgress(ct.project.value, percent, timestamp)
-                IO(sendTestEvent(originId, task.id.value, protocolEvent))
+                IO(sendTestEvent(originId, task.id.value, BleepBspProtocol.Event.CompileProgress(ct.project.value, percent, timestamp)))
               case _ =>
                 IO.unit
             }
 
           case TaskDag.DagEvent.Output(project, suite, line, channel, timestamp) =>
-            val protocolEvent = BleepBspProtocol.Event.Output(project, suite, line, channel, timestamp)
-            IO(sendTestEvent(originId, s"output:$project:$suite", protocolEvent))
+            IO(sendTestEvent(originId, s"output:$project:$suite", BleepBspProtocol.Event.Output(project, suite, line, channel, timestamp)))
 
           case TaskDag.DagEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp) =>
             val protocolEvent = BleepBspProtocol.Event.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp)
@@ -2930,47 +2885,12 @@ class MultiWorkspaceBspServer(
               totalIgnoredRef.update(_ + ignored) >>
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
 
-          case TaskDag.DagEvent.LinkStarted(project, platform, timestamp) =>
-            val protocolEvent = BleepBspProtocol.Event.LinkStarted(project, platform, timestamp)
-            traceRecorder.recordStart(TraceCategory.Link, project) >>
-              IO(sendTestEvent(originId, s"link:$project", protocolEvent))
-
-          case TaskDag.DagEvent.LinkProgress(project, phase, _, timestamp) =>
-            val protocolEvent = BleepBspProtocol.Event.LinkProgress(project, phase, timestamp)
-            IO(sendTestEvent(originId, s"link:$project", protocolEvent))
-
-          case TaskDag.DagEvent.LinkFinished(project, result, durationMs, timestamp) =>
-            val (success, outputPath, platform, error) = result match {
-              case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), LinkPlatformName.ScalaJs, None)
-              case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), LinkPlatformName.ScalaNative, None)
-              case TaskDag.LinkResult.Failure(err, _)                => (false, None, LinkPlatformName.Jvm, Some(err))
-              case TaskDag.LinkResult.Killed(reason)                 => (false, None, LinkPlatformName.Jvm, Some(s"Killed: $reason"))
-              case TaskDag.LinkResult.NotApplicable                  => (true, None, LinkPlatformName.Jvm, None)
-            }
-            val protocolEvent = BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
-            traceRecorder.recordEnd(TraceCategory.Link, project) >>
-              IO(sendTestEvent(originId, s"link:$project", protocolEvent))
+          case linkEvent: TaskDag.DagEvent.LinkStarted  => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkProgress  => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkFinished  => processLinkEvent(linkEvent, originId, traceRecorder)
         }
 
-      // After processing, check if any notification send detected a dead client.
-      // sendNotification catches IOException (to avoid crashing compiler callbacks)
-      // and sets clientDisconnected flag instead. We check it here to trigger kill signal.
-      // Wrap in uncancelable so that once we start processing an event, ALL ref updates
-      // complete atomically. Without this, fiber cancellation between chained >> operations
-      // (e.g. totalPassedRef.update >> totalFailedRef.update) leaves counts inconsistent,
-      // causing "0 passed, 0 failed" despite tests actually passing.
-      IO.uncancelable { _ =>
-        processEvent >> IO.whenA(clientDisconnected.get()) {
-          IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
-        }
-      }.handleErrorWith {
-        case error: java.io.IOException =>
-          IO(logger.withContext("error", error.getMessage).error("Event send failed (connection dead)")) >>
-            killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
-        case error =>
-          IO(logger.withContext("error", error.getMessage).error("Event processing failed")) >>
-            IO.raiseError(error)
-      }
+      withDeadClientDetection(killSignal, "Test")(processEvent)
     }
 
   /** Consume compile/link events only (no test suite tracking).
@@ -2985,14 +2905,6 @@ class MultiWorkspaceBspServer(
       traceRecorder: TraceRecorder
   ): fs2.Stream[IO, Unit] =
     fs2.Stream.fromQueueNoneTerminated(queue).evalMap { event =>
-      // Helper to get category and name for trace recording
-      def taskCatName(task: TaskDag.Task): (TraceCategory, String) = task match {
-        case ct: TaskDag.CompileTask   => (TraceCategory.Compile, ct.project.value)
-        case lt: TaskDag.LinkTask      => (TraceCategory.Link, lt.project.value)
-        case dt: TaskDag.DiscoverTask  => (TraceCategory.Discover, dt.project.value)
-        case tt: TaskDag.TestSuiteTask => (TraceCategory.Test, s"${tt.project.value}:${tt.suiteName}")
-      }
-
       def processEvent: IO[Unit] = event match {
         case TaskDag.DagEvent.TaskStarted(task, timestamp) =>
           val (cat, name) = taskCatName(task)
@@ -3000,121 +2912,37 @@ class MultiWorkspaceBspServer(
             case ct: TaskDag.CompileTask =>
               logger.withContext("project", ct.project.value).info("Compile starting")
               Some(BleepBspProtocol.Event.CompileStarted(ct.project.value, timestamp))
-            case _: TaskDag.LinkTask =>
-              None // Link started is emitted by LinkStarted event
-            case _ =>
-              None // Ignore discover/test tasks (shouldn't appear in compile DAGs)
+            case _ => None
           }
           traceRecorder.recordStart(cat, name) >>
-            IO(protocolEvent.foreach(e => sendCompileEvent(originId, task.id.value, e)))
+            IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e)))
 
         case TaskDag.DagEvent.TaskFinished(task, result, durationMs, timestamp) =>
           val (cat, name) = taskCatName(task)
           val protocolEvent: Option[BleepBspProtocol.Event] = task match {
             case ct: TaskDag.CompileTask =>
-              val status: CompileStatus = result match {
-                case TaskDag.TaskResult.Success       => CompileStatus.Success
-                case TaskDag.TaskResult.Failure(_, _) => CompileStatus.Failed
-                case TaskDag.TaskResult.Error(_, _)   => CompileStatus.Error
-                case TaskDag.TaskResult.Skipped(_)    => CompileStatus.Skipped
-                case TaskDag.TaskResult.Killed(_)     => CompileStatus.Cancelled
-                case TaskDag.TaskResult.Cancelled     => CompileStatus.Cancelled
-                case TaskDag.TaskResult.TimedOut      => CompileStatus.Cancelled
-              }
-              logger
-                .withContext("project", ct.project.value)
-                .withContext("status", status.wireValue)
-                .withContext("durationMs", durationMs)
-                .info("Compile finished")
-              result match {
-                case TaskDag.TaskResult.Success =>
-                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Success, durationMs, Nil, skippedBecause = None, timestamp))
-                case TaskDag.TaskResult.Failure(_, diags) =>
-                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Failed, durationMs, diags, skippedBecause = None, timestamp))
-                case TaskDag.TaskResult.Error(error, _) =>
-                  Some(
-                    BleepBspProtocol.Event.CompileFinished(
-                      ct.project.value,
-                      CompileStatus.Error,
-                      durationMs,
-                      List(BleepBspProtocol.Diagnostic.error(error)),
-                      skippedBecause = None,
-                      timestamp
-                    )
-                  )
-                case TaskDag.TaskResult.Skipped(failedDep) =>
-                  Some(
-                    BleepBspProtocol.Event.CompileFinished(
-                      ct.project.value,
-                      CompileStatus.Skipped,
-                      durationMs,
-                      Nil,
-                      skippedBecause = Some(failedDep.project.value),
-                      timestamp
-                    )
-                  )
-                case TaskDag.TaskResult.Killed(_) =>
-                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
-                case TaskDag.TaskResult.Cancelled =>
-                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
-                case TaskDag.TaskResult.TimedOut =>
-                  Some(BleepBspProtocol.Event.CompileFinished(ct.project.value, CompileStatus.Cancelled, durationMs, Nil, skippedBecause = None, timestamp))
-              }
-            case _: TaskDag.LinkTask =>
-              None // Link finished is emitted by LinkFinished event
-            case _ =>
-              None // Ignore discover/test tasks
+              logger.withContext("project", ct.project.value).withContext("durationMs", durationMs).info("Compile finished")
+              Some(compileTaskFinishedEvent(ct.project.value, result, durationMs, timestamp))
+            case _ => None
           }
           traceRecorder.recordEnd(cat, name) >>
-            IO(protocolEvent.foreach(e => sendCompileEvent(originId, task.id.value, e)))
+            IO(protocolEvent.foreach(e => sendEvent(originId, task.id.value, e)))
 
         case TaskDag.DagEvent.TaskProgress(task, percent, timestamp) =>
           task match {
             case ct: TaskDag.CompileTask =>
-              val protocolEvent = BleepBspProtocol.Event.CompileProgress(ct.project.value, percent, timestamp)
-              IO(sendCompileEvent(originId, task.id.value, protocolEvent))
-            case _ =>
-              IO.unit
+              IO(sendEvent(originId, task.id.value, BleepBspProtocol.Event.CompileProgress(ct.project.value, percent, timestamp)))
+            case _ => IO.unit
           }
 
-        case TaskDag.DagEvent.LinkStarted(project, platform, timestamp) =>
-          val protocolEvent = BleepBspProtocol.Event.LinkStarted(project, platform, timestamp)
-          traceRecorder.recordStart(TraceCategory.Link, project) >>
-            IO(sendLinkEvent(originId, s"link:$project", protocolEvent))
+        case linkEvent: TaskDag.DagEvent.LinkStarted  => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkProgress  => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkFinished  => processLinkEvent(linkEvent, originId, traceRecorder)
 
-        case TaskDag.DagEvent.LinkProgress(project, phase, _, timestamp) =>
-          val protocolEvent = BleepBspProtocol.Event.LinkProgress(project, phase, timestamp)
-          IO(sendLinkEvent(originId, s"link:$project", protocolEvent))
-
-        case TaskDag.DagEvent.LinkFinished(project, result, durationMs, timestamp) =>
-          val (success, outputPath, platform, error) = result match {
-            case TaskDag.LinkResult.JsSuccess(mainModule, _, _, _) => (true, Some(mainModule.toString), LinkPlatformName.ScalaJs, None)
-            case TaskDag.LinkResult.NativeSuccess(binary, _)       => (true, Some(binary.toString), LinkPlatformName.ScalaNative, None)
-            case TaskDag.LinkResult.Failure(err, _)                => (false, None, LinkPlatformName.Jvm, Some(err))
-            case TaskDag.LinkResult.Killed(reason)                 => (false, None, LinkPlatformName.Jvm, Some(s"Killed: $reason"))
-            case TaskDag.LinkResult.NotApplicable                  => (true, None, LinkPlatformName.Jvm, None)
-          }
-          val protocolEvent = BleepBspProtocol.Event.LinkFinished(project, success, durationMs, outputPath, timestamp, platform, error)
-          traceRecorder.recordEnd(TraceCategory.Link, project) >>
-            IO(sendLinkEvent(originId, s"link:$project", protocolEvent))
-
-        case _ =>
-          // Ignore test-specific events (TestStarted, TestFinished, SuiteFinished, etc.)
-          IO.unit
+        case _ => IO.unit
       }
 
-      IO.uncancelable { _ =>
-        processEvent >> IO.whenA(clientDisconnected.get()) {
-          IO.raiseError(new java.io.IOException("Client disconnected (detected via sendNotification)"))
-        }
-      }.handleErrorWith {
-        case error: java.io.IOException =>
-          IO(logger.withContext("error", error.getMessage).error("Compile event send failed (connection dead)")) >>
-            killSignal.complete(Outcome.KillReason.DeadClient).attempt >> IO.raiseError(error)
-        case error =>
-          IO(logger.withContext("error", error.getMessage).error("Compile event processing failed")) >>
-            IO.raiseError(error)
-      }
+      withDeadClientDetection(killSignal, "Compile")(processEvent)
     }
 
   /** Convert a compiler error to a protocol Diagnostic preserving severity */
@@ -3197,21 +3025,7 @@ class MultiWorkspaceBspServer(
       case _ =>
         logger.withContext("n", n).withContext("taskId", taskId).withContext("event", event.getClass.getSimpleName).warn("sendTestEvent")
     }
-    val eventJson = BleepBspProtocol.encode(event)
-    sendNotification(
-      "build/taskProgress",
-      TaskProgressParams(
-        taskId = TaskId(taskId, None),
-        originId = originId,
-        eventTime = Some(event.timestamp),
-        message = None,
-        total = None,
-        progress = None,
-        unit = None,
-        dataKind = Some(BleepBspProtocol.DataKind),
-        data = Some(RawJson(eventJson.getBytes("UTF-8")))
-      )
-    )
+    sendEvent(originId, taskId, event)
   }
 
   /** Send a notification to the client.

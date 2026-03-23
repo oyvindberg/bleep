@@ -62,7 +62,7 @@ object TestStatus {
     case "assumption-failed"  => AssumptionFailed
     case "pending"            => Pending
     case "timeout"            => Timeout
-    case _                    => Failed
+    case other                => throw new IllegalArgumentException(s"Unknown TestStatus: '$other'")
   }
 
   implicit val encoder: Encoder[TestStatus] = Encoder.encodeString.contramap(_.wireValue)

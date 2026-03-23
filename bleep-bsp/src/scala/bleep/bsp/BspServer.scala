@@ -728,29 +728,23 @@ class BspServer(
     }
   }
 
-  /** Extract Scala.js version from classpath. */
-  private def extractScalaJsVersion(classpath: List[Path]): Option[String] = {
-    val pattern = """scalajs-library[_-](\d+\.\d+\.\d+)""".r
+  /** Extract a version string from classpath JARs matching a regex pattern. */
+  private def extractVersionFromClasspath(classpath: List[Path], pattern: scala.util.matching.Regex): Option[String] =
     classpath.flatMap { p =>
       pattern.findFirstMatchIn(p.getFileName.toString).map(_.group(1))
     }.headOption
-  }
+
+  /** Extract Scala.js version from classpath. */
+  private def extractScalaJsVersion(classpath: List[Path]): Option[String] =
+    extractVersionFromClasspath(classpath, """scalajs-library[_-](\d+\.\d+\.\d+)""".r)
 
   /** Extract Scala Native version from classpath. */
-  private def extractScalaNativeVersion(classpath: List[Path]): Option[String] = {
-    val pattern = """nativelib[_-].*?[_-](\d+\.\d+\.\d+)""".r
-    classpath.flatMap { p =>
-      pattern.findFirstMatchIn(p.getFileName.toString).map(_.group(1))
-    }.headOption
-  }
+  private def extractScalaNativeVersion(classpath: List[Path]): Option[String] =
+    extractVersionFromClasspath(classpath, """nativelib[_-].*?[_-](\d+\.\d+\.\d+)""".r)
 
   /** Extract Kotlin version from classpath. */
-  private def extractKotlinVersion(classpath: List[Path]): Option[String] = {
-    val pattern = """kotlin-stdlib[_-](\d+\.\d+\.\d+)""".r
-    classpath.flatMap { p =>
-      pattern.findFirstMatchIn(p.getFileName.toString).map(_.group(1))
-    }.headOption
-  }
+  private def extractKotlinVersion(classpath: List[Path]): Option[String] =
+    extractVersionFromClasspath(classpath, """kotlin-stdlib[_-](\d+\.\d+\.\d+)""".r)
 
   /** Detect the native target for the current platform. */
   private def detectNativeTarget(): String = {

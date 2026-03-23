@@ -189,4 +189,65 @@ object Outcome {
   /** Create a kill signal that never fires. Use for operations that don't support cancellation. */
   def neverKillSignal: IO[Deferred[IO, KillReason]] =
     Deferred[IO, KillReason]
+
+  /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken.
+    *
+    * Creates a CancellationToken that gets cancelled when the kill signal fires. This is needed for Scala.js and Scala Native toolchains which predate the
+    * Deferred-based kill signal design.
+    */
+  def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[bleep.analysis.CancellationToken] = {
+    import java.util.concurrent.atomic.AtomicBoolean
+    import scala.collection.mutable.ListBuffer
+
+    IO.delay {
+      val cancelled = new AtomicBoolean(false)
+      val callbacks = ListBuffer[() => Unit]()
+
+      new bleep.analysis.CancellationToken {
+        def isCancelled: Boolean = cancelled.get()
+        def cancel(): Unit =
+          if (cancelled.compareAndSet(false, true)) {
+            callbacks.synchronized {
+              callbacks.foreach(cb => cb())
+            }
+          }
+        def onCancel(callback: () => Unit): Unit =
+          callbacks.synchronized {
+            if (cancelled.get()) callback()
+            else callbacks += callback
+          }
+      }
+    }.flatTap { token =>
+      killSignal.get.flatMap(_ => IO.delay(token.cancel())).start.void
+    }
+  }
+
+  /** Race a link/compile IO against a kill signal, handling CancellationException from toolchains.
+    *
+    * This is the standard pattern for linking operations: race against kill, map the killed outcome, and handle CancellationException from toolchains that use
+    * CancellationToken internally.
+    */
+  def raceLinkWork(
+      killSignal: Deferred[IO, KillReason],
+      platformName: String
+  )(work: IO[(TaskDag.TaskResult, TaskDag.LinkResult)]): IO[(TaskDag.TaskResult, TaskDag.LinkResult)] =
+    raceKill(killSignal)(work)
+      .map {
+        case Left(result)  => result
+        case Right(reason) => (TaskDag.TaskResult.Killed(reason), TaskDag.LinkResult.Cancelled)
+      }
+      .handleErrorWith {
+        case _: java.util.concurrent.CancellationException =>
+          killSignal.tryGet.map {
+            case Some(reason) => (TaskDag.TaskResult.Killed(reason), TaskDag.LinkResult.Cancelled)
+            case None         => (TaskDag.TaskResult.Killed(KillReason.UserRequest), TaskDag.LinkResult.Cancelled)
+          }
+        case ex =>
+          IO.pure(
+            (
+              TaskDag.TaskResult.Error(s"$platformName linker crashed: ${ex.getMessage}", bleep.bsp.protocol.ProcessExit.Unknown),
+              TaskDag.LinkResult.Failure(ex.getMessage, List.empty)
+            )
+          )
+      }
 }

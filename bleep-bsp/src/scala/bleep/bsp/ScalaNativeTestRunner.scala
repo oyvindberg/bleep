@@ -25,34 +25,9 @@ object ScalaNativeTestRunner {
     case object Unknown extends TestFramework { val name = "unknown" }
   }
 
-  /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken. */
-  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] = {
-    import java.util.concurrent.atomic.AtomicBoolean
-    import scala.collection.mutable.ListBuffer
-
-    IO.delay {
-      val cancelled = new AtomicBoolean(false)
-      val callbacks = ListBuffer[() => Unit]()
-
-      new CancellationToken {
-        def isCancelled: Boolean = cancelled.get()
-        def cancel(): Unit =
-          if (cancelled.compareAndSet(false, true)) {
-            callbacks.synchronized {
-              callbacks.foreach(cb => cb())
-            }
-          }
-        def onCancel(callback: () => Unit): Unit =
-          callbacks.synchronized {
-            if (cancelled.get()) callback()
-            else { callbacks += callback: Unit }
-          }
-      }
-    }.flatTap { token =>
-      // Start a fiber that watches the kill signal and triggers the token when killed
-      killSignal.get.flatMap(_ => IO.delay(token.cancel())).start.void
-    }
-  }
+  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal. */
+  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] =
+    Outcome.bridgeKillSignal(killSignal)
 
   /** Link a native test binary with embedded test runner. */
   def linkTestBinary(
