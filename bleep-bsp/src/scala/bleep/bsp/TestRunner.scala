@@ -199,32 +199,33 @@ object TestRunner {
                 }
               } else IO.unit
             }
-            .handleError(_ => ()) >> outcome.embedError.flatMap { result =>
-            val durationMs = System.currentTimeMillis() - startTime
-            // Emit SuiteFinished with actual counts
-            now.flatMap { ts =>
-              emit(
-                TaskDag.DagEvent.SuiteFinished(
-                  project.value,
-                  suiteName,
-                  result.passed,
-                  result.failed,
-                  result.skipped,
-                  0,
-                  durationMs,
-                  ts
+            .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}")) >> outcome.embedError.flatMap {
+            result =>
+              val durationMs = System.currentTimeMillis() - startTime
+              // Emit SuiteFinished with actual counts
+              now.flatMap { ts =>
+                emit(
+                  TaskDag.DagEvent.SuiteFinished(
+                    project.value,
+                    suiteName,
+                    result.passed,
+                    result.failed,
+                    result.skipped,
+                    0,
+                    durationMs,
+                    ts
+                  )
                 )
-              )
-            } >> IO.pure {
-              if (result.failed > 0) {
-                TaskDag.TaskResult.Failure(
-                  error = s"${result.failed} test(s) failed",
-                  diagnostics = result.failures.map(BleepBspProtocol.Diagnostic.error)
-                )
-              } else {
-                TaskDag.TaskResult.Success
+              } >> IO.pure {
+                if (result.failed > 0) {
+                  TaskDag.TaskResult.Failure(
+                    error = s"${result.failed} test(s) failed",
+                    diagnostics = result.failures.map(BleepBspProtocol.Diagnostic.error)
+                  )
+                } else {
+                  TaskDag.TaskResult.Success
+                }
               }
-            }
           }
 
         case Right((suiteFiber, raceOutcome)) =>
@@ -240,7 +241,7 @@ object TestRunner {
                   }
                 } else IO.unit
               }
-              .handleError(_ => ())
+              .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}"))
 
           // Helper for cleanup - uncancelable and recovers from errors
           def cleanup: IO[Unit] = IO.uncancelable { _ =>

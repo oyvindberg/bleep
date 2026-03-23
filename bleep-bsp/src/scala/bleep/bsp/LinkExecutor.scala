@@ -474,16 +474,12 @@ object LinkExecutor {
             logger.info(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
             if (result.isSuccess && result.jsFile.isDefined) {
               val allFiles =
-                try
-                  scala.util
-                    .Using(Files.list(jsOutputDir)) { stream =>
-                      import scala.jdk.CollectionConverters._
-                      stream.iterator().asScala.toSeq
-                    }
-                    .getOrElse(Seq.empty)
-                catch {
-                  case _: Exception => Seq.empty
-                }
+                scala.util
+                  .Using(Files.list(jsOutputDir)) { stream =>
+                    import scala.jdk.CollectionConverters._
+                    stream.iterator().asScala.toSeq
+                  }
+                  .get
               val sourceMap = allFiles.find(_.toString.endsWith(".map"))
               (TaskResult.Success, LinkResult.JsSuccess(result.jsFile.get, sourceMap, allFiles, wasUpToDate = false))
             } else {
@@ -572,10 +568,10 @@ object LinkExecutor {
               Seq(path)
             } else {
               scala.util
-                .Try {
-                  Files.list(path).iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
+                .Using(Files.list(path)) { stream =>
+                  stream.iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
                 }
-                .getOrElse(Seq.empty)
+                .get
             }
           } else {
             Seq.empty

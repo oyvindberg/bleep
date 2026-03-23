@@ -115,21 +115,22 @@ object ScalaNativeTestRunner {
           .start(pb)
           .use { process =>
             ProcessRunner.lines(process.getInputStream).compile.toList.flatMap { outputLines =>
-              IO.blocking(process.waitFor()).map { exitCode =>
+              IO.blocking(process.waitFor()).flatMap { exitCode =>
                 if (exitCode == 0) {
-                  outputLines
-                    .filter(_.nonEmpty)
-                    .map { line =>
-                      val name = line.split('.').lastOption.getOrElse(line)
-                      TestSuite(name, line.trim)
-                    }
+                  IO.pure(
+                    outputLines
+                      .filter(_.nonEmpty)
+                      .map { line =>
+                        val name = line.split('.').lastOption.getOrElse(line)
+                        TestSuite(name, line.trim)
+                      }
+                  )
                 } else {
-                  discoverFromClasspath(classpath)
+                  IO.raiseError(new RuntimeException(s"Native test discovery failed with exit code $exitCode"))
                 }
               }
             }
           }
-          .handleError(_ => discoverFromClasspath(classpath))
 
         Outcome.raceKill(killSignal)(work).map {
           case Left(result)  => ProcessRunner.DiscoveryResult.Found(result)
