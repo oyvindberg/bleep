@@ -539,11 +539,20 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         IO {
           started.logger.info("MCP server restart requested, exiting process")
           val daemon = new Thread(() => {
-            // flush stdout so the JSON-RPC response reaches the client before we die
+            // Flush stdout so the JSON-RPC response reaches the client before we exit
             System.out.flush()
-            Thread.sleep(1000)
+            Thread.sleep(500)
             System.out.flush()
-            Runtime.getRuntime.halt(0)
+            // System.exit lets shutdown hooks and Resource finalizers run
+            // (closes BSP connection gracefully). Watchdog halts after 5s
+            // in case cleanup hangs.
+            val watchdog = new Thread(() => {
+              Thread.sleep(5000)
+              Runtime.getRuntime.halt(1)
+            })
+            watchdog.setDaemon(true)
+            watchdog.start()
+            System.exit(0)
           })
           daemon.setDaemon(true)
           daemon.start()
