@@ -103,6 +103,9 @@ class MultiWorkspaceBspServer(
   /** Lock timeout for write operations */
   private val lockTimeout = 5.minutes
 
+  /** Operation IDs registered by this connection (for cleanup on disconnect) */
+  private val myOperationIds = ConcurrentHashMap.newKeySet[String]()
+
   /** Run the server message loop with concurrent request handling.
     *
     * Notifications (like $/cancelRequest) are processed immediately. Requests are spawned in background fibers so the main loop stays responsive.
@@ -117,8 +120,13 @@ class MultiWorkspaceBspServer(
         IO.uncancelable { _ =>
           // Cleanup on exit - cancel all active requests (kills child processes) then cancel fibers
           IO.delay(logger.warn("Server run() exiting - cleaning up")) >>
-            // Release any workspace held by this connection
-            IO.delay(activeWorkspace.get().foreach(SharedWorkspaceState.clearActiveUnconditional)) >>
+            // Unregister operations belonging to this connection
+            IO.delay {
+              activeWorkspace.get().foreach { ws =>
+                SharedWorkspaceState.unregisterAll(ws, myOperationIds.asScala)
+                myOperationIds.clear()
+              }
+            } >>
             IO.delay(cancelAllActiveRequests()) >>
             IO.blocking {
               val fibers = activeFibers.values().asScala.toList
@@ -458,7 +466,7 @@ class MultiWorkspaceBspServer(
         None
 
       case "bleep/cancelBlockingWork" =>
-        activeWorkspace.get().foreach(SharedWorkspaceState.cancelActive)
+        activeWorkspace.get().foreach(SharedWorkspaceState.cancelAll)
         None
 
       case _ =>
@@ -633,70 +641,44 @@ class MultiWorkspaceBspServer(
     cancelAllActiveRequests()
   }
 
-  /** Acquire workspace for an operation, waiting if another connection holds it.
+  /** Register an operation for visibility. Non-blocking — multiple operations can run concurrently.
     *
-    * If the workspace is busy, sends a WorkspaceBusy event to the client and blocks until the active work completes (or is cancelled). Then retries.
-    *
-    * @return
-    *   Some(ActiveWork) if workspace was acquired (caller must call releaseWorkspace in finally), None if interrupted
+    * Sends WorkspaceBusy events for any concurrent operations (informational, not blocking).
     */
-  @annotation.tailrec
-  private def acquireWorkspace(
+  private def registerOperation(
       workspace: Path,
+      operationId: String,
       operation: String,
       projects: Set[String],
       cancellation: CancellationToken,
-      originId: Option[String],
-      taskId: String,
-      sentBusyEvent: Boolean = false
-  ): Option[SharedWorkspaceState.ActiveWork] =
-    SharedWorkspaceState.getActive(workspace) match {
-      case Some(active) =>
-        // Workspace busy — notify client and wait
-        sendEvent(
-          originId,
-          taskId,
-          BleepBspProtocol.Event.WorkspaceBusy(
-            operation = active.operation,
-            projects = active.projects.toList.sorted.map(s => CrossProjectName.fromString(s).get),
-            startedAgoMs = System.currentTimeMillis() - active.startTimeMs,
-            timestamp = System.currentTimeMillis()
-          )
+      originId: Option[String]
+  ): Unit = {
+    // Notify client about concurrent operations (informational)
+    val concurrent = SharedWorkspaceState.getActiveOperations(workspace)
+    concurrent.foreach { active =>
+      sendEvent(
+        originId,
+        operationId,
+        BleepBspProtocol.Event.WorkspaceBusy(
+          operation = active.operation,
+          projects = active.projects.toList.sorted.map(s => CrossProjectName.fromString(s).get),
+          startedAgoMs = System.currentTimeMillis() - active.startTimeMs,
+          timestamp = System.currentTimeMillis()
         )
-        // Block until active work completes
-        try active.completion.get()
-        catch {
-          case _: java.util.concurrent.CancellationException => ()
-          case _: InterruptedException =>
-            Thread.currentThread().interrupt()
-            return None
-        }
-        // Retry — another waiter may have grabbed the slot
-        acquireWorkspace(workspace, operation, projects, cancellation, originId, taskId, sentBusyEvent = true)
-
-      case None =>
-        val completion = new java.util.concurrent.CompletableFuture[Unit]()
-        val kill: Runnable = () => cancelAllActiveRequests()
-        val work = SharedWorkspaceState.ActiveWork(operation, projects, cancellation, completion, System.currentTimeMillis(), kill)
-        if (SharedWorkspaceState.trySetActive(workspace, work)) {
-          // Send WorkspaceReady if we had previously sent WorkspaceBusy
-          if (sentBusyEvent) {
-            sendEvent(
-              originId,
-              taskId,
-              BleepBspProtocol.Event.WorkspaceReady(timestamp = System.currentTimeMillis())
-            )
-          }
-          Some(work)
-        } else {
-          // Race lost — retry
-          acquireWorkspace(workspace, operation, projects, cancellation, originId, taskId, sentBusyEvent)
-        }
+      )
     }
 
-  /** Release workspace after operation completes. Only removes if this connection's ActiveWork still holds the lock. */
-  private def releaseWorkspace(workspace: Path, work: SharedWorkspaceState.ActiveWork): Unit =
-    SharedWorkspaceState.clearActive(workspace, work)
+    val kill: Runnable = () => cancelAllActiveRequests()
+    val work = SharedWorkspaceState.ActiveWork(operationId, operation, projects, cancellation, System.currentTimeMillis(), kill)
+    SharedWorkspaceState.register(workspace, work)
+    myOperationIds.add(operationId)
+  }
+
+  /** Unregister an operation after it completes. */
+  private def unregisterOperation(workspace: Path, operationId: String): Unit = {
+    SharedWorkspaceState.unregister(workspace, operationId)
+    myOperationIds.remove(operationId)
+  }
 
   /** Cancel all in-flight requests and kill child processes. */
   private def cancelAllActiveRequests(): Unit = {
@@ -1215,11 +1197,7 @@ class MultiWorkspaceBspServer(
     val opLabel = if (args.exists(_.contains("link"))) "link" else "compile"
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
-    val activeWork = acquireWorkspace(workspace, opLabel, projectsToCompile.map(_.value), cancellation, params.originId, taskId) match {
-      case Some(work) => work
-      case None =>
-        return CompileResult(originId = params.originId, statusCode = StatusCode.Cancelled, dataKind = None, data = None)
-    }
+    registerOperation(workspace, taskId, opLabel, projectsToCompile.map(_.value), cancellation, params.originId)
     try {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
@@ -1529,7 +1507,7 @@ class MultiWorkspaceBspServer(
             data = None
           )
       }
-    } finally releaseWorkspace(workspace, activeWork)
+    } finally unregisterOperation(workspace, taskId)
   }
 
   /** Create a HeapPressureGate.Listener that sends BSP events and logs */
@@ -1611,11 +1589,7 @@ class MultiWorkspaceBspServer(
 
     val taskId = java.util.UUID.randomUUID().toString
     val workspace = activeWorkspace.get().getOrElse(started.buildPaths.buildDir)
-    val activeWork = acquireWorkspace(workspace, "test", testProjects.map(_.value), cancellation, params.originId, taskId) match {
-      case Some(work) => work
-      case None =>
-        return TestResult(originId = params.originId, statusCode = StatusCode.Cancelled, dataKind = None, data = None)
-    }
+    registerOperation(workspace, taskId, "test", testProjects.map(_.value), cancellation, params.originId)
     try {
       // Re-read user config fresh before starting (allows runtime config changes)
       val userPaths = UserPaths.fromAppDirs
@@ -2000,7 +1974,7 @@ class MultiWorkspaceBspServer(
             data = Some(RawJson(BleepBspProtocol.TestRunResult.encode(failRunResult).getBytes("UTF-8")))
           )
       }
-    } finally releaseWorkspace(workspace, activeWork)
+    } finally unregisterOperation(workspace, taskId)
   }
 
   /** Compute dependency analysis file paths for a project's compile-time dependencies.
