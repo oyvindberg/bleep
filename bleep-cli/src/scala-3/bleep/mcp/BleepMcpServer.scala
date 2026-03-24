@@ -3,8 +3,8 @@ package bleep.mcp
 import bleep._
 import bleep.bsp.{BspRequestHelper, BspRifle, BspRifleConfig, BspServerBuilder, SetupBleepBsp}
 import bleep.bsp.protocol.BleepBspProtocol
-import bleep.internal.BspClientDisplayProgress
 import bleep.bsp.protocol.{CompileStatus, DiagnosticSeverity, TestStatus}
+import bleep.internal.BspClientDisplayProgress
 import bleep.testing.{BuildDiff, PreviousRunState, TestKey}
 import cats.effect._
 import cats.effect.std.Queue
@@ -16,7 +16,7 @@ import io.circe.Json
 
 import java.nio.file.Files
 import java.util.UUID
-import java.util.concurrent.CountDownLatch
+import java.util.concurrent.{ConcurrentHashMap, CountDownLatch}
 import java.util.concurrent.atomic.AtomicReference
 import scala.jdk.CollectionConverters.*
 
@@ -49,6 +49,23 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           s"MCP client connected: $clientName $clientVersion (sampling=$sampling, elicitation=$elicitation, roots=$roots)"
         )
       })
+
+      // Create persistent BSP connection for the MCP session lifetime
+      _ <- Resource.eval(BspRifle.ensureRunning(bspConfig, started.logger))
+      connection <- BspRifle.connectWithRetry(bspConfig, started.logger)
+      eventRoutes = new ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]]()
+      diagnosticRoutes = new ConcurrentHashMap[String, bsp4j.PublishDiagnosticsParams => Unit]()
+      sharedClient = new SharedMcpBspClient(eventRoutes, diagnosticRoutes, started.logger)
+      lifecycle <- BspServerBuilder.create(connection, sharedClient)
+      _ <- Resource.eval(BspServerBuilder.initializeSession(
+        server = lifecycle.server,
+        clientName = "bleep-mcp",
+        clientVersion = model.BleepVersion.current.value,
+        rootUri = started.buildPaths.buildDir.toUri.toString,
+        buildData = None,
+        listening = lifecycle.listening
+      ))
+
       _ <- startBuildWatcher(client)
       watchJobs <- Resource.eval(Ref.of[IO, Map[JobId, WatchJob]](Map.empty))
       watchResults <- Resource.eval(Ref.of[IO, Map[JobId, WatchCycleResult]](Map.empty))
@@ -58,7 +75,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
           jobs.values.toList.traverse_(_.cancel)
         }
       )
-    } yield new BleepMcpSession(client, bspConfig, watchJobs, watchResults, buildHistory)
+    } yield new BleepMcpSession(client, bspConfig, lifecycle.server, lifecycle.listening, eventRoutes, diagnosticRoutes, watchJobs, watchResults, buildHistory)
 
   private def setupBspConfig(): Either[BleepException, BspRifleConfig] =
     started.bspServerClasspathSource match {
@@ -109,6 +126,10 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
   private class BleepMcpSession(
       _client: McpServer.Client[IO],
       bspConfig: BspRifleConfig,
+      bspServer: bleep.bsp.BuildServer,
+      bspListening: java.util.concurrent.Future[Void],
+      eventRoutes: ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]],
+      diagnosticRoutes: ConcurrentHashMap[String, bsp4j.PublishDiagnosticsParams => Unit],
       watchJobs: Ref[IO, Map[JobId, WatchJob]],
       watchResults: Ref[IO, Map[JobId, WatchCycleResult]],
       buildHistory: Ref[IO, BuildHistory]
@@ -219,7 +240,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, context) => executeBspOperation(bspConfig, args.projects, args.verbose, context),
+      (args, context) => executeBspOperation(args.projects, args.verbose, context),
       None
     )
 
@@ -233,7 +254,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, context) => executeBspTestOperation(bspConfig, args.projects, args.only, args.exclude, args.verbose, context),
+      (args, context) => executeBspTestOperation(args.projects, args.only, args.exclude, args.verbose, context),
       None
     )
 
@@ -247,7 +268,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         ToolFunction.Effect.ReadOnly,
         false
       ),
-      (args, _) => discoverTestSuites(bspConfig, args.projects),
+      (args, _) => discoverTestSuites(args.projects),
       None
     )
 
@@ -377,7 +398,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
               }
               IO.pure(Json.obj("watchResults" -> Json.arr(items*)).noSpaces)
             } else {
-              executeBspOperation(bspConfig, Nil, true, context)
+              executeBspOperation(Nil, true, context)
             }
         } yield response,
       None
@@ -553,9 +574,8 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         }.toArray
       }
 
-    /** Execute a one-shot compile via BSP. Reports progress heartbeat every 1s, returns compact summary. */
+    /** Execute a compile via BSP on the persistent connection. Reports progress heartbeat every 30s, returns compact summary. */
     private def executeBspOperation(
-        config: BspRifleConfig,
         projectNames: List[String],
         verbose: Boolean,
         context: CallContext[IO]
@@ -566,64 +586,53 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         return IO.pure("No projects to compile.")
       }
 
+      val originId = UUID.randomUUID().toString
+
       for {
-        _ <- BspRifle.ensureRunning(config, started.logger)
         previousState <- buildHistory.get.map(_.previousRunState)
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
         done <- Ref.of[IO, Boolean](false)
 
-        bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
+        // Register event routing for this operation
+        _ <- IO.delay(eventRoutes.put(originId, eventQueue))
+        _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback(context)))
 
         // Consumer fiber: filter events, log per-project diffs to MCP, collect for final response
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
 
-        // Heartbeat fiber: report progress every 1s
+        // Heartbeat fiber: report progress every 30s
         heartbeatFiber <- heartbeat(collectedEvents, done, "compile", context).start
 
-        _ <- BspRifle
-          .connectWithRetry(config, started.logger)
-          .use { connection =>
-            BspServerBuilder.create(connection, bspClient).use { lifecycle =>
-              val server = lifecycle.server
-              for {
-                _ <- BspServerBuilder.initializeSession(
-                  server = server,
-                  clientName = "bleep-mcp",
-                  clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString,
-                  buildData = None,
-                  listening = lifecycle.listening
-                )
-                targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                _ <- BspRequestHelper
-                  .callCancellable(
-                    {
-                      val params = new bsp4j.CompileParams(targets)
-                      server.buildTargetCompile(params)
-                    },
-                    lifecycle.listening
-                  )
-                  .void
-                _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
-                _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
-              } yield ()
-            }
-          }
-          .guarantee(eventQueue.offer(None))
+        _ <- {
+          val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
+          BspRequestHelper
+            .callCancellable(
+              {
+                val params = new bsp4j.CompileParams(targets)
+                params.setOriginId(originId)
+                bspServer.buildTargetCompile(params)
+              },
+              bspListening
+            )
+            .void
+        }.guarantee(
+          IO.delay(eventRoutes.remove(originId)) >>
+            IO.delay(diagnosticRoutes.remove(originId)) >>
+            eventQueue.offer(None) >>
+            consumerFiber.joinWithNever >>
+            done.set(true) >>
+            heartbeatFiber.cancel
+        )
 
-        _ <- consumerFiber.joinWithNever
-        _ <- done.set(true)
-        _ <- heartbeatFiber.cancel
         events <- collectedEvents.get
         // Push to history
         _ <- buildHistory.update(_.push(BuildRun(System.currentTimeMillis(), "compile", events.reverse)))
       } yield formatCompileResult(events.reverse, previousState, verbose, None, None)
     }
 
-    /** Execute a one-shot test via BSP. Reports progress heartbeat every 1s, returns compact summary. */
+    /** Execute a test via BSP on the persistent connection. Reports progress heartbeat every 30s, returns compact summary. */
     private def executeBspTestOperation(
-        config: BspRifleConfig,
         projectNames: List[String],
         only: List[String],
         exclude: List[String],
@@ -636,64 +645,57 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         return IO.pure("No test projects found.")
       }
 
+      val originId = UUID.randomUUID().toString
+
       for {
-        _ <- BspRifle.ensureRunning(config, started.logger)
         previousState <- buildHistory.get.map(_.previousRunState)
         eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
         collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
         done <- Ref.of[IO, Boolean](false)
+        testRunResult <- Ref.of[IO, Option[BleepBspProtocol.TestRunResult]](None)
 
-        bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
+        // Register event routing for this operation
+        _ <- IO.delay(eventRoutes.put(originId, eventQueue))
+        _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback(context)))
+
         consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
         heartbeatFiber <- heartbeat(collectedEvents, done, "test", context).start
 
-        testRunResult <- Ref.of[IO, Option[BleepBspProtocol.TestRunResult]](None)
-
-        _ <- BspRifle
-          .connectWithRetry(config, started.logger)
-          .use { connection =>
-            BspServerBuilder.create(connection, bspClient).use { lifecycle =>
-              val server = lifecycle.server
-              for {
-                _ <- BspServerBuilder.initializeSession(
-                  server = server,
-                  clientName = "bleep-mcp",
-                  clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString,
-                  buildData = None,
-                  listening = lifecycle.listening
-                )
-                targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                result <- BspRequestHelper.callCancellable(
-                  {
-                    val params = new bsp4j.TestParams(targets)
-                    val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
-                    params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
-                    params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
-                    server.buildTargetTest(params)
-                  },
-                  lifecycle.listening
-                )
-                // Extract TestRunResult from response
-                _ <- IO {
-                  for {
-                    dataKind <- Option(result.getDataKind)
-                    if dataKind == BleepBspProtocol.TestRunResultDataKind
-                    data <- Option(result.getData)
-                    jsonStr = data.toString
-                    decoded <- BleepBspProtocol.TestRunResult.decode(jsonStr).toOption
-                  } testRunResult.set(Some(decoded)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
-                }
-                _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
-                _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
-              } yield ()
+        _ <- {
+          val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
+          BspRequestHelper
+            .callCancellable(
+              {
+                val params = new bsp4j.TestParams(targets)
+                params.setOriginId(originId)
+                val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
+                params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
+                params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
+                bspServer.buildTargetTest(params)
+              },
+              bspListening
+            )
+            .flatMap { result =>
+              // Extract TestRunResult from response
+              IO {
+                for {
+                  dataKind <- Option(result.getDataKind)
+                  if dataKind == BleepBspProtocol.TestRunResultDataKind
+                  data <- Option(result.getData)
+                  jsonStr = data.toString
+                  decoded <- BleepBspProtocol.TestRunResult.decode(jsonStr).toOption
+                } testRunResult.set(Some(decoded)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+              }
             }
-          }
-          .guarantee(eventQueue.offer(None))
+        }.guarantee(
+          IO.delay(eventRoutes.remove(originId)) >>
+            IO.delay(diagnosticRoutes.remove(originId)) >>
+            eventQueue.offer(None) >>
+            consumerFiber.joinWithNever >>
+            done.set(true) >>
+            heartbeatFiber.cancel
+        )
 
-        _ <- consumerFiber.joinWithNever
-        _ <- done.set(true)
-        _ <- heartbeatFiber.cancel
         events <- collectedEvents.get
         trr <- testRunResult.get
         // Push to history
@@ -716,7 +718,6 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       val jobId = new JobId(UUID.randomUUID().toString.take(8))
 
       for {
-        _ <- BspRifle.ensureRunning(bspConfig, started.logger)
         fiber <- watchLoop(jobId, targetProjects, mode, only, exclude, context).start
         job = WatchJob(jobId, targetProjects.map(_.value).toList, mode, fiber)
         _ <- watchJobs.update(_ + (jobId -> job))
@@ -728,9 +729,9 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
         .noSpaces
     }
 
-    /** Background watch loop: file changes -> recompile -> emit events.
+    /** Background watch loop: file changes -> recompile -> emit events via persistent BSP connection.
       *
-      * If the BSP server dies mid-cycle, logs the error, ensures the server is restarted, and retries the cycle.
+      * If the BSP server dies mid-cycle, logs the error and retries.
       */
     private def watchLoop(
         jobId: JobId,
@@ -742,64 +743,56 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
     ): IO[Unit] = {
       val transitiveProjects = internal.TransitiveProjects(started.build, targetProjects)
 
-      def cycle: IO[Unit] =
+      def cycle: IO[Unit] = {
+        val originId = UUID.randomUUID().toString
+
         for {
-          _ <- BspRifle.ensureRunning(bspConfig, started.logger)
           previousState <- buildHistory.get.map(_.previousRunState)
           _ <- context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Compiling...")
           eventQueue <- Queue.unbounded[IO, Option[BleepBspProtocol.Event]]
           collectedEvents <- Ref.of[IO, List[BleepBspProtocol.Event]](Nil)
-          bspClient = new McpBspClient(eventQueue, diagnosticCallback(context), started.logger)
+
+          // Register event routing for this cycle
+          _ <- IO.delay(eventRoutes.put(originId, eventQueue))
+          _ <- IO.delay(diagnosticRoutes.put(originId, diagnosticCallback(context)))
           consumerFiber <- consumeAndLogEvents(eventQueue, collectedEvents, previousState, context).start
 
-          _ <- BspRifle
-            .connectWithRetry(bspConfig, started.logger)
-            .use { connection =>
-              BspServerBuilder.create(connection, bspClient).use { lifecycle =>
-                val server = lifecycle.server
-                for {
-                  _ <- BspServerBuilder.initializeSession(
-                    server = server,
-                    clientName = "bleep-mcp-watch",
-                    clientVersion = model.BleepVersion.current.value,
-                    rootUri = started.buildPaths.buildDir.toUri.toString,
-                    buildData = None,
-                    listening = lifecycle.listening
+          _ <- {
+            val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
+            mode match {
+              case BleepBspProtocol.BuildMode.Test =>
+                BspRequestHelper
+                  .callCancellable(
+                    {
+                      val params = new bsp4j.TestParams(targets)
+                      params.setOriginId(originId)
+                      val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
+                      params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
+                      params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
+                      bspServer.buildTargetTest(params)
+                    },
+                    bspListening
                   )
-                  targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                  _ <- mode match {
-                    case BleepBspProtocol.BuildMode.Test =>
-                      BspRequestHelper
-                        .callCancellable(
-                          {
-                            val params = new bsp4j.TestParams(targets)
-                            val testOptions = BleepBspProtocol.TestOptions(Nil, Nil, only, exclude, false)
-                            params.setDataKind(BleepBspProtocol.TestOptionsDataKind)
-                            params.setData(com.google.gson.JsonParser.parseString(BleepBspProtocol.TestOptions.encode(testOptions)))
-                            server.buildTargetTest(params)
-                          },
-                          lifecycle.listening
-                        )
-                        .void
-                    case _ =>
-                      BspRequestHelper
-                        .callCancellable(
-                          {
-                            val params = new bsp4j.CompileParams(targets)
-                            server.buildTargetCompile(params)
-                          },
-                          lifecycle.listening
-                        )
-                        .void
-                  }
-                  _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
-                  _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
-                } yield ()
-              }
+                  .void
+              case _ =>
+                BspRequestHelper
+                  .callCancellable(
+                    {
+                      val params = new bsp4j.CompileParams(targets)
+                      params.setOriginId(originId)
+                      bspServer.buildTargetCompile(params)
+                    },
+                    bspListening
+                  )
+                  .void
             }
-            .guarantee(eventQueue.offer(None))
+          }.guarantee(
+            IO.delay(eventRoutes.remove(originId)) >>
+              IO.delay(diagnosticRoutes.remove(originId)) >>
+              eventQueue.offer(None) >>
+              consumerFiber.joinWithNever
+          )
 
-          _ <- consumerFiber.joinWithNever
           events <- collectedEvents.get
           reversedEvents = events.reverse
           // Push to history
@@ -828,12 +821,12 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
             watcher.run(stopAfterChange, 100)
           }
         } yield ()
+      }
 
       val resilientCycle: IO[Unit] = cycle.handleErrorWith { e =>
         context.log(protocol.LoggingLevel.Error, s"[${jobId.value}] Watch cycle failed: ${e.getClass.getSimpleName}: ${e.getMessage}") >>
-          context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Restarting BSP server and retrying in 2s...") >>
-          IO.sleep(scala.concurrent.duration.FiniteDuration(2, scala.concurrent.duration.SECONDS)) >>
-          BspRifle.ensureRunning(bspConfig, started.logger)
+          context.log(protocol.LoggingLevel.Info, s"[${jobId.value}] Retrying in 2s...") >>
+          IO.sleep(scala.concurrent.duration.FiniteDuration(2, scala.concurrent.duration.SECONDS))
       }
 
       resilientCycle >> watchLoop(jobId, targetProjects, mode, only, exclude, context)
@@ -932,7 +925,6 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
     /** Discover test suites via BSP buildTarget/scalaTestClasses. Projects must be compiled first. */
     private def discoverTestSuites(
-        config: BspRifleConfig,
         projectNames: List[String]
     ): IO[String] = {
       val targetProjects = resolveTestProjects(projectNames)
@@ -942,32 +934,13 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       }
 
       for {
-        _ <- BspRifle.ensureRunning(config, started.logger)
-        result <- BspRifle
-          .connectWithRetry(config, started.logger)
-          .use { connection =>
-            val client = BspClientDisplayProgress(started.logger)
-            BspServerBuilder.create(connection, client).use { lifecycle =>
-              val server = lifecycle.server
-              for {
-                _ <- BspServerBuilder.initializeSession(
-                  server = server,
-                  clientName = "bleep-mcp",
-                  clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString,
-                  buildData = None,
-                  listening = lifecycle.listening
-                )
-                targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                classesResult <- BspRequestHelper.callCancellable(
-                  server.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)),
-                  lifecycle.listening
-                )
-                _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
-                _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
-              } yield classesResult
-            }
-          }
+        result <- {
+          val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
+          BspRequestHelper.callCancellable(
+            bspServer.buildTargetScalaTestClasses(new bsp4j.ScalaTestClassesParams(targets)),
+            bspListening
+          )
+        }
       } yield {
         val items = result.getItems.asScala.toList.flatMap { item =>
           BspQuery.projectFromBuildTarget(started)(item.getTarget).map { projectName =>
@@ -1049,7 +1022,7 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       for {
         // Compile first
         _ <- context.log(protocol.LoggingLevel.Info, s"Compiling ${project.value}...")
-        _ <- compileSilently(bspConfig, Array(project))
+        _ <- compileSilently(Array(project))
 
         // Resolve main class
         mainClass <- IO {
@@ -1080,43 +1053,23 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
 
     /** Compile projects via BSP without collecting events (for run tool). */
     private def compileSilently(
-        config: BspRifleConfig,
         targetProjects: Array[model.CrossProjectName]
-    ): IO[Unit] =
-      for {
-        _ <- BspRifle.ensureRunning(config, started.logger)
-        _ <- BspRifle
-          .connectWithRetry(config, started.logger)
-          .use { connection =>
-            val client = BspClientDisplayProgress(started.logger)
-            BspServerBuilder.create(connection, client).use { lifecycle =>
-              val server = lifecycle.server
-              for {
-                _ <- BspServerBuilder.initializeSession(
-                  server = server,
-                  clientName = "bleep-mcp",
-                  clientVersion = model.BleepVersion.current.value,
-                  rootUri = started.buildPaths.buildDir.toUri.toString,
-                  buildData = None,
-                  listening = lifecycle.listening
-                )
-                targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
-                result <- BspRequestHelper.callCancellable(
-                  {
-                    val params = new bsp4j.CompileParams(targets)
-                    server.buildTargetCompile(params)
-                  },
-                  lifecycle.listening
-                )
-                _ <- IO.blocking(scala.util.Try(server.buildShutdown().get())).attempt.void
-                _ <- IO.blocking(scala.util.Try(server.onBuildExit())).attempt.void
-                _ <- IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
-                  new BleepException.Text(s"Compilation failed with status ${result.getStatusCode}")
-                )
-              } yield ()
-            }
-          }
-      } yield ()
+    ): IO[Unit] = {
+      val targets = BspQuery.buildTargets(started.buildPaths, targetProjects)
+      BspRequestHelper
+        .callCancellable(
+          {
+            val params = new bsp4j.CompileParams(targets)
+            bspServer.buildTargetCompile(params)
+          },
+          bspListening
+        )
+        .flatMap { result =>
+          IO.raiseWhen(result.getStatusCode != bsp4j.StatusCode.OK)(
+            new BleepException.Text(s"Compilation failed with status ${result.getStatusCode}")
+          )
+        }
+    }
 
     /** Execute a subprocess, capturing stdout and stderr separately. Returns (stdout, stderr, exitCode). */
     private def executeSubprocess(
@@ -1558,9 +1511,14 @@ private[mcp] case class WatchCycleResult(
 )
 
 /** BSP client that captures BleepBspProtocol events into a queue and streams diagnostics immediately. */
-private[mcp] class McpBspClient(
-    eventQueue: Queue[IO, Option[BleepBspProtocol.Event]],
-    onDiagnostics: bsp4j.PublishDiagnosticsParams => Unit,
+/** Shared BSP client for the persistent MCP-to-BSP connection.
+  *
+  * Routes events by `originId` to the correct tool call's event queue. Each concurrent BSP operation registers its queue in `eventRoutes` and sets `originId`
+  * on the BSP request params. The BSP server echoes `originId` back on all progress events, enabling demux.
+  */
+private[mcp] class SharedMcpBspClient(
+    eventRoutes: ConcurrentHashMap[String, Queue[IO, Option[BleepBspProtocol.Event]]],
+    diagnosticRoutes: ConcurrentHashMap[String, bsp4j.PublishDiagnosticsParams => Unit],
     logger: ryddig.Logger
 ) extends bsp4j.BuildClient {
 
@@ -1585,7 +1543,17 @@ private[mcp] class McpBspClient(
         }
         BleepBspProtocol.decode(jsonStr) match {
           case Right(event) =>
-            eventQueue.offer(Some(event)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+            val originId = Option(params.getOriginId)
+            val targetQueue = originId.flatMap(id => Option(eventRoutes.get(id)))
+            targetQueue match {
+              case Some(queue) =>
+                queue.offer(Some(event)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+              case None =>
+                // No specific route — broadcast to all active consumers
+                eventRoutes.values().forEach { queue =>
+                  queue.offer(Some(event)).unsafeRunSync()(cats.effect.unsafe.implicits.global)
+                }
+            }
           case Left(_) => ()
         }
       }
@@ -1597,7 +1565,14 @@ private[mcp] class McpBspClient(
     delegate.onBuildTaskFinish(params)
 
   override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
-    onDiagnostics(params)
+    val originId = Option(params.getOriginId)
+    val targetCallback = originId.flatMap(id => Option(diagnosticRoutes.get(id)))
+    targetCallback match {
+      case Some(callback) => callback(params)
+      case None =>
+        // Broadcast to all active diagnostic consumers
+        diagnosticRoutes.values().forEach(_(params))
+    }
     delegate.onBuildPublishDiagnostics(params)
   }
 
