@@ -329,7 +329,9 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     LinkPlatform.Jvm shouldBe a[LinkPlatform]
     LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug) shouldBe a[LinkPlatform.ScalaJs]
     LinkPlatform.ScalaNative("0.5.6", "3.3.3", ScalaNativeLinkConfig.Debug) shouldBe a[LinkPlatform.ScalaNative]
-    LinkPlatform.KotlinJs("2.0.0", TaskDag.KotlinJsConfig(bleep.model.KotlinJsModuleKind.CommonJS, true, false, java.nio.file.Path.of("."))) shouldBe a[LinkPlatform.KotlinJs]
+    LinkPlatform.KotlinJs("2.0.0", TaskDag.KotlinJsConfig(bleep.model.KotlinJsModuleKind.CommonJS, true, false, java.nio.file.Path.of("."))) shouldBe a[
+      LinkPlatform.KotlinJs
+    ]
     LinkPlatform.KotlinNative("2.0.0", TaskDag.KotlinNativeConfig("linux-x64", true, false, false)) shouldBe a[LinkPlatform.KotlinNative]
   }
 

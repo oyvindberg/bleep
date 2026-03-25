@@ -57,14 +57,16 @@ class BleepMcpServer(initialStarted: Started) extends McpServer[IO] {
       diagnosticRoutes = new ConcurrentHashMap[String, bsp4j.PublishDiagnosticsParams => Unit]()
       sharedClient = new SharedMcpBspClient(eventRoutes, diagnosticRoutes, started.logger)
       lifecycle <- BspServerBuilder.create(connection, sharedClient)
-      _ <- Resource.eval(BspServerBuilder.initializeSession(
-        server = lifecycle.server,
-        clientName = "bleep-mcp",
-        clientVersion = model.BleepVersion.current.value,
-        rootUri = started.buildPaths.buildDir.toUri.toString,
-        buildData = None,
-        listening = lifecycle.listening
-      ))
+      _ <- Resource.eval(
+        BspServerBuilder.initializeSession(
+          server = lifecycle.server,
+          clientName = "bleep-mcp",
+          clientVersion = model.BleepVersion.current.value,
+          rootUri = started.buildPaths.buildDir.toUri.toString,
+          buildData = None,
+          listening = lifecycle.listening
+        )
+      )
 
       _ <- startBuildWatcher(client)
       watchJobs <- Resource.eval(Ref.of[IO, Map[JobId, WatchJob]](Map.empty))
@@ -1578,7 +1580,7 @@ private[mcp] class SharedMcpBspClient(
     val targetCallback = originId.flatMap(id => Option(diagnosticRoutes.get(id)))
     targetCallback match {
       case Some(callback) => callback(params)
-      case None =>
+      case None           =>
         // Broadcast to all active diagnostic consumers
         diagnosticRoutes.values().forEach(_(params))
     }

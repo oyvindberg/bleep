@@ -71,11 +71,14 @@ class BuildStateReducerTest extends AnyFunSuite with Matchers {
     val state = reduce(
       BuildEvent.SuiteStarted(cpn("proj"), sn("com.example.MySuite"), ts),
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test1"), ts + 1),
-      BuildEvent.TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2),
+      BuildEvent
+        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test1"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 2),
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test2"), ts + 3),
-      BuildEvent.TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test2"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 4),
+      BuildEvent
+        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test2"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 4),
       BuildEvent.TestStarted(cpn("proj"), sn("com.example.MySuite"), tn("test3"), ts + 5),
-      BuildEvent.TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test3"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 6),
+      BuildEvent
+        .TestFinished(cpn("proj"), sn("com.example.MySuite"), tn("test3"), TestStatus.Passed, durationMs = 10, message = None, throwable = None, ts + 6),
       BuildEvent.SuiteFinished(cpn("proj"), sn("com.example.MySuite"), passed = 3, failed = 0, skipped = 0, ignored = 0, durationMs = 100, ts + 7)
     )
 

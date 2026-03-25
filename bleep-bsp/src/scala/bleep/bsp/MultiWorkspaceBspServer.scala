@@ -2060,7 +2060,13 @@ class MultiWorkspaceBspServer(
     * Calls the compiler directly (no ParallelProjectCompiler) so that CE fiber cancellation propagates through IO.interruptible in ZincBridge. This enables
     * IO.race in the compile handler to immediately interrupt compilation when the kill signal fires.
     */
-  private def compileProject(started: Started, project: CrossProjectName, originId: Option[String], cancellation: CancellationToken, dependencyAnalyses: Map[Path, Path]): IO[TaskDag.TaskResult] = {
+  private def compileProject(
+      started: Started,
+      project: CrossProjectName,
+      originId: Option[String],
+      cancellation: CancellationToken,
+      dependencyAnalyses: Map[Path, Path]
+  ): IO[TaskDag.TaskResult] = {
     val config = BleepBuildConverter.toProjectConfig(project, started.resolvedProject(project), started)
     val compiler = ProjectCompiler.forLanguage(config.language)
 
@@ -2114,7 +2120,12 @@ class MultiWorkspaceBspServer(
           originId,
           s"compile:$projectName",
           BleepBspProtocol.Event
-            .CompilePhaseChanged(CrossProjectName.fromString(projectName).get, bleep.bsp.protocol.CompilePhase.fromString(phase.name), trackedApis, System.currentTimeMillis())
+            .CompilePhaseChanged(
+              CrossProjectName.fromString(projectName).get,
+              bleep.bsp.protocol.CompilePhase.fromString(phase.name),
+              trackedApis,
+              System.currentTimeMillis()
+            )
         )
       }
 
@@ -2345,7 +2356,9 @@ class MultiWorkspaceBspServer(
         dispatcher.unsafeRunSync(eventQueue.offer(Some(TaskDag.DagEvent.TestStarted(project, SuiteName(suite), TestName(test), System.currentTimeMillis()))))
       def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
         dispatcher.unsafeRunSync(
-          eventQueue.offer(Some(TaskDag.DagEvent.TestFinished(project, SuiteName(suite), TestName(test), status, durationMs, message, None, System.currentTimeMillis())))
+          eventQueue.offer(
+            Some(TaskDag.DagEvent.TestFinished(project, SuiteName(suite), TestName(test), status, durationMs, message, None, System.currentTimeMillis()))
+          )
         )
       def onSuiteStarted(suite: String): Unit = ()
       def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = ()
@@ -2684,7 +2697,14 @@ class MultiWorkspaceBspServer(
           else List(BleepBspProtocol.Diagnostic.error(errorMsg))
         BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Failed, durationMs, effectiveDiags, skippedBecause = None, timestamp)
       case TaskDag.TaskResult.Error(error, _) =>
-        BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Error, durationMs, List(BleepBspProtocol.Diagnostic.error(error)), skippedBecause = None, timestamp)
+        BleepBspProtocol.Event.CompileFinished(
+          project,
+          CompileStatus.Error,
+          durationMs,
+          List(BleepBspProtocol.Diagnostic.error(error)),
+          skippedBecause = None,
+          timestamp
+        )
       case TaskDag.TaskResult.Skipped(failedDep) =>
         BleepBspProtocol.Event.CompileFinished(project, CompileStatus.Skipped, durationMs, Nil, skippedBecause = Some(failedDep.project), timestamp)
       case TaskDag.TaskResult.Killed(_) | TaskDag.TaskResult.Cancelled | TaskDag.TaskResult.TimedOut =>
@@ -2832,7 +2852,13 @@ class MultiWorkspaceBspServer(
             IO(sendTestEvent(originId, s"test:$project:$suite", protocolEvent))
 
           case TaskDag.DagEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
-            IO(sendTestEvent(originId, s"test:$project:$suite", BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp)))
+            IO(
+              sendTestEvent(
+                originId,
+                s"test:$project:$suite",
+                BleepBspProtocol.Event.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp)
+              )
+            )
 
           case TaskDag.DagEvent.SuitesDiscovered(project, suites, timestamp) =>
             for {
@@ -2860,8 +2886,8 @@ class MultiWorkspaceBspServer(
               IO(sendTestEvent(originId, s"suite:$project:$suite", protocolEvent))
 
           case linkEvent: TaskDag.DagEvent.LinkStarted  => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkProgress  => processLinkEvent(linkEvent, originId, traceRecorder)
-          case linkEvent: TaskDag.DagEvent.LinkFinished  => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkProgress => processLinkEvent(linkEvent, originId, traceRecorder)
+          case linkEvent: TaskDag.DagEvent.LinkFinished => processLinkEvent(linkEvent, originId, traceRecorder)
         }
 
       withDeadClientDetection(killSignal, "Test")(processEvent)
@@ -2910,8 +2936,8 @@ class MultiWorkspaceBspServer(
           }
 
         case linkEvent: TaskDag.DagEvent.LinkStarted  => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkProgress  => processLinkEvent(linkEvent, originId, traceRecorder)
-        case linkEvent: TaskDag.DagEvent.LinkFinished  => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkProgress => processLinkEvent(linkEvent, originId, traceRecorder)
+        case linkEvent: TaskDag.DagEvent.LinkFinished => processLinkEvent(linkEvent, originId, traceRecorder)
 
         case _ => IO.unit
       }
