@@ -76,6 +76,9 @@ object ProcessRunner {
       }
     }
 
+  /** Maximum number of output lines to capture per stream. Prevents OOM from verbose/crashing processes. */
+  private val MaxOutputLines = 50000
+
   /** Run a process and capture output, returning explicit outcome.
     *
     * @param pb
@@ -91,8 +94,9 @@ object ProcessRunner {
   ): IO[RunOutcome] =
     start(pb).use { process =>
       for {
-        stdoutFiber <- lines(process.getInputStream).compile.toList.start
-        stderrFiber <- lines(process.getErrorStream).compile.toList.start
+        // Limit captured lines to prevent OOM from verbose/crashing processes
+        stdoutFiber <- lines(process.getInputStream).take(MaxOutputLines).compile.toList.start
+        stderrFiber <- lines(process.getErrorStream).take(MaxOutputLines).compile.toList.start
         waitFiber <- IO.blocking(process.waitFor()).start
         result <- Outcome.raceKill(killSignal)(waitFiber.joinWithNever)
         // Always join the output fibers to get whatever was captured

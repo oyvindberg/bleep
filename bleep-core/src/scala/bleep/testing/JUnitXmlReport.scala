@@ -1,5 +1,7 @@
 package bleep.testing
 
+import bleep.bsp.protocol.{ProcessExit, TestStatus}
+import bleep.model.{CrossProjectName, SuiteName}
 import java.nio.file.{Files, Path}
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
@@ -178,28 +180,28 @@ class JUnitXmlCollector {
   import JUnitXmlReport._
 
   private case class SuiteState(
-      project: String,
-      name: String,
+      project: CrossProjectName,
+      name: SuiteName,
       startTime: Instant,
       testCases: List[TestCaseResult],
       systemOut: List[String],
       systemErr: List[String]
   )
 
-  private val activeSuites = scala.collection.mutable.Map.empty[String, SuiteState]
+  private val activeSuites = scala.collection.mutable.Map.empty[SuiteKey, SuiteState]
   private val completedSuites = scala.collection.mutable.ListBuffer.empty[TestSuiteResult]
 
   /** Process a build event. Call sequentially from the event consumer. */
   def handle(event: BuildEvent): Unit = event match {
     case BuildEvent.SuiteStarted(project, suite, timestamp) =>
-      val key = s"$project:$suite"
+      val key = SuiteKey(project, suite)
       activeSuites(key) = SuiteState(project, suite, Instant.ofEpochMilli(timestamp), Nil, Nil, Nil)
 
     case BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, _) =>
-      val key = s"$project:$suite"
+      val key = SuiteKey(project, suite)
       val tc = TestCaseResult(
-        name = test,
-        className = suite,
+        name = test.value,
+        className = suite.value,
         timeSeconds = durationMs / 1000.0,
         status = status,
         message = message,
@@ -208,11 +210,11 @@ class JUnitXmlCollector {
       activeSuites.get(key).foreach(state => activeSuites(key) = state.copy(testCases = tc :: state.testCases))
 
     case BuildEvent.SuiteFinished(project, suite, _, _, _, _, durationMs, _) =>
-      val key = s"$project:$suite"
+      val key = SuiteKey(project, suite)
       activeSuites.remove(key).foreach { state =>
         completedSuites += TestSuiteResult(
-          name = suite,
-          project = project,
+          name = suite.value,
+          project = project.value,
           timeSeconds = durationMs / 1000.0,
           timestamp = state.startTime,
           testCases = state.testCases.reverse,
@@ -221,29 +223,29 @@ class JUnitXmlCollector {
         )
       }
 
-    case BuildEvent.Output(project, suite, line, isError, _) =>
-      val key = s"$project:$suite"
+    case BuildEvent.Output(project, suite, line, channel, _) =>
+      val key = SuiteKey(project, suite)
       activeSuites.get(key).foreach { state =>
-        if (isError) activeSuites(key) = state.copy(systemErr = state.systemErr :+ line)
+        if (channel.isStderr) activeSuites(key) = state.copy(systemErr = state.systemErr :+ line)
         else activeSuites(key) = state.copy(systemOut = state.systemOut :+ line)
       }
 
     case BuildEvent.SuiteTimedOut(project, suite, timeoutMs, _, timestamp) =>
-      val key = s"$project:$suite"
+      val key = SuiteKey(project, suite)
       val state = activeSuites.remove(key)
       val startTime = state.map(_.startTime).getOrElse(Instant.ofEpochMilli(timestamp))
       val existingTests = state.map(_.testCases.reverse).getOrElse(Nil)
       val timeoutCase = TestCaseResult(
         name = "(timeout)",
-        className = suite,
+        className = suite.value,
         timeSeconds = timeoutMs / 1000.0,
         status = TestStatus.Timeout,
         message = Some(s"Suite idle timeout after ${timeoutMs / 1000}s"),
         throwable = None
       )
       completedSuites += TestSuiteResult(
-        name = suite,
-        project = project,
+        name = suite.value,
+        project = project.value,
         timeSeconds = timeoutMs / 1000.0,
         timestamp = startTime,
         testCases = existingTests :+ timeoutCase,
@@ -251,30 +253,27 @@ class JUnitXmlCollector {
         systemErr = state.map(_.systemErr).getOrElse(Nil)
       )
 
-    case BuildEvent.SuiteError(project, suite, error, exitCode, signal, durationMs, timestamp) =>
-      val key = s"$project:$suite"
+    case BuildEvent.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>
+      val key = SuiteKey(project, suite)
       val state = activeSuites.remove(key)
       val startTime = state.map(_.startTime).getOrElse(Instant.ofEpochMilli(timestamp))
       val existingTests = state.map(_.testCases.reverse).getOrElse(Nil)
-      val desc = signal match {
-        case Some(sig) => s"Process crashed (signal $sig)"
-        case None =>
-          exitCode match {
-            case Some(code) => s"Process exited with code $code"
-            case None       => error
-          }
+      val desc = processExit match {
+        case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
+        case ProcessExit.ExitCode(code) => s"Process exited with code $code"
+        case ProcessExit.Unknown        => error
       }
       val errorCase = TestCaseResult(
         name = "(process error)",
-        className = suite,
+        className = suite.value,
         timeSeconds = durationMs / 1000.0,
         status = TestStatus.Error,
         message = Some(desc),
         throwable = None
       )
       completedSuites += TestSuiteResult(
-        name = suite,
-        project = project,
+        name = suite.value,
+        project = project.value,
         timeSeconds = durationMs / 1000.0,
         timestamp = startTime,
         testCases = existingTests :+ errorCase,
@@ -283,21 +282,21 @@ class JUnitXmlCollector {
       )
 
     case BuildEvent.SuiteCancelled(project, suite, reason, timestamp) =>
-      val key = s"$project:$suite"
+      val key = SuiteKey(project, suite)
       val state = activeSuites.remove(key)
       val startTime = state.map(_.startTime).getOrElse(Instant.ofEpochMilli(timestamp))
       val existingTests = state.map(_.testCases.reverse).getOrElse(Nil)
       val cancelledCase = TestCaseResult(
         name = "(cancelled)",
-        className = suite,
+        className = suite.value,
         timeSeconds = 0.0,
         status = TestStatus.Cancelled,
         message = reason,
         throwable = None
       )
       completedSuites += TestSuiteResult(
-        name = suite,
-        project = project,
+        name = suite.value,
+        project = project.value,
         timeSeconds = 0.0,
         timestamp = startTime,
         testCases = existingTests :+ cancelledCase,
@@ -314,8 +313,8 @@ class JUnitXmlCollector {
     activeSuites.values.foreach { state =>
       val duration = state.testCases.map(_.timeSeconds).sum
       completedSuites += TestSuiteResult(
-        name = state.name,
-        project = state.project,
+        name = state.name.value,
+        project = state.project.value,
         timeSeconds = duration,
         timestamp = state.startTime,
         testCases = state.testCases.reverse,

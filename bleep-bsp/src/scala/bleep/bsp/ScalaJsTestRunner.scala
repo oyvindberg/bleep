@@ -1,7 +1,9 @@
 package bleep.bsp
 
-import bleep.analysis._
+import bleep.analysis.ScalaJsLinkConfig
 import bleep.bsp.Outcome.KillReason
+import bleep.bsp.TestRunnerTypes.{RunnerEvent, StderrBuffer, TerminationReason, TestEventHandler, TestResult, TestSuite}
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import cats.effect.{Deferred, IO, Ref}
 import cats.syntax.all._
 import java.nio.file.{Files, Path}
@@ -12,92 +14,10 @@ import java.nio.file.{Files, Path}
   */
 object ScalaJsTestRunner {
 
-  /** Test event handler for receiving test execution events. */
-  trait TestEventHandler {
-    def onTestStarted(suite: String, test: String): Unit
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit
-    def onSuiteStarted(suite: String): Unit
-    def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit
-    def onOutput(suite: String, line: String, isError: Boolean): Unit
-    def onRunnerEvent(event: RunnerEvent): Unit = ()
-  }
-
-  /** Events from the test runner about execution status. */
-  sealed trait RunnerEvent
-  object RunnerEvent {
-    case object Started extends RunnerEvent
-    case class Killed(reason: KillReason) extends RunnerEvent
-    case class ProcessExited(exitCode: Int) extends RunnerEvent
-    case class ProcessCrashed(signal: String, exitCode: Int) extends RunnerEvent
-    case class Error(message: String, cause: Option[Throwable]) extends RunnerEvent
-  }
-
-  /** Test execution status. */
-  sealed trait TestStatus
-  object TestStatus {
-    case object Passed extends TestStatus
-    case object Failed extends TestStatus
-    case object Skipped extends TestStatus
-    case object Ignored extends TestStatus
-    case object Cancelled extends TestStatus
-  }
-
-  /** Result of test execution. */
-  case class TestResult(
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
-      terminationReason: TerminationReason
-  ) {
-    def isSuccess: Boolean = failed == 0 && terminationReason == TerminationReason.Completed
-  }
-
-  /** Why the test run terminated. */
-  sealed trait TerminationReason {
-    def description: String
-  }
-  object TerminationReason {
-    case object Completed extends TerminationReason { val description = "completed normally" }
-    case class Killed(reason: KillReason) extends TerminationReason {
-      val description: String = reason match {
-        case KillReason.UserRequest    => "cancelled by user"
-        case KillReason.Timeout        => "timed out"
-        case KillReason.ParentDying    => "parent process dying"
-        case KillReason.ServerShutdown => "server shutting down"
-        case KillReason.DeadClient     => "client disconnected"
-      }
-    }
-    case class Crashed(signal: Int) extends TerminationReason {
-      val description: String = signal match {
-        case 11 => "crashed (SIGSEGV - segmentation fault)"
-        case 6  => "crashed (SIGABRT - aborted)"
-        case 9  => "killed (SIGKILL)"
-        case 15 => "terminated (SIGTERM)"
-        case n  => s"crashed (signal $n)"
-      }
-    }
-    case class ExitCode(code: Int) extends TerminationReason {
-      val description = s"exited with code $code"
-    }
-    case class Error(message: String) extends TerminationReason {
-      val description = s"error: $message"
-    }
-    case class TruncatedOutput(suite: String) extends TerminationReason {
-      val description = s"process exited with truncated output (suite '$suite' started but never finished)"
-    }
-  }
-
   /** Discovered test suites. */
   case class DiscoveredSuites(
       framework: String,
       suites: List[TestSuite]
-  )
-
-  /** A test suite. */
-  case class TestSuite(
-      name: String,
-      fullyQualifiedName: String
   )
 
   /** Node.js environment configuration. */
@@ -159,19 +79,6 @@ object ScalaJsTestRunner {
         }
     }
 
-  /** Internal state tracked during test execution via Ref. */
-  private case class RunState(
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
-      currentSuite: Option[String]
-  )
-
-  private object RunState {
-    val empty: RunState = RunState(0, 0, 0, 0, None)
-  }
-
   def runTests(
       linkedJs: Path,
       moduleKind: ScalaJsLinkConfig.ModuleKind,
@@ -202,134 +109,66 @@ object ScalaJsTestRunner {
           env.foreach { case (k, v) => pb.environment().put(k, v) }
 
           (
-            Ref.of[IO, RunState](RunState.empty),
-            Ref.of[IO, List[String]](Nil)
-          ).flatMapN { (stateRef, pendingStderrRef) =>
+            Ref.of[IO, ProcessTestRunner.RunState](ProcessTestRunner.RunState(0, 0, 0, 0, None)),
+            StderrBuffer.create(eventHandler)
+          ).flatMapN { (stateRef, stderrBuffer) =>
+            ProcessTestRunner.run(ProcessTestRunner.Config(
+              processBuilder = pb,
+              handleStdoutLine = { line =>
+                parseTestEvent(line) match {
+                  case Some(TestEvent.SuiteStarted(suite)) =>
+                    stateRef.update(_.copy(currentSuite = Some(suite))) >>
+                      IO.delay(eventHandler.onSuiteStarted(suite)) >>
+                      stderrBuffer.drain(suite)
 
-            def drainPendingStderr(suite: String): IO[Unit] =
-              pendingStderrRef.getAndSet(Nil).flatMap { pending =>
-                pending.reverse.traverse_(l => IO.delay(eventHandler.onOutput(suite, l, isError = true)))
-              }
-
-            val work = ProcessRunner.start(pb).use { process =>
-              // Kill process immediately when kill signal fires.
-              // This breaks the deadlock where IO.blocking(readLine) can't be
-              // cancelled but needs the process to die for the stream to close.
-              killSignal.get.flatMap(_ => IO.blocking { process.destroyForcibly(); () }).start.flatMap { killFiber =>
-                val stdout = ProcessRunner.lines(process.getInputStream).evalMap { line =>
-                  parseTestEvent(line) match {
-                    case Some(TestEvent.SuiteStarted(suite)) =>
-                      stateRef.update(_.copy(currentSuite = Some(suite))) >>
-                        IO.delay(eventHandler.onSuiteStarted(suite)) >>
-                        drainPendingStderr(suite)
-
-                    case Some(TestEvent.SuiteFinished(suite, p, f, s)) =>
-                      drainPendingStderr(suite) >>
-                        IO.delay(eventHandler.onSuiteFinished(suite, p, f, s)) >>
-                        stateRef.update(st =>
-                          st.copy(
-                            passed = st.passed + p,
-                            failed = st.failed + f,
-                            skipped = st.skipped + s,
-                            currentSuite = None
-                          )
+                  case Some(TestEvent.SuiteFinished(suite, p, f, s)) =>
+                    stderrBuffer.drain(suite) >>
+                      IO.delay(eventHandler.onSuiteFinished(suite, p, f, s)) >>
+                      stateRef.update(st =>
+                        st.copy(
+                          passed = st.passed + p,
+                          failed = st.failed + f,
+                          skipped = st.skipped + s,
+                          currentSuite = None
                         )
+                      )
 
-                    case Some(TestEvent.TestStarted(suite, test)) =>
-                      IO.delay(eventHandler.onTestStarted(suite, test))
+                  case Some(TestEvent.TestStarted(suite, test)) =>
+                    IO.delay(eventHandler.onTestStarted(suite, test))
 
-                    case Some(TestEvent.TestFinished(suite, test, status, duration, msg)) =>
-                      val testStatus = status match {
-                        case "passed"  => TestStatus.Passed
-                        case "failed"  => TestStatus.Failed
-                        case "skipped" => TestStatus.Skipped
-                        case "ignored" => TestStatus.Ignored
-                        case _         => TestStatus.Failed
+                  case Some(TestEvent.TestFinished(suite, test, status, duration, msg)) =>
+                    val testStatus = TestStatus.fromString(status)
+                    IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
+
+                  case Some(TestEvent.Output(suite, outputLine, isError)) =>
+                    IO.delay(eventHandler.onOutput(suite, outputLine, OutputChannel.fromIsError(isError)))
+
+                  case None =>
+                    stateRef.get.flatMap { state =>
+                      state.currentSuite match {
+                        case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stdout))
+                        case None        => IO.unit
                       }
-                      IO.delay(eventHandler.onTestFinished(suite, test, testStatus, duration, msg))
-
-                    case Some(TestEvent.Output(suite, outputLine, isError)) =>
-                      IO.delay(eventHandler.onOutput(suite, outputLine, isError))
-
-                    case None =>
-                      stateRef.get.flatMap { state =>
-                        state.currentSuite match {
-                          case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = false))
-                          case None        => IO.unit
-                        }
-                      }
-                  }
-                }
-
-                val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
-                  stateRef.get.flatMap { state =>
-                    state.currentSuite match {
-                      case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, isError = true))
-                      case None        => pendingStderrRef.update(line :: _)
                     }
+                }
+              },
+              handleStderrLine = { line =>
+                stateRef.get.flatMap { state =>
+                  state.currentSuite match {
+                    case Some(suite) => IO.delay(eventHandler.onOutput(suite, line, OutputChannel.Stderr))
+                    case None        => stderrBuffer.buffer(line)
                   }
                 }
-
-                val readAndWait = (stdout.compile.drain, stderr.compile.drain).parTupled.void >>
-                  IO.blocking(process.waitFor()).flatMap { exitCode =>
-                    // Check if process was killed by our kill watcher
-                    killSignal.tryGet.flatMap {
-                      case Some(reason) =>
-                        stateRef.get.map { state =>
-                          eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                          TestResult(state.passed, state.failed, state.skipped, state.ignored, TerminationReason.Killed(reason))
-                        }
-                      case None =>
-                        stateRef.get.flatMap { state =>
-                          state.currentSuite.traverse_(drainPendingStderr).as {
-                            val truncatedSuite = state.currentSuite
-
-                            val (adjustedFailed, terminationReason) =
-                              if (exitCode > 128) {
-                                val signal = exitCode - 128
-                                if (truncatedSuite.isDefined) {
-                                  val suite = truncatedSuite.get
-                                  eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
-                                  (state.failed + 1, TerminationReason.TruncatedOutput(suite))
-                                } else {
-                                  eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"signal $signal", exitCode))
-                                  (state.failed, TerminationReason.Crashed(signal))
-                                }
-                              } else if (truncatedSuite.isDefined) {
-                                // Suite started but never finished - process exited mid-suite
-                                val suite = truncatedSuite.get
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
-                                (state.failed + 1, TerminationReason.TruncatedOutput(suite))
-                              } else if (exitCode == 0) {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
-                                (state.failed, TerminationReason.Completed)
-                              } else if (state.passed > 0 || state.failed > 0) {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
-                                (state.failed, TerminationReason.Completed)
-                              } else {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
-                                (state.failed + 1, TerminationReason.ExitCode(exitCode))
-                              }
-
-                            TestResult(state.passed, adjustedFailed, state.skipped, state.ignored, terminationReason)
-                          }
-                        }
-                    }
-                  }
-
-                readAndWait.guarantee(killFiber.cancel)
-              }
-            }
-
-            Outcome.raceKill(killSignal)(work).flatMap {
-              case Left(result) => IO.pure(result)
-              case Right(reason) =>
-                stateRef.get.map { state =>
-                  eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                  TestResult(state.passed, state.failed, state.skipped, state.ignored, TerminationReason.Killed(reason))
-                }
-            }
-          }.guarantee(IO.blocking(Files.deleteIfExists(scriptPath)).void)
+              },
+              getRunState = stateRef.get,
+              eventHandler = eventHandler,
+              killSignal = killSignal,
+              killDescendants = false,
+              preRun = IO.unit,
+              onNormalExit = stateRef.get.flatMap(s => s.currentSuite.traverse_(stderrBuffer.drain)),
+              cleanup = IO.blocking(Files.deleteIfExists(scriptPath)).void
+            ))
+          }
         }
     }
 
@@ -358,9 +197,9 @@ object ScalaJsTestRunner {
         Some(
           TestEvent.SuiteFinished(
             parts(1),
-            parts(2).toIntOption.getOrElse(0),
-            parts(3).toIntOption.getOrElse(0),
-            parts(4).toIntOption.getOrElse(0)
+            parts(2).toInt,
+            parts(3).toInt,
+            parts(4).toInt
           )
         )
 
@@ -374,7 +213,7 @@ object ScalaJsTestRunner {
             parts(1),
             parts(2),
             parts(3),
-            parts(4).toLongOption.getOrElse(0L),
+            parts(4).toLong,
             message
           )
         )
@@ -394,7 +233,7 @@ object ScalaJsTestRunner {
        |const vm = require('vm');
        |const path = require('path');
        |
-       |const jsPath = '${linkedJs.toAbsolutePath.toString.replace("\\", "\\\\")}';
+       |const jsPath = '${linkedJs.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")}';
        |const jsCode = fs.readFileSync(jsPath, 'utf-8');
        |
        |const sandbox = {
@@ -508,7 +347,7 @@ object ScalaJsTestRunner {
       suites: List[TestSuite]
   ): String = {
     val suiteNames = suites.map(s => s"'${s.fullyQualifiedName}'").mkString(", ")
-    val jsPath = linkedJs.toAbsolutePath.toString.replace("\\", "\\\\")
+    val jsPath = linkedJs.toAbsolutePath.toString.replace("\\", "\\\\").replace("'", "\\'")
 
     // This script runs Scala.js tests by:
     // 1. Patching the linked JS to disable Bridge.start() (which requires scalajsCom protocol)

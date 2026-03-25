@@ -2,6 +2,7 @@ package bleep.mcp
 
 import bleep.bsp.protocol.BleepBspProtocol
 import io.circe.Json
+import io.circe.syntax.*
 
 /** Filters BleepBspProtocol events to the subset that is actionable for an AI agent.
   *
@@ -18,21 +19,21 @@ object McpEventFilter {
         Some(
           Json.obj(
             "event" -> Json.fromString("CompileStarted"),
-            "project" -> Json.fromString(e.project)
+            "project" -> e.project.asJson
           )
         )
 
       case e: E.CompileFinished =>
         val fields = List.newBuilder[(String, Json)]
         fields += "event" -> Json.fromString("CompileFinished")
-        fields += "project" -> Json.fromString(e.project)
-        fields += "status" -> Json.fromString(e.status)
+        fields += "project" -> e.project.asJson
+        fields += "status" -> e.status.asJson
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         if (e.diagnostics.nonEmpty) {
           fields += "diagnostics" -> Json.arr(
             e.diagnostics.map { d =>
               val diagFields = List.newBuilder[(String, Json)]
-              diagFields += "severity" -> Json.fromString(d.severity)
+              diagFields += "severity" -> d.severity.asJson
               diagFields += "message" -> Json.fromString(stripAnsi(d.message))
               d.rendered.foreach(r => diagFields += "rendered" -> Json.fromString(stripAnsi(r)))
               d.path.foreach(p => diagFields += "path" -> Json.fromString(p))
@@ -41,17 +42,17 @@ object McpEventFilter {
           )
         }
         e.skippedBecause.foreach { reason =>
-          fields += "skippedBecause" -> Json.fromString(reason)
+          fields += "skippedBecause" -> reason.asJson
         }
         Some(Json.obj(fields.result()*))
 
       case e: E.TestFinished =>
         val fields = List.newBuilder[(String, Json)]
         fields += "event" -> Json.fromString("TestFinished")
-        fields += "project" -> Json.fromString(e.project)
-        fields += "suite" -> Json.fromString(e.suite)
-        fields += "test" -> Json.fromString(e.test)
-        fields += "status" -> Json.fromString(e.status)
+        fields += "project" -> e.project.asJson
+        fields += "suite" -> e.suite.asJson
+        fields += "test" -> e.test.asJson
+        fields += "status" -> e.status.asJson
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         e.message.foreach(m => fields += "message" -> Json.fromString(m))
         e.throwable.foreach(t => fields += "throwable" -> Json.fromString(t))
@@ -61,8 +62,8 @@ object McpEventFilter {
         Some(
           Json.obj(
             "event" -> Json.fromString("SuiteFinished"),
-            "project" -> Json.fromString(e.project),
-            "suite" -> Json.fromString(e.suite),
+            "project" -> e.project.asJson,
+            "suite" -> e.suite.asJson,
             "passed" -> Json.fromInt(e.passed),
             "failed" -> Json.fromInt(e.failed),
             "skipped" -> Json.fromInt(e.skipped),
@@ -72,13 +73,17 @@ object McpEventFilter {
         )
 
       case e: E.SuiteError =>
+        import bleep.bsp.protocol.ProcessExit
         val fields = List.newBuilder[(String, Json)]
         fields += "event" -> Json.fromString("SuiteError")
-        fields += "project" -> Json.fromString(e.project)
-        fields += "suite" -> Json.fromString(e.suite)
+        fields += "project" -> e.project.asJson
+        fields += "suite" -> e.suite.asJson
         fields += "error" -> Json.fromString(e.error)
-        e.exitCode.foreach(c => fields += "exitCode" -> Json.fromInt(c))
-        e.signal.foreach(s => fields += "signal" -> Json.fromInt(s))
+        e.processExit match {
+          case ProcessExit.ExitCode(code) => fields += "exitCode" -> Json.fromInt(code)
+          case ProcessExit.Signal(signal) => fields += "signal" -> Json.fromInt(signal)
+          case ProcessExit.Unknown        => ()
+        }
         fields += "durationMs" -> Json.fromLong(e.durationMs)
         Some(Json.obj(fields.result()*))
 
@@ -86,8 +91,8 @@ object McpEventFilter {
         Some(
           Json.obj(
             "event" -> Json.fromString("SuiteTimedOut"),
-            "project" -> Json.fromString(e.project),
-            "suite" -> Json.fromString(e.suite),
+            "project" -> e.project.asJson,
+            "suite" -> e.suite.asJson,
             "timeoutMs" -> Json.fromLong(e.timeoutMs)
           )
         )
@@ -95,10 +100,10 @@ object McpEventFilter {
       case e: E.LinkFinished =>
         val fields = List.newBuilder[(String, Json)]
         fields += "event" -> Json.fromString("LinkFinished")
-        fields += "project" -> Json.fromString(e.project)
+        fields += "project" -> e.project.asJson
         fields += "success" -> Json.fromBoolean(e.success)
         fields += "durationMs" -> Json.fromLong(e.durationMs)
-        fields += "platform" -> Json.fromString(e.platform)
+        fields += "platform" -> e.platform.asJson
         e.error.foreach(err => fields += "error" -> Json.fromString(err))
         Some(Json.obj(fields.result()*))
 

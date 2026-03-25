@@ -1,9 +1,9 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, LinkPlatformName, OutputChannel, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
-import bleep.model.CrossProjectName
+import bleep.model.{CrossProjectName, KotlinJsModuleKind, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import cats.syntax.all._
@@ -29,11 +29,31 @@ import scala.collection.mutable
   */
 object TaskDag {
 
+  /** Typed task identifier — prevents confusion between task IDs and arbitrary strings. */
+  sealed trait TaskId {
+    def value: String
+    override def toString: String = value
+  }
+  object TaskId {
+    case class Compile(project: CrossProjectName) extends TaskId {
+      val value: String = s"compile:${project.value}"
+    }
+    case class Link(project: CrossProjectName) extends TaskId {
+      val value: String = s"link:${project.value}"
+    }
+    case class Discover(project: CrossProjectName) extends TaskId {
+      val value: String = s"discover:${project.value}"
+    }
+    case class Test(project: CrossProjectName, suiteName: SuiteName) extends TaskId {
+      val value: String = s"test:${project.value}:${suiteName.value}"
+    }
+  }
+
   /** A task in the DAG */
   sealed trait Task {
-    def id: String
+    def id: TaskId
     def project: CrossProjectName
-    def dependencies: Set[String]
+    def dependencies: Set[TaskId]
   }
 
   /** Compile a project */
@@ -41,8 +61,8 @@ object TaskDag {
       project: CrossProjectName,
       projectDependencies: Set[CrossProjectName]
   ) extends Task {
-    def id: String = s"compile:${project.value}"
-    def dependencies: Set[String] = projectDependencies.map(p => s"compile:${p.value}")
+    val id: TaskId = TaskId.Compile(project)
+    val dependencies: Set[TaskId] = projectDependencies.map(p => TaskId.Compile(p))
   }
 
   /** Link a non-JVM project (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native).
@@ -55,8 +75,8 @@ object TaskDag {
       releaseMode: Boolean,
       isTest: Boolean
   ) extends Task {
-    def id: String = s"link:${project.value}"
-    def dependencies: Set[String] = Set(s"compile:${project.value}")
+    val id: TaskId = TaskId.Link(project)
+    val dependencies: Set[TaskId] = Set(TaskId.Compile(project))
   }
 
   /** Platform for linking non-JVM targets. */
@@ -90,7 +110,7 @@ object TaskDag {
 
   /** Kotlin/JS configuration */
   case class KotlinJsConfig(
-      moduleKind: String,
+      moduleKind: KotlinJsModuleKind,
       sourceMap: Boolean,
       dce: Boolean, // Dead Code Elimination - true = smaller output
       outputDir: java.nio.file.Path
@@ -112,21 +132,21 @@ object TaskDag {
       project: CrossProjectName,
       platform: Option[LinkPlatform]
   ) extends Task {
-    def id: String = s"discover:${project.value}"
-    def dependencies: Set[String] = platform match {
-      case Some(LinkPlatform.Jvm) | None => Set(s"compile:${project.value}")
-      case Some(_)                       => Set(s"link:${project.value}")
+    val id: TaskId = TaskId.Discover(project)
+    val dependencies: Set[TaskId] = platform match {
+      case Some(LinkPlatform.Jvm) | None => Set(TaskId.Compile(project))
+      case Some(_)                       => Set(TaskId.Link(project))
     }
   }
 
   /** Execute a test suite */
   case class TestSuiteTask(
       project: CrossProjectName,
-      suiteName: String,
+      suiteName: SuiteName,
       framework: String
   ) extends Task {
-    def id: String = s"test:${project.value}:$suiteName"
-    def dependencies: Set[String] = Set(s"discover:${project.value}")
+    val id: TaskId = TaskId.Test(project, suiteName)
+    val dependencies: Set[TaskId] = Set(TaskId.Discover(project))
   }
 
   /** Result of task execution.
@@ -143,7 +163,7 @@ object TaskDag {
   object TaskResult {
     case object Success extends TaskResult
     case class Failure(error: String, diagnostics: List[BleepBspProtocol.Diagnostic]) extends TaskResult
-    case class Error(error: String, exitCode: Option[Int], signal: Option[Int]) extends TaskResult
+    case class Error(error: String, processExit: ProcessExit) extends TaskResult
     case class Skipped(failedDependency: Task) extends TaskResult
     case class Killed(reason: KillReason) extends TaskResult
     case object TimedOut extends TaskResult
@@ -208,22 +228,22 @@ object TaskDag {
     case class TaskFinished(task: Task, result: TaskResult, durationMs: Long, timestamp: Long) extends DagEvent
 
     // Link-specific events
-    case class LinkStarted(project: String, platform: String, timestamp: Long) extends DagEvent
-    case class LinkProgress(project: String, phase: String, percent: Int, timestamp: Long) extends DagEvent
+    case class LinkStarted(project: CrossProjectName, platform: LinkPlatformName, timestamp: Long) extends DagEvent
+    case class LinkProgress(project: CrossProjectName, phase: String, percent: Int, timestamp: Long) extends DagEvent
     case class LinkFinished(
-        project: String,
+        project: CrossProjectName,
         result: LinkResult,
         durationMs: Long,
         timestamp: Long
     ) extends DagEvent
 
     // Test-specific events (nested within TestSuiteTask execution)
-    case class TestStarted(project: String, suite: String, test: String, timestamp: Long) extends DagEvent
+    case class TestStarted(project: CrossProjectName, suite: SuiteName, test: TestName, timestamp: Long) extends DagEvent
     case class TestFinished(
-        project: String,
-        suite: String,
-        test: String,
-        status: String,
+        project: CrossProjectName,
+        suite: SuiteName,
+        test: TestName,
+        status: TestStatus,
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],
@@ -231,15 +251,15 @@ object TaskDag {
     ) extends DagEvent
 
     // Discovery events
-    case class SuitesDiscovered(project: String, suites: List[String], timestamp: Long) extends DagEvent
+    case class SuitesDiscovered(project: CrossProjectName, suites: List[SuiteName], timestamp: Long) extends DagEvent
 
     // Output events
-    case class Output(project: String, suite: String, line: String, isError: Boolean, timestamp: Long) extends DagEvent
+    case class Output(project: CrossProjectName, suite: SuiteName, line: String, channel: OutputChannel, timestamp: Long) extends DagEvent
 
     // Suite completion with counts
     case class SuiteFinished(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         passed: Int,
         failed: Int,
         skipped: Int,
@@ -251,21 +271,21 @@ object TaskDag {
 
   /** The DAG itself - holds tasks and tracks execution state */
   case class Dag(
-      tasks: Map[String, Task],
-      completed: Set[String],
-      failed: Set[String],
-      errored: Set[String],
-      skipped: Set[String],
-      killed: Set[String],
-      timedOut: Set[String],
-      linkResults: Map[String, LinkResult]
+      tasks: Map[TaskId, Task],
+      completed: Set[TaskId],
+      failed: Set[TaskId],
+      errored: Set[TaskId],
+      skipped: Set[TaskId],
+      killed: Set[TaskId],
+      timedOut: Set[TaskId],
+      linkResults: Map[TaskId, LinkResult]
   ) {
 
     /** All finished tasks (any terminal state) */
-    def finished: Set[String] = completed ++ failed ++ errored ++ skipped ++ killed ++ timedOut
+    def finished: Set[TaskId] = completed ++ failed ++ errored ++ skipped ++ killed ++ timedOut
 
     /** States that propagate failure to downstream tasks. Note: timedOut does NOT propagate - downstream tasks still run. */
-    private def propagatesFailure(taskId: String): Boolean =
+    private def propagatesFailure(taskId: TaskId): Boolean =
       failed.contains(taskId) || errored.contains(taskId) || skipped.contains(taskId) || killed.contains(taskId)
 
     /** Get tasks that are ready to execute (all dependencies satisfied) */
@@ -294,27 +314,27 @@ object TaskDag {
     }
 
     /** Mark a task as completed */
-    def complete(taskId: String): Dag =
+    def complete(taskId: TaskId): Dag =
       copy(completed = completed + taskId)
 
     /** Mark a task as failed (logical failure like test assertion) */
-    def fail(taskId: String): Dag =
+    def fail(taskId: TaskId): Dag =
       copy(failed = failed + taskId)
 
     /** Mark a task as errored (infrastructure failure like process crash) */
-    def error(taskId: String): Dag =
+    def error(taskId: TaskId): Dag =
       copy(errored = errored + taskId)
 
     /** Mark a task as skipped */
-    def skip(taskId: String): Dag =
+    def skip(taskId: TaskId): Dag =
       copy(skipped = skipped + taskId)
 
     /** Mark a task as killed */
-    def kill(taskId: String): Dag =
+    def kill(taskId: TaskId): Dag =
       copy(killed = killed + taskId)
 
     /** Mark a task as timed out (does NOT propagate to downstream) */
-    def timeout(taskId: String): Dag =
+    def timeout(taskId: TaskId): Dag =
       copy(timedOut = timedOut + taskId)
 
     /** Add a task to the DAG (used for dynamic task creation) */
@@ -322,7 +342,7 @@ object TaskDag {
       copy(tasks = tasks + (task.id -> task))
 
     /** Record a link result for a task */
-    def recordLinkResult(taskId: String, result: LinkResult): Dag =
+    def recordLinkResult(taskId: TaskId, result: LinkResult): Dag =
       copy(linkResults = linkResults + (taskId -> result))
 
     /** Check if DAG execution is complete */
@@ -333,22 +353,22 @@ object TaskDag {
       tasks.values.collect { case t: T => t }.toList
 
     /** Get dependency count for each task (for topological order) */
-    def inDegrees: Map[String, Int] =
+    def inDegrees: Map[TaskId, Int] =
       tasks.map { case (id, task) =>
         id -> task.dependencies.count(tasks.contains)
       }
 
     /** Count of tasks (transitively) blocked by each task */
-    def dependentsCount: Map[String, Int] = {
+    def dependentsCount: Map[TaskId, Int] = {
       // Build reverse adjacency: taskId -> set of tasks that directly depend on it
-      val reverseDeps = tasks.values.foldLeft(Map.empty[String, Set[String]]) { (acc, task) =>
+      val reverseDeps = tasks.values.foldLeft(Map.empty[TaskId, Set[TaskId]]) { (acc, task) =>
         task.dependencies.foldLeft(acc) { (acc2, depId) =>
           acc2.updated(depId, acc2.getOrElse(depId, Set.empty) + task.id)
         }
       }
       // For each task, count transitive dependents (BFS)
       tasks.keys.map { taskId =>
-        val visited = scala.collection.mutable.Set.empty[String]
+        val visited = scala.collection.mutable.Set.empty[TaskId]
         val queue = scala.collection.mutable.Queue(taskId)
         while (queue.nonEmpty) {
           val current = queue.dequeue()
@@ -362,7 +382,7 @@ object TaskDag {
   }
 
   object Dag {
-    def empty: Dag = Dag(Map.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty)
+    def empty: Dag = Dag(Map.empty[TaskId, Task], Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Set.empty, Map.empty)
 
     /** Create DAG from a set of tasks */
     def fromTasks(tasks: Seq[Task]): Dag =
@@ -527,7 +547,7 @@ object TaskDag {
     def execute(
         dag: Dag,
         maxParallelism: Int,
-        eventQueue: Queue[IO, DagEvent],
+        eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag]
   }
@@ -566,17 +586,17 @@ object TaskDag {
     override def execute(
         initialDag: Dag,
         maxParallelism: Int,
-        eventQueue: Queue[IO, DagEvent],
+        eventQueue: Queue[IO, Option[DagEvent]],
         killSignal: Deferred[IO, KillReason]
     ): IO[Dag] = {
       def now: IO[Long] = IO.realTime.map(_.toMillis)
 
-      def emit(event: DagEvent): IO[Unit] = eventQueue.offer(event)
+      def emit(event: DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
       /** Check if kill has been requested (non-blocking) */
       def isKilled: IO[Option[KillReason]] = killSignal.tryGet
 
-      def executeTask(task: Task, dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[String, Deferred[IO, KillReason]]]): IO[Unit] = {
+      def executeTask(task: Task, dagRef: Ref[IO, Dag], taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]]): IO[Unit] = {
         val startTime = System.currentTimeMillis()
 
         // Create a per-task kill signal that can be completed either by the global signal or individually
@@ -585,8 +605,11 @@ object TaskDag {
             taskKill <- Deferred[IO, KillReason]
             // Register this task's kill signal
             _ <- taskKillSignals.update(_ + (task.id -> taskKill))
-            // Set up propagation from global kill signal to this task's signal
-            _ <- killSignal.get.flatMap(reason => taskKill.complete(reason).attempt.void).start
+            // Set up propagation from global kill signal to this task's signal.
+            // .attempt handles already-completed Deferred (task finished before global kill arrived).
+            _ <- killSignal.get
+              .flatMap(reason => taskKill.complete(reason).attempt.void)
+              .start
           } yield taskKill
 
         // Helper to convert ALL outcomes (success, error, killed) to TaskResult
@@ -647,16 +670,16 @@ object TaskDag {
                       for {
                         linkStartTs <- now
                         platformName = lt.platform match {
-                          case _: LinkPlatform.ScalaJs      => "Scala.js"
-                          case _: LinkPlatform.ScalaNative  => "Scala Native"
-                          case _: LinkPlatform.KotlinJs     => "Kotlin/JS"
-                          case _: LinkPlatform.KotlinNative => "Kotlin/Native"
-                          case LinkPlatform.Jvm             => "JVM"
+                          case _: LinkPlatform.ScalaJs      => LinkPlatformName.ScalaJs
+                          case _: LinkPlatform.ScalaNative  => LinkPlatformName.ScalaNative
+                          case _: LinkPlatform.KotlinJs     => LinkPlatformName.KotlinJs
+                          case _: LinkPlatform.KotlinNative => LinkPlatformName.KotlinNative
+                          case LinkPlatform.Jvm             => LinkPlatformName.Jvm
                         }
-                        _ <- emit(DagEvent.LinkStarted(lt.project.value, platformName, linkStartTs))
+                        _ <- emit(DagEvent.LinkStarted(lt.project, platformName, linkStartTs))
                         (result, linkResult) <- linkHandler(lt, taskKill)
                         linkEndTs <- now
-                        _ <- emit(DagEvent.LinkFinished(lt.project.value, linkResult, linkEndTs - linkStartTs, linkEndTs))
+                        _ <- emit(DagEvent.LinkFinished(lt.project, linkResult, linkEndTs - linkStartTs, linkEndTs))
                         _ <- dagRef.update(_.recordLinkResult(lt.id, linkResult))
                       } yield result
                     }
@@ -669,10 +692,10 @@ object TaskDag {
                           case TaskResult.Success =>
                             // Add test tasks for discovered suites
                             val testTasks = suites.map { case (suiteName, framework) =>
-                              TestSuiteTask(dt.project, suiteName, framework)
+                              TestSuiteTask(dt.project, SuiteName(suiteName), framework)
                             }
                             dagRef.update(dag => testTasks.foldLeft(dag)(_.addTask(_))) >>
-                              emit(DagEvent.SuitesDiscovered(dt.project.value, suites.map(_._1), timestamp))
+                              emit(DagEvent.SuitesDiscovered(dt.project, suites.map(s => SuiteName(s._1)), timestamp))
                           case _ => IO.unit
                         }
                       } yield result
@@ -682,7 +705,7 @@ object TaskDag {
                     // Make test execution uncancelable so it always completes and reports status.
                     // Without this, fiber cancellation could abort mid-test and leave no status event.
                     IO.uncancelable { _ =>
-                      withRecovery(s"Test ${tt.suiteName}", taskKill)(testHandler(tt, taskKill))
+                      withRecovery(s"Test ${tt.suiteName.value}", taskKill)(testHandler(tt, taskKill))
                     }
                 }
                 // Unregister this task's kill signal
@@ -693,12 +716,12 @@ object TaskDag {
           durationMs = endTimestamp - startTime
           _ <- emit(DagEvent.TaskFinished(task, result, durationMs, endTimestamp))
           _ <- result match {
-            case TaskResult.Success        => dagRef.update(_.complete(task.id))
-            case TaskResult.Failure(_, _)  => dagRef.update(_.fail(task.id))
-            case TaskResult.Error(_, _, _) => dagRef.update(_.error(task.id))
-            case TaskResult.Skipped(_)     => dagRef.update(_.skip(task.id))
-            case TaskResult.Killed(_)      => dagRef.update(_.kill(task.id))
-            case TaskResult.TimedOut       => dagRef.update(_.timeout(task.id))
+            case TaskResult.Success       => dagRef.update(_.complete(task.id))
+            case TaskResult.Failure(_, _) => dagRef.update(_.fail(task.id))
+            case TaskResult.Error(_, _)   => dagRef.update(_.error(task.id))
+            case TaskResult.Skipped(_)    => dagRef.update(_.skip(task.id))
+            case TaskResult.Killed(_)     => dagRef.update(_.kill(task.id))
+            case TaskResult.TimedOut      => dagRef.update(_.timeout(task.id))
           }
         } yield ()
       }
@@ -723,8 +746,8 @@ object TaskDag {
       // The signalRef holds the current Deferred so running tasks can always signal the latest one.
       def loop(
           dagRef: Ref[IO, Dag],
-          runningRef: Ref[IO, Set[String]],
-          taskKillSignals: Ref[IO, Map[String, Deferred[IO, KillReason]]],
+          runningRef: Ref[IO, Set[TaskId]],
+          taskKillSignals: Ref[IO, Map[TaskId, Deferred[IO, KillReason]]],
           signalRef: Ref[IO, Deferred[IO, Unit]]
       ): IO[Unit] =
         for {
@@ -774,7 +797,8 @@ object TaskDag {
                     executeTask(task, dagRef, taskKillSignals)
                       .guarantee(
                         runningRef.update(_ - task.id) >>
-                          // Signal the CURRENT deferred (read from ref to avoid stale reference)
+                          // Signal the CURRENT deferred (read from ref to avoid stale reference).
+                          // .attempt handles already-completed Deferred (multiple tasks finishing concurrently).
                           signalRef.get.flatMap(_.complete(()).attempt.void)
                       )
                       .start
@@ -794,9 +818,14 @@ object TaskDag {
                         if (stillReady.isEmpty && stillToSkip.isEmpty) {
                           // Deadlock: nothing running, nothing ready, nothing to skip, but DAG not complete
                           val remaining = newDag.tasks.keySet -- newDag.finished
+                          val stuckDetails = remaining.toList.map { taskId =>
+                            val task = newDag.tasks(taskId)
+                            val unsatisfied = task.dependencies.filterNot(newDag.finished.contains)
+                            s"  $taskId (waiting for: ${unsatisfied.mkString(", ")})"
+                          }
                           IO.raiseError(
                             new RuntimeException(
-                              s"DAG deadlock: ${remaining.size} tasks stuck with unsatisfied dependencies: ${remaining.mkString(", ")}"
+                              s"DAG deadlock: ${remaining.size} tasks stuck:\n${stuckDetails.mkString("\n")}"
                             )
                           )
                         } else {
@@ -820,8 +849,8 @@ object TaskDag {
 
       for {
         dagRef <- Ref.of[IO, Dag](initialDag)
-        runningRef <- Ref.of[IO, Set[String]](Set.empty)
-        taskKillSignals <- Ref.of[IO, Map[String, Deferred[IO, KillReason]]](Map.empty)
+        runningRef <- Ref.of[IO, Set[TaskId]](Set.empty)
+        taskKillSignals <- Ref.of[IO, Map[TaskId, Deferred[IO, KillReason]]](Map.empty)
         initialSignal <- Deferred[IO, Unit]
         signalRef <- Ref.of[IO, Deferred[IO, Unit]](initialSignal)
         _ <- loop(dagRef, runningRef, taskKillSignals, signalRef)

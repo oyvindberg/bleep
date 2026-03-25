@@ -3,6 +3,8 @@ package bleep.bsp
 import bleep.analysis._
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag._
+import bleep.bsp.protocol.ProcessExit
+import bleep.model.KotlinJsModuleKind
 import cats.effect.{Deferred, IO}
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters._
@@ -83,6 +85,18 @@ object LinkExecutor {
       upToDate
     }
 
+  /** Check if existing JS output is up-to-date. Returns cached result or None if linking is needed. */
+  private def checkJsUpToDate(jsOutputDir: Path, classpath: Seq[Path], logger: LinkLogger): Option[(TaskResult, LinkResult)] = {
+    val existingOutputFiles = findJsOutputFiles(jsOutputDir)
+    val existingMainJs = existingOutputFiles.find(p => p.toString.endsWith(".js") && !p.toString.endsWith(".map"))
+    existingMainJs match {
+      case Some(mainJs) if isUpToDate(mainJs, classpath, logger) =>
+        val sourceMap = existingOutputFiles.find(_.toString.endsWith(".map"))
+        Some((TaskResult.Success, LinkResult.JsSuccess(mainJs, sourceMap, existingOutputFiles, wasUpToDate = true)))
+      case _ => None
+    }
+  }
+
   /** Find all JS output files in a directory. */
   private def findJsOutputFiles(jsOutputDir: Path): Seq[Path] =
     if (!Files.exists(jsOutputDir)) Seq.empty
@@ -160,34 +174,9 @@ object LinkExecutor {
         }
     }
 
-  /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken. */
-  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] = {
-    import java.util.concurrent.atomic.AtomicBoolean
-    import scala.collection.mutable.ListBuffer
-
-    IO.delay {
-      val cancelled = new AtomicBoolean(false)
-      val callbacks = ListBuffer[() => Unit]()
-
-      new CancellationToken {
-        def isCancelled: Boolean = cancelled.get()
-        def cancel(): Unit =
-          if (cancelled.compareAndSet(false, true)) {
-            callbacks.synchronized {
-              callbacks.foreach(cb => cb())
-            }
-          }
-        def onCancel(callback: () => Unit): Unit =
-          callbacks.synchronized {
-            if (cancelled.get()) callback()
-            else callbacks += callback
-          }
-      }
-    }.flatTap { token =>
-      // Start a fiber that watches the kill signal and triggers the token when killed
-      killSignal.get.flatMap(_ => IO.delay(token.cancel())).start.void
-    }
-  }
+  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal. */
+  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] =
+    Outcome.bridgeKillSignal(killSignal)
 
   /** Execute Scala.js linking. */
   private def executeScalaJs(
@@ -203,19 +192,9 @@ object LinkExecutor {
     val jsOutputDir = outputDir.resolve("js")
     val moduleName = projectName.replace("-", "_")
 
-    // Check if up-to-date by finding existing JS output
-    val existingOutputFiles = findJsOutputFiles(jsOutputDir)
-    val existingMainJs = existingOutputFiles.find(p => p.toString.endsWith(".js") && !p.toString.endsWith(".map"))
-
-    existingMainJs match {
-      case Some(mainJs) if isUpToDate(mainJs, classpath, logger) =>
-        // Up-to-date - return cached result
-        val sourceMap = existingOutputFiles.find(_.toString.endsWith(".map"))
-        IO.pure((TaskResult.Success, LinkResult.JsSuccess(mainJs, sourceMap, existingOutputFiles, wasUpToDate = true)))
-
-      case _ =>
-        // Need to link
-        doScalaJsLink(platform, classpath, mainClass, jsOutputDir, moduleName, logger, killSignal, isTest)
+    checkJsUpToDate(jsOutputDir, classpath, logger) match {
+      case Some(cached) => IO.pure(cached)
+      case None         => doScalaJsLink(platform, classpath, mainClass, jsOutputDir, moduleName, logger, killSignal, isTest)
     }
   }
 
@@ -232,13 +211,7 @@ object LinkExecutor {
     bridgeKillSignal(killSignal).flatMap { cancellation =>
       val toolchain = ScalaJsToolchain.forVersion(platform.version, platform.scalaVersion)
 
-      val scalaJsLogger = new ScalaJsToolchain.Logger {
-        def trace(message: => String): Unit = logger.trace(message)
-        def debug(message: => String): Unit = logger.debug(message)
-        def info(message: => String): Unit = logger.info(message)
-        def warn(message: => String): Unit = logger.warn(message)
-        def error(message: => String): Unit = logger.error(message)
-      }
+      val scalaJsLogger = LinkLogger.toScalaJsLogger(logger)
 
       logger.info(s"[LINK] Starting Scala.js link: classpath=${classpath.size} files, outputDir=$jsOutputDir, isTest=$isTest")
 
@@ -264,22 +237,7 @@ object LinkExecutor {
           }
         }
 
-      Outcome
-        .raceKill(killSignal)(work)
-        .map {
-          case Left(result)  => result
-          case Right(reason) => (TaskResult.Killed(reason), LinkResult.Cancelled)
-        }
-        .handleErrorWith {
-          case _: java.util.concurrent.CancellationException =>
-            killSignal.tryGet.map {
-              case Some(reason) => (TaskResult.Killed(reason), LinkResult.Cancelled)
-              case None         => (TaskResult.Killed(KillReason.UserRequest), LinkResult.Cancelled)
-            }
-          case ex =>
-            // Process-level crash (not a linker error)
-            IO.pure((TaskResult.Error(s"Scala.js linker crashed: ${ex.getMessage}", None, None), LinkResult.Failure(ex.getMessage, List.empty)))
-        }
+      Outcome.raceLinkWork(killSignal, "Scala.js")(work)
     }
 
   /** Execute Scala Native linking. */
@@ -317,14 +275,7 @@ object LinkExecutor {
       val workDir = outputDir.resolve("native-work")
 
       IO.blocking(Files.createDirectories(workDir)) >> {
-        val nativeLogger = new ScalaNativeToolchain.Logger {
-          def trace(message: => String): Unit = logger.trace(message)
-          def debug(message: => String): Unit = logger.debug(message)
-          def info(message: => String): Unit = logger.info(message)
-          def warn(message: => String): Unit = logger.warn(message)
-          def error(message: => String): Unit = logger.error(message)
-          def running(command: Seq[String]): Unit = logger.info(s"Running: ${command.mkString(" ")}")
-        }
+        val nativeLogger = LinkLogger.toScalaNativeLogger(logger)
 
         val work = toolchain
           .link(
@@ -342,29 +293,15 @@ object LinkExecutor {
             } else {
               // Non-zero exit code from linker - this is an infrastructure error (process crashed or linker bug)
               val exitCode = result.exitCode
-              val signal = if (exitCode > 128) Some(exitCode - 128) else None
+              val processExit = if (exitCode > 128) ProcessExit.Signal(exitCode - 128) else ProcessExit.ExitCode(exitCode)
               (
-                TaskResult.Error(s"Scala Native linking failed with exit code $exitCode", Some(exitCode), signal),
+                TaskResult.Error(s"Scala Native linking failed with exit code $exitCode", processExit),
                 LinkResult.Failure(s"Exit code: $exitCode", List.empty)
               )
             }
           }
 
-        Outcome
-          .raceKill(killSignal)(work)
-          .map {
-            case Left(result)  => result
-            case Right(reason) => (TaskResult.Killed(reason), LinkResult.Cancelled)
-          }
-          .handleErrorWith {
-            case _: java.util.concurrent.CancellationException =>
-              killSignal.tryGet.map {
-                case Some(reason) => (TaskResult.Killed(reason), LinkResult.Cancelled)
-                case None         => (TaskResult.Killed(KillReason.UserRequest), LinkResult.Cancelled)
-              }
-            case ex =>
-              IO.pure((TaskResult.Error(s"Scala Native linker crashed: ${ex.getMessage}", None, None), LinkResult.Failure(ex.getMessage, List.empty)))
-          }
+        Outcome.raceLinkWork(killSignal, "Scala Native")(work)
       }
     }
 
@@ -383,19 +320,9 @@ object LinkExecutor {
     val jsOutputDir = outputDir.resolve("js")
     val moduleName = projectName.replace("-", "_")
 
-    // Check if up-to-date by finding existing JS output
-    val existingOutputFiles = findJsOutputFiles(jsOutputDir)
-    val existingMainJs = existingOutputFiles.find(p => p.toString.endsWith(".js") && !p.toString.endsWith(".map"))
-
-    existingMainJs match {
-      case Some(mainJs) if isUpToDate(mainJs, classpath, logger) =>
-        // Up-to-date - return cached result
-        val sourceMap = existingOutputFiles.find(_.toString.endsWith(".map"))
-        IO.pure((TaskResult.Success, LinkResult.JsSuccess(mainJs, sourceMap, existingOutputFiles, wasUpToDate = true)))
-
-      case _ =>
-        // Need to link
-        doKotlinJsLink(projectName, platform, classpath, jsOutputDir, moduleName, logger, killSignal)
+    checkJsUpToDate(jsOutputDir, classpath, logger) match {
+      case Some(cached) => IO.pure(cached)
+      case None         => doKotlinJsLink(projectName, platform, classpath, jsOutputDir, moduleName, logger, killSignal)
     }
   }
 
@@ -416,16 +343,12 @@ object LinkExecutor {
           Seq(p)
         } else if (Files.isDirectory(p)) {
           // Check directory for KLIB files
-          try
-            scala.util
-              .Using(Files.list(p)) { stream =>
-                import scala.jdk.CollectionConverters._
-                stream.iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
-              }
-              .getOrElse(Seq.empty)
-          catch {
-            case _: Exception => Seq.empty
-          }
+          scala.util
+            .Using(Files.list(p)) { stream =>
+              import scala.jdk.CollectionConverters._
+              stream.iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
+            }
+            .get
         } else {
           Seq.empty
         }
@@ -440,11 +363,11 @@ object LinkExecutor {
 
         // Create compiler config for linking
         val moduleKind = platform.config.moduleKind match {
-          case "umd"             => KotlinJsCompilerConfig.ModuleKind.UMD
-          case "commonjs"        => KotlinJsCompilerConfig.ModuleKind.CommonJS
-          case "amd"             => KotlinJsCompilerConfig.ModuleKind.AMD
-          case "es" | "esmodule" => KotlinJsCompilerConfig.ModuleKind.ESModule
-          case _                 => KotlinJsCompilerConfig.ModuleKind.Plain
+          case KotlinJsModuleKind.UMD      => KotlinJsCompilerConfig.ModuleKind.UMD
+          case KotlinJsModuleKind.CommonJS => KotlinJsCompilerConfig.ModuleKind.CommonJS
+          case KotlinJsModuleKind.AMD      => KotlinJsCompilerConfig.ModuleKind.AMD
+          case KotlinJsModuleKind.ESModule => KotlinJsCompilerConfig.ModuleKind.ESModule
+          case KotlinJsModuleKind.Plain    => KotlinJsCompilerConfig.ModuleKind.Plain
         }
 
         val config = KotlinJsCompilerConfig(
@@ -476,16 +399,12 @@ object LinkExecutor {
             logger.info(s"[LINK] Kotlin/JS link result: isSuccess=${result.isSuccess}, jsFile=${result.jsFile}")
             if (result.isSuccess && result.jsFile.isDefined) {
               val allFiles =
-                try
-                  scala.util
-                    .Using(Files.list(jsOutputDir)) { stream =>
-                      import scala.jdk.CollectionConverters._
-                      stream.iterator().asScala.toSeq
-                    }
-                    .getOrElse(Seq.empty)
-                catch {
-                  case _: Exception => Seq.empty
-                }
+                scala.util
+                  .Using(Files.list(jsOutputDir)) { stream =>
+                    import scala.jdk.CollectionConverters._
+                    stream.iterator().asScala.toSeq
+                  }
+                  .get
               val sourceMap = allFiles.find(_.toString.endsWith(".map"))
               (TaskResult.Success, LinkResult.JsSuccess(result.jsFile.get, sourceMap, allFiles, wasUpToDate = false))
             } else {
@@ -494,21 +413,7 @@ object LinkExecutor {
             }
           }
 
-        Outcome
-          .raceKill(killSignal)(work)
-          .map {
-            case Left(result)  => result
-            case Right(reason) => (TaskResult.Killed(reason), LinkResult.Cancelled)
-          }
-          .handleErrorWith {
-            case _: java.util.concurrent.CancellationException =>
-              killSignal.tryGet.map {
-                case Some(reason) => (TaskResult.Killed(reason), LinkResult.Cancelled)
-                case None         => (TaskResult.Killed(KillReason.UserRequest), LinkResult.Cancelled)
-              }
-            case ex =>
-              IO.pure((TaskResult.Error(s"Kotlin/JS linker crashed: ${ex.getMessage}", None, None), LinkResult.Failure(ex.getMessage, List.empty)))
-          }
+        Outcome.raceLinkWork(killSignal, "Kotlin/JS")(work)
       }
     }
 
@@ -574,10 +479,10 @@ object LinkExecutor {
               Seq(path)
             } else {
               scala.util
-                .Try {
-                  Files.list(path).iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
+                .Using(Files.list(path)) { stream =>
+                  stream.iterator().asScala.filter(_.toString.endsWith(".klib")).toSeq
                 }
-                .getOrElse(Seq.empty)
+                .get
             }
           } else {
             Seq.empty
@@ -722,6 +627,25 @@ object LinkExecutor {
       def info(message: String): Unit = server.sendLogMessage(message, MessageType.Info)
       def warn(message: String): Unit = server.sendLogMessage(message, MessageType.Warning)
       def error(message: String): Unit = server.sendLogMessage(message, MessageType.Error)
+    }
+
+    /** Adapt a LinkLogger to ScalaJsToolchain.Logger (by-name parameters). */
+    def toScalaJsLogger(logger: LinkLogger): ScalaJsToolchain.Logger = new ScalaJsToolchain.Logger {
+      def trace(message: => String): Unit = logger.trace(message)
+      def debug(message: => String): Unit = logger.debug(message)
+      def info(message: => String): Unit = logger.info(message)
+      def warn(message: => String): Unit = logger.warn(message)
+      def error(message: => String): Unit = logger.error(message)
+    }
+
+    /** Adapt a LinkLogger to ScalaNativeToolchain.Logger (by-name parameters + running). */
+    def toScalaNativeLogger(logger: LinkLogger): ScalaNativeToolchain.Logger = new ScalaNativeToolchain.Logger {
+      def trace(message: => String): Unit = logger.trace(message)
+      def debug(message: => String): Unit = logger.debug(message)
+      def info(message: => String): Unit = logger.info(message)
+      def warn(message: => String): Unit = logger.warn(message)
+      def error(message: => String): Unit = logger.error(message)
+      def running(command: Seq[String]): Unit = logger.info(s"Running: ${command.mkString(" ")}")
     }
 
   }

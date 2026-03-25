@@ -350,6 +350,7 @@ case class ReactiveBsp(
         case ReactiveBsp.BspAttemptResult.ServerCrashed =>
           IO(bspLogger.warn("BSP server crashed, restarting and retrying...")) >>
             IO(diagLog("[RETRY] Server crashed, killing stale server and retrying")) >>
+            display.reset >> // Reset display state to avoid double-counting events from crashed attempt
             BspRifle.forceStop(config) >>
             BspRifle.ensureRunning(config, bspLogger) >>
             attemptBspOperation.void
@@ -575,7 +576,6 @@ case class ReactiveBsp(
                   eventQueue.offer(
                     Some(
                       BuildEvent.TestRunCompleted(
-                        project = "",
                         totalPassed = result.totalPassed,
                         totalFailed = result.totalFailed,
                         totalSkipped = result.totalSkipped,
@@ -742,8 +742,8 @@ class ReactiveBspClient(
     if (Option(params.getDataKind).contains("compile-report")) {
       Option(params.getData).foreach { data =>
         extractBuildTarget(data).foreach { project =>
-          val status = if (params.getStatus == bsp4j.StatusCode.OK) "success" else "failed"
-          emit(BuildEvent.CompileFinished(project, status, 0, System.currentTimeMillis()))
+          val status = if (params.getStatus == bsp4j.StatusCode.OK) bleep.bsp.protocol.CompileStatus.Success else bleep.bsp.protocol.CompileStatus.Failed
+          emit(BuildEvent.CompileFinished(project, status, 0, System.currentTimeMillis(), Nil, None))
         }
       }
     }
@@ -763,7 +763,7 @@ class ReactiveBspClient(
     delegate.onRunPrintStderr(params)
 
   /** Extract build target ID from bsp4j params data */
-  private def extractBuildTarget(data: AnyRef): Option[String] =
+  private def extractBuildTarget(data: AnyRef): Option[model.CrossProjectName] =
     try
       data match {
         case obj: com.google.gson.JsonObject =>
@@ -775,7 +775,7 @@ class ReactiveBspClient(
             case str: com.google.gson.JsonPrimitive => str.getAsString
             case _                                  => return None
           }
-          uri.split("\\?id=").lastOption
+          uri.split("\\?id=").lastOption.flatMap(model.CrossProjectName.fromString)
         case _ => None
       }
     catch {
@@ -818,8 +818,7 @@ class ReactiveBspClient(
         Some(BuildEvent.TestStarted(project, suite, test, timestamp))
 
       case PE.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp) =>
-        val testStatus = bleep.testing.TestStatus.fromString(status)
-        Some(BuildEvent.TestFinished(project, suite, test, testStatus, durationMs, message, throwable, timestamp))
+        Some(BuildEvent.TestFinished(project, suite, test, status, durationMs, message, throwable, timestamp))
 
       case PE.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp) =>
         Some(BuildEvent.SuiteFinished(project, suite, passed, failed, skipped, ignored, durationMs, timestamp))
@@ -827,8 +826,8 @@ class ReactiveBspClient(
       case PE.SuiteTimedOut(project, suite, timeoutMs, threadDump, timestamp) =>
         Some(BuildEvent.SuiteTimedOut(project, suite, timeoutMs, threadDump.map(d => bleep.testing.ThreadDumpInfo(0, Some(d), None)), timestamp))
 
-      case PE.SuiteError(project, suite, error, exitCode, signal, durationMs, timestamp) =>
-        Some(BuildEvent.SuiteError(project, suite, error, exitCode, signal, durationMs, timestamp))
+      case PE.SuiteError(project, suite, error, processExit, durationMs, timestamp) =>
+        Some(BuildEvent.SuiteError(project, suite, error, processExit, durationMs, timestamp))
 
       case PE.SuiteCancelled(project, suite, reason, timestamp) =>
         Some(BuildEvent.SuiteCancelled(project, suite, reason, timestamp))
@@ -836,11 +835,11 @@ class ReactiveBspClient(
       case PE.ProjectSkipped(project, reason, timestamp) =>
         Some(BuildEvent.ProjectSkipped(project, reason, timestamp))
 
-      case PE.Output(project, suite, line, isError, timestamp) =>
-        Some(BuildEvent.Output(project, suite, line, isError, timestamp))
+      case PE.Output(project, suite, line, channel, timestamp) =>
+        Some(BuildEvent.Output(project, suite, line, channel, timestamp))
 
       case PE.Error(message, details, timestamp) =>
-        Some(BuildEvent.Error("", message, details, timestamp))
+        Some(BuildEvent.Error(message, details, timestamp))
 
       case PE.LinkStarted(project, platform, timestamp) =>
         Some(BuildEvent.LinkStarted(project, platform, timestamp))
@@ -858,10 +857,10 @@ class ReactiveBspClient(
         Some(BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, timestamp))
 
       case PE.WorkspaceBusy(operation, projects, startedAgoMs, timestamp) =>
-        Some(BuildEvent.WorkspaceBusy("", operation, projects, startedAgoMs, timestamp))
+        Some(BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, timestamp))
 
       case PE.WorkspaceReady(timestamp) =>
-        Some(BuildEvent.WorkspaceReady("", timestamp))
+        Some(BuildEvent.WorkspaceReady(timestamp))
 
       case PE.LockContention(project, waitingMs, timestamp) =>
         Some(BuildEvent.LockContention(project, waitingMs, timestamp))

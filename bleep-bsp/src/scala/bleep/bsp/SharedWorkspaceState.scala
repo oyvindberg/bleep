@@ -3,53 +3,76 @@ package bleep.bsp
 import bleep.analysis.CancellationToken
 
 import java.nio.file.Path
-import java.util.concurrent.{CompletableFuture, ConcurrentHashMap}
+import java.util.concurrent.ConcurrentHashMap
+import scala.jdk.CollectionConverters.*
 
-/** Tracks active work per workspace in server memory.
+/** Tracks active operations per workspace in server memory.
   *
-  * Replaces the file-based ActiveWork mechanism. When a workspace is busy, other connections wait on the completion future.
+  * Multiple operations can run concurrently on the same workspace. This registry is for visibility and debugging — it does NOT block. Fine-grained
+  * per-project serialization is handled by ProjectLock.
   */
 object SharedWorkspaceState {
 
   case class ActiveWork(
+      operationId: String,
       operation: String,
       projects: Set[String],
       cancellationToken: CancellationToken,
-      completion: CompletableFuture[Unit],
       startTimeMs: Long,
       forceKill: Runnable
   )
 
-  private val activeWork = new ConcurrentHashMap[Path, ActiveWork]()
+  // workspace -> (operationId -> work)
+  private val activeWork = new ConcurrentHashMap[Path, ConcurrentHashMap[String, ActiveWork]]()
 
-  /** Try to register active work. Returns true if successfully registered (workspace was free). */
-  def trySetActive(workspace: Path, work: ActiveWork): Boolean =
-    activeWork.putIfAbsent(workspace, work) == null
-
-  /** Clear active work for a workspace and complete its future.
-    *
-    * Only removes the entry if it matches the expected ActiveWork instance. This prevents a disconnecting connection from clearing a DIFFERENT connection's
-    * workspace registration.
-    */
-  def clearActive(workspace: Path, expected: ActiveWork): Unit =
-    if (activeWork.remove(workspace, expected)) {
-      expected.completion.complete(())
-    }
-
-  /** Clear active work unconditionally (used during connection cleanup as best-effort). */
-  def clearActiveUnconditional(workspace: Path): Unit = {
-    val work = activeWork.remove(workspace)
-    if (work != null) work.completion.complete(())
+  /** Register an operation. Always succeeds — multiple operations can be active per workspace. */
+  def register(workspace: Path, work: ActiveWork): Unit = {
+    val ops = activeWork.computeIfAbsent(workspace, _ => new ConcurrentHashMap[String, ActiveWork]())
+    ops.put(work.operationId, work)
   }
 
-  /** Get active work for a workspace, if any. */
-  def getActive(workspace: Path): Option[ActiveWork] =
-    Option(activeWork.get(workspace))
+  /** Unregister a specific operation by ID. */
+  def unregister(workspace: Path, operationId: String): Unit = {
+    val ops = activeWork.get(workspace)
+    if (ops != null) {
+      ops.remove(operationId)
+      // Clean up empty inner maps to avoid memory leak
+      if (ops.isEmpty) activeWork.remove(workspace, ops)
+    }
+  }
 
-  /** Cancel active work for a workspace — cancels token and force-kills child processes. */
-  def cancelActive(workspace: Path): Unit =
-    getActive(workspace).foreach { work =>
+  /** Unregister specific operations by ID (connection cleanup). */
+  def unregisterAll(workspace: Path, operationIds: Iterable[String]): Unit = {
+    val ops = activeWork.get(workspace)
+    if (ops != null) {
+      operationIds.foreach(ops.remove)
+      if (ops.isEmpty) activeWork.remove(workspace, ops)
+    }
+  }
+
+  /** Get all active operations for a workspace. */
+  def getActiveOperations(workspace: Path): List[ActiveWork] = {
+    val ops = activeWork.get(workspace)
+    if (ops == null) Nil
+    else ops.values().asScala.toList
+  }
+
+  /** Cancel all active operations for a workspace — cancels tokens and force-kills child processes. */
+  def cancelAll(workspace: Path): Unit =
+    getActiveOperations(workspace).foreach { work =>
       work.cancellationToken.cancel()
       work.forceKill.run()
     }
+
+  /** Cancel a specific operation by ID. */
+  def cancelOperation(workspace: Path, operationId: String): Unit = {
+    val ops = activeWork.get(workspace)
+    if (ops != null) {
+      val work = ops.get(operationId)
+      if (work != null) {
+        work.cancellationToken.cancel()
+        work.forceKill.run()
+      }
+    }
+  }
 }

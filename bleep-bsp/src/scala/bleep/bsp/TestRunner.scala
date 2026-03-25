@@ -1,8 +1,8 @@
 package bleep.bsp
 
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.protocol.BleepBspProtocol
-import bleep.model.CrossProjectName
+import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, ProcessExit, TestStatus}
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 import bleep.testing.{JvmPool, TestJvm, TestProtocol}
 import cats.effect._
 import cats.effect.std.Queue
@@ -60,7 +60,7 @@ object TestRunner {
       framework: String,
       classpath: List[Path],
       pool: JvmPool,
-      eventQueue: Queue[IO, TaskDag.DagEvent],
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       options: Options,
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
@@ -89,14 +89,14 @@ object TestRunner {
       suiteName: String,
       framework: String,
       jvm: TestJvm,
-      eventQueue: Queue[IO, TaskDag.DagEvent],
+      eventQueue: Queue[IO, Option[TaskDag.DagEvent]],
       testArgs: List[String],
       idleTimeout: FiniteDuration,
       killSignal: Deferred[IO, KillReason]
   ): IO[TaskDag.TaskResult] = {
     def now: IO[Long] = IO.realTime.map(_.toMillis)
 
-    def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(event)
+    def emit(event: TaskDag.DagEvent): IO[Unit] = eventQueue.offer(Some(event))
 
     val startTime = System.currentTimeMillis()
 
@@ -115,28 +115,22 @@ object TestRunner {
           .runSuite(suiteName, framework, testArgs)
           .evalMap {
             case TestProtocol.TestResponse.TestStarted(_, test) =>
-              now.flatMap(ts => emit(TaskDag.DagEvent.TestStarted(project.value, suiteName, test, ts)))
+              now.flatMap(ts => lastActivityAt.set(ts) >> emit(TaskDag.DagEvent.TestStarted(project, SuiteName(suiteName), TestName(test), ts)))
 
-            case TestProtocol.TestResponse.TestFinished(_, test, status, durationMs, message, throwable) =>
-              val updateCount = status match {
-                case "passed" =>
-                  passedCount.update(_ + 1)
-                case "failed" | "error" =>
-                  failedCount.update(_ + 1) >>
-                    failures.update(test :: _)
-                case "skipped" | "ignored" | "pending" | "cancelled" =>
-                  skippedCount.update(_ + 1)
-                case _ =>
-                  IO.unit
-              }
+            case TestProtocol.TestResponse.TestFinished(_, test, statusStr, durationMs, message, throwable) =>
+              val status = TestStatus.fromString(statusStr)
+              val updateCount =
+                if (status == TestStatus.Passed) passedCount.update(_ + 1)
+                else if (status.isFailure) failedCount.update(_ + 1) >> failures.update(test :: _)
+                else skippedCount.update(_ + 1)
               updateCount >> now.flatMap { ts =>
                 // Reset idle timeout on each test completion
                 lastActivityAt.set(ts) >>
                   emit(
                     TaskDag.DagEvent.TestFinished(
-                      project = project.value,
-                      suite = suiteName,
-                      test = test,
+                      project = project,
+                      suite = SuiteName(suiteName),
+                      test = TestName(test),
                       status = status,
                       durationMs = durationMs,
                       message = message,
@@ -147,15 +141,17 @@ object TestRunner {
               }
 
             case TestProtocol.TestResponse.SuiteDone(_, passed, failed, skipped, _, _) =>
-              // Update counts from suite done if we haven't tracked individual tests
-              passedCount.update(c => if (c == 0) passed else c) >>
-                failedCount.update(c => if (c == 0) failed else c) >>
-                skippedCount.update(c => if (c == 0) skipped else c)
+              // Use the higher of accumulated individual counts vs authoritative SuiteDone.
+              // Individual TestFinished events may be partially received (stream ended early),
+              // so SuiteDone provides a correction floor.
+              passedCount.update(c => math.max(c, passed)) >>
+                failedCount.update(c => math.max(c, failed)) >>
+                skippedCount.update(c => math.max(c, skipped))
 
             case TestProtocol.TestResponse.Log(level, message, suite) =>
               val isError = level == "error" || level == "stderr"
               val effectiveSuite = suite.getOrElse(suiteName)
-              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project.value, effectiveSuite, message, isError, ts)))
+              now.flatMap(ts => emit(TaskDag.DagEvent.Output(project, SuiteName(effectiveSuite), message, OutputChannel.fromIsError(isError), ts)))
 
             case TestProtocol.TestResponse.Error(message, _) =>
               // Protocol errors - emit as test failure
@@ -199,36 +195,37 @@ object TestRunner {
             .flatMap { stderrLines =>
               if (stderrLines.nonEmpty) {
                 now.flatMap { ts =>
-                  stderrLines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, true, ts)))
+                  stderrLines.traverse_(line => emit(TaskDag.DagEvent.Output(project, SuiteName(suiteName), line, OutputChannel.Stderr, ts)))
                 }
               } else IO.unit
             }
-            .handleError(_ => ()) >> outcome.embedError.flatMap { result =>
-            val durationMs = System.currentTimeMillis() - startTime
-            // Emit SuiteFinished with actual counts
-            now.flatMap { ts =>
-              emit(
-                TaskDag.DagEvent.SuiteFinished(
-                  project.value,
-                  suiteName,
-                  result.passed,
-                  result.failed,
-                  result.skipped,
-                  0,
-                  durationMs,
-                  ts
+            .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}")) >> outcome.embedError.flatMap {
+            result =>
+              val durationMs = System.currentTimeMillis() - startTime
+              // Emit SuiteFinished with actual counts
+              now.flatMap { ts =>
+                emit(
+                  TaskDag.DagEvent.SuiteFinished(
+                    project,
+                    SuiteName(suiteName),
+                    result.passed,
+                    result.failed,
+                    result.skipped,
+                    0,
+                    durationMs,
+                    ts
+                  )
                 )
-              )
-            } >> IO.pure {
-              if (result.failed > 0) {
-                TaskDag.TaskResult.Failure(
-                  error = s"${result.failed} test(s) failed",
-                  diagnostics = result.failures.map(BleepBspProtocol.Diagnostic.error)
-                )
-              } else {
-                TaskDag.TaskResult.Success
+              } >> IO.pure {
+                if (result.failed > 0) {
+                  TaskDag.TaskResult.Failure(
+                    error = s"${result.failed} test(s) failed",
+                    diagnostics = result.failures.map(BleepBspProtocol.Diagnostic.error)
+                  )
+                } else {
+                  TaskDag.TaskResult.Success
+                }
               }
-            }
           }
 
         case Right((suiteFiber, raceOutcome)) =>
@@ -240,11 +237,11 @@ object TestRunner {
               .flatMap { lines =>
                 if (lines.nonEmpty) {
                   now.flatMap { ts =>
-                    lines.traverse_(line => emit(TaskDag.DagEvent.Output(project.value, suiteName, line, true, ts)))
+                    lines.traverse_(line => emit(TaskDag.DagEvent.Output(project, SuiteName(suiteName), line, OutputChannel.Stderr, ts)))
                   }
                 } else IO.unit
               }
-              .handleError(_ => ())
+              .handleError(e => System.err.println(s"[TestRunner] stderr drain failed: ${e.getClass.getName}: ${e.getMessage}"))
 
           // Helper for cleanup - uncancelable and recovers from errors
           def cleanup: IO[Unit] = IO.uncancelable { _ =>
@@ -271,8 +268,7 @@ object TestRunner {
               cleanup >> IO.pure(
                 TaskDag.TaskResult.Error(
                   error = s"Error during test: ${e.getMessage}",
-                  exitCode = None,
-                  signal = None
+                  processExit = ProcessExit.Unknown
                 )
               )
             case Outcome.Canceled() =>

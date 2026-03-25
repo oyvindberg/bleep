@@ -3,97 +3,16 @@ package bleep.bsp
 import bleep.analysis._
 import bleep.bsp.Outcome.KillReason
 import bleep.bsp.TaskDag.LinkResult
-import cats.effect.{Deferred, IO, Ref}
+import bleep.bsp.TestRunnerTypes.{RunnerEvent, TerminationReason, TestEventHandler, TestResult, TestSuite}
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
+import cats.effect.{Deferred, IO}
 import cats.effect.std.Semaphore
 import cats.syntax.all._
 import java.nio.file.{Files, Path}
-import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
 /** Runner for Scala Native tests. */
 object ScalaNativeTestRunner {
-
-  /** Test event handler for receiving test execution events. */
-  trait TestEventHandler {
-    def onTestStarted(suite: String, test: String): Unit
-    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit
-    def onSuiteStarted(suite: String): Unit
-    def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit
-    def onOutput(suite: String, line: String, isError: Boolean): Unit
-    def onRunnerEvent(event: RunnerEvent): Unit = ()
-  }
-
-  /** Events from the test runner about execution status. */
-  sealed trait RunnerEvent
-  object RunnerEvent {
-    case object Started extends RunnerEvent
-    case class Killed(reason: KillReason) extends RunnerEvent
-    case class ProcessExited(exitCode: Int) extends RunnerEvent
-    case class ProcessCrashed(signal: String, exitCode: Int) extends RunnerEvent
-    case class Error(message: String, cause: Option[Throwable]) extends RunnerEvent
-  }
-
-  /** Test execution status. */
-  sealed trait TestStatus
-  object TestStatus {
-    case object Passed extends TestStatus
-    case object Failed extends TestStatus
-    case object Skipped extends TestStatus
-    case object Ignored extends TestStatus
-    case object Cancelled extends TestStatus
-  }
-
-  /** Result of test execution. */
-  case class TestResult(
-      passed: Int,
-      failed: Int,
-      skipped: Int,
-      ignored: Int,
-      terminationReason: TerminationReason
-  ) {
-    def isSuccess: Boolean = failed == 0 && terminationReason == TerminationReason.Completed
-  }
-
-  /** Why the test run terminated. */
-  sealed trait TerminationReason {
-    def description: String
-  }
-  object TerminationReason {
-    case object Completed extends TerminationReason { val description = "completed normally" }
-    case class Killed(reason: KillReason) extends TerminationReason {
-      val description: String = reason match {
-        case KillReason.UserRequest    => "cancelled by user"
-        case KillReason.Timeout        => "timed out"
-        case KillReason.ParentDying    => "parent process dying"
-        case KillReason.ServerShutdown => "server shutting down"
-        case KillReason.DeadClient     => "client disconnected"
-      }
-    }
-    case class Crashed(signal: Int) extends TerminationReason {
-      val description: String = signal match {
-        case 11 => "crashed (SIGSEGV - segmentation fault)"
-        case 6  => "crashed (SIGABRT - aborted)"
-        case 9  => "killed (SIGKILL)"
-        case 15 => "terminated (SIGTERM)"
-        case n  => s"crashed (signal $n)"
-      }
-    }
-    case class ExitCode(code: Int) extends TerminationReason {
-      val description = s"exited with code $code"
-    }
-    case class Error(message: String) extends TerminationReason {
-      val description = s"error: $message"
-    }
-    case class TruncatedOutput(suite: String) extends TerminationReason {
-      val description = s"process exited with truncated output (suite '$suite' started but never finished)"
-    }
-  }
-
-  /** A test suite. */
-  case class TestSuite(
-      name: String,
-      fullyQualifiedName: String
-  )
 
   /** Detected test framework. */
   sealed trait TestFramework {
@@ -106,34 +25,9 @@ object ScalaNativeTestRunner {
     case object Unknown extends TestFramework { val name = "unknown" }
   }
 
-  /** Bridge a Deferred kill signal to CancellationToken for toolchains that still use CancellationToken. */
-  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] = {
-    import java.util.concurrent.atomic.AtomicBoolean
-    import scala.collection.mutable.ListBuffer
-
-    IO.delay {
-      val cancelled = new AtomicBoolean(false)
-      val callbacks = ListBuffer[() => Unit]()
-
-      new CancellationToken {
-        def isCancelled: Boolean = cancelled.get()
-        def cancel(): Unit =
-          if (cancelled.compareAndSet(false, true)) {
-            callbacks.synchronized {
-              callbacks.foreach(cb => cb())
-            }
-          }
-        def onCancel(callback: () => Unit): Unit =
-          callbacks.synchronized {
-            if (cancelled.get()) callback()
-            else callbacks += callback
-          }
-      }
-    }.flatTap { token =>
-      // Start a fiber that watches the kill signal and triggers the token when killed
-      killSignal.get.flatMap(_ => IO.delay(token.cancel())).start.void
-    }
-  }
+  /** Bridge a Deferred kill signal to CancellationToken. Delegates to Outcome.bridgeKillSignal. */
+  private def bridgeKillSignal(killSignal: Deferred[IO, KillReason]): IO[CancellationToken] =
+    Outcome.bridgeKillSignal(killSignal)
 
   /** Link a native test binary with embedded test runner. */
   def linkTestBinary(
@@ -196,21 +90,22 @@ object ScalaNativeTestRunner {
           .start(pb)
           .use { process =>
             ProcessRunner.lines(process.getInputStream).compile.toList.flatMap { outputLines =>
-              IO.blocking(process.waitFor()).map { exitCode =>
+              IO.blocking(process.waitFor()).flatMap { exitCode =>
                 if (exitCode == 0) {
-                  outputLines
-                    .filter(_.nonEmpty)
-                    .map { line =>
-                      val name = line.split('.').lastOption.getOrElse(line)
-                      TestSuite(name, line.trim)
-                    }
+                  IO.pure(
+                    outputLines
+                      .filter(_.nonEmpty)
+                      .map { line =>
+                        val name = line.split('.').lastOption.getOrElse(line)
+                        TestSuite(name, line.trim)
+                      }
+                  )
                 } else {
-                  discoverFromClasspath(classpath)
+                  IO.raiseError(new RuntimeException(s"Native test discovery failed with exit code $exitCode"))
                 }
               }
             }
           }
-          .handleError(_ => discoverFromClasspath(classpath))
 
         Outcome.raceKill(killSignal)(work).map {
           case Left(result)  => ProcessRunner.DiscoveryResult.Found(result)
@@ -247,7 +142,7 @@ object ScalaNativeTestRunner {
           val simpleName = fqn.split('.').lastOption.getOrElse(fqn)
           TestSuite(simpleName, fqn)
         }
-    }.getOrElse(List.empty)
+    }.get // Fail loudly if directory walk fails (permission error, etc.)
   }
 
   /** Run tests in a Scala Native binary. */
@@ -286,91 +181,25 @@ object ScalaNativeTestRunner {
               case TestFramework.Unknown   => new GenericOutputParser(eventHandler)
             }
 
-            val work = ProcessRunner.start(pb).use { process =>
-              // Kill process and all descendants when kill signal fires.
-              // Must kill descendants too: destroyForcibly on a shell script kills
-              // the shell but child processes inherit the pipe, blocking readLine.
-              killSignal.get
-                .flatMap(_ =>
-                  IO.blocking {
-                    process.descendants().forEach(_.destroyForcibly())
-                    process.destroyForcibly()
-                    ()
-                  }
-                )
-                .start
-                .flatMap { killFiber =>
-                  IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)) >> {
-                    val stdout = ProcessRunner.lines(process.getInputStream).evalMap { line =>
-                      parserLock.permit.surround(IO.delay(parser.parseLine(line)))
-                    }
-                    val stderr = ProcessRunner.lines(process.getErrorStream).evalMap { line =>
-                      parserLock.permit.surround(IO.delay(parser.parseError(line)))
-                    }
-
-                    (stdout.compile.drain, stderr.compile.drain).parTupled.void >>
-                      IO.blocking(process.waitFor()).flatMap { exitCode =>
-                        // Check if process was killed by our kill watcher
-                        killSignal.tryGet.map {
-                          case Some(reason) =>
-                            eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                            val counts = parser.getCounts
-                            TestResult(counts._1, counts._2, counts._3, counts._4, TerminationReason.Killed(reason))
-                          case None =>
-                            val truncatedSuite = parser.unfinishedSuite
-                            val counts = parser.getCounts
-                            var (passed, failed, skipped, ignored) = counts
-
-                            // Determine termination reason based on exit code and test results.
-                            val terminationReason =
-                              if (exitCode > 128) {
-                                val signal = exitCode - 128
-                                if (truncatedSuite.isDefined) {
-                                  val suite = truncatedSuite.get
-                                  failed += 1
-                                  eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
-                                  TerminationReason.TruncatedOutput(suite)
-                                } else {
-                                  eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"signal $signal", exitCode))
-                                  TerminationReason.Crashed(signal)
-                                }
-                              } else if (passed > 0 || failed > 0) {
-                                // Tests ran - non-zero exit just means test failures.
-                                // An unfinished suite here is a parser artifact (last suite
-                                // has no explicit close), not actual truncation.
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
-                                TerminationReason.Completed
-                              } else if (truncatedSuite.isDefined) {
-                                // No tests completed but suite started - process died mid-startup
-                                val suite = truncatedSuite.get
-                                failed += 1
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessCrashed(s"truncated output for suite '$suite'", exitCode))
-                                TerminationReason.TruncatedOutput(suite)
-                              } else if (exitCode == 0) {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
-                                TerminationReason.Completed
-                              } else {
-                                eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(exitCode))
-                                failed = 1
-                                TerminationReason.ExitCode(exitCode)
-                              }
-
-                            TestResult(passed, failed, skipped, ignored, terminationReason)
-                        }
-                      }
-                  }.guarantee(killFiber.cancel)
-                }
-            }
-
-            Outcome.raceKill(killSignal)(work).flatMap {
-              case Left(result) => IO.pure(result)
-              case Right(reason) =>
-                IO.delay {
-                  eventHandler.onRunnerEvent(RunnerEvent.Killed(reason))
-                  val counts = parser.getCounts
-                  TestResult(counts._1, counts._2, counts._3, counts._4, TerminationReason.Killed(reason))
-                }
-            }
+            ProcessTestRunner.run(ProcessTestRunner.Config(
+              processBuilder = pb,
+              handleStdoutLine = { line =>
+                parserLock.permit.surround(IO.delay(parser.parseLine(line)))
+              },
+              handleStderrLine = { line =>
+                parserLock.permit.surround(IO.delay(parser.parseError(line)))
+              },
+              getRunState = IO.delay {
+                val counts = parser.getCounts
+                ProcessTestRunner.RunState(counts._1, counts._2, counts._3, counts._4, parser.unfinishedSuite)
+              },
+              eventHandler = eventHandler,
+              killSignal = killSignal,
+              killDescendants = true,
+              preRun = IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)),
+              onNormalExit = IO.unit,
+              cleanup = IO.unit
+            ))
           }
         }
     }
@@ -546,10 +375,8 @@ object ScalaNativeTestRunner {
             runner.tasks(taskDefs)
           }
 
-          var passed = 0
-          var failed = 0
-          var skipped = 0
-          var ignored = 0
+          // Per-suite counters (suite name → (passed, failed, skipped, ignored))
+          val suiteCounts = new scala.collection.mutable.HashMap[String, (Int, Int, Int, Int)]()
 
           // Execute each task
           val sbtEventHandler = new sbt.testing.EventHandler {
@@ -563,28 +390,35 @@ object ScalaNativeTestRunner {
 
               eventHandler.onTestStarted(suiteName, testName)
 
-              val (status, statusEnum) = event.status() match {
+              val status = event.status() match {
                 case sbt.testing.Status.Success =>
-                  passed += 1
-                  (TestStatus.Passed, "passed")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p + 1, f, s, i)
+                  TestStatus.Passed
                 case sbt.testing.Status.Failure =>
-                  failed += 1
-                  (TestStatus.Failed, "failed")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f + 1, s, i)
+                  TestStatus.Failed
                 case sbt.testing.Status.Error =>
-                  failed += 1
-                  (TestStatus.Failed, "error")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f + 1, s, i)
+                  TestStatus.Error
                 case sbt.testing.Status.Skipped =>
-                  skipped += 1
-                  (TestStatus.Skipped, "skipped")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s + 1, i)
+                  TestStatus.Skipped
                 case sbt.testing.Status.Ignored =>
-                  ignored += 1
-                  (TestStatus.Ignored, "ignored")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s, i + 1)
+                  TestStatus.Ignored
                 case sbt.testing.Status.Canceled =>
-                  skipped += 1
-                  (TestStatus.Cancelled, "cancelled")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s + 1, i)
+                  TestStatus.Cancelled
                 case sbt.testing.Status.Pending =>
-                  skipped += 1
-                  (TestStatus.Skipped, "pending")
+                  val (p, f, s, i) = suiteCounts.getOrElse(suiteName, (0, 0, 0, 0))
+                  suiteCounts(suiteName) = (p, f, s + 1, i)
+                  TestStatus.Pending
               }
 
               val durationMs = event.duration()
@@ -599,11 +433,11 @@ object ScalaNativeTestRunner {
 
           val sbtLoggers = Array[sbt.testing.Logger](new sbt.testing.Logger {
             def ansiCodesSupported(): Boolean = false
-            def error(msg: String): Unit = eventHandler.onOutput("", msg, isError = true)
-            def warn(msg: String): Unit = eventHandler.onOutput("", msg, isError = false)
-            def info(msg: String): Unit = eventHandler.onOutput("", msg, isError = false)
+            def error(msg: String): Unit = eventHandler.onOutput("", msg, OutputChannel.Stderr)
+            def warn(msg: String): Unit = eventHandler.onOutput("", msg, OutputChannel.Stdout)
+            def info(msg: String): Unit = eventHandler.onOutput("", msg, OutputChannel.Stdout)
             def debug(msg: String): Unit = ()
-            def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, isError = true)
+            def trace(t: Throwable): Unit = eventHandler.onOutput("", t.toString, OutputChannel.Stderr)
           })
 
           // Track suites
@@ -629,9 +463,10 @@ object ScalaNativeTestRunner {
             executeNested(nestedTasks)
           }
 
-          // Finish all tracked suites
+          // Finish all tracked suites with per-suite counts
           suiteNames.foreach { name =>
-            eventHandler.onSuiteFinished(name, passed, failed, skipped)
+            val (p, f, s, _) = suiteCounts.getOrElse(name, (0, 0, 0, 0))
+            eventHandler.onSuiteFinished(name, p, f, s)
           }
 
           // runner.done() signals the native process to shut down.
@@ -640,13 +475,17 @@ object ScalaNativeTestRunner {
           try runner.done()
           catch { case _: Exception => () }
           eventHandler.onRunnerEvent(RunnerEvent.ProcessExited(0))
-          TestResult(passed, failed, skipped, ignored, TerminationReason.Completed)
+          val totalPassed = suiteCounts.values.map(_._1).sum
+          val totalFailed = suiteCounts.values.map(_._2).sum
+          val totalSkipped = suiteCounts.values.map(_._3).sum
+          val totalIgnored = suiteCounts.values.map(_._4).sum
+          TestResult(totalPassed, totalFailed, totalSkipped, totalIgnored, TerminationReason.Completed)
       }
     } finally
       // Close adapter (kills native process)
       try {
         val closeMethod = adapterClass.getMethod("close")
-        closeMethod.invoke(adapter)
+        closeMethod.invoke(adapter): Unit
       } catch { case _: Exception => () }
   }
 
@@ -712,7 +551,7 @@ object ScalaNativeTestRunner {
     private var passed = 0
     private var failed = 0
     private var skipped = 0
-    private var ignored = 0
+    private val ignored = 0
 
     private val suiteStartPattern = """^\s*(\S+):$""".r
     private val testPassedPattern = """^\s*\+\s+(.+?)\s+(\d+(?:\.\d+)?[a-z]+)$""".r
@@ -757,14 +596,14 @@ object ScalaNativeTestRunner {
         case _ =>
           currentSuite.foreach { suite =>
             if (line.trim.nonEmpty) {
-              handler.onOutput(suite, line, isError = false)
+              handler.onOutput(suite, line, OutputChannel.Stdout)
             }
           }
       }
 
     override def parseError(line: String): Unit =
       currentSuite.foreach { suite =>
-        handler.onOutput(suite, line, isError = true)
+        handler.onOutput(suite, line, OutputChannel.Stderr)
       }
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, skipped, ignored)
@@ -834,14 +673,14 @@ object ScalaNativeTestRunner {
         case _ =>
           currentSuite.foreach { suite =>
             if (line.trim.nonEmpty) {
-              handler.onOutput(suite, line, isError = false)
+              handler.onOutput(suite, line, OutputChannel.Stdout)
             }
           }
       }
 
     override def parseError(line: String): Unit =
       currentSuite.foreach { suite =>
-        handler.onOutput(suite, line, isError = true)
+        handler.onOutput(suite, line, OutputChannel.Stderr)
       }
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, skipped, ignored)
@@ -853,7 +692,7 @@ object ScalaNativeTestRunner {
     private var passed = 0
     private var failed = 0
     private var skipped = 0
-    private var ignored = 0
+    private val ignored = 0
 
     private val testPassedPattern = """^\+\s+(.+?)\s+(\d+)ms$""".r
     private val testFailedPattern = """^X\s+(.+?)\s+(\d+)ms$""".r
@@ -903,14 +742,14 @@ object ScalaNativeTestRunner {
         case _ =>
           currentSuite.foreach { suite =>
             if (line.trim.nonEmpty) {
-              handler.onOutput(suite, line, isError = false)
+              handler.onOutput(suite, line, OutputChannel.Stdout)
             }
           }
       }
 
     override def parseError(line: String): Unit =
       currentSuite.foreach { suite =>
-        handler.onOutput(suite, line, isError = true)
+        handler.onOutput(suite, line, OutputChannel.Stderr)
       }
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, skipped, ignored)
@@ -931,11 +770,11 @@ object ScalaNativeTestRunner {
       } else if (failPattern.findFirstIn(line).isDefined) {
         failed += 1
       }
-      handler.onOutput(defaultSuite, line, isError = false)
+      handler.onOutput(defaultSuite, line, OutputChannel.Stdout)
     }
 
     override def parseError(line: String): Unit =
-      handler.onOutput(defaultSuite, line, isError = true)
+      handler.onOutput(defaultSuite, line, OutputChannel.Stderr)
 
     override def getCounts: (Int, Int, Int, Int) = (passed, failed, 0, 0)
     override def unfinishedSuite: Option[String] = None

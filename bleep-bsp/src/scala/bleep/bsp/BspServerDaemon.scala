@@ -127,12 +127,9 @@ object BspServerDaemon {
       res match {
         case Left(err: LockError) if err.isInstanceOf[LockError.ZombieFound] =>
           logger.warn(s"Found zombie process, removing files in ${config.socketDir}")
-          try Files.deleteIfExists(lockFiles.pidFile)
-          catch { case _: Exception => () }
-          try Files.deleteIfExists(lockFiles.lockFile)
-          catch { case _: Exception => () }
-          try Files.deleteIfExists(lockFiles.socketPaths.path)
-          catch { case _: Exception => () }
+          Files.deleteIfExists(lockFiles.pidFile)
+          Files.deleteIfExists(lockFiles.lockFile)
+          Files.deleteIfExists(lockFiles.socketPaths.path)
           if (remainingAttempts > 0) {
             loop(remainingAttempts - 1)
           } else {
@@ -177,23 +174,6 @@ object BspServerDaemon {
     val compileSemaphore = new java.util.concurrent.Semaphore(numCores)
     logger.info(s"Compile semaphore: $numCores permits (based on available processors)")
 
-    // Install shutdown hook
-    Runtime.getRuntime.addShutdownHook(new Thread(() => shutdownRequested.set(true)))
-
-    // Install process reaper shutdown hook.
-    // Belt-and-suspenders: even if cleanup in MultiWorkspaceBspServer fails
-    // (e.g., server crashes or is killed), this kills all descendant processes
-    // (test JVMs, native compilers, etc.) to prevent zombie processes.
-    Runtime.getRuntime.addShutdownHook(new Thread("process-reaper") {
-      override def run(): Unit =
-        try
-          ProcessHandle.current().descendants().forEach { ph =>
-            try ph.destroyForcibly()
-            catch { case _: Exception => () }
-          }
-        catch { case _: Exception => () }
-    })
-
     // NOTE: Do NOT redirect stdout — Zinc writes massive amounts of data to
     // stdout which would bloat the log file to tens of GB.
     // stderr is captured by ProcessBuilder.redirectError(outputFile) so
@@ -203,8 +183,23 @@ object BspServerDaemon {
 
     // Initialize metrics collection
     BspMetrics.initialize(config.socketDir)
-    Runtime.getRuntime.addShutdownHook(new Thread("metrics-shutdown") {
-      override def run(): Unit = BspMetrics.shutdown()
+
+    // Single consolidated shutdown hook with defined ordering:
+    // 1. Signal shutdown to accept loop
+    // 2. Flush metrics (while processes still alive)
+    // 3. Kill descendant processes (belt-and-suspenders cleanup)
+    Runtime.getRuntime.addShutdownHook(new Thread("bsp-shutdown") {
+      override def run(): Unit = {
+        shutdownRequested.set(true)
+        try BspMetrics.shutdown()
+        catch { case _: Exception => () }
+        try
+          ProcessHandle.current().descendants().forEach { ph =>
+            try ph.destroyForcibly()
+            catch { case _: Exception => () }
+          }
+        catch { case _: Exception => () }
+      }
     })
 
     logger.info(s"BSP server starting...")

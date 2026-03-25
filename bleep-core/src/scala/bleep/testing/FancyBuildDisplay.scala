@@ -1,6 +1,8 @@
 package bleep.testing
 
+import bleep.bsp.protocol.{CompileReason, DiagnosticSeverity, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 import cats.effect._
 import cats.effect.std.Queue
 import tui._
@@ -62,8 +64,8 @@ object FancyBuildDisplay {
       mode: BuildMode = BuildMode.Test,
       suitesDiscovered: Int = 0,
       compilingProjects: mutable.LinkedHashMap[String, CompilingProject] = mutable.LinkedHashMap.empty,
-      runningTests: mutable.LinkedHashMap[String, RunningTest] = mutable.LinkedHashMap.empty,
-      runningSuites: mutable.LinkedHashMap[String, RunningSuite] = mutable.LinkedHashMap.empty,
+      runningTests: mutable.LinkedHashMap[TestKey, RunningTest] = mutable.LinkedHashMap.empty,
+      runningSuites: mutable.LinkedHashMap[SuiteKey, RunningSuite] = mutable.LinkedHashMap.empty,
       recentPasses: mutable.ArrayDeque[String] = mutable.ArrayDeque.empty,
       stalledProjects: Map[String, BuildEvent.CompileStalled] = Map.empty,
       lockedProjects: Map[String, BuildEvent.LockContention] = Map.empty,
@@ -92,22 +94,22 @@ object FancyBuildDisplay {
   }
 
   case class RunningTest(
-      project: String,
-      suite: String,
-      test: String,
+      project: CrossProjectName,
+      suite: SuiteName,
+      test: TestName,
       startTime: Instant
   ) {
     def elapsedMs: Long = java.time.Duration.between(startTime, Instant.now()).toMillis
   }
 
   case class RunningSuite(
-      project: String,
-      suite: String,
+      project: CrossProjectName,
+      suite: SuiteName,
       startTime: Instant,
-      jvmPid: Long = 0L,
-      testsRun: Int = 0,
-      testsPassed: Int = 0,
-      testsFailed: Int = 0
+      jvmPid: Long,
+      testsRun: Int,
+      testsPassed: Int,
+      testsFailed: Int
   ) {
     def elapsedMs: Long = java.time.Duration.between(startTime, Instant.now()).toMillis
   }
@@ -116,7 +118,7 @@ object FancyBuildDisplay {
       name: String,
       startTime: Instant,
       progress: Option[Int],
-      reason: Option[String],
+      reason: Option[CompileReason],
       phase: Option[String]
   ) {
     def elapsedMs: Long = java.time.Duration.between(startTime, Instant.now()).toMillis
@@ -376,10 +378,10 @@ object FancyBuildDisplay {
       userQuitSignal.foreach(_.complete(()).unsafeRunSync())
     }
 
-    // Use runningSuites for cancellation tracking (format: "project:suite")
-    // runningTests might be empty between tests even when suite is running
+    // Use FancyBuildDisplay's own runningSuites for cancellation tracking
+    // (runningTests might be empty between tests even when suite is running)
     val summary = state.core.toSummary(durationMs = state.elapsedMs, wasCancelled = userCancelled)
-    summary.copy(currentlyRunning = state.runningSuites.keys.toList)
+    summary.copy(currentlyRunning = state.runningSuites.values.map(_.suite).toList.sorted(SuiteName.ordering))
   }
 
   private def processEvent(state: State, event: BuildEvent): State = {
@@ -389,30 +391,32 @@ object FancyBuildDisplay {
     // TUI-specific mutations (mutable maps for animation/display)
     event match {
       case BuildEvent.CompileStarted(project, timestamp) =>
-        state.compilingProjects.put(project, CompilingProject(project, Instant.ofEpochMilli(timestamp), None, None, None)): Unit
+        val pv = project.value
+        state.compilingProjects.put(pv, CompilingProject(pv, Instant.ofEpochMilli(timestamp), None, None, None)): Unit
 
       case BuildEvent.CompilationReason(project, reason, _, _, _, _) =>
         // Update the compiling project with the reason for display
-        state.compilingProjects.get(project).foreach { cp =>
-          state.compilingProjects.put(project, cp.copy(reason = Some(reason))): Unit
+        val pv = project.value
+        state.compilingProjects.get(pv).foreach { cp =>
+          state.compilingProjects.put(pv, cp.copy(reason = Some(reason))): Unit
         }
 
       case BuildEvent.CompileFinished(project, _, _, _, _, _) =>
-        state.compilingProjects.remove(project): Unit
+        state.compilingProjects.remove(project.value): Unit
 
       case BuildEvent.SuiteStarted(project, suite, timestamp) =>
-        val key = s"$project:$suite"
-        state.runningSuites.put(key, RunningSuite(project, suite, Instant.ofEpochMilli(timestamp))): Unit
+        val key = SuiteKey(project, suite)
+        state.runningSuites.put(key, RunningSuite(project, suite, Instant.ofEpochMilli(timestamp), 0L, 0, 0, 0)): Unit
 
       case BuildEvent.TestStarted(project, suite, test, timestamp) =>
-        val key = s"$project:$suite:$test"
+        val key = TestKey(project, suite, test)
         state.runningTests.put(key, RunningTest(project, suite, test, Instant.ofEpochMilli(timestamp))): Unit
 
       case BuildEvent.TestFinished(project, suite, test, status, _, _, _, _) =>
-        val key = s"$project:$suite:$test"
+        val key = TestKey(project, suite, test)
         state.runningTests.remove(key): Unit
 
-        val suiteKey = s"$project:$suite"
+        val suiteKey = SuiteKey(project, suite)
         state.runningSuites.get(suiteKey).foreach { rs =>
           state.runningSuites.put(
             suiteKey,
@@ -425,42 +429,44 @@ object FancyBuildDisplay {
         }
 
         if (status == TestStatus.Passed) {
-          state.recentPasses.prepend(s"$suite.$test"): Unit
+          state.recentPasses.prepend(s"${suite.value}.${test.value}"): Unit
           if (state.recentPasses.size > 5) state.recentPasses.removeLast(): Unit
         }
 
       case BuildEvent.SuiteFinished(project, suite, _, _, _, _, _, _) =>
-        val key = s"$project:$suite"
+        val key = SuiteKey(project, suite)
         state.runningSuites.remove(key): Unit
 
       case BuildEvent.SuiteTimedOut(project, suite, _, _, _) =>
-        val key = s"$project:$suite"
+        val key = SuiteKey(project, suite)
         state.runningSuites.remove(key): Unit
 
-      case BuildEvent.SuiteError(project, suite, _, _, _, _, _) =>
-        val key = s"$project:$suite"
+      case BuildEvent.SuiteError(project, suite, _, _, _, _) =>
+        val key = SuiteKey(project, suite)
         state.runningSuites.remove(key): Unit
 
       case BuildEvent.SuiteCancelled(project, suite, _, _) =>
-        val key = s"$project:$suite"
+        val key = SuiteKey(project, suite)
         state.runningSuites.remove(key): Unit
 
       case BuildEvent.CompileProgress(project, percent, _) =>
-        state.compilingProjects.get(project).foreach { cp =>
-          state.compilingProjects.put(project, cp.copy(progress = Some(percent))): Unit
+        val pv = project.value
+        state.compilingProjects.get(pv).foreach { cp =>
+          state.compilingProjects.put(pv, cp.copy(progress = Some(percent))): Unit
         }
 
       case BuildEvent.CompilePhaseChanged(project, phase, trackedApis, _) =>
-        state.compilingProjects.get(project).foreach { cp =>
+        import bleep.bsp.protocol.{CompilePhase => CP}
+        val pv = project.value
+        state.compilingProjects.get(pv).foreach { cp =>
           val displayPhase = phase match {
-            case "reading-analysis" if trackedApis > 0 => Some(s"reading analysis ($trackedApis APIs)")
-            case "reading-analysis"                    => Some("reading analysis")
-            case "analyzing"                           => Some("analyzing")
-            case "compiling"                           => None // CompileProgress takes over
-            case "saving-analysis"                     => Some("saving analysis")
-            case _                                     => None
+            case CP.ReadingAnalysis if trackedApis > 0 => Some(s"reading analysis ($trackedApis APIs)")
+            case CP.ReadingAnalysis                    => Some("reading analysis")
+            case CP.Analyzing                          => Some("analyzing")
+            case CP.Compiling                          => None // CompileProgress takes over
+            case CP.SavingAnalysis                     => Some("saving analysis")
           }
-          state.compilingProjects.put(project, cp.copy(phase = displayPhase)): Unit
+          state.compilingProjects.put(pv, cp.copy(phase = displayPhase)): Unit
         }
 
       case BuildEvent.LinkStarted(_, _, _) | BuildEvent.LinkSucceeded(_, _, _, _) | BuildEvent.LinkFailed(_, _, _, _, _) =>
@@ -471,7 +477,7 @@ object FancyBuildDisplay {
         state.runningSuites.clear()
         state.runningTests.clear()
 
-      case BuildEvent.SuitesDiscovered(_, _, _, _) | BuildEvent.Output(_, _, _, _, _) | BuildEvent.ProjectSkipped(_, _, _) | BuildEvent.Error(_, _, _, _) |
+      case BuildEvent.SuitesDiscovered(_, _, _, _) | BuildEvent.Output(_, _, _, _, _) | BuildEvent.ProjectSkipped(_, _, _) | BuildEvent.Error(_, _, _) |
           _: BuildEvent.TestRunCompleted | _: BuildEvent.SourcegenStarted | _: BuildEvent.SourcegenFinished =>
         () // No TUI-specific state for these (core state updated via BuildStateReducer)
 
@@ -491,8 +497,8 @@ object FancyBuildDisplay {
       case _                                                     => state.suitesDiscovered
     }
     val updatedWorkspaceBusy = event match {
-      case BuildEvent.WorkspaceBusy(_, operation, projects, startedAgoMs, _) =>
-        Some(WorkspaceBusyInfo(operation, projects, startedAgoMs, Instant.now(), cancelRequested = false))
+      case BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, _) =>
+        Some(WorkspaceBusyInfo(operation, projects.map(_.value), startedAgoMs, Instant.now(), cancelRequested = false))
       case _: BuildEvent.WorkspaceReady =>
         None
       case _ =>
@@ -500,23 +506,23 @@ object FancyBuildDisplay {
     }
     val updatedStalledProjects = event match {
       case e: BuildEvent.CompileStalled =>
-        state.stalledProjects.updated(e.project, e)
+        state.stalledProjects.updated(e.project.value, e)
       case e: BuildEvent.CompileResumed =>
-        state.stalledProjects - e.project
+        state.stalledProjects - e.project.value
       case BuildEvent.CompileStarted(project, _) =>
-        state.stalledProjects - project
+        state.stalledProjects - project.value
       case BuildEvent.CompileFinished(project, _, _, _, _, _) =>
-        state.stalledProjects - project
+        state.stalledProjects - project.value
       case _ =>
         state.stalledProjects
     }
     val updatedLockedProjects = event match {
       case e: BuildEvent.LockContention =>
-        state.lockedProjects.updated(e.project, e)
+        state.lockedProjects.updated(e.project.value, e)
       case e: BuildEvent.LockAcquired =>
-        state.lockedProjects - e.project
+        state.lockedProjects - e.project.value
       case BuildEvent.CompileFinished(project, _, _, _, _, _) =>
-        state.lockedProjects - project
+        state.lockedProjects - project.value
       case _ =>
         state.lockedProjects
     }
@@ -971,7 +977,7 @@ object FancyBuildDisplay {
           Spans.from(
             Span.styled(s" $spinner ", s(Palette.accent)),
             Span.styled("LINK ", s(Palette.accent)),
-            Span.styled(project, s(Palette.text))
+            Span.styled(project.value, s(Palette.text))
           )
         )
       )
@@ -986,7 +992,7 @@ object FancyBuildDisplay {
           Spans.from(
             Span.styled(s" $spinner ", s(Palette.warning)),
             Span.styled("WAIT ", s(Palette.warning)),
-            Span.styled(stalled.project, s(Palette.text)),
+            Span.styled(stalled.project.value, s(Palette.text)),
             Span.styled(s" ${stalled.heapUsedMb}MB/${stalled.heapMaxMb}MB", s(Palette.warning)),
             Span.styled(s" retry ${waitSec}s", s(Palette.textDim))
           )
@@ -1003,7 +1009,7 @@ object FancyBuildDisplay {
           Spans.from(
             Span.styled(s" $spinner ", s(Palette.warning)),
             Span.styled("LOCK ", s(Palette.warning)),
-            Span.styled(locked.project, s(Palette.text)),
+            Span.styled(locked.project.value, s(Palette.text)),
             Span.styled(s" waiting ${waitSec}s", s(Palette.textDim))
           )
         )
@@ -1153,7 +1159,7 @@ object FancyBuildDisplay {
           Text.fromSpans(
             Spans.from(
               Span.styled(s" $spinner ", s(Palette.info)),
-              Span.styled(project, s(Palette.accent)),
+              Span.styled(project.value, s(Palette.accent)),
               Span.styled(s" ${projectSuites.size} suites", s(Palette.textDim)),
               Span.styled(if (failedCount > 0) s" ${failedIcon}$failedCount" else "", s(Palette.error))
             )
@@ -1164,7 +1170,7 @@ object FancyBuildDisplay {
         val allSuites = (projectSuites.map(_.suite) ++ testsBySuite.keys).distinct
 
         allSuites.foreach { suiteName =>
-          val shortSuite = suiteName.split('.').lastOption.getOrElse(suiteName)
+          val shortSuite = suiteName.shortName
           val suiteInfo = projectSuites.find(_.suite == suiteName)
           val testsInSuite = testsBySuite.getOrElse(suiteName, Seq.empty)
           val elapsed = suiteInfo.map(rs => formatDuration(rs.elapsedMs)).getOrElse("")
@@ -1186,7 +1192,7 @@ object FancyBuildDisplay {
                 Spans.from(
                   Span.styled("    ", sBg),
                   Span.styled(s"$runningIcon ", s(Palette.info)),
-                  Span.styled(rt.test, s(Palette.textMuted)),
+                  Span.styled(rt.test.value, s(Palette.textMuted)),
                   Span.styled(s" ($testElapsed)", s(Palette.textDim))
                 )
               )
@@ -1211,8 +1217,8 @@ object FancyBuildDisplay {
 
     // Show compile failures: errors first, collect warnings for the bottom
     state.core.compileFailures.foreach { cf =>
-      val errors = cf.diagnostics.filter(_.severity == "error")
-      val warnings = cf.diagnostics.filter(_.severity == "warning")
+      val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+      val warnings = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
       val skippedCount = state.core.skippedProjects.count(_.reason.contains(cf.project))
       val skippedSuffix = if (skippedCount > 0) s" (${skippedCount} skipped)" else ""
 
@@ -1221,7 +1227,7 @@ object FancyBuildDisplay {
           Text.fromSpans(
             Spans.from(
               Span.styled(s" $failedIcon COMPILE ", s(Palette.error)),
-              Span.styled(cf.project, s(Palette.accent)),
+              Span.styled(cf.project.value, s(Palette.accent)),
               Span.styled(skippedSuffix, s(Palette.warning))
             )
           )
@@ -1285,8 +1291,8 @@ object FancyBuildDisplay {
     // Warnings at the bottom — new warnings always appear at the end
     items ++= warningItems
 
-    val totalErrors = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == "error") + state.core.failures.size
-    val totalWarnings = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == "warning")
+    val totalErrors = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Error) + state.core.failures.size
+    val totalWarnings = state.core.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Warning)
     val title =
       if (totalWarnings > 0) s"Issues ($totalErrors errors, $totalWarnings warnings)"
       else s"Issues ($totalErrors)"

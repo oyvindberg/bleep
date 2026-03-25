@@ -285,7 +285,15 @@ class JsonRpcTransport(
       val matcher = HeaderPattern.matcher(headerLine)
       if !matcher.matches() then return ReadResult.ParseError(s"Invalid header: $headerLine")
 
-      val contentLength = matcher.group(1).toInt
+      val contentLength =
+        try matcher.group(1).toInt
+        catch { case _: NumberFormatException => return ReadResult.ParseError(s"Invalid Content-Length: ${matcher.group(1)}") }
+
+      // Reject oversized messages (256MB limit)
+      if (contentLength > 256 * 1024 * 1024)
+        return ReadResult.ParseError(s"Content-Length too large: $contentLength")
+      if (contentLength < 0)
+        return ReadResult.ParseError(s"Negative Content-Length: $contentLength")
 
       // Skip remaining headers until empty line
       var line = readLine()
@@ -357,12 +365,16 @@ class JsonRpcTransport(
     bufferedOut.flush()
   }
 
+  /** Maximum header line length (1MB). Protects against malicious clients sending endless bytes without CRLF. */
+  private val MaxHeaderLineLength = 1024 * 1024
+
   private def readLine(): String = {
     val sb = new StringBuilder
     var prev = -1
     var curr = bufferedIn.read()
     while curr != -1 do {
       if prev == '\r' && curr == '\n' then return sb.dropRight(1).toString
+      if sb.length >= MaxHeaderLineLength then throw new java.io.IOException(s"Header line exceeds maximum length ($MaxHeaderLineLength bytes)")
       sb.append(curr.toChar)
       prev = curr
       curr = bufferedIn.read()

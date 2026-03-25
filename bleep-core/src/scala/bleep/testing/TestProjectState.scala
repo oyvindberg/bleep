@@ -1,34 +1,8 @@
 package bleep.testing
 
+import bleep.bsp.protocol.TestStatus
 import bleep.model
-
-/** Wrapper types for type-safe data flow */
-object TestTypes {
-
-  /** Fully qualified class name of a test suite */
-  case class SuiteClassName(value: String) extends AnyVal {
-    override def toString: String = value
-    def shortName: String = value.split('.').lastOption.getOrElse(value)
-  }
-
-  /** Name of an individual test within a suite */
-  case class TestName(value: String) extends AnyVal {
-    override def toString: String = value
-  }
-
-  /** Key for identifying a running suite (project + suite) */
-  case class SuiteKey(project: model.CrossProjectName, suite: SuiteClassName) {
-    def asString: String = s"${project.value}:${suite.value}"
-  }
-
-  /** Key for identifying a running test (project + suite + test) */
-  case class TestKey(project: model.CrossProjectName, suite: SuiteClassName, test: TestName) {
-    def asString: String = s"${project.value}:${suite.value}:${test.value}"
-    def suiteKey: SuiteKey = SuiteKey(project, suite)
-  }
-}
-
-import TestTypes._
+import bleep.model.{SuiteName, TestName}
 
 /** State of a single project in the test execution pipeline */
 sealed trait ProjectState {
@@ -105,14 +79,14 @@ object ProjectState {
   case class SuitesDiscovered(
       project: model.CrossProjectName,
       isTestProject: Boolean,
-      suites: List[SuiteClassName]
+      suites: List[SuiteName]
   ) extends ProjectState {
     def suiteCount: Int = suites.size
   }
 
   /** Info about a running suite */
   case class RunningSuiteInfo(
-      suite: SuiteClassName,
+      suite: SuiteName,
       jvmPid: Long,
       startedAt: Long
   )
@@ -127,9 +101,9 @@ object ProjectState {
 
     /** JVM tests - granular suite/test tracking via reactive runner */
     case class Reactive(
-        suites: List[SuiteClassName],
-        runningSuites: Map[SuiteClassName, RunningSuiteInfo],
-        completedSuites: Map[SuiteClassName, SuiteResult],
+        suites: List[SuiteName],
+        runningSuites: Map[SuiteName, RunningSuiteInfo],
+        completedSuites: Map[SuiteName, SuiteResult],
         runningTests: Map[TestKey, RunningTestInfo]
     ) extends TestExecution {
       def suiteCount: Int = suites.size
@@ -138,10 +112,10 @@ object ProjectState {
       def failedSoFar: Int = completedSuites.values.map(_.failed).sum
       def activeJvmPids: Set[Long] = runningSuites.values.map(_.jvmPid).toSet
 
-      def startSuite(suite: SuiteClassName, jvmPid: Long, timestamp: Long): Reactive =
+      def startSuite(suite: SuiteName, jvmPid: Long, timestamp: Long): Reactive =
         copy(runningSuites = runningSuites + (suite -> RunningSuiteInfo(suite, jvmPid, timestamp)))
 
-      def completeSuite(suite: SuiteClassName, result: SuiteResult): Reactive =
+      def completeSuite(suite: SuiteName, result: SuiteResult): Reactive =
         copy(
           runningSuites = runningSuites - suite,
           completedSuites = completedSuites + (suite -> result)
@@ -165,7 +139,7 @@ object ProjectState {
     }
 
     object Reactive {
-      def initial(suites: List[SuiteClassName]): Reactive =
+      def initial(suites: List[SuiteName]): Reactive =
         Reactive(suites, Map.empty, Map.empty, Map.empty)
     }
 
@@ -228,7 +202,7 @@ object ProjectState {
     def hasFailed: Boolean = execution.hasFailed
 
     // Convenience accessors for reactive mode
-    def reactiveResults: Option[Map[SuiteClassName, SuiteResult]] = execution match {
+    def reactiveResults: Option[Map[SuiteName, SuiteResult]] = execution match {
       case r: TestExecution.Reactive => Some(r.completedSuites)
       case _                         => None
     }
@@ -284,14 +258,14 @@ object DiagnosticSeverity {
 
 /** Info about a currently running test */
 case class RunningTestInfo(
-    suite: SuiteClassName,
+    suite: SuiteName,
     test: TestName,
     startedAt: Long
 )
 
 /** Result of a completed test suite */
 case class SuiteResult(
-    suite: SuiteClassName,
+    suite: SuiteName,
     passed: Int,
     failed: Int,
     skipped: Int,
@@ -322,15 +296,15 @@ object ProjectAction {
   case class FinishCompile(project: model.CrossProjectName, success: Boolean, errors: List[String], durationMs: Long) extends ProjectAction
   case class SkipProject(project: model.CrossProjectName, reason: SkipReason) extends ProjectAction
   case class StartDiscovery(project: model.CrossProjectName) extends ProjectAction
-  case class FinishDiscovery(project: model.CrossProjectName, suites: List[SuiteClassName]) extends ProjectAction
+  case class FinishDiscovery(project: model.CrossProjectName, suites: List[SuiteName]) extends ProjectAction
 
   // Reactive (JVM) test actions
-  case class StartSuite(project: model.CrossProjectName, suite: SuiteClassName, jvmPid: Long, timestamp: Long) extends ProjectAction
-  case class FinishSuite(project: model.CrossProjectName, suite: SuiteClassName, result: SuiteResult) extends ProjectAction
-  case class StartTest(project: model.CrossProjectName, suite: SuiteClassName, test: TestName, timestamp: Long) extends ProjectAction
+  case class StartSuite(project: model.CrossProjectName, suite: SuiteName, jvmPid: Long, timestamp: Long) extends ProjectAction
+  case class FinishSuite(project: model.CrossProjectName, suite: SuiteName, result: SuiteResult) extends ProjectAction
+  case class StartTest(project: model.CrossProjectName, suite: SuiteName, test: TestName, timestamp: Long) extends ProjectAction
   case class FinishTest(
       project: model.CrossProjectName,
-      suite: SuiteClassName,
+      suite: SuiteName,
       test: TestName,
       status: TestStatus,
       durationMs: Long,
@@ -425,7 +399,7 @@ case class TestRunState(
   def projectsDiscoveringSuites: List[model.CrossProjectName] =
     projects.collect { case (p, _: ProjectState.DiscoveringSuites) => p }.toList
 
-  def projectsWithSuitesDiscovered: Map[model.CrossProjectName, List[SuiteClassName]] =
+  def projectsWithSuitesDiscovered: Map[model.CrossProjectName, List[SuiteName]] =
     projects.collect { case (p, s: ProjectState.SuitesDiscovered) => p -> s.suites }
 
   def projectsRunningTests: List[model.CrossProjectName] =
@@ -480,7 +454,7 @@ case class TestRunState(
     }
 
   /** Get all failures for summary display */
-  def allFailures: List[(model.CrossProjectName, SuiteClassName, TestFailureInfo)] =
+  def allFailures: List[(model.CrossProjectName, SuiteName, TestFailureInfo)] =
     projects.values
       .collect { case s: ProjectState.TestsCompleted =>
         s.reactiveResults.toList.flatMap { results =>
@@ -633,8 +607,8 @@ object ProjectDisplayItem {
 
   /** Info about a test running on a JVM */
   case class RunningTest(
-      suiteName: TestTypes.SuiteClassName,
-      testName: TestTypes.TestName,
+      suiteName: SuiteName,
+      testName: TestName,
       jvmPid: Long,
       elapsedMs: Long
   )
@@ -790,7 +764,7 @@ object ProjectDisplayItem {
               // Fallback: show suite as the "test" when we don't have test-level info
               r.runningSuites.values
                 .map { info =>
-                  RunningTest(info.suite, TestTypes.TestName(""), info.jvmPid, now - info.startedAt)
+                  RunningTest(info.suite, TestName(""), info.jvmPid, now - info.startedAt)
                 }
                 .toList
                 .sortBy(_.jvmPid)

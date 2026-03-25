@@ -1,6 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag}
+import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.Outcome.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
@@ -73,7 +74,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("ExceptionSuite", "ExceptionSuite")),
+            List(TestRunnerTypes.TestSuite("ExceptionSuite", "ExceptionSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -82,7 +83,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         } yield res).unsafeRunSync()
 
         // Process crashed, but we handle gracefully
-        result.terminationReason should not be a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
         handler.suiteStarts should contain("ExceptionSuite")
       } finally deleteRecursively(tempDir)
     }
@@ -109,7 +110,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("ExitSuite", "ExitSuite")),
+            List(TestRunnerTypes.TestSuite("ExitSuite", "ExitSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -117,9 +118,9 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield res).unsafeRunSync()
 
-        result.terminationReason should not be a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
         result.failed shouldBe 1
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.TruncatedOutput]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.TruncatedOutput]
         handler.suiteStarts should contain("ExitSuite")
       } finally deleteRecursively(tempDir)
     }
@@ -147,7 +148,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("EarlyExitSuite", "EarlyExitSuite")),
+            List(TestRunnerTypes.TestSuite("EarlyExitSuite", "EarlyExitSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -156,10 +157,10 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         } yield res).unsafeRunSync()
 
         // test-finished was emitted but suite-finished was not (process.exit cut it off)
-        handler.testFinishes.count(_._3 == ScalaJsTestRunner.TestStatus.Passed) shouldBe 1
+        handler.testFinishes.count(_._3 == TestStatus.Passed) shouldBe 1
         // Runner detects the truncated suite
         result.failed shouldBe 1
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.TruncatedOutput]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.TruncatedOutput]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -186,7 +187,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("SyntaxErrorSuite", "SyntaxErrorSuite")),
+            List(TestRunnerTypes.TestSuite("SyntaxErrorSuite", "SyntaxErrorSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -195,7 +196,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         } yield res).unsafeRunSync()
 
         // Should not crash the runner
-        result.terminationReason should not be a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -228,7 +229,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           r <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("InfiniteSuite", "InfiniteSuite")),
+            List(TestRunnerTypes.TestSuite("InfiniteSuite", "InfiniteSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -236,7 +237,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield r).unsafeRunSync()
 
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -264,7 +265,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           r <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("BlockingSuite", "BlockingSuite")),
+            List(TestRunnerTypes.TestSuite("BlockingSuite", "BlockingSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -272,7 +273,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield r).unsafeRunSync()
 
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -287,7 +288,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         res <- ScalaJsTestRunner.runTests(
           nonExistentPath,
           ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-          List(ScalaJsTestRunner.TestSuite("Missing", "Missing")),
+          List(TestRunnerTypes.TestSuite("Missing", "Missing")),
           handler,
           ScalaJsTestRunner.NodeEnvironment.Node,
           Map.empty,
@@ -326,7 +327,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("GoodSuite", "GoodSuite")),
+            List(TestRunnerTypes.TestSuite("GoodSuite", "GoodSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -363,7 +364,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("StderrSuite", "StderrSuite")),
+            List(TestRunnerTypes.TestSuite("StderrSuite", "StderrSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -372,7 +373,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         } yield res).unsafeRunSync()
 
         result.passed shouldBe 1
-        handler.outputs.exists(_._3) shouldBe true // isError = true
+        handler.outputs.exists(_._3.isStderr) shouldBe true // stderr output
       } finally deleteRecursively(tempDir)
     }
   }
@@ -404,7 +405,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("LargeSuite", "LargeSuite")),
+            List(TestRunnerTypes.TestSuite("LargeSuite", "LargeSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -539,7 +540,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
             )
           } yield res).unsafeRunSync()
 
-          result.terminationReason should not be a[ScalaNativeTestRunner.TerminationReason.Killed]
+          result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
         }
       finally
         deleteRecursively(tempDir)
@@ -577,7 +578,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield r).unsafeRunSync()
 
-        result.terminationReason shouldBe a[ScalaNativeTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -616,7 +617,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
         } yield res).unsafeRunSync()
 
         result.isSuccess shouldBe false
-        result.terminationReason should not be a[ScalaNativeTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -664,14 +665,14 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           killSignal <- Outcome.neverKillSignal
           res <- KotlinTestRunner.Js.runTests(
             jsFile,
-            List(KotlinTestRunner.TestSuite("ExceptionSuite", "ExceptionSuite")),
+            List(TestRunnerTypes.TestSuite("ExceptionSuite", "ExceptionSuite")),
             handler,
             Map.empty,
             killSignal
           )
         } yield res).unsafeRunSync()
 
-        result.terminationReason should not be a[KotlinTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -703,14 +704,14 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           _ <- (IO.sleep(200.milliseconds) >> killSignal.complete(KillReason.UserRequest)).start
           r <- KotlinTestRunner.Js.runTests(
             jsFile,
-            List(KotlinTestRunner.TestSuite("InfiniteSuite", "InfiniteSuite")),
+            List(TestRunnerTypes.TestSuite("InfiniteSuite", "InfiniteSuite")),
             handler,
             Map.empty,
             killSignal
           )
         } yield r).unsafeRunSync()
 
-        result.terminationReason shouldBe a[KotlinTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -737,14 +738,14 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           _ <- (IO.sleep(200.milliseconds) >> killSignal.complete(KillReason.UserRequest)).start
           r <- KotlinTestRunner.Js.runTests(
             jsFile,
-            List(KotlinTestRunner.TestSuite("BlockingSuite", "BlockingSuite")),
+            List(TestRunnerTypes.TestSuite("BlockingSuite", "BlockingSuite")),
             handler,
             Map.empty,
             killSignal
           )
         } yield r).unsafeRunSync()
 
-        result.terminationReason shouldBe a[KotlinTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -869,19 +870,19 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
   // Helpers
   // ==========================================================================
 
-  class RecordingTestEventHandler extends ScalaJsTestRunner.TestEventHandler {
+  class RecordingTestEventHandler extends TestRunnerTypes.TestEventHandler {
     val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, ScalaJsTestRunner.TestStatus, Long, Option[String])]()
+    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
-    def onTestFinished(suite: String, test: String, status: ScalaJsTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 
   // ==========================================================================
@@ -911,7 +912,7 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           res <- ScalaJsTestRunner.runTests(
             jsFile,
             ScalaJsLinkConfig.ModuleKind.CommonJSModule,
-            List(ScalaJsTestRunner.TestSuite("TruncatedSuite", "TruncatedSuite")),
+            List(TestRunnerTypes.TestSuite("TruncatedSuite", "TruncatedSuite")),
             handler,
             ScalaJsTestRunner.NodeEnvironment.Node,
             Map.empty,
@@ -919,10 +920,10 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield res).unsafeRunSync()
 
-        result.terminationReason should not be a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
         result.isSuccess shouldBe false
         result.failed shouldBe 1
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.TruncatedOutput]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.TruncatedOutput]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -958,10 +959,10 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield res).unsafeRunSync()
 
-        result.terminationReason should not be a[ScalaNativeTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
         result.isSuccess shouldBe false
         result.failed should be >= 1
-        result.terminationReason shouldBe a[ScalaNativeTestRunner.TerminationReason.TruncatedOutput]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.TruncatedOutput]
       } finally deleteRecursively(tempDir)
     }
   }
@@ -996,41 +997,41 @@ class EdgeCaseIntegrationTest extends AnyFunSuite with Matchers with TimeLimits 
           )
         } yield res).unsafeRunSync()
 
-        result.terminationReason should not be a[KotlinTestRunner.TerminationReason.Killed]
+        result.terminationReason should not be a[TestRunnerTypes.TerminationReason.Killed]
         result.isSuccess shouldBe false
         result.failed shouldBe 1
-        result.terminationReason shouldBe a[KotlinTestRunner.TerminationReason.TruncatedOutput]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.TruncatedOutput]
       } finally deleteRecursively(tempDir)
     }
   }
 
-  class RecordingNativeTestEventHandler extends ScalaNativeTestRunner.TestEventHandler {
+  class RecordingNativeTestEventHandler extends TestRunnerTypes.TestEventHandler {
     val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, ScalaNativeTestRunner.TestStatus, Long, Option[String])]()
+    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
-    def onTestFinished(suite: String, test: String, status: ScalaNativeTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 
-  class RecordingKotlinTestEventHandler extends KotlinTestRunner.TestEventHandler {
+  class RecordingKotlinTestEventHandler extends TestRunnerTypes.TestEventHandler {
     val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, KotlinTestRunner.TestStatus, Long, Option[String])]()
+    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit = testStarts += ((suite, test))
-    def onTestFinished(suite: String, test: String, status: KotlinTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
     def onSuiteStarted(suite: String): Unit = suiteStarts += suite
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = suiteFinishes += ((suite, passed, failed, skipped))
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 }

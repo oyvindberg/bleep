@@ -120,9 +120,7 @@ object WatchArgs {
 /** Args for sync and watch.stop. */
 case class JobIdArgs(jobId: Option[String])
 object JobIdArgs {
-  given Decoder[JobIdArgs] = Decoder.instance(c =>
-    Right(JobIdArgs(c.downField("jobId").as[String].toOption))
-  )
+  given Decoder[JobIdArgs] = Decoder.instance(c => Right(JobIdArgs(c.downField("jobId").as[String].toOption)))
   given JsonSchemaEncoder[JobIdArgs] = schema(
     Json.obj(
       "type" -> Json.fromString("object"),

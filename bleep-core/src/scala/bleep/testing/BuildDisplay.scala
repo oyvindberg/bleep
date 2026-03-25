@@ -1,7 +1,8 @@
 package bleep.testing
 
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, CompileReason, DiagnosticSeverity, LinkPlatformName, ProcessExit, TestStatus}
 import bleep.bsp.protocol.BleepBspProtocol.BuildMode
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 import cats.effect._
 import cats.syntax.all._
 import ryddig.{LoggerFn, TypedLogger}
@@ -25,6 +26,9 @@ trait BuildDisplay {
   /** Get the current summary */
   def summary: IO[BuildSummary]
 
+  /** Reset display state (e.g., before retry after server crash) */
+  def reset: IO[Unit]
+
   /** Print final summary */
   def printSummary: IO[Unit]
 }
@@ -46,7 +50,7 @@ case class BuildSummary(
     testsCancelled: Int,
     testsSkipped: Int,
     testsIgnored: Int,
-    currentlyRunning: List[String],
+    currentlyRunning: List[SuiteName],
     killedTasks: List[KilledTask], // tasks that were started but never finished (cancelled builds)
     failures: List[TestFailure],
     skipped: List[TestSkipped],
@@ -102,7 +106,7 @@ object BuildSummary {
             parts += s"${C.RED}$unaccounted did not finish${C.RESET}"
             lines += s"  Suites: ${parts.result().mkString(", ")}"
             if (summary.currentlyRunning.nonEmpty) {
-              lines += s"  Still running: ${summary.currentlyRunning.mkString(", ")}"
+              lines += s"  Still running: ${summary.currentlyRunning.map(_.value).mkString(", ")}"
             }
           } else {
             // All suites accounted for — clean summary
@@ -138,7 +142,7 @@ object BuildSummary {
           val secs = kt.elapsedMs / 1000.0
           f" (ran for ${secs}%.1fs)"
         } else ""
-        lines += s"  ${C.YELLOW}!${C.RESET} ${kt.kind}: ${kt.project}$elapsed"
+        lines += s"  ${C.YELLOW}!${C.RESET} ${kt.kind.label}: ${kt.project}$elapsed"
       }
       lines += ""
     }
@@ -156,14 +160,14 @@ object BuildSummary {
       lines += ""
 
       summary.compileFailures.foreach { cf =>
-        val errors = cf.diagnostics.filter(_.severity == "error")
-        val warnings = cf.diagnostics.filter(_.severity == "warning")
+        val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+        val warnings = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
         val countParts = List(
           if (errors.nonEmpty) Some(s"${errors.size} error${if (errors.size != 1) "s" else ""}") else None,
           if (warnings.nonEmpty) Some(s"${warnings.size} warning${if (warnings.size != 1) "s" else ""}") else None
         ).flatten
         val countSuffix = if (countParts.nonEmpty) s" (${countParts.mkString(", ")})" else ""
-        lines += s"${C.RED}x ${cf.project}${C.RESET}$countSuffix"
+        lines += s"${C.RED}x ${cf.project.value}${C.RESET}$countSuffix"
         errors.take(10).foreach { diag =>
           val text = diag.rendered.getOrElse(diag.message)
           text.linesIterator.foreach { line =>
@@ -202,8 +206,8 @@ object BuildSummary {
       lines += s"${C.RED}${C.BOLD}Link Failures (${summary.linkFailures.size})${C.RESET}"
       lines += ""
       summary.linkFailures.foreach { lf =>
-        val platformStr = if (lf.platform.nonEmpty) s" [${lf.platform}]" else ""
-        lines += s"${C.RED}x ${lf.project}$platformStr${C.RESET}"
+        val platformStr = s" [${lf.platform.wireValue}]"
+        lines += s"${C.RED}x ${lf.project.value}$platformStr${C.RESET}"
         lines += s"  ${C.RED}|${C.RESET} ${lf.error}"
         lines += ""
       }
@@ -219,7 +223,7 @@ object BuildSummary {
             lines += s"${C.MAGENTA}$project${C.RESET}"
             suites.sortBy(_.suite).foreach { cs =>
               val reasonStr = cs.reason.map(r => s": $r").getOrElse("")
-              lines += s"  - ${cs.suite}$reasonStr"
+              lines += s"  - ${cs.suite.value}$reasonStr"
             }
           }
           lines += ""
@@ -240,7 +244,7 @@ object BuildSummary {
           lines += s"${C.RED}${C.BOLD}Test Failures (${testFailures.size})${C.RESET}"
           lines += ""
           testFailures.sortBy(f => (f.project, f.suite, f.test)).foreach { failure =>
-            lines += s"${C.RED}x ${failure.project} / ${failure.suite} / ${failure.test}${C.RESET}"
+            lines += s"${C.RED}x ${failure.project.value} / ${failure.suite.value} / ${failure.test.value}${C.RESET}"
             failure.message.foreach { msg =>
               msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
@@ -266,7 +270,7 @@ object BuildSummary {
           lines += s"${C.RED}${C.BOLD}Timeouts (${timeouts.size})${C.RESET}"
           lines += ""
           timeouts.sortBy(f => (f.project, f.suite)).foreach { failure =>
-            lines += s"${C.RED}T ${failure.project} / ${failure.suite}${C.RESET}"
+            lines += s"${C.RED}T ${failure.project.value} / ${failure.suite.value}${C.RESET}"
             failure.message.foreach { msg =>
               msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
@@ -288,7 +292,7 @@ object BuildSummary {
             lines += s"${C.MAGENTA}$project${C.RESET}"
             tests.sortBy(t => (t.suite, t.test)).foreach { t =>
               val reason = t.message.map(m => s": $m").getOrElse("")
-              lines += s"  - ${t.suite} / ${t.test}$reason"
+              lines += s"  - ${t.suite.value} / ${t.test.value}$reason"
             }
           }
           lines += ""
@@ -299,7 +303,7 @@ object BuildSummary {
           lines += s"${C.RED}${C.BOLD}Process Errors (${processErrors.size})${C.RESET}"
           lines += ""
           processErrors.sortBy(f => (f.project, f.suite)).foreach { failure =>
-            lines += s"${C.RED}! ${failure.project} / ${failure.suite}${C.RESET}"
+            lines += s"${C.RED}! ${failure.project.value} / ${failure.suite.value}${C.RESET}"
             failure.message.foreach { msg =>
               msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
@@ -325,7 +329,7 @@ object BuildSummary {
           lines += s"${C.RED}${C.BOLD}Build Errors (${buildErrors.size})${C.RESET}"
           lines += ""
           buildErrors.sortBy(f => (f.project, f.suite)).foreach { failure =>
-            lines += s"${C.RED}! ${failure.project}${C.RESET}"
+            lines += s"${C.RED}! ${failure.project.value}${C.RESET}"
             failure.message.foreach { msg =>
               msg.split("\n").foreach(line => lines += s"  ${C.YELLOW}|${C.RESET} $line")
             }
@@ -357,7 +361,7 @@ object BuildSummary {
             lines += s"${C.MAGENTA}$project${C.RESET}"
             tests.sortBy(t => (t.suite, t.test)).foreach { t =>
               val reasonStr = t.reason.map(r => s": $r").getOrElse("")
-              lines += s"  - ${t.suite} / ${t.test}$reasonStr"
+              lines += s"  - ${t.suite.value} / ${t.test.value}$reasonStr"
             }
           }
           lines += ""
@@ -369,7 +373,7 @@ object BuildSummary {
           lines += s"${C.YELLOW}${C.BOLD}Ignored (${ignoredTests.size})${C.RESET}"
           ignoredTests.groupBy(_.project).toList.sortBy(_._1).foreach { case (project, tests) =>
             lines += s"${C.MAGENTA}$project${C.RESET}"
-            tests.sortBy(t => (t.suite, t.test)).foreach(t => lines += s"  - ${t.suite} / ${t.test}")
+            tests.sortBy(t => (t.suite, t.test)).foreach(t => lines += s"  - ${t.suite.value} / ${t.test.value}")
           }
           lines += ""
         }
@@ -422,15 +426,15 @@ object FailureCategory {
 }
 
 case class LinkFailure(
-    project: String,
-    platform: String,
+    project: CrossProjectName,
+    platform: LinkPlatformName,
     error: String
 )
 
 case class TestFailure(
-    project: String,
-    suite: String,
-    test: String,
+    project: CrossProjectName,
+    suite: SuiteName,
+    test: TestName,
     message: Option[String],
     throwable: Option[String],
     output: List[String],
@@ -438,32 +442,42 @@ case class TestFailure(
 )
 
 case class TestSkipped(
-    project: String,
-    suite: String,
-    test: String,
+    project: CrossProjectName,
+    suite: SuiteName,
+    test: TestName,
     status: TestStatus, // Skipped, Ignored, AssumptionFailed, Cancelled, or Pending
-    reason: Option[String] = None
+    reason: Option[String]
 )
 
 case class ProjectCompileFailure(
-    project: String,
+    project: CrossProjectName,
     diagnostics: List[BleepBspProtocol.Diagnostic]
 )
 
 case class SkippedProject(
-    project: String,
+    project: CrossProjectName,
     reason: String
 )
 
 case class CancelledSuite(
-    project: String,
-    suite: String,
+    project: CrossProjectName,
+    suite: SuiteName,
     reason: Option[String]
 )
 
+/** Kind of build task. */
+sealed trait TaskKind {
+  def label: String
+}
+object TaskKind {
+  case object Compile extends TaskKind { val label = "compile" }
+  case object Link extends TaskKind { val label = "link" }
+  case object Test extends TaskKind { val label = "test" }
+}
+
 /** A task that was started but never finished (e.g. compile or test suite killed by user cancellation) */
 case class KilledTask(
-    kind: String, // "compile", "link", "test"
+    kind: TaskKind,
     project: String, // project name, or "project:suite" for test suites
     elapsedMs: Long
 )
@@ -479,7 +493,7 @@ object BuildDisplay {
     for {
       state <- Ref.of[IO, BuildState](BuildState.empty)
       startTime <- IO.realTime.map(_.toMillis)
-      upToDateProjects <- Ref.of[IO, Set[String]](Set.empty)
+      upToDateProjects <- Ref.of[IO, Set[CrossProjectName]](Set.empty)
     } yield new BuildDisplayImpl(state, startTime, quietMode, logger, mode, upToDateProjects)
 
   private class BuildDisplayImpl(
@@ -488,16 +502,22 @@ object BuildDisplay {
       quietMode: Boolean,
       logger: ryddig.Logger,
       mode: BuildMode,
-      upToDateProjects: Ref[IO, Set[String]]
+      upToDateProjects: Ref[IO, Set[CrossProjectName]]
   ) extends BuildDisplay {
 
+    override def reset: IO[Unit] = state.set(BuildState.empty) >> IO {
+      activeCompileProgress.clear()
+      lastProgressLine = ""
+      activePhase.clear()
+    }
+
     // Track active compilations and their progress for progressMonitor display
-    private val activeCompileProgress: mutable.Map[String, Int] = mutable.Map.empty
+    private val activeCompileProgress: mutable.Map[CrossProjectName, Int] = mutable.Map.empty
     private var lastProgressLine: String = ""
 
     // Track compile phase start times per project: project -> (phase, detail, startTimestamp)
     // Used to print completed phase with duration when next phase arrives or compile finishes
-    private val activePhase: mutable.Map[String, (String, String, Long)] = mutable.Map.empty
+    private val activePhase: mutable.Map[CrossProjectName, (bleep.bsp.protocol.CompilePhase, String, Long)] = mutable.Map.empty
 
     private val progressMonitor: Option[LoggerFn] = logger match {
       case tl: TypedLogger[?] => tl.progressMonitor
@@ -508,7 +528,7 @@ object BuildDisplay {
       val items = activeCompileProgress.toList.sortBy(-_._2)
       if (items.nonEmpty) {
         val rendered = items.take(4).map { case (project, pct) =>
-          if (pct > 0) s"$project: $pct%" else s"$project: started"
+          if (pct > 0) s"${project.value}: $pct%" else s"${project.value}: started"
         }
         val rest = items.size - rendered.size
         val suffix = if (rest > 0) s" +$rest" else ""
@@ -527,21 +547,23 @@ object BuildDisplay {
     private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
     private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
 
-    private def logP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).info(msg))
-    private def logWarnP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).warn(msg))
-    private def logErrorP(project: String, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project).error(msg))
+    private def logP(project: CrossProjectName, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project.value).info(msg))
+    private def logWarnP(project: CrossProjectName, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project.value).warn(msg))
+    private def logErrorP(project: CrossProjectName, msg: String): IO[Unit] = IO.delay(logger.withContext("project", project.value).error(msg))
 
-    /** Convert phase name to past tense for completed-phase logging */
-    private def phasePastTense(phase: String): String = phase match {
-      case "reading-analysis" => "read analysis"
-      case "analyzing"        => "analyzed"
-      case "compiling"        => "compiled"
-      case "saving-analysis"  => "saved analysis"
-      case other              => other
+    /** Convert phase to past tense for completed-phase logging */
+    private def phasePastTense(phase: bleep.bsp.protocol.CompilePhase): String = {
+      import bleep.bsp.protocol.CompilePhase
+      phase match {
+        case CompilePhase.ReadingAnalysis => "read analysis"
+        case CompilePhase.Analyzing       => "analyzed"
+        case CompilePhase.Compiling       => "compiled"
+        case CompilePhase.SavingAnalysis  => "saved analysis"
+      }
     }
 
     /** Log the previously active phase as completed with duration, then record the new phase. */
-    private def completePhase(project: String, now: Long): IO[Unit] =
+    private def completePhase(project: CrossProjectName, now: Long): IO[Unit] =
       IO.delay(activePhase.remove(project)).flatMap {
         case Some((prevPhase, detail, startTs)) =>
           val dur = now - startTs
@@ -559,15 +581,15 @@ object BuildDisplay {
 
       case BuildEvent.CompilationReason(project, reason, totalFiles, invalidatedFiles, changedDeps, _) =>
         // Track up-to-date projects so CompileFinished can suppress output for them
-        val trackUpToDate = if (reason == "up-to-date") {
+        val trackUpToDate = if (reason == CompileReason.UpToDate) {
           upToDateProjects.update(_ + project)
         } else IO.unit
         val printMsg = if (!quietMode) {
           val msg = reason match {
-            case "clean-build"  => "🔨 compiling (clean build, no previous analysis)"
-            case "empty-output" => "🔨 compiling (clean build, output directory empty)"
-            case "up-to-date"   => "✅ up to date"
-            case "incremental" =>
+            case CompileReason.CleanBuild  => "🔨 compiling (clean build, no previous analysis)"
+            case CompileReason.EmptyOutput => "🔨 compiling (clean build, output directory empty)"
+            case CompileReason.UpToDate    => "✅ up to date"
+            case CompileReason.Incremental =>
               val invalidatedCount = invalidatedFiles.size
               val depCount = changedDeps.size
               val invalidatedStr =
@@ -587,13 +609,13 @@ object BuildDisplay {
               val parts = List(invalidatedStr, depStr).filter(_.nonEmpty)
               if (parts.isEmpty) s"🔨 compiling ($totalFiles source files)"
               else s"🔨 compiling (${parts.mkString("; ")})"
-            case other => s"🔨 compiling ($other)"
           }
           logP(project, msg)
         } else IO.unit
         trackUpToDate >> printMsg
 
       case BuildEvent.CompileFinished(project, status, durationMs, timestamp, _, _) =>
+        import bleep.bsp.protocol.CompileStatus
         // Complete the last tracked phase (e.g. saving-analysis) and clean up
         val finishPhase = completePhase(project, timestamp)
         // Remove from active progress tracking
@@ -604,16 +626,15 @@ object BuildDisplay {
         finishPhase >> removeProgress >>
           // Suppress output for up-to-date projects (only show single line from CompilationReason)
           upToDateProjects.get.flatMap { upToDate =>
-            if (upToDate.contains(project) && status == "success") {
+            if (upToDate.contains(project) && status == CompileStatus.Success) {
               IO.unit // Already showed "project: up to date" - nothing more needed
             } else if (!quietMode) {
               val (emoji, displayStatus) = status match {
-                case "success"   => ("✅", "compiled")
-                case "failed"    => ("❌", "compile failed")
-                case "error"     => ("❌", "compile error")
-                case "skipped"   => ("⏭️", "skipped")
-                case "cancelled" => ("🚫", "cancelled")
-                case other       => ("❓", other)
+                case CompileStatus.Success   => ("✅", "compiled")
+                case CompileStatus.Failed    => ("❌", "compile failed")
+                case CompileStatus.Error     => ("❌", "compile error")
+                case CompileStatus.Skipped   => ("⏭️", "skipped")
+                case CompileStatus.Cancelled => ("🚫", "cancelled")
               }
               logP(project, s"$emoji $displayStatus (${durationMs}ms)")
             } else IO.unit
@@ -679,7 +700,7 @@ object BuildDisplay {
       case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, threadDumpInfo, _) =>
         val timeoutSec = timeoutMs / 1000
         for {
-          _ <- IO.delay(logger.withContext("suite", suite).error(s"⏰ timed out after ${timeoutSec}s"))
+          _ <- IO.delay(logger.withContext("suite", suite.value).error(s"⏰ timed out after ${timeoutSec}s"))
           _ <- threadDumpInfo.flatMap(_.singleThreadStack) match {
             case Some(stack) => log(s"  Stack trace:\n$stack")
             case None        => IO.unit
@@ -690,22 +711,17 @@ object BuildDisplay {
           }
         } yield ()
 
-      case BuildEvent.SuiteError(_, suite, error, exitCode, signal, _, _) =>
-        val desc = signal match {
-          case Some(sig) => s"crashed (signal $sig)"
-          case None =>
-            exitCode match {
-              case Some(code) => s"exited with code $code"
-              case None       => error
-            }
+      case BuildEvent.SuiteError(_, suite, error, processExit, _, _) =>
+        val desc = processExit match {
+          case ProcessExit.Signal(sig)    => s"crashed (signal $sig)"
+          case ProcessExit.ExitCode(code) => s"exited with code $code"
+          case ProcessExit.Unknown        => error
         }
-        IO.delay(logger.withContext("suite", suite).error(s"❌ $desc"))
+        IO.delay(logger.withContext("suite", suite.value).error(s"❌ $desc"))
 
-      case BuildEvent.Error(project, message, details, _) =>
+      case BuildEvent.Error(message, details, _) =>
         for {
-          _ <-
-            if (project.nonEmpty) logErrorP(project, s"❌ $message")
-            else logError(s"❌ $message")
+          _ <- logError(s"❌ $message")
           _ <- details match {
             case Some(d) => d.split("\n").toList.traverse_(line => log(s"  $line"))
             case None    => IO.unit
@@ -714,19 +730,19 @@ object BuildDisplay {
 
       case BuildEvent.SuiteCancelled(_, suite, reason, _) =>
         val reasonStr = reason.getOrElse("unknown reason (likely exceeded timeout)")
-        IO.delay(logger.withContext("suite", suite).warn(s"🚫 cancelled ($reasonStr)"))
+        IO.delay(logger.withContext("suite", suite.value).warn(s"🚫 cancelled ($reasonStr)"))
 
       case BuildEvent.LinkStarted(project, platform, _) =>
-        if (!quietMode) logP(project, s"🔗 linking [$platform]") else IO.unit
+        if (!quietMode) logP(project, s"🔗 linking [${platform.wireValue}]") else IO.unit
 
       case BuildEvent.LinkSucceeded(project, platform, durationMs, _) =>
-        if (!quietMode) logP(project, s"✅ linked [$platform] (${durationMs}ms)") else IO.unit
+        if (!quietMode) logP(project, s"✅ linked [${platform.wireValue}] (${durationMs}ms)") else IO.unit
 
       case BuildEvent.LinkFailed(project, platform, durationMs, error, _) =>
-        logErrorP(project, s"❌ link failed [$platform] (${durationMs}ms): $error")
+        logErrorP(project, s"❌ link failed [${platform.wireValue}] (${durationMs}ms): $error")
 
       case BuildEvent.SourcegenStarted(scriptMain, forProjects, _) =>
-        if (!quietMode) IO.delay(logger.withContext("script", scriptMain).info(s"⚙️ sourcegen for ${forProjects.mkString(", ")}")) else IO.unit
+        if (!quietMode) IO.delay(logger.withContext("script", scriptMain).info(s"⚙️ sourcegen for ${forProjects.map(_.value).mkString(", ")}")) else IO.unit
 
       case BuildEvent.SourcegenFinished(scriptMain, success, durationMs, error, _) =>
         if (success) {
@@ -738,9 +754,9 @@ object BuildDisplay {
       case _: BuildEvent.ConnectionLost =>
         logWarn("💀 connection lost — server may have been killed")
 
-      case BuildEvent.WorkspaceBusy(_, operation, projects, startedAgoMs, _) =>
+      case BuildEvent.WorkspaceBusy(operation, projects, startedAgoMs, _) =>
         val elapsed = startedAgoMs / 1000
-        logWarn(s"⏳ workspace busy ($operation on ${projects.mkString(", ")}, started ${elapsed}s ago)")
+        logWarn(s"⏳ workspace busy ($operation on ${projects.map(_.value).mkString(", ")}, started ${elapsed}s ago)")
 
       case _: BuildEvent.WorkspaceReady =>
         log("✅ workspace available, proceeding")
@@ -752,14 +768,14 @@ object BuildDisplay {
     private def printStatus: IO[Unit] =
       for {
         s <- state.get
-        running = s.currentlyRunning.take(3).mkString(", ")
-        more = if (s.currentlyRunning.size > 3) s" (+${s.currentlyRunning.size - 3} more)" else ""
+        running = s.runningSuites.toList.sorted.take(3).mkString(", ")
+        more = if (s.runningSuites.size > 3) s" (+${s.runningSuites.size - 3} more)" else ""
         _ <- log(s"Running: $running$more")
       } yield ()
 
     private def printTestResult(
-        @annotation.nowarn("msg=is never used") suite: String,
-        test: String,
+        @annotation.nowarn("msg=is never used") suite: SuiteName,
+        test: TestName,
         status: TestStatus,
         durationMs: Long
     ): IO[Unit] = {
@@ -774,11 +790,11 @@ object BuildDisplay {
         case TestStatus.AssumptionFailed => SConsole.YELLOW + "a" + SConsole.RESET
         case TestStatus.Pending          => SConsole.YELLOW + "?" + SConsole.RESET
       }
-      log(s"  $icon $test")
+      log(s"  $icon ${test.value}")
     }
 
     private def printSuiteResult(
-        suite: String,
+        suite: SuiteName,
         passed: Int,
         failed: Int,
         skipped: Int,
@@ -789,7 +805,7 @@ object BuildDisplay {
       val status =
         if (failed > 0) SConsole.RED + "FAILED" + SConsole.RESET
         else SConsole.GREEN + "PASSED" + SConsole.RESET
-      log(s"$status $suite: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)")
+      log(s"$status ${suite.value}: $passed passed, $failed failed, $skipped skipped$ignoredStr ($durationMs ms)")
     }
 
     override def summary: IO[BuildSummary] =
@@ -829,8 +845,8 @@ object BuildDisplay {
         _ <- log("")
         _ <- log(SConsole.RED + "Compilation Failures:" + SConsole.RESET)
         _ <- failures.traverse_ { f =>
-          val errors = f.diagnostics.filter(_.severity == "error")
-          val warnings = f.diagnostics.filter(_.severity == "warning")
+          val errors = f.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
+          val warnings = f.diagnostics.filter(_.severity == DiagnosticSeverity.Warning)
           val errorCount = errors.size
           val warningCount = warnings.size
           val countSuffix = {
@@ -841,7 +857,7 @@ object BuildDisplay {
             if (parts.nonEmpty) s" (${parts.mkString(", ")})" else ""
           }
           for {
-            _ <- log(s"  ${SConsole.RED}x${SConsole.RESET} ${f.project}$countSuffix")
+            _ <- log(s"  ${SConsole.RED}x${SConsole.RESET} ${f.project.value}$countSuffix")
             // Show errors first (use rendered when available for source line + caret)
             _ <- errors.take(10).traverse_ { e =>
               val text = e.rendered.getOrElse(e.message)
@@ -938,6 +954,8 @@ object BuildDisplay {
       currentTestResults: Ref[IO, List[BuildEvent.TestFinished]]
   ) extends BuildDisplay {
 
+    override def reset: IO[Unit] = state.set(BuildState.empty) >> currentTestResults.set(Nil)
+
     private def log(msg: String): IO[Unit] = IO.delay(logger.info(msg))
     private def logWarn(msg: String): IO[Unit] = IO.delay(logger.warn(msg))
     private def logError(msg: String): IO[Unit] = IO.delay(logger.error(msg))
@@ -959,8 +977,8 @@ object BuildDisplay {
         val diff = BuildDiff.diffCompile(cf.project, cf.status, cf.diagnostics, previousDiags, cf.durationMs)
         val line = BuildDiff.formatCompileDiff(diff)
         // For failed compiles, also show the actual errors
-        if (cf.status == "failed" && cf.diagnostics.nonEmpty) {
-          val errors = cf.diagnostics.filter(_.severity == "error")
+        if (cf.status == bleep.bsp.protocol.CompileStatus.Failed && cf.diagnostics.nonEmpty) {
+          val errors = cf.diagnostics.filter(_.severity == DiagnosticSeverity.Error)
           val errorLines = errors.take(10).flatMap { d =>
             val text = d.rendered.getOrElse(d.message)
             text.linesIterator.map(l => s"  ${SConsole.RED}|${SConsole.RESET} $l").toList
@@ -989,19 +1007,22 @@ object BuildDisplay {
         }
 
       case BuildEvent.SuiteTimedOut(_, suite, timeoutMs, _, _) =>
-        logError(s"[TIMEOUT] $suite after ${timeoutMs / 1000}s")
+        logError(s"[TIMEOUT] ${suite.value} after ${timeoutMs / 1000}s")
 
-      case BuildEvent.SuiteError(_, suite, error, _, signal, _, _) =>
-        val desc = signal.map(s => s"Process crashed (signal $s)").getOrElse(error)
-        logError(s"[ERROR] $suite: $desc")
+      case BuildEvent.SuiteError(_, suite, error, processExit, _, _) =>
+        val desc = processExit match {
+          case ProcessExit.Signal(sig)    => s"Process crashed (signal $sig)"
+          case ProcessExit.ExitCode(code) => s"Process exited with code $code"
+          case ProcessExit.Unknown        => error
+        }
+        logError(s"[ERROR] ${suite.value}: $desc")
 
-      case BuildEvent.Error(project, message, _, _) =>
-        val projectInfo = if (project.nonEmpty) s" [$project]" else ""
-        logError(s"[ERROR]$projectInfo $message")
+      case BuildEvent.Error(message, _, _) =>
+        logError(s"[ERROR] $message")
 
       case BuildEvent.CompileStalled(project, usedMb, maxMb, retryAtMs, _) =>
         val waitSec = math.max(0, (retryAtMs - System.currentTimeMillis()) / 1000)
-        if (waitSec > 0) logWarn(s"$project: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
+        if (waitSec > 0) logWarn(s"${project.value}: compilation stalled (heap: ${usedMb}MB/${maxMb}MB) — retrying in ${waitSec}s")
         else IO.unit
 
       case _ => IO.unit
@@ -1019,30 +1040,31 @@ object BuildDisplay {
         allTests <- currentTestResults.get
         _ <- mode match {
           case BuildMode.Compile | BuildMode.Link(_) =>
-            val totalNew = s.compileFailures.map { cf =>
+            import bleep.bsp.protocol.CompileStatus
+            val totalNew: Int = s.compileFailures.map { cf =>
               val prev = previousRun.compileDiagnostics.getOrElse(cf.project, Nil)
-              val diff = BuildDiff.diffCompile(cf.project, "failed", cf.diagnostics, prev, 0)
+              val diff = BuildDiff.diffCompile(cf.project, CompileStatus.Failed, cf.diagnostics, prev, 0)
               diff.newErrors
             }.sum
-            val totalFixed = previousRun.compileDiagnostics.keys.toList.map { project =>
+            val totalFixed: Int = previousRun.compileDiagnostics.keys.toList.map { project =>
               val prev = previousRun.compileDiagnostics.getOrElse(project, Nil)
               val current = s.compileFailures.find(_.project == project).map(_.diagnostics).getOrElse(Nil)
-              val diff = BuildDiff.diffCompile(project, "unknown", current, prev, 0)
+              val diff = BuildDiff.diffCompile(project, CompileStatus.Success, current, prev, 0)
               diff.fixedErrors
             }.sum
-            val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == "error")
+            val totalErrors = s.compileFailures.flatMap(_.diagnostics).count(_.severity == DiagnosticSeverity.Error)
             log(BuildDiff.formatCompileSummary(s.compilesCompleted, totalErrors, 0, totalNew, totalFixed))
 
           case BuildMode.Test =>
             val newFailures = allTests.count { t =>
-              val key = (t.project, t.suite, t.test)
+              val key = TestKey(t.project, t.suite, t.test)
               val prev = previousRun.testResults.get(key)
-              val prevFailed = prev.exists(p => p == "failed" || p == "error" || p == "timeout" || p == "cancelled")
+              val prevFailed = prev.exists(_.isFailure)
               t.status.isFailure && !prevFailed
             }
             val fixedTests = previousRun.testResults.count { case (key, prev) =>
-              val prevFailed = prev == "failed" || prev == "error" || prev == "timeout" || prev == "cancelled"
-              val currentResult = allTests.find(t => (t.project, t.suite, t.test) == key)
+              val prevFailed = prev.isFailure
+              val currentResult = allTests.find(t => TestKey(t.project, t.suite, t.test) == key)
               prevFailed && currentResult.exists(t => !t.status.isFailure)
             }
             log(BuildDiff.formatTestSummary(s.testsPassed, s.testsFailed, newFailures, fixedTests))
@@ -1057,6 +1079,8 @@ object BuildDisplay {
       state: Ref[IO, BuildState],
       startTime: Long
   ) extends BuildDisplay {
+
+    override def reset: IO[Unit] = state.set(BuildState.empty)
 
     override def handle(event: BuildEvent): IO[Unit] =
       for {

@@ -1,6 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag}
+import bleep.bsp.{KotlinTestRunner, LinkExecutor, Outcome, ScalaJsTestRunner, ScalaNativeTestRunner, TaskDag, TestRunnerTypes}
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.Outcome.KillReason
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
@@ -81,7 +82,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         } yield res).unsafeRunSync()
         val duration = System.currentTimeMillis() - startTime
 
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
         duration should be < 5000L
       } finally deleteRecursively(tempDir)
     }
@@ -121,7 +122,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         } yield res).unsafeRunSync()
         val duration = System.currentTimeMillis() - startTime
 
-        result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
         duration should be < 10000L
       } finally deleteRecursively(tempDir)
     }
@@ -160,7 +161,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         } yield res).unsafeRunSync()
         val duration = System.currentTimeMillis() - startTime
 
-        result.terminationReason shouldBe a[ScalaNativeTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
         duration should be < 5000L
       } finally deleteRecursively(tempDir)
     }
@@ -261,7 +262,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
 
         // All runs should complete without hanging or being cancelled.
         allResults.foreach { result =>
-          result.terminationReason shouldBe ScalaJsTestRunner.TerminationReason.Completed
+          result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
         }
       } finally deleteRecursively(tempDir)
     }
@@ -308,7 +309,7 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
         } yield res).unsafeRunSync()
         val duration = System.currentTimeMillis() - startTime
 
-        result.terminationReason shouldBe a[ScalaNativeTestRunner.TerminationReason.Killed]
+        result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
         duration should be < 5000L
       } finally deleteRecursively(tempDir)
     }
@@ -318,21 +319,21 @@ class TimeoutAndResourceTest extends AnyFunSuite with Matchers with TimeLimits {
   // Helpers
   // ==========================================================================
 
-  class RecordingHandler extends ScalaJsTestRunner.TestEventHandler {
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+  class RecordingHandler extends TestRunnerTypes.TestEventHandler {
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
     def onTestStarted(suite: String, test: String): Unit = {}
-    def onTestFinished(suite: String, test: String, status: ScalaJsTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit = {}
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit = {}
     def onSuiteStarted(suite: String): Unit = {}
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = {}
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 
-  class RecordingNativeHandler extends ScalaNativeTestRunner.TestEventHandler {
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+  class RecordingNativeHandler extends TestRunnerTypes.TestEventHandler {
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
     def onTestStarted(suite: String, test: String): Unit = {}
-    def onTestFinished(suite: String, test: String, status: ScalaNativeTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit = {}
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit = {}
     def onSuiteStarted(suite: String): Unit = {}
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit = {}
-    def onOutput(suite: String, line: String, isError: Boolean): Unit = outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit = outputs += ((suite, line, channel))
   }
 }

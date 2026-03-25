@@ -2,7 +2,8 @@ package bleep.analysis
 
 import bleep.bsp.{Outcome, TaskDag}
 import bleep.bsp.Outcome.KillReason
-import bleep.bsp.TaskDag._
+import bleep.bsp.TaskDag.{TaskId, _}
+import bleep.bsp.protocol.LinkPlatformName
 import bleep.model.{CrossProjectName, ProjectName}
 import cats.effect.{Deferred, IO}
 import cats.effect.std.Queue
@@ -43,7 +44,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     // DiscoverTask should depend on CompileTask
     val discoverTask = dag.tasks.values.collectFirst { case dt: DiscoverTask => dt }.get
-    discoverTask.dependencies should contain(s"compile:${project.value}")
+    discoverTask.dependencies should contain(TaskId.Compile(project))
   }
 
   test("buildTestDag: Scala.js project has compile → link → discover dependency") {
@@ -62,13 +63,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
 
     // LinkTask should depend on CompileTask
     val linkTask = dag.tasks.values.collectFirst { case lt: LinkTask => lt }.get
-    linkTask.dependencies should contain(s"compile:${project.value}")
+    linkTask.dependencies should contain(TaskId.Compile(project))
     linkTask.platform shouldBe platform
     linkTask.isTest shouldBe true
 
     // DiscoverTask should depend on LinkTask
     val discoverTask = dag.tasks.values.collectFirst { case dt: DiscoverTask => dt }.get
-    discoverTask.dependencies should contain(s"link:${project.value}")
+    discoverTask.dependencies should contain(TaskId.Link(project))
   }
 
   test("buildTestDag: Scala Native project has compile → link → discover dependency") {
@@ -225,14 +226,14 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val result = (for {
-      eventQueue <- Queue.unbounded[IO, DagEvent]
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
 
     linkCalled shouldBe true
     linkPlatformReceived shouldBe Some(platform)
-    result.completed should contain(s"link:${project.value}")
+    result.completed should contain(TaskId.Link(project))
   }
 
   test("executor: emits link events") {
@@ -265,7 +266,7 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val events = (for {
-      eventQueue <- Queue.unbounded[IO, DagEvent]
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       _ <- executor.execute(dag, 4, eventQueue, killSignal)
       allEvents <- drainQueue(eventQueue)
@@ -275,8 +276,8 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     val linkFinished = events.collect { case e: DagEvent.LinkFinished => e }
 
     linkStarted should have size 1
-    linkStarted.head.project shouldBe project.value
-    linkStarted.head.platform shouldBe "Scala.js"
+    linkStarted.head.project shouldBe project
+    linkStarted.head.platform shouldBe LinkPlatformName.ScalaJs
 
     linkFinished should have size 1
     linkFinished.head.result shouldBe a[LinkResult.JsSuccess]
@@ -300,13 +301,13 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
     )
 
     val result = (for {
-      eventQueue <- Queue.unbounded[IO, DagEvent]
+      eventQueue <- Queue.unbounded[IO, Option[DagEvent]]
       killSignal <- Outcome.neverKillSignal
       finalDag <- executor.execute(dag, 4, eventQueue, killSignal)
     } yield finalDag).unsafeRunSync()
 
-    result.failed should contain(s"link:${project.value}")
-    result.skipped should contain(s"discover:${project.value}")
+    result.failed should contain(TaskId.Link(project))
+    result.skipped should contain(TaskId.Discover(project))
   }
 
   // ==========================================================================
@@ -321,14 +322,14 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
       isTest = false
     )
 
-    task.id shouldBe "link:myapp-js"
+    task.id.value shouldBe "link:myapp-js"
   }
 
   test("LinkPlatform: all platforms have correct types") {
     LinkPlatform.Jvm shouldBe a[LinkPlatform]
     LinkPlatform.ScalaJs("1.16.0", "3.3.3", ScalaJsLinkConfig.Debug) shouldBe a[LinkPlatform.ScalaJs]
     LinkPlatform.ScalaNative("0.5.6", "3.3.3", ScalaNativeLinkConfig.Debug) shouldBe a[LinkPlatform.ScalaNative]
-    LinkPlatform.KotlinJs("2.0.0", TaskDag.KotlinJsConfig("commonjs", true, false, java.nio.file.Path.of("."))) shouldBe a[LinkPlatform.KotlinJs]
+    LinkPlatform.KotlinJs("2.0.0", TaskDag.KotlinJsConfig(bleep.model.KotlinJsModuleKind.CommonJS, true, false, java.nio.file.Path.of("."))) shouldBe a[LinkPlatform.KotlinJs]
     LinkPlatform.KotlinNative("2.0.0", TaskDag.KotlinNativeConfig("linux-x64", true, false, false)) shouldBe a[LinkPlatform.KotlinNative]
   }
 
@@ -349,11 +350,12 @@ class LinkDagIntegrationTest extends AnyFunSuite with Matchers {
   // Helpers
   // ==========================================================================
 
-  private def drainQueue(queue: Queue[IO, DagEvent]): IO[List[DagEvent]] = {
+  private def drainQueue(queue: Queue[IO, Option[DagEvent]]): IO[List[DagEvent]] = {
     def loop(acc: List[DagEvent]): IO[List[DagEvent]] =
       queue.tryTake.flatMap {
-        case Some(event) => loop(event :: acc)
-        case None        => IO.pure(acc.reverse)
+        case Some(Some(event)) => loop(event :: acc)
+        case Some(None)        => IO.pure(acc.reverse) // poison pill
+        case None              => IO.pure(acc.reverse)
       }
     // Small delay to let events accumulate
     IO.sleep(scala.concurrent.duration.Duration(100, scala.concurrent.duration.MILLISECONDS)) >> loop(Nil)

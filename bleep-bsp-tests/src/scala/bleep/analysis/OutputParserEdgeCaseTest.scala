@@ -1,6 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.{KotlinTestRunner, ScalaJsTestRunner, ScalaNativeTestRunner}
+import bleep.bsp.{KotlinTestRunner, ScalaJsTestRunner, ScalaNativeTestRunner, TestRunnerTypes}
+import bleep.bsp.protocol.TestStatus
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import scala.collection.mutable
@@ -80,22 +81,22 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestResult: all zeros is success") {
-    val result = ScalaNativeTestRunner.TestResult(0, 0, 0, 0, ScalaNativeTestRunner.TerminationReason.Completed)
+    val result = TestRunnerTypes.TestResult(0, 0, 0, 0, TestRunnerTypes.TerminationReason.Completed)
     result.isSuccess shouldBe true
   }
 
   test("TestResult: only skipped/ignored is success") {
-    val result = ScalaNativeTestRunner.TestResult(0, 0, 10, 5, ScalaNativeTestRunner.TerminationReason.Completed)
+    val result = TestRunnerTypes.TestResult(0, 0, 10, 5, TestRunnerTypes.TerminationReason.Completed)
     result.isSuccess shouldBe true
   }
 
   test("TestResult: single failure makes it not success") {
-    val result = ScalaNativeTestRunner.TestResult(100, 1, 0, 0, ScalaNativeTestRunner.TerminationReason.Completed)
+    val result = TestRunnerTypes.TestResult(100, 1, 0, 0, TestRunnerTypes.TerminationReason.Completed)
     result.isSuccess shouldBe false
   }
 
   test("TestResult: cancelled overrides passed") {
-    val result = ScalaNativeTestRunner.TestResult(100, 0, 0, 0, ScalaNativeTestRunner.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest))
+    val result = TestRunnerTypes.TestResult(100, 0, 0, 0, TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest))
     result.isSuccess shouldBe false
   }
 
@@ -104,10 +105,10 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("ScalaJs TestResult: same behavior as Native") {
-    val result = ScalaJsTestRunner.TestResult(0, 0, 0, 0, ScalaJsTestRunner.TerminationReason.Completed)
+    val result = TestRunnerTypes.TestResult(0, 0, 0, 0, TestRunnerTypes.TerminationReason.Completed)
     result.isSuccess shouldBe true
 
-    val cancelled = ScalaJsTestRunner.TestResult(100, 0, 0, 0, ScalaJsTestRunner.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest))
+    val cancelled = TestRunnerTypes.TestResult(100, 0, 0, 0, TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest))
     cancelled.isSuccess shouldBe false
   }
 
@@ -116,10 +117,10 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("Kotlin TestResult: same behavior") {
-    val result = KotlinTestRunner.TestResult(0, 0, 0, 0, KotlinTestRunner.TerminationReason.Completed)
+    val result = TestRunnerTypes.TestResult(0, 0, 0, 0, TestRunnerTypes.TerminationReason.Completed)
     result.isSuccess shouldBe true
 
-    val failed = KotlinTestRunner.TestResult(10, 1, 0, 0, KotlinTestRunner.TerminationReason.Completed)
+    val failed = TestRunnerTypes.TestResult(10, 1, 0, 0, TestRunnerTypes.TerminationReason.Completed)
     failed.isSuccess shouldBe false
   }
 
@@ -128,7 +129,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestSuite: handles special characters in names") {
-    val suite = ScalaNativeTestRunner.TestSuite(
+    val suite = TestRunnerTypes.TestSuite(
       "Test$Suite$With$Dollars",
       "com.example.Test$Suite$With$Dollars"
     )
@@ -137,7 +138,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   }
 
   test("TestSuite: handles Unicode in names") {
-    val suite = ScalaNativeTestRunner.TestSuite(
+    val suite = TestRunnerTypes.TestSuite(
       "TestSuite日本語",
       "com.example.TestSuite日本語"
     )
@@ -145,14 +146,14 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   }
 
   test("TestSuite: handles empty strings") {
-    val suite = ScalaNativeTestRunner.TestSuite("", "")
+    val suite = TestRunnerTypes.TestSuite("", "")
     suite.name shouldBe ""
     suite.fullyQualifiedName shouldBe ""
   }
 
   test("TestSuite: handles very long names") {
     val longName = "A" * 10000
-    val suite = ScalaNativeTestRunner.TestSuite(longName, s"com.example.$longName")
+    val suite = TestRunnerTypes.TestSuite(longName, s"com.example.$longName")
     suite.name shouldBe longName
   }
 
@@ -162,11 +163,11 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
 
   test("TestStatus: all statuses are distinct") {
     val statuses = Set(
-      ScalaNativeTestRunner.TestStatus.Passed,
-      ScalaNativeTestRunner.TestStatus.Failed,
-      ScalaNativeTestRunner.TestStatus.Skipped,
-      ScalaNativeTestRunner.TestStatus.Ignored,
-      ScalaNativeTestRunner.TestStatus.Cancelled
+      TestStatus.Passed,
+      TestStatus.Failed,
+      TestStatus.Skipped,
+      TestStatus.Ignored,
+      TestStatus.Cancelled
     )
     statuses should have size 5
   }
@@ -204,7 +205,7 @@ class OutputParserEdgeCaseTest extends AnyFunSuite with Matchers {
   }
 
   test("DiscoveredSuites: handles many suites") {
-    val suites = (1 to 1000).map(i => ScalaJsTestRunner.TestSuite(s"Suite$i", s"com.example.Suite$i")).toList
+    val suites = (1 to 1000).map(i => TestRunnerTypes.TestSuite(s"Suite$i", s"com.example.Suite$i")).toList
     val discovered = ScalaJsTestRunner.DiscoveredSuites("test.Framework", suites)
     discovered.suites should have size 1000
   }

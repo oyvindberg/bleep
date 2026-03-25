@@ -1,7 +1,8 @@
 package bleep.analysis
 
 import bleep.bsp.TaskDag
-import bleep.bsp.protocol.BleepBspProtocol
+import bleep.bsp.protocol.{BleepBspProtocol, OutputChannel, TestStatus}
+import bleep.model.{CrossProjectName, ProjectName, SuiteName, TestName}
 import bleep.testing.TestProtocol
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
@@ -294,15 +295,15 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     failAfter(quickTimeout) {
       val ts = System.currentTimeMillis()
       val event = TaskDag.DagEvent.TestStarted(
-        project = "my-project",
-        suite = "com.example.MySuite",
-        test = "should handle edge cases",
+        project = CrossProjectName(ProjectName("my-project"), None),
+        suite = SuiteName("com.example.MySuite"),
+        test = TestName("should handle edge cases"),
         timestamp = ts
       )
 
-      event.project shouldBe "my-project"
-      event.suite shouldBe "com.example.MySuite"
-      event.test shouldBe "should handle edge cases"
+      event.project shouldBe CrossProjectName(ProjectName("my-project"), None)
+      event.suite shouldBe SuiteName("com.example.MySuite")
+      event.test shouldBe TestName("should handle edge cases")
       event.timestamp shouldBe ts
     }
   }
@@ -311,17 +312,17 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     failAfter(quickTimeout) {
       val ts = System.currentTimeMillis()
       val event = TaskDag.DagEvent.TestFinished(
-        project = "my-project",
-        suite = "MySuite",
-        test = "myTest",
-        status = "failed",
+        project = CrossProjectName(ProjectName("my-project"), None),
+        suite = SuiteName("MySuite"),
+        test = TestName("myTest"),
+        status = TestStatus.Failed,
         durationMs = 150,
         message = Some("assertion failed: expected true"),
         throwable = Some("java.lang.AssertionError"),
         timestamp = ts
       )
 
-      event.status shouldBe "failed"
+      event.status shouldBe TestStatus.Failed
       event.durationMs shouldBe 150
       event.message shouldBe Some("assertion failed: expected true")
       event.throwable shouldBe Some("java.lang.AssertionError")
@@ -332,8 +333,8 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
     failAfter(quickTimeout) {
       val ts = System.currentTimeMillis()
       val event = TaskDag.DagEvent.SuiteFinished(
-        project = "my-project",
-        suite = "MySuite",
+        project = CrossProjectName(ProjectName("my-project"), None),
+        suite = SuiteName("MySuite"),
         passed = 10,
         failed = 2,
         skipped = 1,
@@ -355,23 +356,23 @@ class JvmTestRunnerIntegrationTest extends AnyFunSuite with Matchers with TimeLi
       val ts = System.currentTimeMillis()
 
       val stdout = TaskDag.DagEvent.Output(
-        project = "my-project",
-        suite = "MySuite",
+        project = CrossProjectName(ProjectName("my-project"), None),
+        suite = SuiteName("MySuite"),
         line = "[info] Running tests...",
-        isError = false,
+        channel = OutputChannel.Stdout,
         timestamp = ts
       )
 
       val stderr = TaskDag.DagEvent.Output(
-        project = "my-project",
-        suite = "MySuite",
+        project = CrossProjectName(ProjectName("my-project"), None),
+        suite = SuiteName("MySuite"),
         line = "[error] Test failed!",
-        isError = true,
+        channel = OutputChannel.Stderr,
         timestamp = ts
       )
 
-      stdout.isError shouldBe false
-      stderr.isError shouldBe true
+      stdout.channel shouldBe OutputChannel.Stdout
+      stderr.channel shouldBe OutputChannel.Stderr
     }
   }
 

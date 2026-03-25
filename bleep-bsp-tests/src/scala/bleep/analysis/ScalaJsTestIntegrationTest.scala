@@ -1,6 +1,7 @@
 package bleep.analysis
 
-import bleep.bsp.{LinkExecutor, Outcome, ScalaJsTestRunner}
+import bleep.bsp.{LinkExecutor, Outcome, ScalaJsTestRunner, TestRunnerTypes}
+import bleep.bsp.protocol.{OutputChannel, TestStatus}
 import bleep.bsp.Outcome.KillReason
 import cats.effect.{Deferred, IO}
 import cats.effect.unsafe.implicits.global
@@ -36,17 +37,17 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
   // Test Event Handler
   // ==========================================================================
 
-  class RecordingEventHandler extends ScalaJsTestRunner.TestEventHandler {
+  class RecordingEventHandler extends TestRunnerTypes.TestEventHandler {
     val testStarts = mutable.Buffer[(String, String)]()
-    val testFinishes = mutable.Buffer[(String, String, ScalaJsTestRunner.TestStatus, Long, Option[String])]()
+    val testFinishes = mutable.Buffer[(String, String, TestStatus, Long, Option[String])]()
     val suiteStarts = mutable.Buffer[String]()
     val suiteFinishes = mutable.Buffer[(String, Int, Int, Int)]()
-    val outputs = mutable.Buffer[(String, String, Boolean)]()
+    val outputs = mutable.Buffer[(String, String, OutputChannel)]()
 
     def onTestStarted(suite: String, test: String): Unit =
       testStarts += ((suite, test))
 
-    def onTestFinished(suite: String, test: String, status: ScalaJsTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+    def onTestFinished(suite: String, test: String, status: TestStatus, durationMs: Long, message: Option[String]): Unit =
       testFinishes += ((suite, test, status, durationMs, message))
 
     def onSuiteStarted(suite: String): Unit =
@@ -55,8 +56,8 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
       suiteFinishes += ((suite, passed, failed, skipped))
 
-    def onOutput(suite: String, line: String, isError: Boolean): Unit =
-      outputs += ((suite, line, isError))
+    def onOutput(suite: String, line: String, channel: OutputChannel): Unit =
+      outputs += ((suite, line, channel))
   }
 
   // ==========================================================================
@@ -64,11 +65,11 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestStatus: all statuses") {
-    ScalaJsTestRunner.TestStatus.Passed shouldBe a[ScalaJsTestRunner.TestStatus]
-    ScalaJsTestRunner.TestStatus.Failed shouldBe a[ScalaJsTestRunner.TestStatus]
-    ScalaJsTestRunner.TestStatus.Skipped shouldBe a[ScalaJsTestRunner.TestStatus]
-    ScalaJsTestRunner.TestStatus.Ignored shouldBe a[ScalaJsTestRunner.TestStatus]
-    ScalaJsTestRunner.TestStatus.Cancelled shouldBe a[ScalaJsTestRunner.TestStatus]
+    TestStatus.Passed shouldBe a[TestStatus]
+    TestStatus.Failed shouldBe a[TestStatus]
+    TestStatus.Skipped shouldBe a[TestStatus]
+    TestStatus.Ignored shouldBe a[TestStatus]
+    TestStatus.Cancelled shouldBe a[TestStatus]
   }
 
   // ==========================================================================
@@ -76,12 +77,12 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
   // ==========================================================================
 
   test("TestResult: success when no failures") {
-    val result = ScalaJsTestRunner.TestResult(
+    val result = TestRunnerTypes.TestResult(
       passed = 5,
       failed = 0,
       skipped = 1,
       ignored = 0,
-      terminationReason = ScalaJsTestRunner.TerminationReason.Completed
+      terminationReason = TestRunnerTypes.TerminationReason.Completed
     )
 
     result.isSuccess shouldBe true
@@ -90,28 +91,28 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
   }
 
   test("TestResult: not success when failures") {
-    val result = ScalaJsTestRunner.TestResult(
+    val result = TestRunnerTypes.TestResult(
       passed = 4,
       failed = 1,
       skipped = 0,
       ignored = 0,
-      terminationReason = ScalaJsTestRunner.TerminationReason.Completed
+      terminationReason = TestRunnerTypes.TerminationReason.Completed
     )
 
     result.isSuccess shouldBe false
   }
 
   test("TestResult: not success when cancelled") {
-    val result = ScalaJsTestRunner.TestResult(
+    val result = TestRunnerTypes.TestResult(
       passed = 5,
       failed = 0,
       skipped = 0,
       ignored = 0,
-      terminationReason = ScalaJsTestRunner.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest)
+      terminationReason = TestRunnerTypes.TerminationReason.Killed(bleep.bsp.Outcome.KillReason.UserRequest)
     )
 
     result.isSuccess shouldBe false
-    result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.Killed]
+    result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
   }
 
   // ==========================================================================
@@ -120,8 +121,8 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
 
   test("DiscoveredSuites: stores framework and suites") {
     val suites = List(
-      ScalaJsTestRunner.TestSuite("MySuite", "com.example.MySuite"),
-      ScalaJsTestRunner.TestSuite("OtherSuite", "com.example.OtherSuite")
+      TestRunnerTypes.TestSuite("MySuite", "com.example.MySuite"),
+      TestRunnerTypes.TestSuite("OtherSuite", "com.example.OtherSuite")
     )
     val discovered = ScalaJsTestRunner.DiscoveredSuites("munit.Framework", suites)
 
@@ -165,7 +166,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
       )
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaJsTestRunner.TestSuite("MySuite", "MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "MySuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -182,11 +183,11 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
 
       result.passed shouldBe 2
       result.failed shouldBe 0
-      result.terminationReason shouldBe ScalaJsTestRunner.TerminationReason.Completed
+      result.terminationReason shouldBe TestRunnerTypes.TerminationReason.Completed
 
       handler.suiteStarts should contain("MySuite")
       handler.testStarts should have size 2
-      handler.testFinishes.count(_._3 == ScalaJsTestRunner.TestStatus.Passed) shouldBe 2
+      handler.testFinishes.count(_._3 == TestStatus.Passed) shouldBe 2
     } finally deleteRecursively(tempDir)
   }
 
@@ -209,7 +210,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
       )
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaJsTestRunner.TestSuite("MySuite", "MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "MySuite"))
 
       val result = (for {
         killSignal <- Outcome.neverKillSignal
@@ -228,7 +229,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
       result.failed shouldBe 1
       result.isSuccess shouldBe false
 
-      val failedTest = handler.testFinishes.find(_._3 == ScalaJsTestRunner.TestStatus.Failed).get
+      val failedTest = handler.testFinishes.find(_._3 == TestStatus.Failed).get
       failedTest._2 shouldBe "failing"
       failedTest._5 shouldBe Some("assertion failed")
     } finally deleteRecursively(tempDir)
@@ -252,7 +253,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
       )
 
       val handler = new RecordingEventHandler()
-      val suites = List(ScalaJsTestRunner.TestSuite("MySuite", "MySuite"))
+      val suites = List(TestRunnerTypes.TestSuite("MySuite", "MySuite"))
 
       val result = (for {
         killSignal <- Deferred[IO, KillReason]
@@ -268,7 +269,7 @@ class ScalaJsTestIntegrationTest extends AnyFunSuite with Matchers {
         )
       } yield r).unsafeRunSync()
 
-      result.terminationReason shouldBe a[ScalaJsTestRunner.TerminationReason.Killed]
+      result.terminationReason shouldBe a[TestRunnerTypes.TerminationReason.Killed]
     } finally deleteRecursively(tempDir)
   }
 }

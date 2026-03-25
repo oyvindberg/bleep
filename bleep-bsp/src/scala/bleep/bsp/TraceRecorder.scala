@@ -19,11 +19,23 @@ import java.nio.charset.StandardCharsets
   */
 case class TraceEvent(
     name: String,
-    category: String,
+    category: TraceCategory,
     startUs: Long,
     durationUs: Long,
     tid: Int
 )
+
+/** Category for trace events — prevents typos in string-based category names. */
+sealed trait TraceCategory {
+  def value: String
+  override def toString: String = value
+}
+object TraceCategory {
+  case object Compile extends TraceCategory { val value = "compile" }
+  case object Link extends TraceCategory { val value = "link" }
+  case object Discover extends TraceCategory { val value = "discover" }
+  case object Test extends TraceCategory { val value = "test" }
+}
 
 /** Records execution traces in Chrome Trace Event Format.
   *
@@ -34,10 +46,10 @@ case class TraceEvent(
 trait TraceRecorder {
 
   /** Record that a task has started */
-  def recordStart(category: String, name: String): IO[Unit]
+  def recordStart(category: TraceCategory, name: String): IO[Unit]
 
   /** Record that a task has ended */
-  def recordEnd(category: String, name: String): IO[Unit]
+  def recordEnd(category: TraceCategory, name: String): IO[Unit]
 
   /** Write the trace to a JSON file in Chrome Trace Event Format */
   def writeTrace(outputPath: Path): IO[Unit]
@@ -60,8 +72,8 @@ object TraceRecorder {
 
   /** No-op trace recorder (when --flamegraph is not specified) */
   val noop: TraceRecorder = new TraceRecorder {
-    def recordStart(category: String, name: String): IO[Unit] = IO.unit
-    def recordEnd(category: String, name: String): IO[Unit] = IO.unit
+    def recordStart(category: TraceCategory, name: String): IO[Unit] = IO.unit
+    def recordEnd(category: TraceCategory, name: String): IO[Unit] = IO.unit
     def writeTrace(outputPath: Path): IO[Unit] = IO.unit
   }
 
@@ -74,9 +86,9 @@ object TraceRecorder {
 
     private def nowUs: IO[Long] = IO.delay(System.currentTimeMillis() * 1000)
 
-    private def key(category: String, name: String): String = s"$category:$name"
+    private def key(category: TraceCategory, name: String): String = s"${category.value}:$name"
 
-    override def recordStart(category: String, name: String): IO[Unit] =
+    override def recordStart(category: TraceCategory, name: String): IO[Unit] =
       for {
         baseTime <- baseTimeRef.get
         currentUs <- nowUs
@@ -85,7 +97,7 @@ object TraceRecorder {
         _ <- inFlightRef.update(_ + (key(category, name) -> (relativeUs, tid)))
       } yield ()
 
-    override def recordEnd(category: String, name: String): IO[Unit] =
+    override def recordEnd(category: TraceCategory, name: String): IO[Unit] =
       for {
         baseTime <- baseTimeRef.get
         currentUs <- nowUs
@@ -94,7 +106,7 @@ object TraceRecorder {
         _ <- inFlight.get(key(category, name)) match {
           case Some((startUs, tid)) =>
             val event = TraceEvent(
-              name = s"$category $name",
+              name = s"${category.value} $name",
               category = category,
               startUs = startUs,
               durationUs = relativeUs - startUs,
@@ -125,7 +137,7 @@ object TraceRecorder {
       val traceEvents = events.map { e =>
         // Using "X" (complete event) format which has name, cat, ph, ts, dur, pid, tid
         s"""    {"name": ${escapeJson(e.name)}, "cat": ${escapeJson(
-            e.category
+            e.category.value
           )}, "ph": "X", "ts": ${e.startUs}, "dur": ${e.durationUs}, "pid": 1, "tid": ${e.tid}}"""
       }
 

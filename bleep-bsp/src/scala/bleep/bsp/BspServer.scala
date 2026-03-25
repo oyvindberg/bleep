@@ -700,7 +700,7 @@ class BspServer(
       TaskDag.LinkPlatform.KotlinJs(
         version,
         TaskDag.KotlinJsConfig(
-          moduleKind = "commonjs",
+          moduleKind = bleep.model.KotlinJsModuleKind.CommonJS,
           sourceMap = true,
           dce = false, // Default without DCE
           outputDir = project.outputDir.resolve("js")
@@ -728,29 +728,23 @@ class BspServer(
     }
   }
 
-  /** Extract Scala.js version from classpath. */
-  private def extractScalaJsVersion(classpath: List[Path]): Option[String] = {
-    val pattern = """scalajs-library[_-](\d+\.\d+\.\d+)""".r
+  /** Extract a version string from classpath JARs matching a regex pattern. */
+  private def extractVersionFromClasspath(classpath: List[Path], pattern: scala.util.matching.Regex): Option[String] =
     classpath.flatMap { p =>
       pattern.findFirstMatchIn(p.getFileName.toString).map(_.group(1))
     }.headOption
-  }
+
+  /** Extract Scala.js version from classpath. */
+  private def extractScalaJsVersion(classpath: List[Path]): Option[String] =
+    extractVersionFromClasspath(classpath, """scalajs-library[_-](\d+\.\d+\.\d+)""".r)
 
   /** Extract Scala Native version from classpath. */
-  private def extractScalaNativeVersion(classpath: List[Path]): Option[String] = {
-    val pattern = """nativelib[_-].*?[_-](\d+\.\d+\.\d+)""".r
-    classpath.flatMap { p =>
-      pattern.findFirstMatchIn(p.getFileName.toString).map(_.group(1))
-    }.headOption
-  }
+  private def extractScalaNativeVersion(classpath: List[Path]): Option[String] =
+    extractVersionFromClasspath(classpath, """nativelib[_-].*?[_-](\d+\.\d+\.\d+)""".r)
 
   /** Extract Kotlin version from classpath. */
-  private def extractKotlinVersion(classpath: List[Path]): Option[String] = {
-    val pattern = """kotlin-stdlib[_-](\d+\.\d+\.\d+)""".r
-    classpath.flatMap { p =>
-      pattern.findFirstMatchIn(p.getFileName.toString).map(_.group(1))
-    }.headOption
-  }
+  private def extractKotlinVersion(classpath: List[Path]): Option[String] =
+    extractVersionFromClasspath(classpath, """kotlin-stdlib[_-](\d+\.\d+\.\d+)""".r)
 
   /** Detect the native target for the current platform. */
   private def detectNativeTarget(): String = {
@@ -1243,17 +1237,17 @@ class BspServer(
                 if (allSuites.isEmpty) {
                   IO.delay(sendLogMessage("No test suites discovered", MessageType.Warning)).as(true)
                 } else {
-                  val eventHandler = new ScalaJsTestRunner.TestEventHandler {
+                  val eventHandler = new TestRunnerTypes.TestEventHandler {
                     def onTestStarted(suite: String, test: String): Unit =
                       sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-                    def onTestFinished(suite: String, test: String, status: ScalaJsTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+                    def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
                       sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
                     def onSuiteStarted(suite: String): Unit =
                       sendLogMessage(s"Suite: $suite", MessageType.Log)
                     def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
                       sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-                    def onOutput(suite: String, line: String, isError: Boolean): Unit =
-                      sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+                    def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+                      sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
                   }
 
                   ScalaJsTestRunner
@@ -1313,17 +1307,17 @@ class BspServer(
       )
       result <- linkResult match {
         case TaskDag.LinkResult.NativeSuccess(binary, _) =>
-          val eventHandler = new ScalaNativeTestRunner.TestEventHandler {
+          val eventHandler = new TestRunnerTypes.TestEventHandler {
             def onTestStarted(suite: String, test: String): Unit =
               sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-            def onTestFinished(suite: String, test: String, status: ScalaNativeTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+            def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
               sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
             def onSuiteStarted(suite: String): Unit =
               sendLogMessage(s"Suite: $suite", MessageType.Log)
             def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
               sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-            def onOutput(suite: String, line: String, isError: Boolean): Unit =
-              sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+            def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+              sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
           }
 
           // Use TestAdapter protocol (socket-based RPC) for proper communication with the native binary.
@@ -1372,17 +1366,17 @@ class BspServer(
           if (suites.isEmpty) {
             IO.delay(sendLogMessage("No Kotlin/JS test suites discovered", MessageType.Warning)).as(true)
           } else {
-            val eventHandler = new KotlinTestRunner.TestEventHandler {
+            val eventHandler = new TestRunnerTypes.TestEventHandler {
               def onTestStarted(suite: String, test: String): Unit =
                 sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-              def onTestFinished(suite: String, test: String, status: KotlinTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+              def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
                 sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
               def onSuiteStarted(suite: String): Unit =
                 sendLogMessage(s"Suite: $suite", MessageType.Log)
               def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
                 sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-              def onOutput(suite: String, line: String, isError: Boolean): Unit =
-                sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+              def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+                sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
             }
 
             KotlinTestRunner.Js.runTests(jsOutput, suites, eventHandler, Map.empty, killSignal).map(_.isSuccess)
@@ -1416,17 +1410,17 @@ class BspServer(
           if (suites.isEmpty) {
             IO.delay(sendLogMessage("No Kotlin/Native test suites discovered", MessageType.Warning)).as(true)
           } else {
-            val eventHandler = new KotlinTestRunner.TestEventHandler {
+            val eventHandler = new TestRunnerTypes.TestEventHandler {
               def onTestStarted(suite: String, test: String): Unit =
                 sendLogMessage(s"  $suite > $test STARTED", MessageType.Log)
-              def onTestFinished(suite: String, test: String, status: KotlinTestRunner.TestStatus, durationMs: Long, message: Option[String]): Unit =
+              def onTestFinished(suite: String, test: String, status: bleep.bsp.protocol.TestStatus, durationMs: Long, message: Option[String]): Unit =
                 sendLogMessage(s"  $suite > $test ${status} (${durationMs}ms)${message.map(m => s": $m").getOrElse("")}", MessageType.Log)
               def onSuiteStarted(suite: String): Unit =
                 sendLogMessage(s"Suite: $suite", MessageType.Log)
               def onSuiteFinished(suite: String, passed: Int, failed: Int, skipped: Int): Unit =
                 sendLogMessage(s"  $suite: $passed passed, $failed failed, $skipped skipped", MessageType.Log)
-              def onOutput(suite: String, line: String, isError: Boolean): Unit =
-                sendLogMessage(line, if isError then MessageType.Error else MessageType.Log)
+              def onOutput(suite: String, line: String, channel: bleep.bsp.protocol.OutputChannel): Unit =
+                sendLogMessage(line, if channel.isStderr then MessageType.Error else MessageType.Log)
             }
 
             KotlinTestRunner.Native.runTests(binary, suites, eventHandler, Map.empty, workspaceRoot, killSignal).map(_.isSuccess)

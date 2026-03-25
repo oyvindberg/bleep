@@ -8,6 +8,8 @@ import cats.effect.{Deferred, IO}
 
 import java.nio.file.{Files, Path}
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
 import scala.collection.mutable
 
 /** Runs sourcegen scripts before compilation.
@@ -239,6 +241,16 @@ object SourceGenRunner {
       }
     }
 
+  /** Per-script locks to prevent concurrent runs of the same sourcegen script.
+    *
+    * When multiple BSP operations (compile, test) run concurrently and both need the same sourcegen script, the lock ensures only one runs it. The second
+    * waiter re-checks timestamps under the lock and skips if the first run already produced fresh outputs.
+    */
+  private val scriptLocks = new ConcurrentHashMap[String, ReentrantLock]()
+
+  private def getScriptLock(scriptMain: String): ReentrantLock =
+    scriptLocks.computeIfAbsent(scriptMain, _ => new ReentrantLock())
+
   /** Delete `.sourcegen-stamp` files from generated dirs so that timestamp-based staleness detection will re-run the script next time. */
   private def deleteStampFiles(
       started: Started,
@@ -258,13 +270,39 @@ object SourceGenRunner {
       }
     }
 
-  /** Run a single sourcegen script by forking a separate JVM.
+  /** Run a single sourcegen script, guarded by a per-script lock.
+    *
+    * If another concurrent operation is already running this script, waits for it to complete, then re-checks timestamps. If outputs are now fresh, skips the
+    * run entirely.
+    */
+  private def runSingleScript(
+      started: Started,
+      scriptToRun: ScriptToRun,
+      killSignal: Deferred[IO, KillReason],
+      listener: SourceGenListener
+  ): IO[Option[String]] = {
+    val lock = getScriptLock(scriptToRun.script.main)
+    IO.blocking(lock.lockInterruptibly()) >> {
+      // Re-check timestamps under lock — a concurrent run may have already produced fresh outputs
+      val stillNeeded = projectsNeedingRegeneration(started, scriptToRun.script, scriptToRun.forProjects)
+      if (stillNeeded.isEmpty) {
+        listener.onLog(s"Sourcegen ${scriptToRun.script.main} already up to date (concurrent run completed)", false)
+        IO.delay(lock.unlock()).as(None)
+      } else {
+        val updatedScriptToRun = ScriptToRun(scriptToRun.script, stillNeeded)
+        runSingleScriptLocked(started, updatedScriptToRun, killSignal, listener)
+          .guarantee(IO.delay(lock.unlock()))
+      }
+    }
+  }
+
+  /** Run a single sourcegen script by forking a separate JVM. Caller must hold the script lock.
     *
     * Forks the script into its own JVM process to avoid classloader conflicts between the BSP server's classpath (which includes zinc/scala-compiler transitive
     * deps like scala-parser-combinators_2.13) and the script's own classpath (which may include scala-parser-combinators_3). The forked JVM runs
     * `BleepCodegenScript.main()` which calls `bootstrap.forScript()` to load the build and execute the script.
     */
-  private def runSingleScript(
+  private def runSingleScriptLocked(
       started: Started,
       scriptToRun: ScriptToRun,
       killSignal: Deferred[IO, KillReason],

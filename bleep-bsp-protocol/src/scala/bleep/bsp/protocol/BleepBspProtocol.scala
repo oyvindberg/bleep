@@ -1,5 +1,6 @@
 package bleep.bsp.protocol
 
+import bleep.model.{CrossProjectName, SuiteName, TestName}
 import io.circe._
 import io.circe.generic.semiauto._
 import io.circe.syntax._
@@ -149,7 +150,7 @@ object BleepBspProtocol {
     * problem.rendered()). `path` is the full file path with line:col suffix.
     */
   case class Diagnostic(
-      severity: String, // "error", "warning", "info"
+      severity: DiagnosticSeverity,
       message: String,
       rendered: Option[String],
       path: Option[String] // full path:line:col for file-associated diagnostics
@@ -158,9 +159,9 @@ object BleepBspProtocol {
   object Diagnostic {
     implicit val codec: Codec[Diagnostic] = deriveCodec
 
-    def error(message: String): Diagnostic = Diagnostic("error", message, None, None)
-    def warning(message: String): Diagnostic = Diagnostic("warning", message, None, None)
-    def info(message: String): Diagnostic = Diagnostic("info", message, None, None)
+    def error(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Error, message, None, None)
+    def warning(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Warning, message, None, None)
+    def info(message: String): Diagnostic = Diagnostic(DiagnosticSeverity.Info, message, None, None)
   }
 
   // ==========================================================================
@@ -177,14 +178,14 @@ object BleepBspProtocol {
     // === Compile events ===
 
     case class CompileStarted(
-        project: String,
+        project: CrossProjectName,
         timestamp: Long
     ) extends Event
 
     /** Why compilation is being triggered */
     case class CompilationReason(
-        project: String,
-        reason: String, // "clean-build", "empty-output", "incremental", "up-to-date"
+        project: CrossProjectName,
+        reason: CompileReason,
         totalFiles: Int,
         invalidatedFiles: List[String], // file names (not full paths)
         changedDependencies: List[String], // dependency names
@@ -192,31 +193,31 @@ object BleepBspProtocol {
     ) extends Event
 
     case class CompileProgress(
-        project: String,
+        project: CrossProjectName,
         percentage: Int,
         timestamp: Long
     ) extends Event
 
     /** Compilation sub-phase transition (reading analysis, analyzing, compiling, saving) */
     case class CompilePhaseChanged(
-        project: String,
-        phase: String, // "reading-analysis", "analyzing", "compiling", "saving-analysis"
+        project: CrossProjectName,
+        phase: CompilePhase,
         trackedApis: Int, // number of tracked API structures from analysis (non-zero only for "reading-analysis")
         timestamp: Long
     ) extends Event
 
     case class CompileFinished(
-        project: String,
-        status: String, // "success", "failed", "error", "skipped", "cancelled"
+        project: CrossProjectName,
+        status: CompileStatus,
         durationMs: Long,
         diagnostics: List[BleepBspProtocol.Diagnostic],
-        skippedBecause: Option[String], // CrossProjectName.value of the dependency whose failure caused this to be skipped
+        skippedBecause: Option[CrossProjectName],
         timestamp: Long
     ) extends Event
 
     /** Compilation is stalled due to heap pressure — waiting for GC to recover */
     case class CompileStalled(
-        project: String,
+        project: CrossProjectName,
         heapUsedMb: Long,
         heapMaxMb: Long,
         retryAtMs: Long,
@@ -225,7 +226,7 @@ object BleepBspProtocol {
 
     /** Compilation resumed after heap pressure subsided */
     case class CompileResumed(
-        project: String,
+        project: CrossProjectName,
         heapUsedMb: Long,
         heapMaxMb: Long,
         stalledMs: Long,
@@ -234,14 +235,14 @@ object BleepBspProtocol {
 
     /** A project is waiting to acquire its compile lock (another compile is holding it) */
     case class LockContention(
-        project: String,
+        project: CrossProjectName,
         waitingMs: Long,
         timestamp: Long
     ) extends Event
 
     /** A project acquired its compile lock after waiting */
     case class LockAcquired(
-        project: String,
+        project: CrossProjectName,
         waitedMs: Long,
         timestamp: Long
     ) extends Event
@@ -249,24 +250,24 @@ object BleepBspProtocol {
     // === Link events (Scala.js, Scala Native, Kotlin/JS, Kotlin/Native) ===
 
     case class LinkStarted(
-        project: String,
-        platform: String, // "Scala.js", "Scala Native", "Kotlin/JS", "Kotlin/Native"
+        project: CrossProjectName,
+        platform: LinkPlatformName,
         timestamp: Long
     ) extends Event
 
     case class LinkProgress(
-        project: String,
-        phase: String,
+        project: CrossProjectName,
+        phase: String, // Free-form: linker phase names vary by platform
         timestamp: Long
     ) extends Event
 
     case class LinkFinished(
-        project: String,
+        project: CrossProjectName,
         success: Boolean,
         durationMs: Long,
         outputPath: Option[String],
         timestamp: Long,
-        platform: String,
+        platform: LinkPlatformName,
         error: Option[String]
     ) extends Event
 
@@ -274,7 +275,7 @@ object BleepBspProtocol {
 
     case class SourcegenStarted(
         scriptMain: String, // e.g., "bleep.scripts.GenSources"
-        forProjects: List[String], // projects that will use the generated sources
+        forProjects: List[CrossProjectName],
         timestamp: Long
     ) extends Event
 
@@ -289,13 +290,13 @@ object BleepBspProtocol {
     // === Discovery events ===
 
     case class DiscoveryStarted(
-        project: String,
+        project: CrossProjectName,
         timestamp: Long
     ) extends Event
 
     case class SuitesDiscovered(
-        project: String,
-        suites: List[String],
+        project: CrossProjectName,
+        suites: List[SuiteName],
         totalSuitesDiscovered: Int,
         timestamp: Long
     ) extends Event
@@ -303,23 +304,23 @@ object BleepBspProtocol {
     // === Test execution events ===
 
     case class SuiteStarted(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         timestamp: Long
     ) extends Event
 
     case class TestStarted(
-        project: String,
-        suite: String,
-        test: String,
+        project: CrossProjectName,
+        suite: SuiteName,
+        test: TestName,
         timestamp: Long
     ) extends Event
 
     case class TestFinished(
-        project: String,
-        suite: String,
-        test: String,
-        status: String, // passed, failed, error, skipped, ignored, pending, cancelled
+        project: CrossProjectName,
+        suite: SuiteName,
+        test: TestName,
+        status: TestStatus,
         durationMs: Long,
         message: Option[String],
         throwable: Option[String],
@@ -327,8 +328,8 @@ object BleepBspProtocol {
     ) extends Event
 
     case class SuiteFinished(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         passed: Int,
         failed: Int,
         skipped: Int,
@@ -338,8 +339,8 @@ object BleepBspProtocol {
     ) extends Event
 
     case class SuiteTimedOut(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         timeoutMs: Long,
         threadDump: Option[String],
         timestamp: Long
@@ -347,19 +348,18 @@ object BleepBspProtocol {
 
     /** A test suite crashed or errored (process killed, OOM, etc.) - distinct from logical test failure */
     case class SuiteError(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         error: String,
-        exitCode: Option[Int],
-        signal: Option[Int],
+        processExit: ProcessExit,
         durationMs: Long,
         timestamp: Long
     ) extends Event
 
     /** A test suite was cancelled (e.g., due to timeout or external cancellation) */
     case class SuiteCancelled(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         reason: Option[String],
         timestamp: Long
     ) extends Event
@@ -367,20 +367,20 @@ object BleepBspProtocol {
     // === Run events ===
 
     case class RunStarted(
-        project: String,
+        project: CrossProjectName,
         mainClass: String,
         timestamp: Long
     ) extends Event
 
     case class RunOutput(
-        project: String,
+        project: CrossProjectName,
         line: String,
-        isError: Boolean,
+        channel: OutputChannel,
         timestamp: Long
     ) extends Event
 
     case class RunFinished(
-        project: String,
+        project: CrossProjectName,
         exitCode: Int,
         durationMs: Long,
         timestamp: Long
@@ -389,18 +389,18 @@ object BleepBspProtocol {
     // === Output events ===
 
     case class Output(
-        project: String,
-        suite: String,
+        project: CrossProjectName,
+        suite: SuiteName,
         line: String,
-        isError: Boolean,
+        channel: OutputChannel,
         timestamp: Long
     ) extends Event
 
     // === Log events (structured logging) ===
 
     case class LogMessage(
-        project: Option[String],
-        level: String, // "info", "warn", "error", "debug"
+        project: Option[CrossProjectName],
+        level: LogLevel,
         message: String,
         timestamp: Long
     ) extends Event
@@ -409,28 +409,28 @@ object BleepBspProtocol {
 
     /** Information about a project in the build */
     case class ProjectInfo(
-        name: String,
+        name: CrossProjectName,
         isTestProject: Boolean,
-        dependencies: List[String] // Names of projects this depends on
+        dependencies: List[CrossProjectName]
     )
 
     /** Sent at the start of a build run to describe all projects involved */
     case class BuildInitialized(
         projects: List[ProjectInfo],
-        mode: String, // "compile", "link", "test", "run"
+        mode: BuildMode,
         timestamp: Long
     ) extends Event
 
     /** Sent when a project's state changes */
     case class ProjectStateChanged(
-        project: String,
-        state: String, // pending, compiling, compiled, compile_failed, linking, linked, discovering, testing, completed, skipped
+        project: CrossProjectName,
+        state: ProjectState,
         details: Option[String], // e.g., "waiting for dependency X" or error message
         timestamp: Long
     ) extends Event
 
     case class ProjectSkipped(
-        project: String,
+        project: CrossProjectName,
         reason: String,
         timestamp: Long
     ) extends Event
@@ -457,7 +457,7 @@ object BleepBspProtocol {
     /** Sent to a waiting client when the workspace they want is already busy with another operation */
     case class WorkspaceBusy(
         operation: String,
-        projects: List[String],
+        projects: List[CrossProjectName],
         startedAgoMs: Long,
         timestamp: Long
     ) extends Event

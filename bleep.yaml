@@ -177,6 +177,7 @@ projects:
     dependencies:
     - io.circe::circe-generic:0.14.15
     - io.circe::circe-parser:0.14.15
+    dependsOn: bleep-model
     extends: template-cross-all
   bleep-bsp-tests:
     dependencies:
