@@ -4,7 +4,7 @@
       "central"
     ],
     "dependencies": [
-      "build.bleep:bleep-cli_2.13:latest.release"
+      "build.bleep:bleep-cli_3:latest.release"
     ],
     "mainClass": "bleep.Main",
     "launcherType": "graalvm-native-image",
