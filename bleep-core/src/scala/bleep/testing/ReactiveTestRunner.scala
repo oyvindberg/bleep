@@ -231,7 +231,9 @@ object ReactiveTestRunner {
         case TestProtocol.TestResponse.Log(level, message, logSuite) =>
           val channel = if (level == "error" || level == "warn") OutputChannel.Stderr else OutputChannel.Stdout
           val effectiveSuite = logSuite.getOrElse(suite.className)
-          IO.realTime.map(_.toMillis).flatMap(now => display.handle(BuildEvent.Output(projectName, SuiteName(effectiveSuite), s"[$level] $message", channel, now)))
+          IO.realTime
+            .map(_.toMillis)
+            .flatMap(now => display.handle(BuildEvent.Output(projectName, SuiteName(effectiveSuite), s"[$level] $message", channel, now)))
 
         case TestProtocol.TestResponse.Error(message, throwable) =>
           IO.realTime
@@ -324,7 +326,16 @@ object ReactiveTestRunner {
               (if (!result.suiteFinishedSent) {
                  display.handle(
                    BuildEvent
-                     .SuiteFinished(projectName, SuiteName(suite.className), result.passed, result.failed, result.skipped, result.ignored, endTime - startTime, endTime)
+                     .SuiteFinished(
+                       projectName,
+                       SuiteName(suite.className),
+                       result.passed,
+                       result.failed,
+                       result.skipped,
+                       result.ignored,
+                       endTime - startTime,
+                       endTime
+                     )
                  )
                } else IO.unit)
           }

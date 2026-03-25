@@ -23,16 +23,14 @@ class SharedWorkspaceStateTest extends AnyFunSuite with Matchers with BeforeAndA
   // (SharedWorkspaceState is a singleton object)
   private var testWorkspace: Path = scala.compiletime.uninitialized
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     testWorkspace = Paths.get(s"/tmp/test-workspace-${System.nanoTime()}")
-  }
 
-  override def afterEach(): Unit = {
+  override def afterEach(): Unit =
     // Clean up all operations for this workspace
     SharedWorkspaceState.getActiveOperations(testWorkspace).foreach { work =>
       SharedWorkspaceState.unregister(testWorkspace, work.operationId)
     }
-  }
 
   private def makeWork(operationId: String, operation: String): SharedWorkspaceState.ActiveWork = {
     val token = CancellationToken.create()

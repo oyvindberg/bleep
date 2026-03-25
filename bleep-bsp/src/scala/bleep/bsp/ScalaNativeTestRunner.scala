@@ -181,25 +181,27 @@ object ScalaNativeTestRunner {
               case TestFramework.Unknown   => new GenericOutputParser(eventHandler)
             }
 
-            ProcessTestRunner.run(ProcessTestRunner.Config(
-              processBuilder = pb,
-              handleStdoutLine = { line =>
-                parserLock.permit.surround(IO.delay(parser.parseLine(line)))
-              },
-              handleStderrLine = { line =>
-                parserLock.permit.surround(IO.delay(parser.parseError(line)))
-              },
-              getRunState = IO.delay {
-                val counts = parser.getCounts
-                ProcessTestRunner.RunState(counts._1, counts._2, counts._3, counts._4, parser.unfinishedSuite)
-              },
-              eventHandler = eventHandler,
-              killSignal = killSignal,
-              killDescendants = true,
-              preRun = IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)),
-              onNormalExit = IO.unit,
-              cleanup = IO.unit
-            ))
+            ProcessTestRunner.run(
+              ProcessTestRunner.Config(
+                processBuilder = pb,
+                handleStdoutLine = { line =>
+                  parserLock.permit.surround(IO.delay(parser.parseLine(line)))
+                },
+                handleStderrLine = { line =>
+                  parserLock.permit.surround(IO.delay(parser.parseError(line)))
+                },
+                getRunState = IO.delay {
+                  val counts = parser.getCounts
+                  ProcessTestRunner.RunState(counts._1, counts._2, counts._3, counts._4, parser.unfinishedSuite)
+                },
+                eventHandler = eventHandler,
+                killSignal = killSignal,
+                killDescendants = true,
+                preRun = IO.delay(eventHandler.onRunnerEvent(RunnerEvent.Started)),
+                onNormalExit = IO.unit,
+                cleanup = IO.unit
+              )
+            )
           }
         }
     }

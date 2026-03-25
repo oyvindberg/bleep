@@ -8,8 +8,8 @@ import scala.jdk.CollectionConverters.*
 
 /** Tracks active operations per workspace in server memory.
   *
-  * Multiple operations can run concurrently on the same workspace. This registry is for visibility and debugging — it does NOT block. Fine-grained
-  * per-project serialization is handled by ProjectLock.
+  * Multiple operations can run concurrently on the same workspace. This registry is for visibility and debugging — it does NOT block. Fine-grained per-project
+  * serialization is handled by ProjectLock.
   */
 object SharedWorkspaceState {
 
