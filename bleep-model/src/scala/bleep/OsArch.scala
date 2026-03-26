@@ -11,6 +11,7 @@ object OsArch {
   sealed abstract class HasNativeImage(val os: model.Os, val arch: Arch) extends OsArch
 
   object LinuxAmd64 extends HasNativeImage(model.Os.Linux, Arch.Amd64)
+  object LinuxArm64 extends HasNativeImage(model.Os.Linux, Arch.Arm64)
   object WindowsAmd64 extends HasNativeImage(model.Os.Windows, Arch.Amd64)
   object MacosAmd64 extends HasNativeImage(model.Os.Macos, Arch.Amd64)
   case class MacosArm64(freedFromJail: Boolean) extends HasNativeImage(model.Os.Macos, Arch.Arm64)
@@ -45,6 +46,7 @@ object OsArch {
     (os, arch) match {
       case (model.Os.Windows, Arch.Amd64) => WindowsAmd64
       case (model.Os.Linux, Arch.Amd64)   => LinuxAmd64
+      case (model.Os.Linux, Arch.Arm64)   => LinuxArm64
       case (model.Os.Macos, Arch.Arm64)   => MacosArm64(freedFromJail = false)
       case (model.Os.Macos, Arch.Amd64)   => if (shouldBeArm64()) MacosArm64(freedFromJail = true) else MacosAmd64
       case (os, arch)                     => Other(os, arch)
