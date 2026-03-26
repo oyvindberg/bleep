@@ -81,24 +81,55 @@ jobs:
             file_name: bleep
             artifact_name: bleep-x86_64-pc-linux
             run_tests: true
+            bootstrap_coursier: false
+          - os: ubuntu-22.04-arm
+            file_name: bleep
+            artifact_name: bleep-arm64-pc-linux
+            run_tests: true
+            bootstrap_coursier: true
           - os: macos-15-intel
             file_name: bleep
             artifact_name: bleep-x86_64-apple-darwin
             run_tests: false
+            bootstrap_coursier: false
           - os: macos-latest
             file_name: bleep
             artifact_name: bleep-arm64-apple-darwin
             run_tests: false
+            bootstrap_coursier: false
           - os: windows-latest
             file_name: bleep.exe
             artifact_name: bleep-x86_64-pc-win32
             run_tests: true
+            bootstrap_coursier: false
     steps:
       - uses: actions/checkout@v6
         with:
           submodules: recursive
 
+      # ARM64 Linux needs JDK 21+ for UnixDomainSocketAddress in BSP server
+      - uses: actions/setup-java@v5
+        if: ${{ matrix.bootstrap_coursier }}
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Standard bootstrap via setup action (platforms with existing native binaries)
       - uses: bleep-build/bleep-setup-action@0.0.2
+        if: ${{ !matrix.bootstrap_coursier }}
+
+      # Bootstrap via Coursier for ARM64 Linux (no pre-built native binary yet).
+      # Pin to the exact version from bleep.yaml so bleep recognizes it as current
+      # and skips the native image re-launch (runs on JVM directly).
+      - name: Bootstrap bleep via Coursier
+        if: ${{ matrix.bootstrap_coursier }}
+        run: |
+          BLEEP_VERSION=$(grep '^\$version:' bleep.yaml | cut -d' ' -f2)
+          echo "Bootstrapping bleep $BLEEP_VERSION via Coursier"
+          curl -fL "https://github.com/coursier/launchers/raw/master/cs-aarch64-pc-linux.gz" | gzip -d > cs
+          chmod +x cs
+          ./cs install --channel https://raw.githubusercontent.com/oyvindberg/bleep/master/coursier-channel.json "bleep:$BLEEP_VERSION" --install-dir /usr/local/bin
+          rm cs
 
       - uses: coursier/cache-action@v8
         with:

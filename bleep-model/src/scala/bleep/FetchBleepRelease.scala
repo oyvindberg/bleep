@@ -39,6 +39,7 @@ object FetchBleepRelease {
         case OsArch.MacosArm64(_)               => Right(s"$base/bleep-arm64-apple-darwin.tar.gz")
         case OsArch.MacosAmd64                  => Right(s"$base/bleep-x86_64-apple-darwin.tar.gz")
         case OsArch.LinuxAmd64                  => Right(s"$base/bleep-x86_64-pc-linux.tar.gz")
+        case OsArch.LinuxArm64                  => Right(s"$base/bleep-arm64-pc-linux.tar.gz")
         case OsArch.WindowsAmd64                => Right(s"$base/bleep-x86_64-pc-win32.zip")
       }
 
