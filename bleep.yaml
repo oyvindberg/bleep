@@ -32,7 +32,7 @@ projects:
     - com.google.code.gson:gson:2.10.1
     - com.olvind.ryddig::ryddig:0.0.6
     - com.olvind.ryddig::ryddig-jul:0.0.6
-    - com.olvind.tui::tui:0.0.9
+    - com.olvind.tui::tui:0.0.10
     - com.swoval:file-tree-views:2.1.12
     - io.github.alexarchambault.native-terminal:native-terminal:0.0.9.1
     - org.typelevel::cats-effect:3.5.4
