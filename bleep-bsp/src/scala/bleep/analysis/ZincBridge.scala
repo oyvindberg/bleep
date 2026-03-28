@@ -1496,9 +1496,9 @@ private class EcjCompiler(
             }
 
           case _ =>
-            // Non-standard block (e.g. summary line "N problems (X errors, Y warnings)").
-            // Do NOT guess severity here — the success flag + hasErrors fallback at the
-            // call site already handles the case where ECJ fails without any parsed errors.
+          // Non-standard block (e.g. summary line "N problems (X errors, Y warnings)").
+          // Do NOT guess severity here — the success flag + hasErrors fallback at the
+          // call site already handles the case where ECJ fails without any parsed errors.
         }
       }
     }
