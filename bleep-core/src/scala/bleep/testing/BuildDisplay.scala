@@ -61,7 +61,32 @@ case class BuildSummary(
     durationMs: Long,
     totalTaskTimeMs: Long, // Sum of all individual task durations (compile + link + test, for parallelism stats)
     wasCancelled: Boolean
-)
+) {
+
+  /** Convert this summary to Either — Left for cancelled/failed builds, Right for success. Use this to gate post-build steps (publishing, etc.) */
+  def toEither: Either[bleep.BleepException, Unit] =
+    if (wasCancelled || compilesCancelled > 0)
+      Left(new bleep.BleepException.Text("Build cancelled by user"))
+    else if (compileFailures.nonEmpty)
+      Left(new bleep.BleepException.Text(s"Build failed: ${compileFailures.size} project(s) failed to compile"))
+    else if (linkFailures.nonEmpty)
+      Left(new bleep.BleepException.Text(s"Build failed: ${linkFailures.size} project(s) failed to link"))
+    else if (sourcegenFailed > 0)
+      Left(new bleep.BleepException.Text(s"Source generation failed for $sourcegenFailed project(s)"))
+    else {
+      val testProblems = testsFailed + testsTimedOut + testsCancelled
+      if (testProblems > 0 || suitesCancelled > 0) {
+        val parts = List.newBuilder[String]
+        parts += s"$testsPassed passed"
+        if (testsFailed > 0) parts += s"$testsFailed failed"
+        if (testsTimedOut > 0) parts += s"$testsTimedOut timed out"
+        if (testsCancelled > 0) parts += s"$testsCancelled cancelled"
+        if (suitesCancelled > 0) parts += s"$suitesCancelled suites cancelled"
+        Left(new bleep.BleepException.Text(s"Tests failed: ${parts.result().mkString(", ")}"))
+      } else
+        Right(())
+    }
+}
 
 object BuildSummary {
 

@@ -618,30 +618,7 @@ case class ReactiveBsp(
 
   /** Convert build summary to result. Shared by runWithBleepBsp and runInProcess. */
   private def resultFromSummary(started: Started, summary: BuildSummary): Either[BleepException, Unit] =
-    mode match {
-      case BuildMode.Test =>
-        val totalProblems = summary.testsFailed + summary.testsTimedOut + summary.testsCancelled
-        if (totalProblems > 0 || summary.suitesCancelled > 0 || summary.compileFailures.nonEmpty) {
-          val parts = List.newBuilder[String]
-          parts += s"${summary.testsPassed} passed"
-          if (summary.testsFailed > 0) parts += s"${summary.testsFailed} failed"
-          if (summary.testsTimedOut > 0) parts += s"${summary.testsTimedOut} timed out"
-          if (summary.testsCancelled > 0) parts += s"${summary.testsCancelled} cancelled"
-          if (summary.suitesCancelled > 0) parts += s"${summary.suitesCancelled} suites cancelled"
-          if (summary.compileFailures.nonEmpty) parts += s"${summary.compileFailures.size} compile failures"
-          Left(new BleepException.Text(s"Tests failed: ${parts.result().mkString(", ")}"))
-        } else {
-          Right(())
-        }
-      case _ =>
-        if (summary.compilesCancelled > 0 && summary.compileFailures.isEmpty) {
-          Left(new BleepException.Text("Build cancelled by user"))
-        } else if (summary.compileFailures.nonEmpty) {
-          Left(new BleepException.Text(s"Build failed: ${summary.compileFailures.size} project(s) failed to compile"))
-        } else {
-          Right(())
-        }
-    }
+    summary.toEither
 
   /** Build target identifier for a project */
   private def buildTarget(buildPaths: BuildPaths, name: model.CrossProjectName): bsp4j.BuildTargetIdentifier = {
