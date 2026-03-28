@@ -1496,15 +1496,9 @@ private class EcjCompiler(
             }
 
           case _ =>
-            // Not a standard error block, check for other patterns
-            // e.g., "No source files specified" or other global errors
-            val trimmed = block.trim
-            if (trimmed.nonEmpty && !trimmed.forall(c => c == '-' || c.isWhitespace)) {
-              // Check if it looks like an error message
-              if (trimmed.toLowerCase.contains("error") || trimmed.toLowerCase.contains("cannot")) {
-                reporter.log(createProblem(None, 0, 0, 0, trimmed, isErr = true))
-              }
-            }
+          // Non-standard block (e.g. summary line "N problems (X errors, Y warnings)").
+          // Do NOT guess severity here — the success flag + hasErrors fallback at the
+          // call site already handles the case where ECJ fails without any parsed errors.
         }
       }
     }
