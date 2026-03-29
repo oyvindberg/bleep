@@ -160,7 +160,7 @@ object buildFromMavenPom {
 
     val platform = model.Platform.Jvm(model.Options.empty, detectMainClass(logger, mavenProject), model.Options.empty)
 
-    val testFrameworks = detectTestFrameworks(mavenProject)
+    val testFrameworks = detectTestFrameworks(mavenProject, logger)
 
     // Inject test interface adapter deps needed by bleep's test runner
     val adapterDeps = testFrameworks.values.iterator.flatMap { fw =>
@@ -219,7 +219,8 @@ object buildFromMavenPom {
       testFrameworks = model.JsonSet.empty,
       sourcegen = model.JsonSet.empty,
       libraryVersionSchemes = model.JsonSet.empty,
-      ignoreEvictionErrors = None
+      ignoreEvictionErrors = None,
+      publish = None
     )
     result += (mainCrossName -> mainProject)
 
@@ -244,7 +245,8 @@ object buildFromMavenPom {
         testFrameworks = testFrameworks,
         sourcegen = model.JsonSet.empty,
         libraryVersionSchemes = model.JsonSet.empty,
-        ignoreEvictionErrors = None
+        ignoreEvictionErrors = None,
+        publish = None
       )
       result += (testCrossName -> testProject)
     }
@@ -512,7 +514,7 @@ object buildFromMavenPom {
     }
   }
 
-  private def detectTestFrameworks(mavenProject: MavenProject): model.JsonSet[model.TestFrameworkName] = {
+  private def detectTestFrameworks(mavenProject: MavenProject, logger: Logger): model.JsonSet[model.TestFrameworkName] = {
     // Phase 1: detect from direct test dependencies
     val fromDeps = mavenProject.dependencies.flatMap { dep =>
       if (dep.scope == "test") {
@@ -522,7 +524,7 @@ object buildFromMavenPom {
     }.distinct
 
     // Phase 2: resolve transitive test dependencies to detect frameworks not directly listed
-    val fromTransitives = detectTestFrameworksFromTransitives(mavenProject)
+    val fromTransitives = detectTestFrameworksFromTransitives(mavenProject, logger)
 
     val frameworks = (fromDeps ++ fromTransitives).distinct
 
@@ -538,7 +540,7 @@ object buildFromMavenPom {
   }
 
   /** Resolve test dependencies transitively and check for known test framework artifacts. */
-  private def detectTestFrameworksFromTransitives(mavenProject: MavenProject): List[model.TestFrameworkName] = {
+  private def detectTestFrameworksFromTransitives(mavenProject: MavenProject, logger: Logger): List[model.TestFrameworkName] = {
     val testDeps = mavenProject.dependencies.filter(_.scope == "test")
     if (testDeps.isEmpty) return Nil
 
@@ -550,8 +552,10 @@ object buildFromMavenPom {
     }
 
     val repos = CoursierResolver.coursierRepos(
-      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty), URI.create(r.url))),
-      None
+      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(r.url))),
+      None,
+      new CredentialProvider(logger, None),
+      logger
     )
 
     val resolution =
@@ -572,7 +576,7 @@ object buildFromMavenPom {
       .map { repo =>
         // Convert GCP Artifact Registry custom protocol to HTTPS (coursier doesn't understand artifactregistry://)
         val url = if (repo.url.startsWith("artifactregistry://")) repo.url.replaceFirst("artifactregistry://", "https://") else repo.url
-        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty), URI.create(url)): model.Repository
+        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(url)): model.Repository
       }
     model.JsonList(repos)
   }
