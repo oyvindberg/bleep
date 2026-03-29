@@ -168,10 +168,25 @@ object BleepBuildConverter {
             // JVM platform (default)
             val jvmTarget = kotlinConfig.flatMap(_.jvmTarget).getOrElse("11")
             val pluginOptions = resolveCompilerPlugins(kotlinVersion, kotlinConfig.map(_.compilerPlugins.values.toList).getOrElse(Nil))
+            // Extract Java release from java options (--release X, -source X, -target X)
+            // Options may be rendered as separate strings ("--release", "21") or combined ("--release=21")
+            val javaRelease = javaConfig.flatMap { java =>
+              val opts = java.options.render
+              val releaseIdx = opts.indexOf("--release")
+              val sourceIdx = opts.indexOf("-source")
+              val targetIdx = opts.indexOf("-target")
+              if (releaseIdx >= 0 && releaseIdx + 1 < opts.size) opts(releaseIdx + 1).toIntOption
+              else if (sourceIdx >= 0 && sourceIdx + 1 < opts.size) opts(sourceIdx + 1).toIntOption
+              else if (targetIdx >= 0 && targetIdx + 1 < opts.size) opts(targetIdx + 1).toIntOption
+              else opts.collectFirst {
+                case opt if opt.startsWith("--release=") => opt.stripPrefix("--release=").toIntOption
+              }.flatten
+            }
             ProjectLanguage.Kotlin(
               kotlinVersion = kotlinVersion.kotlinVersion,
               jvmTarget = jvmTarget,
-              kotlinOptions = options ++ pluginOptions
+              kotlinOptions = options ++ pluginOptions,
+              javaRelease = javaRelease
             )
         }
 
@@ -210,7 +225,8 @@ object BleepBuildConverter {
             ProjectLanguage.Kotlin(
               kotlinVersion = kotlinLang.version,
               jvmTarget = "11",
-              kotlinOptions = kotlinLang.options
+              kotlinOptions = kotlinLang.options,
+              javaRelease = None
             )
         }
     }
