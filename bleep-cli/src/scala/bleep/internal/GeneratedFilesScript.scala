@@ -26,38 +26,42 @@ object GeneratedFilesScript {
       */
     implicit val string: Repr[String] = {
       val pipe = "|"
-      val quote = "\""
       val space = " "
-      val tripleQuote = quote * 3
-      val triggersTripleQuote = Set('\r', '\n', '\\', '"')
-      val MaxStringLiteral = 5000
+      val tripleQuote = "\"\"\""
+      // JVM constant pool limit is 65535 bytes per UTF8 string.
+      // Stay well under to account for multi-byte chars.
+      val MaxChunkBytes = 40000
       (str, indent) =>
-        val cleaned = str.replace("\\", "\\\\\\\\")
-        val groups = cleaned
-          .grouped(MaxStringLiteral)
-          .map { str =>
-            if (str.exists(triggersTripleQuote))
-              str
-                .replace("$", "$$")
-                .replace(tripleQuote, s"$${\"\\\"\" * 3}")
-                .split("\n")
-                .mkString(
-                  start = s"s$tripleQuote$pipe",
-                  sep = s"\n${space * indent}$pipe",
-                  end = s"$tripleQuote.stripMargin"
-                )
-            else s"$quote$str$quote"
-          }
-          .toList
-
-        groups match {
-          case List(one) => one
-          case more =>
-            more.mkString(
-              "new String(",
-              ") + new String(",
-              ")"
+        // Always use triple-quoted string with s-interpolator and stripMargin.
+        // In triple-quoted strings, backslashes are literal — no escaping needed.
+        // Only $ and """ need special handling.
+        def renderChunk(chunk: String): String =
+          chunk
+            .replace("$", "$$")
+            .replace(tripleQuote, s"$${\"\\\"\" * 3}")
+            .split("\n", -1)
+            .mkString(
+              start = s"s$tripleQuote$pipe",
+              sep = s"\n${space * indent}$pipe",
+              end = s"$tripleQuote.stripMargin"
             )
+
+        // Split into chunks on line boundaries to stay under JVM string limit
+        val chunks = List.newBuilder[String]
+        val current = new StringBuilder
+        for (line <- str.split("\n", -1)) {
+          if (current.nonEmpty && current.length + line.length + 1 > MaxChunkBytes) {
+            chunks += current.toString
+            current.clear()
+          }
+          if (current.nonEmpty) current.append('\n')
+          current.append(line)
+        }
+        if (current.nonEmpty) chunks += current.toString
+
+        chunks.result() match {
+          case List(one) => renderChunk(one)
+          case more      => more.map(renderChunk).mkString("(", " + ", ")")
         }
     }
 
