@@ -574,9 +574,7 @@ object buildFromMavenPom {
       .filterNot(repo => defaultRepoUrls.contains(repo.url) || defaultRepoUrls.contains(repo.url + "/"))
       .filterNot(_.id == "central")
       .map { repo =>
-        // Convert GCP Artifact Registry custom protocol to HTTPS (coursier doesn't understand artifactregistry://)
-        val url = if (repo.url.startsWith("artifactregistry://")) repo.url.replaceFirst("artifactregistry://", "https://") else repo.url
-        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(url)): model.Repository
+        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(repo.url)): model.Repository
       }
     model.JsonList(repos)
   }
