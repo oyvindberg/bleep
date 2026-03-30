@@ -199,7 +199,6 @@ public class ForkedTestRunner {
       List<String> args,
       OutputStream capturedOut,
       OutputStream capturedErr) {
-    long startTime = System.currentTimeMillis();
 
     // Set current suite for output tagging
     currentSuite = className;
@@ -208,6 +207,17 @@ public class ForkedTestRunner {
         TestProtocol.encodeLog(
             "info",
             "runSuite called: className=" + className + ", frameworkName=" + frameworkName));
+
+    // Use JUnit Platform Launcher directly for JUnit 5 tests.
+    // This enables proper JUnit 5 lifecycle including LauncherSessionListener SPI,
+    // parallel execution, and extension support (Spring Boot, etc.).
+    if (isJUnitPlatformFramework(frameworkName)) {
+      JUnitPlatformRunner junitRunner = new JUnitPlatformRunner(protocolOut);
+      junitRunner.runSuite(className, capturedOut, capturedErr);
+      return;
+    }
+
+    long startTime = System.currentTimeMillis();
 
     // Counters declared outside try so they're accessible in catch for SuiteDone reporting
     final int[] passed = {0};
@@ -452,6 +462,20 @@ public class ForkedTestRunner {
     String className = FRAMEWORK_CLASSES.getOrDefault(name, name);
     Class<?> clazz = Class.forName(className);
     return (Framework) clazz.getDeclaredConstructor().newInstance();
+  }
+
+  /** Check if this framework should use JUnit Platform Launcher directly. */
+  private static boolean isJUnitPlatformFramework(String name) {
+    if (name == null) return false;
+    String lower = name.toLowerCase();
+    // JUnit Jupiter (JUnit 5) and JUnit Vintage (JUnit 4 on JUnit 5 platform)
+    // Framework name may be a display name ("JUnit Jupiter") or a class name
+    // ("com.github.sbt.junit.JupiterFramework", "net.aichler.jupiter.api.JupiterFramework")
+    return lower.contains("junit jupiter")
+        || lower.contains("junit vintage")
+        || lower.contains("jupiterframework")
+        || lower.equals("junit")
+        || lower.contains("kotest");
   }
 
   private static Logger createLogger(final String suiteName) {
