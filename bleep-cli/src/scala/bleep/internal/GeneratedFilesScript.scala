@@ -33,10 +33,12 @@ object GeneratedFilesScript {
       val MaxChunkBytes = 40000
       (str, indent) =>
         // Always use triple-quoted string with s-interpolator and stripMargin.
-        // In triple-quoted strings, backslashes are literal — no escaping needed.
-        // Only $ and """ need special handling.
+        // In Scala 3, s"""...""" processes standard escape sequences (\n, \", \\, etc.),
+        // so backslashes must be doubled to survive evaluation.
+        // $ must be escaped as $$, and """ must use interpolation.
         def renderChunk(chunk: String): String =
           chunk
+            .replace("\\", "\\\\")
             .replace("$", "$$")
             .replace(tripleQuote, s"$${\"\\\"\" * 3}")
             .split("\n", -1)
