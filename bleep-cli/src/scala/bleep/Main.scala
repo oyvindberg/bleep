@@ -11,7 +11,6 @@ import ryddig.Logger
 
 import java.nio.file.{Path, Paths}
 import scala.concurrent.ExecutionContext
-import scala.jdk.StreamConverters.*
 import scala.util.{Failure, Properties, Success, Try}
 
 object Main {
@@ -21,46 +20,10 @@ object Main {
   // Install SIGINFO handler on macOS (Ctrl+T) for thread dumps
   if (Properties.isMac) {
     try
-      sun.misc.Signal.handle(new sun.misc.Signal("INFO"), (_: sun.misc.Signal) => dumpAllThreads())
+      sun.misc.Signal.handle(new sun.misc.Signal("INFO"), (_: sun.misc.Signal) => internal.ChildProcessDiagnostics.dumpAll(System.err))
     catch {
       case _: Exception => // Signal handling not available
     }
-  }
-
-  /** Dump threads from this JVM and all child JVMs */
-  private def dumpAllThreads(): Unit = {
-    val out = System.err
-    val timestamp = java.time.LocalDateTime.now().toString
-
-    out.println()
-    out.println(s"=== Thread Dump ($timestamp) ===")
-
-    // Dump current JVM threads
-    out.println()
-    out.println(s"--- Bleep JVM (PID ${ProcessHandle.current().pid()}) ---")
-    Thread.getAllStackTraces.forEach { (thread, stack) =>
-      out.println(s"Thread: ${thread.getName} [${thread.getState}]")
-      stack.foreach(frame => out.println(s"  at $frame"))
-      out.println()
-    }
-
-    // Find and report child JVMs
-    val descendants = ProcessHandle.current().descendants().toScala(List)
-    if (descendants.nonEmpty) {
-      out.println(s"--- Child Processes (${descendants.size}) ---")
-      descendants.foreach { ph =>
-        val info = ph.info()
-        val cmd = info.command().orElse("unknown")
-        val args = info.arguments().map(_.mkString(" ")).orElse("")
-        out.println(s"  PID ${ph.pid()}: $cmd")
-        if (args.nonEmpty) out.println(s"    args: ${args.take(200)}...")
-      }
-      out.println()
-      out.println("Note: Use 'jstack <pid>' to get thread dump from child JVMs")
-    }
-
-    out.println("=== End Thread Dump ===")
-    out.println()
   }
 
   if (Properties.isWin && isGraalvmNativeImage)
