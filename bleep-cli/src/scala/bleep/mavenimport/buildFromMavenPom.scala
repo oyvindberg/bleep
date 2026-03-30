@@ -79,11 +79,15 @@ object buildFromMavenPom {
 
     val buildResolvers = extractRepositories(mavenProjects)
 
+    // Detect Java version from maven-compiler-plugin <release> across all modules
+    val javaRelease = mavenProjects.flatMap(detectJavaRelease).maxOption
+    val jvm = javaRelease.map(v => model.Jvm(s"temurin:$v", None))
+
     model.Build.Exploded(
       bleepVersion.latestRelease,
       explodedProjects = allProjects.toMap,
       resolvers = buildResolvers,
-      jvm = None,
+      jvm = jvm,
       scripts = Map.empty
     )
   }
@@ -146,11 +150,12 @@ object buildFromMavenPom {
 
     val configuredKotlin: Option[model.Kotlin] = detectKotlinVersion(mavenProject).map { kv =>
       val kotlinArgs = extractKotlinCompilerArgs(mavenProject)
+      val pluginOptionArgs = extractKotlinPluginOptions(mavenProject)
       val jvmTarget = extractKotlinJvmTarget(mavenProject)
       val plugins = extractKotlinCompilerPlugins(mavenProject)
       model.Kotlin(
         version = Some(kv),
-        options = model.Options.parse(kotlinArgs, None),
+        options = model.Options.parse(kotlinArgs ++ pluginOptionArgs, None),
         jvmTarget = jvmTarget,
         compilerPlugins = model.JsonSet.fromIterable(plugins),
         js = None,
@@ -227,6 +232,15 @@ object buildFromMavenPom {
     // Test project - only if test sources exist
     if (testHasSources) {
       val testCrossName = model.CrossProjectName(testProjectName, None)
+
+      // Extract surefire argLine: JVM options and javaagent coordinates
+      val (surefireJvmArgs, surefireAgents) = extractSurefireConfig(mavenProject)
+      val testJvmOptions = if (surefireJvmArgs.nonEmpty) model.Options.parse(surefireJvmArgs, None) else model.Options.empty
+
+      val testPlatform = model.Platform.Jvm(testJvmOptions, None, model.Options.empty).copy(
+        jvmAgents = model.JsonSet.fromIterable(surefireAgents)
+      )
+
       val testProject = model.Project(
         `extends` = model.JsonSet.empty,
         cross = model.JsonMap.empty,
@@ -240,7 +254,7 @@ object buildFromMavenPom {
         java = configuredJava,
         scala = configuredScala,
         kotlin = configuredKotlin,
-        platform = Some(platform),
+        platform = Some(testPlatform),
         isTestProject = Some(true),
         testFrameworks = testFrameworks,
         sourcegen = model.JsonSet.empty,
@@ -320,6 +334,99 @@ object buildFromMavenPom {
         plugins.map(_.text.trim).toList
       case _ => Nil
     }
+
+  /** Extract Kotlin plugin options from kotlin-maven-plugin configuration.
+    *
+    * Maven POM format:
+    * {{{
+    * <configuration>
+    *   <pluginOptions>
+    *     <option>all-open:annotation=jakarta.ws.rs.Path</option>
+    *   </pluginOptions>
+    * </configuration>
+    * }}}
+    *
+    * These map to `-P plugin:<pluginId>:<key>=<value>` kotlinc flags. The plugin ID mappings:
+    *   - `all-open:` -> `plugin:org.jetbrains.kotlin.allopen:`
+    *   - `no-arg:`   -> `plugin:org.jetbrains.kotlin.noarg:`
+    *   - `sam-with-receiver:` -> `plugin:org.jetbrains.kotlin.samWithReceiver:`
+    */
+  private def extractKotlinPluginOptions(mavenProject: MavenProject): List[String] = {
+    val pluginIdToFqn = Map(
+      "all-open" -> "org.jetbrains.kotlin.allopen",
+      "no-arg" -> "org.jetbrains.kotlin.noarg",
+      "sam-with-receiver" -> "org.jetbrains.kotlin.samWithReceiver"
+    )
+
+    mavenProject.plugins.flatMap {
+      case plugin if plugin.artifactId == "kotlin-maven-plugin" =>
+        val options = plugin.configuration \ "pluginOptions" \ "option"
+        options.flatMap { opt =>
+          val text = opt.text.trim
+          // Format: "pluginShortName:key=value" → "-P plugin:fqn:key=value"
+          val colonIdx = text.indexOf(':')
+          if (colonIdx > 0) {
+            val shortName = text.substring(0, colonIdx)
+            val rest = text.substring(colonIdx + 1)
+            pluginIdToFqn.get(shortName).map { fqn =>
+              s"-P plugin:$fqn:$rest"
+            }
+          } else None
+        }.toList
+      case _ => Nil
+    }
+  }
+
+  /** Extract surefire/failsafe configuration for test execution.
+    *
+    * Returns (jvmOptions, jvmAgents):
+    *   - jvmOptions: plain JVM flags like `-XX:+EnableDynamicAgentLoading`
+    *   - jvmAgents: Maven coordinates extracted from `-javaagent:` references
+    *
+    * `-javaagent:${settings.localRepository}/org/group/artifact/version/artifact-version.jar`
+    * is parsed back into the Maven coordinate `org.group:artifact:version`.
+    */
+  private def extractSurefireConfig(mavenProject: MavenProject): (List[String], List[model.Dep]) = {
+    val surefirePlugins = Set("maven-surefire-plugin", "maven-failsafe-plugin")
+    // Pattern: -javaagent:<repo-path>/org/mockito/mockito-core/5.20.0/mockito-core-5.20.0.jar
+    val agentPattern = """-javaagent:.*?/([^/]+(?:/[^/]+)*)/([^/]+)/([^/]+)/\2-\3\.jar""".r
+
+    val jvmOptions = List.newBuilder[String]
+    val jvmAgents = List.newBuilder[model.Dep]
+
+    mavenProject.plugins
+      .filter(p => surefirePlugins.contains(p.artifactId))
+      .foreach { plugin =>
+        // Extract argLine
+        val argLine = (plugin.configuration \ "argLine").headOption.map(_.text.trim).getOrElse("")
+        argLine.split("\\s+").filter(_.nonEmpty).foreach {
+          case arg @ agentPattern(groupPath, artifactId, version) =>
+            val groupId = groupPath.replace('/', '.')
+            jvmAgents += model.Dep.Java(groupId, artifactId, version)
+          case arg if arg.startsWith("-javaagent:") =>
+            () // skip unrecognizable agent paths (e.g. with unresolvable Maven properties)
+          case arg if !arg.contains("${") =>
+            jvmOptions += arg
+          case _ =>
+            () // skip args with unresolved Maven properties
+        }
+
+        // Extract systemPropertyVariables as -D flags
+        val sysPropVars = plugin.configuration \ "systemPropertyVariables"
+        val mavenSpecificProps = Set("maven.home", "maven.repo.local", "basedir", "project.build.directory")
+        sysPropVars.foreach { parent =>
+          parent.child.collect { case elem: scala.xml.Elem => elem }.foreach { elem =>
+            val key = elem.label
+            val value = elem.text.trim
+            if (value.nonEmpty && !value.contains("${") && !mavenSpecificProps.contains(key)) {
+              jvmOptions += s"-D$key=$value"
+            }
+          }
+        }
+      }
+
+    (jvmOptions.result(), jvmAgents.result().distinct)
+  }
 
   /** Infer source layout from project configuration (plugins, dependencies), not directory existence.
     *
@@ -484,6 +591,14 @@ object buildFromMavenPom {
     }
     fromScalaMaven
   }
+
+  /** Detect the Java release version from maven-compiler-plugin configuration. */
+  private def detectJavaRelease(mavenProject: MavenProject): Option[Int] =
+    mavenProject.plugins.collectFirst {
+      case plugin if plugin.artifactId == "maven-compiler-plugin" =>
+        (plugin.configuration \ "release").headOption.map(_.text.trim.toInt)
+          .orElse((plugin.configuration \ "target").headOption.map(_.text.trim.toInt))
+    }.flatten
 
   private def extractJavaCompilerArgs(mavenProject: MavenProject): List[String] =
     mavenProject.plugins.flatMap {
