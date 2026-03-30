@@ -143,7 +143,9 @@ object ReactiveTestRunner {
     // It's in the bleep-test-runner project which has minimal dependencies
     val runnerClass = "bleep.testing.runner.ForkedTestRunner"
 
-    pool.acquire(classpath, options.jvmOptions, runnerClass).use { jvm =>
+    val environment = started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
+    val projectDir = started.build.explodedProjects.get(project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
+    pool.acquire(classpath, options.jvmOptions, runnerClass, environment, projectDir).use { jvm =>
       suites.traverse_ { suite =>
         runSuite(
           projectName = project,
