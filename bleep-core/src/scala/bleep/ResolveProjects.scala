@@ -173,8 +173,21 @@ object ResolveProjects {
             mainClass = platform.mainClass
           )
         case model.Platform.Jvm(platform) =>
+          val agentOptions = platform.jvmAgents.values.toList.map { agentDep =>
+            val resolved = resolver.force(
+              Set(agentDep),
+              versionCombo,
+              libraryVersionSchemes = SortedSet.empty,
+              s"${crossName.value}/jvmAgent",
+              model.IgnoreEvictionErrors.No
+            )
+            val jar = resolved.jars.headOption.getOrElse(
+              sys.error(s"Could not resolve jvmAgent: ${agentDep.organization.value}:${agentDep.baseModuleName.value}:${agentDep.version}")
+            )
+            s"-javaagent:$jar"
+          }
           ResolvedProject.Platform.Jvm(
-            options = templateDirs.fill.opts(platform.jvmOptions).render,
+            options = templateDirs.fill.opts(platform.jvmOptions).render ++ agentOptions,
             mainClass = platform.mainClass,
             runtimeOptions = templateDirs.fill.opts(platform.jvmRuntimeOptions).render
           )

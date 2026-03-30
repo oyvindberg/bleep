@@ -3,9 +3,9 @@ package bleep
 import java.nio.file.Path
 import scala.collection.immutable.SortedSet
 
-case class ProjectPaths(dir: Path, targetDir: Path, sourcesDirs: ProjectPaths.DirsByOrigin, resourcesDirs: ProjectPaths.DirsByOrigin) {
+case class ProjectPaths(dir: Path, targetDir: Path, sourcesDirs: ProjectPaths.DirsByOrigin, resourcesDirs: ProjectPaths.DirsByOrigin, isTestProject: Boolean) {
   val classes: Path =
-    targetDir / "classes"
+    targetDir / (if (isTestProject) "test-classes" else "classes")
 
   val incrementalAnalysis: Path =
     targetDir / s"inc_compile.zip"
