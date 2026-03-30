@@ -1750,6 +1750,13 @@ class MultiWorkspaceBspServer(
                 runScalaNativeTestSuite(started, testTask, classpath, eventQueue, taskKillSignal)
               case _ =>
                 // JVM (default) - use JvmPool
+                val testEnv = computeTestEnvironment(started, testTask.project)
+                val projectDir = started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
+                // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
+                val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
+                  case Some(p: ResolvedProject.Platform.Jvm) => p.options
+                  case _                                      => Nil
+                }
                 TestRunner.runSuite(
                   project = testTask.project,
                   suiteName = testTask.suiteName.value,
@@ -1758,9 +1765,11 @@ class MultiWorkspaceBspServer(
                   pool = jvmPool,
                   eventQueue = eventQueue,
                   options = TestRunner.Options(
-                    jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ testOptions.jvmOptions,
+                    jvmOptions = serverConfig.testRunnerMaxMemory.map(m => s"-Xmx$m").toList ++ projectJvmOptions ++ testOptions.jvmOptions,
                     testArgs = testOptions.testArgs,
-                    idleTimeout = idleTimeout
+                    idleTimeout = idleTimeout,
+                    environment = testEnv,
+                    workingDirectory = projectDir
                   ),
                   killSignal = taskKillSignal
                 )
@@ -2319,8 +2328,13 @@ class MultiWorkspaceBspServer(
     (classesDir :: resourceDirs) ++ dependencyClasspath ++ testRunnerClasses
   }
 
-  /** Fetch bleep-test-runner via coursier using bleep's resolver */
+  /** Fetch bleep-test-runner via coursier using bleep's resolver. Cached after first resolution. */
+  @volatile private var cachedTestRunnerJars: List[Path] = _
+
   private def fetchTestRunnerViaCoursier(started: Started): List[Path] = {
+    val cached = cachedTestRunnerJars
+    if (cached != null) return cached
+
     val version = model.BleepVersion.current.value
     val dep = model.Dep.Java("build.bleep", "bleep-test-runner", version)
 
@@ -2338,8 +2352,13 @@ class MultiWorkspaceBspServer(
       )
     }
 
+    cachedTestRunnerJars = result.jars
     result.jars
   }
+
+  /** Get environment variables for a test JVM from the model. */
+  private def computeTestEnvironment(started: Started, project: CrossProjectName): Map[String, String] =
+    started.build.explodedProjects.get(project).flatMap(_.platform).map(_.jvmEnvironment.toMap).getOrElse(Map.empty)
 
   /** Create a TestEventHandler that offers events to the DAG queue via a Dispatcher.
     *
