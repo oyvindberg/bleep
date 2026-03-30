@@ -740,8 +740,23 @@ object KotlinSourceCompiler extends Compiler {
         }
       }
 
-      // For remaining options (including -P plugin options), use parseCommandLineArguments
-      val remainingOpts = options.filter(opt => !opt.startsWith("-Xfriend-paths=") && !opt.startsWith("-Xplugin="))
+      // Handle -P plugin options via setPluginOptions (Array<String> of "plugin:id:key=value")
+      val pluginOptions = {
+        val paired = options.sliding(2, 1).toList
+        paired.collect { case List("-P", value) if value.startsWith("plugin:") => value }
+      }
+      if (pluginOptions.nonEmpty) {
+        try {
+          val setPluginOptions = setup.argumentsClass.getMethod("setPluginOptions", classOf[Array[String]])
+          setPluginOptions.invoke(arguments, pluginOptions.toArray.asInstanceOf[AnyRef])
+        } catch {
+          case _: NoSuchMethodException =>
+            debug(s"K2JVMCompilerArguments.setPluginOptions not found, skipping -P options")
+        }
+      }
+
+      // For remaining options, use parseCommandLineArguments
+      val remainingOpts = options.filter(opt => !opt.startsWith("-Xfriend-paths=") && !opt.startsWith("-Xplugin=") && opt != "-P" && !opt.startsWith("plugin:"))
       if (remainingOpts.nonEmpty) {
         try {
           val cliToolClass = setup.loader.loadClass("org.jetbrains.kotlin.cli.common.CLITool")
