@@ -10,8 +10,8 @@ object GenerateForCollections extends BleepCodegenScript("GenerateForCollections
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("collections@jvm212", "collections@jvm213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt/internal/util/ScalaKeywords.scala")
+      if (Set(s"""|collections@jvm212""".stripMargin, s"""|collections@jvm213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt/internal/util/ScalaKeywords.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package sbt.internal.util
       |object ScalaKeywords {

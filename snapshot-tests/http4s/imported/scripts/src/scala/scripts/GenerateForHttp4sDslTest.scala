@@ -10,8 +10,8 @@ object GenerateForHttp4sDslTest extends BleepCodegenScript("GenerateForHttp4sDsl
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("http4s-dsl-test@jvm213", "http4s-dsl-test@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("org/http4s/dsl/andDoctest.scala")
+      if (Set(s"""|http4s-dsl-test@jvm213""".stripMargin, s"""|http4s-dsl-test@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|org/http4s/dsl/andDoctest.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package org.http4s.dsl
       |
@@ -24,7 +24,7 @@ object GenerateForHttp4sDslTest extends BleepCodegenScript("GenerateForHttp4sDsl
       |  }
       |  def sbtDoctestReplString(any: _root_.scala.Any): _root_.scala.Predef.String = {
       |    val s = _root_.scala.runtime.ScalaRunTime.replStringOf(any, 1000).init
-      |    if (s.headOption == Some('\\\\n')) s.tail else s
+      |    if (s.headOption == Some('\\n')) s.tail else s
       |  }
       |
       |  test("and.scala:19: &") {
@@ -56,7 +56,8 @@ object GenerateForHttp4sDslTest extends BleepCodegenScript("GenerateForHttp4sDsl
       |      assertEquals(sbtDoctestReplString(describe(2)), "even and positive")
       |  }
       |
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

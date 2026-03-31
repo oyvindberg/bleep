@@ -44,7 +44,7 @@
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/myapp/shared/src/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/tests/jvm213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/jvm/src/resources",
       "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/tests/shared/src/resources"

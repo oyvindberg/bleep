@@ -146,7 +146,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tests/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-cdk-tests-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-cdk-tests-test/jvm213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-aws-cdk-tests-test/jvm213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/serverless/aws/cdk-tests/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/serverless/aws/cdk-tests/src/test/resources"

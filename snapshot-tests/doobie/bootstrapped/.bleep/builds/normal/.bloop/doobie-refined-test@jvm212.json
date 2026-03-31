@@ -57,7 +57,7 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/refined/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-refined-test/jvm212/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/refined/src/test/resources"
     ],

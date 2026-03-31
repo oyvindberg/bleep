@@ -61,7 +61,7 @@
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe-test/jvm213",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe-test/jvm213/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/doobie/bootstrapped/.bleep/builds/normal/.bloop/doobie-h2-circe-test/jvm213/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/doobie/sbt-build/modules/h2-circe/src/test/resources"
     ],

@@ -10,8 +10,8 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("doobie-core@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("scala/doobie/buildinfo.scala")
+      if (Set(s"""|doobie-core@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|scala/doobie/buildinfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package doobie
       |
@@ -21,7 +21,8 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
       |  val version = "1.0-e3adc5d-20250621T223125Z-SNAPSHOT"
       |  /** Build date (Sun Jun 22 00:31:29 CEST 2025). */
       |  val date    = new java.util.Date(1750545089647L)
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -30,8 +31,8 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
 
 
     targets.foreach { target =>
-      if (Set("doobie-core@jvm213").contains(target.project.value)) {
-        val to = target.sources.resolve("scala/doobie/buildinfo.scala")
+      if (Set(s"""|doobie-core@jvm213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|scala/doobie/buildinfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package doobie
       |
@@ -41,7 +42,8 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
       |  val version = "1.0-e3adc5d-20250621T223051Z-SNAPSHOT"
       |  /** Build date (Sun Jun 22 00:30:56 CEST 2025). */
       |  val date    = new java.util.Date(1750545056040L)
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -50,8 +52,8 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
 
 
     targets.foreach { target =>
-      if (Set("doobie-core@jvm212").contains(target.project.value)) {
-        val to = target.sources.resolve("scala/doobie/buildinfo.scala")
+      if (Set(s"""|doobie-core@jvm212""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|scala/doobie/buildinfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|package doobie
       |
@@ -61,7 +63,8 @@ object GenerateForDoobieCore extends BleepCodegenScript("GenerateForDoobieCore")
       |  val version = "1.0-e3adc5d-20250621T223107Z-SNAPSHOT"
       |  /** Build date (Sun Jun 22 00:31:11 CEST 2025). */
       |  val date    = new java.util.Date(1750545071456L)
-      |}""".stripMargin
+      |}
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

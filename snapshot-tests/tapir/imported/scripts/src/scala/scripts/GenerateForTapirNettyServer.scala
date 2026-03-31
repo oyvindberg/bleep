@@ -10,8 +10,8 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("tapir-netty-server@jvm213").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
+      if (Set(s"""|tapir-netty-server@jvm213""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package buildinfo
@@ -32,7 +32,8 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -41,8 +42,8 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
 
 
     targets.foreach { target =>
-      if (Set("tapir-netty-server@jvm212").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
+      if (Set(s"""|tapir-netty-server@jvm212""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package buildinfo
@@ -63,7 +64,8 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
@@ -72,8 +74,8 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
 
 
     targets.foreach { target =>
-      if (Set("tapir-netty-server@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildInfo.scala")
+      if (Set(s"""|tapir-netty-server@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildInfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package buildinfo
@@ -94,7 +96,8 @@ object GenerateForTapirNettyServer extends BleepCodegenScript("GenerateForTapirN
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

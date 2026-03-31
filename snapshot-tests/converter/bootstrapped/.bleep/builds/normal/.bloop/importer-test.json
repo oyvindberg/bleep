@@ -199,7 +199,7 @@
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/ts/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/importer-test",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/importer-test/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/converter/bootstrapped/.bleep/builds/normal/.bloop/importer-test/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/converter/sbt-build/importer/src/test/resources"
     ],

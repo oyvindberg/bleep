@@ -119,7 +119,7 @@
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/shared/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests-test/jvm3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests-test/jvm3/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/scalameta/bootstrapped/.bleep/builds/normal/.bloop/tests-test/jvm3/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/js-jvm/src/test/resources",
       "<BLEEP_GIT>/snapshot-tests/scalameta/sbt-build/tests/jvm-native/src/test/resources",

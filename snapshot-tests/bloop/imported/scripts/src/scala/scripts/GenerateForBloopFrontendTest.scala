@@ -10,8 +10,8 @@ object GenerateForBloopFrontendTest extends BleepCodegenScript("GenerateForBloop
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("bloop-frontend-test").contains(target.project.value)) {
-        val to = target.sources.resolve("sbt-buildinfo/BuildTestInfo.scala")
+      if (Set(s"""|bloop-frontend-test""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|sbt-buildinfo/BuildTestInfo.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
         val content = s"""|// $$COVERAGE-OFF$$
       |package bloop.internal.build
@@ -34,7 +34,8 @@ object GenerateForBloopFrontendTest extends BleepCodegenScript("GenerateForBloop
       |    )
       |  }
       |}
-      |// $$COVERAGE-ON$$""".stripMargin
+      |// $$COVERAGE-ON$$
+      |""".stripMargin
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }

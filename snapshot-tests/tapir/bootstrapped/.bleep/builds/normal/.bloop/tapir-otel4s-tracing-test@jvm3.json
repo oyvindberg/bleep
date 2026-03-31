@@ -80,10 +80,10 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava-trace_3/0.12.0/otel4s-oteljava-trace_3-0.12.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/typelevel/otel4s-oteljava_3/0.12.0/otel4s-oteljava_3-0.12.0.jar",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-cats-effect/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core-test/jvm3/test-classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-core/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-otel4s-tracing/jvm3/classes",
-      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server-test/jvm3/classes",
+      "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server-test/jvm3/test-classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-server/jvm3/classes",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/core/src/main/resources",
@@ -99,7 +99,7 @@
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tracing/otel4s-tracing/src/main/resources"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-otel4s-tracing-test/jvm3",
-    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-otel4s-tracing-test/jvm3/classes",
+    "classesDir": "<BLEEP_GIT>/snapshot-tests/tapir/bootstrapped/.bleep/builds/normal/.bloop/tapir-otel4s-tracing-test/jvm3/test-classes",
     "resources": [
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tracing/otel4s-tracing/src/test/protobuf",
       "<BLEEP_GIT>/snapshot-tests/tapir/sbt-build/tracing/otel4s-tracing/src/test/resources"

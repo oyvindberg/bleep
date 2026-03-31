@@ -10,11 +10,10 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
     started.logger.error("This script is a placeholder! You'll need to replace the contents with code which actually generates the files you want")
 
     targets.foreach { target =>
-      if (Set("parsers@jvm3").contains(target.project.value)) {
-        val to = target.sources.resolve("generated/TreeLifts.scala")
+      if (Set(s"""|parsers@jvm3""".stripMargin).contains(target.project.value)) {
+        val to = target.sources.resolve(s"""|generated/TreeLifts.scala""".stripMargin)
         started.logger.withContext("project", target.project.value).warn(s"Writing $to")
-        val content = new String(s"""|
-      |package scala.meta
+        val content = (s"""|package scala.meta
       |package internal
       |package quasiquotes
       |
@@ -90,7 +89,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftMultiSource(x$$macro$$3: scala.meta.MultiSource) = treeByMode('{_root_.scala.meta.MultiSource.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.sources))
       |  def liftStatBlock(x$$macro$$3: scala.meta.Stat.Block) = treeByMode('{_root_.scala.meta.Stat.Block.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.stats))
       |  def liftTermEnumeratorsBlock(x$$macro$$3: scala.meta.Term.EnumeratorsBlock) = treeByMode('{_root_.scala.meta.Term.EnumeratorsBlock.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.enums))
-      |  def li""".stripMargin) + new String(s"""|ftTermBlock(x$$macro$$3: scala.meta.Term.Block) = treeByMode('{_root_.scala.meta.Term.Block.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.stats))
+      |  def liftTermBlock(x$$macro$$3: scala.meta.Term.Block) = treeByMode('{_root_.scala.meta.Term.Block.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.stats))
       |  def liftTypeBlock(x$$macro$$3: scala.meta.Type.Block) = treeByMode('{_root_.scala.meta.Type.Block.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.typeDefs), term(x$$macro$$3.tpe))
       |  def liftPkgBody(x$$macro$$3: scala.meta.Pkg.Body) = treeByMode('{_root_.scala.meta.Pkg.Body.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.stats))
       |  def liftCtorBlock(x$$macro$$3: scala.meta.Ctor.Block) = treeByMode('{_root_.scala.meta.Ctor.Block.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.init), term(x$$macro$$3.stats))
@@ -119,7 +118,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftTypeBoundsAlias(x$$macro$$3: scala.meta.Type.BoundsAlias) = treeByMode('{_root_.scala.meta.Type.BoundsAlias.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.name), term(x$$macro$$3.bounds))
       |  def liftImporteeWildcard(x$$macro$$3: scala.meta.Importee.Wildcard) = treeByMode('{_root_.scala.meta.Importee.Wildcard.Initial}, term(x$$macro$$3.origin))
       |  def liftImporteeGiven(x$$macro$$3: scala.meta.Importee.Given) = treeByMode('{_root_.scala.meta.Importee.Given.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.tpe))
-      |  def liftImporteeGivenAll(x$$macro$$3: scala.meta.Importee.GivenAll) = treeByMode('{_root_.scala.meta.Importee.GivenAl""".stripMargin) + new String(s"""|l.Initial}, term(x$$macro$$3.origin))
+      |  def liftImporteeGivenAll(x$$macro$$3: scala.meta.Importee.GivenAll) = treeByMode('{_root_.scala.meta.Importee.GivenAll.Initial}, term(x$$macro$$3.origin))
       |  def liftImporteeName(x$$macro$$3: scala.meta.Importee.Name) = treeByMode('{_root_.scala.meta.Importee.Name.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.name))
       |  def liftImporteeRename(x$$macro$$3: scala.meta.Importee.Rename) = treeByMode('{_root_.scala.meta.Importee.Rename.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.name), term(x$$macro$$3.rename))
       |  def liftImporteeUnimport(x$$macro$$3: scala.meta.Importee.Unimport) = treeByMode('{_root_.scala.meta.Importee.Unimport.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.name))
@@ -148,7 +147,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftLitNull(x$$macro$$3: scala.meta.Lit.Null) = treeByMode('{_root_.scala.meta.Lit.Null.Initial}, term(x$$macro$$3.origin))
       |  def liftLitInt(x$$macro$$3: scala.meta.Lit.Int) = treeByMode('{_root_.scala.meta.Lit.Int.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.value))
       |  def liftLitDouble(x$$macro$$3: scala.meta.Lit.Double) = treeByMode('{_root_.scala.meta.Lit.Double.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.format))
-      |  def liftLitFloat(x$$macro$$3: scala.meta.Lit.Float) = treeByMode('{_root_.scala.meta.Lit""".stripMargin) + new String(s"""|.Float.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.format))
+      |  def liftLitFloat(x$$macro$$3: scala.meta.Lit.Float) = treeByMode('{_root_.scala.meta.Lit.Float.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.format))
       |  def liftLitByte(x$$macro$$3: scala.meta.Lit.Byte) = treeByMode('{_root_.scala.meta.Lit.Byte.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.value))
       |  def liftLitShort(x$$macro$$3: scala.meta.Lit.Short) = treeByMode('{_root_.scala.meta.Lit.Short.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.value))
       |  def liftLitChar(x$$macro$$3: scala.meta.Lit.Char) = treeByMode('{_root_.scala.meta.Lit.Char.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.value))
@@ -177,7 +176,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      pat match {
       |        case q: _root_.scala.meta.internal.trees.Quasi if unquotesName(q) =>
       |          val action = if (q.rank == 0) "unquote" else "splice"
-      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\\\"x\\\\")")
+      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\"x\\")")
       |        case _ =>
       |      }
       |    }
@@ -187,7 +186,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftPatAlternative(x$$macro$$3: scala.meta.Pat.Alternative) = treeByMode('{_root_.scala.meta.Pat.Alternative.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.lhs), term(x$$macro$$3.rhs))
       |  def liftPatTuple(x$$macro$$3: scala.meta.Pat.Tuple) = treeByMode('{_root_.scala.meta.Pat.Tuple.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.args))
       |  def liftPatRepeated(x$$macro$$3: scala.meta.Pat.Repeated) = treeByMode('{_root_.scala.meta.Pat.Repeated.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.name))
-      |  def liftPatExtract(x$$macro$$3: scala.meta.Pat.Extract) = treeByMode('{_root_.scala.""".stripMargin) + new String(s"""|meta.Pat.Extract.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.fun), term(x$$macro$$3.argClause))
+      |  def liftPatExtract(x$$macro$$3: scala.meta.Pat.Extract) = treeByMode('{_root_.scala.meta.Pat.Extract.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.fun), term(x$$macro$$3.argClause))
       |  def liftPatExtractInfix(x$$macro$$3: scala.meta.Pat.ExtractInfix) = treeByMode('{_root_.scala.meta.Pat.ExtractInfix.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.lhs), term(x$$macro$$3.op), term(x$$macro$$3.argClause))
       |  def liftPatInterpolate(x$$macro$$3: scala.meta.Pat.Interpolate) = treeByMode('{_root_.scala.meta.Pat.Interpolate.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.prefix), term(x$$macro$$3.parts), term(x$$macro$$3.args))
       |  def liftPatXml(x$$macro$$3: scala.meta.Pat.Xml) = treeByMode('{_root_.scala.meta.Pat.Xml.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.parts), term(x$$macro$$3.args))
@@ -197,7 +196,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      pat match {
       |        case q: _root_.scala.meta.internal.trees.Quasi if unquotesName(q) =>
       |          val action = if (q.rank == 0) "unquote" else "splice"
-      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\\\"x\\\\")")
+      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\"x\\")")
       |        case _ =>
       |      }
       |    }
@@ -239,7 +238,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftTermApplyType(x$$macro$$3: scala.meta.Term.ApplyType) = treeByMode('{_root_.scala.meta.Term.ApplyType.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.fun), term(x$$macro$$3.targClause))
       |  def liftTermApplyInfix(x$$macro$$3: scala.meta.Term.ApplyInfix) = treeByMode('{_root_.scala.meta.Term.ApplyInfix.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.lhs), term(x$$macro$$3.op), term(x$$macro$$3.targClause), term(x$$macro$$3.argClause))
       |  def liftTermAssign(x$$macro$$3: scala.meta.Term.Assign) = treeByMode('{_root_.scala.meta.Term.Assign.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.lhs), term(x$$macro$$3.rhs))
-      |  def liftTermReturn(x$$macro$$3: scala.meta.Term.Return) = treeByMode('{_root_.scala.meta.Term.Return.Initi""".stripMargin) + new String(s"""|al}, term(x$$macro$$3.origin), term(x$$macro$$3.expr))
+      |  def liftTermReturn(x$$macro$$3: scala.meta.Term.Return) = treeByMode('{_root_.scala.meta.Term.Return.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.expr))
       |  def liftTermThrow(x$$macro$$3: scala.meta.Term.Throw) = treeByMode('{_root_.scala.meta.Term.Throw.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.expr))
       |  def liftTermAscribe(x$$macro$$3: scala.meta.Term.Ascribe) = treeByMode('{_root_.scala.meta.Term.Ascribe.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.expr), term(x$$macro$$3.tpe))
       |  def liftTermAnnotate(x$$macro$$3: scala.meta.Term.Annotate) = treeByMode('{_root_.scala.meta.Term.Annotate.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.expr), term(x$$macro$$3.annots))
@@ -266,7 +265,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftTermContextFunction(x$$macro$$3: scala.meta.Term.ContextFunction) = treeByMode('{_root_.scala.meta.Term.ContextFunction.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.paramClause), term(x$$macro$$3.body))
       |  def liftTermFunction(x$$macro$$3: scala.meta.Term.Function) = treeByMode('{_root_.scala.meta.Term.Function.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.paramClause), term(x$$macro$$3.body))
       |  def liftTermFor(x$$macro$$3: scala.meta.Term.For) = treeByMode('{_root_.scala.meta.Term.For.After_4_9_9}, term(x$$macro$$3.origin), term(x$$macro$$3.enumsBlock), term(x$$macro$$3.body))
-      |  def liftTermForYield(x$$macro$$3: scala.meta.Term.ForYield) = treeByMode('{_root_.scala.meta.Term.ForYield.After_4_9_9}, term(x$$macro$$3.origin), term(x$$macro$$3.enums""".stripMargin) + new String(s"""|Block), term(x$$macro$$3.body))
+      |  def liftTermForYield(x$$macro$$3: scala.meta.Term.ForYield) = treeByMode('{_root_.scala.meta.Term.ForYield.After_4_9_9}, term(x$$macro$$3.origin), term(x$$macro$$3.enumsBlock), term(x$$macro$$3.body))
       |  def liftDeclVal(x$$macro$$3: scala.meta.Decl.Val) = treeByMode('{_root_.scala.meta.Decl.Val.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.pats), term(x$$macro$$3.decltpe))
       |  def liftDeclVar(x$$macro$$3: scala.meta.Decl.Var) = treeByMode('{_root_.scala.meta.Decl.Var.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.pats), term(x$$macro$$3.decltpe))
       |  def liftDeclDef(x$$macro$$3: scala.meta.Decl.Def) = treeByMode('{_root_.scala.meta.Decl.Def.After_4_7_3}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.paramClauseGroups), term(x$$macro$$3.decltpe))
@@ -276,7 +275,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      pat match {
       |        case q: _root_.scala.meta.internal.trees.Quasi if unquotesName(q) =>
       |          val action = if (q.rank == 0) "unquote" else "splice"
-      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\\\"x\\\\")")
+      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\"x\\")")
       |        case _ =>
       |      }
       |    }
@@ -289,7 +288,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      pat match {
       |        case q: _root_.scala.meta.internal.trees.Quasi if unquotesName(q) =>
       |          val action = if (q.rank == 0) "unquote" else "splice"
-      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\\\"x\\\\")")
+      |          report.errorAndAbort("can't " + action + " a name here, use a pattern instead (e.g. p\\"x\\")")
       |        case _ =>
       |      }
       |    }
@@ -308,7 +307,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftDefnType(x$$macro$$3: scala.meta.Defn.Type) = treeByMode('{_root_.scala.meta.Defn.Type.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.tparamClause), term(x$$macro$$3.body), term(x$$macro$$3.bounds))
       |  def liftDefnGiven(x$$macro$$3: scala.meta.Defn.Given) = treeByMode('{_root_.scala.meta.Defn.Given.After_4_12_0}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.paramClauseGroups), term(x$$macro$$3.templ))
       |  def liftDefnGivenAlias(x$$macro$$3: scala.meta.Defn.GivenAlias) = treeByMode('{_root_.scala.meta.Defn.GivenAlias.After_4_12_0}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.paramClauseGroups), term(x$$macro$$3.decltpe), term(x$$macro$$3.body))
-      |  def """.stripMargin) + new String(s"""|liftDeclGivenAnonymous(x$$macro$$3: scala.meta.Decl.GivenAnonymous) = treeByMode('{_root_.scala.meta.Decl.GivenAnonymous.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.paramClauseGroups), term(x$$macro$$3.decltpe))
+      |  def liftDeclGivenAnonymous(x$$macro$$3: scala.meta.Decl.GivenAnonymous) = treeByMode('{_root_.scala.meta.Decl.GivenAnonymous.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.paramClauseGroups), term(x$$macro$$3.decltpe))
       |  def liftDeclGiven(x$$macro$$3: scala.meta.Decl.Given) = treeByMode('{_root_.scala.meta.Decl.Given.After_4_12_0}, term(x$$macro$$3.origin), term(x$$macro$$3.mods), term(x$$macro$$3.name), term(x$$macro$$3.paramClauseGroups), term(x$$macro$$3.decltpe))
       |  def liftDefnExtensionGroup(x$$macro$$3: scala.meta.Defn.ExtensionGroup) = treeByMode('{_root_.scala.meta.Defn.ExtensionGroup.After_4_6_0}, term(x$$macro$$3.origin), term(x$$macro$$3.paramClauseGroup), term(x$$macro$$3.body))
       |  def liftImport(x$$macro$$3: scala.meta.Import) = treeByMode('{_root_.scala.meta.Import.Initial}, term(x$$macro$$3.origin), term(x$$macro$$3.importers))
@@ -335,7 +334,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |  def liftModSealed(x$$macro$$3: scala.meta.Mod.Sealed) = treeByMode('{_root_.scala.meta.Mod.Sealed.Initial}, term(x$$macro$$3.origin))
       |  def liftModOpen(x$$macro$$3: scala.meta.Mod.Open) = treeByMode('{_root_.scala.meta.Mod.Open.Initial}, term(x$$macro$$3.origin))
       |  def liftModSuper(x$$macro$$3: scala.meta.Mod.Super) = treeByMode('{_root_.scala.meta.Mod.Super.Initial}, term(x$$macro$$3.origin))
-      |  def liftModOverride(x$$macro$$3: scala.meta.Mod.Override) = treeByMode('{_root_.scala.meta.Mod.Override.Initial}, term(x$$macro$$3.origin))""".stripMargin) + new String(s"""|  def liftModCase(x$$macro$$3: scala.meta.Mod.Case) = treeByMode('{_root_.scala.meta.Mod.Case.Initial}, term(x$$macro$$3.origin))
+      |  def liftModOverride(x$$macro$$3: scala.meta.Mod.Override) = treeByMode('{_root_.scala.meta.Mod.Override.Initial}, term(x$$macro$$3.origin))""".stripMargin + s"""|  def liftModCase(x$$macro$$3: scala.meta.Mod.Case) = treeByMode('{_root_.scala.meta.Mod.Case.Initial}, term(x$$macro$$3.origin))
       |  def liftModAbstract(x$$macro$$3: scala.meta.Mod.Abstract) = treeByMode('{_root_.scala.meta.Mod.Abstract.Initial}, term(x$$macro$$3.origin))
       |  def liftModLazy(x$$macro$$3: scala.meta.Mod.Lazy) = treeByMode('{_root_.scala.meta.Mod.Lazy.Initial}, term(x$$macro$$3.origin))
       |  def liftModValParam(x$$macro$$3: scala.meta.Mod.ValParam) = treeByMode('{_root_.scala.meta.Mod.ValParam.Initial}, term(x$$macro$$3.origin))
@@ -397,7 +396,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      case y : scala.meta.Importee.Name => liftImporteeName(y)
       |      case y : scala.meta.Importee.Rename => liftImporteeRename(y)
       |      case y : scala.meta.Importee.Unimport => liftImporteeUnimport(y)
-      |      case y : scala.meta.Type.An""".stripMargin) + new String(s"""|onymousName => liftTypeAnonymousName(y)
+      |      case y : scala.meta.Type.AnonymousName => liftTypeAnonymousName(y)
       |      case y : scala.meta.Type.Apply => liftTypeApply(y)
       |      case y : scala.meta.Type.ApplyInfix => liftTypeApplyInfix(y)
       |      case y : scala.meta.Type.PolyFunction => liftTypePolyFunction(y)
@@ -478,7 +477,7 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      case y : scala.meta.Term.QuotedMacroType => liftTermQuotedMacroType(y)
       |      case y : scala.meta.Term.SplicedMacroExpr => liftTermSplicedMacroExpr(y)
       |      case y : scala.meta.Term.SplicedMacroPat => liftTermSplicedMacroPat(y)
-      |      case y : scala.m""".stripMargin) + new String(s"""|eta.Term.AnonymousFunction => liftTermAnonymousFunction(y)
+      |      case y : scala.meta.Term.AnonymousFunction => liftTermAnonymousFunction(y)
       |      case y : scala.meta.Term.PolyFunction => liftTermPolyFunction(y)
       |      case y : scala.meta.Term.While => liftTermWhile(y)
       |      case y : scala.meta.Term.Do => liftTermDo(y)
@@ -559,7 +558,8 @@ object GenerateForParsers extends BleepCodegenScript("GenerateForParsers") {
       |      case _ => sys.error("none of leafs matched " + (y.getClass.getSimpleName))
       |    }
       |  }
-      |}""".stripMargin)
+      |}
+      |""".stripMargin)
         Files.createDirectories(to.getParent)
         Files.writeString(to, content)
       }
