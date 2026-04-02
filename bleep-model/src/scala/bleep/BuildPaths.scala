@@ -35,7 +35,7 @@ case class BuildPaths(cwd: Path, bleepYamlFile: Path, variant: model.BuildVarian
         model.Replacements.projectPaths(dir) ++
         model.Replacements.targetDir(targetDir) ++
         model.Replacements.scope(p.`sbt-scope`.getOrElse("")) ++
-        model.Replacements.versions(wantedBleepVersion, scalaVersion, maybePlatformId, maybePlatformVersion, includeEpoch = true, includeBinVersion = true)
+        model.Replacements.versions(wantedBleepVersion, scalaVersion, maybePlatformId, maybePlatformVersion, includeEpoch = true, includeBinVersion = true, buildDir = Some(buildDir))
 
     def sourceLayout = p.`source-layout` match {
       case Some(sourceLayout) => sourceLayout

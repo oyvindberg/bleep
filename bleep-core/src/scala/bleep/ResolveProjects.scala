@@ -155,7 +155,7 @@ object ResolveProjects {
       model.Replacements.paths(build = pre.buildPaths.buildDir) ++
         model.Replacements.projectPaths(project = projectPaths.dir) ++
         model.Replacements.targetDir(projectPaths.targetDir) ++
-        model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true)
+        model.Replacements.versions(Some(build.$version), versionCombo, includeEpoch = true, includeBinVersion = true, buildDir = Some(pre.buildPaths.buildDir))
 
     def require[T](ot: Option[T], name: String): T =
       ot.toRight(s"missing platform field `$name`").orThrowText

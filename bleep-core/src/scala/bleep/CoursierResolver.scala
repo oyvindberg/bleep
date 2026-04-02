@@ -107,7 +107,7 @@ object CoursierResolver {
         val params = Params(None, downloadSources, config.authentications, resolvers)
         val direct = new Direct(pre.logger, pre.cacheLogger, params)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
-        new TemplatedVersions(cached, Some(buildFile.$version))
+        new TemplatedVersions(cached, Some(buildFile.$version), Some(pre.buildPaths.buildDir))
       }
     }
   }
@@ -520,19 +520,46 @@ object CoursierResolver {
     }
   }
 
-  class TemplatedVersions(underlying: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion]) extends CoursierResolver {
+  class TemplatedVersions(underlying: CoursierResolver, maybeWantedBleepVersion: Option[model.BleepVersion], buildDir: Option[Path]) extends CoursierResolver {
     override val params = underlying.params
 
     override def withParams(newParams: Params): CoursierResolver =
-      new TemplatedVersions(underlying.withParams(newParams), maybeWantedBleepVersion)
+      new TemplatedVersions(underlying.withParams(newParams), maybeWantedBleepVersion, buildDir)
 
     override def resolve(
         deps: SortedSet[model.Dep],
         versionCombo: model.VersionCombo,
         libraryVersionSchemes: SortedSet[model.LibraryVersionScheme],
         ignoreEvictionErrors: model.IgnoreEvictionErrors
-    ): Either[CoursierError, Result] =
-      underlying.resolve(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
+    ): Either[CoursierError, Result] = {
+      val rewritten = rewriteDeps(deps, versionCombo)
+      val (devDeps, normalDeps) = rewritten.partition(isDevDep)
+      // Resolve dev deps from class dirs (either from buildDir or JVM classpath)
+      val devClassDirs = devDeps.toList.flatMap(BleepDevDeps.resolveAllClassDirs)
+
+      val coursierResult =
+        if (normalDeps.isEmpty) Right(Result(Seq.empty, Seq.empty))
+        else underlying.resolve(normalDeps, versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
+
+      coursierResult.map { result =>
+        if (devClassDirs.isEmpty) result
+        else {
+          val syntheticEntries = devClassDirs.map { classDir =>
+            val module = coursier.core.Module(
+              Organization("build.bleep"),
+              ModuleName(classDir.getParent.getFileName.toString),
+              Map.empty
+            )
+            val dep = Dependency(module, "dev")
+            val pub = Publication("", Type.jar, Extension.jar, Classifier.empty)
+            val artifact =
+              Artifact(classDir.toUri.toASCIIString, Map.empty, Map.empty, changing = false, optional = false, authentication = None)
+            (dep, pub, artifact, Some(classDir.toFile))
+          }
+          Result(result.fullDetailedArtifacts ++ syntheticEntries, result.fullExtraArtifacts)
+        }
+      }
+    }
 
     override def direct(
         deps: SortedSet[model.Dep],
@@ -542,8 +569,11 @@ object CoursierResolver {
     ): Either[CoursierError, Fetch.Result] =
       underlying.direct(rewriteDeps(deps, versionCombo), versionCombo, libraryVersionSchemes, ignoreEvictionErrors)
 
+    private def isDevDep(dep: model.Dep): Boolean =
+      dep.organization.value == "build.bleep" && BleepDevDeps.isDevVersion(dep.version)
+
     def rewriteDeps(deps: SortedSet[model.Dep], versionCombo: model.VersionCombo): SortedSet[model.Dep] = {
-      val replacements = model.Replacements.versions(maybeWantedBleepVersion, versionCombo, includeEpoch = true, includeBinVersion = true)
+      val replacements = model.Replacements.versions(maybeWantedBleepVersion, versionCombo, includeEpoch = true, includeBinVersion = true, buildDir = buildDir)
       val rewrittenDeps = deps.map(replacements.fill.dep)
       rewrittenDeps
     }
