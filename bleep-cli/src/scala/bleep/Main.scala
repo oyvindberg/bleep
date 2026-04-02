@@ -456,8 +456,7 @@ object Main {
             val buildLoader = BuildLoader.nonExisting(started.buildPaths.cwd)
             val buildPaths = BuildPaths(started.buildPaths.cwd, buildLoader, model.BuildVariant.Normal)
             importCmd(buildLoader, started.userPaths, buildPaths, started.logger)
-          },
-          {
+          }, {
             val buildPaths0 = BuildPaths(started.buildPaths.cwd, BuildLoader.nonExisting(started.buildPaths.cwd), model.BuildVariant.Normal)
             importMavenCmd(buildPaths0, started.logger)
           },

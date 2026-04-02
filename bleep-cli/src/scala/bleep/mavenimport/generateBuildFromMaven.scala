@@ -77,11 +77,10 @@ object generateBuildFromMaven {
         kotlin = None,
         platform = Some(model.Platform.Jvm(model.Options.empty, None, model.Options.empty)),
         isTestProject = None,
-        testFrameworks = model.JsonSet.empty,
-        sourcegen = model.JsonSet.empty,
-        libraryVersionSchemes = model.JsonSet.empty,
-        ignoreEvictionErrors = None,
-        publish = None
+        testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
+        sourcegen = model.JsonSet.empty[model.ScriptDef],
+        libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
+        ignoreEvictionErrors = None
       )
 
       val buildWithScript = buildFile1.copy(

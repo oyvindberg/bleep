@@ -296,7 +296,6 @@ object KotlinProjectCompiler extends ProjectCompiler {
     val javaSources = sourceFiles.filter(_.path.toString.endsWith(".java"))
     val kotlinSources = sourceFiles.filterNot(_.path.toString.endsWith(".java"))
 
-
     // Phase 1: Compile Java sources with javac to a separate directory.
     // We use a separate temp directory (NOT under outputDir) because the Kotlin incremental
     // compiler may clean the output directory on full compiles.

@@ -108,8 +108,7 @@ object parsePom {
 
   /** Extract additional source directories from build-helper-maven-plugin executions.
     *
-    * Handles both `add-source` (main) and `add-test-source` (test) goals.
-    * Source paths may be relative (resolved against module directory) or absolute.
+    * Handles both `add-source` (main) and `add-test-source` (test) goals. Source paths may be relative (resolved against module directory) or absolute.
     */
   private def parseBuildHelperSources(pluginNodes: scala.xml.NodeSeq, moduleDir: Path): (List[Path], List[Path]) = {
     val mainSources = List.newBuilder[Path]

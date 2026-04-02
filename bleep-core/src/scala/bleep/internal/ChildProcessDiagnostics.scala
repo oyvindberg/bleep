@@ -96,7 +96,9 @@ object ChildProcessDiagnostics {
       !t.name.startsWith("Common-Cleaner") &&
       !t.name.startsWith("Notification Thread") &&
       !t.name.startsWith("Attach Listener") &&
-      !t.state.contains("WAITING") || t.stack.exists(f => !f.getClassName.startsWith("java.") && !f.getClassName.startsWith("jdk.") && !f.getClassName.startsWith("sun."))
+      !t.state.contains("WAITING") || t.stack.exists(f =>
+        !f.getClassName.startsWith("java.") && !f.getClassName.startsWith("jdk.") && !f.getClassName.startsWith("sun.")
+      )
     }
 
     // Group by stack trace
@@ -158,11 +160,12 @@ object ChildProcessDiagnostics {
         val nameEnd = line.indexOf('"', 1)
         if (nameEnd > 0) {
           val name = line.substring(1, nameEnd)
-          val state = if (line.contains("RUNNABLE")) "RUNNABLE"
-          else if (line.contains("WAITING")) "WAITING"
-          else if (line.contains("TIMED_WAITING")) "TIMED_WAITING"
-          else if (line.contains("BLOCKED")) "BLOCKED"
-          else "UNKNOWN"
+          val state =
+            if (line.contains("RUNNABLE")) "RUNNABLE"
+            else if (line.contains("WAITING")) "WAITING"
+            else if (line.contains("TIMED_WAITING")) "TIMED_WAITING"
+            else if (line.contains("BLOCKED")) "BLOCKED"
+            else "UNKNOWN"
 
           // Skip "java.lang.Thread.State:" line
           i += 1

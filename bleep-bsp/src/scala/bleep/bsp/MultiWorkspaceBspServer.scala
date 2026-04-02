@@ -1751,11 +1751,12 @@ class MultiWorkspaceBspServer(
               case _ =>
                 // JVM (default) - use JvmPool
                 val testEnv = computeTestEnvironment(started, testTask.project)
-                val projectDir = started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
+                val projectDir =
+                  started.build.explodedProjects.get(testTask.project).flatMap(_.folder).map(rp => started.buildPaths.buildDir.resolve(rp.toString))
                 // Project-level JVM options from platform config (e.g. -Djava.util.logging.manager for Quarkus)
                 val projectJvmOptions = started.resolvedProject(testTask.project).platform match {
                   case Some(p: ResolvedProject.Platform.Jvm) => p.options
-                  case _                                      => Nil
+                  case _                                     => Nil
                 }
                 TestRunner.runSuite(
                   project = testTask.project,

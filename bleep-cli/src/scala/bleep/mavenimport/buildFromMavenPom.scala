@@ -168,9 +168,12 @@ object buildFromMavenPom {
     val testFrameworks = detectTestFrameworks(mavenProject, logger)
 
     // Inject test interface adapter deps needed by bleep's test runner
-    val adapterDeps = testFrameworks.values.iterator.flatMap { fw =>
-      testAdapterDeps.get(fw.value)
-    }.toList.distinct
+    val adapterDeps = testFrameworks.values.iterator
+      .flatMap { fw =>
+        testAdapterDeps.get(fw.value)
+      }
+      .toList
+      .distinct
     val allTestDeps = testDeps ++ adapterDeps
 
     val testHasSources = hasSourceFiles(mavenProject.testSourceDirectory)
@@ -189,13 +192,19 @@ object buildFromMavenPom {
     // E.g. connector-openapi uses <sourceDirectory>src/main/generated-kotlin</sourceDirectory>
     val layoutMainDirs = mainSourceLayout.sources(scalaVersion, None, "main").values.map(mavenProject.directory / _).toSet
     val customMainSource =
-      if (Files.isDirectory(mavenProject.sourceDirectory) && !layoutMainDirs.contains(mavenProject.sourceDirectory) && !mavenProject.sourceDirectory.startsWith(targetDir))
+      if (
+        Files.isDirectory(mavenProject.sourceDirectory) && !layoutMainDirs
+          .contains(mavenProject.sourceDirectory) && !mavenProject.sourceDirectory.startsWith(targetDir)
+      )
         List(RelPath.relativeTo(mavenProject.directory, mavenProject.sourceDirectory))
       else Nil
 
     val layoutTestDirs = testSourceLayout.sources(scalaVersion, None, "test").values.map(mavenProject.directory / _).toSet
     val customTestSource =
-      if (Files.isDirectory(mavenProject.testSourceDirectory) && !layoutTestDirs.contains(mavenProject.testSourceDirectory) && !mavenProject.testSourceDirectory.startsWith(targetDir))
+      if (
+        Files.isDirectory(mavenProject.testSourceDirectory) && !layoutTestDirs.contains(mavenProject.testSourceDirectory) && !mavenProject.testSourceDirectory
+          .startsWith(targetDir)
+      )
         List(RelPath.relativeTo(mavenProject.directory, mavenProject.testSourceDirectory))
       else Nil
 
@@ -207,25 +216,24 @@ object buildFromMavenPom {
     // Main project - always create it (test project depends on it)
     val mainCrossName = model.CrossProjectName(projectName, None)
     val mainProject = model.Project(
-      `extends` = model.JsonSet.empty,
+      `extends` = model.JsonSet.empty[model.TemplateId],
       cross = model.JsonMap.empty,
       folder = folder,
       dependsOn = mainDependsOn,
       `source-layout` = Some(mainSourceLayout),
       `sbt-scope` = Some("main"),
       sources = model.JsonSet.fromIterable(allExtraMainSources),
-      resources = model.JsonSet.empty,
+      resources = model.JsonSet.empty[RelPath],
       dependencies = model.JsonSet.fromIterable(mainDeps),
       java = configuredJava,
       scala = configuredScala,
       kotlin = configuredKotlin,
       platform = Some(platform),
       isTestProject = None,
-      testFrameworks = model.JsonSet.empty,
-      sourcegen = model.JsonSet.empty,
-      libraryVersionSchemes = model.JsonSet.empty,
-      ignoreEvictionErrors = None,
-      publish = None
+      testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
+      sourcegen = model.JsonSet.empty[model.ScriptDef],
+      libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
+      ignoreEvictionErrors = None
     )
     result += (mainCrossName -> mainProject)
 
@@ -237,19 +245,21 @@ object buildFromMavenPom {
       val (surefireJvmArgs, surefireAgents) = extractSurefireConfig(mavenProject)
       val testJvmOptions = if (surefireJvmArgs.nonEmpty) model.Options.parse(surefireJvmArgs, None) else model.Options.empty
 
-      val testPlatform = model.Platform.Jvm(testJvmOptions, None, model.Options.empty).copy(
-        jvmAgents = model.JsonSet.fromIterable(surefireAgents)
-      )
+      val testPlatform = model.Platform
+        .Jvm(testJvmOptions, None, model.Options.empty)
+        .copy(
+          jvmAgents = model.JsonSet.fromIterable(surefireAgents)
+        )
 
       val testProject = model.Project(
-        `extends` = model.JsonSet.empty,
+        `extends` = model.JsonSet.empty[model.TemplateId],
         cross = model.JsonMap.empty,
         folder = testFolder,
         dependsOn = testDependsOn,
         `source-layout` = Some(testSourceLayout),
         `sbt-scope` = Some("test"),
         sources = model.JsonSet.fromIterable(allExtraTestSources),
-        resources = model.JsonSet.empty,
+        resources = model.JsonSet.empty[RelPath],
         dependencies = model.JsonSet.fromIterable(allTestDeps),
         java = configuredJava,
         scala = configuredScala,
@@ -257,10 +267,9 @@ object buildFromMavenPom {
         platform = Some(testPlatform),
         isTestProject = Some(true),
         testFrameworks = testFrameworks,
-        sourcegen = model.JsonSet.empty,
-        libraryVersionSchemes = model.JsonSet.empty,
-        ignoreEvictionErrors = None,
-        publish = None
+        sourcegen = model.JsonSet.empty[model.ScriptDef],
+        libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
+        ignoreEvictionErrors = None
       )
       result += (testCrossName -> testProject)
     }
@@ -289,17 +298,19 @@ object buildFromMavenPom {
 
   private def detectKotlinVersion(mavenProject: MavenProject): Option[model.VersionKotlin] =
     // Primary: get version from kotlin-maven-plugin (effective POM has all interpolation resolved)
-    mavenProject.plugins.collectFirst {
-      case plugin if plugin.artifactId == "kotlin-maven-plugin" && plugin.groupId == "org.jetbrains.kotlin" && plugin.version.nonEmpty =>
-        model.VersionKotlin(plugin.version)
-    }.orElse {
-      // Fallback: check for kotlin-stdlib or kotlin-stdlib-jdk8 in dependencies
-      val kotlinArtifacts = Set("kotlin-stdlib", "kotlin-stdlib-jdk8", "kotlin-stdlib-jdk7")
-      mavenProject.dependencies.collectFirst {
-        case dep if dep.groupId == "org.jetbrains.kotlin" && kotlinArtifacts.contains(dep.artifactId) && dep.version.nonEmpty =>
-          model.VersionKotlin(dep.version)
+    mavenProject.plugins
+      .collectFirst {
+        case plugin if plugin.artifactId == "kotlin-maven-plugin" && plugin.groupId == "org.jetbrains.kotlin" && plugin.version.nonEmpty =>
+          model.VersionKotlin(plugin.version)
       }
-    }
+      .orElse {
+        // Fallback: check for kotlin-stdlib or kotlin-stdlib-jdk8 in dependencies
+        val kotlinArtifacts = Set("kotlin-stdlib", "kotlin-stdlib-jdk8", "kotlin-stdlib-jdk7")
+        mavenProject.dependencies.collectFirst {
+          case dep if dep.groupId == "org.jetbrains.kotlin" && kotlinArtifacts.contains(dep.artifactId) && dep.version.nonEmpty =>
+            model.VersionKotlin(dep.version)
+        }
+      }
 
   private def extractKotlinCompilerArgs(mavenProject: MavenProject): List[String] =
     mavenProject.plugins.flatMap {
@@ -348,7 +359,7 @@ object buildFromMavenPom {
     *
     * These map to `-P plugin:<pluginId>:<key>=<value>` kotlinc flags. The plugin ID mappings:
     *   - `all-open:` -> `plugin:org.jetbrains.kotlin.allopen:`
-    *   - `no-arg:`   -> `plugin:org.jetbrains.kotlin.noarg:`
+    *   - `no-arg:` -> `plugin:org.jetbrains.kotlin.noarg:`
     *   - `sam-with-receiver:` -> `plugin:org.jetbrains.kotlin.samWithReceiver:`
     */
   private def extractKotlinPluginOptions(mavenProject: MavenProject): List[String] = {
@@ -383,8 +394,8 @@ object buildFromMavenPom {
     *   - jvmOptions: plain JVM flags like `-XX:+EnableDynamicAgentLoading`
     *   - jvmAgents: Maven coordinates extracted from `-javaagent:` references
     *
-    * `-javaagent:${settings.localRepository}/org/group/artifact/version/artifact-version.jar`
-    * is parsed back into the Maven coordinate `org.group:artifact:version`.
+    * `-javaagent:${settings.localRepository}/org/group/artifact/version/artifact-version.jar` is parsed back into the Maven coordinate
+    * `org.group:artifact:version`.
     */
   private def extractSurefireConfig(mavenProject: MavenProject): (List[String], List[model.Dep]) = {
     val surefirePlugins = Set("maven-surefire-plugin", "maven-failsafe-plugin")
@@ -463,8 +474,7 @@ object buildFromMavenPom {
       // Skip provided Scala artifacts
       else if (isProvidedScalaArtifact(dep)) {
         // skip - bleep provides these
-      }
-      else {
+      } else {
         convertDependency(logger, dep) match {
           case Some(bleepDep) =>
             dep.scope match {
@@ -596,7 +606,8 @@ object buildFromMavenPom {
   private def detectJavaRelease(mavenProject: MavenProject): Option[Int] =
     mavenProject.plugins.collectFirst {
       case plugin if plugin.artifactId == "maven-compiler-plugin" =>
-        (plugin.configuration \ "release").headOption.map(_.text.trim.toInt)
+        (plugin.configuration \ "release").headOption
+          .map(_.text.trim.toInt)
           .orElse((plugin.configuration \ "target").headOption.map(_.text.trim.toInt))
     }.flatten
 
@@ -667,10 +678,8 @@ object buildFromMavenPom {
     }
 
     val repos = CoursierResolver.coursierRepos(
-      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(r.url))),
-      None,
-      new CredentialProvider(logger, None),
-      logger
+      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty), URI.create(r.url))),
+      None
     )
 
     val resolution =
@@ -689,7 +698,7 @@ object buildFromMavenPom {
       .filterNot(repo => defaultRepoUrls.contains(repo.url) || defaultRepoUrls.contains(repo.url + "/"))
       .filterNot(_.id == "central")
       .map { repo =>
-        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(repo.url)): model.Repository
+        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty), URI.create(repo.url)): model.Repository
       }
     model.JsonList(repos)
   }
@@ -707,12 +716,10 @@ object buildFromMavenPom {
 
   /** Discover generated source files under target/generated-sources/ for each Maven module.
     *
-    * Maven code generators (openapi, wsdl2java, avro, jaxb, etc.) all output to
-    * `target/generated-sources/<generator-name>/`. We walk these directories after `mvn compile`
-    * has populated them, read the file contents, and return them keyed by bleep project name.
+    * Maven code generators (openapi, wsdl2java, avro, jaxb, etc.) all output to `target/generated-sources/<generator-name>/`. We walk these directories after
+    * `mvn compile` has populated them, read the file contents, and return them keyed by bleep project name.
     *
-    * Generated test sources under `target/generated-test-sources/` are associated with the
-    * corresponding `-test` project.
+    * Generated test sources under `target/generated-test-sources/` are associated with the corresponding `-test` project.
     */
   def discoverGeneratedFiles(
       logger: Logger,
@@ -752,15 +759,19 @@ object buildFromMavenPom {
       import scala.jdk.CollectionConverters.*
 
       val subDirs = Files.list(parentDir)
-      try {
-        subDirs.iterator().asScala
+      try
+        subDirs
+          .iterator()
+          .asScala
           .filter(Files.isDirectory(_))
           // Skip "annotations" dirs — these are annotation processor outputs (empty marker dirs)
           .filter(dir => dir.getFileName.toString != "annotations")
           .flatMap { genDir =>
             val fileStream = Files.walk(genDir)
-            try {
-              fileStream.iterator().asScala
+            try
+              fileStream
+                .iterator()
+                .asScala
                 .filter(Files.isRegularFile(_))
                 .filter { p =>
                   val name = p.getFileName.toString
@@ -777,10 +788,10 @@ object buildFromMavenPom {
                   content.map(c => internal.GeneratedFile(isResource, c, RelPath.relativeTo(genDir, file)))
                 }
                 .toVector
-            } finally fileStream.close()
+            finally fileStream.close()
           }
           .toVector
-      } finally subDirs.close()
+      finally subDirs.close()
     }
 
   private def sanitizeProjectName(artifactId: String): String =

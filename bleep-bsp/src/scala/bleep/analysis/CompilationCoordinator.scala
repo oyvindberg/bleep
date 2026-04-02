@@ -330,6 +330,7 @@ class CompilationCoordinator(
           compiler.compile(input, DiagnosticListener.noop, CancellationToken.never)
       }
     }
+
   /** Mixed Kotlin+Java compilation: Java first, then Kotlin.
     *
     * Java is compiled first so that Kotlin can resolve Java types from the output directory. This handles the common case of generated Java sources (Avro,

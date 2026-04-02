@@ -425,10 +425,37 @@ object KotlinSourceCompiler extends Compiler {
       val buildHistoryFile = cacheDir.resolve("build-history.bin").toFile
 
       val allConstructors = setup.incrementalRunnerClass.getDeclaredConstructors
-      debug(s"IncrementalJvmCompilerRunner constructors: ${allConstructors.map(c => s"(${c.getParameterCount} params: ${c.getParameterTypes.map(_.getSimpleName).mkString(", ")})").mkString("; ")}")
+      debug(
+        s"IncrementalJvmCompilerRunner constructors: ${allConstructors.map(c => s"(${c.getParameterCount} params: ${c.getParameterTypes.map(_.getSimpleName).mkString(", ")})").mkString("; ")}"
+      )
 
-      val runner = tryConstructRunner(allConstructors, 7, Array[Object](cacheDirFile, setup.buildReporterInstance.asInstanceOf[Object], buildHistoryFile, outputDirs, setup.classpathChangesInstance.asInstanceOf[Object], kotlinExtensions, icFeatures.asInstanceOf[Object]))
-        .orElse(tryConstructRunner(allConstructors, 6, Array[Object](cacheDirFile, setup.buildReporterInstance.asInstanceOf[Object], outputDirs, setup.classpathChangesInstance.asInstanceOf[Object], kotlinExtensions, icFeatures.asInstanceOf[Object])))
+      val runner = tryConstructRunner(
+        allConstructors,
+        7,
+        Array[Object](
+          cacheDirFile,
+          setup.buildReporterInstance.asInstanceOf[Object],
+          buildHistoryFile,
+          outputDirs,
+          setup.classpathChangesInstance.asInstanceOf[Object],
+          kotlinExtensions,
+          icFeatures.asInstanceOf[Object]
+        )
+      )
+        .orElse(
+          tryConstructRunner(
+            allConstructors,
+            6,
+            Array[Object](
+              cacheDirFile,
+              setup.buildReporterInstance.asInstanceOf[Object],
+              outputDirs,
+              setup.classpathChangesInstance.asInstanceOf[Object],
+              kotlinExtensions,
+              icFeatures.asInstanceOf[Object]
+            )
+          )
+        )
         .getOrElse {
           debug(s"No matching IncrementalJvmCompilerRunner constructor found, falling back to non-incremental compilation")
           return compileWithReflection(setup, config, sourceFiles, input, listener, cancellation)
@@ -711,8 +738,8 @@ object KotlinSourceCompiler extends Compiler {
 
   /** Apply additional compiler options to the K2JVMCompilerArguments object.
     *
-    * Uses the Kotlin compiler's own parseCommandLineArguments to handle all option formats (-X flags, etc.). Falls back to direct setter for
-    * -Xfriend-paths since it needs special handling as an Array<String>.
+    * Uses the Kotlin compiler's own parseCommandLineArguments to handle all option formats (-X flags, etc.). Falls back to direct setter for -Xfriend-paths
+    * since it needs special handling as an Array<String>.
     */
   private def applyCompilerOptions(setup: CachedCompilerSetup, arguments: Any, options: List[String]): Unit =
     if (options.nonEmpty) {

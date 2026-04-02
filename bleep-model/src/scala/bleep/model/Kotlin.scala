@@ -13,8 +13,8 @@ import io.circe.{Decoder, Encoder}
   * @param jvmTarget
   *   JVM bytecode target version (e.g., "11", "17", "21")
   * @param compilerPlugins
-  *   Kotlin compiler plugin IDs (e.g., "spring", "jpa", "allopen", "noarg", "serialization"). These are resolved to JARs at compile time using the
-  *   project's Kotlin version.
+  *   Kotlin compiler plugin IDs (e.g., "spring", "jpa", "allopen", "noarg", "serialization"). These are resolved to JARs at compile time using the project's
+  *   Kotlin version.
   * @param js
   *   Kotlin/JS specific configuration
   * @param native

@@ -178,9 +178,10 @@ object BleepBuildConverter {
               if (releaseIdx >= 0 && releaseIdx + 1 < opts.size) opts(releaseIdx + 1).toIntOption
               else if (sourceIdx >= 0 && sourceIdx + 1 < opts.size) opts(sourceIdx + 1).toIntOption
               else if (targetIdx >= 0 && targetIdx + 1 < opts.size) opts(targetIdx + 1).toIntOption
-              else opts.collectFirst {
-                case opt if opt.startsWith("--release=") => opt.stripPrefix("--release=").toIntOption
-              }.flatten
+              else
+                opts.collectFirst {
+                  case opt if opt.startsWith("--release=") => opt.stripPrefix("--release=").toIntOption
+                }.flatten
             }
             ProjectLanguage.Kotlin(
               kotlinVersion = kotlinVersion.kotlinVersion,
@@ -240,15 +241,16 @@ object BleepBuildConverter {
 
   /** Compute -Xfriend-paths for Kotlin test projects.
     *
-    * In Maven/Gradle, test sources are part of the same Kotlin module as main sources, so they can access `internal` members. In bleep, test projects
-    * are separate projects. The Kotlin compiler's -Xfriend-paths flag restores this access for the dependency's output directory.
+    * In Maven/Gradle, test sources are part of the same Kotlin module as main sources, so they can access `internal` members. In bleep, test projects are
+    * separate projects. The Kotlin compiler's -Xfriend-paths flag restores this access for the dependency's output directory.
     */
   private def computeFriendPaths(crossName: CrossProjectName, started: Started): List[String] =
     started.build.explodedProjects.get(crossName) match {
       case Some(project) =>
         project.dependsOn.values.flatMap { depName =>
           val depCrossName = CrossProjectName(depName, crossName.crossId)
-          val resolved = if (started.build.explodedProjects.contains(depCrossName)) Some(depCrossName) else started.build.explodedProjects.keys.find(_.name == depName)
+          val resolved =
+            if (started.build.explodedProjects.contains(depCrossName)) Some(depCrossName) else started.build.explodedProjects.keys.find(_.name == depName)
           resolved.flatMap { cn =>
             started.resolvedProjects.get(cn).flatMap { lazyResolved =>
               scala.util.Try(lazyResolved.forceGet).toOption.map(_.classesDir.toString)
@@ -274,9 +276,9 @@ object BleepBuildConverter {
     val xpluginOpt = List(s"-Xplugin=${pluginJarPaths.map(_.toString).mkString(",")}")
 
     val presetOpts = pluginIds.flatMap {
-      case "spring"     => List("-P", "plugin:org.jetbrains.kotlin.allopen:preset=spring")
-      case "jpa"        => List("-P", "plugin:org.jetbrains.kotlin.noarg:preset=jpa")
-      case _            => Nil
+      case "spring" => List("-P", "plugin:org.jetbrains.kotlin.allopen:preset=spring")
+      case "jpa"    => List("-P", "plugin:org.jetbrains.kotlin.noarg:preset=jpa")
+      case _        => Nil
     }
 
     xpluginOpt ++ presetOpts

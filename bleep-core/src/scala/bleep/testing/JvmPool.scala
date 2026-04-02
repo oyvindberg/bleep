@@ -253,46 +253,50 @@ object JvmPool {
     ): IO[ManagedJvm] = {
       val failures = spawnFailures.getOrElse(key, 0)
       if (failures >= MaxSpawnFailures) {
-        return IO.raiseError(new IOException(
-          s"Test JVM failed to start $failures consecutive times. This usually means the test runner jar " +
-            s"is incompatible with the project's JVM. Check that bleep-test-runner is published for the correct Java version."
-        ))
+        return IO.raiseError(
+          new IOException(
+            s"Test JVM failed to start $failures consecutive times. This usually means the test runner jar " +
+              s"is incompatible with the project's JVM. Check that bleep-test-runner is published for the correct Java version."
+          )
+        )
       }
       IO
-      .blocking {
-        val javaPath = jvmCommand
-        val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
+        .blocking {
+          val javaPath = jvmCommand
+          val cpString = classpath.map(_.toString).mkString(File.pathSeparator)
 
-        // On Windows, command-line length is limited to 32,767 characters.
-        // When the classpath is too long, pass it via CLASSPATH environment variable instead.
-        val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
+          // On Windows, command-line length is limited to 32,767 characters.
+          // When the classpath is too long, pass it via CLASSPATH environment variable instead.
+          val useEnvClasspath = scala.util.Properties.isWin && cpString.length > 30000
 
-        val cmd =
-          if (useEnvClasspath)
-            List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
-          else
-            List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
+          val cmd =
+            if (useEnvClasspath)
+              List(javaPath.toString) ++ jvmOptions ++ List(runnerClass)
+            else
+              List(javaPath.toString) ++ jvmOptions ++ List("-cp", cpString, runnerClass)
 
-        val pb = new ProcessBuilder(cmd: _*)
-        pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
-        pb.redirectErrorStream(false)
-        if (useEnvClasspath) {
-          pb.environment().put("CLASSPATH", cpString)
+          val pb = new ProcessBuilder(cmd: _*)
+          pb.directory(cwdOverride.getOrElse(workingDirectory).toFile)
+          pb.redirectErrorStream(false)
+          if (useEnvClasspath) {
+            pb.environment().put("CLASSPATH", cpString)
+          }
+          environment.foreach { case (k, v) => pb.environment().put(k, v) }
+
+          val process = pb.start()
+          val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
+          val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
+          val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
+
+          new ManagedJvm(process, stdin, stdout, stderr, key)
         }
-        environment.foreach { case (k, v) => pb.environment().put(k, v) }
-
-        val process = pb.start()
-        val stdin = new PrintWriter(new BufferedOutputStream(process.getOutputStream), true)
-        val stdout = new BufferedReader(new InputStreamReader(process.getInputStream))
-        val stderr = new BufferedReader(new InputStreamReader(process.getErrorStream))
-
-        new ManagedJvm(process, stdin, stdout, stderr, key)
-      }
-      .flatTap(jvm => allJvms.update(_ + jvm))
-      .flatTap(jvm => waitForReady(jvm).onError { case _ =>
-        IO { spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) } }
-      })
-      .flatTap(jvm => IO { spawnFailures.remove(jvm.key) }) // Reset on success
+        .flatTap(jvm => allJvms.update(_ + jvm))
+        .flatTap(jvm =>
+          waitForReady(jvm).onError { case _ =>
+            IO(spawnFailures.updateWith(jvm.key) { case Some(n) => Some(n + 1); case None => Some(1) })
+          }
+        )
+        .flatTap(jvm => IO(spawnFailures.remove(jvm.key))) // Reset on success
     }
 
     private def waitForReady(jvm: ManagedJvm): IO[Unit] =
