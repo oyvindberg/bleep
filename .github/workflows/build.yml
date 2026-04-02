@@ -164,6 +164,10 @@ jobs:
         run: bleep compile bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
+      - name: Restart compile server before publish (windows)
+        run: bleep config compile-server stop-all
+        shell: cmd
+        if: runner.os == 'Windows'
       - name: Publish locally (windows)
         run: bleep my-publish-local
         shell: cmd
