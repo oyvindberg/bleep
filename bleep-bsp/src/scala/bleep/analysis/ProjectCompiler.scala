@@ -422,8 +422,8 @@ object KotlinProjectCompiler extends ProjectCompiler {
   * This uses a minimal Scala 3 instance just for Zinc infrastructure, but all actual compilation is done by javac (or ECJ if specified).
   */
 object JavacProjectCompiler extends ProjectCompiler {
-  // Use Scala 3.7.4 to match bleep-bsp (from template-scala-3)
-  private val zincScalaVersion = "3.7.4"
+  // Use Scala 3.8.3 to match bleep-bsp (from template-scala-3)
+  private val zincScalaVersion = "3.8.3"
 
   def supports(language: ProjectLanguage): Boolean = language match {
     case _: ProjectLanguage.JavaOnly => true

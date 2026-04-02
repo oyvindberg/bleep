@@ -112,7 +112,7 @@ object TestResolver {
       )
       val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.logger, pre.cacheLogger, params)
       val cached = new TestResolver(underlying, inMemoryCache)
-      new CoursierResolver.TemplatedVersions(cached, maybeWantedBleepVersion = None)
+      new CoursierResolver.TemplatedVersions(cached, maybeWantedBleepVersion = None, buildDir = None)
     }
 
     try f(factory)

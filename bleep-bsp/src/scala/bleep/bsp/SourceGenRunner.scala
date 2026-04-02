@@ -8,8 +8,7 @@ import cats.effect.{Deferred, IO}
 
 import java.nio.file.{Files, Path}
 import java.time.Instant
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.{ConcurrentHashMap, Semaphore}
 import scala.collection.mutable
 
 /** Runs sourcegen scripts before compilation.
@@ -241,15 +240,18 @@ object SourceGenRunner {
       }
     }
 
-  /** Per-script locks to prevent concurrent runs of the same sourcegen script.
+  /** Per-script semaphores to prevent concurrent runs of the same sourcegen script.
     *
-    * When multiple BSP operations (compile, test) run concurrently and both need the same sourcegen script, the lock ensures only one runs it. The second
-    * waiter re-checks timestamps under the lock and skips if the first run already produced fresh outputs.
+    * When multiple BSP operations (compile, test) run concurrently and both need the same sourcegen script, the semaphore ensures only one runs it. The second
+    * waiter re-checks timestamps under the semaphore and skips if the first run already produced fresh outputs.
+    *
+    * Uses Semaphore instead of ReentrantLock because IO may run acquire and release on different threads, and ReentrantLock is thread-bound (only the owning
+    * thread can unlock).
     */
-  private val scriptLocks = new ConcurrentHashMap[String, ReentrantLock]()
+  private val scriptLocks = new ConcurrentHashMap[String, Semaphore]()
 
-  private def getScriptLock(scriptMain: String): ReentrantLock =
-    scriptLocks.computeIfAbsent(scriptMain, _ => new ReentrantLock())
+  private def getScriptLock(scriptMain: String): Semaphore =
+    scriptLocks.computeIfAbsent(scriptMain, _ => new Semaphore(1))
 
   /** Delete `.sourcegen-stamp` files from generated dirs so that timestamp-based staleness detection will re-run the script next time. */
   private def deleteStampFiles(
@@ -270,7 +272,7 @@ object SourceGenRunner {
       }
     }
 
-  /** Run a single sourcegen script, guarded by a per-script lock.
+  /** Run a single sourcegen script, guarded by a per-script semaphore.
     *
     * If another concurrent operation is already running this script, waits for it to complete, then re-checks timestamps. If outputs are now fresh, skips the
     * run entirely.
@@ -281,17 +283,17 @@ object SourceGenRunner {
       killSignal: Deferred[IO, KillReason],
       listener: SourceGenListener
   ): IO[Option[String]] = {
-    val lock = getScriptLock(scriptToRun.script.main)
-    IO.blocking(lock.lockInterruptibly()) >> {
-      // Re-check timestamps under lock — a concurrent run may have already produced fresh outputs
+    val sem = getScriptLock(scriptToRun.script.main)
+    IO.blocking(sem.acquire()) >> {
+      // Re-check timestamps under semaphore — a concurrent run may have already produced fresh outputs
       val stillNeeded = projectsNeedingRegeneration(started, scriptToRun.script, scriptToRun.forProjects)
       if (stillNeeded.isEmpty) {
         listener.onLog(s"Sourcegen ${scriptToRun.script.main} already up to date (concurrent run completed)", false)
-        IO.delay(lock.unlock()).as(None)
+        IO.blocking(sem.release()).as(None)
       } else {
         val updatedScriptToRun = ScriptToRun(scriptToRun.script, stillNeeded)
         runSingleScriptLocked(started, updatedScriptToRun, killSignal, listener)
-          .guarantee(IO.delay(lock.unlock()))
+          .guarantee(IO.blocking(sem.release()))
       }
     }
   }

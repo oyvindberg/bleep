@@ -1,6 +1,8 @@
 $schema: https://raw.githubusercontent.com/oyvindberg/bleep/master/schema.json
-$version: 1.0.0-M3
+$version: 1.0.0-M5
 jvm:
+  # TODO: graalvm-community:25.0.2 is not available for macos-15-intel (x86_64) in coursier's JVM index.
+  # Need to either wait for index update, pin x86 macOS to 25.0.1, or drop x86 macOS CI.
   name: graalvm-community:25.0.1
 resolvers:
   - https://packages.jetbrains.team/maven/p/ij/intellij-dependencies
@@ -153,10 +155,10 @@ projects:
     resources: ./src/main/resources
   bleep-bsp:
     dependencies:
-    - org.scala-lang::scala3-compiler:3.7.4
+    - org.scala-lang::scala3-compiler:3.8.3
     - org.jetbrains.kotlin:kotlin-compiler:2.3.0
     - org.jetbrains.kotlin:kotlin-metadata-jvm:2.3.0
-    - ch.epfl.scala::tasty-query:1.6.1
+    - ch.epfl.scala::tasty-query:1.7.0
     - org.ow2.asm:asm:9.7.1
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.32.0
     - com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.32.0
@@ -250,17 +252,12 @@ templates:
         -language:implicitConversions -unchecked
       strict: true
   template-cross-all:
-    cross:
-      jvm213:
-        scala:
-          options: -Xsource:3
-          version: 2.13.18
-      jvm3:
-        extends: template-scala-3
-    extends: template-common
+    extends:
+      - template-common
+      - template-scala-3
   template-parcollection-ok:
     libraryVersionSchemes: org.scala-lang.modules::scala-parallel-collections:always
   template-scala-3:
     scala:
       options: -source 3.4 -no-indent -Wconf:name=PatternMatchExhaustivity:error
-      version: 3.7.4
+      version: 3.8.3

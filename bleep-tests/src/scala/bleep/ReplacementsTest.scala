@@ -26,7 +26,7 @@ class ReplacementsTest extends AnyFunSuite with TripleEqualsSupport {
 
   test("dont template 2.13+ at the end of string") {
     val pre = "src/main/scala-2.13+"
-    val r = model.Replacements.versions(None, Some(model.VersionScala.Scala213), None, None, false, true)
+    val r = model.Replacements.versions(None, Some(model.VersionScala.Scala213), None, None, false, true, buildDir = None)
     val post = r.templatize.string(pre)
     assert(post === pre)
   }

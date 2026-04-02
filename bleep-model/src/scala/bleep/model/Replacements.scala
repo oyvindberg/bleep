@@ -145,7 +145,8 @@ object Replacements {
       platform: Option[PlatformId],
       platformVersion: Option[String],
       includeEpoch: Boolean,
-      includeBinVersion: Boolean
+      includeBinVersion: Boolean,
+      buildDir: Option[Path]
   ): Replacements =
     ofReplacements(
       List(
@@ -168,6 +169,8 @@ object Replacements {
           case None => Nil
         },
         bleepVersion match {
+          case Some(BleepVersion("dev")) if buildDir.isDefined =>
+            List(s"dev:${buildDir.get}" -> known.BleepVersion)
           case Some(value) => List(value.value -> known.BleepVersion)
           case None        => Nil
         }
@@ -177,7 +180,13 @@ object Replacements {
   // note: bleepVersion may not be the running version in the case of `--dev`
   // where the version found in the build is used instead.
   // this is so that bleep-task dependencies can be resolved.
-  def versions(bleepVersion: Option[BleepVersion], versionCombo: VersionCombo, includeEpoch: Boolean, includeBinVersion: Boolean): Replacements =
+  def versions(
+      bleepVersion: Option[BleepVersion],
+      versionCombo: VersionCombo,
+      includeEpoch: Boolean,
+      includeBinVersion: Boolean,
+      buildDir: Option[Path]
+  ): Replacements =
     versions(
       bleepVersion,
       scalaVersion = versionCombo.asScala.map(_.scalaVersion),
@@ -196,6 +205,7 @@ object Replacements {
         case VersionCombo.Native(_, scalaNative) => Some(scalaNative.scalaNativeVersion)
       },
       includeEpoch = includeEpoch,
-      includeBinVersion = includeBinVersion
+      includeBinVersion = includeBinVersion,
+      buildDir = buildDir
     )
 }

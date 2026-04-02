@@ -89,7 +89,8 @@ object buildFromBloopFiles {
 
       val versionCombo = model.VersionCombo.fromExplodedScalaAndPlatform(scalaVersion, configuredPlatform).orThrowTextWithContext(crossName)
 
-      val replacementsWithVersions = replacements ++ model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = true)
+      val replacementsWithVersions =
+        replacements ++ model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = true, buildDir = None)
 
       val sources: Sources = {
         val sourcesRelPaths = {
@@ -134,7 +135,7 @@ object buildFromBloopFiles {
         Sources(inferredSourceLayout, shortenedSourcesRelPaths, shortenedResourcesRelPaths)
       }
 
-      val depReplacements = model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = false)
+      val depReplacements = model.Replacements.versions(None, versionCombo, includeEpoch = false, includeBinVersion = false, buildDir = None)
       val (compilerPlugins, dependencies) = {
         val providedDeps = versionCombo.libraries(isTest = projectType.testLike)
         importDeps(
