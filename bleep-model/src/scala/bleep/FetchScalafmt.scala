@@ -15,7 +15,7 @@ object FetchScalafmt {
       case OsArch.MacosAmd64    => ScalafmtAsset("scalafmt-macos", isArchive = false)
       case OsArch.MacosArm64(_) => ScalafmtAsset("scalafmt-aarch64-apple-darwin.zip", isArchive = true)
       case OsArch.LinuxAmd64    => ScalafmtAsset("scalafmt-linux-musl", isArchive = false)
-      case OsArch.LinuxArm64   => ScalafmtAsset("scalafmt-aarch64-pc-linux.zip", isArchive = true)
+      case OsArch.LinuxArm64    => ScalafmtAsset("scalafmt-aarch64-pc-linux.zip", isArchive = true)
       case other                => throw new BleepException.Text(s"Sorry, no native scalafmt launcher for $other")
     }
 
