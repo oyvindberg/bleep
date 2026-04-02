@@ -23,7 +23,7 @@
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-javalib/1.19.0/scalajs-javalib-1.19.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-library_2.13/1.19.0/scalajs-library_2.13-1.19.0.jar",
       "<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-scalalib_2.13/2.13.16%2B1.19.0/scalajs-scalalib_2.13-2.13.16%2B1.19.0.jar",
-      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
+      "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
     ],
     "out": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js213",
     "classesDir": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js213/classes",
@@ -34,7 +34,7 @@
     "scala": {
       "organization": "org.scala-lang",
       "name": "scala-compiler",
-      "version": "2.13.10",
+      "version": "2.13.16",
       "options": [
         "-Wdead-code",
         "-Wextra-implicit",
@@ -68,7 +68,7 @@
         "-Xlint:stars-align",
         "-Xlint:strict-unsealed-patmat",
         "-Xlint:type-parameter-shadow",
-        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.10/1.19.0/scalajs-compiler_2.13.10-1.19.0.jar",
+        "-Xplugin:<COURSIER>/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.16/1.19.0/scalajs-compiler_2.13.16-1.19.0.jar",
         "-encoding",
         "utf8",
         "-feature",
@@ -79,12 +79,11 @@
         "-unchecked"
       ],
       "jars": [
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.10/scala-compiler-2.13.10.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.10/scala-reflect-2.13.10.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.12/java-diff-utils-4.12.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.21.0/jline-3.21.0.jar",
-        "<COURSIER>/https/repo1.maven.org/maven2/net/java/dev/jna/jna/5.9.0/jna-5.9.0.jar"
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.16/scala-compiler-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.13.16/scala-reflect-2.13.16.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar",
+        "<COURSIER>/https/repo1.maven.org/maven2/org/jline/jline/3.27.1/jline-3.27.1-jdk8.jar"
       ],
       "analysis": "<BLEEP_GIT>/snapshot-tests/create-new-build/bootstrapped/.bleep/builds/normal/.bloop/myapp/js213/inc_compile.zip",
       "setup": {
@@ -166,11 +165,11 @@
         {
           "organization": "org.scala-lang",
           "name": "scala-library",
-          "version": "2.13.10",
+          "version": "2.13.16",
           "artifacts": [
             {
               "name": "scala-library",
-              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar"
+              "path": "<COURSIER>/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.16/scala-library-2.13.16.jar"
             }
           ]
         },

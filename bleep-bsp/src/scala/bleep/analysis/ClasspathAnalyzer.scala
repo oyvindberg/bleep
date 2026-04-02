@@ -112,7 +112,16 @@ object ClasspathAnalyzer {
       .getFileSystem(java.net.URI.create("jrt:/"))
       .getPath("modules", "java.base")
 
-    val allPaths = classpath :+ jrtPath
+    // tasty-query needs scala-library on the context classpath to resolve
+    // scala.* types referenced in TASTy files. Find it from the JVM classpath.
+    val scalaLibs = System
+      .getProperty("java.class.path", "")
+      .split(java.io.File.pathSeparator)
+      .filter(p => p.contains("scala3-library") || p.contains("scala-library"))
+      .map(Path.of(_))
+      .filter(Files.exists(_))
+
+    val allPaths = classpath ++ scalaLibs :+ jrtPath
     val cp = ClasspathLoaders.read(allPaths.toList)
     tastyquery.Contexts.Context.initialize(cp)
   }

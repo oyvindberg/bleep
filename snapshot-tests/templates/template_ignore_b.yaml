@@ -20,7 +20,7 @@
   "templates" : {
     "template-common" : {
       "scala" : {
-        "version" : "2.13.10"
+        "version" : "2.13.16"
       }
     }
   }

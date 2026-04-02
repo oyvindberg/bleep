@@ -15,9 +15,9 @@ object InProcessBspServer {
     Resource.make(
       IO.blocking {
         // Create two pipe pairs for bidirectional communication
-        val serverIn = new PipedInputStream(65536)
+        val serverIn = new PipedInputStream(1048576)  // 1MB buffer to prevent deadlocks during sourcegen
         val clientOut = new PipedOutputStream(serverIn) // client writes -> server reads
-        val clientIn = new PipedInputStream(65536)
+        val clientIn = new PipedInputStream(1048576)   // 1MB buffer
         val serverOut = new PipedOutputStream(clientIn) // server writes -> client reads
 
         // Start BSP server in a daemon thread
