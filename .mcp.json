@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "bleep": {
+      "type": "stdio",
+      "command": "/Users/ingar/projects/oss/bleep/bleep-cli.sh",
+      "args": ["mcp-server"]
+    }
+  }
+}
