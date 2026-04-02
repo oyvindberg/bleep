@@ -89,6 +89,7 @@ object ZincBridge {
   private case class NoopManifest(
       sourceStats: Map[Path, FileStatEntry],
       sourceDirStats: Map[Path, FileStatEntry], // source dir → stat (detects file add/delete)
+      outputDirStats: Map[Path, FileStatEntry], // output dir + subdirs → stat (detects class file add/delete)
       depAnalysisStats: Map[Path, Long], // outputDir → dep analysis mtime millis
       optionsHash: Long,
       cachedResult: ProjectCompileSuccess
@@ -99,7 +100,7 @@ object ZincBridge {
     !System.getProperty("os.name", "").toLowerCase.contains("win")
 
   private val NoopManifestMagic: Int = 0x4e4f4f50
-  private val NoopManifestVersion: Byte = 2
+  private val NoopManifestVersion: Byte = 3
 
   private val debugLogFile = Path.of(System.getProperty("user.home"), ".bleep", "zinc-debug.log")
   private val debugEnabled = System.getProperty("bleep.zinc.debug", "false").toBoolean
@@ -230,8 +231,29 @@ object ZincBridge {
       }
     }
 
-    // Output directory exists — bleep clean deletes it while BSP server keeps stale in-memory cache
-    if (!Files.isDirectory(manifest.cachedResult.outputDir)) {
+    // Output validation: verify that output directories haven't changed.
+    // Directory mtime changes when files are added/deleted/renamed (POSIX guarantee).
+    // This catches: bleep clean, manual rm, individual class file deletion, external tools.
+    // Much cheaper than checking individual class files (5-20 dirs vs hundreds/thousands of files).
+    if (manifest.outputDirStats.isEmpty) {
+      // No output dirs recorded (empty compile or old manifest) — skip check
+    } else {
+      val outIter = manifest.outputDirStats.iterator
+      while (outIter.hasNext) {
+        val (dir, expected) = outIter.next()
+        if (!Files.isDirectory(dir)) {
+          noopManifestCache.remove(analysisFile)
+          return None
+        }
+        val stat = statFile(dir)
+        if (stat.ctimeMillis != expected.ctimeMillis || stat.mtimeMillis != expected.mtimeMillis) {
+          noopManifestCache.remove(analysisFile)
+          return None
+        }
+      }
+    }
+    // Also verify analysis file still exists
+    if (!Files.exists(analysisFile)) {
       noopManifestCache.remove(analysisFile)
       return None
     }
@@ -414,12 +436,26 @@ object ZincBridge {
       outputDir -> mtime
     }
 
+    // Stat output directories (outputDir + all subdirs).
+    // Directory mtime changes on file add/delete — catches class file deletion cheaply.
+    val outputDirStatsMap: Map[Path, FileStatEntry] =
+      if (Files.isDirectory(result.outputDir)) {
+        import scala.jdk.CollectionConverters.*
+        val dirs = scala.util
+          .Using(Files.walk(result.outputDir)) { stream =>
+            stream.iterator().asScala.filter(Files.isDirectory(_)).toArray
+          }
+          .getOrElse(Array.empty[Path])
+        dirs.map(d => d -> statFile(d)).toMap
+      } else Map.empty
+
     val manifest = NoopManifest(
       sourceStats = {
         import scala.jdk.CollectionConverters.*
         sourceStats.asScala.toMap
       },
       sourceDirStats = sourceDirStatsMap,
+      outputDirStats = outputDirStatsMap,
       depAnalysisStats = depStats,
       optionsHash = computeOptionsHash(language, ecjVersion),
       cachedResult = result
@@ -455,6 +491,15 @@ object ZincBridge {
       // Source directories
       out.writeInt(manifest.sourceDirStats.size)
       manifest.sourceDirStats.foreach { case (dir, stat) =>
+        out.writeUTF(dir.toString)
+        out.writeLong(stat.ctimeMillis)
+        out.writeLong(stat.mtimeMillis)
+        out.writeLong(stat.size)
+      }
+
+      // Output directories
+      out.writeInt(manifest.outputDirStats.size)
+      manifest.outputDirStats.foreach { case (dir, stat) =>
         out.writeUTF(dir.toString)
         out.writeLong(stat.ctimeMillis)
         out.writeLong(stat.mtimeMillis)
@@ -526,6 +571,20 @@ object ZincBridge {
         i += 1
       }
 
+      // Output directories
+      val outDirCount = in.readInt()
+      val outputDirStatsBuilder = Map.newBuilder[Path, FileStatEntry]
+      outputDirStatsBuilder.sizeHint(outDirCount)
+      i = 0
+      while (i < outDirCount) {
+        val dir = Path.of(in.readUTF())
+        val outCtime = in.readLong()
+        val outMtime = in.readLong()
+        val outSize = in.readLong()
+        outputDirStatsBuilder += dir -> FileStatEntry(outCtime, outMtime, outSize)
+        i += 1
+      }
+
       // Dependency analyses
       val depCount = in.readInt()
       val depStatsBuilder = Map.newBuilder[Path, Long]
@@ -555,6 +614,7 @@ object ZincBridge {
         NoopManifest(
           sourceStats = sourceStatsBuilder.result(),
           sourceDirStats = sourceDirStatsBuilder.result(),
+          outputDirStats = outputDirStatsBuilder.result(),
           depAnalysisStats = depStatsBuilder.result(),
           optionsHash = optionsHash,
           cachedResult = ProjectCompileSuccess(outputDir, classFilesBuilder.result(), cachedAnalysisFile)
