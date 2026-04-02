@@ -1,0 +1,69 @@
+
+# GitLab Package Registry
+
+## Setup
+
+1. Install [GitLab CLI](https://gitlab.com/gitlab-org/cli)
+2. Run `glab auth login`
+3. Add a named resolver to your `bleep.yaml`:
+
+```yaml
+resolvers:
+  - name: internal
+    type: maven
+    uri: gitlab://gitlab.com/api/v4/projects/12345/packages/maven
+```
+
+For self-hosted GitLab:
+
+```yaml
+resolvers:
+  - name: internal
+    type: maven
+    uri: gitlab://gitlab.mycompany.com/api/v4/projects/12345/packages/maven
+```
+
+No bleep auth configuration needed — `glab` handles it.
+
+## Resolving dependencies
+
+```yaml
+resolvers:
+  - name: internal
+    type: maven
+    uri: gitlab://gitlab.com/api/v4/projects/12345/packages/maven
+
+projects:
+  myapp:
+    dependencies:
+      - com.mycompany:internal-lib:1.0.0
+```
+
+Credentials come from `glab auth token` and are sent as a `Private-Token` header.
+
+## Publishing
+
+```bash
+bleep publish internal              # all publishable projects
+bleep publish internal mylib        # specific project
+```
+
+Bleep rewrites `gitlab://` to `https://`, authenticates with the `Private-Token` header, and uploads via HTTP PUT.
+
+### Self-hosted GitLab
+
+The `glab` CLI handles auth for self-hosted instances if configured:
+
+```bash
+glab auth login --hostname gitlab.mycompany.com
+```
+
+## Troubleshooting
+
+### "glab not found"
+
+Install the GitLab CLI from https://gitlab.com/gitlab-org/cli, then run `glab auth login`.
+
+### "GitLab CLI not authenticated"
+
+Run `glab auth login`. For self-hosted: `glab auth login --hostname gitlab.mycompany.com`.

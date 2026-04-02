@@ -166,7 +166,8 @@ object BuildCreateNew {
           testFrameworks = model.JsonSet.empty,
           sourcegen = model.JsonSet.empty,
           libraryVersionSchemes = model.JsonSet.empty,
-          ignoreEvictionErrors = None
+          ignoreEvictionErrors = None,
+          publish = None
         )
         (crossName, p)
       }
@@ -198,7 +199,8 @@ object BuildCreateNew {
           testFrameworks = model.JsonSet.empty,
           sourcegen = model.JsonSet.empty,
           libraryVersionSchemes = model.JsonSet.empty,
-          ignoreEvictionErrors = None
+          ignoreEvictionErrors = None,
+          publish = None
         )
         (crossName, p)
       }

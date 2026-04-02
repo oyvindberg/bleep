@@ -548,6 +548,9 @@
           "description": "Controls how dependency eviction conflicts are handled. 'yes' ignores all eviction errors, 'warn' converts them to warnings, 'no' fails on eviction errors. Default is 'no'.",
           "type": "string",
           "enum": ["yes", "warn", "no"]
+        },
+        "publish": {
+          "$ref": "#/$defs/PublishConfig"
         }
       }
     },
@@ -586,6 +589,92 @@
           "$ref": "#/$defs/ScriptMain"
         }
       ]
+    },
+    "PublishDeveloper": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Developer identifier" },
+        "name": { "type": "string", "description": "Developer display name" },
+        "url": { "type": "string", "description": "Developer URL (e.g. GitHub profile)" }
+      },
+      "required": ["id", "name", "url"]
+    },
+    "PublishLicense": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "License name (e.g. MIT, Apache-2.0)" },
+        "url": { "type": "string", "description": "License URL" },
+        "distribution": { "type": "string", "description": "Distribution method (e.g. repo)" }
+      },
+      "required": ["name"]
+    },
+    "PublishConfig": {
+      "type": "object",
+      "description": "Publishing configuration. Presence marks a project as publishable. All fields merge through templates.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set to false to opt out of publishing while inheriting other publish fields from a template"
+        },
+        "groupId": {
+          "type": "string",
+          "description": "Maven groupId (required for publishing)"
+        },
+        "description": {
+          "type": "string",
+          "description": "Project description for POM"
+        },
+        "url": {
+          "type": "string",
+          "description": "Project homepage URL for POM"
+        },
+        "organization": {
+          "type": "string",
+          "description": "Organization name for POM"
+        },
+        "developers": {
+          "description": "Project developers for POM",
+          "oneOf": [
+            { "$ref": "#/$defs/PublishDeveloper" },
+            { "type": "array", "items": { "$ref": "#/$defs/PublishDeveloper" } }
+          ]
+        },
+        "licenses": {
+          "description": "Project licenses for POM",
+          "oneOf": [
+            { "$ref": "#/$defs/PublishLicense" },
+            { "type": "array", "items": { "$ref": "#/$defs/PublishLicense" } }
+          ]
+        },
+        "sonatypeProfileName": {
+          "type": "string",
+          "description": "Sonatype staging profile name (defaults to groupId)"
+        },
+        "sonatypeCredentialHost": {
+          "type": "string",
+          "description": "Sonatype API host (defaults to central.sonatype.com)"
+        }
+      }
+    },
+    "Repository": {
+      "description": "A Maven, Ivy, or local repository for dependency resolution",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Maven repository URI (simple form)"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["maven", "ivy", "maven-folder"] },
+            "name": { "type": "string", "description": "Resolver name for referencing in publish commands and auth config" },
+            "uri": { "type": "string", "description": "Repository URI (for maven and ivy types). Supports artifactregistry://, github://, gitlab:// schemes" },
+            "path": { "type": "string", "description": "Local path (for maven-folder type)" }
+          },
+          "required": ["type"]
+        }
+      ]
     }
   },
   "properties": {
@@ -613,6 +702,13 @@
       "additionalProperties": {
         "$ref": "#/$defs/Project"
       }
+    },
+    "resolvers": {
+      "description": "Additional Maven/Ivy repositories for dependency resolution. Supports private repos with artifactregistry://, github://, gitlab:// schemes.",
+      "oneOf": [
+        { "$ref": "#/$defs/Repository" },
+        { "type": "array", "items": { "$ref": "#/$defs/Repository" } }
+      ]
     }
   },
   "required": [

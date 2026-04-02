@@ -110,7 +110,8 @@ object TestResolver {
         authentications = None,
         repos = resolvers
       )
-      val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.logger, pre.cacheLogger, params)
+      val credentialProvider = new CredentialProvider(pre.logger, None)
+      val underlying = if (isCi) NoDownloadInCI(params) else new CoursierResolver.Direct(pre.logger, pre.cacheLogger, params, credentialProvider)
       val cached = new TestResolver(underlying, inMemoryCache)
       new CoursierResolver.TemplatedVersions(cached, maybeWantedBleepVersion = None, buildDir = None)
     }

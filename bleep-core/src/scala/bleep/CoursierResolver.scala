@@ -104,8 +104,9 @@ object CoursierResolver {
           case model.BuildVariant.Rewritten(_) => false
         }
 
+        val credentialProvider = new CredentialProvider(pre.logger, config.authentications)
         val params = Params(None, downloadSources, config.authentications, resolvers)
-        val direct = new Direct(pre.logger, pre.cacheLogger, params)
+        val direct = new Direct(pre.logger, pre.cacheLogger, params, credentialProvider)
         val cached = new Cached(pre.logger, direct, pre.userPaths.resolveCacheDir)
         new TemplatedVersions(cached, Some(buildFile.$version), Some(pre.buildPaths.buildDir))
       }
@@ -162,25 +163,58 @@ object CoursierResolver {
     // format: on
   }
 
-  def coursierRepos(repos: List[model.Repository], authentications: Option[model.Authentications]): List[Repository] =
+  def coursierRepos(
+      repos: List[model.Repository],
+      authentications: Option[model.Authentications],
+      credentialProvider: CredentialProvider,
+      logger: Logger
+  ): List[Repository] = {
+    def tryResolvePrivateAuth(scheme: model.PrivateRepoScheme, uri: java.net.URI): Option[coursier.core.Authentication] =
+      try Some(credentialProvider.resolve(scheme, uri))
+      catch {
+        case e: BleepException =>
+          logger.warn(s"Could not acquire credentials for ${scheme.displayName} resolver ${uri}: ${e.message}")
+          logger.warn(s"  Dependencies from this resolver will fail. Run '${scheme.cliCommand} auth login' to authenticate.")
+          None
+      }
+
     (repos ++ constants.DefaultRepos).map {
       case bleep.model.Repository.MavenFolder(_, path) =>
         SbtMavenRepository(path.toUri.toString)
       case bleep.model.Repository.Maven(_, uri) =>
-        SbtMavenRepository(uri.toString).withAuthentication(authentications.flatMap(_.configs.get(uri)))
+        val (resolvedUri, auth) = model.PrivateRepoScheme.fromUri(uri) match {
+          case Some(scheme) =>
+            (scheme.toHttpsUri(uri), tryResolvePrivateAuth(scheme, uri))
+          case None =>
+            val staticAuth = authentications.flatMap(
+              _.configs.get(uri).collect { case model.AuthEntry.Static(a) => a }
+            )
+            (uri, staticAuth)
+        }
+        SbtMavenRepository(resolvedUri.toString).withAuthentication(auth)
       case bleep.model.Repository.Ivy(_, uri) =>
-        IvyRepository.fromPattern(uri.toString +: coursier.ivy.Pattern.default).withAuthentication(authentications.flatMap(_.configs.get(uri)))
+        val (resolvedUri, auth) = model.PrivateRepoScheme.fromUri(uri) match {
+          case Some(scheme) =>
+            (scheme.toHttpsUri(uri), tryResolvePrivateAuth(scheme, uri))
+          case None =>
+            val staticAuth = authentications.flatMap(
+              _.configs.get(uri).collect { case model.AuthEntry.Static(a) => a }
+            )
+            (uri, staticAuth)
+        }
+        IvyRepository.fromPattern(resolvedUri.toString +: coursier.ivy.Pattern.default).withAuthentication(auth)
     }
+  }
 
   case class InvalidVersionCombo(message: String) extends CoursierError(message)
 
-  class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params) extends CoursierResolver {
+  class Direct(logger: Logger, val cacheLogger: BleepCacheLogger, val params: Params, credentialProvider: CredentialProvider) extends CoursierResolver {
 
     val fileCache = FileCache[Task](params.overrideCacheFolder.getOrElse(CacheDefaults.location)).withLogger(cacheLogger)
-    val repos = coursierRepos(params.repos, params.authentications)
+    lazy val repos = coursierRepos(params.repos, params.authentications, credentialProvider, logger)
 
     override def withParams(newParams: Params): CoursierResolver =
-      new Direct(logger, cacheLogger, newParams)
+      new Direct(logger, cacheLogger, newParams, credentialProvider)
 
     override def direct(
         bleepDeps: SortedSet[model.Dep],

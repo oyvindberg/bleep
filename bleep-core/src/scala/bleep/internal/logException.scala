@@ -9,7 +9,7 @@ object logException {
     throwable match {
       case buildException: BleepException =>
         logger.debug(context, buildException)
-        logger.error(s"$context: ${Throwables.messagesFrom(buildException).mkString(": ")}")
+        logger.error(Throwables.messagesFrom(buildException).mkString(": "))
       case unexpected =>
         logger.error(context, unexpected)
     }

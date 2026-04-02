@@ -233,7 +233,8 @@ object buildFromMavenPom {
       testFrameworks = model.JsonSet.empty[model.TestFrameworkName],
       sourcegen = model.JsonSet.empty[model.ScriptDef],
       libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
-      ignoreEvictionErrors = None
+      ignoreEvictionErrors = None,
+      publish = None
     )
     result += (mainCrossName -> mainProject)
 
@@ -269,7 +270,8 @@ object buildFromMavenPom {
         testFrameworks = testFrameworks,
         sourcegen = model.JsonSet.empty[model.ScriptDef],
         libraryVersionSchemes = model.JsonSet.empty[model.LibraryVersionScheme],
-        ignoreEvictionErrors = None
+        ignoreEvictionErrors = None,
+        publish = None
       )
       result += (testCrossName -> testProject)
     }
@@ -678,8 +680,10 @@ object buildFromMavenPom {
     }
 
     val repos = CoursierResolver.coursierRepos(
-      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty), URI.create(r.url))),
-      None
+      mavenProject.repositories.map(r => model.Repository.Maven(Some(r.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(r.url))),
+      None,
+      new CredentialProvider(logger, None),
+      logger
     )
 
     val resolution =
@@ -698,7 +702,7 @@ object buildFromMavenPom {
       .filterNot(repo => defaultRepoUrls.contains(repo.url) || defaultRepoUrls.contains(repo.url + "/"))
       .filterNot(_.id == "central")
       .map { repo =>
-        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty), URI.create(repo.url)): model.Repository
+        model.Repository.Maven(Some(repo.id).filter(_.nonEmpty).map(model.ResolverName.apply), URI.create(repo.url)): model.Repository
       }
     model.JsonList(repos)
   }
