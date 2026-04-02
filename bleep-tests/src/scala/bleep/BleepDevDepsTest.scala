@@ -31,7 +31,9 @@ class BleepDevDepsTest extends AnyFunSuite with TripleEqualsSupport {
 
     BleepDevDeps.transitiveBleepDeps.foreach { case (artifactName, expectedTransitiveDeps) =>
       val crossName = BleepDevDeps.artifacts(artifactName)
-      val actualTransitiveDeps = build.transitiveDependenciesFor(crossName).keySet
+      val actualTransitiveDeps = build
+        .transitiveDependenciesFor(crossName)
+        .keySet
         .map(_.name.value)
         .filter(artifactNameSet.contains)
 

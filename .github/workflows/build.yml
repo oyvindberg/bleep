@@ -25,24 +25,25 @@ jobs:
         with:
           extraFiles: bleep.yaml
 
-      - name: Scalafmt Check
+      - name: Bootstrap dev script
         run: |
+          # Run sourcegen first so outputs are fresh — avoids the BSP server
+          # triggering sourcegen during compile (which can hit threading bugs
+          # in the released BSP server)
+          bleep sourcegen
           bleep compile bleep-cli
+          # publish locally so the dev script's BSP server uses our code
+          bleep my-publish-local
+          bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
-          ./bleep-cli.sh --dev fmt --check
+
+      - name: Scalafmt Check
+        run: ./bleep-cli.sh --dev fmt --check
 
       - name: Run tests
         env:
           CI: true
-        run: |
-          bleep compile
-          bleep sourcegen
-          # publish locally so test runner and bsp server are available
-          bleep my-publish-local
-          # stop compile server since the compile server itself may have changed
-          bleep config compile-server stop-all
-          bleep setup-dev-script bleep-cli
-          ./bleep-cli.sh --dev test
+        run: ./bleep-cli.sh --dev test
 
   yaml-ls-check:
     runs-on: ubuntu-latest
@@ -137,11 +138,9 @@ jobs:
 
       - name: Build native image (non-windows)
         run: |
-          bleep compile bleep-cli
           bleep sourcegen
-          # publish locally so test runner and bsp server are available
+          bleep compile bleep-cli
           bleep my-publish-local
-          # stop compile server since the compile server itself may have changed
           bleep config compile-server stop-all
           bleep setup-dev-script bleep-cli
           ./bleep-cli.sh --dev native-image ${{ matrix.file_name }}
@@ -157,16 +156,12 @@ jobs:
         if: runner.os != 'Windows' && matrix.run_tests
 
         # Windows: cmd shell, one command per step
-      - name: Compile (windows)
-        run: bleep compile bleep-cli
-        shell: cmd
-        if: runner.os == 'Windows'
-      - name: Restart compile server before sourcegen (windows)
-        run: bleep config compile-server stop-all
-        shell: cmd
-        if: runner.os == 'Windows'
       - name: Sourcegen (windows)
         run: bleep sourcegen
+        shell: cmd
+        if: runner.os == 'Windows'
+      - name: Compile (windows)
+        run: bleep compile bleep-cli
         shell: cmd
         if: runner.os == 'Windows'
       - name: Publish locally (windows)
@@ -247,8 +242,8 @@ jobs:
         uses: battila7/get-version-action@v2
       - name: Publish bleep-bsp and test-runner locally
         run: |
-          bleep compile bleep-cli
           bleep sourcegen
+          bleep compile bleep-cli
           bleep my-publish-local
           bleep config compile-server stop-all
       - name: Download artifacts

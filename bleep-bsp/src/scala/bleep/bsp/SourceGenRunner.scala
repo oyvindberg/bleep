@@ -245,8 +245,8 @@ object SourceGenRunner {
     * When multiple BSP operations (compile, test) run concurrently and both need the same sourcegen script, the semaphore ensures only one runs it. The second
     * waiter re-checks timestamps under the semaphore and skips if the first run already produced fresh outputs.
     *
-    * Uses Semaphore instead of ReentrantLock because IO may run acquire and release on different threads,
-    * and ReentrantLock is thread-bound (only the owning thread can unlock).
+    * Uses Semaphore instead of ReentrantLock because IO may run acquire and release on different threads, and ReentrantLock is thread-bound (only the owning
+    * thread can unlock).
     */
   private val scriptLocks = new ConcurrentHashMap[String, Semaphore]()
 
