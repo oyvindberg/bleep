@@ -1336,18 +1336,22 @@ object FancyBuildDisplay {
   }
 
   private def renderScrollIndicator(f: Frame, area: Rect, totalItems: Int, offset: Int, maxVisible: Int): Unit = {
-    if (totalItems <= maxVisible) return
+    if (totalItems <= maxVisible || area.height < 3) return
     val trackHeight = math.max(1, area.height - 2) // inside borders
     val thumbHeight = math.max(1, (maxVisible.toDouble / totalItems * trackHeight).toInt)
     val maxOffset = totalItems - maxVisible
     val thumbPos = if (maxOffset > 0) ((offset.toDouble / maxOffset) * (trackHeight - thumbHeight)).toInt else 0
     val x = area.right - 1 // right border column
     val yStart = area.top + 1 // skip top border
+    val bufArea = f.buffer.area
     for (i <- 0 until trackHeight) {
-      val inThumb = i >= thumbPos && i < thumbPos + thumbHeight
-      val ch = if (inThumb) "\u2503" else "\u2502" // ┃ for thumb, │ for track
-      val style = if (inThumb) s(Palette.info) else s(Palette.border)
-      f.buffer.setString(x, yStart + i, ch, style)
+      val y = yStart + i
+      if (x >= 0 && x < bufArea.width && y >= 0 && y < bufArea.height) {
+        val inThumb = i >= thumbPos && i < thumbPos + thumbHeight
+        val ch = if (inThumb) "\u2503" else "\u2502" // ┃ for thumb, │ for track
+        val style = if (inThumb) s(Palette.info) else s(Palette.border)
+        f.buffer.setString(x, y, ch, style)
+      }
     }
   }
 
